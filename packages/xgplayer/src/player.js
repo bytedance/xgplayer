@@ -9,7 +9,7 @@ import Plugin, { pluginsManager, BasePlugin } from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
-import hooksDescriptor, { runHooks } from './plugin/hooksDescriptor'
+import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 
@@ -17,7 +17,7 @@ import I18N from './lang'
 import version from './version'
 
 /* eslint-disable camelcase */
-const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
+const PlAYER_HOOKS = ['play']
 
 class Player extends VideoProxy {
   constructor (options) {
@@ -30,13 +30,14 @@ class Player extends VideoProxy {
     this.config = config
     bindDebug(this)
     // resolve default preset
+    const defaultPreset = this.constructor.defaultPreset
     if (this.config.presets.length) {
       const defaultIdx = this.config.presets.indexOf('default')
-      if (defaultIdx >= 0 && Player.defaultPreset) {
-        this.config.presets[defaultIdx] = Player.defaultPreset
+      if (defaultIdx >= 0 && defaultPreset) {
+        this.config.presets[defaultIdx] = defaultPreset
       }
-    } else if (Player.defaultPreset) {
-      this.config.presets.push(Player.defaultPreset)
+    } else if (defaultPreset) {
+      this.config.presets.push(defaultPreset)
     }
 
     // timer and flags
@@ -545,21 +546,23 @@ class Player extends VideoProxy {
     return playPromise
   }
 
-  videoPause () {
-    super.pause()
-  }
-
   play () {
     this.removeClass(STATE_CLASS.PAUSED)
-    runHooks(this, 'play', () => {
-      this.videoPlay()
-    })
-  }
-
-  pause () {
-    runHooks(this, 'pause', () => {
-      super.pause()
-    })
+    const { __hooks } = this
+    if (__hooks && __hooks.play) {
+      const ret = __hooks.play.call(this)
+      if (ret && ret.then) {
+        ret.then(() => {
+          return this.videoPlay()
+        }).catch(e => {
+          return this.videoPlay()
+        })
+      } else {
+        return this.videoPlay()
+      }
+    } else {
+      return this.videoPlay()
+    }
   }
 
   seek (time) {
@@ -649,33 +652,29 @@ class Player extends VideoProxy {
 
   replay () {
     this.removeClass(STATE_CLASS.ENDED)
+    this.once(Events.CANPLAY, () => {
+      const playPromise = this.play()
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(err => {
+          console.log(err)
+        })
+      }
+    })
     this.currentTime = 0
     this.isSeeking = false
-    runHooks(this, 'replay', () => {
-      this.once(Events.CANPLAY, () => {
-        const playPromise = this.play()
-        if (playPromise && playPromise.catch) {
-          playPromise.catch(err => {
-            console.log(err)
-          })
-        }
-      })
-      this.play()
-      this.emit(Events.REPLAY)
-      this.onPlay()
-    })
+    this.play()
+    this.emit(Events.REPLAY)
+    this.onPlay()
   }
 
   retry () {
     this.removeClass(STATE_CLASS.ERROR)
     this.addClass(STATE_CLASS.LOADING)
-    runHooks(this, 'retry', () => {
-      const cur = this.currentTime
-      this.pause()
-      this.src = this.config.url
-      this.currentTime = cur
-      this.play()
-    })
+    const cur = this.currentTime
+    this.pause()
+    this.src = this.config.url
+    this.currentTime = cur
+    this.play()
   }
 
   changeFullStyle (root, el, className) {
@@ -1031,10 +1030,6 @@ class Player extends VideoProxy {
   get cumulateTime () {
     const { acc, end, begin } = this._played
     return begin > -1 && end > begin ? (acc + end - begin) / 1000 : acc / 1000
-  }
-
-  get buffered2 () {
-    return Util.getBuffered2(this.video.buffered)
   }
 
   /***
