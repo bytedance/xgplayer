@@ -274,7 +274,7 @@ class Progress extends Plugin {
       this.updateWidth(ret.currentTime, ret.percent, 2)
       this.triggerCallbacks('dragend', ret)
     } else {
-      this.updateWidth(ret.currentTime, ret.percent, 2)
+      // this.updateWidth(ret.currentTime, ret.percent, 2)
       this.triggerCallbacks('click', ret)
     }
 

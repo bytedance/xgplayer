@@ -34,7 +34,13 @@ class Danmu extends Plugin {
       switchConfig: {}, // 开关按钮配置信息
       defaultOpen: true, // 是否默认开启弹幕
       isLive: false, // 是否是直播
-      ext: {}
+      channelSize: 24, // 默认24px
+      fontSize: 14, // 默认12
+      opacity: 1, // 透明度
+      mouseControl: false, // 打开鼠标控制, 打开后可监听到 bullet_hover 事件。danmu.on('bullet_hover', function (data) {})
+      mouseControlPause: false, // 鼠标触摸暂停。mouseControl: true 生效
+      ext: {},
+      style: {}
     }
   }
 
@@ -59,7 +65,11 @@ class Danmu extends Plugin {
 
     this.on(Events.SEEKING, () => {
       this.seekCost = window.performance.now()
-      this.danmujs && this.danmujs.stop()
+      !this.config.isLive && this.danmujs && this.danmujs.stop()
+    })
+
+    this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE, Events.MINI_STATE_CHANGE], () => {
+      this.resize()
     })
 
     this.on(Events.SEEKED, () => {
@@ -94,13 +104,16 @@ class Danmu extends Plugin {
 
   initDanmu () {
     const { player, config } = this
+    const { channelSize, fontSize, opacity, mouseControl, mouseControlPause, area, defaultOff } = this.config
     const danmuConfig = {
       container: this.root,
       player: player.video,
       comments: this.config.comments,
-      area: config.area,
-      defaultOff: config.defaultOff,
-      live: config.isLive
+      live: config.isLive,
+      defaultOff,
+      area,
+      mouseControl,
+      mouseControlPause
     }
     if (config.ext) {
       Object.keys(config.ext).map(key => {
@@ -109,7 +122,11 @@ class Danmu extends Plugin {
     }
     const danmu = new DanmuJs(danmuConfig)
     this.danmujs = danmu
-    player.danmu = this.danmujs = danmu
+    player.danmu = danmu
+    this.setFontSize(fontSize, channelSize)
+    this.setArea(area)
+    this.resize()
+    opacity !== 1 && this.setOpacity(opacity)
   }
 
   registerExtIcons () {
@@ -159,6 +176,7 @@ class Danmu extends Plugin {
     }
     this.isUseClose = false
     this.show()
+    this.resize()
     // 避免弹幕弹层还没展开 导致轨道计算异常
     Util.setTimeout(this, () => {
       this.danmujs.start()
@@ -176,8 +194,14 @@ class Danmu extends Plugin {
     // 用户行为关闭弹幕
     this.isUseClose = true
     this.danmujs.stop()
+    this.config.isLive && this.clear()
     this.isOpen = false
     this.hide()
+  }
+
+  // 清除当前弹幕池中的弹幕数据
+  clear () {
+    this.danmujs && this.danmujs.clear()
   }
 
   setCommentLike (id, data) {
@@ -222,6 +246,10 @@ class Danmu extends Plugin {
   // 设置字体
   setFontSize (size, channelSize) {
     this.danmujs && this.danmujs.setFontSize(size, channelSize)
+  }
+
+  resize () {
+    this.danmujs && this.danmujs.resize()
   }
 
   sendComment (comments) {

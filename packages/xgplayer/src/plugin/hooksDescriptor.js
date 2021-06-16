@@ -1,4 +1,3 @@
-
 function callHandler (obj, handler, next, ...args) {
   const ret = handler.call(obj, ...args)
   if (!next || typeof next !== 'function') {
@@ -72,7 +71,8 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
  */
 function useHooks (hookName, handler) {
   const { __hooks } = this
-  if (!__hooks[hookName]) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (!__hooks.hasOwnProperty(hookName)) {
     console.warn(`has no supported hook which name [${hookName}]`)
     return false
   }

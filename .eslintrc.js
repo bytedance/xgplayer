@@ -16,13 +16,15 @@ module.exports = {
     'standard'
   ],
   rules: {
+    'array-callback-return': 0
+    // allowImplicit: false
   },
-  'overrides': [
+  overrides: [
     {
-      'files': ['packages/**/**.js'],
-      'globals': {
-        'fetch': true,
-        'Headers': true
+      files: ['packages/**/**.js'],
+      globals: {
+        fetch: true,
+        Headers: true
       }
     }
   ]
