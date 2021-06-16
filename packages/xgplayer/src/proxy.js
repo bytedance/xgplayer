@@ -256,7 +256,7 @@ class Proxy {
       return ret
     }
     for (let i = 0; i < _buffered.length; i++) {
-      if (_buffered.start(i) <= this.currentTime && _buffered.end(i) >= this.currentTime) {
+      if ((_buffered.start(i) <= this.currentTime || _buffered.start(i) < 0.1) && _buffered.end(i) >= this.currentTime) {
         return {
           start: _buffered.start(i),
           end: _buffered.end(i)
