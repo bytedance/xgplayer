@@ -9,6 +9,7 @@ class Keyboard extends BasePlugin {
     return {
       seekStep: 10,
       checkVisible: true,
+      disableBodyTrigger: false,
       keyCodeMap: {},
       disable: false
     }
@@ -155,7 +156,7 @@ class Keyboard extends BasePlugin {
   }
 
   onBodyKeyDown = (event) => {
-    if (this.config.disable || !this.checkIsVisible()) {
+    if (this.config.disable || this.config.disableBodyTrigger || !this.checkIsVisible()) {
       return
     }
     const e = event || window.event
