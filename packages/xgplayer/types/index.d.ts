@@ -1150,36 +1150,42 @@ declare module 'xgplayer' {
     destroy(isDelDom?: boolean): void;
 
     /**
-     *  播放器重播，重播的组件就调用了这个方法
+     *  播放器重播，重播的组件就调用了此API
      *
      */
     replay(): void;
 
     /**
-     * 播放器进入全屏
-     *
-     * @param el 要进入的元素，通常传递`player.root`
-     */
-    getFullscreen(el: HTMLElement): void;
+    *  播放器重试，错误重试组件调用了此API
+    *
+    */
+    retry(): void;
 
     /**
-     * 播放器退出全屏
-     *
-     * @param el 要进入的元素，通常传递`player.root`
-     */
-    exitFullscreen(el: HTMLElement): void;
+      * 播放器进入全屏
+      *
+      * @param el 要进入的元素，不传默认`player.root`
+      */
+    getFullscreen(el?: HTMLElement): void;
+
+    /**
+      * 播放器退出全屏
+      *
+      * @param el 要进入的元素，不传默认`player.root`
+      */
+    exitFullscreen(el?: HTMLElement): void;
 
     /**
      * 播放器进入样式全屏
-     *
+     * @param el 要进入的元素，不传默认`player.root`
      */
-    getCssFullscreen(): void;
+    getCssFullscreen(el?: HTMLElement): void;
 
     /**
      * 播放器退出样式全屏
-     *
+     * @param el 要进入的元素，不传默认`player.root`
      */
-    exitCssFullscreen(): void;
+    exitCssFullscreen(el?: HTMLElement): void;
 
     /**
      * 播放器旋转
