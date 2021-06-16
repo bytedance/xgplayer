@@ -3,6 +3,7 @@
  * @author AppleMonkey2019(am_fe@qq.com)
  */
 import { EventEmitter } from 'events';
+import { SimplePlayer } from '../src';
 declare module 'xgplayer' {
   /**
    * 插件基础配置
@@ -713,7 +714,7 @@ declare module 'xgplayer' {
     TEXT: XGI18nTextKeys
   }
 
-  interface I18N {
+  export interface I18N {
     textKeys: XGI18nTextKeys;
     langKeys: XGI18nLangKeys;
     lang: {
@@ -729,7 +730,7 @@ declare module 'xgplayer' {
     use: (data: XGI18nLang) => void;
   }
 
-  class BasePlugin {
+  export class BasePlugin {
     static defineGetterOrSetter(Obj: object, map: object): void;
     constructor(args: object);
     /**
@@ -842,7 +843,7 @@ declare module 'xgplayer' {
     CONTROLS: string;
   }
 
-  class Plugin extends BasePlugin {
+  export class Plugin extends BasePlugin {
 
     static ROOT_TYPES: ROOT_TYPES;
 
@@ -901,13 +902,13 @@ declare module 'xgplayer' {
     render(): string;
   }
 
-  class DefaultPreset {
+  export class DefaultPreset {
     constructor();
     plugins: Array<Plugin | BasePlugin>;
     ignores: Array<string>
   }
 
-  class Proxy extends EventEmitter {
+  export class VideoProxy extends EventEmitter {
     video?: HTMLElement;
 
     // 初始化时添加在video上的属性集合
@@ -1088,7 +1089,7 @@ declare module 'xgplayer' {
     // emit(event: string, data: any): void;
   }
 
-  export default class Player extends Proxy {
+  export class SimplePlayer extends VideoProxy {
     constructor(options: IPlayerOptions);
 
     /**
@@ -1320,6 +1321,9 @@ declare module 'xgplayer' {
     get cumulateTime(): number;
   }
 
+  export default class PresetPlayer extends SimplePlayer {
+    static defaultPreset: any;
+  }
   export const STATE_CLASS: STATE_CLASS
   export const Events: Events
   export const Util: Util
