@@ -336,6 +336,9 @@ declare module 'xgplayer' {
 
         //隐藏中间按钮
         hideStartBtn?: boolean;
+
+        //video元素样式
+        videoStyle?: object;
     }
 
     class Proxy extends EventEmitter {

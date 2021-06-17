@@ -331,8 +331,17 @@ export function checkIsBrowser() {
   return !(typeof(window) === 'undefined' || typeof(window.document) === 'undefined' || typeof(window.document.createElement) === 'undefined')
 }
 
+export function setStyle(elem, name, value) {
+  let style = elem.style;
+  try {
+    style[name] = value;
+  } catch (error) {
+    style.setProperty( name, value );
+  }
+}
+
 export const util = {
   createDom, hasClass, addClass, removeClass, toggleClass, findDom, padStart, format, event, typeOf, 
   deepCopy, getBgImage, copyDom, setInterval: _setInterval, clearInterval: _clearInterval, createImgBtn, isWeiXin, isUc, computeWatchDur,
-  offInDestroy, on, once, getBuffered2, checkIsBrowser
+  offInDestroy, on, once, getBuffered2, checkIsBrowser, setStyle
 }

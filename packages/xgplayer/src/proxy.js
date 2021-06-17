@@ -1,5 +1,5 @@
 import EventEmitter from 'event-emitter'
-import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2 } from './utils/util'
+import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2, setStyle } from './utils/util'
 import Errors from './error'
 
 class Proxy {
@@ -68,6 +68,11 @@ class Proxy {
       this.video = new window.XgVideoProxy(el, options)
     } else {
       this.video = createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    }
+    if (options.videoStyle) {
+      Object.keys(options.videoStyle).forEach(key => {
+        setStyle(this.video, key, options.videoStyle[key])
+      })
     }
     if (!this.textTrackShowDefault && textTrackDom) {
       let trackDoms = this.video.getElementsByTagName('Track')
