@@ -188,7 +188,7 @@ class Player extends Proxy {
   }
 
   attachVideo () {
-    if(!window.XgVideoProxy) {
+    if(this.video && this.video.nodeType === 1) {
       this.root.insertBefore(this.video, this.root.firstChild)
     }
     setTimeout(() => {
@@ -200,6 +200,7 @@ class Player extends Proxy {
   }
 
   start (url = this.config.url) {
+    if(!this.video) return
     let player = this
     if (!url || url === '') {
       this.emit('urlNull')
