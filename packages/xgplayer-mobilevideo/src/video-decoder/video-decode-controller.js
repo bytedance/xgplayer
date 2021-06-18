@@ -10,9 +10,9 @@ const MAX_FRAMESIZE = 40
 const MIN_FRAMESIZE = 25
 const DEFAULT_FPS = 15
 const LEVELS = [
-  { base: 720, level: 0 },
-  { base: 540, level: 1 },
-  { base: 360, level: 2 }
+  { base: 720, level: 1 },
+  { base: 540, level: 2 },
+  { base: 360, level: 3 }
 ]
 
 export default class VideoDecoderController extends EventEmitter {
@@ -43,6 +43,7 @@ export default class VideoDecoderController extends EventEmitter {
     this._minGopDuration = 0
     // -1表示使用的是原始分辨率
     this._currentLevel = -1
+    this._endLevel = config.endLevel || 2
     // 记录当前每个fmp4的duration
     this.currentFragmentDuration = 0
     this._handleInitSegment = this._handleInitSegment.bind(this)
@@ -52,15 +53,6 @@ export default class VideoDecoderController extends EventEmitter {
 
   _bindEvents () {
     document.addEventListener('visibilitychange', this._onVisibilityChange.bind(this))
-    // this.on(Events.DECODE_EVENTS.INIT, this._init.bind(this))
-    // this.on(Events.DECODE_EVENTS.DATAREADY, this._checkReady.bind(this))
-    // this.on(Events.AUDIO.AUDIO_SYNC_DTS, this._checkValidBlob.bind(this))
-    // this.on(Events.DECODE_EVENTS.INIT_SEGMENT, this._checkDataReady.bind(this))
-    // this.on(Events.DECODE_EVENTS.MEDIA_SEGMENT, this._checkDataReady.bind(this))
-    // this.on(Events.DECODE_EVENTS.FRAME_MAX_COUNY, this._onMaxFrame.bind(this))
-    // this.on(Events.DECODE_EVENTS.FRAME_MIN_COUNY, this._onMinFrame.bind(this))
-    // this.on(Events.DECODE_EVENTS.CHASE_VIDEO_FRAME, this._onChaseFrame.bind(this))
-    // this.on(Events.DECODE_EVENTS.RENDE_END, this._onRendend.bind(this))
     this._decoder.on(Events.DECODE_EVENTS.APPEND_VIDEO, this._onAppendVideo.bind(this))
     this._decoder.on(Events.DECODE_EVENTS.PLAY_FAILED, this._onPlayFailed.bind(this))
     this._decoder.on('error', this._onError.bind(this))
@@ -146,14 +138,22 @@ export default class VideoDecoderController extends EventEmitter {
 
   // 判断解码速度，是否降低分辨率
   _reduceResolution (decodeFPS) {
+    logger.log(this.TAG, '_reduceResolution', 'currentLevel:', this._currentLevel, 'endLevel:', this._endLevel)
     if (decodeFPS && decodeFPS < DEFAULT_FPS) {
       this._minFPSTime++
       this._decoder.emit('fpsreduce', decodeFPS)
     } else {
       this._minFPSTime = 0
     }
-    // 连续10次fps小于DEFAULT_FPS
-    if (this._minFPSTime > 10) {
+
+    if (this._currentLevel >= this._endLevel) {
+      logger.log(this.TAG, '_reduceResolution', 'trigger DECODE_LOW_FPS')
+      this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);
+      return
+    }
+
+    // 连续5次fps小于DEFAULT_FPS
+    if (this._minFPSTime > 5) {
       let videoWidth = this._videoWidth
       let videoHeight = this._videoHeight
       let levelInfo = null
@@ -501,12 +501,6 @@ export default class VideoDecoderController extends EventEmitter {
   }
 
   checkValidBlob (audioDTS) {
-    // this._blobURLList = this._blobURLList.filter((item) => {
-    //   if (item.dts < audioDTS) {
-    //     URL.revokeObjectURL(item.blobUrl)
-    //   }
-    //   return item.dts >= audioDTS
-    // })
     this._filterBlob(audioDTS)
   }
 
@@ -594,6 +588,8 @@ export default class VideoDecoderController extends EventEmitter {
     this._metaFPS = meta.frameRate.fps || 25
     this._videoWidth = meta.presentWidth
     this._videoHeight = meta.presentHeight
+    this._width = this._videoWidth
+    this._height = this._videoHeight
     this._frameDuration = parseInt(1000 / this._metaFPS)
     this._isInit = true
     logger.log(`${this.TAG} has inited`)
@@ -626,7 +622,7 @@ export default class VideoDecoderController extends EventEmitter {
 
   startDecode () {
     if (this._isInDecoding) {
-      console.warn(this.TAG, 'startDecode', 'this decoder is in decoding')
+      logger.log(this.TAG, 'startDecode', 'this decoder is in decoding')
       return
     }
     let blobURLLength = this._getBlobLength()
@@ -677,8 +673,9 @@ export default class VideoDecoderController extends EventEmitter {
   }
 
   destroy () {
-    // this._decoder.destroy()
-    // this._removeRemuxLinstener()
+    this._blobURLList = []
+    this._decoder.destroy()
+    this._removeRemuxLinstener()
     // this._mediaSegmentReady = false
   }
 

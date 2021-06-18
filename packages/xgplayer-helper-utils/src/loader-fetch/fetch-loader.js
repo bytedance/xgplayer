@@ -197,7 +197,8 @@ class FetchLoader {
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
               }
             }
-          });
+          })
+          .catch(()=>{})
           break;
         case READ_STREAM:
         default:
