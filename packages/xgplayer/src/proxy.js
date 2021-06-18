@@ -247,6 +247,10 @@ class Proxy {
     return this.video.buffered
   }
 
+  get buffered2 () {
+    return Util.getBuffered2(this.video.buffered)
+  }
+
   get bufferedPoint () {
     const _buffered = this.video.buffered
     const ret = {
