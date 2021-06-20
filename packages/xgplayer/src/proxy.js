@@ -64,8 +64,9 @@ class Proxy {
       }
     }
     let el = options.el ? options.el : findDom(document, `#${options.id}`)
-    if(window.XgVideoProxy && el.hasAttribute('data-xgmse')) {
-      this.video = new window.XgVideoProxy(el, options)
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if(XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
+      this.video = new XgVideoProxy(el, options)
     } else {
       this.video = createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
     }
