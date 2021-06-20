@@ -118,6 +118,13 @@ class Player extends VideoProxy {
       ret.destroy()
     }
     this._initBaseDoms()
+
+    // 允许自定义video对象的构造
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if (XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
+      const el = this.innerContainer || this.root
+      this.video = new XgVideoProxy(el, this.config, this.videoConfig)
+    }
     if (this.config.controls) {
       const controls = pluginsManager.register(this, Controls)
       this.controls = controls
@@ -290,11 +297,16 @@ class Player extends VideoProxy {
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
     const _root = this.innerContainer ? this.innerContainer : this.root
-    if (!_root.contains(this.video)) {
+    if (this.video instanceof window.Element && !_root.contains(this.video)) {
       _root.insertBefore(this.video, _root.firstChild)
     }
 
-    this.once(Events.CANPLAY, this.canPlayFunc)
+    if (this.video.readyState >= 2) {
+      this.canPlayFunc()
+    } else {
+      this.once(Events.CANPLAY, this.canPlayFunc)
+    }
+
     XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load();
