@@ -284,15 +284,15 @@ class Player extends VideoProxy {
       this.removeClass(STATE_CLASS.ENTER)
     }
 
-    if (Util.typeOf(url) === 'String') {
-      this.video.src = url
-    } else {
+    if (Util.typeOf(url) === 'Array') {
       url.forEach(item => {
         this.video.appendChild(Util.createDom('source', '', {
           src: `${item.src}`,
           type: `${item.type || ''}`
         }))
       })
+    } else {
+      this.video.src = url
     }
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
