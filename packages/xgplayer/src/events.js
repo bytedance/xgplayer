@@ -38,14 +38,14 @@ export const FULLSCREEN_CHANGE = 'fullscreen_change'
 export const CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change'
 export const MINI_STATE_CHANGE = 'mini_state_change'
 
-export const DEFINITION_CHANGE = 'definition_change';
-export const BEFORE_DEFINITION_CHANGE = 'before_definition_change';
-export const AFTER_DEFINITION_CHANGE = 'after_definition_change';
+export const DEFINITION_CHANGE = 'definition_change'
+export const BEFORE_DEFINITION_CHANGE = 'before_definition_change'
+export const AFTER_DEFINITION_CHANGE = 'after_definition_change'
 
 // transmuxer events
-export const SEI_PARSED = 'SEI_PARSED';
+export const SEI_PARSED = 'SEI_PARSED'
 
-export const RETRY = 'retry';
+export const RETRY = 'retry'
 
 // 容器宽高变化
 export const VIDEO_RESIZE = 'video_resize'

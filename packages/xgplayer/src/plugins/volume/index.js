@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Util, Events, Sniffer, POSITIONS} from '../../plugin'
+import Plugin, { hooksDescriptor, Util, Events, Sniffer, POSITIONS } from '../../plugin'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
@@ -20,9 +20,9 @@ class Volume extends Plugin {
 
   registerIcons () {
     return {
-      volumeSmall: {icon: volumeSmallSvg, class: 'xg-volume-small'},
-      volumeLarge: {icon: volumeLargeSvg, class: 'xg-volume'},
-      volumeMuted: {icon: volumeMutedSvg, class: 'xg-volume-mute'}
+      volumeSmall: { icon: volumeSmallSvg, class: 'xg-volume-small' },
+      volumeLarge: { icon: volumeLargeSvg, class: 'xg-volume' },
+      volumeMuted: { icon: volumeMutedSvg, class: 'xg-volume-mute' }
     }
   }
 
@@ -34,12 +34,12 @@ class Volume extends Plugin {
 
     this.initIcons()
 
-    const {commonStyle, volume} = this.playerConfig
+    const { commonStyle, volume } = this.playerConfig
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
     this.changeMutedHandler = this.hook('muted_change', () => {
-      const {player} = this
+      const { player } = this
       player.muted = !player.muted
     }, {
       pre: (e) => {
@@ -76,25 +76,25 @@ class Volume extends Plugin {
     slider.focus()
     Util.event(e)
 
-    let barRect = bar.getBoundingClientRect()
-    let pos = {x: e.clientX, y: e.clientY}
+    const barRect = bar.getBoundingClientRect()
+    const pos = { x: e.clientX, y: e.clientY }
     const height = barRect.height - (e.clientY - barRect.top)
     this.updateVolumePos(height)
 
     this.isMoveing = false
-    let onMove = (e) => {
+    const onMove = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
       this.isMoveing = true
-      let w = height - e.clientY + pos.y
+      const w = height - e.clientY + pos.y
       if (w > barRect.height) {
         return
       }
       this.updateVolumePos(w)
     }
 
-    let onUp = (e) => {
+    const onUp = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
@@ -112,7 +112,7 @@ class Volume extends Plugin {
   }
 
   updateVolumePos (height) {
-    const {player} = this
+    const { player } = this
     const drag = this.find('.xgplayer-drag')
     const bar = this.find('.xgplayer-bar')
     const now = height / bar.getBoundingClientRect().height
@@ -121,7 +121,7 @@ class Volume extends Plugin {
     player.muted = false
 
     if (this.config.showValueLabel) {
-      this.updateVolumeValue();
+      this.updateVolumeValue()
     }
   }
 
@@ -131,11 +131,11 @@ class Volume extends Plugin {
    * @memberof Volume
    */
   updateVolumeValue () {
-    const {volume} = this.player;
-    const $labelValue = this.find('.xgplayer-value-label');
-    const vol = Math.max(Math.min(volume, 1), 0);
+    const { volume } = this.player
+    const $labelValue = this.find('.xgplayer-value-label')
+    const vol = Math.max(Math.min(volume, 1), 0)
 
-    $labelValue.innerText = Math.ceil(vol * 100);
+    $labelValue.innerText = Math.ceil(vol * 100)
   }
 
   onMouseenter (e) {
@@ -149,14 +149,14 @@ class Volume extends Plugin {
   changeMuted (e) {
     // e.preventDefault()
     e.stopPropagation()
-    const {player} = this
+    const { player } = this
     player.muted = !player.muted
   }
 
   onVolumeChange () {
-    const {muted, volume} = this.player
+    const { muted, volume } = this.player
     if (!this.isMoveing) {
-      this.find('.xgplayer-drag').style.height = muted || volume === 0 ? `0px` : `${volume * 100}%`
+      this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '0px' : `${volume * 100}%`
     }
     this.animate(muted, volume)
   }
@@ -172,7 +172,7 @@ class Volume extends Plugin {
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild('.xgplayer-icon', icons.volumeSmall)
     this.appendChild('.xgplayer-icon', icons.volumeLarge)
     this.appendChild('.xgplayer-icon', icons.volumeMuted)
@@ -192,8 +192,8 @@ class Volume extends Plugin {
     if (this.config.disable) {
       return
     }
-    const volume = this.config.default || this.player.volume;
-    const isShowVolumeValue = this.config.showValueLabel;
+    const volume = this.config.default || this.player.volume
+    const isShowVolumeValue = this.config.showValueLabel
     return `
     <xg-icon class="xgplayer-volume" data-state="normal">
       <div class="xgplayer-icon">

@@ -1,7 +1,7 @@
 import Box from '../box'
 Box.stsd = function (data, output) {
-  let stream = this.stream
-  let self = this
+  const stream = this.stream
+  const self = this
   let outputSize = 0
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
@@ -9,7 +9,7 @@ Box.stsd = function (data, output) {
   output.write(new Uint8Array(stream.buffer.slice(0, stream.position)))
   outputSize = stream.position
   data.subBox.forEach(item => {
-    let box = new Box(item, self.output)
+    const box = new Box(item, self.output)
     self.subBox.push(box)
     box.writeBody()
     outputSize += box.outputSize + 8

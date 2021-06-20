@@ -62,34 +62,43 @@ class Stream {
   writeUint8 (value) {
     Stream.writeByte(this.dataview, value, 1)
   }
+
   writeInt8 (value) {
     Stream.writeByte(this.dataview, value, 1, true)
   }
+
   writeUint16 (value) {
     Stream.writeByte(this.dataview, value, 2)
   }
+
   writeInt16 (value) {
     Stream.writeByte(this.dataview, value, 2, true)
   }
+
   writeUint24 (value) {
     Stream.writeByte(this.dataview, value, 3)
   }
+
   writeInt24 (value) {
     Stream.writeByte(this.dataview, value, 3, true)
   }
+
   writeUint32 (value) {
     Stream.writeByte(this.dataview, value, 4)
   }
+
   writeInt32 (value) {
     Stream.writeByte(this.dataview, value, 4, true)
   }
+
   writeUint64 (value) {
     Stream.writeByte(this.dataview, (value & 0xFFFFFFFF00000000) >> 32, 4)
     Stream.writeByte(this.dataview, (value & 0x00000000FFFFFFFF), 4)
   }
+
   writeStr (value) {
     value = value.toString()
-    let length = value.length
+    const length = value.length
     for (let i = 0; i < length; i++) {
       this.writeUint8(value.charCodeAt(i))
     }

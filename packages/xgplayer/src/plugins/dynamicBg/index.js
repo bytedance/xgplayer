@@ -6,12 +6,20 @@ const MODES = {
   FRAME_RATE: 'framerate'
 }
 
-function nowTime() {
+function nowTime () {
   try {
     return window.performance.now()
-  } catch(e) {
+  } catch (e) {
     return new Date().getTime()
   }
+}
+
+function checkIsSupport (video) {
+  if (Sniffer.browser === 'safari' && (/^blob/.test(video.currentSrc) || /^blob/.test(video.src))) {
+    return false
+  }
+
+  return true
 }
 
 class DynamicBg extends Plugin {
@@ -24,7 +32,7 @@ class DynamicBg extends Plugin {
       disable: true,
       mode: 'framerate', // realtime-实时渲染 firstframe - 仅仅渲染首帧 framerate-按帧渲染
       frameRate: 10, // 按帧的时候渲染帧率
-      filter: `blur(50px)`, // 滤镜设置
+      filter: 'blur(50px)', // 滤镜设置
       addMask: true, // 是否需要蒙层
       maskBg: 'rgba(0,0,0,0.7)' // 蒙层颜色
     }
@@ -34,7 +42,7 @@ class DynamicBg extends Plugin {
     if (this.playerConfig.dynamicBg === true) {
       this.config.disable = false
     }
-    const { disable, mode, frameRate } = this.config
+    const { disable, mode } = this.config
     if (disable) {
       return
     }
@@ -52,7 +60,7 @@ class DynamicBg extends Plugin {
     this.interval = parseInt(1000 / this.config.frameRate, 10)
     this.once(Events.COMPLETE, () => {
       this.init()
-    });
+    })
 
     this.once(Events.LOADED_DATA, this.onLoadedData)
     this.on(Events.URL_CHANGE, () => {
@@ -71,7 +79,7 @@ class DynamicBg extends Plugin {
     if (mode === MODES.FIRST_FRAME) {
       this.once(Events.TIME_UPDATE, () => {
         const { video } = this.player
-        video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
+        video && checkIsSupport(video) && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       })
     }
   }
@@ -99,8 +107,9 @@ class DynamicBg extends Plugin {
       this.mask = this.find('xgmask')
       config.addMask && (this.mask.style.background = config.maskBg)
       this.canvasCtx = this.canvas.getContext('2d')
-      const url = this.playerConfig.poster
-      if (Util.typeOf(url) === 'String') {
+      const { poster } = this.playerConfig
+      if (poster) {
+        const url = Util.typeOf(poster) === 'String' ? poster : (Util.typeOf(poster.poster) === 'String' ? poster.poster : null)
         this.updateImg(url)
       }
     } catch (e) {
@@ -111,6 +120,9 @@ class DynamicBg extends Plugin {
   start = () => {
     const { video } = this.player
     const _now = nowTime()
+    if (!checkIsSupport(video)) {
+      return
+    }
     if (this.config.mode === MODES.REAL_TIME) {
       video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
@@ -129,16 +141,19 @@ class DynamicBg extends Plugin {
   }
 
   updateImg (url) {
+    if (!url) {
+      return
+    }
     // 使用首帧预览图渲染
     const { width, height } = this.canvas.getBoundingClientRect()
     let image = new window.Image()
     image.onload = () => {
       this.canvas.height = height
       this.canvas.width = width
-      this.update (image, image.width, image.height)
+      this.update(image, image.width, image.height)
       image = null
     }
-    image.src = url;
+    image.src = url
   }
 
   update (video, videoWidth, videoHeight) {
@@ -150,8 +165,8 @@ class DynamicBg extends Plugin {
     this.videoPI = parseInt(videoWidth / videoHeight * 100, 10)
     if (width !== _pos.width || height !== _pos.height) {
       const pi = parseInt(width / height * 100, 10)
-      _pos.width = this.canvas.height = height
-      _pos.height = this.canvas.width = width
+      _pos.width = this.canvas.width = width
+      _pos.height = this.canvas.height = height
       let rheight = height
       let rwidth = width
       if (pi < this.videoPI) {
@@ -172,6 +187,10 @@ class DynamicBg extends Plugin {
     // console.log(`x:${_pos.x} y:${_pos.y}  rwidth:${_pos.rwidth} rheight:${ _pos.rheight}`)
     this.canvasCtx.filter = config.filter
     this.canvasCtx.drawImage(video, _pos.x, _pos.y, _pos.rwidth, _pos.rheight)
+  }
+
+  destroy () {
+    this.stop()
   }
 
   render () {

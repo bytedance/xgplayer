@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events, Util} from '../../plugin'
+import Plugin, { hooksDescriptor, Events, Util } from '../../plugin'
 
 export default class ErrorPlugin extends Plugin {
   static get pluginName () {
@@ -12,7 +12,8 @@ export default class ErrorPlugin extends Plugin {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
-      }})
+      }
+    })
 
     this.onError = this.hook('errorHandler', this.handleError)
 
@@ -35,7 +36,7 @@ export default class ErrorPlugin extends Plugin {
   }
 
   handleError (error = {}) {
-    const { player } = this;
+    const { player } = this
     const errorNote = error && error.message ? error.message : player.error
     this.find('.xgplayer-error-text').innerHTML = errorNote
     this.find('.xgplayer-error-tips').innerHTML = `${this.i18n.REFRESH_TIPS}<span class="xgplayer-error-refresh">${this.i18n.REFRESH}</span>`

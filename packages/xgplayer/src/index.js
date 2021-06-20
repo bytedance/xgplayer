@@ -6,7 +6,8 @@ import {
   Sniffer,
   Util,
   STATE_CLASS,
-  I18N } from './player'
+  I18N
+} from './player'
 import Player from './index-umd'
 
 export {
