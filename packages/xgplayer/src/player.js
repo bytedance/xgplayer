@@ -9,7 +9,7 @@ import Plugin, { pluginsManager, BasePlugin } from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
-import hooksDescriptor from './plugin/hooksDescriptor'
+import hooksDescriptor, { runHooks } from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 
@@ -17,7 +17,7 @@ import I18N from './lang'
 import version from './version'
 
 /* eslint-disable camelcase */
-const PlAYER_HOOKS = ['play']
+const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 
 class Player extends VideoProxy {
   constructor (options) {
@@ -545,23 +545,21 @@ class Player extends VideoProxy {
     return playPromise
   }
 
+  videoPause () {
+    super.pause()
+  }
+
   play () {
     this.removeClass(STATE_CLASS.PAUSED)
-    const { __hooks } = this
-    if (__hooks && __hooks.play) {
-      const ret = __hooks.play.call(this)
-      if (ret && ret.then) {
-        ret.then(() => {
-          return this.videoPlay()
-        }).catch(e => {
-          return this.videoPlay()
-        })
-      } else {
-        return this.videoPlay()
-      }
-    } else {
-      return this.videoPlay()
-    }
+    runHooks(this, 'play', () => {
+      this.videoPlay()
+    })
+  }
+
+  pause () {
+    runHooks(this, 'pause', () => {
+      super.pause()
+    })
   }
 
   seek (time) {
@@ -651,29 +649,33 @@ class Player extends VideoProxy {
 
   replay () {
     this.removeClass(STATE_CLASS.ENDED)
-    this.once(Events.CANPLAY, () => {
-      const playPromise = this.play()
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(err => {
-          console.log(err)
-        })
-      }
-    })
     this.currentTime = 0
     this.isSeeking = false
-    this.play()
-    this.emit(Events.REPLAY)
-    this.onPlay()
+    runHooks(this, 'replay', () => {
+      this.once(Events.CANPLAY, () => {
+        const playPromise = this.play()
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(err => {
+            console.log(err)
+          })
+        }
+      })
+      this.play()
+      this.emit(Events.REPLAY)
+      this.onPlay()
+    })
   }
 
   retry () {
     this.removeClass(STATE_CLASS.ERROR)
     this.addClass(STATE_CLASS.LOADING)
-    const cur = this.currentTime
-    this.pause()
-    this.src = this.config.url
-    this.currentTime = cur
-    this.play()
+    runHooks(this, 'retry', () => {
+      const cur = this.currentTime
+      this.pause()
+      this.src = this.config.url
+      this.currentTime = cur
+      this.play()
+    })
   }
 
   changeFullStyle (root, el, className) {
