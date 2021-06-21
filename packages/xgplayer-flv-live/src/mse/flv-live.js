@@ -143,6 +143,7 @@ export default class FlvController {
   }
 
   _handleTimeUpdate () {
+    if(!this._player || !this._player.video) return;
     const time = this._player.currentTime
 
     const video = this._player.video;

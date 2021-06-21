@@ -4,7 +4,6 @@
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
-  "browser": "dist/index.min.js",
   "scripts": {
     "prepublishOnly": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",

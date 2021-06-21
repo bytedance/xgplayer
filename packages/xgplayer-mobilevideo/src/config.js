@@ -7,7 +7,7 @@ const H264_DECODER_URL = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/dec
 const ASM_H264_DECODER_URL = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/decoder/1.1.1/h264/decoder_asm.js'
 
 const H265_DECODER_URL = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/decoder/1.1.1/h265/decoder_1596185762157.js'
-const H265_FFMPEG_DECODER_URL = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/decoder/1.1.1/ffmpeg_h265/decoder.js'
+const H265_FFMPEG_DECODER_URL = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/decoder/1.1.1/ffmpeg/decoder.js'
 
 const H265_THREAD_DECODER_URL = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/decoder/1.1.0/h265thread/decoder.js'
 

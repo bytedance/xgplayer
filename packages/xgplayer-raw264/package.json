@@ -2,10 +2,10 @@
   "name": "xgplayer-raw264",
   "version": "2.4.28",
   "description": "",
+  "browser":"dist/index.min.js",
   "main": "lib/index.js",
   "module": "es/index.js",
   "typings": "./types/index.d.ts",
-  "browser": "dist/index.min.js",
   "scripts": {
     "prepare": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
