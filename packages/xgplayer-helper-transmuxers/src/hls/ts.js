@@ -9,7 +9,6 @@ const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
 class TsDemuxer {
   constructor (configs) {
-    this.TAG = 'TsDemuxer';
     this.configs = Object.assign({}, configs);
     this.demuxer = null;
   }
@@ -69,13 +68,8 @@ class TsDemuxer {
       default:
         track = videoTrack;
     }
-    const existMeta = track.meta;
     track.meta = meta;
-    if (existMeta) {
-      this.emit(type === 'audio' ? DEMUX_EVENTS.AUDIO_METADATA_CHANGE : DEMUX_EVENTS.VIDEO_METADATA_CHANGE);
-    } else {
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, type, meta);
-    }
+    this.emit(DEMUX_EVENTS.METADATA_PARSED, type, meta);
   }
 
   onVideoSampleParsed (sample) {

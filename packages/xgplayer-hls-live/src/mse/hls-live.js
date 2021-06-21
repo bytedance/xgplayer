@@ -16,6 +16,7 @@ class HlsLiveController {
     this.sequence = 0;
     this._playlist = null;
     this.m3u8FlushDuration = 4;
+    this.firstFramePts = -1;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 300);
     this.m3u8Text = null;
@@ -25,7 +26,9 @@ class HlsLiveController {
   }
 
   init () {
-    const { XgBuffer, Tracks, Playlist, RemuxedBufferManager, Compatibility, Loader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
+    const { XgBuffer, Tracks, Playlist, RemuxedBufferManager, Compatibility, FetchLoader, XhrLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
+
+    const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader;
 
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
@@ -94,6 +97,13 @@ class HlsLiveController {
   }
 
   _onDemuxComplete (track1, track2) {
+    if (this.firstFramePts === -1) {
+      let tracks = this._context.getInstance('TRACKS');
+      let samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0];
+      this.firstFramePts = samp0 ? samp0.purePts : -1;
+      logger.warn(this.TAG, `first frame pts: ${this.firstFramePts}`)
+    }
+
     this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts');
     this._downloadedFragmentQueue.shift();
     let next = this._downloadedFragmentQueue[0];
@@ -189,7 +199,10 @@ class HlsLiveController {
   }
 
   _onLoadComplete (buffer) {
-    const { M3U8Parser, XgBuffer, Loader, Crypto } = this._pluginConfig
+    const { M3U8Parser, XgBuffer, FetchLoader, XhrLoader, Crypto } = this._pluginConfig
+
+    const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader;
+  
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata;
       try {

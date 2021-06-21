@@ -45,9 +45,6 @@
   .xgplayer-none {
     display: none;
   }
-  &.xgplayer-inactive{
-    cursor: none;
-  }
 
   &.xgplayer-is-fullscreen{
     width: 100%;
@@ -352,6 +349,19 @@
       left: 0;
       height: 100vh !important;
       width: 100vw !important;
+    }
+  }
+}
+
+// 自定义mse使用 不能删除
+.xgplayer {
+  .xgplayer-screen-container {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    .xgplayer-screen-canvas {
+        width: 100%;
+        height: 100%;
     }
   }
 }

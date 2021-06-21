@@ -1,4 +1,13 @@
 # 版本更新记录
+## 3.0.0-alpha.89
+>* chore: 添加eslint规范，去除array-callback-return规则限制
+>* fix: (xgplayer) 修复进度条点击两个触发seek问题; 修复keybored取值异常问题
+>* feat: (xgplayer) dynamicBg在safari下使用mse播放场景只渲染首帧图
+>* feat: (xgplayer) 弹幕新增resize, 并在全屏等屏幕大小触发的时候resize
+>* feat:(xgplayer) 弹幕插件中danmu.js更新到0.4.0; 弹幕插件新增配置项
+>* feat: (xgplayer) Keyboard 增加body禁用配置项
+
+
 ## 3.0.0-alpha.88
 >* fix(xgplayer): 修复closeControlsBlur为true的时候 控制栏没有消失问题
 >* feat(xgplayer): 新增内置插件dynamicBg用于实时背景预览

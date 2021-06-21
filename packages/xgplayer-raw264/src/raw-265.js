@@ -62,18 +62,20 @@ class H265Demuxer {
 
     if (frameNals.length) {
       if (this.meta) {
-        if (frameNals.length > 1) {
-          this.meta.multiSlice = true;
-        }
         this._player.video.setVideoMeta(this.meta)
-        this.meta = null;
+        this.meta = null
       }
-      const sample = H265Demuxer.hevcUnitsToSamples(frameNals);
-      const ts = Math.floor(1000 * this.currentSampleIdx++ / this.fps)
-      sample.dts = sample.pts = ts;
-      this.videoTrack.samples.push(sample);
+
+      frameNals.forEach(nal => {
+        const sample = H265Demuxer.hevcUnitsToSamples([nal])
+        const ts = Math.floor(1000 * this.currentSampleIdx++ / this.fps)
+        sample.dts = sample.pts = ts
+        this.videoTrack.samples.push(sample)
+      })
+
       this._player.video.onDemuxComplete(this.videoTrack)
     }
+
   }
 
   static nalSplits (nals) {

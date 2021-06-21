@@ -30,13 +30,14 @@ class Player extends VideoProxy {
     this.config = config
     bindDebug(this)
     // resolve default preset
+    const defaultPreset = this.constructor.defaultPreset
     if (this.config.presets.length) {
       const defaultIdx = this.config.presets.indexOf('default')
-      if (defaultIdx >= 0 && Player.defaultPreset) {
-        this.config.presets[defaultIdx] = Player.defaultPreset
+      if (defaultIdx >= 0 && defaultPreset) {
+        this.config.presets[defaultIdx] = defaultPreset
       }
-    } else if (Player.defaultPreset) {
-      this.config.presets.push(Player.defaultPreset)
+    } else if (defaultPreset) {
+      this.config.presets.push(defaultPreset)
     }
 
     // timer and flags
@@ -117,6 +118,16 @@ class Player extends VideoProxy {
       ret.destroy()
     }
     this._initBaseDoms()
+
+    // 允许自定义video对象的构造
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if (XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
+      const el = this.innerContainer || this.root
+      this.detachVideoEvents(this.video)
+      const _nVideo = new XgVideoProxy(el, this.config, this.videoConfig)
+      this.attachVideoEvents(_nVideo)
+      this.video = _nVideo
+    }
     if (this.config.controls) {
       const controls = pluginsManager.register(this, Controls)
       this.controls = controls
@@ -276,24 +287,29 @@ class Player extends VideoProxy {
       this.removeClass(STATE_CLASS.ENTER)
     }
 
-    if (Util.typeOf(url) === 'String') {
-      this.video.src = url
-    } else {
+    if (Util.typeOf(url) === 'Array') {
       url.forEach(item => {
         this.video.appendChild(Util.createDom('source', '', {
           src: `${item.src}`,
           type: `${item.type || ''}`
         }))
       })
+    } else {
+      this.video.src = url
     }
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
     const _root = this.innerContainer ? this.innerContainer : this.root
-    if (!_root.contains(this.video)) {
+    if (this.video instanceof window.Element && !_root.contains(this.video)) {
       _root.insertBefore(this.video, _root.firstChild)
     }
 
-    this.once(Events.CANPLAY, this.canPlayFunc)
+    if (this.video.readyState >= 2) {
+      this.canPlayFunc()
+    } else {
+      this.once(Events.CANPLAY, this.canPlayFunc)
+    }
+
     XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load();
