@@ -123,7 +123,10 @@ class Player extends VideoProxy {
     const XgVideoProxy = this.constructor.XgVideoProxy
     if (XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
       const el = this.innerContainer || this.root
-      this.video = new XgVideoProxy(el, this.config, this.videoConfig)
+      this.detachVideoEvents(this.video)
+      const _nVideo = new XgVideoProxy(el, this.config, this.videoConfig)
+      this.attachVideoEvents(_nVideo)
+      this.video = _nVideo
     }
     if (this.config.controls) {
       const controls = pluginsManager.register(this, Controls)
