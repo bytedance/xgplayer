@@ -34,9 +34,9 @@ export default class Fullscreen extends Plugin {
     }
     this.initIcons()
 
-    this.fullSreenHandler = this.hook('fullsreen_change', this.changeFullScreen)
+    this.handleFullscreen = this.hook('fullscreen_change', this.changeFullScreen)
 
-    this.bind('.xgplayer-fullscreen', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.fullSreenHandler)
+    this.bind('.xgplayer-fullscreen', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.handleFullscreen)
 
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS)
@@ -49,7 +49,7 @@ export default class Fullscreen extends Plugin {
           config: {
             onClick: (e) => {
               this.show()
-              this.fullSreenHandler(e)
+              this.handleFullscreen(e)
             }
           }
         }
@@ -76,7 +76,7 @@ export default class Fullscreen extends Plugin {
   }
 
   destroy () {
-    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.fullSreenHandler)
+    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.handleFullscreen)
   }
 
   initIcons () {
