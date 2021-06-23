@@ -5,7 +5,7 @@ import AvcWorker from 'web-worker:./worker.js'
 import { logger } from 'xgplayer-helper-utils'
 import EventEmitter from 'eventemitter3'
 import Events from '../events'
-import { H264_DECODER_URL, H265_DECODER_URL, H265_THREAD_DECODER_URL, ASM_H264_DECODER_URL, ASM_H265_DECODER_URL } from '../config'
+import { H264_DECODER_URL, H265_DECODER_URL, H265_FFMPEG_DECODER_URL, H265_THREAD_DECODER_URL, ASM_H264_DECODER_URL, ASM_H265_DECODER_URL } from '../config'
 
 const CAN_USE_HEVC_THREAD_DECODE = true && !!window.SharedArrayBuffer
 const MAX_DECODE_ONCE_DEFAULT = 16
@@ -81,7 +81,7 @@ export default class WasmDecodeController extends EventEmitter {
     if (this.isHevc) {
       return {
         decoder: this._decoderMode === 1 ? new HevcThreadWorker() : new HevcWorker(),
-        url: this._decoderMode === 3 ? ASM_H265_DECODER_URL : this._decoderMode === 1 ? H265_THREAD_DECODER_URL : H265_DECODER_URL
+        url: this._decoderMode === 3 ? ASM_H265_DECODER_URL : this._decoderMode === 1 ? H265_THREAD_DECODER_URL : this._parent.lowlatency ? H265_FFMPEG_DECODER_URL : H265_DECODER_URL
       }
     }
     return {
@@ -182,7 +182,7 @@ export default class WasmDecodeController extends EventEmitter {
       decoder.postMessage({
         msg: 'init',
         meta: this._meta,
-        batchDecodeCount: this._parent.lowlatency ? 2 : 10,
+        batchDecodeCount: 10,
         url
       })
       if (!delay) {
@@ -200,10 +200,23 @@ export default class WasmDecodeController extends EventEmitter {
   init (messaegCb, errCb, meta) {
     this._workerMessageCallback = messaegCb
     this._workerErrorCallback = errCb
+
+    //  针对低延迟265 横竖屏切换
+    if (this._parent.lowlatency && this._meta && meta) {
+      if (meta.presentWidth !== this._meta.presentWidth) {
+        console.log('重建worker')
+        this._wasmReady = false
+        this._destroyWorker()
+        this._initDecodeWorkerInternal()
+        this._meta = meta
+        return
+      }
+    }
+
     this._meta = meta
 
     if (CAN_USE_HEVC_THREAD_DECODE && this.isHevc) {
-      this._decoderMode = 1
+      this._decoderMode = this._parent.lowlatency ? 2 : 1
     }
 
     if (!this._wasmWorkers.length) {

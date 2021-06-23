@@ -118,7 +118,7 @@ class MVideo extends HTMLElement {
       this.timeline.emit(Events.TIMELINE.INNER_DEGRADE)
     }
 
-    this.setPlayMode(this._isLive && 'LIVE')
+    this.timeline.emit(Events.TIMELINE.SET_PLAY_MODE, this._isLive ? 'LIVE' : 'VOD')
     this.muted = this.muted
   }
 
@@ -388,7 +388,6 @@ class MVideo extends HTMLElement {
   }
 
   setPlayMode (v) {
-    this.timeline.emit(Events.TIMELINE.SET_PLAY_MODE, v);
     this._isLive = v === 'LIVE';
   }
   /** *************** 外部数据交互主要接口 end */

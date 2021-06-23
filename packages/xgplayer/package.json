@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.88",
+    "version": "3.0.0-alpha.89",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.js",
@@ -55,7 +55,7 @@
         "Firefox > 20"
     ],
     "dependencies": {
-        "danmu.js": "^0.3.5",
+        "danmu.js": "^0.4.0",
         "deepmerge": "^1.5.0",
         "delegate": "^3.2.0",
         "downloadjs": "1.4.7",

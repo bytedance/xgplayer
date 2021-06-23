@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mobilevideo",
-  "version": "2.4.27",
+  "version": "2.4.28",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -21,7 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-helper-utils": "2.4.27",
+    "xgplayer-helper-utils": "2.4.28",
     "xgplayer-helper-transmuxers": "2.4.27"
   },
   "babel": {
