@@ -29,13 +29,6 @@ import Thumbnail from '../plugins/common/thumbnail'
 import TextTrack from '../plugins/track'
 import MiniProgress from '../plugins/progress/miniProgress'
 import DynamicBg from '../plugins/dynamicBg'
-import ZH from '../lang/zh-cn'
-
-// import I18N from '../lang'
-
-// import ZH from '../lang/zh-cn'
-
-// I18N.use(ZH)
 
 export default class DefaultPreset {
   constructor (options, playerConfig) {
@@ -60,6 +53,6 @@ export default class DefaultPreset {
         this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
     }
     this.ignores = []
-    this.i18n = [ZH]
+    this.i18n = []
   }
 }

@@ -7,13 +7,13 @@ interface OS_TYPE {
   isSymbian: boolean;
   isWindowsPhone: boolean;
   isFireFox: boolean
-};
+}
 
 interface Sniffer {
   device: string;
   browser: string;
   os: OS_TYPE;
   isWeixin: boolean;
-};
+}
 
 export default Sniffer

@@ -55,7 +55,7 @@ class Player extends VideoProxy {
     this.isActive = false
     this.isCssfullScreen = false
     this.fullscreen = false
-    this._fpullscreenEl = null
+    this._fullscreenEl = null
     this._orgCss = ''
     this._fullScreenOffset = null
     this._videoHeight = 0
@@ -200,7 +200,7 @@ class Player extends VideoProxy {
         }
       } else if (this.fullscreen) {
         const { _fullScreenOffset, config } = this
-        if (config.needFullsreenScroll) {
+        if (config.needFullscreenScroll) {
           try {
             window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
             Util.setTimeout(this, () => {
@@ -336,6 +336,10 @@ class Player extends VideoProxy {
     this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
+    const i18n = this.config.i18n || []
+    i18n.map(item => {
+      I18N.use(item)
+    })
     const ignoresStr = ignores.join('||').toLowerCase().split('||')
     plugins.map(plugin => {
       try {
@@ -1000,11 +1004,11 @@ class Player extends VideoProxy {
 
   get i18n () {
     const { lang } = this.config
-    return I18N.lang[lang] || {}
+    return I18N.lang[lang] || I18N.lang.en
   }
 
   get i18nKeys () {
-    return I18N.textKeys || I18N.lang.en
+    return I18N.textKeys || {}
   }
 
   get version () {
@@ -1082,6 +1086,8 @@ class Player extends VideoProxy {
     }
     Player.plugins[name] = descriptor
   }
+
+  static defaultPreset = null
 }
 
 export {

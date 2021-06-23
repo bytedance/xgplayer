@@ -1324,12 +1324,15 @@ declare module 'xgplayer' {
      * 获取累计播放时长
      */
     get cumulateTime(): number;
+
+    /**
+     * 默认preset
+     */
+    static defaultPreset: any
   }
 
   export default class PresetPlayer extends SimplePlayer {
     constructor(options: IPlayerOptions);
-
-    static defaultPreset: any
   }
 
   export const STATE_CLASS: STATE_CLASS
