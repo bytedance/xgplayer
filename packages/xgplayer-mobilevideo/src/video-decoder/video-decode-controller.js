@@ -1,6 +1,7 @@
 import { logger, EVENTS } from 'xgplayer-helper-utils'
 import EventEmitter from 'eventemitter3'
 import Events from '../events'
+import { Mp4Box } from 'xgplayer-helper-transmuxers'
 
 import VideoDecoder from './video-decoder'
 
@@ -20,12 +21,12 @@ export default class VideoDecoderController extends EventEmitter {
     super()
     this.TAG = 'VideoDecoderController'
     this._decoder = new VideoDecoder(config)
+    this._remux = new Mp4Box({ videoMeta: null, audioMeta: null, curTime: 0 })
     this._bindEvents()
     this._isInit = false
     this._isDataReady = false
     // 当前解码器的状态
     this._ready = false
-    this._remux = null
     this._blobURLList = []
     this._isInDecoding = false
     this._mediaSegmentReady = false
@@ -46,9 +47,7 @@ export default class VideoDecoderController extends EventEmitter {
     this._endLevel = config.endLevel || 2
     // 记录当前每个fmp4的duration
     this.currentFragmentDuration = 0
-    this._handleInitSegment = this._handleInitSegment.bind(this)
     this._handleKeyFrameVideo = this._handleKeyFrameVideo.bind(this)
-    this._handleMediaSegmentVideo = this._handleMediaSegmentVideo.bind(this)
   }
 
   _bindEvents () {
@@ -66,7 +65,26 @@ export default class VideoDecoderController extends EventEmitter {
       let pars = [this._metaFPS, ...args, this._frameLengthPerFragment]
       this.emit('fps', ...pars)
     })
+    this.on('keyFrame', this._handleKeyFrameVideo)
+    this._remux.on('TRACK_REMUXED', this._onRemuxed.bind(this))
   }
+
+  _onRemuxed (type, mp4) {
+    let blobUrl = this._createBlobURL(mp4)
+    let info = {
+      blobUrl,
+      dts: this.currentFragmentDts,
+      duration: this.currentFragmentDuration,
+      frameDuration: Math.floor(1000 / this._metaFPS)
+    }
+    this._recordGopDuration(this.currentFragmentDuration)
+    this._pushBlob(info)
+    logger.log(this.TAG, '_onRemuxed', 'maxgopduration:', this._maxGopDuration, '_gopBufferLength:', this._gopBufferLength)
+    if (!this._isDataReady && this._gopBufferLength >= this._maxGopDuration) {
+      this._checkDataReady()
+    }
+  }
+
   _onPlayFailed (firstEmit) {
     this._isInDecoding = false
     this._parent.emit(Events.DECODE_EVENTS.PLAY_FAILED, firstEmit)
@@ -129,11 +147,8 @@ export default class VideoDecoderController extends EventEmitter {
    * 是否有解码数据，需要initSegment和mediaSegment都有数据，才能拼装成一个fmp4
    */
   _checkDataReady () {
-    if (this.initSegmentVideoData && this._mediaSegmentReady) {
-      this._isDataReady = true
-      // this.emit(Events.DECODE_EVENTS.DATAREADY)
-      this._checkReady()
-    }
+    this._isDataReady = true
+    this._checkReady()
   }
 
   // 判断解码速度，是否降低分辨率
@@ -258,32 +273,20 @@ export default class VideoDecoderController extends EventEmitter {
     return this._blobURLList.length
   }
 
-  _removeRemuxLinstener () {
-    logger.log(this.TAG, '_removeRemuxLinstener, remove event listener')
-    let remux = this.remux
-    remux.off(REMUX_EVENTS.INIT_SEGMENT, this._handleInitSegment)
-    remux.off(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrameVideo)
-    remux.off(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegmentVideo)
-  }
-
-  _bindRemuxEvents (remux) {
-    logger.log(this.TAG, '_bindRemuxEvents, remux add event listener')
-    remux.on(REMUX_EVENTS.INIT_SEGMENT, this._handleInitSegment)
-    remux.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrameVideo)
-    remux.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegmentVideo)
-  }
-
   _handleKeyFrameVideo (pts) {
     try {
-      const { videoTrack } = this._remux._context.getInstance('TRACKS')
-      let samples = videoTrack.samples || []
+      // const { videoTrack } = this._remux._context.getInstance('TRACKS')
+      let samples = this._parent._timeRange.frames || []
+      if (!samples.length) {
+        return
+      }
+      // let samples = videoTrack.samples || []
       let startDts = samples[0].dts
       let endDts = samples[samples.length - 1].dts
       let delay = startDts - this.endDts
       logger.log(this.TAG, '_handleKeyFrameVideo', 'startDts:', startDts, 'endDts:', endDts, 'samples length:', samples.length)
       if (this.endDts && delay > Math.floor(1000 / this._metaFPS) + 1) {
-        logger.log(this.TAG, '_handleKeyFrame, keyFrame dts:', startDts, 'sample length:', videoTrack.samples.length, 'endDts:', endDts, 'delay:', delay)
-        console.error(this.TAG, 'error:', startDts, this.endDts)
+        logger.log(this.TAG, '_handleKeyFrame, keyFrame dts:', startDts, 'sample length:', samples.length, 'endDts:', endDts, 'delay:', delay)
       }
       // let timeScale = (videoTrack && videoTrack.meta.timeScale) || 1000
       // 每个gop小于2s，则不remuxe
@@ -317,79 +320,21 @@ export default class VideoDecoderController extends EventEmitter {
 
       if (this.currentFragmentDts < this._startDts) {
         console.warn(this.TAG, '_handleKeyFrameVideo', 'currentFragmentDts < this._startDts', this.currentFragmentDts, this._startDts)
-        videoTrack.samples = []
+        samples = []
         return
       }
 
       // 更新remux的_videoDtsBase，保证每个gop生成的fragment时间戳从0开始
-      this._remux.remuxer.videoDtsBase = samples[0].dts
+      // this._remux.remuxer.videoDtsBase = samples[0].dts
       // 开始remux fmp4的mdat
-      this.remux.emit(REMUX_EVENTS.REMUX_MEDIA)
-      videoTrack.samples = []
-    } catch (e) { }
-  }
-
-  _handleInitSegment (type) {
-    logger.log(this.TAG, `remux INIT_SEGMENT has been emited`, 'type:', type)
-    if (type === 'video') {
-      let source = this._getVideoSource()
-      this.initSegmentVideoData = source.init
-      // this.emit(Events.DECODE_EVENTS.INIT_SEGMENT)
-      this._checkDataReady()
+      // this.remux.emit(REMUX_EVENTS.REMUX_MEDIA)
+      this.startRemux(samples)
+      samples = []
+    } catch (e) {
+      console.error(this.TAG, '_handleKeyFrameVideo', e)
     }
   }
 
-  _handleMediaSegmentVideo (type) {
-    if (type === 'video') {
-      try {
-        logger.log(this.TAG, `remux MediaSegment has been emited`)
-        if (!this._videoDtsBase) {
-          this._videoDtsBase = this._remux._videoDtsBase
-          logger.log(this.TAG, '_handleMediaSegment, videoDtsBase:', this._videoDtsBase, 'firstDts:', this.firstDts)
-        }
-
-        let videoSource = this._getVideoSource()
-        let videoMoofMdat = this._getVideoGopData(videoSource)
-        // 消费掉数据后，要清空fmp4数据
-        videoSource.data.shift()
-        this._mediaSegmentReady = true
-        let fmp4 = this._moofMdatAppendtoInitSegment(videoMoofMdat)
-        videoMoofMdat = null
-        let blobUrl = this._createBlobURL(fmp4)
-        let info = {
-          blobUrl,
-          dts: this.currentFragmentDts,
-          duration: this.currentFragmentDuration,
-          frameDuration: Math.floor(1000 / this._metaFPS)
-        }
-        this._recordGopDuration(this.currentFragmentDuration)
-        this._pushBlob(info)
-
-        if (!this._isDataReady && this._gopBufferLength >= this._maxGopDuration) {
-          // this.emit(Events.DECODE_EVENTS.MEDIA_SEGMENT)
-          this._checkDataReady()
-        }
-      } catch (e) {
-        console.error('error:', e)
-      }
-    }
-  }
-
-  _moofMdatAppendtoInitSegment (buffer) {
-    let initSegmentVideoData = this.initSegmentVideoData
-    if (!initSegmentVideoData) {
-      return
-    }
-    try {
-      let fmp4Data = new Uint8Array(buffer.buffer.byteLength + initSegmentVideoData.buffer.byteLength)
-      fmp4Data.set(initSegmentVideoData.buffer, 0)
-      fmp4Data.set(buffer.buffer, initSegmentVideoData.buffer.byteLength)
-      // buffer = null
-      return fmp4Data
-    } catch (error) {
-      console.error('_moofMdatAppendtoInitSegment', error)
-    }
-  }
   // 通过每个gop的duration进行累加，有可能多个gop不连续，计算fragment的duration不准确
   _getFragmentDuration (samples) {
     let duration = 0
@@ -415,23 +360,6 @@ export default class VideoDecoderController extends EventEmitter {
       type: 'video/mp4'
     })
     return window.URL.createObjectURL(blob)
-  }
-
-  _getVideoGopData (videoSource) {
-    let data = new Uint8Array(0)
-    let buffer
-    videoSource.data.forEach((item, index) => {
-      if (index === 0) {
-        data = item
-      } else {
-        buffer = new Uint8Array(data.buffer.byteLength + item.buffer.byteLength)
-        buffer.set(data.buffer, 0)
-        buffer.set(item.buffer, data.buffer.byteLength)
-        data = buffer
-      }
-    })
-
-    return data
   }
 
   _recordGopDuration (gopDuration) {
@@ -567,9 +495,6 @@ export default class VideoDecoderController extends EventEmitter {
 
       if (startDts > this._inDecodeId) {
         // 过滤掉比startDts小的blob
-        // this._blobURLList = this._blobURLList.filter((item) => {
-        //   return item.dts >= startDts
-        // })
         this._filterBlob(startDts)
         this.stopDecode()
         this.startDecode()
@@ -657,9 +582,13 @@ export default class VideoDecoderController extends EventEmitter {
     return false
   }
 
-  initRemux (remux) {
-    this.remux = remux
-    this._remuxMetaData()
+  startRemux (samples) {
+    logger.log('startRemux samples length:', samples.length)
+    if (samples.length) {
+      this._remux.remux(null, { samples, meta: this._parent._meta })
+    } else {
+      console.error('frame length is 0')
+    }
   }
 
   canPlayType (meta) {
@@ -675,8 +604,6 @@ export default class VideoDecoderController extends EventEmitter {
   destroy () {
     this._blobURLList = []
     this._decoder.destroy()
-    this._removeRemuxLinstener()
-    // this._mediaSegmentReady = false
   }
 
   empty () {
@@ -712,13 +639,6 @@ export default class VideoDecoderController extends EventEmitter {
 
   set ready (value) {
     this._ready = value
-  }
-
-  set remux (remux) {
-    if (!this._remux) {
-      this._remux = remux
-      this._bindRemuxEvents(remux)
-    }
   }
 
   get remux () {

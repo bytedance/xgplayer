@@ -86,6 +86,10 @@ export default class VideoTimeRange {
     return this._lastDuration;
   }
 
+  get frames () {
+    return this._currentFrameQueue
+  }
+
   // no audio 时
   getCurrentTime (cDts) {
     return this._lastDuration + (cDts - this._baseDts) / 1000;

@@ -58,7 +58,7 @@ export default class VideoDecoder extends EventEmitter {
   }
   _createCanvas () {
     let dom = document.createElement('canvas')
-    let ctx = dom.getContext('2d', { alpha: false })
+    let ctx = dom.getContext('2d')
     return { dom, ctx }
   }
 
@@ -184,6 +184,9 @@ export default class VideoDecoder extends EventEmitter {
     this._isInDecoding = true
     this._lastCurrentTime = this._vCurrentTime
     this.ptsArray = []
+    if (!this.playingTime) {
+      this.playingTime = true
+    }
     this._getFrame()
   }
   _onEnded (e, from) {
@@ -265,6 +268,7 @@ export default class VideoDecoder extends EventEmitter {
     }
   }
   _getFirstFrame () {
+    this.firstTime = Date.now()
     let currentTime = this._vCurrentTime
     let pts = this._basePTS + currentTime
     let { imageData } = this._getImageData(pts)
@@ -364,7 +368,9 @@ export default class VideoDecoder extends EventEmitter {
     // }
 
     this._currentCanvasHeight = height
-
+    if (!canvas) {
+      return
+    }
     if (canvas.width !== width) {
       canvas.width = width
       canvas.height = height
