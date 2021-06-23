@@ -31,12 +31,6 @@ import MiniProgress from '../plugins/progress/miniProgress'
 import DynamicBg from '../plugins/dynamicBg'
 import ZH from '../lang/zh-cn'
 
-// import I18N from '../lang'
-
-// import ZH from '../lang/zh-cn'
-
-// I18N.use(ZH)
-
 export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode

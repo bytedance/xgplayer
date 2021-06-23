@@ -1,5 +1,4 @@
 import Player, {
-  IPlayerOptions,
   BasePlugin,
   Plugin,
   Events,
@@ -14,7 +13,6 @@ import PresetPlayer from './index-umd'
 export {
   PresetPlayer as default,
   Player as SimplePlayer,
-  IPlayerOptions,
   BasePlugin,
   Plugin,
   Events,

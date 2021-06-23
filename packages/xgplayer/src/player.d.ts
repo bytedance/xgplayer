@@ -74,10 +74,10 @@ declare class Player extends Proxy {
    */
   replay(): void;
 
-   /**
-   *  播放器重试，错误重试组件调用了此API
-   *
-   */
+  /**
+  *  播放器重试，错误重试组件调用了此API
+  *
+  */
   retry(): void;
 
   /**
