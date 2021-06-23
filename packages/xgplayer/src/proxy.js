@@ -90,9 +90,9 @@ class Proxy {
 
     this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
 
-    if (options.defaultPlaybackRate) {
-      this.video.defaultPlaybackRate = this.video.playbackRate = options.defaultPlaybackRate
-    }
+    // if (options.defaultPlaybackRate) {
+    //   this.video.defaultPlaybackRate = this.video.playbackRate = options.defaultPlaybackRate
+    // }
 
     if (options.autoplayMuted) {
       this.video.muted = true

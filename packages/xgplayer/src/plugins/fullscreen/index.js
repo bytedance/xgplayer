@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS, Util } from '../../plugin'
+import Plugin, { hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -32,7 +32,6 @@ export default class Fullscreen extends Plugin {
     if (this.config.disable) {
       return
     }
-    this.isFullScreen = this.player.isFullScreen
     this.initIcons()
 
     this.fullSreenHandler = this.hook('fullsreen_change', this.changeFullScreen)
@@ -95,34 +94,33 @@ export default class Fullscreen extends Plugin {
     }
   }
 
-  getRotateFullscreen () {
+  getRotateFullscreen (el) {
     const { player } = this
     if (player.isCssfullScreen) {
-      player.exitCssFullscreen()
+      player.exitCssFullscreen(el)
     }
-    if (player.root.getAttribute('style')) {
-      this._originCssText = player.root.style.cssText
-      player.root.removeAttribute('style')
-    }
-    player.addClass(STATE_CLASS.ROTATE_FULLSCREEN)
+    const _class = el ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.ROTATE_FULLSCREEN
+    player._fullscreenEl = el || player.root
+    player.changeFullStyle(player.root, el, _class, STATE_CLASS.PARENT_ROTATE_FULLSCREEN)
     player.fullscreen = true
     this.setRotateDeg(90)
     this.emit(Events.FULLSCREEN_CHANGE, true)
   }
 
-  exitRotateFullscreen () {
+  exitRotateFullscreen (el) {
     const { player } = this
-    player.removeClass(STATE_CLASS.ROTATE_FULLSCREEN)
     player.fullscreen = false
-    this._originCssText && Util.setStyleFromCsstext(player.root, this._originCssText)
-    this._originCssText = ''
+    const _class = player._fullscreenEl !== player.root ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.ROTATE_FULLSCREEN
+    player.recoverFullStyle(player.root, player._fullscreenEl, _class, STATE_CLASS.PARENT_ROTATE_FULLSCREEN)
     this.setRotateDeg(0)
     this.emit(Events.FULLSCREEN_CHANGE, false)
   }
 
   changeFullScreen (e) {
-    e.preventDefault()
-    e.stopPropagation()
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     const { player, config } = this
     let useCssFullscreen = false
     if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {
@@ -141,15 +139,14 @@ export default class Fullscreen extends Plugin {
       this.animate(player.fullscreen)
     } else if (config.rotateFullscreen) {
       if (player.fullscreen) {
-        this.exitRotateFullscreen()
+        this.exitRotateFullscreen(config.target)
       } else {
-        this.getRotateFullscreen()
+        this.getRotateFullscreen(config.target)
       }
       this.animate(player.fullscreen)
     } else {
       if (config.switchCallback && typeof config.switchCallback === 'function') {
-        config.switchCallback(this.isFullScreen)
-        this.isFullScreen = !this.isFullScreen
+        config.switchCallback(player.fullscreen)
         return
       }
       if (player.fullscreen) {

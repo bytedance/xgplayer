@@ -274,13 +274,16 @@ class Player extends VideoProxy {
       if (!this.config) {
         return
       }
-      const { autoplay, startTime, volume } = this.config
+      const { autoplay, startTime, volume, defaultPlaybackRate } = this.config
       XG_DEBUG.logInfo('player', 'canPlayFunc', startTime)
       if (Util.typeOf(volume) === 'Number') {
         this.volume = volume
       }
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
+      }
+      if (defaultPlaybackRate !== 1) {
+        this.playbackRate = defaultPlaybackRate
       }
       autoplay && this.videoPlay()
       this.off(Events.CANPLAY, this.canPlayFunc)
@@ -694,27 +697,33 @@ class Player extends VideoProxy {
     })
   }
 
-  changeFullStyle (root, el, className) {
+  changeFullStyle (root, el, rootClass, pClassName) {
+    if (!pClassName) {
+      pClassName = STATE_CLASS.PARENT_FULLSCREEN
+    }
     if (root && !this._orgCss) {
       this._orgCss = Util.filterStyleFromText(root)
-      Util.addClass(root, className)
+      Util.addClass(root, rootClass)
     }
     if (el && el !== root && !this._orgPCss) {
       this._orgPCss = Util.filterStyleFromText(el)
-      Util.addClass(el, STATE_CLASS.PARENT_FULLSCREEN)
+      Util.addClass(el, pClassName)
     }
   }
 
-  recoverFullStyle (root, el, className) {
+  recoverFullStyle (root, el, rootClass, pClassName) {
+    if (!pClassName) {
+      pClassName = STATE_CLASS.PARENT_FULLSCREEN
+    }
     if (root && this._orgCss) {
       Util.setStyleFromCsstext(root, this._orgCss)
       this._orgCss = ''
-      Util.removeClass(root, className)
+      Util.removeClass(root, rootClass)
     }
     if (el && el !== root && this._orgPCss) {
       Util.setStyleFromCsstext(el, this._orgPCss)
       this._orgPCss = ''
-      Util.removeClass(el, STATE_CLASS.PARENT_FULLSCREEN)
+      Util.removeClass(el, pClassName)
     }
   }
 
@@ -751,7 +760,7 @@ class Player extends VideoProxy {
   }
 
   exitFullscreen (el) {
-    if (!this._fullscreenEl) {
+    if (!this._fullscreenEl || !Util.getFullScreenEl()) {
       return
     }
     const { root, video } = this
@@ -778,7 +787,7 @@ class Player extends VideoProxy {
 
   getCssFullscreen (el) {
     this._cssfullscreenEl = el
-    this.changeFullStyle(this.root, el, STATE_CLASS.CSS_FULLSCREEN)
+    this.changeFullStyle(this.root, el, el ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.CSS_FULLSCREEN)
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
     if (this.fullscreen) {
@@ -788,7 +797,8 @@ class Player extends VideoProxy {
 
   exitCssFullscreen () {
     if (!this.fullscreen) {
-      this.recoverFullStyle(this.root, this._cssfullscreenEl, STATE_CLASS.CSS_FULLSCREEN)
+      const _class = this._cssfullscreenEl ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.CSS_FULLSCREEN
+      this.recoverFullStyle(this.root, this._cssfullscreenEl, _class)
     }
     this.isCssfullScreen = false
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
@@ -994,7 +1004,7 @@ class Player extends VideoProxy {
   }
 
   get i18nKeys () {
-    return I18N.textKeys || {}
+    return I18N.textKeys || I18N.lang.en
   }
 
   get version () {
