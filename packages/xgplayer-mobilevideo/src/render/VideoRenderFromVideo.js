@@ -61,8 +61,8 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     logger.log(this.TAG, '_onKeyFrame,  keyframe')
     this._videoDecodeController.emit('keyFrame')
     // this._videoDecodeController.startRemux()
-    this._timeRange._currentFrameQueue = []
-    this._timeRange._buffers = []
+    // this._timeRange._currentFrameQueue = []
+    // this._timeRange._buffers = []
   }
 
   _onError (e, firstEmit) {
