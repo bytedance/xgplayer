@@ -214,6 +214,31 @@ let s_definition = function () {
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)
+
+  player.getCurrentDefinition = function () {
+    let liList = player.controls.querySelectorAll('.xgplayer-definition ul li')
+    for(let i = 0; i < liList.length; i++) {
+      if(liList[i].className && liList[i].className.indexOf('selected') > -1) {
+        return {
+          name: liList[i].getAttribute('cname'),
+          url: liList[i].getAttribute('url')
+        }
+      }
+    }
+    return {
+      name: liList[0].getAttribute('cname'),
+      url: liList[0].getAttribute('url')
+    }
+  }
+
+  player.switchDefinition = function (definitionObj = {}) {
+    let liList = player.controls.querySelectorAll('.xgplayer-definition ul li')
+    for(let i = 0; i < liList.length; i++) {
+      if(liList[i].getAttribute('cname') === definitionObj.name || liList[i].getAttribute('url') === definitionObj.url || i === definitionObj.index) {
+        liList[i].click()
+      }
+    }
+  }
 }
 
 export default {

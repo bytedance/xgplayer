@@ -711,6 +711,18 @@ declare module 'xgplayer' {
          *
          */
         public removeAllProgressDot(): void;
+
+        /**
+         * 获取当前清晰度
+         *
+         */
+         public getCurrentDefinition(): object;
+
+         /**
+         * 切换到指定清晰度
+         *
+         */
+        public switchDefinition(definitionObj: object): void;
     }
 
     export default Player;
