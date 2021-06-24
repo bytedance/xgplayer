@@ -375,12 +375,12 @@ class MVideo extends HTMLElement {
   }
   // 获取插件层context，用来获取remux实例，等remux模块剔除外部依赖后，可以废除
   setVideoContext (context) {
-    this.videoContext = context
-    this.videoRemux = context.getInstance('MP4_REMUXER')
-    // 解决自动播放失败，点击手动播放按钮时报错问题。是因为手动点击播放时，timeline的初始化在传入新的context之前
-    if (this.timeline && this.timeline.videoRender) {
-      this.timeline.videoRender.videoContext = context
-    }
+    // this.videoContext = context
+    // this.videoRemux = context.getInstance('MP4_REMUXER')
+    // // 解决自动播放失败，点击手动播放按钮时报错问题。是因为手动点击播放时，timeline的初始化在传入新的context之前
+    // if (this.timeline && this.timeline.videoRender) {
+    //   this.timeline.videoRender.videoContext = context
+    // }
   }
 
   setDecodeMode (v) {
