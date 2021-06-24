@@ -70,7 +70,7 @@ class Proxy {
       'webkit-airplay': options.airplay,
       tabindex: 2,
       mediaType: options.mediaType || 'video'
-    }, options.videoConfig, options.videoAttrbutes)
+    }, options.videoConfig, options.videoAttributes)
     /**
      * @description 微信内部同层播放兼容
      * x5-playsinline和x5-video-player-type互斥，只需要存在一个即可

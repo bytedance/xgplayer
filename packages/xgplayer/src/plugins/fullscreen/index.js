@@ -41,6 +41,9 @@ export default class Fullscreen extends Plugin {
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS)
       this.animate(isFullScreen)
+      if (this.config.needBackIcon) {
+        this.show()
+      }
     })
     if (this.config.needBackIcon) {
       this.topBackIcon = this.player.registerPlugin({
@@ -48,7 +51,6 @@ export default class Fullscreen extends Plugin {
         options: {
           config: {
             onClick: (e) => {
-              this.show()
               this.handleFullscreen(e)
             }
           }
