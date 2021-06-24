@@ -212,6 +212,7 @@ export default class TimeLine extends EventEmitter {
 
     this.on(Events.TIMELINE.DESTROY, () => {
       this.removeAllListeners();
+      this.videoRender.destroy()
       this.videoRender = null;
       this.audioRender = null;
     });

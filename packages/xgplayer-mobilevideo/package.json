@@ -21,7 +21,8 @@
   "license": "ISC",
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-helper-utils": "2.4.28"
+    "xgplayer-helper-utils": "2.4.28",
+    "xgplayer-helper-transmuxers": "2.4.27"
   },
   "babel": {
     "presets": [

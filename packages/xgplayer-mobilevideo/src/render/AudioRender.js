@@ -354,7 +354,7 @@ export default class AudioRender extends BaseRender {
     if (this._noAudio) return
     // from为video,表示由videoRender触发waiting后，又继续播放
     if (from === 'video' && this._ready && !this._isSourceBufferEnd) {
-      console.warn(this.TAG, '_startRender, audio currentTime', this.currentTime, 'from:', from, '_isSourceBufferEnd:', this._isSourceBufferEnd, 'ready:', this._ready)
+      console.log(this.TAG, '_startRender, audio currentTime', this.currentTime, 'from:', from, '_isSourceBufferEnd:', this._isSourceBufferEnd, 'ready:', this._ready)
       this._doPlay()
       return
     }
