@@ -358,7 +358,7 @@ class HlsVodController {
     }
 
     if (currentbufferend < 0) {
-      let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
+      let frag = this._playlist.getTs((time > 1 ? time - 0.5 : time) * 1000); // FIXME: Last frame buffer shortens duration
       if (frag && frag.downloaded) {
         frag = this._playlist.getTs(frag.time + frag.duration);
       }
