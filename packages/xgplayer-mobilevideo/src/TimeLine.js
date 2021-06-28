@@ -29,7 +29,7 @@ export default class TimeLine extends EventEmitter {
   }
 
   get ready () {
-    return this._readyStatus.video && this._readyStatus.audio;
+    return this._readyStatus.video && this._readyStatus.audio
   }
 
   get played () {
@@ -37,92 +37,92 @@ export default class TimeLine extends EventEmitter {
       length: this.currentTime ? 1 : 0,
       start: () => 0,
       end: () => this.currentTime
-    };
+    }
   }
 
   get seeking () {
-    return this._seeking;
+    return this._seeking
   }
 
   get decodeFps () {
-    return this.videoRender.decodeFps;
+    return this.videoRender.decodeFps
   }
 
   get decodeCost () {
-    return this.videoRender.decodeCost;
+    return this.videoRender.decodeCost
   }
 
   get renderCost () {
-    return this.videoRender.renderCost;
+    return this.videoRender.renderCost
   }
 
   get wasmInitCost () {
-    return this.videoRender.wasmInitCost;
+    return this.videoRender.wasmInitCost
   }
 
   get fps () {
-    return this.videoRender.fps;
+    return this.videoRender.fps
   }
 
   get totalSize () {
-    return this.videoRender.totalSize;
+    return this.videoRender.totalSize
   }
 
   get bitrate () {
-    return this.videoRender.bitrate;
+    return this.videoRender.bitrate
   }
 
   get gopLength () {
-    return this.videoRender.gopLength;
+    return this.videoRender.gopLength
   }
 
   get currentTime () {
-    if (this._noAudio) return this.videoRender.currentTime;
-    return this.audioRender.currentTime;
+    if (this._noAudio) return this.videoRender.currentTime
+    return this.audioRender.currentTime
   }
 
   get timelinePosition () {
-    if (this._noAudio) return performance.now() / 1000; // s
-    return this.audioRender.currentTime;
+    if (this._noAudio) return performance.now() / 1000 // s
+    return this.audioRender.currentTime
   }
 
   get canvas () {
-    return this.videoRender.canvas;
+    return this.videoRender.canvas
   }
 
   get readyState () {
-    return this.videoRender.readyState;
+    return this.videoRender.readyState
   }
 
   get buffered () {
-    if (this._noAudio) return this.videoRender.buffered;
-    return this.audioRender.buffered;
+    if (this._noAudio) return this.videoRender.buffered
+    return this.audioRender.buffered
   }
 
   get duration () {
-    if (this._noAudio) return this.videoRender.duration;
-    return this.audioRender.duration;
+    if (this._noAudio) return this.videoRender.duration
+    return this.audioRender.duration
   }
 
   get paused () {
-    return this._paused;
+    return this._paused
   }
 
   set paused (v) {
-    this._paused = v;
+    this._paused = v
   }
 
   get lowlatency () {
-    return this._parent.lowlatency;
+    return this._parent.lowlatency
   }
 
   // 播放器初始化时第一个WebAudio能否自动播放的状态,后续重新创建的不算,用于safari下非用户交互创建的 webaudio 不能自动播放
   get audioCanAutoplay () {
-    return this._parent._audioCanAutoplay;
+    return this._parent._audioCanAutoplay
   }
 
   get currentAudioCanAutoplay () {
-    return this.audioRender.audioCanAutoplay;
+    return this.audioRender.audioCanAutoplay
   }
   _getController (videoDecode, config) {
     if (videoDecode) {
@@ -132,8 +132,8 @@ export default class TimeLine extends EventEmitter {
     }
   }
   _resetReadyStatus () {
-    this._readyStatus.audio = false;
-    this._readyStatus.video = false;
+    this._readyStatus.audio = false
+    this._readyStatus.video = false
   }
 
   _bindEvent () {
@@ -146,39 +146,39 @@ export default class TimeLine extends EventEmitter {
     })
 
     this.audioRender.on(Events.AUDIO.AUDIO_READY, () => {
-      logger.log(this.TAG, 'audio ready!');
+      logger.log(this.TAG, 'audio ready!')
       if (this._readyStatus.video) {
-        this._startRender();
+        this._startRender()
       }
-      this._readyStatus.audio = true;
-    });
+      this._readyStatus.audio = true
+    })
 
     this.audioRender.on(Events.AUDIO.AUDIO_WAITING, () => {
-      if (this._noAudio) return;
-      logger.warn(this.TAG, 'lack data, audio waiting,currentTime:', this.currentTime);
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE);
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.WAITING);
-      this.emit(Events.TIMELINE.DO_PAUSE);
-      this._readyStatus.audio = false;
-    });
+      if (this._noAudio) return
+      logger.warn(this.TAG, 'lack data, audio waiting,currentTime:', this.currentTime)
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.WAITING)
+      this.emit(Events.TIMELINE.DO_PAUSE)
+      this._readyStatus.audio = false
+    })
 
     // only used for no audio exist
     this.videoRender.on(Events.VIDEO.VIDEO_WAITING, () => {
-      logger.warn(this.TAG, 'lack data, video waiting');
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.WAITING);
-      this.emit(Events.TIMELINE.DO_PAUSE);
-      this._readyStatus.video = false;
-    });
+      logger.warn(this.TAG, 'lack data, video waiting')
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.WAITING)
+      this.emit(Events.TIMELINE.DO_PAUSE)
+      this._readyStatus.video = false
+    })
 
     this.onVideoReady = () => {
-      logger.log(this.TAG, 'video ready!');
+      logger.log(this.TAG, 'video ready!')
       if (this._readyStatus.audio) {
         this._startRender('video')
       }
-      this._readyStatus.video = true;
-    };
+      this._readyStatus.video = true
+    }
 
-    this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady);
+    this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady)
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
       let canSwitchToMultiWorker =
@@ -189,56 +189,56 @@ export default class TimeLine extends EventEmitter {
         this.fps / this.decodeFps < 2
 
       if (canSwitchToMultiWorker) {
-        logger.warn(this.TAG, `switch to multi worker , decodeFps:${this.decodeFps} , fps:${this.fps}`);
-        this._switchToMultiWorker = true;
-        this.videoRender.switchToMultiWorker();
-        return;
+        logger.warn(this.TAG, `switch to multi worker , decodeFps:${this.decodeFps} , fps:${this.fps}`)
+        this._switchToMultiWorker = true
+        this.videoRender.switchToMultiWorker()
+        return
       }
-      if (this.currentTime < 5) return;
+      if (this.currentTime < 5) return
       // 对外只触发一次
-      if (this._lowdecodeEmited) return;
-      this._lowdecodeEmited = true;
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
-    });
+      if (this._lowdecodeEmited) return
+      this._lowdecodeEmited = true
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE)
+    })
 
     this.on(Events.TIMELINE.ADJUST_SEEK_TIME, (time) => {
-      this.videoRender.ajustSeekTime(time);
-    });
+      this.videoRender.ajustSeekTime(time)
+    })
 
     this.on(Events.TIMELINE.NO_AUDIO, () => {
-      this._noAudio = true;
-      this._readyStatus.audio = true;
-    });
+      this._noAudio = true
+      this._readyStatus.audio = true
+    })
 
     this.on(Events.TIMELINE.DESTROY, () => {
-      this.removeAllListeners();
-      this.videoRender = null;
-      this.audioRender = null;
-    });
+      this.removeAllListeners()
+      this.videoRender = null
+      this.audioRender = null
+    })
 
     // 点播暂停后重新起播
     this.on(Events.TIMELINE.DO_PLAY, (e) => {
       if (!this._parent.startPlayed) {
-        this._parent.startPlayed = true;
-        this.emit(Events.TIMELINE.START_RENDER);
+        this._parent.startPlayed = true
+        this.emit(Events.TIMELINE.START_RENDER)
       }
-      this._paused = false;
-    });
+      this._paused = false
+    })
   }
 
   _startRender (from) {
     if (this._parent.error || !this.videoRender) return
     if (this._noAudio) {
-      this.emit(Events.TIMELINE.SYNC_DTS, 0);
+      this.emit(Events.TIMELINE.SYNC_DTS, 0)
     }
-    logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking);
-    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY);
+    logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking)
+    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY)
 
     // 首帧画面显示
-    this.videoRender.forceRender();
+    this.videoRender.forceRender()
 
     if (!this._parent.startPlayed) {
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.FIRST_FRAME);
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.FIRST_FRAME)
     }
 
     // 对autoplay:false 起播阶段不执行这个,在外面调用play()时分发 START_RENDER
@@ -246,107 +246,107 @@ export default class TimeLine extends EventEmitter {
       this._parent.startPlayed = true
       this.emit(Events.TIMELINE.START_RENDER, from)
     }
-    this.emit(Events.TIMELINE.READY);
+    this.emit(Events.TIMELINE.READY)
     if (this._seeking) {
       if (!this.currentAudioCanAutoplay) {
-        this.pause();
+        this.pause()
       }
-      this._seeking = false;
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.SEEKED);
-      logger.groupEnd();
+      this._seeking = false
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.SEEKED)
+      logger.groupEnd()
     }
   }
 
   // 对点播、分片不连续时resetDts
   _checkResetBaseDts (vTrack, aTrack) {
-    const vSamp0 = vTrack && vTrack.samples[0];
-    const aSamp0 = aTrack && aTrack.samples[0];
+    const vSamp0 = vTrack && vTrack.samples[0]
+    const aSamp0 = aTrack && aTrack.samples[0]
     if (!vSamp0 || !aSamp0) {
       if (!this.buffered.length) {
         // 暂不支持只有单track
-        this.emit(Events.TIMELINE.PLAY_EVENT, 'error', new Error('lack video or audio sample'));
+        this.emit(Events.TIMELINE.PLAY_EVENT, 'error', new Error('lack video or audio sample'))
       }
-      return;
+      return
     }
-    const frag = vSamp0.options;
-    if (!frag) return;
-    let breakedFrag;
+    const frag = vSamp0.options
+    if (!frag) return
+    let breakedFrag
     if (!this._lastSegment) {
-      breakedFrag = true;
+      breakedFrag = true
     }
     // discontinue
     if (this._lastSegment && this._lastSegment.cc !== frag.cc) {
-      breakedFrag = true;
+      breakedFrag = true
     }
     // 考虑不存在不连续标记、但流时间戳变化了
-    let fStart = frag.start / 1000;
-    let fEnd = fStart + frag.duration / 1000;
-    let isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime;
+    let fStart = frag.start / 1000
+    let fEnd = fStart + frag.duration / 1000
+    let isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime
     if (!breakedFrag && isSeekingFrag) {
-      let expectDts = this.videoRender.getDtsOfTime(fStart);
+      let expectDts = this.videoRender.getDtsOfTime(fStart)
       if (Math.abs(vSamp0.dts - expectDts) > 5000) {
         // 5s
-        breakedFrag = true;
+        breakedFrag = true
       }
     }
 
     if (breakedFrag) {
-      const vBaseDts = vSamp0.dts - frag.start;
-      const aBaseDts = aSamp0.dts - frag.start;
-      logger.warn(this.TAG, `segment discontinue, id:${frag.id} reset vBaseDts=${vBaseDts} , aBaseDts=${aBaseDts}`);
-      this.emit(Events.TIMELINE.RESET_BASE_DTS, aBaseDts, 'audio');
-      this.emit(Events.TIMELINE.RESET_BASE_DTS, vBaseDts, 'video');
+      const vBaseDts = vSamp0.dts - frag.start
+      const aBaseDts = aSamp0.dts - frag.start
+      logger.warn(this.TAG, `segment discontinue, id:${frag.id} reset vBaseDts=${vBaseDts} , aBaseDts=${aBaseDts}`)
+      this.emit(Events.TIMELINE.RESET_BASE_DTS, aBaseDts, 'audio')
+      this.emit(Events.TIMELINE.RESET_BASE_DTS, vBaseDts, 'video')
     }
 
-    this._lastSegment = frag;
+    this._lastSegment = frag
   }
 
   appendBuffer (videoTrack, audioTrack) {
     if (!this._parent.live) {
-      this._checkResetBaseDts(videoTrack, audioTrack);
+      this._checkResetBaseDts(videoTrack, audioTrack)
     }
-    this.emit(Events.TIMELINE.APPEND_CHUNKS, videoTrack, audioTrack);
+    this.emit(Events.TIMELINE.APPEND_CHUNKS, videoTrack, audioTrack)
   }
 
   play () {
     return new Promise((resolve, reject) => {
-      let resumed = this.currentAudioCanAutoplay;
+      let resumed = this.currentAudioCanAutoplay
 
       if (!this._parent.startPlayed) {
-        this.emit(Events.TIMELINE.START_RENDER);
-        this._parent.startPlayed = true;
+        this.emit(Events.TIMELINE.START_RENDER)
+        this._parent.startPlayed = true
       }
 
       if (this._noAudio) {
-        resumed = true;
+        resumed = true
       } else if (this.audioRender) {
         this.audioRender.resume().then(() => {
-          logger.log(this.TAG, 'audioCtx 开始播放');
+          logger.log(this.TAG, 'audioCtx 开始播放')
           if (this._paused) {
             // resume()返回晚于timer时
-            this.emit(Events.TIMELINE.DO_PAUSE);
-            return;
+            this.emit(Events.TIMELINE.DO_PAUSE)
+            return
           }
-          resumed = true;
-        });
+          resumed = true
+        })
       }
 
       setTimeout(() => {
         this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
 
         if (!resumed) {
-          logger.log(this.TAG, 'audioCtx 不能自动播放');
+          logger.log(this.TAG, 'audioCtx 不能自动播放')
           if (this._parent.firstWebAudio) {
-            this._paused = true;
+            this._paused = true
             // eslint-disable-next-line prefer-promise-reject-errors
             reject({
               name: 'NotAllowedError'
-            });
+            })
           } else {
-            this.pause();
-            resolve();
+            this.pause()
+            resolve()
           }
-          return;
+          return
         }
         // 暂时没有和音频不能自动播放合到一起
         if (!this.videoRender.canAutoPlay) {
@@ -366,26 +366,26 @@ export default class TimeLine extends EventEmitter {
   }
 
   pause () {
-    if (this._paused || (!this.ready && !this._seeking)) return;
-    this.emit(Events.TIMELINE.DO_PAUSE);
+    if (this._paused || (!this.ready && !this._seeking)) return
+    this.emit(Events.TIMELINE.DO_PAUSE)
     setTimeout(() => {
-      this._paused = true;
-      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PAUSE);
-    });
+      this._paused = true
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PAUSE)
+    })
   }
 
   seek (time) {
     if (this._seeking) {
-      logger.groupEnd();
+      logger.groupEnd()
     }
 
     if (this._noAudio) {
-      this.emit(Events.TIMELINE.SYNC_DTS, this.videoRender.getDtsOfTime(time));
-      return;
+      this.emit(Events.TIMELINE.SYNC_DTS, this.videoRender.getDtsOfTime(time))
+      return
     }
 
     if (this._parent.live) {
-      if (this.currentTime < 0.1 || !this.audioCanAutoplay) return;
+      if (this.currentTime < 0.1 || !this.audioCanAutoplay) return
 
       /**
        * 追帧流程
@@ -395,7 +395,7 @@ export default class TimeLine extends EventEmitter {
        * 4. audioRender 删除 A 之前的buffer块,重建 audioCtx
        * 5. 音频播放，视频解码 (视频位置 < 音频块位置)会短暂追帧
        */
-      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1);
+      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1)
       if (keyframe) {
         let audioCanSeek = this.audioRender.canSeek(keyframe.position)
         let videoCanSeek = this.videoRender.canSeek(keyframe)
@@ -412,23 +412,23 @@ export default class TimeLine extends EventEmitter {
           this.emit(Events.TIMELINE.CHASE_FRAME, keyframe)
         }
       }
-      return;
+      return
     }
 
-    if (this._lastSeekTime === time) return;
+    if (this._lastSeekTime === time) return
 
-    this._lastSeekTime = time;
+    this._lastSeekTime = time
 
     // 调整为最后一个分片
     if (time >= this.duration) {
-      time = this.duration - 1;
+      time = this.duration - 1
     }
 
     if (time < 0) {
-      time = 0;
+      time = 0
     }
 
-    logger.group(this.TAG, 'start seek to:', time);
+    logger.group(this.TAG, 'start seek to:', time)
 
     /** 点播 seek 链路:
      *  音视频流程暂停, videoRender 销毁audioCtx并新建、videoRender timer暂停,清空_frameQueue
@@ -437,13 +437,13 @@ export default class TimeLine extends EventEmitter {
      *  3. audioRender emit ready、videoRender emit ready
      *  4. timeline 监听到READY, 分发 START_RENDER
      */
-    this._seeking = true;
-    this._resetReadyStatus();
-    this.emit(Events.TIMELINE.DO_SEEK, time);
-    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.SEEKING);
+    this._seeking = true
+    this._resetReadyStatus()
+    this.emit(Events.TIMELINE.DO_SEEK, time)
+    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.SEEKING)
   }
 
   dump () {
-    return this.audioRender.dump();
+    return this.audioRender.dump()
   }
 }

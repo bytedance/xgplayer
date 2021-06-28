@@ -54,7 +54,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
   /** ************ video render 独有的需要 timeline调用的方法 end *************************/
 
   _bindEvents () {
-    super._bindEvents();
+    super._bindEvents()
 
     let waitingTimer
 
@@ -222,7 +222,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
   }
 
   _destroy (reuseWorker) {
-    super.destroy();
+    super.destroy()
     if (this._wasmDecodeController) {
       this._wasmDecodeController.destroy(reuseWorker)
     }

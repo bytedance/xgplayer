@@ -160,14 +160,12 @@ class MSE {
   }
 
   endOfStream () {
-    const { readyState } = this.mediaSource;
-    if (readyState === 'open') {
-      try {
+    try{
+      const { readyState } = this.mediaSource;
+      if (readyState === 'open') {
         this.mediaSource.endOfStream()
-      } catch (e) {
-        // log
       }
-    }
+    }catch(e){}
   }
 
   remove (end, start = 0) {

@@ -2,9 +2,9 @@
   "name": "xgplayer-mobilevideo",
   "version": "2.4.28",
   "description": "",
+  "browser":"dist/index.min.js",
   "main": "lib/index.js",
   "module": "es/index.js",
-  "browser": "dist/index.min.js",
   "typings": "./types/index.d.ts",
   "scripts": {
     "prepare": "npm run build",
@@ -22,7 +22,7 @@
   "dependencies": {
     "eventemitter3": "^4.0.7",
     "xgplayer-helper-utils": "2.4.28",
-    "xgplayer-helper-transmuxers": "2.4.27"
+    "xgplayer-helper-transmuxers": "2.4.28"
   },
   "babel": {
     "presets": [
