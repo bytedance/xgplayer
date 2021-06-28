@@ -24,14 +24,14 @@ class Raw264Player extends Player {
     const WebComponentSupported = 'customElements' in window && window.customElements.define
     let isComponentDefined
     if (WebComponentSupported) {
-      isComponentDefined = window.customElements.get('mobile-video')
+      isComponentDefined = window.customElements.get('live-video')
     }
     return (wasmSupported || asmSupported) && isComponentDefined
   }
 
   constructor (props) {
     if (!props.mediaType) {
-      props.mediaType = 'mobile-video'
+      props.mediaType = 'live-video'
       if (props.videoConfig) {
         props.videoConfig.preloadtime = props.preloadTime || 5
       } else {

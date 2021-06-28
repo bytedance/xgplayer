@@ -174,6 +174,7 @@ export default class WasmDecodeController extends EventEmitter {
       if (!delay) {
         this._wasmWorkers.push(decoder)
       }
+      this._initDecoderInternal(decoder, this._meta)
     } else {
       let { decoder, url } = this._selectDecodeWorker()
       this._avccpushed = false

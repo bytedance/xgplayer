@@ -91,14 +91,14 @@ class Compatibility {
   }
 
   _isSegmentsContinuous () {
-    return this._currentSegmentId - this._lastSegmentId === 1
+    return this._lastSegmentId === 0 || (this._currentSegmentId - this._lastSegmentId === 1)
   }
 
   doFix () {
     let ops
     let vSamp0
     let aSamp0
-
+    let avDelta = 0
     if (this.videoTrack.samples.length) {
       vSamp0 = this.videoTrack.samples[0]
       ops = vSamp0.options
@@ -112,6 +112,10 @@ class Compatibility {
       if (logger.long) {
         logger.log(this.TAG, this.audioTrack.samples.slice())
       }
+    }
+
+    if (vSamp0 && aSamp0) {
+      avDelta = aSamp0.dts - vSamp0.dts
     }
 
     // eslint-disable-next-line no-mixed-operators
@@ -141,14 +145,21 @@ class Compatibility {
       }
     } else {
       if (!this._isSegmentsContinuous() && ops && ops.start !== undefined) {
-        logger.log(this.TAG, 'fix video for _isSegmentsContinuous()')
         this.videoLastSample = null
-        this.doFixVideo(isFirstVideoSamples, ops.start)
+        let start = ops.start
+        // id 不连续时考虑上av之间的差值
+        if (avDelta < 0) {
+          start -= avDelta
+        }
+        logger.log(this.TAG, 'fix video for _isSegmentsContinuous()， delta:', avDelta)
+        this.doFixVideo(isFirstVideoSamples, start)
         this.emit(REMUX_EVENTS.DETECT_FRAG_ID_DISCONTINUE, ops.start / 1000)
       } else {
         this.doFixVideo(isFirstVideoSamples)
       }
     }
+
+    this._appendSampleForLastSegment(ops && ops.isLast)
 
     const { changed: audioChanged, changedIdxes: audioChangedIdxes } = Compatibility.detectChangeStream(this.audioTrack.samples, isFirstAudioSamples)
     if (audioChanged) {
@@ -166,7 +177,7 @@ class Compatibility {
     } else {
       if (!this._isSegmentsContinuous() && ops && ops.start !== undefined) {
         logger.log(this.TAG, 'fix audio for _isSegmentsContinuous()')
-        this.nextAudioDts = null
+        this.nextAudioDts = ops.start || this.audioTrack.samples[0].dts
         this.doFixAudio(isFirstAudioSamples, ops.start)
         this.emit(REMUX_EVENTS.DETECT_FRAG_ID_DISCONTINUE, ops.start / 1000)
       } else {
@@ -197,12 +208,6 @@ class Compatibility {
 
     logger.log(this.TAG, `doFixVideo:: lastVideoDts: ${this.lastVideoDts} ,  _videoLargeGap: ${this._videoLargeGap} ,streamChangeStart:${streamChangeStart}, lastVideoSample:[dts=${this.videoLastSample && this.videoLastSample.dts} , pts=${this.videoLastSample && this.videoLastSample.pts}] ,  firstDTS:${firstSample.dts} ,firstPTS:${firstSample.pts} ,lastDTS:${videoSamples[len - 1].dts} , lastPTS: ${videoSamples[len - 1].pts}`)
 
-    // !first: 非首次加载的分片
-    if (!first && (this.videoLastSample === null && firstSample.options && firstSample.options.start)) {
-      if (streamChangeStart !== undefined) {
-        streamChangeStart = firstSample.options.start
-      }
-    }
     if (!first && streamChangeStart === undefined && this.videoLastSample && Compatibility.detectVideoLargeGap(this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
       // large gap 不准确，出现了非换流场景的时间戳跳变
       this._videoLargeGap = this.videoLastSample.dts + meta.refSampleDuration - firstSample.dts
@@ -216,7 +221,7 @@ class Compatibility {
       }
     }
 
-    if (!first && streamChangeStart !== undefined) {
+    if (!first && streamChangeStart !== undefined && streamChangeStart !== 0) {
       this._videoLargeGap = streamChangeStart - firstSample.dts
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
@@ -224,7 +229,7 @@ class Compatibility {
     // step1. 修复与audio首帧差距太大的问题
     if (first && this._firstAudioSample) {
       const videoFirstDts = this._firstVideoSample.originDts
-      const audioFirstDts = this._firstAudioSample.originDts || this._firstAudioSample.dts
+      const audioFirstDts = this._firstAudioSample.dts
       const gap = videoFirstDts - audioFirstDts
       if (gap > (2 * meta.refSampleDuration) && gap < (10 * meta.refSampleDuration)) {
         const fillCount = Math.floor(gap / meta.refSampleDuration)
@@ -315,6 +320,12 @@ class Compatibility {
     this.videoTrack.samples = videoSamples
   }
 
+  _appendSampleForLastSegment (isLast) {
+    if (isLast && this.videoLastSample) {
+      this.videoTrack.samples.push(this.videoLastSample)
+    }
+  }
+
   doFixAudio (first, streamChangeStart) {
     let {samples: audioSamples, meta} = this.audioTrack
 
@@ -361,7 +372,7 @@ class Compatibility {
         this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
       }
     } else if (!first && (streamChangeStart !== undefined || Compatibility.detectAudioLargeGap(this.nextAudioDts, _firstSample.dts))) {
-      if (streamChangeStart !== undefined) {
+      if (streamChangeStart !== undefined && streamChangeStart !== 0) {
         this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts

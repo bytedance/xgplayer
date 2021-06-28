@@ -241,8 +241,9 @@ class FlvDemuxer extends EventEmitter {
     let samplingIndex = ret.sampleRateIndex
 
     if (userAgent.indexOf('firefox') !== -1) {
+      // 火狐下 HE-AACv2编码方式 采样率是22050时候也要使用 LC-AAC
       // firefox: use SBR (HE-AAC) if freq less than 24kHz
-      if (ret.sampleRateIndex >= 6) {
+      if (ret.sampleRateIndex >= 8) {
         ret.objectType = 5
         config = new Array(4)
         extensionSamplingIndex = samplingIndex - 3
@@ -337,7 +338,6 @@ class FlvDemuxer extends EventEmitter {
       meta.config = aacHeader.config
       meta.objectType = aacHeader.objectType
       meta.originObjectType = aacHeader.originObjectType
-
       this.emit(FlvDemuxer.EVENTS.AUDIO_META_PARSED, meta)
     } else {
       tag.data = tag.data.slice(1, tag.data.length)

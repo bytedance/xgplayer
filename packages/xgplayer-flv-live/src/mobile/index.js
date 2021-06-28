@@ -71,6 +71,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!player.paused) {
         const timer = setInterval(() => {
+          if (!player || !player.video) return window.clearInterval(timer)
           const end = player.getBufferedRange()[1]
           if (Math.abs(player.currentTime - end) < 0.5) {
             player.emit('ended')
@@ -91,6 +92,7 @@ class FlvPlayer extends BasePlugin {
 
     // autoplay:true 不能自动播放的, 停止拉流
     this.on(Events.AUTOPLAY_PREVENTED, () => {
+      if (!this.flv) return
       this.flv.pause()
     })
     this.player.video.addEventListener('lowdecode', this.lowdecode)

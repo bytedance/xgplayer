@@ -1,5 +1,5 @@
 {
-  "name": "xgplayer-mobilevideo",
+  "name": "xgplayer-livevideo",
   "version": "2.4.29",
   "description": "",
   "browser":"dist/index.min.js",
@@ -11,7 +11,7 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf ./es && babel src --out-dir es",
-    "build:lib": "rm -rf ./lib &&babel src --out-dir lib",
+    "build:lib": "rm -rf ./lib &&babel src --presets @babel/preset-env --out-dir lib",
     "dev": "rollup -c rollup.config.js",
     "analyze": "cross-env NODE_ENV=production ANALYZE=1 rollup -c rollup.config.js",
     "watch": "babel src --out-dir es --watch & babel src --out-dir lib --watch & npm run watch:umd",

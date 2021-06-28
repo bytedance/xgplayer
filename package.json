@@ -145,7 +145,7 @@
     "xgplayer-hls.js": "file:packages/xgplayer-hls.js",
     "xgplayer-logger": "file:packages/xgplayer-logger",
     "xgplayer-m4a": "file:packages/xgplayer-m4a",
-    "xgplayer-mobilevideo": "file:packages/xgplayer-mobilevideo",
+    "xgplayer-livevideo": "file:packages/xgplayer-livevideo",
     "xgplayer-mp4": "file:packages/xgplayer-mp4",
     "xgplayer-music": "file:packages/xgplayer-music",
     "xgplayer-raw264": "file:packages/xgplayer-raw264",

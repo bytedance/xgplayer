@@ -67,32 +67,10 @@ export default class FlvController {
   }
 
   _handleDemuxComplete () {
-    if (this._player.video) {
+    let v = this._player.video
+    if (v && v.onDemuxComplete) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
-
-      // if (!this.isVideoDecode()) {
-      // videoTrack.samples.forEach((sample) => {
-      //   // const buffer = new Stream(sample.data.buffer)
-      //   // const nals = NalUnit.getNalunits(buffer);
-      //   const nals = sample.nals;
-      //   if (!nals) return;
-      //   const nalsLength = nals.reduce((len, current) => {
-      //     return len + 4 + current.body.byteLength;
-      //   }, 0);
-      //   const newData = new Uint8Array(nalsLength);
-      //   let offset = 0;
-      //   nals.forEach((nal) => {
-      //     newData.set([0, 0, 0, 1], offset)
-      //     offset += 4;
-      //     newData.set(new Uint8Array(nal.body), offset);
-      //     offset += nal.body.byteLength;
-      //   })
-      //   sample.nals = null;
-      //   sample.data = newData;
-      // })
-      // }
-
-      this._player.video.onDemuxComplete(videoTrack, audioTrack)
+      v.onDemuxComplete(videoTrack, audioTrack)
     }
   }
   _handleVisibilityChange (visible) {

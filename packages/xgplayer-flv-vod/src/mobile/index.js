@@ -20,7 +20,7 @@ const isEnded = (player, flv) => {
 class FlvVodPlayer extends Player {
   constructor (config) {
     if (!config.mediaType) {
-      config.mediaType = 'mobile-video'
+      config.mediaType = 'live-video'
     }
     super(config)
     this.video.width = Number.parseInt(config.width || 600)

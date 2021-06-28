@@ -13,7 +13,7 @@ npm i xgplayer-mobilevideo
 ```js
 import 'xgplayer-mobilevideo';
 
-const video = document.createElement('mobile-video');
+const video = document.createElement('live-video');
 
 
 video.setVideoMeta(videoMeta);

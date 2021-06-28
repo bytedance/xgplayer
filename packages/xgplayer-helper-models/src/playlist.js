@@ -71,7 +71,7 @@ class Playlist {
    * @param {number} id
    * @param {number} cc
    */
-  push (tsURL, duration, discontinue, id, cc) {
+  push (tsURL, duration, discontinue, id, cc, isLast) {
     if (!this._ts[tsURL]) {
       this._ts[tsURL] = {duration: duration,
         downloaded: false,
@@ -79,7 +79,8 @@ class Playlist {
         start: this.duration,
         discontinue: !!discontinue,
         id,
-        cc
+        cc,
+        isLast: isLast || false
       }
       this._list[this.duration] = tsURL
       this.duration += duration
@@ -143,7 +144,7 @@ class Playlist {
         let frag = data.frags[i]
         if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
           newfraglist.push(frag.url)
-          this.push(frag.url, frag.duration, frag.discontinue, frag.id, frag.cc)
+          this.push(frag.url, frag.duration, frag.discontinue, frag.id, frag.cc, frag.isLast)
         }
       }
 
@@ -240,7 +241,8 @@ class Playlist {
           time: parseInt(timelist[i]),
           duration: parseInt(this._ts[url].duration),
           id: this._ts[url].id,
-          cc: this._ts[url].cc
+          cc: this._ts[url].cc,
+          isLast: this._ts[url].isLast
         }
         if (this.autoclear && this._lastget) {
           delete this._ts[this._lastget.url]
