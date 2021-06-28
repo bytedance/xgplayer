@@ -9,7 +9,7 @@ import Plugin, { pluginsManager, BasePlugin } from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
-import hooksDescriptor from './plugin/hooksDescriptor'
+import hooksDescriptor, { runHooks } from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 
@@ -17,7 +17,7 @@ import I18N from './lang'
 import version from './version'
 
 /* eslint-disable camelcase */
-const PlAYER_HOOKS = ['play']
+const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 
 class Player extends VideoProxy {
   constructor (options) {
@@ -30,13 +30,14 @@ class Player extends VideoProxy {
     this.config = config
     bindDebug(this)
     // resolve default preset
+    const defaultPreset = this.constructor.defaultPreset
     if (this.config.presets.length) {
       const defaultIdx = this.config.presets.indexOf('default')
-      if (defaultIdx >= 0 && Player.defaultPreset) {
-        this.config.presets[defaultIdx] = Player.defaultPreset
+      if (defaultIdx >= 0 && defaultPreset) {
+        this.config.presets[defaultIdx] = defaultPreset
       }
-    } else if (Player.defaultPreset) {
-      this.config.presets.push(Player.defaultPreset)
+    } else if (defaultPreset) {
+      this.config.presets.push(defaultPreset)
     }
 
     // timer and flags
@@ -54,7 +55,7 @@ class Player extends VideoProxy {
     this.isActive = false
     this.isCssfullScreen = false
     this.fullscreen = false
-    this._fpullscreenEl = null
+    this._fullscreenEl = null
     this._orgCss = ''
     this._fullScreenOffset = null
     this._videoHeight = 0
@@ -117,6 +118,16 @@ class Player extends VideoProxy {
       ret.destroy()
     }
     this._initBaseDoms()
+
+    // 允许自定义video对象的构造
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if (XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
+      const el = this.innerContainer || this.root
+      this.detachVideoEvents(this.video)
+      const _nVideo = new XgVideoProxy(el, this.config, this.videoConfig)
+      this.attachVideoEvents(_nVideo)
+      this.video = _nVideo
+    }
     if (this.config.controls) {
       const controls = pluginsManager.register(this, Controls)
       this.controls = controls
@@ -189,7 +200,7 @@ class Player extends VideoProxy {
         }
       } else if (this.fullscreen) {
         const { _fullScreenOffset, config } = this
-        if (config.needFullsreenScroll) {
+        if (config.needFullscreenScroll) {
           try {
             window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
             Util.setTimeout(this, () => {
@@ -263,7 +274,7 @@ class Player extends VideoProxy {
       if (!this.config) {
         return
       }
-      const { autoplay, startTime, volume } = this.config
+      const { autoplay, startTime, volume, defaultPlaybackRate } = this.config
       XG_DEBUG.logInfo('player', 'canPlayFunc', startTime)
       if (Util.typeOf(volume) === 'Number') {
         this.volume = volume
@@ -271,29 +282,37 @@ class Player extends VideoProxy {
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
       }
+      if (defaultPlaybackRate !== 1) {
+        this.playbackRate = defaultPlaybackRate
+      }
       autoplay && this.videoPlay()
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }
 
-    if (Util.typeOf(url) === 'String') {
-      this.video.src = url
-    } else {
+    if (Util.typeOf(url) === 'Array') {
       url.forEach(item => {
         this.video.appendChild(Util.createDom('source', '', {
           src: `${item.src}`,
           type: `${item.type || ''}`
         }))
       })
+    } else {
+      this.video.src = url
     }
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
     const _root = this.innerContainer ? this.innerContainer : this.root
-    if (!_root.contains(this.video)) {
+    if (this.video instanceof window.Element && !_root.contains(this.video)) {
       _root.insertBefore(this.video, _root.firstChild)
     }
 
-    this.once(Events.CANPLAY, this.canPlayFunc)
+    if (this.video.readyState >= 2) {
+      this.canPlayFunc()
+    } else {
+      this.once(Events.CANPLAY, this.canPlayFunc)
+    }
+
     XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load();
@@ -317,6 +336,10 @@ class Player extends VideoProxy {
     this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
+    const i18n = this.config.i18n || []
+    i18n.map(item => {
+      I18N.use(item)
+    })
     const ignoresStr = ignores.join('||').toLowerCase().split('||')
     plugins.map(plugin => {
       try {
@@ -545,23 +568,21 @@ class Player extends VideoProxy {
     return playPromise
   }
 
+  videoPause () {
+    super.pause()
+  }
+
   play () {
     this.removeClass(STATE_CLASS.PAUSED)
-    const { __hooks } = this
-    if (__hooks && __hooks.play) {
-      const ret = __hooks.play.call(this)
-      if (ret && ret.then) {
-        ret.then(() => {
-          return this.videoPlay()
-        }).catch(e => {
-          return this.videoPlay()
-        })
-      } else {
-        return this.videoPlay()
-      }
-    } else {
-      return this.videoPlay()
-    }
+    runHooks(this, 'play', () => {
+      this.videoPlay()
+    })
+  }
+
+  pause () {
+    runHooks(this, 'pause', () => {
+      super.pause()
+    })
   }
 
   seek (time) {
@@ -651,52 +672,62 @@ class Player extends VideoProxy {
 
   replay () {
     this.removeClass(STATE_CLASS.ENDED)
-    this.once(Events.CANPLAY, () => {
-      const playPromise = this.play()
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(err => {
-          console.log(err)
-        })
-      }
-    })
     this.currentTime = 0
     this.isSeeking = false
-    this.play()
-    this.emit(Events.REPLAY)
-    this.onPlay()
+    runHooks(this, 'replay', () => {
+      this.once(Events.CANPLAY, () => {
+        const playPromise = this.play()
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(err => {
+            console.log(err)
+          })
+        }
+      })
+      this.play()
+      this.emit(Events.REPLAY)
+      this.onPlay()
+    })
   }
 
   retry () {
     this.removeClass(STATE_CLASS.ERROR)
     this.addClass(STATE_CLASS.LOADING)
-    const cur = this.currentTime
-    this.pause()
-    this.src = this.config.url
-    this.currentTime = cur
-    this.play()
+    runHooks(this, 'retry', () => {
+      const cur = this.currentTime
+      this.pause()
+      this.src = this.config.url
+      this.currentTime = cur
+      this.play()
+    })
   }
 
-  changeFullStyle (root, el, className) {
+  changeFullStyle (root, el, rootClass, pClassName) {
+    if (!pClassName) {
+      pClassName = STATE_CLASS.PARENT_FULLSCREEN
+    }
     if (root && !this._orgCss) {
       this._orgCss = Util.filterStyleFromText(root)
-      Util.addClass(root, className)
+      Util.addClass(root, rootClass)
     }
     if (el && el !== root && !this._orgPCss) {
       this._orgPCss = Util.filterStyleFromText(el)
-      Util.addClass(el, STATE_CLASS.PARENT_FULLSCREEN)
+      Util.addClass(el, pClassName)
     }
   }
 
-  recoverFullStyle (root, el, className) {
+  recoverFullStyle (root, el, rootClass, pClassName) {
+    if (!pClassName) {
+      pClassName = STATE_CLASS.PARENT_FULLSCREEN
+    }
     if (root && this._orgCss) {
       Util.setStyleFromCsstext(root, this._orgCss)
       this._orgCss = ''
-      Util.removeClass(root, className)
+      Util.removeClass(root, rootClass)
     }
     if (el && el !== root && this._orgPCss) {
       Util.setStyleFromCsstext(el, this._orgPCss)
       this._orgPCss = ''
-      Util.removeClass(el, STATE_CLASS.PARENT_FULLSCREEN)
+      Util.removeClass(el, pClassName)
     }
   }
 
@@ -733,7 +764,7 @@ class Player extends VideoProxy {
   }
 
   exitFullscreen (el) {
-    if (!this._fullscreenEl) {
+    if (!this._fullscreenEl || !Util.getFullScreenEl()) {
       return
     }
     const { root, video } = this
@@ -760,7 +791,7 @@ class Player extends VideoProxy {
 
   getCssFullscreen (el) {
     this._cssfullscreenEl = el
-    this.changeFullStyle(this.root, el, STATE_CLASS.CSS_FULLSCREEN)
+    this.changeFullStyle(this.root, el, el ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.CSS_FULLSCREEN)
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
     if (this.fullscreen) {
@@ -770,7 +801,8 @@ class Player extends VideoProxy {
 
   exitCssFullscreen () {
     if (!this.fullscreen) {
-      this.recoverFullStyle(this.root, this._cssfullscreenEl, STATE_CLASS.CSS_FULLSCREEN)
+      const _class = this._cssfullscreenEl ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.CSS_FULLSCREEN
+      this.recoverFullStyle(this.root, this._cssfullscreenEl, _class)
     }
     this.isCssfullScreen = false
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
@@ -972,7 +1004,7 @@ class Player extends VideoProxy {
 
   get i18n () {
     const { lang } = this.config
-    return I18N.lang[lang] || {}
+    return I18N.lang[lang] || I18N.lang.en
   }
 
   get i18nKeys () {
@@ -1054,6 +1086,8 @@ class Player extends VideoProxy {
     }
     Player.plugins[name] = descriptor
   }
+
+  static defaultPreset = null
 }
 
 export {

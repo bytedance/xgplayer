@@ -1,4 +1,5 @@
 import XG_DEBUG from './debug'
+import XgplayerTimeRange from './xgplayerTimeRange'
 const util = {}
 
 util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
@@ -507,6 +508,42 @@ util.scrollLeft = function () {
 
 util.checkTouchSupport = function () {
   return 'ontouchstart' in window
+}
+
+util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
+  const buffered = []
+  for (let i = 0; i < vbuffered.length; i++) {
+    buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) })
+  }
+  buffered.sort(function (a, b) {
+    const diff = a.start - b.start
+    if (diff) {
+      return diff
+    } else {
+      return b.end - a.end
+    }
+  })
+  let buffered2 = []
+  if (maxHoleDuration) {
+    for (let i = 0; i < buffered.length; i++) {
+      const buf2len = buffered2.length
+      if (buf2len) {
+        const buf2end = buffered2[buf2len - 1].end
+        if ((buffered[i].start - buf2end) < maxHoleDuration) {
+          if (buffered[i].end > buf2end) {
+            buffered2[buf2len - 1].end = buffered[i].end
+          }
+        } else {
+          buffered2.push(buffered[i])
+        }
+      } else {
+        buffered2.push(buffered[i])
+      }
+    }
+  } else {
+    buffered2 = buffered
+  }
+  return new XgplayerTimeRange(buffered2)
 }
 
 export default util

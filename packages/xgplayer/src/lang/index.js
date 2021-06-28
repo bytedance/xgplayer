@@ -1,6 +1,5 @@
 import Util from '../utils/util'
 import EN from './en'
-import ZH from './zh-cn'
 
 const XGI18nLang = {}
 const XGI18nTextKeys = {}
@@ -44,7 +43,6 @@ function use (data) {
 }
 
 use(EN)
-use(ZH)
 
 export default {
   get textKeys () {

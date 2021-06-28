@@ -20,6 +20,7 @@ import Prompt from '../plugins/prompt'
 import Thumbnail from '../plugins/common/thumbnail'
 import PIPIcon from '../plugins/pip'
 import MiniProgress from '../plugins/progress/miniProgress'
+import ZH from '../lang/zh-cn'
 
 export default class DefaultPreset {
   constructor () {
@@ -29,6 +30,7 @@ export default class DefaultPreset {
 
     this.plugins = [...contolsIcons, ...layers]
     this.ignores = []
+    this.i18n = [ZH]
     // this.icons = {
     //   play: Play,
     //   pause: Pause

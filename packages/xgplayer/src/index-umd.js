@@ -1,14 +1,15 @@
 import Player, { Util, Sniffer, Errors, Events, Plugin, BasePlugin, I18N } from './player'
-
 import defaultPreset from './presets/default'
 
-Player.defaultPreset = defaultPreset
-Player.Util = Util
-Player.Sniffer = Sniffer
-Player.Errors = Errors
-Player.Events = Events
-Player.Plugin = Plugin
-Player.BasePlugin = BasePlugin
-Player.I18N = I18N
+class PresetPlayer extends Player {
+  static defaultPreset = defaultPreset;
+  static Util = Util;
+  static Sniffer = Sniffer
+  static Errors = Errors
+  static Events = Events
+  static Plugin = Plugin
+  static BasePlugin = BasePlugin
+  static I18N = I18N
+}
 
-export default Player
+export default PresetPlayer

@@ -93,7 +93,7 @@ class DynamicBg extends Plugin {
     const { player, config } = this
     try {
       // 保证节点插入到video之前
-      const parent = player.video.parentElement
+      const parent = player.innerContainer || player.root
       parent.insertAdjacentHTML('afterbegin',
         `<div class="xgplayer-dynamic-bg"><canvas>
         </canvas><xgmask></xgmask></div>`)

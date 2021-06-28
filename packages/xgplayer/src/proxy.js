@@ -70,7 +70,7 @@ class Proxy {
       'webkit-airplay': options.airplay,
       tabindex: 2,
       mediaType: options.mediaType || 'video'
-    }, options.videoConfig, options.videoAttrbutes)
+    }, options.videoConfig, options.videoAttributes)
     /**
      * @description 微信内部同层播放兼容
      * x5-playsinline和x5-video-player-type互斥，只需要存在一个即可
@@ -90,9 +90,9 @@ class Proxy {
 
     this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
 
-    if (options.defaultPlaybackRate) {
-      this.video.defaultPlaybackRate = this.video.playbackRate = options.defaultPlaybackRate
-    }
+    // if (options.defaultPlaybackRate) {
+    //   this.video.defaultPlaybackRate = this.video.playbackRate = options.defaultPlaybackRate
+    // }
 
     if (options.autoplayMuted) {
       this.video.muted = true
@@ -210,14 +210,15 @@ class Proxy {
     return this.video.canPlayType(type)
   }
 
-  getBufferedRange () {
+  getBufferedRange (buffered) {
     const range = [0, 0]
     if (!this.video) {
       return range
     }
-    const video = this.video
-    const buffered = video.buffered
-    const currentTime = video.currentTime
+    if (!buffered) {
+      buffered = this.video.buffered
+    }
+    const currentTime = this.video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         range[0] = buffered.start(i)
@@ -246,6 +247,10 @@ class Proxy {
     return this.video.buffered
   }
 
+  get buffered2 () {
+    return Util.getBuffered2(this.video.buffered)
+  }
+
   get bufferedPoint () {
     const _buffered = this.video.buffered
     const ret = {
@@ -256,7 +261,7 @@ class Proxy {
       return ret
     }
     for (let i = 0; i < _buffered.length; i++) {
-      if (_buffered.start(i) <= this.currentTime && _buffered.end(i) >= this.currentTime) {
+      if ((_buffered.start(i) <= this.currentTime || _buffered.start(i) < 0.1) && _buffered.end(i) >= this.currentTime) {
         return {
           start: _buffered.start(i),
           end: _buffered.end(i)
