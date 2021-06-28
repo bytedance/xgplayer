@@ -1,2 +1,2 @@
-const version = '3.0.0-alpha.90-7'
+const version = JSON.parse('__XGPLAYER_VERSION__')
 export default version
