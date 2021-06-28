@@ -1,7 +1,7 @@
 import { Sniffer } from 'xgplayer-helper-utils'
-import { UTF8 } from 'xgplayer-helper-codec';
+import { UTF8 } from 'xgplayer-helper-codec'
 
-const isLe = Sniffer.isLe;
+const isLe = Sniffer.isLe
 
 const DATA_TYPES = {
   NUMBER: 0,

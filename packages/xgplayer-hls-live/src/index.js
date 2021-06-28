@@ -3,11 +3,11 @@ import HlsLiveMobilePlayer from './mobile'
 
 export default class HlsLivePlayer {
   static get pluginName () {
-    return HlsLiveMsePlayer.pluginName;
+    return HlsLiveMsePlayer.pluginName
   }
 
   static get defaultConfig () {
-    return HlsLiveMsePlayer.defaultConfig;
+    return HlsLiveMsePlayer.defaultConfig
   }
 
   constructor (config) {

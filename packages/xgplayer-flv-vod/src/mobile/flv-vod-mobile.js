@@ -2,9 +2,9 @@ import LiveController from '../flv-vod'
 
 class LiveMobileController extends LiveController {
   _handleDemuxComplete () {
-    if(this._player.video) {
-      const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
-      this._player.video.onDemuxComplete(videoTrack, audioTrack);
+    if (this._player.video) {
+      const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
+      this._player.video.onDemuxComplete(videoTrack, audioTrack)
     }
   }
 
@@ -25,15 +25,15 @@ class LiveMobileController extends LiveController {
 
   _setMetaToAudio (audioMeta) {
     if (this._player.video) {
-      this._player.video.setAudioMeta(audioMeta);
+      this._player.video.setAudioMeta(audioMeta)
     }
   }
 
   _setMetaToVideo (videoMeta) {
     if (this._player.video) {
-      this._player.video.setVideoMeta(videoMeta);
+      this._player.video.setVideoMeta(videoMeta)
     }
   }
 }
 
-export default LiveMobileController;
+export default LiveMobileController

@@ -14,7 +14,7 @@ class Context {
   constructor (player, configs, allowedEvents = []) {
     this._emitter = new EventEmitter()
     if (!this._emitter.off) {
-      this._emitter.off = this._emitter.removeListener;
+      this._emitter.off = this._emitter.removeListener
     }
 
     this.mediaInfo = new MediaInfo()
@@ -22,8 +22,8 @@ class Context {
     this._clsMap = {} // 构造函数的map
     this._inited = false
     this.allowedEvents = allowedEvents
-    this._configs = configs;
-    this._player = player;
+    this._configs = configs
+    this._player = player
     this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
   }
 
@@ -48,7 +48,7 @@ class Context {
    * @param {any[]}args
    */
   initInstance (tag, ...args) {
-    const [a, b, c, d] = args;
+    const [a, b, c, d] = args
     if (this._clsMap[tag]) {
       const newInstance = new this._clsMap[tag](a, b, c, d)
       this._instanceMap[tag] = newInstance
@@ -220,27 +220,27 @@ class Context {
         if (super.destroy) {
           return super.destroy()
         }
-        this._context = null;
+        this._context = null
       }
 
       get _player () {
         if (!this._context) {
-          return null;
+          return null
         }
-        return this._context._player;
+        return this._context._player
       }
 
       set _player (v) {
         if (this._context) {
-          this._context._player = v;
+          this._context._player = v
         }
       }
 
       get _pluginConfig () {
         if (!this._context) {
-          return null;
+          return null
         }
-        return this._context._configs;
+        return this._context._configs
       }
     }
     this._clsMap[tag] = enhanced
@@ -278,7 +278,7 @@ class Context {
    */
   destroy () {
     this.destroyInstances()
-    this._emitter.removeAllListeners();
+    this._emitter.removeAllListeners()
     this._emitter = null
     this.allowedEvents = []
     this._clsMap = null

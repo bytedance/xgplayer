@@ -34,24 +34,24 @@ class SPSParser {
     let gb = new Golomb(rbsp)
 
     let
-      vpsId = 0,
-      maxSubLayersMinus1 = 0,
-      tINf = 0,
-      spsId = 0,
-      separate_colour_plane_flag = 0,
-      chromaFormatIdc = 0,
-      width = 0,
-      height = 0,
-      conf_win_left_offset = 0,
-      conf_win_right_offset = 0,
-      conf_win_top_offset = 0,
-      conf_win_bottom_offset = 0,
-      conformanceWindowFlag = 0,
-      bitDepthLumaMinus8 = 0,
-      bitDepthChromaMinus8 = 0,
-      sub_width_c = 0,
-      sub_height_c = 0,
-      profileTierLevel = {}
+      vpsId = 0
+    let maxSubLayersMinus1 = 0
+    let tINf = 0
+    let spsId = 0
+    let separate_colour_plane_flag = 0
+    let chromaFormatIdc = 0
+    let width = 0
+    let height = 0
+    let conf_win_left_offset = 0
+    let conf_win_right_offset = 0
+    let conf_win_top_offset = 0
+    let conf_win_bottom_offset = 0
+    let conformanceWindowFlag = 0
+    let bitDepthLumaMinus8 = 0
+    let bitDepthChromaMinus8 = 0
+    let sub_width_c = 0
+    let sub_height_c = 0
+    let profileTierLevel = {}
 
     gb.readByte() // NAL header
     gb.readByte()
@@ -64,7 +64,7 @@ class SPSParser {
 
     spsId = gb.readUEG() // sps id
     chromaFormatIdc = gb.readUEG()
-    if(chromaFormatIdc === 3) {
+    if (chromaFormatIdc === 3) {
       separate_colour_plane_flag = gb.readBits(1) // separate_colour_plane_flag
     }
 
@@ -72,34 +72,35 @@ class SPSParser {
     height = gb.readUEG() // pic_height_in_luma_samples
 
     conformanceWindowFlag = gb.readBits(1)
-    if( conformanceWindowFlag === 1) {
-       conf_win_left_offset = gb.readUEG() // conf_win_left_offset
-       conf_win_right_offset = gb.readUEG() // conf_win_right_offset
-       conf_win_top_offset = gb.readUEG() // conf_win_top_offset
-       conf_win_bottom_offset = gb.readUEG() // conf_win_bottom_offset
+    if (conformanceWindowFlag === 1) {
+      conf_win_left_offset = gb.readUEG() // conf_win_left_offset
+      conf_win_right_offset = gb.readUEG() // conf_win_right_offset
+      conf_win_top_offset = gb.readUEG() // conf_win_top_offset
+      conf_win_bottom_offset = gb.readUEG() // conf_win_bottom_offset
     }
 
     bitDepthLumaMinus8 = gb.readUEG() // bit_depth_luma_minus8
     bitDepthChromaMinus8 = gb.readUEG() // bit_depth_chroma_minus8
 
-    if(conformanceWindowFlag === 1) {
-      sub_width_c  = (((1 === chromaFormatIdc)||(2 === chromaFormatIdc)) && (0 === separate_colour_plane_flag)) ? 2 : 1
-      sub_height_c = ((1 === chromaFormatIdc) && (0 === separate_colour_plane_flag)) ? 2 : 1
-      width  -= (sub_width_c * conf_win_right_offset + sub_width_c * conf_win_left_offset)
+    if (conformanceWindowFlag === 1) {
+      sub_width_c = (((chromaFormatIdc === 1) || (chromaFormatIdc === 2)) && (separate_colour_plane_flag === 0)) ? 2 : 1
+      sub_height_c = ((chromaFormatIdc === 1) && (separate_colour_plane_flag === 0)) ? 2 : 1
+      width -= (sub_width_c * conf_win_right_offset + sub_width_c * conf_win_left_offset)
       height -= (sub_height_c * conf_win_bottom_offset + sub_height_c * conf_win_top_offset)
     }
 
     gb.destroy()
     gb = null
 
-    return { width : width, height : height,
+    return { width: width,
+      height: height,
       general_profile_space: profileTierLevel.general_profile_space,
       general_tier_flag: profileTierLevel.general_tier_flag,
       general_profile_idc: profileTierLevel.general_profile_idc,
       general_level_idc: profileTierLevel.general_level_idc,
-      chromaFormatIdc : chromaFormatIdc,
-      bitDepthLumaMinus8 : bitDepthLumaMinus8,
-      bitDepthChromaMinus8 :  bitDepthChromaMinus8 }
+      chromaFormatIdc: chromaFormatIdc,
+      bitDepthLumaMinus8: bitDepthLumaMinus8,
+      bitDepthChromaMinus8: bitDepthChromaMinus8 }
   }
 
   // static parseSPS (uint8array) {
@@ -290,58 +291,57 @@ class SPSParser {
    * @param maxSubLayersMinus1
    * @return {{general_profile_idc: (*|number), general_level_idc: (*|number), general_tier_flag: (*|number), general_profile_space: (*|number)}}
    */
-  static _readProfileTierLevel(gb, maxSubLayersMinus1) {
+  static _readProfileTierLevel (gb, maxSubLayersMinus1) {
     let general_profile_space = 0
     let general_tier_flag = 0
     let general_profile_idc = 0
     let general_level_idc = 0
-    general_profile_space = gb.readBits(2) || 0; // profile_space
-    general_tier_flag = gb.readBits(1) || 0; // tierFlag
-    general_profile_idc = gb.readBits(5) || 0; // profileIdc
+    general_profile_space = gb.readBits(2) || 0 // profile_space
+    general_tier_flag = gb.readBits(1) || 0 // tierFlag
+    general_profile_idc = gb.readBits(5) || 0 // profileIdc
 
-    gb.readBits(16); // some 32bits
-    gb.readBits(16);
+    gb.readBits(16) // some 32bits
+    gb.readBits(16)
 
-    gb.readBits(1); // progressiveSourceFlag
-    gb.readBits(1); // interlacedSourceFlag
-    gb.readBits(1); // nonPackedConstraintFlag
-    gb.readBits(1); // frameOnlyConstraintFlag
+    gb.readBits(1) // progressiveSourceFlag
+    gb.readBits(1) // interlacedSourceFlag
+    gb.readBits(1) // nonPackedConstraintFlag
+    gb.readBits(1) // frameOnlyConstraintFlag
 
+    gb.readBits(16) // reserved zero bits
+    gb.readBits(16)
+    gb.readBits(12)
 
-    gb.readBits(16); // reserved zero bits
-    gb.readBits(16);
-    gb.readBits(12);
+    general_level_idc = gb.readBits(8) || 0 // level_idc
 
-    general_level_idc = gb.readBits(8) || 0; // level_idc
-
-    let subLayerProfilePresentFlag = [];
-    let subLayerLevelPresentFlag = [];
+    let subLayerProfilePresentFlag = []
+    let subLayerLevelPresentFlag = []
     for (let j = 0; j < maxSubLayersMinus1; j++) {
-      subLayerProfilePresentFlag[j] = gb.readBits(1);
-      subLayerLevelPresentFlag[j] = gb.readBits(1);
+      subLayerProfilePresentFlag[j] = gb.readBits(1)
+      subLayerLevelPresentFlag[j] = gb.readBits(1)
     }
 
     if (maxSubLayersMinus1 > 0) {
-      gb.readBits( (8 - maxSubLayersMinus1) * 2 );
+      gb.readBits((8 - maxSubLayersMinus1) * 2)
     }
 
     for (let i = 0; i < maxSubLayersMinus1; i++) {
-      if(subLayerProfilePresentFlag[i] !== 0){
-        gb.readBits(2);
-        gb.readBits(1);
-        gb.readBits(5);
+      if (subLayerProfilePresentFlag[i] !== 0) {
+        gb.readBits(2)
+        gb.readBits(1)
+        gb.readBits(5)
 
-        gb.readBits(16);
-        gb.readBits(16);
+        gb.readBits(16)
+        gb.readBits(16)
 
-        gb.readBits(4);
+        gb.readBits(4)
 
-        gb.readBits(16);
-        gb.readBits(16);
-        gb.readBits(12);
+        gb.readBits(16)
+        gb.readBits(16)
+        gb.readBits(12)
       }
-      if(subLayerLevelPresentFlag[i] !== 0){
-        gb.readBits(8);
+      if (subLayerLevelPresentFlag[i] !== 0) {
+        gb.readBits(8)
       }
     }
 
@@ -359,9 +359,9 @@ class SPSParser {
    * @param {number}count
    */
   static _skipScalingList (gb, count) {
-    let lastScale = 8;
+    let lastScale = 8
     let nextScale = 8
-    let deltaScale = 0;
+    let deltaScale = 0
     for (let i = 0; i < count; i++) {
       if (nextScale !== 0) {
         deltaScale = gb.readSEG()
@@ -455,7 +455,7 @@ class SPSParser {
     // let fpsDen = meta.frameRate.fps_den
     // let fpsNum = meta.frameRate.fps_num
     // meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum))
-    return meta;
+    return meta
   }
 }
 

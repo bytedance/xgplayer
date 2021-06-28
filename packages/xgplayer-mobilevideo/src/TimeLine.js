@@ -232,10 +232,11 @@ export default class TimeLine extends EventEmitter {
       this.emit(Events.TIMELINE.SYNC_DTS, 0)
     }
     logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking)
-    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY)
 
     // 首帧画面显示
     this.videoRender.forceRender()
+
+    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY)
 
     if (!this._parent.startPlayed) {
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.FIRST_FRAME)

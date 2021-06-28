@@ -1,46 +1,45 @@
 import EVENTS from '../events'
 
-const BROWSER_EVENTS = EVENTS.BROWSER_EVENTS;
-let hidden;
-let visibilityChange;
+const BROWSER_EVENTS = EVENTS.BROWSER_EVENTS
+let hidden
+let visibilityChange
 
 function checkEnv () {
   if (typeof document.hidden !== 'undefined') {
     // Opera 12.10 and Firefox 18 and later support
-    hidden = 'hidden';
-    visibilityChange = 'visibilitychange';
+    hidden = 'hidden'
+    visibilityChange = 'visibilitychange'
   } else if (typeof document.msHidden !== 'undefined') {
-    hidden = 'msHidden';
-    visibilityChange = 'msvisibilitychange';
+    hidden = 'msHidden'
+    visibilityChange = 'msvisibilitychange'
   } else if (typeof document.webkitHidden !== 'undefined') {
-    hidden = 'webkitHidden';
-    visibilityChange = 'webkitvisibilitychange';
+    hidden = 'webkitHidden'
+    visibilityChange = 'webkitvisibilitychange'
   }
 }
 
 class PageVisibility {
-  constructor() {
+  constructor () {
     this.callbacks = {
       onShow: [],
       onHidden: []
-    };
-    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-    this.init();
+    }
+    this.handleVisibilityChange = this.handleVisibilityChange.bind(this)
+    this.init()
   }
 
-  init() {
-    !visibilityChange && checkEnv();
-    document.addEventListener(visibilityChange, this.handleVisibilityChange, false);
+  init () {
+    !visibilityChange && checkEnv()
+    document.addEventListener(visibilityChange, this.handleVisibilityChange, false)
   }
 
-  handleVisibilityChange() {
-    this.emit(BROWSER_EVENTS.VISIBILITY_CHANGE, document[hidden]);
+  handleVisibilityChange () {
+    this.emit(BROWSER_EVENTS.VISIBILITY_CHANGE, document[hidden])
   }
 
-  destroy() {
-    document.removeEventListener(visibilityChange, this.handleVisibilityChange);
+  destroy () {
+    document.removeEventListener(visibilityChange, this.handleVisibilityChange)
   }
-
 }
 
-export default PageVisibility;
+export default PageVisibility

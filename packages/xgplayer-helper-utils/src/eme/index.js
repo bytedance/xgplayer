@@ -3,7 +3,7 @@ const KeySystems = {
   PLAYREADY: 'com.microsoft.playready'
 }
 
-const MAX_LICENSE_REQUEST_FAILURES = 3;
+const MAX_LICENSE_REQUEST_FAILURES = 3
 
 export default class EME {
   constructor ({ config, player }) {
@@ -24,9 +24,9 @@ export default class EME {
 
     navigator.requestMediaKeySystemAccess(this.keySystem, mediaKeySystemConfigs)
       .then((keySystemAccess) => {
-        return keySystemAccess.createMediaKeys();
+        return keySystemAccess.createMediaKeys()
       }).then((mediaKeys) => {
-        this.video.setMediaKeys(mediaKeys);
+        this.video.setMediaKeys(mediaKeys)
       })
 
     this.video.addEventListener('encrypted', this.onMediaEncrypted.bind(this))
@@ -34,52 +34,52 @@ export default class EME {
 
   onKeySessionMessage (keySession, message) {
     this.requestLicense(message, (data) => {
-      keySession.update(data);
-    });
+      keySession.update(data)
+    })
   }
 
   requestLicense (keyMessage, callback) {
     try {
-      const url = this.licenseUrl;
-      const xhr = this.createLicenseXhr(url, keyMessage, callback);
-      xhr.send(keyMessage);
+      const url = this.licenseUrl
+      const xhr = this.createLicenseXhr(url, keyMessage, callback)
+      xhr.send(keyMessage)
     } catch (e) {}
   }
 
   createLicenseXhr (url, keyMessage, callback) {
-    const xhr = new window.XMLHttpRequest();
+    const xhr = new window.XMLHttpRequest()
 
-    xhr.open('POST', url, true);
+    xhr.open('POST', url, true)
 
-    xhr.responseType = 'arraybuffer';
-    xhr.onreadystatechange = this.onLicenseRequestReadyStageChange.bind(this, xhr, url, keyMessage, callback);
-    return xhr;
+    xhr.responseType = 'arraybuffer'
+    xhr.onreadystatechange = this.onLicenseRequestReadyStageChange.bind(this, xhr, url, keyMessage, callback)
+    return xhr
   }
 
   onLicenseRequestReadyStageChange (xhr, url, keyMessage, callback) {
     switch (xhr.readyState) {
       case 4:
         if (xhr.status === 200) {
-          this.requestLicenseFailureCount = 0;
-          callback(xhr.response);
+          this.requestLicenseFailureCount = 0
+          callback(xhr.response)
         } else {
-          this.requestLicenseFailureCount++;
+          this.requestLicenseFailureCount++
 
           if (this.requestLicenseFailureCount > MAX_LICENSE_REQUEST_FAILURES) {
             return
           }
-          this.requestLicense(keyMessage, callback);
+          this.requestLicense(keyMessage, callback)
         }
-        break;
+        break
     }
   }
 
   onMediaEncrypted (e) {
-    const keySession = this.video.mediaKeys.createSession();
+    const keySession = this.video.mediaKeys.createSession()
     keySession.addEventListener('message', (event) => {
-      this.onKeySessionMessage(keySession, event.message);
-    }, false);
-    keySession.generateRequest(e.initDataType, e.initData);
+      this.onKeySessionMessage(keySession, event.message)
+    }, false)
+    keySession.generateRequest(e.initDataType, e.initData)
   }
 
   createWidevineMediaKeySystemConfigurations (audioCodecs, videoCodecs) {
@@ -93,12 +93,12 @@ export default class EME {
   static isSupported () {
     const checkIsIncompatibleBrowser = function () {
       const ua = navigator.userAgent
-      let isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-      let isMSBrowser = (ua.indexOf('MSIE ') > 0) || (ua.indexOf('Trident/') > 0);
-      let isFirefox = ua.indexOf('Firefox') > 0;
-      let isEdge = ua.indexOf('Edge') > 0;
-      return isSafari || isMSBrowser || isFirefox || isEdge;
-    };
-    return !!navigator.requestMediaKeySystemAccess && !checkIsIncompatibleBrowser();
+      let isSafari = /^((?!chrome|android).)*safari/i.test(ua)
+      let isMSBrowser = (ua.indexOf('MSIE ') > 0) || (ua.indexOf('Trident/') > 0)
+      let isFirefox = ua.indexOf('Firefox') > 0
+      let isEdge = ua.indexOf('Edge') > 0
+      return isSafari || isMSBrowser || isFirefox || isEdge
+    }
+    return !!navigator.requestMediaKeySystemAccess && !checkIsIncompatibleBrowser()
   }
 }

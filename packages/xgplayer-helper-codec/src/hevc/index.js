@@ -1,5 +1,5 @@
-import SpsParserHEVC from './sps';
-import NalUnitHEVC from './nalunit';
+import SpsParserHEVC from './sps'
+import NalUnitHEVC from './nalunit'
 
 export {
   SpsParserHEVC,

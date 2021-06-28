@@ -3,7 +3,7 @@ import { EVENTS, Context } from 'xgplayer-helper-utils'
 import FLV from './flv-live'
 import defaultConfig from './config'
 
-const flvAllowedEvents = EVENTS.FlvAllowedEvents;
+const flvAllowedEvents = EVENTS.FlvAllowedEvents
 
 class FlvPlayer extends BasePlugin {
   static get pluginName () {
@@ -19,17 +19,17 @@ class FlvPlayer extends BasePlugin {
   }
 
   constructor (config) {
-    super(config);
-    this._context = new Context(this.player, this.config, flvAllowedEvents);
-    this.loaderCompleteTimer = null;
-    this.play = this.play.bind(this);
-    this.pause = this.pause.bind(this);
-    this.destroy = this.destroy.bind(this);
-    this.switchURL = this.switchURL.bind(this);
-    this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
+    super(config)
+    this._context = new Context(this.player, this.config, flvAllowedEvents)
+    this.loaderCompleteTimer = null
+    this.play = this.play.bind(this)
+    this.pause = this.pause.bind(this)
+    this.destroy = this.destroy.bind(this)
+    this.switchURL = this.switchURL.bind(this)
+    this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
 
-    this.autoPlayStarted = false;
-    this.played = false;
+    this.autoPlayStarted = false
+    this.played = false
 
     this.canUseHooks = this.player.useHooks && this.player.useHooks('play', this.playHook.bind(this))
     this.initEvents()
@@ -39,7 +39,7 @@ class FlvPlayer extends BasePlugin {
     this.initFlv()
     this.context.init()
     this.loadData()
-    this.player.switchURL = this.switchURL;
+    this.player.switchURL = this.switchURL
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -55,7 +55,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   initFlvEvents (flv) {
-    const player = this.player;
+    const player = this.player
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       Util.addClass(player.root, 'xgplayer-is-live')
     })
@@ -90,15 +90,15 @@ class FlvPlayer extends BasePlugin {
 
   initFlvBackupEvents (flv, ctx, keepBuffer) {
     flv.off(EVENTS.DEMUX_EVENTS.ISKEYFRAME, flv._handleKeyFrame)
-    let mediaLength = 3;
+    let mediaLength = 3
     flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
-      mediaLength -= 1;
+      mediaLength -= 1
       if (mediaLength === 0 && this.player) {
         // ensure switch smoothly
-        this.flv = flv;
-        this.mse.resetContext(ctx, keepBuffer);
-        this.context.destroy();
-        this._context = ctx;
+        this.flv = flv
+        this.mse.resetContext(ctx, keepBuffer)
+        this.context.destroy()
+        this._context = ctx
         this.emit('switch_completed')
         flv.on(EVENTS.DEMUX_EVENTS.ISKEYFRAME, flv._handleKeyFrame)
         flv.urlSwitching = true
@@ -154,8 +154,8 @@ class FlvPlayer extends BasePlugin {
     } else if (!this.player._originPause) {
       this.player._originPause = this.player.pause.bind(this.player)
       this.player.pause = () => {
-        this.player._originPause();
-        this.pause();
+        this.player._originPause()
+        this.pause()
       }
     }
     this.on(Events.DESTROY, this.destroy)
@@ -163,7 +163,7 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.DEFINITION_CHANGE, this.switchURL)
     if (this.playerConfig.autoplay) {
       this.on(Events.AUTOPLAY_STARTED, () => {
-        this.autoPlayStarted = true;
+        this.autoPlayStarted = true
       })
     }
   }
@@ -172,18 +172,18 @@ class FlvPlayer extends BasePlugin {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)()
     this.initFlvEvents(flv)
     this.flv = flv
-    this.mse = flv.mse;
-    this.emit('core_inited', flv);
-    return flv;
+    this.mse = flv.mse
+    this.emit('core_inited', flv)
+    return flv
   }
 
   playHook () {
     if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
       // autoplay not started
-      return;
+      return
     }
     if (this.playerConfig.videoInit && this.player.played.length === 0) {
-      return;
+      return
     }
     return this.reload()
   }
@@ -191,29 +191,29 @@ class FlvPlayer extends BasePlugin {
   play () {
     if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
       // autoplay not started
-      this.played = true;
-      return;
+      this.played = true
+      return
     }
     if (this.played && (this.player.hasStart || this.player.played.length)) {
-      this.played = false;
-      return this.reload();
+      this.played = false
+      return this.reload()
     }
-    this.played = true;
+    this.played = true
   }
 
   reload () {
     return this._destroy().then(() => {
-      this.initEvents();
+      this.initEvents()
       this._context = new Context(this.player, this.config, flvAllowedEvents)
       setTimeout(() => {
         if (!this.player) return
-        this.player.hasStart = false;
-        this.player.start();
+        this.player.hasStart = false
+        this.player.start()
         this.player.addClass('xgplayer-is-enter')
         // used for autoplay:false
         this.player.once('canplay', () => {
-          if (!this.player || this.player.config.autoplay) return;
-          this.player.video.play();
+          if (!this.player || this.player.config.autoplay) return
+          this.player.video.play()
         })
       })
     })
@@ -221,7 +221,7 @@ class FlvPlayer extends BasePlugin {
 
   pause () {
     if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
-      return;
+      return
     }
     if (this.flv) {
       this.flv.pause()
@@ -253,27 +253,27 @@ class FlvPlayer extends BasePlugin {
       if (this.loaderCompleteTimer) {
         window.clearInterval(this.loaderCompleteTimer)
       }
-      super.offAll();
+      super.offAll()
     }
     return this.flv && this.flv.mse ? this.flv.mse.destroy().then(clear) : Promise.resolve(clear())
   }
 
   handleDefinitionChange (change) {
-    const { to } = change;
-    this.switchURL(to);
+    const { to } = change
+    this.switchURL(to)
   }
 
   switchURL (url, abr) {
     this.played = false
-    this.player.config.url = url;
+    this.player.config.url = url
     if (!abr) {
-      this.player.currentTime = 0;
+      this.player.currentTime = 0
       // clean buffer to avoid play repeatedly
-      this.reload();
-      return;
+      this.reload()
+      return
     }
 
-    const context = new Context(this.player, this.config, flvAllowedEvents);
+    const context = new Context(this.player, this.config, flvAllowedEvents)
     let flv
     if (abr) {
       const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER')
@@ -286,22 +286,22 @@ class FlvPlayer extends BasePlugin {
       flv = context.registry('FLV_CONTROLLER', FLV)(this.mse)
     }
     context.init()
-    this.initFlvBackupEvents(flv, context, !!abr);
-    flv.loadData(url);
-    this.emit('core_inited', flv);
+    this.initFlvBackupEvents(flv, context, !!abr)
+    flv.loadData(url)
+    this.emit('core_inited', flv)
   }
 
   get core () {
-    return this.flv;
+    return this.flv
   }
 
   get context () {
-    return this._context;
+    return this._context
   }
 
   static isSupported () {
     return window.MediaSource &&
-      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"')
   }
 }
 

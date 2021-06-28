@@ -8,7 +8,7 @@ class RBSP {
   static EBSP2RBSP (data) {
     return data.filter((el, idx) => {
       if (idx < 2) {
-        return true;
+        return true
       } else {
         return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3)
       }
@@ -20,13 +20,13 @@ class RBSP {
    * @constructor
    */
   static EBSP2SODB (data) {
-    const lastByte = data[data.byteLength - 1];
+    const lastByte = data[data.byteLength - 1]
     if (lastByte && lastByte === 128) {
       return data.slice(0, data.byteLength - 1)
     }
 
-    return data;
+    return data
   }
 }
 
-export default RBSP;
+export default RBSP

@@ -1,7 +1,7 @@
 import { EVENTS } from 'xgplayer-helper-utils'
 
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
 
@@ -17,29 +17,29 @@ export default class FlvController {
       randomAccessPoints: []
     }
 
-    this.bufferClearTimer = null;
+    this.bufferClearTimer = null
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
     this._handleKeyFrame = this._handleKeyFrame.bind(this)
 
-    this.mse = mse;
+    this.mse = mse
     this.configs = configs || {}
   }
 
   init () {
     if (!this.mse) {
       const { Mse } = this._pluginConfig
-      this.mse = new Mse({ container: this._player.video }, this._context);
-      this.mse.init();
+      this.mse = new Mse({ container: this._player.video }, this._context)
+      this.mse.init()
     }
 
-    this.initComponents();
+    this.initComponents()
     this.initListeners()
   }
 
   initComponents () {
     const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, RemuxedBufferManager, Compatibility, Logger } = this._pluginConfig
-    const { remux } = this.configs;
+    const { remux } = this.configs
 
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -115,42 +115,42 @@ export default class FlvController {
 
   _handleMediaSegment () {
     this.mse.addSourceBuffers()
-    this.mse.doAppend();
+    this.mse.doAppend()
   }
 
   _handleSourceUpdateEnd () {
-    const time = this._player.currentTime;
-    const video = this._player.video;
+    const time = this._player.currentTime
+    const video = this._player.video
     const preloadTime = this._player.config.preloadTime || this._pluginConfig.preloadTime // 兼容老版本从config传入preloadTime的写法
 
-    const { length } = video.buffered;
+    const { length } = video.buffered
 
     if (length === 0) {
-      return;
+      return
     }
 
-    const bufferEnd = video.buffered.end(length - 1);
+    const bufferEnd = video.buffered.end(length - 1)
     if (bufferEnd - time > preloadTime * 2 && !this._player.paused) {
       if (bufferEnd - preloadTime > this._player.currentTime) {
         this._player.currentTime = bufferEnd - preloadTime
       }
     }
-    this.mse.doAppend();
+    this.mse.doAppend()
     if (this._player.paused || this.urlSwitching) {
       this.urlSwitching = false
-      this._handleTimeUpdate();
+      this._handleTimeUpdate()
     }
   }
 
   _handleTimeUpdate () {
-    if(!this._player || !this._player.video) return;
+    if (!this._player || !this._player.video) return
     const time = this._player.currentTime
 
-    const video = this._player.video;
+    const video = this._player.video
     let buffered = video.buffered
 
     if (!buffered || !buffered.length) {
-      return;
+      return
     }
 
     let range = [0, 0]
@@ -171,22 +171,22 @@ export default class FlvController {
     if (currentTime < bufferStart) {
       // 跳过播放过程中的小洞
       // 兼容Safari bufferStart时间不准确，导致seek失败
-      video.currentTime = bufferStart + 0.1;
-      return;
+      video.currentTime = bufferStart + 0.1
+      return
     }
 
     if (time - bufferStart > 10 || buffered.length > 1) {
       // 在直播时及时清空buffer，降低直播内存占用
       if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
-        return;
+        return
       }
-      let rap = Infinity;
+      let rap = Infinity
       for (let i = 0; i < this.state.randomAccessPoints.length; i++) {
         const temp = Math.ceil(this.state.randomAccessPoints[i] / 1000)
         if (temp > time - 10) {
-          break;
+          break
         } else {
-          rap = temp;
+          rap = temp
         }
       }
 
@@ -217,27 +217,27 @@ export default class FlvController {
 
   _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
-      fatal = false;
+      fatal = false
     }
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
       errd: {}
-    });
+    })
     this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
   }
 
   _handleMseError (tag, err, fatal) {
     if (fatal === undefined) {
-      fatal = false;
+      fatal = false
     }
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
       errd: {}
-    });
+    })
     this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 
@@ -254,7 +254,7 @@ export default class FlvController {
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal || false
     }
-    this._player.emit(FLV_ERROR, error);
+    this._player.emit(FLV_ERROR, error)
   }
 
   seek () {
@@ -270,13 +270,13 @@ export default class FlvController {
         errorType: 'network',
         ex: `empty url`,
         errd: {}
-      });
-      return;
+      })
+      return
     }
-    const { count: times, delay: delayTime } = this._player.config.retry || {};
+    const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
-    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
+    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
+    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
     this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
   }

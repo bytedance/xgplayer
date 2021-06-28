@@ -1,24 +1,24 @@
-import { avc } from 'xgplayer-helper-codec';
+import { avc } from 'xgplayer-helper-codec'
 import { XGDataView as XgStream, VideoTrackMeta } from 'xgplayer-helper-models'
 import { EVENTS as Events } from 'xgplayer-helper-utils'
 
-const { NalUnit, Golomb } = avc;
+const { NalUnit, Golomb } = avc
 class H264Demuxer {
   constructor (options = {}) {
-    this._player = options.player;
+    this._player = options.player
 
     this.videoMeta = new VideoTrackMeta()
     this.videoTrack = {
       samples: []
     }
-    this.unusedUnits = [];
+    this.unusedUnits = []
     this.fps = options.fps || 30
-    this.currentSampleIdx = 0;
-    this.duration = 0;
-    this.sps = null;
-    this.pps = null;
+    this.currentSampleIdx = 0
+    this.duration = 0
+    this.sps = null
+    this.pps = null
 
-    this.dataLoadedTimer = null;
+    this.dataLoadedTimer = null
   }
 
   init () {
@@ -31,79 +31,79 @@ class H264Demuxer {
   }
 
   load (url) {
-    this.emit(Events.LOADER_EVENTS.LADER_START, url);
+    this.emit(Events.LOADER_EVENTS.LADER_START, url)
   }
 
   handleDataLoaded () {
-    const buffer = this.buffer;
+    const buffer = this.buffer
 
     if (!buffer) {
-      return;
+      return
     }
     if (this.dataLoadedTimer) {
-      clearTimeout(this.dataLoadedTimer);
-      this.dataLoadedTimer = null;
+      clearTimeout(this.dataLoadedTimer)
+      this.dataLoadedTimer = null
     }
 
-    const data = buffer.shift(buffer.length);
-    buffer.clear();
-    const stream = new XgStream(data.buffer);
+    const data = buffer.shift(buffer.length)
+    buffer.clear()
+    const stream = new XgStream(data.buffer)
 
     const units = this.unusedUnits.concat(NalUnit.getNalunits(stream))
 
     if (!this._player.config.isLive) {
       if (units.length > 1) {
-        const lastUnit = units.pop();
+        const lastUnit = units.pop()
         const pushBackData = new Uint8Array(lastUnit.body.byteLength + 4)
-        pushBackData.set(new Uint8Array(lastUnit.header), 0);
-        pushBackData.set(lastUnit.body, 4);
+        pushBackData.set(new Uint8Array(lastUnit.header), 0)
+        pushBackData.set(lastUnit.body, 4)
         buffer.push(pushBackData)
 
-        this.pushToMobileVideo(units);
+        this.pushToMobileVideo(units)
         if (this.buffer.length) {
           this.dataLoadedTimer = setTimeout(() => {
-            this.handleDataLoaded();
+            this.handleDataLoaded()
           }, 500)
         }
       } else if (units.length === 1) {
         buffer.push(new Uint8Array(data))
         this.dataLoadedTimer = setTimeout(() => {
-          this.handleDataLoaded();
+          this.handleDataLoaded()
         }, 500)
       }
     } else {
-      this.pushToMobileVideo(units);
+      this.pushToMobileVideo(units)
     }
   }
 
   pushToMobileVideo (units) {
-    const { samples, unused } = H264Demuxer.unitsToSamples(units);
+    const { samples, unused } = H264Demuxer.unitsToSamples(units)
 
-    this.unusedUnits = unused;
+    this.unusedUnits = unused
 
     samples.forEach((sample) => {
       const ts = Math.floor(1000 * this.currentSampleIdx++ / this.fps)
-      sample.dts = sample.pts = ts;
+      sample.dts = sample.pts = ts
       if (sample.sps) {
-        this.sps = true;
-        let spsD = sample.data;
+        this.sps = true
+        let spsD = sample.data
         // 0x001
         if (spsD[2] === 1) {
-          this.videoMeta.sps = sample.data.slice(3);
+          this.videoMeta.sps = sample.data.slice(3)
         } else {
-          this.videoMeta.sps = sample.data.slice(4);
+          this.videoMeta.sps = sample.data.slice(4)
         }
-        this.videoMeta.presentHeight = sample.sps.present_size.height;
-        this.videoMeta.presentWidth = sample.sps.present_size.width;
+        this.videoMeta.presentHeight = sample.sps.present_size.height
+        this.videoMeta.presentWidth = sample.sps.present_size.width
       }
       if (sample.pps) {
-        this.pps = true;
-        let ppsD = sample.data;
+        this.pps = true
+        let ppsD = sample.data
         // 0x001
         if (ppsD[2] === 1) {
-          this.videoMeta.pps = sample.data.slice(3);
+          this.videoMeta.pps = sample.data.slice(3)
         } else {
-          this.videoMeta.pps = sample.data.slice(4);
+          this.videoMeta.pps = sample.data.slice(4)
         }
       }
       if (sample.sps || sample.pps) {
@@ -112,52 +112,52 @@ class H264Demuxer {
         }
       }
       if (sample.sei) {
-        this._player.emit('SEI_PARSED', sample.sei);
+        this._player.emit('SEI_PARSED', sample.sei)
       }
-      this.videoTrack.samples.push(sample);
+      this.videoTrack.samples.push(sample)
     })
 
     if (this.sps && this.pps) {
-      this._player.video.setVideoMeta(this.videoMeta);
-      this.sps = null;
-      this.pps = null;
+      this._player.video.setVideoMeta(this.videoMeta)
+      this.sps = null
+      this.pps = null
     }
     if (!this.intervalId && !this._player.config.isLive) {
       this.intervalId = setInterval(() => {
         this.handleDataLoaded()
       }, 500)
     } else {
-      this._player.video.onDemuxComplete(this.videoTrack);
+      this._player.video.onDemuxComplete(this.videoTrack)
     }
     this.duration = Math.round(Math.floor(this.currentSampleIdx / this.fps))
     this._player.emit('durationchange')
   }
 
   destroy () {
-    this._player = null;
+    this._player = null
     this.videoMeta = null
     this.videoTrack = {
       samples: []
     }
     this.fps = null
-    this.currentSampleIdx = null;
+    this.currentSampleIdx = null
     if (this.intervalId) {
-      window.clearInterval(this.intervalId);
-      this.intervalId = null;
+      window.clearInterval(this.intervalId)
+      this.intervalId = null
     }
   }
 
   static unitsToSamples (units) {
-    let temp = [];
+    let temp = []
     const samples = []
     units.forEach((unit) => {
-      const golomb = new Golomb(new Uint8Array(unit.body));
-      golomb.readByte();
+      const golomb = new Golomb(new Uint8Array(unit.body))
+      golomb.readByte()
       if (!golomb.readUEG() || unit.sps || unit.pps) { // first_mb_slice
         if (temp.length) {
           samples.push(H264Demuxer.combineUnits(temp))
         }
-        temp = [unit];
+        temp = [unit]
       } else {
         temp.push(unit)
       }
@@ -170,26 +170,26 @@ class H264Demuxer {
   }
 
   static combineUnits (units) {
-    let sps, pps, sei;
+    let sps, pps, sei
     const dataSize = units.reduce((result, unit) => {
       if (unit.sps) {
-        sps = unit.sps;
+        sps = unit.sps
       } else if (unit.pps) {
-        pps = unit.pps;
+        pps = unit.pps
       } else if (unit.sei) {
         sei = unit.sei
       }
-      return result + unit.header.byteLength + unit.body.byteLength;
+      return result + unit.header.byteLength + unit.body.byteLength
     }, 0)
 
-    const data = new Uint8Array(dataSize);
-    let offset = 0;
-    let isKeyframe;
+    const data = new Uint8Array(dataSize)
+    let offset = 0
+    let isKeyframe
     units.forEach((unit) => {
-      data.set(new Uint8Array(unit.header), offset);
-      offset += unit.header.byteLength;
-      data.set(unit.body, offset);
-      offset += unit.body.byteLength;
+      data.set(new Uint8Array(unit.header), offset)
+      offset += unit.header.byteLength
+      data.set(unit.body, offset)
+      offset += unit.body.byteLength
       if (unit.idr) {
         isKeyframe = true
       }
@@ -209,4 +209,4 @@ class H264Demuxer {
   }
 }
 
-export default H264Demuxer;
+export default H264Demuxer
