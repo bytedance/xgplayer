@@ -1,23 +1,23 @@
-import { hevc } from 'xgplayer-helper-codec';
+import { hevc } from 'xgplayer-helper-codec'
 import { XGDataView as XgStream, VideoTrackMeta } from 'xgplayer-helper-models'
-import { EVENTS as Events } from 'xgplayer-helper-utils'
+import { EVENTS as Events, logger } from 'xgplayer-helper-utils'
 
-const { NalUnitHEVC } = hevc;
+const { NalUnitHEVC } = hevc
 class H265Demuxer {
   constructor (options = {}) {
-    this._player = options.player;
-    this.meta = null;
+    this.TAG = 'H265Demuxer'
+    this._player = options.player
+    this.meta = null
     this.videoTrack = {
       samples: []
     }
-    this.unusedUnits = [];
+    this.unusedUnits = []
     this.fps = options.fps || 30
-    this.currentSampleIdx = 0;
-    this.duration = 0;
-    this.sps = null;
-    this.pps = null;
-
-    this.dataLoadedTimer = null;
+    this.currentSampleIdx = 0
+    this.duration = 0
+    this.sps = null
+    this.pps = null
+    this.dataLoadedTimer = null
   }
 
   init () {
@@ -30,44 +30,49 @@ class H265Demuxer {
   }
 
   load (url) {
-    this.emit(Events.LOADER_EVENTS.LADER_START, url);
+    this.emit(Events.LOADER_EVENTS.LADER_START, url)
   }
 
   handleDataLoaded () {
-    const buffer = this.buffer;
+    const buffer = this.buffer
 
     if (!buffer) {
-      return;
+      return
     }
     if (this.dataLoadedTimer) {
-      clearTimeout(this.dataLoadedTimer);
-      this.dataLoadedTimer = null;
+      clearTimeout(this.dataLoadedTimer)
+      this.dataLoadedTimer = null
     }
 
-    const data = buffer.shift(buffer.length);
-    buffer.clear();
-    const stream = new XgStream(data.buffer);
+    const data = buffer.shift(buffer.length)
+    buffer.clear()
 
-    const units = this.unusedUnits.concat(NalUnitHEVC.getNalunits(stream))
-    const { metaNals, frameNals } = H265Demuxer.nalSplits(units)
+    const stream = new XgStream(data.buffer)
+    const units = NalUnitHEVC.getNalunits(stream)
 
-    if (metaNals) {
+    logger.log(this.TAG, units)
+
+    const all = this.unusedUnits.concat(units)
+    const { metaNals, frames, unused } = H265Demuxer.unitsToFrames(all)
+
+    this.unusedUnits = unused
+
+    if (metaNals.length) {
       let meta = H265Demuxer.extractMeta(metaNals)
       if (meta.vps && meta.sps && meta.pps) {
-        this.meta = meta;
+        this.meta = meta
       } else {
-        console.warn(`meta不全, vps:${meta.vps}, sps:${meta.sps}, pps:${meta.pps}`);
+        console.warn(`meta不全, vps:${meta.vps}, sps:${meta.sps}, pps:${meta.pps}`)
       }
     }
 
-    if (frameNals.length) {
+    if (frames.length) {
       if (this.meta) {
         this._player.video.setVideoMeta(this.meta)
         this.meta = null
       }
 
-      frameNals.forEach(nal => {
-        const sample = H265Demuxer.hevcUnitsToSamples([nal])
+      frames.forEach((sample) => {
         const ts = Math.floor(1000 * this.currentSampleIdx++ / this.fps)
         sample.dts = sample.pts = ts
         this.videoTrack.samples.push(sample)
@@ -75,29 +80,32 @@ class H265Demuxer {
 
       this._player.video.onDemuxComplete(this.videoTrack)
     }
-
   }
 
-  static nalSplits (nals) {
-    if (nals.filter(x => (x.vps || x.sps || x.pps)).length === 0) {
-      return {
-        frameNals: nals
-      }
-    }
-
-    let metaNals = [];
-    let frameNals = [];
+  static unitsToFrames (nals) {
+    let metaNals = []
+    let frames = []
+    let temp = []
 
     nals.forEach(nal => {
       if (nal.vps || nal.sps || nal.pps) {
         metaNals.push(nal)
-        return;
+        return
       }
-      frameNals.push(nal)
-    });
+      if ((nal.body[2] & 0x80) === 0x80) { // fist_mb_slice
+        if (temp.length) {
+          frames.push(H265Demuxer.hevcUnitsToSamples(temp))
+        }
+        temp = [nal]
+      } else {
+        temp.push(nal)
+      }
+    })
+
     return {
       metaNals,
-      frameNals
+      frames,
+      unused: temp
     }
   }
 
@@ -105,43 +113,43 @@ class H265Demuxer {
     let meta = new VideoTrackMeta()
     nals.forEach(nal => {
       if (nal.sps) {
-        meta.sps = nal.body;
-        meta.presentWidth = nal.sps.width;
-        meta.presentHeight = nal.sps.height;
-        meta.general_profile_space = nal.sps.general_profile_space;
-        meta.general_tier_flag = nal.sps.general_tier_flag;
-        meta.general_profile_idc = nal.sps.general_profile_idc;
-        meta.general_level_idc = nal.sps.general_level_idc;
-        meta.codec = 'hev1.1.6.L93.B0';
-        meta.chromaFormatIdc = nal.sps.chromaFormatIdc;
-        meta.bitDepthLumaMinus8 = nal.sps.bitDepthLumaMinus8;
-        meta.bitDepthChromaMinus8 = nal.sps.bitDepthChromaMinus8;
+        meta.sps = nal.body
+        meta.presentWidth = nal.sps.width
+        meta.presentHeight = nal.sps.height
+        meta.general_profile_space = nal.sps.general_profile_space
+        meta.general_tier_flag = nal.sps.general_tier_flag
+        meta.general_profile_idc = nal.sps.general_profile_idc
+        meta.general_level_idc = nal.sps.general_level_idc
+        meta.codec = 'hev1.1.6.L93.B0'
+        meta.chromaFormatIdc = nal.sps.chromaFormatIdc
+        meta.bitDepthLumaMinus8 = nal.sps.bitDepthLumaMinus8
+        meta.bitDepthChromaMinus8 = nal.sps.bitDepthChromaMinus8
       } else if (nal.pps) {
-        meta.pps = nal.body;
+        meta.pps = nal.body
       } else if (nal.vps) {
-        meta.vps = nal.body;
+        meta.vps = nal.body
       }
     })
-    return meta;
+    return meta
   }
 
   static hevcUnitsToSamples (nals) {
-    let isGop = false;
+    let isGop = false
 
     let frameLength = nals.reduce((all, c) => {
-      all += 4 + c.body.byteLength;
-      return all;
+      all += 4 + c.body.byteLength
+      return all
     }, 0)
-    let offset = 0;
-    let data = new Uint8Array(frameLength);
+    let offset = 0
+    let data = new Uint8Array(frameLength)
 
     nals.forEach(nal => {
-      data.set(new Uint8Array([0, 0, 0, 1]), offset);
-      offset += 4;
-      data.set(nal.body, offset);
-      offset += nal.body.length;
+      data.set(new Uint8Array([0, 0, 0, 1]), offset)
+      offset += 4
+      data.set(nal.body, offset)
+      offset += nal.body.length
       if (nal.type === 19 || nal.type === 20 || nal.type === 21) {
-        isGop = true;
+        isGop = true
       }
     })
 
@@ -153,17 +161,17 @@ class H265Demuxer {
   }
 
   destroy () {
-    this._player = null;
+    this._player = null
     this.videoTrack = {
       samples: []
     }
     this.fps = null
-    this.currentSampleIdx = null;
+    this.currentSampleIdx = null
     if (this.intervalId) {
-      window.clearInterval(this.intervalId);
-      this.intervalId = null;
+      window.clearInterval(this.intervalId)
+      this.intervalId = null
     }
   }
 }
 
-export default H265Demuxer;
+export default H265Demuxer

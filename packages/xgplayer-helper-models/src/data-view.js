@@ -2,13 +2,13 @@ class XGDataView {
   constructor (buffer) {
     if (buffer instanceof ArrayBuffer) {
       /** @type {ArrayBuffer} */
-      this.buffer = buffer;
+      this.buffer = buffer
       /** @type {DataView} */
-      this.dataview = new DataView(buffer);
+      this.dataview = new DataView(buffer)
       /** @type {number} */
-      this.dataview.position = 0;
+      this.dataview.position = 0
     } else {
-      throw new Error('data is invalid');
+      throw new Error('data is invalid')
     }
   }
 
@@ -17,7 +17,7 @@ class XGDataView {
    * @return {number}
    */
   get length () {
-    return this.buffer.byteLength;
+    return this.buffer.byteLength
   }
 
   /**
@@ -25,7 +25,7 @@ class XGDataView {
    * @param value
    */
   set position (value) {
-    this.dataview.position = value;
+    this.dataview.position = value
   }
 
   /**
@@ -33,7 +33,7 @@ class XGDataView {
    * @param value
    */
   get position () {
-    return this.dataview.position;
+    return this.dataview.position
   }
 
   /**
@@ -41,7 +41,7 @@ class XGDataView {
    * @param count
    */
   back (count) {
-    this.position -= count;
+    this.position -= count
   }
 
   /**
@@ -49,13 +49,13 @@ class XGDataView {
    * @param count
    */
   skip (count) {
-    let loop = Math.floor(count / 4);
-    let last = count % 4;
+    let loop = Math.floor(count / 4)
+    let last = count % 4
     for (let i = 0; i < loop; i++) {
-      XGDataView.readByte(this.dataview, 4);
+      XGDataView.readByte(this.dataview, 4)
     }
     if (last > 0) {
-      XGDataView.readByte(this.dataview, last);
+      XGDataView.readByte(this.dataview, last)
     }
   }
 
@@ -66,107 +66,107 @@ class XGDataView {
    * @return {Number}        [整数]
    */
   static readByte (buffer, size, sign) {
-    let res;
+    let res
     switch (size) {
       case 1:
         if (sign) {
-          res = buffer.getInt8(buffer.position);
+          res = buffer.getInt8(buffer.position)
         } else {
-          res = buffer.getUint8(buffer.position);
+          res = buffer.getUint8(buffer.position)
         }
-        break;
+        break
       case 2:
         if (sign) {
-          res = buffer.getInt16(buffer.position);
+          res = buffer.getInt16(buffer.position)
         } else {
-          res = buffer.getUint16(buffer.position);
+          res = buffer.getUint16(buffer.position)
         }
-        break;
+        break
       case 3:
         if (sign) {
-          throw new Error('not supported for readByte 3');
+          throw new Error('not supported for readByte 3')
         } else {
-          res = buffer.getUint8(buffer.position) << 16;
-          res |= buffer.getUint8(buffer.position + 1) << 8;
-          res |= buffer.getUint8(buffer.position + 2);
+          res = buffer.getUint8(buffer.position) << 16
+          res |= buffer.getUint8(buffer.position + 1) << 8
+          res |= buffer.getUint8(buffer.position + 2)
         }
-        break;
+        break
       case 4:
         if (sign) {
-          res = buffer.getInt32(buffer.position);
+          res = buffer.getInt32(buffer.position)
         } else {
-          res = buffer.getUint32(buffer.position);
+          res = buffer.getUint32(buffer.position)
         }
-        break;
+        break
       case 8:
         if (sign) {
-          throw new Error('not supported for readBody 8');
+          throw new Error('not supported for readBody 8')
         } else {
-          res = buffer.getUint32(buffer.position) << 32;
-          res |= buffer.getUint32(buffer.position + 4);
+          res = buffer.getUint32(buffer.position) << 32
+          res |= buffer.getUint32(buffer.position + 4)
         }
-        break;
+        break
       default:
-        res = '';
+        res = ''
     }
-    buffer.position += size;
-    return res;
+    buffer.position += size
+    return res
   }
 
   /**
    * @return {Number}
    */
   readUint8 () {
-    return XGDataView.readByte(this.dataview, 1);
+    return XGDataView.readByte(this.dataview, 1)
   }
 
   /**
    * @return {Number}
    */
   readUint16 () {
-    return XGDataView.readByte(this.dataview, 2);
+    return XGDataView.readByte(this.dataview, 2)
   }
 
   /**
    * @return {Number}
    */
   readUint24 () {
-    return XGDataView.readByte(this.dataview, 3);
+    return XGDataView.readByte(this.dataview, 3)
   }
 
   /**
    * @return {Number}
    */
   readUint32 () {
-    return XGDataView.readByte(this.dataview, 4);
+    return XGDataView.readByte(this.dataview, 4)
   }
 
   /**
    * @return {Number}
    */
   readUint64 () {
-    return XGDataView.readByte(this.dataview, 8);
+    return XGDataView.readByte(this.dataview, 8)
   }
 
   /**
    * @return {Number}
    */
   readInt8 () {
-    return XGDataView.readByte(this.dataview, 1, true);
+    return XGDataView.readByte(this.dataview, 1, true)
   }
 
   /**
    * @return {Number}
    */
   readInt16 () {
-    return XGDataView.readByte(this.dataview, 2, true);
+    return XGDataView.readByte(this.dataview, 2, true)
   }
 
   /**
    * @return {Number}
    */
   readInt32 () {
-    return XGDataView.readByte(this.dataview, 4, true);
+    return XGDataView.readByte(this.dataview, 4, true)
   }
 
   /**
@@ -178,8 +178,8 @@ class XGDataView {
       value >>> 16 & 0xff,
       value >>> 8 & 0xff,
       value & 0xff
-    ]);
+    ])
   }
 }
 
-export default XGDataView;
+export default XGDataView

@@ -18,7 +18,7 @@ class FlvPlayer extends BasePlugin {
       preloadTime: 5,
       innerDegrade: null,
       retryCount: 3,
-      retryDelay: 0,
+      retryDelay: 0
     })
   }
 
@@ -53,8 +53,6 @@ class FlvPlayer extends BasePlugin {
     if (!player.forceDegradeToVideo) {
       player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this)
     }
-    //把context 传给mobile video。
-    player.video.setVideoContext(this.context)
 
     player.video.setDecodeMode(this.config.decodeMode)
   }
@@ -98,7 +96,7 @@ class FlvPlayer extends BasePlugin {
     this.player.video.addEventListener('lowdecode', this.lowdecode)
 
     this.player.video.addEventListener('error', () => {
-      //报错时，调用pasue，停止http请求
+      // 报错时，调用pasue，停止http请求
       this.pause()
     })
     window.addEventListener('unload', () => {

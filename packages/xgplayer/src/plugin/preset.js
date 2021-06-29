@@ -6,7 +6,7 @@ export const usePreset = (player, Preset) => {
   } else {
     presetInst = new Preset({}, player.config)
   }
-  const { plugins = [], ignores = [], icons = {} } = presetInst
+  const { plugins = [], ignores = [], icons = {}, i18n = [] } = presetInst
   if (!player.config.plugins) {
     player.config.plugins = []
   }
@@ -22,4 +22,5 @@ export const usePreset = (player, Preset) => {
       player.config.icons[key] = icons[key]
     }
   })
+  player.config.i18n.push(...i18n)
 }

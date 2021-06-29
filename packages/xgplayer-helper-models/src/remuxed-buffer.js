@@ -1,20 +1,20 @@
 export class RemuxedBuffer {
   constructor () {
     /** @type{string} */
-    this.mimetype = '';
+    this.mimetype = ''
     /** @type{Uint8Array|null} */
-    this.init = null;
+    this.init = null
     /** @type{Uint8Array[]} */
     this.data = []
     /** @type{number} */
-    this.bufferDuration = 0;
+    this.bufferDuration = 0
   }
 }
 
 class RemuxedBufferManager {
   constructor () {
     /** @type{Object.<string, RemuxedBuffer>} */
-    this.sources = {};
+    this.sources = {}
   }
 
   /**
@@ -23,7 +23,7 @@ class RemuxedBufferManager {
    * @return {RemuxedBuffer}
    */
   getSource (name) {
-    return this.sources[name];
+    return this.sources[name]
   }
 
   /**
@@ -31,12 +31,12 @@ class RemuxedBufferManager {
    * @return {RemuxedBuffer}
    */
   createSource (name) {
-    this.sources[name] = new RemuxedBuffer();
-    return this.sources[name];
+    this.sources[name] = new RemuxedBuffer()
+    return this.sources[name]
   }
 
   clear () {
-    this.sources = {};
+    this.sources = {}
   }
 
   destroy () {
@@ -44,4 +44,4 @@ class RemuxedBufferManager {
   }
 }
 
-export default RemuxedBufferManager;
+export default RemuxedBufferManager

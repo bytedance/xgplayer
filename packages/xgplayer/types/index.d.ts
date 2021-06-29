@@ -1088,7 +1088,7 @@ declare module 'xgplayer' {
     // emit(event: string, data: any): void;
   }
 
-  export default class Player extends Proxy {
+  export class SimplePlayer extends Proxy {
     constructor(options: IPlayerOptions);
 
     /**
@@ -1324,6 +1324,15 @@ declare module 'xgplayer' {
      * 获取累计播放时长
      */
     get cumulateTime(): number;
+
+    /**
+     * 默认preset
+     */
+    static defaultPreset: any
+  }
+
+  export default class PresetPlayer extends SimplePlayer {
+    constructor(options: IPlayerOptions);
   }
 
   export const STATE_CLASS: STATE_CLASS

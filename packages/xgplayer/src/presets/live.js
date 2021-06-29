@@ -18,6 +18,7 @@ import PlaybackRateIcon from '../plugins/playbackRate'
 import Error from '../plugins/error'
 // import DownLoadIcon from '../plugins/download'
 // import ScreenShotIcon from '../plugins/screenShot'
+import ZH from '../lang/zh-cn'
 
 export default class DefaultPreset {
   constructor () {
@@ -36,5 +37,6 @@ export default class DefaultPreset {
         this.plugins.push(...[Keyboard, PC])
     }
     this.ignores = []
+    this.i18n = [ZH]
   }
 }

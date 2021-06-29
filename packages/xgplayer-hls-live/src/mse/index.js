@@ -1,13 +1,13 @@
 import { BasePlugin, Events, Util } from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-helper-utils'
-import HlsLiveController from './hls-live';
+import HlsLiveController from './hls-live'
 import defaultConfig from './config'
-const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
+const HlsAllowedEvents = EVENTS.HlsAllowedEvents
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 
 export default class HlsLivePlayer extends BasePlugin {
   static get pluginName () {
-    return 'hlsLive';
+    return 'hlsLive'
   }
 
   static get defaultConfig () {
@@ -16,26 +16,26 @@ export default class HlsLivePlayer extends BasePlugin {
       retryTimes: 3,
       retryCount: 3,
       retryDelay: 0
-    });
+    })
   }
 
   constructor (options) {
     super(options)
-    this.played = false;
-    this.handleUrlChange = this.handleUrlChange.bind(this);
-    this.destroy = this.destroy.bind(this);
-    this.play = this.play.bind(this);
-    this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
-    this._context = new Context(this.player, this.config, HlsAllowedEvents);
-    this.autoPlayStarted = false;
+    this.played = false
+    this.handleUrlChange = this.handleUrlChange.bind(this)
+    this.destroy = this.destroy.bind(this)
+    this.play = this.play.bind(this)
+    this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
+    this._context = new Context(this.player, this.config, HlsAllowedEvents)
+    this.autoPlayStarted = false
   }
 
   beforePlayerInit () {
     const { url } = this.player.config
-    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)();
-    this._context.init();
-    this.hls.load(url);
-    this._initEvents();
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)()
+    this._context.init()
+    this.hls.load(url)
+    this._initEvents()
     this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
@@ -53,8 +53,8 @@ export default class HlsLivePlayer extends BasePlugin {
 
   _initEvents () {
     this.hls.once(REMUX_EVENTS.INIT_SEGMENT, () => {
-      Util.addClass(this.root, 'xgplayer-is-live');
-    });
+      Util.addClass(this.root, 'xgplayer-is-live')
+    })
 
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
@@ -62,7 +62,7 @@ export default class HlsLivePlayer extends BasePlugin {
     let canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
     if (this.playerConfig.autoplay) {
       this.on(Events.AUTOPLAY_STARTED, () => {
-        this.autoPlayStarted = true;
+        this.autoPlayStarted = true
       })
     }
     if (!canUse) {
@@ -79,18 +79,18 @@ export default class HlsLivePlayer extends BasePlugin {
 
   handleUrlChange (url) {
     this.player.config.url = url
-    let request;
+    let request
     if (this.hls.mse) {
-      request = this.hls.mse.destroy();
+      request = this.hls.mse.destroy()
     } else {
-      request = Promise.resolve();
+      request = Promise.resolve()
     }
     request.then(() => {
-      this._offEvents();
-      this._context.destroy();
-      this._context = null;
-      this.player.video.currentTime = 0;
-      this.played = false;
+      this._offEvents()
+      this._context.destroy()
+      this._context = null
+      this.player.video.currentTime = 0
+      this.played = false
 
       if (!this.player.paused) {
         this.player.pause()
@@ -101,9 +101,9 @@ export default class HlsLivePlayer extends BasePlugin {
         this.player.video.play()
       }
 
-      this.player.started = false;
-      this.player.hasStart = false;
-      this._context = new Context(this.player, this.config, HlsAllowedEvents);
+      this.player.started = false
+      this.player.hasStart = false
+      this._context = new Context(this.player, this.config, HlsAllowedEvents)
       this.player.start()
     })
   }
@@ -111,20 +111,20 @@ export default class HlsLivePlayer extends BasePlugin {
   playForHooks () {
     if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
       // autoplay not started
-      return;
+      return
     }
     if (this.playerConfig.videoInit && this.player.played.length === 0) {
-      return;
+      return
     }
-    this._offEvents();
-    return this.reload();
+    this._offEvents()
+    return this.reload()
   }
 
   play () {
     if (this.played && this.player.played.length) {
-      this.played = false;
-      this._offEvents();
-      return this.reload();
+      this.played = false
+      this._offEvents()
+      return this.reload()
     }
     this.played = true
   }
@@ -132,18 +132,18 @@ export default class HlsLivePlayer extends BasePlugin {
   reload () {
     return this._destroy().then(() => {
       this._context = new Context(this.player, this.config, HlsAllowedEvents)
-      this.player.hasStart = false;
+      this.player.hasStart = false
       this.player.start()
       this.player.addClass('xgplayer-is-enter')
       this.player.once('canplay', () => {
-        this.player.video.play();
+        this.player.video.play()
       })
     })
   }
 
   handleDefinitionChange (change) {
-    const { to } = change;
-    this.handleUrlChange(to);
+    const { to } = change
+    this.handleUrlChange(to)
   }
 
   _destroy () {
@@ -157,24 +157,24 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   destroy () {
-    super.offAll();
-    this._destroy();
+    super.offAll()
+    this._destroy()
   }
 
   switchURL (url) {
-    return this.handleUrlChange(url);
+    return this.handleUrlChange(url)
   }
 
   get core () {
-    return this.hls;
+    return this.hls
   }
 
   get context () {
-    return this._context;
+    return this._context
   }
 
   static isSupported () {
     return window.MediaSource &&
-      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"')
   }
 }

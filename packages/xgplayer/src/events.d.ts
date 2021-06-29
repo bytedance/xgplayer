@@ -45,7 +45,9 @@ interface Events {
 
   // transmuxer events;
   SEI_PARSED: 'SEI_PARSED';
+
   RETRY: 'retry';
+
   // 容器宽高变化;
   VIDEO_RESIZE: 'video_resize';
 

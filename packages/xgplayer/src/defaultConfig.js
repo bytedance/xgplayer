@@ -29,7 +29,7 @@ export default function getDefaultConfig () {
     closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus
     closeDelayBlur: false, // 是否关闭自动隐藏控制条
     closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
-    videoAttrbutes: {}, // video扩展属性
+    videoAttributes: {}, // video扩展属性
     startTime: 0, // 自动播放起始时间点
     // isSeekedPlay: true, // seek结束之后是否默认播放
     seekedStatus: 'play', // seek结束之后播放状态 play/pause/auto
@@ -60,6 +60,7 @@ export default function getDefaultConfig () {
     customDuration: 0, // 用户自定义时长
     timeOffset: 0, // 当前时长偏移
     icons: {},
+    i18n: [],
     commonStyle: { // 用于配置一些通用样式结构
       progressColor: '', // 进度条底色
       playedColor: '', // 播放完成部分进度条底色

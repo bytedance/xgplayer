@@ -1,8 +1,8 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.89",
+    "version": "3.0.0-alpha.90",
     "description": "video player",
-    "main": "./dist/index.min.js",
+    "main": "./lib/index.js",
     "module": "./es/index.js",
     "typings": "./types/index.d.ts",
     "sideEffects": [
@@ -11,28 +11,20 @@
     "bin": {
         "xgplayer": "bin/xgplayer.js"
     },
-    "files": [
-        "/lib",
-        "/es",
-        "/browser",
-        "/dist",
-        "/types"
-    ],
     "scripts": {
         "postpublish": "git push --tags",
         "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
         "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org",
         "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org",
         "prepare": "npm run build",
-        "build": "npm run version && npm run build:es && npm run build:lib && npm run build:main && npm run build:style && npm run build:dts && npm run build:browser",
+        "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style && npm run build:dts && npm run build:browser",
         "build:main": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
         "build:browser": "rm -rf ./browser && node scripts/buildBrowser.js",
         "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
-        "build:lib": "rm -rf ./lib && ../../node_modules/.bin/babel src --out-dir lib",
+        "build:lib": "rm -rf ./lib && npx cross-env BABEL_TARGET=commonjs ../../node_modules/.bin/babel ./src --out-dir lib",
         "build:style": "node scripts/buildStyles.js",
         "build:dts": "node scripts/tsCopy.js",
-        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
-        "version": "node scripts/version.js"
+        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
     "unpkgFiles": [
         "browser",

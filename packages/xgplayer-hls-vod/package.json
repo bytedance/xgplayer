@@ -1,10 +1,9 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "3.0.0-alpha.117",
+  "version": "3.0.0-alpha.119",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
-  "browser": "dist/index.min.js",
   "sideEffects": false,
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -18,10 +17,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-codec": "2.4.28",
-    "xgplayer-helper-models": "2.4.28",
-    "xgplayer-helper-transmuxers": "2.4.28",
-    "xgplayer-helper-utils": "2.4.28"
+    "xgplayer-helper-codec": "2.4.29",
+    "xgplayer-helper-models": "2.4.29",
+    "xgplayer-helper-transmuxers": "2.4.29",
+    "xgplayer-helper-utils": "2.4.29"
   },
   "babel": {
     "presets": [

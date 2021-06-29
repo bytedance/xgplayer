@@ -1,12 +1,12 @@
 import { Events, BasePlugin } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
-import HlsVodMobileController from './hls-vod-mobile';
+import HlsVodMobileController from './hls-vod-mobile'
 
-const { debounce, softSolutionProbe } = common;
+const { debounce, softSolutionProbe } = common
 
-const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
-const HLS_EVENTS = EVENTS.HLS_EVENTS;
-const MSE_EVENTS = EVENTS.MSE_EVENTS;
+const HlsAllowedEvents = EVENTS.HlsAllowedEvents
+const HLS_EVENTS = EVENTS.HLS_EVENTS
+const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 class HlsVodMobilePlayer extends BasePlugin {
   static get pluginName () {
@@ -30,40 +30,40 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   static isSupported () {
-    return softSolutionProbe();
+    return softSolutionProbe()
   }
 
   beforePlayerInit () {
-    const { player } = this;
-    const innerDegrade = player.config.innerDegrade || this.config.innerDegrade;
+    const { player } = this
+    const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
     if (player.video) {
-      player.video.setPlayMode('VOD');
-      player.video.setAttribute('innerdegrade', innerDegrade);
+      player.video.setPlayMode('VOD')
+      player.video.setAttribute('innerdegrade', innerDegrade)
     }
 
     if (!this._context) {
       this._context = new Context(this.player, this.config, HlsAllowedEvents)
     }
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)();
-    this._context.init();
-    this.hls.load(this.player.config.url);
-    this._initEvents();
-    this.emit('core_inited', this.hls);
+    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)()
+    this._context.init()
+    this.hls.load(this.player.config.url)
+    this._initEvents()
+    this.emit('core_inited', this.hls)
   }
 
   handleUrlChange (url) {
-    this._switch(url);
+    this._switch(url)
   }
 
   handleDefinitionChange (change) {
-    const { to } = change;
-    this.handleUrlChange(to);
+    const { to } = change
+    this.handleUrlChange(to)
   }
 
   _handleSetCurrentTime () {
-    const time = parseFloat(this.player.video.currentTime);
+    const time = parseFloat(this.player.video.currentTime)
     if (this._context) {
-      this.hls.seek(time);
+      this.hls.seek(time)
     }
   }
 
@@ -78,28 +78,28 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   _initEvents () {
-    const {player} = this;
+    const {player} = this
 
     this.hls.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
       this.emit('error', new Player.Errors('network', this.config.url))
     })
 
     this.hls.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
-      this._onSourceUpdateEnd();
+      this._onSourceUpdateEnd()
     })
 
     this.lowdecode = () => {
-      this.emit('lowdecode', player.video.degradeInfo);
+      this.emit('lowdecode', player.video.degradeInfo)
       if (player.config.innerDegrade) {
-        let currentTime = player.currentTime;
-        let mVideo = player.video;
-        let newVideo = player.video.degradeVideo;
-        this.destroy();
-        this._context = null;
-        player.video = newVideo;
-        mVideo.degrade();
+        let currentTime = player.currentTime
+        let mVideo = player.video
+        let newVideo = player.video.degradeVideo
+        this.destroy()
+        this._context = null
+        player.video = newVideo
+        mVideo.degrade()
         player.once('canplay', () => {
-          player.currentTime = currentTime;
+          player.currentTime = currentTime
         })
       }
     }
@@ -107,7 +107,7 @@ class HlsVodMobilePlayer extends BasePlugin {
     this.on(Events.SEEKING, this._handleSetCurrentTime)
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DESTROY, this.destroy)
-    player.video.addEventListener('lowdecode', this.lowdecode);
+    player.video.addEventListener('lowdecode', this.lowdecode)
   }
 
   _onSourceUpdateEnd () {
@@ -115,46 +115,46 @@ class HlsVodMobilePlayer extends BasePlugin {
       const { gap, start, method } = this.detectBufferGap()
       if (gap) {
         if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
-          this.player.currentTime = Math[method](start);
+          this.player.currentTime = Math[method](start)
         } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
-          this.player.currentTime = Math[method](start);
+          this.player.currentTime = Math[method](start)
         }
       }
     }
   }
 
   _switch (url) {
-    this.config.url = url;
-    this._context.destroy();
-    this._context = null;
-    this.hls = null;
-    const context = new Context(this.player, this.config, HlsAllowedEvents);
+    this.config.url = url
+    this._context.destroy()
+    this._context = null
+    this.hls = null
+    const context = new Context(this.player, this.config, HlsAllowedEvents)
     const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)()
-    this._context = context;
-    this.hls = hls;
+    this._context = context
+    this.hls = hls
     context.init()
-    hls.load(url);
-    this.emit('core_inited', hls);
+    hls.load(url)
+    this.emit('core_inited', hls)
   }
 
   switchURL (url) {
-    let cTime = this.player.currentTime;
+    let cTime = this.player.currentTime
     // reset MVideo timeline
-    this.player.video.src = url;
-    this._switch(url);
+    this.player.video.src = url
+    this._switch(url)
     this.once(Events.PLAYING, () => {
-      this.player.currentTime = cTime;
+      this.player.currentTime = cTime
     })
   }
 
   destroy () {
     if (this._context) {
-      this._context.destroy();
+      this._context.destroy()
     }
   }
 
   detectBufferGap () {
-    const { video } = this.player;
+    const { video } = this.player
     let result = {
       gap: false,
       start: -1
@@ -163,23 +163,23 @@ class HlsVodMobilePlayer extends BasePlugin {
       const bufferStart = video.buffered.start(i)
       const bufferEnd = video.buffered.end(i)
       if (!video.played.length || (bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5)) {
-        break;
+        break
       }
-      const startGap = bufferStart - this.currentTime;
-      const endGap = this.currentTime - bufferEnd;
+      const startGap = bufferStart - this.currentTime
+      const endGap = this.currentTime - bufferEnd
       if (startGap > 0.01 && startGap <= 2) {
         result = {
           gap: true,
           start: bufferStart,
           method: 'ceil'
-        };
-        break;
+        }
+        break
       } else if (endGap > 0.1 && endGap <= 2) {
         result = {
           gap: true,
           start: bufferEnd,
           method: 'floor'
-        };
+        }
       } else {
         result = {
           gap: false,
@@ -188,16 +188,16 @@ class HlsVodMobilePlayer extends BasePlugin {
       }
     }
 
-    return result;
+    return result
   }
 
   get core () {
-    return this.hls;
+    return this.hls
   }
 
   get context () {
-    return this._context;
+    return this._context
   }
 }
 
-export default HlsVodMobilePlayer;
+export default HlsVodMobilePlayer

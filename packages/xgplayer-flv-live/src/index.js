@@ -3,7 +3,7 @@ import FlvLiveMobilePlayer from './mobile'
 
 export default class FlvLivePlayer {
   static get pluginName () {
-    return FlvLiveMsePlayer.pluginName;
+    return FlvLiveMsePlayer.pluginName
   }
 
   static get defaultConfig () {

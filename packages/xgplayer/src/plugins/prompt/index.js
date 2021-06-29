@@ -87,7 +87,7 @@ class Prompt extends Plugin {
 
   render () {
     return `<xg-prompt class="xgplayer-prompt ${STATE_CLASS.CONTROLS_FOLLOW}">
-    <span class="xgplayer-prompt-detail">精选片段<i class="highlight">共10s</i></span>
+    <span class="xgplayer-prompt-detail"></span>
     </xg-prompt>`
   }
 }

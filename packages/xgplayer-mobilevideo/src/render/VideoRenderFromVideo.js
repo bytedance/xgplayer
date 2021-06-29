@@ -11,8 +11,6 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._videoDecodeController = new VideoDecodeController(config, this)
     this._canAutoPlay = true
     // 表示是不是用video标签进行解码
-    this.videoContext = config.videoContext
-    this.videoRemux = config.videoRemux
     this._videoDecode = config.videoDecode
     this._chaseToFrame = null
     // this._bindEvents()
@@ -46,20 +44,9 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   _onTimeLineSyncDTS (dts) {
     this._videoDecodeController.checkValidBlob(dts)
   }
+
   _onChaseVideoFrame (keyFrame) {
     this._doChaseVideoFrame(keyFrame)
-  }
-  _initRemux () {
-    if (this._videoDecodeController && this.videoContext) {
-      let remux = this.videoContext.getInstance('MP4_REMUXER')
-
-      if (!remux) {
-        console.error('remux is', this.videoContext)
-        this._videoDecodeController.initRemux(this._parent._parent.videoRemux)
-        return
-      }
-      this._videoDecodeController.initRemux(remux)
-    }
   }
 
   _onAppendVideo (video) {
@@ -70,16 +57,12 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     }
   }
 
-  _onKeyFrame (item) {
-    // 准备开始video解码
-    if (this._isToVideoDecoder) {
-      this._initRemux()
-      this.videoDecode = true
-      return
-    }
-    // 准备开始wasm解码
-    if (this._isToWasm) {
-    }
+  _onKeyFrame () {
+    logger.log(this.TAG, '_onKeyFrame,  keyframe')
+    this._videoDecodeController.emit('keyFrame')
+    // this._videoDecodeController.startRemux()
+    // this._timeRange._currentFrameQueue = []
+    // this._timeRange._buffers = []
   }
 
   _onError (e, firstEmit) {
@@ -91,7 +74,6 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
 
   _onReady () {
-    this._wasmReady = true
     if (!this._frameRender) {
       let config = Object.assign(this._config, {
         meta: this._meta,
@@ -157,9 +139,6 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
       return
     }
     logger.log(this.TAG, '_initDecoder')
-    if (!this._videoDecodeController.remux) {
-      this._initRemux()
-    }
     // 为video硬解码
     if (!this._videoDecodeController.isInit) {
       this._videoDecodeController.init(this._meta)
@@ -182,7 +161,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     } else {
       logger.warn(this.TAG, 'no detect fps,start estimate')
     }
-    this._initDecoder()
+    this._initDecoder(meta)
   }
 
   // 硬解追帧
@@ -193,22 +172,21 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
 
   _appendChunk (videoTrack) {
-    // 填充timeRange的信息，完成后清空buffer。视频数据从videoTrack中获取
-    this._timeRange.append(videoTrack.samples, this._noAudio, false)
-    // 把Samples全部清空
-    this._timeRange._currentFrameQueue = []
-    this._timeRange._buffers = []
+    let samples = videoTrack.samples
+    let len = samples.length
+    for (let i = 0; i < len; i++) {
+      let sample = samples.shift()
+      if (sample.isKeyframe) {
+        this.emit('keyFrame')
+      }
+      this._timeRange.append([sample], this._noAudio, false)
+    }
   }
 
-  // 1. decoder初始化预解码几帧
-  // 2. render 过程,帧数过少时解码新帧
   _startDecode () {
     this._videoDecodeController.startDecode()
   }
 
-  // 检测需要解码的时机
-  // 1. 解码worker初始化完成,提前解几帧
-  // 2. 渲染ticker中
   _checkToDecode () {
     this._startDecode()
   }
@@ -220,13 +198,6 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
 
   _render (force) {
     let frame = this._frameQueue.nextFrame()
-
-    // let audioRender = this._parent.audioRender
-    // let preciseVideoDts1 = Math.floor(audioRender.currentTime * 1000) + audioRender._timeRange._baseDts
-    // let presiceDelay = Math.abs(preciseVideoDts1 - this.preciseVideoDts)
-    // if (presiceDelay > 100) {
-    //   console.error('auido dts error:', preciseVideoDts1, this.preciseVideoDts, presiceDelay)
-    // }
     let preciseVideoDts = this.preciseVideoDts
     if (!frame || !this._timeRange) {
       this._videoDecodeController.checkMinFrames(this._frameQueue._frames.length)
@@ -311,6 +282,10 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     // logger.log(this.TAG, '_render preciseVideoDts:', preciseVideoDts, Date.now())
     let ts = performance.now()
     this._frameRender.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize)
+    if (!this.hasFirstFrame && !force) {
+      this.hasFirstFrame = true
+      this._parent.emit(Events.TIMELINE.PLAY_EVENT, 'firstframe')
+    }
     this._videoDecodeController.frameRendend(frame.buffer)
     this._frameQueue.shift()
     this._videoDecodeController.checkMinFrames(this._frameQueue.length)
@@ -333,6 +308,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
 
   _destroy (reuseWorker) {
+    this._empty()
     super.destroy(reuseWorker)
     this._videoDecodeController.destroy()
   }
