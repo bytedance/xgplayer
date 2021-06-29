@@ -1,4 +1,4 @@
-node_modules
+node_modules/
 yarn.lock
 package-lock.json
 .DS_Store
@@ -8,3 +8,4 @@ postcss.config.js
 rollup.config.js
 tsconfig.json
 src/
+.gitconfig
