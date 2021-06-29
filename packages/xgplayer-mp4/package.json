@@ -2,16 +2,10 @@
   "name": "xgplayer-mp4",
   "version": "3.0.0-alpha.10-1",
   "description": "xgplayer plugin for mp4 transform to fmp4",
-  "main": "./dist/index.min.js",
+  "main": "./lib/index.js",
   "module": "./es/index.js",
   "sideEffects": [
     "*.css"
-  ],
-  "files": [
-    "/lib",
-    "/es",
-    "/dist",
-    "/types"
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -21,7 +15,7 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
-    "build:lib": "rm -rf ./lib && ../../node_modules/.bin/babel src --out-dir lib",
+    "build:lib": "rm -rf ./lib && npx cross-env BABEL_TARGET=commonjs ../../node_modules/.bin/babel ./src --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },
   "repository": {
