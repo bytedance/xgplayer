@@ -11,13 +11,6 @@
     "bin": {
         "xgplayer": "bin/xgplayer.js"
     },
-    "files": [
-        "/lib",
-        "/es",
-        "/browser",
-        "/dist",
-        "/types"
-    ],
     "scripts": {
         "postpublish": "git push --tags",
         "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
