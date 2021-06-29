@@ -96,6 +96,10 @@ let fullscreen = function () {
     let player = this
     document.documentElement.style.width = '100%'
     document.documentElement.style.height = '100%'
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = ''
+      player.root.style['max-width'] = 'unset'
+    }
     if (player.root && !hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
       addClass(player.root, 'xgplayer-rotate-fullscreen')
     }
@@ -106,6 +110,12 @@ let fullscreen = function () {
     let player = this
     document.documentElement.style.width = 'unset'
     document.documentElement.style.height = 'unset'
+    if (player.config.fluid) {
+      player.root.style['width'] = '100%'
+      player.root.style['height'] = '0'
+      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
+      player.root.style['max-width'] = '100%'
+    }
     if (player.root && hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
       removeClass(player.root, 'xgplayer-rotate-fullscreen')
     }
