@@ -4,6 +4,28 @@ import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
 
 const MIN_INTERVAL = 300
+/**
+ * @typedef {{
+ *   comments?: Array<any>,
+ *   area?: {
+ *      start: number,
+ *      end: number
+ *   },
+ *   closeDefaultBtn?: boolean,
+ *   panel?: boolean,
+ *   panelConfig?: {[propName: string]: any},
+ *   switchConfig?: {[propName: string]: any},
+ *   defaultOpen?: boolean,
+ *   isLive?: boolean,
+ *   channelSize?: number,
+ *   fontSize?: number,
+ *   opacity?: number,
+ *   mouseControl?: boolean,
+ *   mouseControlPause?: boolean,
+ *   ext: {[propName: string]: any},
+ *   style: {[propName: string]: any}
+ * }} IDanmuConfig
+ */
 
 class Danmu extends Plugin {
   constructor (args) {
@@ -12,14 +34,26 @@ class Danmu extends Plugin {
     this.danmuPanel = null
     this.isOpen = false
     this.seekCost = 0
+    /**
+     * @readonly
+     */
     this.intervalId = 0
+    /**
+     * @readonly
+     */
     this.isUseClose = false
   }
 
+  /**
+   * @type { string }
+   */
   static get pluginName () {
     return 'danmu'
   }
 
+  /**
+   * @type IDanmuConfig
+   */
   static get defaultConfig () {
     return {
       comments: [], // 弹幕数组,

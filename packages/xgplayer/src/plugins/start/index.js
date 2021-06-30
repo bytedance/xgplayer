@@ -2,6 +2,16 @@ import Plugin, { hooksDescriptor, Util, Events } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
+/**
+ * @typedef {{
+ *  isShowPause?: boolean, // 暂停是否常驻
+ *  isShowEnd?: boolean, // 播放结束常驻
+ *  disableAnimate?: boolean, // 禁用点击动画
+ *  mode?: 'hide' | 'show' | 'auto // 控制模式: hide 常驻: show 跟随：auto
+ *  [propName: string]: any
+ * }} IStartConfig
+ */
+
 const AnimateMap = {}
 function addAnimate (key, seconds, callback = { start: null, end: null }) {
   if (AnimateMap[key]) {
@@ -28,6 +38,9 @@ class Start extends Plugin {
     return 'start'
   }
 
+  /**
+   * @type IStartConfig
+   */
   static get defaultConfig () {
     return {
       isShowPause: false, // 暂停是否常驻

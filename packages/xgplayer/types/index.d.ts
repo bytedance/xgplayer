@@ -470,7 +470,7 @@ declare module 'xgplayer' {
     /**
      * video画面填充模式
      */
-    videoFillMode?: 'fillHeight' | 'fillWidth' | 'fill' | 'auto';
+    videoFillMode?: 'fillHeight' | 'fillWidth' | 'fill' | 'auto' | 'cover';
 
     /**
      * 音量配置
@@ -617,7 +617,10 @@ declare module 'xgplayer' {
     // 自动播放起始时间点
     startTime?: number;
 
-    // 【即将废弃，后续使用seekedStatus】seek结束之后是否默认播放
+    /** 
+     * @deprecated
+     * 【即将废弃，后续使用seekedStatus】seek结束之后是否默认播放
+     */
     isSeekedPlay?: boolean;
 
     // 快进/快退之后播放器状态 play: 强制播放; pause: 强制暂停; auto: 保持状态

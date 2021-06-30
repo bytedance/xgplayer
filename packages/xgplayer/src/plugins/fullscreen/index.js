@@ -3,11 +3,27 @@ import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
 
+/**
+ * @typedef { {
+ *   position?: string,
+ *   index?: number,
+ *   useCssFullscreen?: boolean, //是否启用页面全屏实现
+ *   rotateFullscreen?: boolean, ////是否启用旋转全屏
+ *   switchCallback?: null | Function, // 自定义切换函数
+ *   target?: null | HTMLElement, // 触发元素
+ *   disable?: boolean,
+ *   needBackIcon?: boolean, // 全屏退出是否启用左上角返回按钮
+ *   [propName: string]: any
+ * } } IFullscreenConfig
+ */
 export default class Fullscreen extends Plugin {
   static get pluginName () {
     return 'fullscreen'
   }
 
+  /**
+   * @type IFullscreenConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
@@ -21,12 +37,18 @@ export default class Fullscreen extends Plugin {
     }
   }
 
+  /**
+   * @private
+   */
   beforeCreate (args) {
     if (typeof args.player.config.fullscreen === 'boolean') {
       args.config.disable = !args.player.config.fullscreen
     }
   }
 
+  /**
+   * @private
+   */
   afterCreate () {
     hooksDescriptor(this)
     if (this.config.disable) {
@@ -70,6 +92,9 @@ export default class Fullscreen extends Plugin {
     }
   }
 
+  /**
+   * @private
+   */
   registerIcons () {
     return {
       fullscreen: { icon: FullScreenSvg, class: 'xg-get-fullscreen' },
@@ -96,6 +121,10 @@ export default class Fullscreen extends Plugin {
     }
   }
 
+  /**
+   * 进入旋转全屏
+   * @param { HTMLElement } [el]
+   */
   getRotateFullscreen (el) {
     const { player } = this
     if (player.isCssfullScreen) {
@@ -109,6 +138,10 @@ export default class Fullscreen extends Plugin {
     this.emit(Events.FULLSCREEN_CHANGE, true)
   }
 
+  /**
+   * 退出旋转全屏
+   * @param { HTMLElement } [el]
+   */
   exitRotateFullscreen (el) {
     const { player } = this
     player.fullscreen = false
@@ -118,6 +151,10 @@ export default class Fullscreen extends Plugin {
     this.emit(Events.FULLSCREEN_CHANGE, false)
   }
 
+  /**
+   * 进入旋转全屏
+   * @param { Event } [e]
+   */
   changeFullScreen (e) {
     if (e) {
       e.preventDefault()
@@ -159,6 +196,10 @@ export default class Fullscreen extends Plugin {
     }
   }
 
+  /**
+   *
+   * @param { boolean } isFullScreen
+   */
   animate (isFullScreen) {
     isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
     if (this.topBackIcon) {
@@ -180,6 +221,10 @@ export default class Fullscreen extends Plugin {
     super.hide()
   }
 
+  /**
+   * @private
+   * @returns
+   */
   render () {
     if (this.config.disable) {
       return

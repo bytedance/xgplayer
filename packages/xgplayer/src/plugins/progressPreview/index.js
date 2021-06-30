@@ -1,5 +1,26 @@
 import Plugin, { hooksDescriptor, Util, Sniffer } from '../../plugin'
 import initDotsAPI from './dotsApi'
+/**
+ * @typedef {{
+ *   miniWidth?: number, // 故事点显示最小宽度
+ *   ispots?: Array<{ //故事点列表
+ *     time?: number, // 进度条在此时间戳打点 单位为s
+ *     text?: string, // 打点处的自定义文案
+ *     id?: number | string, // 标记唯一标识，用于删除的时候索引
+ *     duration:? number, // 进度条标识点的时长 默认1s【可选】单位为s
+ *     color?: string, // 进度条标识点的显示颜色【可选】
+ *     style?: { [propName: string]: any }, // 指定样式
+ *     width?: number,
+ *     height?: number
+ *    }>,
+ *   defaultText?: '', // 故事点hover默认文案
+ *   isFocusDots?: true, //
+ *   isShowThumbnail?: true, // 是否显示预览图
+ *   isShowCoverPreview?: false, // 进度条拖动时是否显示播放区域预览图
+ *   mode?: 'short' | 'production', // short // production
+ *   [propName: string]: any
+ * }} IProgressPreviewConfig
+ */
 
 const CALLBACK_MAP = {
   dragmove: 'onProgressMove',
@@ -7,6 +28,7 @@ const CALLBACK_MAP = {
   dragend: 'onProgressDragEnd'
 }
 
+/** */
 export default class ProgressPreview extends Plugin {
   constructor (args) {
     super(args)
@@ -24,6 +46,9 @@ export default class ProgressPreview extends Plugin {
     return 'progresspreview'
   }
 
+  /**
+   * @type IProgressPreviewConfig
+   */
   static get defaultConfig () {
     return {
       index: 1,

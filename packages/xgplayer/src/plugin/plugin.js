@@ -107,9 +107,10 @@ function registerTextObj (textConfig, plugin) {
 class Plugin extends BasePlugin {
   /**
     * 插入dom结构
-    * @param {String | Element} html html字符串或者dom
-    * @param {Element} parent
-    * @param {*} index
+    * @param { String | HTMLElement } html html字符串或者dom
+    * @param { HTMLElement } parent
+    * @param { number } index
+    * @returns { HTMLElement }
     */
   static insert (html, parent, index = 0) {
     const len = parent.children.length
@@ -152,6 +153,15 @@ class Plugin extends BasePlugin {
     return {}
   }
 
+  /**
+   *
+   * @param { HTMLElement } root
+   * @param { String } querySelector
+   * @param { String | Array<String> } eventType
+   * @param { Function } callback
+   * @param { boolean } [capture=false]
+   * @returns
+   */
   static delegate (root, querySelector, eventType, callback, capture = false) {
     const dels = []
     if (root instanceof window.Node && typeof callback === 'function') {
@@ -170,16 +180,38 @@ class Plugin extends BasePlugin {
     return dels
   }
 
+  /**
+   * @constructor
+   * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, root: HTMLElement, position: string, [propName: string]: any;}  } args
+   */
   constructor (args = {}) {
+    console.log(args)
     super(args)
+    /**
+     * @private
+     */
     this.__delegates = []
   }
 
+  /**
+   * @private
+   */
   __init (args) {
     super.__init(args)
     const _parent = args.root
     let _el = null
+    /**
+     * @readonly
+     */
     this.icons = {}
+    /**
+     * @readonly
+     */
+    this.root = null
+    /**
+     * @readonly
+     */
+    this.parent = null
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
 
@@ -206,12 +238,20 @@ class Plugin extends BasePlugin {
     }
 
     Plugin.defineGetterOrSetter(this, {
+      /**
+       * @readonly
+       * @type { HTMLElement }
+       */
       root: {
         get: () => {
           return _el
         },
         configurable: true
       },
+      /**
+       * @readonly
+       * @type { HTMLElement }
+       */
       parent: {
         get: () => {
           return _parent
@@ -231,15 +271,19 @@ class Plugin extends BasePlugin {
     this.__registeChildren()
   }
 
+  /**
+   * @private
+   */
   __registeChildren () {
     if (!this.root) {
       return
     }
+    /**
+     * @private
+     */
+    this._children = []
     const children = this.children()
     if (children && typeof children === 'object') {
-      if (!this._children) {
-        this._children = []
-      }
       if (Object.keys(children).length > 0) {
         Object.keys(children).map(item => {
           const name = item
@@ -330,6 +374,11 @@ class Plugin extends BasePlugin {
     return {}
   }
 
+  /**
+   *
+   * @param { string } qs
+   * @returns { HTMLElement | null }
+   */
   find (qs) {
     if (!this.root) {
       return
@@ -337,6 +386,12 @@ class Plugin extends BasePlugin {
     return this.root.querySelector(qs)
   }
 
+  /**
+   * 绑定事件
+   * @param { string | Array<string> } querySelector
+   * @param { string | Function } eventType
+   * @param { Function } [callback]
+   */
   bind (querySelector, eventType, callback) {
     if (arguments.length < 3 && typeof eventType === 'function') {
       if (Array.isArray(querySelector)) {
@@ -352,7 +407,12 @@ class Plugin extends BasePlugin {
     }
   }
 
-  unbind (querySelector, eventType, callback) {
+  /**
+   * 绑定事件
+   * @param { string | Array<string> } querySelector
+   * @param { string | Function } eventType
+   */
+  unbind (querySelector, eventType) {
     if (arguments.length < 3 && typeof eventType === 'function') {
       if (Array.isArray(querySelector)) {
         querySelector.forEach((item) => {
@@ -373,6 +433,12 @@ class Plugin extends BasePlugin {
     }
   }
 
+  /**
+   * 给插件设置样式
+   * @param { string | {[propName: string]: any} } name
+   * @param { ？ | any } value
+   * @returns
+   */
   setStyle (name, value) {
     if (!this.root) {
       return
@@ -386,6 +452,12 @@ class Plugin extends BasePlugin {
     }
   }
 
+  /**
+   * 给插件根节点设置属性
+   * @param { string | {[propName: string]: any} } name
+   * @param { ？ | any } value
+   * @returns
+   */
   setAttr (name, value) {
     if (!this.root) {
       return
@@ -399,16 +471,29 @@ class Plugin extends BasePlugin {
     }
   }
 
+  /**
+   *
+   * @param { string } htmlStr
+   * @param { Function } [callback]
+   * @returns
+   */
   setHtml (htmlStr, callback) {
     if (!this.root) {
       return
     }
-    this.root.innerHtml = htmlStr
+    this.root.innerHTML = htmlStr
     if (typeof callback === 'function') {
       callback()
     }
   }
 
+  /**
+   *
+   * @param { string } event
+   * @param { Function } eventHandle
+   * @param { boolean } [isBubble=false]
+   * @returns
+   */
   bindEL (event, eventHandle, isBubble = false) {
     if (!this.root) {
       return
@@ -418,6 +503,13 @@ class Plugin extends BasePlugin {
     }
   }
 
+  /**
+   *
+   * @param { string } event
+   * @param { Function } eventHandle
+   * @param { boolean } [isBubble]
+   * @returns
+   */
   unbindEL (event, eventHandle, isBubble = false) {
     if (!this.root) {
       return
@@ -427,6 +519,11 @@ class Plugin extends BasePlugin {
     }
   }
 
+  /**
+   *
+   * @param { string } [value]
+   * @returns
+   */
   show (value) {
     if (!this.root) {
       return
@@ -443,6 +540,12 @@ class Plugin extends BasePlugin {
     this.root && (this.root.style.display = 'none')
   }
 
+  /**
+   *
+   * @param { string | HTMLElement } pdom
+   * @param { HTMLElement} child
+   * @returns { HTMLElement | nul }
+   */
   appendChild (pdom, child) {
     if (arguments.length < 2 && arguments[0] instanceof window.Element) {
       return this.root.appendChild(arguments[0])
@@ -462,6 +565,10 @@ class Plugin extends BasePlugin {
     }
   }
 
+  /**
+   *
+   * @returns { string }
+   */
   render () {
     return ''
   }

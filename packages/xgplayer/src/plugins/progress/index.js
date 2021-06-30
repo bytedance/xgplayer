@@ -2,6 +2,22 @@ import Plugin, { Events, Util, POSITIONS, Sniffer } from '../../plugin'
 import InnerList from './innerList'
 
 /**
+ * @typedef {{
+ *   position?:string,
+ *   disable?: boolean,
+ *   isDragingSeek?: boolean, // 是否在拖拽的过程中更新currentTime
+ *   closeMoveSeek?: boolean, // 是否关闭滑块seek能力
+ *   isPauseMoving?: boolean, // 是否在move的时候暂停视频内容
+ *   isCloseClickSeek?: boolean, // 是否关闭点击进度条的时候seek
+ *   fragments?: Array<{percent: number}>,
+ *   miniMoveStep?: number,
+ *   miniStartStep?: number,
+ *   onMoveStart?: Function, // 手势开始移动回调,
+ *   onMoveEnd?: Function, // 手势移动结束回调
+ *   [propName: string]: any
+ * }} IProgressConfig
+ */
+/**
  * 进度条组件
  */
 class Progress extends Plugin {
@@ -9,6 +25,9 @@ class Progress extends Plugin {
     return 'progress'
   }
 
+  /**
+   * @type IProgressConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_CENTER,
@@ -29,9 +48,22 @@ class Progress extends Plugin {
 
   constructor (args) {
     super(args)
+    /**
+     * @readonly
+     */
     this.useable = false
+    /**
+     * @readonly
+     */
     this.isProgressMoving = false
+
+    /**
+     * @private
+     */
     this.__dragCallBacks = []
+    /**
+     * @private
+     */
     this._state = {
       now: -1,
       direc: 0,

@@ -1,11 +1,28 @@
 /* eslint-disable camelcase */
 import BasePlugin, { Util } from '../../plugin'
-
+/**
+ * @typedef {{
+ *   isShow?: boolean,
+ *   urls?: Array<String>, // 有多张大图就多个url就好
+ *   pic_num?: number, // 每张图含有几个雪碧图
+ *   col?: number, // 截图列数
+ *   row?: number, // 截图行数
+ *   height?: number, // 缩略图高度
+ *   width?: number, // 缩略图宽度
+ *   scale?: number, // 缩放
+ *   className?: string, // 额外添加在dom上的class
+ *   hidePortrait?: boolean, // 是否在竖屏的时候隐藏
+ *   [propName: string]: any
+ * }} IThumbnailConfig
+ */
 export default class Thumbnail extends BasePlugin {
   static get pluginName () {
     return 'thumbnail'
   }
 
+  /**
+   * @type IThumbnailConfig
+   */
   static get defaultConfig () {
     return {
       isShow: false,
