@@ -4,21 +4,19 @@
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --mode development --watch",
-    "dev": "webpack --progress --display-chunks --mode development"
+    "prepublishOnly": "npm run build",
+    "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
+    "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org",
+    "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build:umd": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
+    "build:lib": "rm -rf ./lib && npx cross-env BABEL_TARGET=commonjs ../../node_modules/.bin/babel ./src --out-dir lib",
+    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:bytedance/xgplayer.git"
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ],
-    "plugins": [
-      "add-module-exports"
-    ]
   },
   "keywords": [
     "mp4",

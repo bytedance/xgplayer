@@ -1,74 +1,100 @@
-import { BasePlugin, Sniffer, Util } from 'xgplayer'
+import Player from 'xgplayer'
 import Hls from './hls.js/hls'
 import utils from './utils'
 
-class HlsJsPlugin extends BasePlugin {
-  static get pluginName () {
-    return 'HlsJsPlugin'
-  }
-
-  static get defaultConfig () {
-    return {
-      hlsOpts: {}
-    }
-  }
-
-  static get isSupported () {
-    return Hls.isSupported
-  }
-
-  constructor (args) {
-    super(args)
+class HlsJsPlugin extends Player {
+  constructor (options) {
+    super(options)
+    this.hlsOpts = options.hlsOpts || {}
+    const util = Player.util
+    const player = this
     this.browser = utils.getBrowserVersion()
-    this.hls = null
-    this.hlsOpts = {}
-  }
+    if (player.config.useHls === undefined) {
+      if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
+        return
+      }
+    } else if (!player.config.useHls) {
+      return
+    }
+    Number.isFinite = Number.isFinite || function (value) {
+      return typeof value === 'number' && isFinite(value)
+    }
 
-  afterCreate () {
-    const { hlsOpts } = this.config
-    this.hlsOpts = hlsOpts
-    this.hls = new Hls(this.hlsOpts)
-    this.playerConfig.nullUrlStart = true
-    this.hls.attachMedia(this.player.video)
-    // this.url = this.playerConfig.url
-    // this.playerConfig.url = ''
-    try {
-      BasePlugin.defineGetterOrSetter(this.player, {
-        __url: {
-          get: () => {
-            // console.log('get url')
-            try {
-              return this.player.video.src
-            } catch (error) {
-              return null
-            }
-          }
+    let hls
+    hls = new Hls(this.hlsOpts)
+    this.hls = hls
+
+    Object.defineProperty(player, 'src', {
+      get () {
+        return player.currentSrc
+      },
+      set (url) {
+        util.removeClass(player.root, 'xgplayer-is-live')
+        const liveDom = document.querySelector('.xgplayer-live')
+        if (liveDom) {
+          liveDom.parentNode.removeChild(liveDom)
+        }
+        // player.config.url = url
+        const paused = player.paused
+        player.hls.stopLoad()
+        player.hls.detachMedia()
+        player.hls.destroy()
+        player.hls = new Hls(player.hlsOpts)
+        player.register(url)
+        if (!paused) {
+          player.pause()
+          player.once('pause', () => {
+            player.hls.loadSource(url)
+          })
+          player.once('canplay', () => {
+            player.play().catch(err => {})
+          })
+        } else {
+          player.hls.loadSource(url)
+        }
+        player.hls.attachMedia(player.video)
+        player.once('canplay', () => {
+          player.currentTime = 0
+        })
+      },
+      configurable: true
+    })
+    this.register(this.config.url)
+    this.once('complete', () => {
+      hls.attachMedia(player.video)
+      player.once('canplay', () => {
+        if (player.config.autoplay) {
+          player.play().catch(err => {})
         }
       })
-    } catch (e) {
-      // NOOP
-    }
-  }
-
-  beforePlayerInit () {
-    this.register(this.player.config.url)
+      if (player.config.isLive) {
+        util.addClass(player.root, 'xgplayer-is-live')
+        if (!util.findDom(player.root, '.xgplayer-live')) {
+          const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+          player.controls.appendChild(live)
+        }
+      }
+    })
+    this.once('destroy', () => {
+      hls.stopLoad()
+    })
   }
 
   register (url) {
-    const { player, hls } = this
+    const hls = this.hls
+    const util = Player.util
+    const player = this
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      console.log('Hls.Events.MEDIA_ATTACHED', url)
       hls.loadSource(url)
     })
 
     hls.on(Hls.Events.LEVEL_LOADED, (name, e) => {
-      console.log('Hls.Events.LEVEL_LOADED')
       if (!hls.inited) {
         hls.inited = true
         if (e && e.details && e.details.live) {
-          Util.addClass(player.root, 'xgplayer-is-live')
-          if (!Util.findDom(player.root, '.xgplayer-live')) {
-            const live = Util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+          util.addClass(player.root, 'xgplayer-is-live')
+          if (!util.findDom(player.root, '.xgplayer-live')) {
+            const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
             player.controls.appendChild(live)
           }
         }
@@ -106,7 +132,8 @@ class HlsJsPlugin extends BasePlugin {
       videoDataRate: 0,
       audioDataRate: 0
     }
-    const { player, hls } = this
+    const hls = this.hls
+    const player = this
 
     hls.on(Hls.Events.FRAG_LOAD_PROGRESS, (flag, payload) => {
       statsInfo.speed = payload.stats.loaded / 1000
@@ -148,6 +175,13 @@ class HlsJsPlugin extends BasePlugin {
       statsInfo.speed = 0
     }, 1000)
   }
+
+  destroy () {
+    super.destroy()
+    clearInterval(this._statisticsTimmer)
+  }
 }
+
+HlsJsPlugin.isSupported = Hls.isSupported
 
 export default HlsJsPlugin
