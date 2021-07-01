@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import EventEmitter from 'event-emitter'
 import util from '../util'
 import XHR from '../util/xhr'
@@ -19,15 +20,15 @@ class EME {
 
   setOptions (videoContentType = 'video/mp4; codecs="avc1.64001F"', audioContentType = 'audio/mp4; codecs="mp4a.40.2"') {
     // log('UA: "' + navigator.userAgent + '"')
-    let basicVideoCapabilities = [
-      {contentType: 'video/mp4; codecs="avc1.42E01E"'},
-      {contentType: 'video/webm; codecs="vp8"'}
+    const basicVideoCapabilities = [
+      { contentType: 'video/mp4; codecs="avc1.42E01E"' },
+      { contentType: 'video/webm; codecs="vp8"' }
     ]
 
-    let basicConfig = {
+    const basicConfig = {
       videoCapabilities: basicVideoCapabilities
     }
-    let offlineConfig = {
+    const offlineConfig = {
       videoCapabilities: basicVideoCapabilities,
       persistentState: 'required',
       sessionTypes: ['persistent-license']
@@ -75,15 +76,15 @@ class EME {
 
   UpdateSessionFunc (drmKeys) {
     // console.log('UpdateSessionFunc')
-    let self = this
+    const self = this
     return function (ev) {
-      let keys = []
-      let keyIds = []
+      const keys = []
+      const keyIds = []
       Object.keys(drmKeys).forEach(function (keyIdHex) {
-        let keyHex = drmKeys[keyIdHex]
-        let keyId = util.fromHex(keyIdHex)
-        let key = util.fromHex(keyHex)
-        let keyObj = {
+        const keyHex = drmKeys[keyIdHex]
+        const keyId = util.fromHex(keyIdHex)
+        const key = util.fromHex(keyHex)
+        const keyObj = {
           kty: 'oct',
           kid: util.toBase64(keyId, false),
           k: util.toBase64(key, false)
@@ -92,8 +93,8 @@ class EME {
         keyIds.push(keyObj.kid)
       })
 
-      let jwkSet = {keys: keys}
-      let license = JSON.stringify(jwkSet)
+      const jwkSet = { keys: keys }
+      const license = JSON.stringify(jwkSet)
       // let licenseServerUri = 'data:application/json;base64,' + window.btoa(license)
       // console.log('licenseServerUri')
       // console.log(licenseServerUri)
@@ -107,7 +108,6 @@ class EME {
       ev.target.update(util.StringToArrayBuffer(license)).then(function () {
         // console.log(' MediaKeySession update ok!')
       }, self.bail(' MediaKeySession update failed'))
-
 
       // let msgStr = util.ArrayBufferToString(ev.message)
       // // console.log(' got message from CDM: ' + msgStr)
@@ -146,19 +146,19 @@ class EME {
   }
 
   KeysChange (event) {
-    let session = event.target
+    const session = event.target
     // console.log('keystatuseschange event on session' + session.sessionId)
-    let map = session.keyStatuses
-    for (let entry of map.entries()) {
-      let keyId = entry[0]
-      let status = entry[1]
-      let base64KeyId = util.Base64ToHex(window.btoa(util.ArrayBufferToString(keyId)))
+    const map = session.keyStatuses
+    for (const entry of map.entries()) {
+      const keyId = entry[0]
+      const status = entry[1]
+      const base64KeyId = util.Base64ToHex(window.btoa(util.ArrayBufferToString(keyId)))
       // console.log('SessionId=' + session.sessionId + ' keyId=' + base64KeyId + ' status=' + status)
     }
   }
 
   EnsureMediaKeysCreated (video, keySystem, options) {
-    let self = this
+    const self = this
     // We may already have a MediaKeys object if we initialized EME for a
     // different MSE SourceBuffer's 'encrypted' event, or the initialization
     // may still be in progress.
@@ -182,21 +182,21 @@ class EME {
   }
 
   SetupEME (video, keyIds) {
-    let self = this
+    const self = this
     video.sessions = []
     // console.log('install got encrypted event')
     // video.addEventListener('encrypted', function (ev) {
     this.on('encrypted', function () {
       // console.log('got encrypted event')
       // console.log(ev)
-      let initDataType = 'keyids'
-      let initDataStr = JSON.stringify({'kids': ['0123456789abcdef0123456789abcdef']})
-      let initData = new Uint8Array(util.toUTF8(initDataStr))
+      const initDataType = 'keyids'
+      const initDataStr = JSON.stringify({ kids: ['0123456789abcdef0123456789abcdef'] })
+      const initData = new Uint8Array(util.toUTF8(initDataStr))
 
       self.EnsureMediaKeysCreated(video, self.KEYSYSTEM_TYPE, self.options)
         .then(function () {
           // console.log('ensured MediaKeys available on HTMLMediaElement')
-          let session = video.mediaKeys.createSession()
+          const session = video.mediaKeys.createSession()
           video.sessions.push(session)
           session.addEventListener('message', self.UpdateSessionFunc(self.keys))
           session.addEventListener('keystatuseschange', self.KeysChange)

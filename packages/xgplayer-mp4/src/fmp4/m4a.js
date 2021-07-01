@@ -4,9 +4,11 @@ class FMP4 {
   static type (name) {
     return new Uint8Array([name.charCodeAt(0), name.charCodeAt(1), name.charCodeAt(2), name.charCodeAt(3)])
   }
+
   static size (value) {
     return Buffer.writeUint32(value)
   }
+
   static extension (version, flag) {
     return new Uint8Array([
       version,
@@ -15,8 +17,9 @@ class FMP4 {
       flag & 0xff
     ])
   }
+
   static ftyp () {
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     buffer.write(FMP4.size(28), FMP4.type('ftyp'), new Uint8Array([
       0x69, 0x73, 0x6F, 0x35, // iso5,
       0x00, 0x00, 0x00, 0x01, // minor_version: 0x00
@@ -26,14 +29,15 @@ class FMP4 {
     ]))
     return buffer.buffer
   }
-  static moov (data) {
-    let buffer = new Buffer(); let size = 8
 
-    let mvhd = FMP4.mvhd(data.duration, data.timeScale)
-    let trak = FMP4.audioTrak(data)
-    let mvex = FMP4.mvex(data.duration, data.timeScale)
-    let udtaBuffer = new Buffer()
-    let bytes = new Uint8Array([
+  static moov (data) {
+    const buffer = new Buffer(); let size = 8
+
+    const mvhd = FMP4.mvhd(data.duration, data.timeScale)
+    const trak = FMP4.audioTrak(data)
+    const mvex = FMP4.mvex(data.duration, data.timeScale)
+    const udtaBuffer = new Buffer()
+    const bytes = new Uint8Array([
       0x00, 0x00, 0x00, 0x55, 0x75, 0x64, 0x74, 0x61, 0x00, 0x00, 0x00, 0x4D, 0x6D, 0x65, 0x74, 0x61,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x68, 0x64, 0x6C, 0x72, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x6D, 0x64, 0x69, 0x72, 0x61, 0x70, 0x70, 0x6C, 0x00, 0x00, 0x00, 0x00,
@@ -42,20 +46,21 @@ class FMP4 {
       0x2D, 0x00, 0x00, 0x00, 0x00
     ])
     udtaBuffer.write(new Uint8Array(bytes))
-    let udta = udtaBuffer.buffer;
+    const udta = udtaBuffer.buffer;
     [mvhd, trak, mvex, udta].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, mvex, trak, udta)
     return buffer.buffer
   }
+
   static mvhd (duration, timeScale) {
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     duration *= timeScale
     duration = 0
     const upperWordDuration = Math.floor(duration / (UINT32_MAX + 1))
     const lowerWordDuration = Math.floor(duration % (UINT32_MAX + 1))
-    let bytes = new Uint8Array([
+    const bytes = new Uint8Array([
       0x01, // version 1
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, // creation_time
@@ -97,9 +102,10 @@ class FMP4 {
     buffer.write(FMP4.size(8 + bytes.length), FMP4.type('mvhd'), new Uint8Array(bytes))
     return buffer.buffer
   }
+
   static audioTrak (data) {
-    let buffer = new Buffer(); let size = 8
-    let tkhd = FMP4.tkhd({
+    const buffer = new Buffer(); let size = 8
+    const tkhd = FMP4.tkhd({
       id: 1,
       duration: data.audioDuration,
       timeScale: data.audioTimeScale,
@@ -107,7 +113,7 @@ class FMP4 {
       height: 0,
       type: 'audio'
     })
-    let mdia = FMP4.mdia({
+    const mdia = FMP4.mdia({
       type: 'audio',
       timeScale: data.audioTimeScale,
       duration: data.audioDuration,
@@ -115,8 +121,8 @@ class FMP4 {
       sampleRate: data.sampleRate,
       audioConfig: data.audioConfig
     })
-    let udtaBuffer = new Buffer()
-    let bytes = new Uint8Array([
+    const udtaBuffer = new Buffer()
+    const bytes = new Uint8Array([
       0x00, 0x00, 0x00, 0x2C,
       0x6C, 0x75, 0x64, 0x74,
       0x00, 0x00, 0x00, 0x24,
@@ -130,28 +136,29 @@ class FMP4 {
       0x13, 0x06, 0x04, 0x13
     ])
     udtaBuffer.write(FMP4.size(52), FMP4.type('udta'), new Uint8Array(bytes))
-    let udta = udtaBuffer.buffer;
+    const udta = udtaBuffer.buffer;
     [tkhd, mdia, udta].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('trak'), tkhd, mdia, udta)
     return buffer.buffer
   }
+
   static tkhd (data) {
-    let buffer = new Buffer()
-    let id = data.id
+    const buffer = new Buffer()
+    const id = data.id
     let duration = data.duration * data.timeScale
     duration = 0
-    let width = 0
+    const width = 0
 
-    let height = 0
+    const height = 0
 
-    let type = data.type
+    const type = data.type
 
-    let upperWordDuration = Math.floor(duration / (UINT32_MAX + 1))
+    const upperWordDuration = Math.floor(duration / (UINT32_MAX + 1))
 
-    let lowerWordDuration = Math.floor(duration % (UINT32_MAX + 1))
-    let content = new Uint8Array([
+    const lowerWordDuration = Math.floor(duration % (UINT32_MAX + 1))
+    const content = new Uint8Array([
       0x01, // version 1
       0x00, 0x00, 0x07, // flags
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, // creation_time
@@ -194,8 +201,9 @@ class FMP4 {
     buffer.write(FMP4.size(8 + content.byteLength), FMP4.type('tkhd'), content)
     return buffer.buffer
   }
+
   static edts (data) {
-    let buffer = new Buffer(); let duration = data.duration; let mediaTime = data.mediaTime
+    const buffer = new Buffer(); const duration = data.duration; const mediaTime = data.mediaTime
     buffer.write(FMP4.size(36), FMP4.type('edts'))
     // elst
     buffer.write(FMP4.size(28), FMP4.type('elst'))
@@ -207,23 +215,25 @@ class FMP4 {
     ]))
     return buffer.buffer
   }
+
   static mdia (data) {
-    let buffer = new Buffer(); let size = 8
-    let mdhd = FMP4.mdhd(data.timeScale)
-    let hdlr = FMP4.hdlr(data.type)
-    let minf = FMP4.minf(data);
+    const buffer = new Buffer(); let size = 8
+    const mdhd = FMP4.mdhd(data.timeScale)
+    const hdlr = FMP4.hdlr(data.type)
+    const minf = FMP4.minf(data);
     [mdhd, hdlr, minf].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('mdia'), mdhd, hdlr, minf)
     return buffer.buffer
   }
+
   static mdhd (timeScale, duration = 0) {
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     duration *= timeScale
     const upperWordDuration = Math.floor(duration / (UINT32_MAX + 1))
     const lowerWordDuration = Math.floor(duration % (UINT32_MAX + 1))
-    let content = new Uint8Array([
+    const content = new Uint8Array([
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, // creation_time
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, // modification_time
       (timeScale >> 24) & 0xff, (timeScale >> 16) & 0xff, (timeScale >> 8) & 0xff, timeScale & 0xff,
@@ -241,9 +251,10 @@ class FMP4 {
     buffer.write(FMP4.size(12 + content.byteLength), FMP4.type('mdhd'), FMP4.extension(1, 0), content)
     return buffer.buffer
   }
+
   static hdlr (type) {
-    let buffer = new Buffer()
-    let value = [0x00, // version 0
+    const buffer = new Buffer()
+    const value = [0x00, // version 0
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00, // pre_defined
       0x76, 0x69, 0x64, 0x65, // handler_type: 'vide'
@@ -263,19 +274,21 @@ class FMP4 {
     buffer.write(FMP4.size(8 + value.length), FMP4.type('hdlr'), new Uint8Array(value))
     return buffer.buffer
   }
+
   static minf (data) {
-    let buffer = new Buffer(); let size = 8
-    let vmhd = data.type === 'video' ? FMP4.vmhd() : FMP4.smhd()
-    let dinf = FMP4.dinf()
-    let stbl = FMP4.stbl(data);
+    const buffer = new Buffer(); let size = 8
+    const vmhd = data.type === 'video' ? FMP4.vmhd() : FMP4.smhd()
+    const dinf = FMP4.dinf()
+    const stbl = FMP4.stbl(data);
     [vmhd, dinf, stbl].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('minf'), vmhd, dinf, stbl)
     return buffer.buffer
   }
+
   static vmhd () {
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     buffer.write(FMP4.size(20), FMP4.type('vmhd'), new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x01, // flags
@@ -286,8 +299,9 @@ class FMP4 {
     ]))
     return buffer.buffer
   }
+
   static smhd () {
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     buffer.write(FMP4.size(16), FMP4.type('smhd'), new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x00, // flags
@@ -296,9 +310,10 @@ class FMP4 {
     ]))
     return buffer.buffer
   }
+
   static dinf () {
-    let buffer = new Buffer()
-    let dref = [0x00, // version 0
+    const buffer = new Buffer()
+    const dref = [0x00, // version 0
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x01, // entry_count
       0x00, 0x00, 0x00, 0x0c, // entry_size
@@ -309,21 +324,23 @@ class FMP4 {
     buffer.write(FMP4.size(36), FMP4.type('dinf'), FMP4.size(28), FMP4.type('dref'), new Uint8Array(dref))
     return buffer.buffer
   }
+
   static stbl (data) {
-    let buffer = new Buffer(); let size = 8
-    let stsd = FMP4.stsd(data)
-    let stts = FMP4.stts()
-    let stsc = FMP4.stsc()
-    let stsz = FMP4.stsz()
-    let stco = FMP4.stco();
+    const buffer = new Buffer(); let size = 8
+    const stsd = FMP4.stsd(data)
+    const stts = FMP4.stts()
+    const stsc = FMP4.stsc()
+    const stsz = FMP4.stsz()
+    const stco = FMP4.stco();
     [stsd, stts, stsc, stsz, stco].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('stbl'), stsd, stts, stsc, stsz, stco)
     return buffer.buffer
   }
+
   static stsd (data) {
-    let buffer = new Buffer(); let content
+    const buffer = new Buffer(); let content
     if (data.type === 'audio') {
       // if (!data.isAAC && data.codec === 'mp4') {
       //     content = FMP4.mp3(data);
@@ -338,9 +355,10 @@ class FMP4 {
     buffer.write(FMP4.size(16 + content.byteLength), FMP4.type('stsd'), FMP4.extension(0, 0), new Uint8Array([0x00, 0x00, 0x00, 0x01]), content)
     return buffer.buffer
   }
+
   static mp4a (data) {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, 0x00, 0x00, // reserved
       0x00, 0x00, 0x00, // reserved
       0x00, 0x01, // data_reference_index
@@ -353,14 +371,15 @@ class FMP4 {
       data.sampleRate & 0xff, //
       0x00, 0x00
     ])
-    let esds = FMP4.esds(data.audioConfig)
+    const esds = FMP4.esds(data.audioConfig)
     buffer.write(FMP4.size(8 + content.byteLength + esds.byteLength), FMP4.type('mp4a'), content, esds)
     return buffer.buffer
   }
+
   static esds (config = [43, 146, 8, 0]) {
     const configlen = config.length
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, // version 0
       0x00, 0x00, 0x00, // flags
 
@@ -382,10 +401,11 @@ class FMP4 {
     buffer.write(FMP4.size(8 + content.byteLength), FMP4.type('esds'), content)
     return buffer.buffer
   }
+
   static avc1 (data) {
-    let buffer = new Buffer(); let size = 40// 8(avc1)+8(avcc)+8(btrt)+16(pasp)
-    let sps = data.sps; let pps = data.pps; let width = data.width; let height = data.height; let hSpacing = data.pixelRatio[0]; let vSpacing = data.pixelRatio[1]
-    let avcc = new Uint8Array([
+    const buffer = new Buffer(); const size = 40// 8(avc1)+8(avcc)+8(btrt)+16(pasp)
+    const sps = data.sps; const pps = data.pps; const width = data.width; const height = data.height; const hSpacing = data.pixelRatio[0]; const vSpacing = data.pixelRatio[1]
+    const avcc = new Uint8Array([
       0x01, // version
       sps[1], // profile
       sps[2], // profile compatible
@@ -393,7 +413,7 @@ class FMP4 {
       0xfc | 3,
       0xE0 | 1 // 目前只处理一个sps
     ].concat([sps.length >>> 8 & 0xff, sps.length & 0xff]).concat(sps).concat(1).concat([pps.length >>> 8 & 0xff, pps.length & 0xff]).concat(pps))
-    let avc1 = new Uint8Array([
+    const avc1 = new Uint8Array([
       0x00, 0x00, 0x00, // reserved
       0x00, 0x00, 0x00, // reserved
       0x00, 0x01, // data_reference_index
@@ -421,12 +441,12 @@ class FMP4 {
       0x00, 0x00, 0x00, // compressorname
       0x00, 0x18, // depth = 24
       0x11, 0x11]) // pre_defined = -1
-    let btrt = new Uint8Array([
+    const btrt = new Uint8Array([
       0x00, 0x1c, 0x9c, 0x80, // bufferSizeDB
       0x00, 0x2d, 0xc6, 0xc0, // maxBitrate
       0x00, 0x2d, 0xc6, 0xc0 // avgBitrate
     ])
-    let pasp = new Uint8Array([
+    const pasp = new Uint8Array([
       (hSpacing >> 24), // hSpacing
       (hSpacing >> 16) & 0xff,
       (hSpacing >> 8) & 0xff,
@@ -445,9 +465,10 @@ class FMP4 {
     )
     return buffer.buffer
   }
+
   static stts () {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00 // entry_count
@@ -455,9 +476,10 @@ class FMP4 {
     buffer.write(FMP4.size(16), FMP4.type('stts'), content)
     return buffer.buffer
   }
+
   static stsc () {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00 // entry_count
@@ -465,9 +487,10 @@ class FMP4 {
     buffer.write(FMP4.size(16), FMP4.type('stsc'), content)
     return buffer.buffer
   }
+
   static stco () {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00 // entry_count
@@ -475,9 +498,10 @@ class FMP4 {
     buffer.write(FMP4.size(16), FMP4.type('stco'), content)
     return buffer.buffer
   }
+
   static stsz () {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00, // sample_size
@@ -486,11 +510,12 @@ class FMP4 {
     buffer.write(FMP4.size(20), FMP4.type('stsz'), content)
     return buffer.buffer
   }
+
   static mvex (duration, timeScale) {
-    let buffer = new Buffer(); let size = 8
-    let mehd = FMP4.mehd(duration * timeScale)
-    let trex = FMP4.trex(1)
-    let trep = FMP4.trep(1);
+    const buffer = new Buffer(); let size = 8
+    const mehd = FMP4.mehd(duration * timeScale)
+    const trex = FMP4.trex(1)
+    const trep = FMP4.trep(1);
 
     [mehd, trex, trep].forEach(item => {
       size += item.byteLength
@@ -498,9 +523,10 @@ class FMP4 {
     buffer.write(FMP4.size(size), FMP4.type('mvex'), mehd, trex, trep)
     return buffer.buffer
   }
+
   static mehd (duration) {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       (duration >> 24),
       (duration >> 16) & 0xff,
       (duration >> 8) & 0xff,
@@ -509,9 +535,10 @@ class FMP4 {
     buffer.write(FMP4.size(16), FMP4.type('mehd'), FMP4.extension(0, 0), content)
     return buffer.buffer
   }
+
   static trex (id) {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       0x00, // version 0
       0x00, 0x00, 0x00, // flags
       (id >> 24),
@@ -526,9 +553,10 @@ class FMP4 {
     buffer.write(FMP4.size(8 + content.byteLength), FMP4.type('trex'), content)
     return buffer.buffer
   }
+
   static trep (id) {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       (id >> 24),
       (id >> 16) & 0xff,
       (id >> 8) & 0xff,
@@ -537,43 +565,48 @@ class FMP4 {
     buffer.write(FMP4.size(16), FMP4.type('trep'), FMP4.extension(0, 0), content)
     return buffer.buffer
   }
+
   static moof (data) {
-    let buffer = new Buffer(); let size = 8
-    let mfhd = FMP4.mfhd()
-    let traf = FMP4.traf(data);
+    const buffer = new Buffer(); let size = 8
+    const mfhd = FMP4.mfhd()
+    const traf = FMP4.traf(data);
     [mfhd, traf].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('moof'), mfhd, traf)
     return buffer.buffer
   }
+
   static mfhd () {
-    let buffer = new Buffer()
-    let content = Buffer.writeUint32(FMP4.sequence)
+    const buffer = new Buffer()
+    const content = Buffer.writeUint32(FMP4.sequence)
     FMP4.sequence += 1
     buffer.write(FMP4.size(16), FMP4.type('mfhd'), FMP4.extension(0, 0), content)
     return buffer.buffer
   }
+
   static traf (data) {
-    let buffer = new Buffer(); let size = 8
-    let tfhd = FMP4.tfhd(1)
-    let tfdt = FMP4.tfdt(data.time)
-    let trun = FMP4.trun(data);
+    const buffer = new Buffer(); let size = 8
+    const tfhd = FMP4.tfhd(1)
+    const tfdt = FMP4.tfdt(data.time)
+    const trun = FMP4.trun(data);
     [tfhd, tfdt, trun].forEach(item => {
       size += item.byteLength
     })
     buffer.write(FMP4.size(size), FMP4.type('traf'), tfhd, tfdt, trun)
     return buffer.buffer
   }
+
   static tfhd (id) {
-    let buffer = new Buffer()
-    let content = Buffer.writeUint32(id)
+    const buffer = new Buffer()
+    const content = Buffer.writeUint32(id)
     buffer.write(FMP4.size(16), FMP4.type('tfhd'), FMP4.extension(0, 131072), content)
     return buffer.buffer
   }
+
   static tfdt (time) {
-    let buffer = new Buffer()
-    let content = new Uint8Array([
+    const buffer = new Buffer()
+    const content = new Uint8Array([
       (time >> 24),
       (time >> 16) & 0xff,
       (time >> 8) & 0xff,
@@ -582,9 +615,10 @@ class FMP4 {
     buffer.write(FMP4.size(16), FMP4.type('tfdt'), FMP4.extension(0, 0), content)
     return buffer.buffer
   }
+
   static trun (data) {
-    let buffer = new Buffer()
-    let sampleCount = Buffer.writeUint32(data.samples.length)
+    const buffer = new Buffer()
+    const sampleCount = Buffer.writeUint32(data.samples.length)
     // mdat-header 8
     // moof-header 8
     // mfhd 16
@@ -595,15 +629,16 @@ class FMP4 {
     // sampleCount 4
     // data-offset 4
     // samples.length
-    let offset = Buffer.writeUint32(92 + 4 * data.samples.length)
+    const offset = Buffer.writeUint32(92 + 4 * data.samples.length)
     buffer.write(FMP4.size(20 + 4 * data.samples.length), FMP4.type('trun'), FMP4.extension(0, 513), sampleCount, offset)
     data.samples.forEach((item, idx) => {
       buffer.write(Buffer.writeUint32(item.size))
     })
     return buffer.buffer
   }
+
   static mdat (data) {
-    let buffer = new Buffer(); let size = 8
+    const buffer = new Buffer(); let size = 8
     data.samples.forEach(item => {
       size += item.size
     })
