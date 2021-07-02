@@ -1,6 +1,6 @@
 /**
  * @file index.d.ts
- * @author AppleMonkey2019(am_fe@qq.com)
+ * 
  */
 import { EventEmitter } from 'events';
 declare module 'xgplayer' {
@@ -911,7 +911,7 @@ declare module 'xgplayer' {
   }
 
   class Proxy extends EventEmitter {
-    video?: HTMLElement;
+    video?: HTMLMediaElement | HTMLElement;
 
     // 初始化时添加在video上的属性集合
     videoConfig?: {
@@ -1164,6 +1164,10 @@ declare module 'xgplayer' {
     */
     retry(): void;
 
+    /**
+     * 重置播放器根节点css状态类名
+     */
+    resetClasses(): void;
     /**
       * 播放器进入全屏
       *

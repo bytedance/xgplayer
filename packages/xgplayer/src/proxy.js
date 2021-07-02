@@ -4,7 +4,26 @@ import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors from './error'
 import { URL_CHANGE, DESTROY } from './events'
-
+/**
+ * @typedef { {
+ *   duration: number,
+ *   currentTime: number,
+ *   muted: boolean,
+ *   defaultMuted: boolean,
+ *   volume: number,
+ *   playbackRate: number,
+ *   defaultPlaybackRate: number,
+ *   autoplay: boolean,
+ *   readonly paused: boolean,
+ *   readonly ended: boolean,
+ *   readonly networkState: number,
+ *   readonly readyState: number,
+ *   readonly seeking: boolean,
+ *   src: any,
+ *   play: Function,
+ *   pause: Function,
+ * } } IVideoProxy
+ */
 const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
   'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
   'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort']
@@ -101,6 +120,9 @@ class Proxy {
       this.videoConfig.loop = 'loop'
     }
 
+    /**
+     * @type { HTMLMediaElement | HTMLElement | IVideoProxy | null }
+     */
     this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
 
     // if (options.defaultPlaybackRate) {
@@ -152,6 +174,9 @@ class Proxy {
    */
   attachVideoEvents (video) {
     if (!this.evHandlers) {
+      /**
+       * @private
+       */
       this._evHandlers = VIDEO_EVENTS.map(item => {
         return {
           [item]: getHandler(item, this)
@@ -374,12 +399,16 @@ class Proxy {
     return this._duration
   }
 
-  /** @type { boolean }  */
+  /**
+   * @readonly
+   * @type { boolean }
+   * */
   get ended () {
     return this.video.ended
   }
 
   /**
+   * @readonly
    * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
    */
   get error () {
@@ -419,6 +448,7 @@ class Proxy {
   }
 
   /**
+   * @readonly
    * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
    */
   get networkState () {
@@ -432,6 +462,7 @@ class Proxy {
   }
 
   /**
+   * @readonly
    * @type { boolean }
    */
   get paused () {
@@ -451,6 +482,7 @@ class Proxy {
   }
 
   /**
+   * @readonly
    * @type { TimeRanges }
    */
   get played () {
@@ -468,6 +500,9 @@ class Proxy {
     this.video.preload = isTrue
   }
 
+  /**
+   * @readonly
+   */
   get readyState () {
     const status = [
       'HAVE_NOTHING',
@@ -479,6 +514,7 @@ class Proxy {
   }
 
   /**
+   * @readonly
    * @type { boolean }
    */
   get seekable () {
@@ -486,6 +522,7 @@ class Proxy {
   }
 
   /**
+   * @readonly
    * @type { boolean }
    */
   get seeking () {

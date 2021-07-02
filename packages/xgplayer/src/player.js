@@ -25,7 +25,7 @@ const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 class Player extends VideoProxy {
   /**
    * @constructor
-   * @param { IPlayerConfigs } options
+   * @param IPlayerConfigs options
    * @returns
    */
   constructor (options) {
@@ -36,6 +36,9 @@ class Player extends VideoProxy {
       this.__hooks[item] = null
     })
 
+    /**
+     * @type IPlayerConfigs
+     */
     this.config = config
     bindDebug(this)
     // resolve default preset
@@ -292,8 +295,20 @@ class Player extends VideoProxy {
    * @private
    */
   _initBaseDoms () {
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
     this.topBar = Util.createDom('xg-bar', '', { 'data-index': -1 }, 'xg-top-bar')
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
     this.leftBar = Util.createDom('xg-bar', '', { 'data-index': -1 }, 'xg-left-bar')
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
     this.rightBar = Util.createDom('xg-bar', '', { 'data-index': -1 }, 'xg-right-bar')
     if (this.config.marginControls) {
       this.innerContainer = Util.createDom('xg-video-container', '', { 'data-index': -1 }, 'xg-video-container')
@@ -315,7 +330,9 @@ class Player extends VideoProxy {
       this.fullscreen = false
       this._fullScreenOffset = null
     }
-
+    /**
+     * @private
+     */
     this.onFullscreenChange = (event, isFullScreen) => {
       const fullEl = Util.getFullScreenEl()
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
@@ -357,11 +374,16 @@ class Player extends VideoProxy {
     FULLSCREEN_EVENTS.forEach(item => {
       document && document.addEventListener(item, this.onFullscreenChange)
     })
-
+    /**
+     * @private
+     */
     this.__webkitbeginfullscreen = (e) => {
       this._fullscreenEl = this.video
       this.onFullscreenChange(e, true)
     }
+    /**
+     * @private
+     */
     this.__webkitendfullscreen = (e) => {
       this.onFullscreenChange(e, false)
     }
@@ -470,6 +492,9 @@ class Player extends VideoProxy {
    * @private
    */
   _registerPlugins () {
+    /**
+     * @private
+     */
     this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
@@ -699,9 +724,6 @@ class Player extends VideoProxy {
     this.video && this.video.load()
   }
 
-  /**
-   * @private
-   */
   videoPlay () {
     if (!this.hasStart) {
       this.removeClass(STATE_CLASS.NO_START)
@@ -735,6 +757,9 @@ class Player extends VideoProxy {
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         if (e.name === 'NotAllowedError') {
+          /**
+           * @private
+           */
           this._errorTimer = Util.setTimeout(this, () => {
             this._errorTimer = null
             this.emit(Events.AUTOPLAY_PREVENTED)
@@ -758,9 +783,6 @@ class Player extends VideoProxy {
     return playPromise
   }
 
-  /**
-   * @private
-   */
   videoPause () {
     super.pause()
   }
@@ -816,6 +838,9 @@ class Player extends VideoProxy {
 
   reload () {
     this.load()
+    /**
+     * @private
+     */
     this.reloadFunc = function () {
       this.play().catch(err => { console.log(err) })
     }
@@ -920,6 +945,9 @@ class Player extends VideoProxy {
       Util.addClass(root, rootClass)
     }
     if (el && el !== root && !this._orgPCss) {
+      /**
+       * @private
+       */
       this._orgPCss = Util.filterStyleFromText(el)
       Util.addClass(el, pClassName)
     }
@@ -1279,6 +1307,9 @@ class Player extends VideoProxy {
    * @type { any }
    */
   set url (url) {
+    /**
+     * @private
+     */
     this.__url = url
   }
 
@@ -1305,6 +1336,9 @@ class Player extends VideoProxy {
   }
 
   set fullscreen (val) {
+    /**
+     * @private
+     */
     this._isFullScreen = val
   }
 
