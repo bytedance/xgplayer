@@ -1,5 +1,5 @@
-import { BasePlugin, Sniffer, Util } from 'xgplayer'
-import Hls from './hls.js/hls'
+import { BasePlugin, Events } from 'xgplayer'
+import Hls from 'hls.js/dist/hls.light.js'
 import utils from './utils'
 
 class HlsJsPlugin extends BasePlugin {
@@ -27,16 +27,17 @@ class HlsJsPlugin extends BasePlugin {
   afterCreate () {
     const { hlsOpts } = this.config
     this.hlsOpts = hlsOpts
-    this.hls = new Hls(this.hlsOpts)
-    this.playerConfig.nullUrlStart = true
-    this.hls.attachMedia(this.player.video)
-    // this.url = this.playerConfig.url
-    // this.playerConfig.url = ''
+    this.on(Events.URL_CHANGE, (url) => {
+      if (/^blob/.test(url)) {
+        return
+      }
+      this.playerConfig.url = url
+      this.register(url)
+    })
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         __url: {
           get: () => {
-            // console.log('get url')
             try {
               return this.player.video.src
             } catch (error) {
@@ -54,27 +55,22 @@ class HlsJsPlugin extends BasePlugin {
     this.register(this.player.config.url)
   }
 
+  destroy () {
+    this.hls && this.hls.destroy()
+  }
+
   register (url) {
-    const { player, hls } = this
-    hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+    const { player } = this
+    if (this.hls) {
+      this.hls.destroy()
+    }
+    this.hls = new Hls(this.hlsOpts)
+    this.hls.once(Hls.Events.MEDIA_ATTACHED, () => {
       console.log('Hls.Events.MEDIA_ATTACHED', url)
-      hls.loadSource(url)
+      this.hls.loadSource(url)
     })
 
-    hls.on(Hls.Events.LEVEL_LOADED, (name, e) => {
-      console.log('Hls.Events.LEVEL_LOADED')
-      if (!hls.inited) {
-        hls.inited = true
-        if (e && e.details && e.details.live) {
-          Util.addClass(player.root, 'xgplayer-is-live')
-          if (!Util.findDom(player.root, '.xgplayer-live')) {
-            const live = Util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-            player.controls.appendChild(live)
-          }
-        }
-      }
-    })
-    hls.on(Hls.Events.ERROR, (event, data) => {
+    this.hls.on(Hls.Events.ERROR, (event, data) => {
       player.emit('HLS_ERROR', {
         errorType: data.type,
         errorDetails: data.details,
@@ -83,16 +79,17 @@ class HlsJsPlugin extends BasePlugin {
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
-            hls.startLoad()
+            this.hls.startLoad()
             break
           case Hls.ErrorTypes.MEDIA_ERROR:
-            hls.recoverMediaError()
+            this.hls.recoverMediaError()
             break
           default:
             player.emit('error', data)
         }
       }
     })
+    this.hls.attachMedia(this.player.video)
     this._statistics()
   }
 

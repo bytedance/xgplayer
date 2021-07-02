@@ -28,7 +28,8 @@
   "license": "MIT",
   "dependencies": {
     "deepmerge": "2.0.1",
-    "event-emitter": "^0.3.5"
+    "event-emitter": "^0.3.5",
+    "hls.js": "^1.0.7"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
