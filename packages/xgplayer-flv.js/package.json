@@ -20,6 +20,9 @@
     "type": "git",
     "url": "git+https://github.com/bytedance/xgplayer.git"
   },
+  "unpkgFiles": [
+    "dist"
+  ],
   "author": "cuc_ygh@163.com",
   "license": "ISC",
   "peerDependency": {
