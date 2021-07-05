@@ -1,4 +1,4 @@
-import { BasePlugin, Sniffer } from 'xgplayer'
+import { BasePlugin, Events, Sniffer } from 'xgplayer'
 import Shaka from 'shaka-player'
 
 class ShakaJsPlugin extends BasePlugin {
@@ -24,10 +24,15 @@ class ShakaJsPlugin extends BasePlugin {
   afterCreate () {
     this.content = []
     this.url = this.player.config.url
-    // if (Shaka.Player.isBrowserSupported()) {
-    // } else {
-    //   console.error('Browser not supported!') // eslint-disable-line no-console
-    // }
+    if (Shaka.Player.isBrowserSupported()) {
+      this.on(Events.URL_CHANGE, (url) => {
+        if (/^blob/.test(url)) {
+          return
+        }
+        this.url = url
+        this.loadUrl(url)
+      })
+    }
   }
 
   beforePlayerInit () {
@@ -35,6 +40,13 @@ class ShakaJsPlugin extends BasePlugin {
       throw new Error('Browser not supported!')
     } else {
       this._initShaka()
+    }
+  }
+
+  destroy () {
+    if (this.shakaplayer) {
+      this.shakaplayer.destroy()
+      this.shakaplayer = null
     }
   }
 
@@ -62,21 +74,23 @@ class ShakaJsPlugin extends BasePlugin {
 
     const config = { abr: { enabled: false } }
     this.shakaplayer.configure(config)
-
-    this.once('complete', () => {
-      this.shakaplayer.load(this.url).then(() => {
-        this.onTracksChanged_()
-      }).catch((event) => {
-        console.trace('event', event)
-        console.error('Error code', event.detail.code, 'object', event.detail) // eslint-disable-line no-console
-      })
-    })
+    this.loadUrl(this.url)
 
     // if (this.shakaplayer.isLive()) {
     //   this.util.addClass(this.player.root, 'xgplayer-is-live')
     //   const live = this.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
     //   this.player.controls.appendChild(live)
     // }
+  }
+
+  loadUrl (url) {
+    this.shakaplayer.load(url).then(() => {
+      console.log(' this.onTracksChanged_')
+      this.onTracksChanged_()
+    }).catch((event) => {
+      console.trace('event', event)
+      console.error('Error code', event.detail.code, 'object', event.detail) // eslint-disable-line no-console
+    })
   }
 
   onTracksChanged_ () {
