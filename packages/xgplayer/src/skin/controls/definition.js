@@ -85,7 +85,7 @@ let s_definition = function () {
   }
   function onResourceReady (list) {
     player.definitionList = list
-    if (list && list instanceof Array && list.length > 1) {
+    if (list && list instanceof Array && list.length > 0) {
       addClass(root, 'xgplayer-is-definition')
       player.once('canplay', onCanplayResourceReady)
     }
