@@ -3,6 +3,7 @@
   "version": "2.1.4",
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
+  "module": "es/index.js",
   "scripts": {
     "prepublishOnly": "npm run build",
     "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
@@ -18,6 +19,9 @@
     "type": "git",
     "url": "git@github.com:bytedance/xgplayer.git"
   },
+  "unpkgFiles": [
+    "dist"
+  ],
   "keywords": [
     "mp4",
     "fmp4",

@@ -263,6 +263,7 @@ class Player extends VideoProxy {
   }
 
   _startInit (url) {
+    console.log('_startInit', url)
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
       XG_DEBUG.logWarn('config.url is null, please get url and run player._startInit(url)')
@@ -298,6 +299,7 @@ class Player extends VideoProxy {
         }))
       })
     } else {
+      console.log('this.video.src', url)
       this.video.src = url
     }
 

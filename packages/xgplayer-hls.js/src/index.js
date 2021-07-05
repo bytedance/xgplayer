@@ -36,14 +36,15 @@ class HlsJsPlugin extends BasePlugin {
     })
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        __url: {
+        url: {
           get: () => {
             try {
               return this.player.video.src
             } catch (error) {
               return null
             }
-          }
+          },
+          configurable: true
         }
       })
     } catch (e) {
@@ -57,6 +58,19 @@ class HlsJsPlugin extends BasePlugin {
 
   destroy () {
     this.hls && this.hls.destroy()
+    const { player } = this
+    BasePlugin.defineGetterOrSetter(player, {
+      url: {
+        get: () => {
+          try {
+            return player.__url
+          } catch (error) {
+            return null
+          }
+        },
+        configurable: true
+      }
+    })
   }
 
   register (url) {
