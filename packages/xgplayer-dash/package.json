@@ -1,9 +1,10 @@
 {
   "name": "xgplayer-dash",
-  "version": "3.0.0-alpha.16",
+  "version": "3.0.0-alpha.1",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "./lib/index.js",
   "module": "./es/index.js",
+  "typings": "./types/index.d.ts",
   "sideEffects": [
     "*.css"
   ],
@@ -31,8 +32,7 @@
   ],
   "author": "zhangxin.frontend@bytedance.com",
   "license": "MIT",
-  "dependencies": {
-  },
+  "dependencies": {},
   "peerDependency": {
     "xgplayer": "^0.1.0"
   }
