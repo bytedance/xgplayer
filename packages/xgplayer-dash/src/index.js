@@ -24,7 +24,7 @@ const errorHandle = (player, err) => {
 
 class DashPlugin extends BasePlugin {
   static get pluginName () {
-    return 'dashplugin'
+    return 'DashPlugin'
   }
 
   constructor (options) {

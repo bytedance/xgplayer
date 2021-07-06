@@ -3,7 +3,7 @@ import Shaka from 'shaka-player'
 
 class ShakaJsPlugin extends BasePlugin {
   static get pluginName () {
-    return 'ShakaJsPlugin'
+    return 'ShakaPlugin'
   }
 
   static get defaultConfig () {

@@ -1,9 +1,10 @@
 {
   "name": "xgplayer-hls.js",
-  "version": "2.1.4",
+  "version": "3.0.0-alpha.1",
   "description": "xgplayer plugin for hls",
-  "main": "./dist/index.js",
-  "module": "es/index.js",
+  "main": "./lib/index.js",
+  "module": "./es/index.js",
+  "typings": "./types/index.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build",
     "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",

@@ -1,8 +1,10 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "2.1.1",
+  "version": "3.0.0-alpha.1",
   "description": "web video player",
-  "main": "./dist/index.js",
+  "main": "./lib/index.js",
+  "module": "./es/index.js",
+  "typings": "./types/index.d.ts",
   "scripts": {
     "init": "npm install",
     "clean": "rm -rf dist browser",

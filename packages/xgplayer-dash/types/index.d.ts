@@ -8,7 +8,6 @@ declare module 'xgplayer-shaka' {
   class ShakaPlugin extends BasePlugin {
     public static get pluginName(): string;
     public static get defaultConfig(): any;
-    public static isSupported: boolean;
     constructor(options: any);
     public _destroy(): void;
     public destroy(): void;
