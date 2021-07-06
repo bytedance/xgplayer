@@ -2,12 +2,25 @@ import Plugin, { hooksDescriptor, Util, Events, Sniffer, POSITIONS } from '../..
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
+/**
+ * @typedef {{
+ *   position?: string, // [可选]插件挂载的dom
+ *   index?: number // [可选]插件在播放器中挂载的位置
+ *   disable?: boolean, // [可选]是否禁用插件交互行为
+ *   showValueLabel?: boolean, // [可选]是否显示当前滑动的音量数值
+ *   default?: number // [可选]默认
+ *   [propName: string]: any
+ * }} IVolumeConfig
+ */
 
 class Volume extends Plugin {
   static get pluginName () {
     return 'volume'
   }
 
+  /**
+   * @type IVolumeConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT, // [可选]插件挂载的dom

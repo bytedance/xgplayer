@@ -1,7 +1,7 @@
-import Player from 'xgplayer'
-import {version} from '../package.json'
+import { Errors } from 'xgplayer'
+import { version } from '../package.json'
 
-class _Errors extends Player.Errors {
+class _Errors extends Errors {
   constructor (type, vid, errd = {}, url = '') {
     errd.version = version
     super(type, vid, errd)

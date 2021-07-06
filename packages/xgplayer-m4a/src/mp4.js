@@ -4,9 +4,9 @@ import Parser from './parse'
 import Buffer from './fmp4/buffer'
 import FMP4 from './fmp4/mp4'
 import Task from './media/task'
-import Download from './util/download'
+// import Download from './util/download'
 import util from './util'
-import Player from 'xgplayer'
+import { Util } from 'xgplayer'
 import Errors from './error'
 
 class MP4 {
@@ -62,7 +62,7 @@ class MP4 {
     let channelCount,
       sampleRate,
       decoderConfig
-    if (Player.util.typeOf(traks) !== 'Array') {
+    if (Util.typeOf(traks) !== 'Array') {
       traks = [traks]
     }
     traks.forEach(trak => {

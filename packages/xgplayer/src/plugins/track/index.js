@@ -1,7 +1,36 @@
 import SubTitles from 'xgplayer-subtitles'
 import { Util, POSITIONS } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
-
+/**
+ * @typedef {{
+ *   position?: string,
+ *   index?: string,
+ *   list?: Array<{
+ *      url:string,
+ *      language?: string | number,
+ *      id?: number | string,
+ *      isDefault?: boolean,
+ *      text?: any }>,
+ *   isDefaultOpen?: boolean,
+ *   style?: {
+ *      follow:? boolean, // 是否跟随控制栏调整位置
+ *      mode?: 'stroke' | 'bg', // 字体显示模式，默认是描边
+ *      followBottom?: number, // 跟随底部控制栏的高度
+ *      fitVideo?: boolean, // 是否跟随视频自动调整字号
+ *      offsetBottom?: number, // 字幕距离画面底部百分比，默认2%
+ *      baseSizeX?: number, // 横屏视频适配基准字号
+ *      baseSizeY?: number, // 竖屏视频适配基准字号
+ *      minSize?: number, // pc端最小字号
+ *      minMobileSize?: number, // 移动端最小字号
+ *      line?: 'double' | 'single' | 'three', // 最大显示行数 single/double/three
+ *      fontColor?: string // 字体颜色
+ *   },
+ *   closeText?: { text: string, iconText: string },
+ *   className?: string,
+ *   hidePortrait?: boolean,
+ *   [propName: string]: any
+ * }} ITextTrackConfig
+ */
 const DEFAULT_CLOSE_TYPE = 'text-close'
 
 function formartList (list) {
@@ -26,7 +55,9 @@ export default class TextTrack extends OptionsIcon {
     return 'texttrack'
   }
 
-  // 默认配置信息
+  /**
+   * @type ITextTrackConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,

@@ -1,12 +1,23 @@
 import Plugin, { Events, Util, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
-// import classNames from 'classnames/bind'
 
-// console.log('ClassName', classNames)
+/**
+  * @typedef {{
+  *   disable?: boolean,
+  *   autoHide?: boolean,
+  *   mode?: "flex"|"normal"|"bottom",
+  *   initShow?: boolean,
+  *   [propName: string]: any
+  * }} IControlsConfig
+  */
+
 class Controls extends Plugin {
   static get pluginName () {
     return 'controls'
   }
 
+  /**
+   * @type IControlsConfig
+   */
   static get defaultConfig () {
     return {
       disable: false,
@@ -42,9 +53,25 @@ class Controls extends Plugin {
     Object.keys(style).map(key => {
       this.root.style[key] = style[key]
     })
+    /**
+     * @type { HTMLElement}
+     * @readonly
+     */
     this.left = this.find('xg-left-grid')
+    /**
+     * @type { HTMLElement}
+     * @readonly
+     */
     this.center = this.find('xg-center-grid')
+    /**
+     * @type { HTMLElement}
+     * @readonly
+     */
     this.right = this.find('xg-right-grid')
+    /**
+     * @type { HTMLElement}
+     * @readonly
+     */
     this.innerRoot = this.find('xg-inner-controls')
 
     // 切换为小窗状态的时候进度条同步切换
@@ -99,10 +126,20 @@ class Controls extends Plugin {
     Util.removeClass(this.root, 'show')
   }
 
+  /**
+   * @type {string}
+   */
   get mode () {
     return this.config.mode
   }
 
+  /**
+   *
+   * @param {} plugin
+   * @param { {config?: {[propName: string]: any}, position?:string, root?: HTMLElement, pluginName?: string}} options
+   * @param { string } name
+   * @returns { object }
+   */
   registerPlugin (plugin, options = {}, name) {
     if (!this.root) {
       return

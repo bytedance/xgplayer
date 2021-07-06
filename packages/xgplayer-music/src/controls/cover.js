@@ -1,13 +1,27 @@
-import Player from '../music'
+import { Plugin } from 'xgplayer'
 
-const cover = (player) => {
-  const util = Player.util
-  const controlEl = player.controls
-  const poster = util.createDom('xg-cover', `<img src="${player.config.poster || player.config.url[0].poster}">`, {}, 'xgplayer-cover')
-  controlEl.appendChild(poster)
-  player.on('change', item => {
-    poster.innerHTML = `<img src="${item.poster}">`
-  })
+export default class Cover extends Plugin {
+  static get pluginName () {
+    return 'music_cover'
+  }
+
+  static get defaultConfig () {
+    return {
+      index: 6,
+      position: Plugin.POSITIONS.CONTROLS_LEFT
+    }
+  }
+
+  afterCreate () {
+    this.on('change', item => {
+      if (item && item.poster) {
+        this.find('img').src = item.poster
+      }
+    })
+  }
+
+  render () {
+    const { playerConfig } = this
+    return `<xg-cover class="xgplayer-cover"><img src="${playerConfig.poster || playerConfig.url[0].poster}"></xg-cover>`
+  }
 }
-
-Player.install('cover', cover)

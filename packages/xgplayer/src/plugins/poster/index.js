@@ -1,10 +1,19 @@
 import Plugin, { Events, Util } from '../../plugin'
-
+/**
+ * @typedef {{
+ *   isEndedShow?: boolean, // 是否在播放结束之后显示
+ *   hideCanplay?: boolean, // cnaplay 时间大于1的时候才隐藏
+ *   poster?: string // 封面图地址
+ * }} IPosterConfig
+ */
 class Poster extends Plugin {
   static get pluginName () {
     return 'poster'
   }
 
+  /**
+   * @type IPosterConfig
+   */
   static get defaultConfig () {
     return {
       isEndedShow: true, // 是否在播放结束之后显示

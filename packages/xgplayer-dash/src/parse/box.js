@@ -8,6 +8,7 @@ class Box {
     this.subBox = []
     this.start = -1
   }
+
   readHeader (stream) {
     this.start = stream.position
     this.size = stream.readUint32()
@@ -16,19 +17,20 @@ class Box {
       this.size = stream.readUint64()
     } else if (this.size === 0) {
       if (this.type !== 'mdat') {
-        throw new Errors('parse', '', {line: 19, handle: '[Box] readHeader', msg: 'parse mp4 mdat box failed'})
+        throw new Errors('parse', '', { line: 19, handle: '[Box] readHeader', msg: 'parse mp4 mdat box failed' })
       }
     }
     if (this.type === 'uuid') {
-      let uuid = []
+      const uuid = []
       for (let i = 0; i < 16; i++) {
         uuid.push(stream.readUint8())
       }
     }
   }
+
   readBody (stream) {
-    let end = this.size - stream.position + this.start
-    let type = this.type
+    const end = this.size - stream.position + this.start
+    const type = this.type
     this.data = stream.buffer.slice(stream.position, stream.position + end)
     stream.position += this.data.byteLength
     let parser
@@ -41,6 +43,7 @@ class Box {
       parser.call(this)
     }
   }
+
   read (stream) {
     this.readHeader(stream)
     this.readBody(stream)
@@ -48,10 +51,10 @@ class Box {
 
   static containerParser () {
     let stream = new Stream(this.data)
-    let size = stream.buffer.byteLength
-    let self = this
+    const size = stream.buffer.byteLength
+    const self = this
     while (stream.position < size) {
-      let box = new Box()
+      const box = new Box()
       box.readHeader(stream)
       self.subBox.push(box)
       box.readBody(stream)

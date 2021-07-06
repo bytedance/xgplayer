@@ -1,11 +1,26 @@
 import Plugin, { Sniffer, Util, POSITIONS } from '../../plugin'
 import PanelIcon from '../assets/panel.svg'
 
+/**
+  * @typedef {{
+  *   position?: string,
+  *   index?: number,
+  *   onChangeSet?: Function,
+  *   speed?: number,
+  *   area?: any,
+  *   opacity?: number,
+  *   fonSize?: number
+  * }} IDanmuPanelConfig
+  */
+
 class DanmuPanel extends Plugin {
   static get pluginName () {
     return 'danmuPanel'
   }
 
+  /**
+   * @type IDanmuPanelConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
