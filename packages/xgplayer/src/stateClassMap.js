@@ -25,5 +25,5 @@ export default {
   SEEKING: 'seeking',
   PC: 'xgplayer-pc',
   MOBILE: 'xgplayer-mobile',
-  MINI: 'xgplayer-mini' // 小窗播放状态
+  MINI: 'xgplayer-mini' // mini screen play status
 }

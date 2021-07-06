@@ -22,11 +22,26 @@ function checkIsSupport (video) {
   return true
 }
 
+/**
+ * @typedef { {
+ *   disable?: boolean,
+ *   mode?: "realtime" | "firstframe" | "framerate", //渲染方式
+ *   frameRate?: number, // 按帧的时候渲染帧率
+ *   filter?: string,  // 滤镜设置
+ *   addMask?: boolean, // 是否需要蒙层
+ *   maskBg?: string, // 蒙层颜色
+ *   [propName: string]: any
+ * } } IDynamicBgConfig
+ */
+
 class DynamicBg extends Plugin {
   static get pluginName () {
     return 'dynamicBg'
   }
 
+  /**
+   * @type IDynamicBgConfig
+   */
   static get defaultConfig () {
     return {
       disable: true,
@@ -46,6 +61,9 @@ class DynamicBg extends Plugin {
     if (disable) {
       return
     }
+    /**
+     * @private
+     */
     this._pos = {
       width: 0,
       height: 0,
@@ -54,10 +72,31 @@ class DynamicBg extends Plugin {
       x: 0,
       y: 0
     }
+    /**
+     * @readonly
+     */
     this.isStart = false
+    /**
+     * @readonly
+     */
     this.videoPI = 0
+    /**
+     * @readonly
+     */
     this.preTime = 0
+    /**
+     * @readonly
+     */
     this.interval = parseInt(1000 / this.config.frameRate, 10)
+
+    /**
+     * @readonly
+     */
+    this.canvas = null
+    /**
+     * @readonly
+     */
+    this.canvasCtx = null
     this.once(Events.COMPLETE, () => {
       this.init()
     })
@@ -89,6 +128,9 @@ class DynamicBg extends Plugin {
     this.videoPI = parseInt(video.videoWidth / video.videoHeight * 100, 10)
   }
 
+  /**
+   * @private
+   */
   init () {
     const { player, config } = this
     try {

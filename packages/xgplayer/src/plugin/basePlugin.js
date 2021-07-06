@@ -15,18 +15,66 @@ class BasePlugin {
     }
   }
 
+  /**
+   * @type { object }
+   */
+  static get defaultConfig () {
+    return {}
+  }
+
+  /**
+   * @type { string }
+   */
+  static get pluginName () {
+    return 'pluginName'
+  }
+
+  /**
+   * @constructor
+   * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
       this.beforeCreate(args)
     }
+    /**
+     * @private
+     */
     this.__args = args
+    /**
+     * @private
+     */
     this.__events = {} // 对player的事件监听缓存
     this.config = args.config || {}
+    /**
+     * @readonly
+     * @type {object}
+     */
+    this.player = null
+    /**
+       * @readonly
+       * @type {object}
+       */
+    this.playerConfig = {}
+    /**
+       * @readonly
+       * @type {string}
+       */
+    this.pluginName = ''
     this.__init(args)
   }
 
+  beforeCreate () {}
+  afterCreate () {}
+  beforePlayerInit () {}
   onPluginsReady () {}
+  afterPlayerInit () {}
+  destroy () {}
 
+  /**
+   * @private
+   * @param { any } args
+   */
   __init (args) {
     BasePlugin.defineGetterOrSetter(this, {
       player: {
@@ -41,6 +89,7 @@ class BasePlugin {
         },
         configurable: true
       },
+
       pluginName: {
         get: () => {
           if (args.pluginName) {
@@ -60,12 +109,19 @@ class BasePlugin {
     })
   }
 
+  /**
+   * 更新语言
+   * @param { string } lang
+   */
   updateLang (lang) {
     if (!lang) {
       lang = this.lang
     }
   }
 
+  /**
+   * @type { string }
+   */
   get lang () {
     return this.player.lang
   }
@@ -78,6 +134,12 @@ class BasePlugin {
     return this.player.i18nKeys
   }
 
+  /**
+   *
+   * @param { string | Array<string> } event
+   * @param { Function } callback
+   * @returns
+   */
   on (event, callback) {
     if (!event || !callback) {
       showErrorMsg(this.pluginName, 'plugin.on(event, callback)')
@@ -94,6 +156,12 @@ class BasePlugin {
     }
   }
 
+  /**
+   *
+   * @param { string } event
+   * @param { Function } callback
+   * @returns
+   */
   once (event, callback) {
     if (!event || !callback) {
       showErrorMsg(this.pluginName, 'plugin.once(event, callback)')
@@ -102,6 +170,12 @@ class BasePlugin {
     this.player.once(event, callback)
   }
 
+  /**
+   *
+   * @param { string } event
+   * @param { Function } callback
+   * @returns
+   */
   off (event, callback) {
     if (!event || !callback) {
       showErrorMsg(this.pluginName, 'plugin.off(event, callback)')
@@ -126,15 +200,33 @@ class BasePlugin {
     this.__events = {}
   }
 
+  /**
+   *
+   * @param { string } event
+   * @param { any } res
+   * @returns
+   */
   emit (event, res) {
     this.player.emit(event, res)
   }
 
+  /**
+   * 注册子插件
+   * @param { any } plugin
+   * @param { any } [options]
+   * @param { string } [name]
+   * @returns { object }
+   */
   registerPlugin (plugin, options = {}, name = '') {
     name && (options.pluginName = name)
     return this.player.registerPlugin({ plugin, options })
   }
 
+  /**
+   *
+   * @param { string } name
+   * @returns { object | null }
+   */
   getPlugin (name) {
     return this.player.getPlugin(name)
   }

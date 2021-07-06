@@ -1,4 +1,3 @@
-
 const babelTarget = process.env.BABEL_TARGET
 const { version } = require('./package.json')
 module.exports = {

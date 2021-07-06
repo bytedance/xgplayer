@@ -1,12 +1,25 @@
 import { Events, POSITIONS } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
 
+/**
+ * @typedef {{
+ *  position?: string,
+ *  index?: number,
+ *  list?: Array<number | { [propName: string]: any }>,
+ *  className?: string,
+ *  hidePortrait?: boolean,
+ *  [propName: string]: any
+ * }} IPlaybackRateConfig
+ */
+
 export default class PlaybackRate extends OptionsIcon {
   static get pluginName () {
     return 'playbackRate'
   }
 
-  // 默认配置信息
+  /**
+   * @type IPlaybackRateConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,

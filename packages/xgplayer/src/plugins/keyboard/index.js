@@ -1,10 +1,23 @@
 import { BasePlugin } from '../../plugin'
+/**
+ * @typedef {{
+ *   seekStep?: number, // 左/右快进每次操作时长
+ *   checkVisible?: boolean, // 快捷键生效的时候是否检测可见性
+ *   disableBodyTrigger?: boolean, // 是否在body上做快捷键监听
+ *   keyCodeMap?: { [propName: string]: any },
+ *   disable: boolean,
+ *   [propName: string]: any
+ * }} IKeyboardConfig
+ */
 
 class Keyboard extends BasePlugin {
   static get pluginName () {
     return 'keyboard'
   }
 
+  /**
+   * @type IKeyboardConfig
+   */
   static get defaultConfig () {
     return {
       seekStep: 10,
