@@ -4,7 +4,7 @@ class Xhr {
   constructor (url, callback) {
     EventEmitter(this)
     this.url = url
-    let xhr = new window.XMLHttpRequest()
+    const xhr = new window.XMLHttpRequest()
     xhr.target = this
     xhr.responseType = 'arraybuffer'
     xhr.open('get', url)
@@ -21,6 +21,7 @@ class Xhr {
     this.xhr = xhr
     this.run()
   }
+
   cancel () {
     this.xhr.abort()
   }

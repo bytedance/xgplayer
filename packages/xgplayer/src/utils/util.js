@@ -2,6 +2,14 @@ import XG_DEBUG from './debug'
 import XgplayerTimeRange from './xgplayerTimeRange'
 const util = {}
 
+/**
+ *
+ * @param { string } el
+ * @param { string } [tpl=]
+ * @param { object } [attrs={}]
+ * @param { string } [cname='']
+ * @returns { HTMLElement | null }
+ */
 util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   const dom = document.createElement(el)
   dom.className = cname
@@ -20,6 +28,13 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   return dom
 }
 
+/**
+ *
+ * @param { string } html
+ * @param { string } [attrs={}]
+ * @param { string } [classname=""]
+ * @returns { HTMLElement | null }
+ */
 util.createDomFromHtml = function (html, attrs = {}, classname = '') {
   try {
     let doc = document.createElement('div')
@@ -43,6 +58,12 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
   }
 }
 
+/**
+ *
+ * @param { HTMLElement } el
+ * @param { string } className
+ * @returns { boolean }
+ */
 util.hasClass = function (el, className) {
   if (!el) {
     return false
@@ -55,6 +76,12 @@ util.hasClass = function (el, className) {
   }
 }
 
+/**
+ *
+ * @param { HTMLElement } el
+ * @param { string } className
+ * @returns { void }
+ */
 util.addClass = function (el, className) {
   if (!el) {
     return
@@ -73,6 +100,12 @@ util.addClass = function (el, className) {
   }
 }
 
+/**
+ *
+ * @param { HTMLElement } el
+ * @param { string } className
+ * @returns { void }
+ */
 util.removeClass = function (el, className) {
   if (!el) {
     return
@@ -94,6 +127,12 @@ util.removeClass = function (el, className) {
   }
 }
 
+/**
+ *
+ * @param { HTMLElement } el
+ * @param { string } className
+ * @returns { void }
+ */
 util.toggleClass = function (el, className) {
   if (!el) {
     return
@@ -108,6 +147,12 @@ util.toggleClass = function (el, className) {
   })
 }
 
+/**
+ *
+ * @param { string | Object } args0
+ * @param { string } [className]
+ * @returns { string }
+ */
 util.classNames = function () {
   let classname = ''
   for (let i = 0; i < arguments.length; i++) {
@@ -127,6 +172,12 @@ util.classNames = function () {
   return classname
 }
 
+/**
+ *
+ * @param { HTMLElement } el
+ * @param { string } sel
+ * @returns { HTMLElement }
+ */
 util.findDom = function (el = document, sel) {
   let dom
   // fix querySelector IDs that start with a digit
@@ -142,6 +193,12 @@ util.findDom = function (el = document, sel) {
   return dom
 }
 
+/**
+ *
+ * @param { HTMLElement } dom
+ * @param { string } key
+ * @returns { any }
+ */
 util.getCss = function (dom, key) {
   return dom.currentStyle ? dom.currentStyle[key] : document.defaultView.getComputedStyle(dom, false)[key]
 }
@@ -158,6 +215,11 @@ util.padStart = function (str, length, pad) {
   return chars.join('').substring(0, len - r.length) + r
 }
 
+/**
+ *
+ * @param { Number } time
+ * @returns { string }
+ */
 util.format = function (time) {
   if (window.isNaN(time)) {
     return ''
@@ -169,6 +231,11 @@ util.format = function (time) {
   return (hour === '00' ? [minute, second] : [hour, minute, second]).join(':')
 }
 
+/**
+ *
+ * @param { Object } e
+ * @returns { Object }
+ */
 util.event = function (e) {
   if (e.touches) {
     const touch = e.touches[0] || e.changedTouches[0]
@@ -180,10 +247,21 @@ util.event = function (e) {
   e._target = e.target || e.srcElement
 }
 
+/**
+ *
+ * @param { any } obj
+ * @returns { string }
+ */
 util.typeOf = function (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
 
+/**
+ *
+ * @param { any } dst
+ * @param { any } src
+ * @returns { any }
+ */
 util.deepCopy = function (dst, src) {
   if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
@@ -204,6 +282,12 @@ util.deepCopy = function (dst, src) {
   }
 }
 
+/**
+ *
+ * @param { any } dst
+ * @param { any } src
+ * @returns { any }
+ */
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
     if (util.typeOf(src[key]) === 'Array' && util.typeOf(dst[key]) === 'Array') {
@@ -230,6 +314,11 @@ util.getBgImage = function (el) {
   return a.href
 }
 
+/**
+ *
+ * @param {  HTMLElement } dom
+ * @returns { HTMLElement || null }
+ */
 util.copyDom = function (dom) {
   if (dom && dom.nodeType === 1) {
     const back = document.createElement(dom.tagName)
@@ -245,17 +334,37 @@ util.copyDom = function (dom) {
   }
 }
 
+/**
+ *
+ * @param { any } context
+ * @param { string } eventName
+ * @param { function } intervalFunc
+ * @param { number } frequency
+ */
 util.setInterval = function (context, eventName, intervalFunc, frequency) {
   if (!context._interval[eventName]) {
     context._interval[eventName] = setInterval(intervalFunc.bind(context), frequency)
   }
 }
 
+/**
+ *
+ * @param { any } context
+ * @param { string } eventName
+ * @returns { void }
+ */
 util.clearInterval = function (context, eventName) {
   clearInterval(context._interval[eventName])
   context._interval[eventName] = null
 }
 
+/**
+ *
+ * @param { any } context
+ * @param { function } fun
+ * @param { number } time
+ * @returns { number }
+ */
 util.setTimeout = function (context, fun, time) {
   if (!context._timers) {
     context._timers = []
@@ -268,6 +377,11 @@ util.setTimeout = function (context, fun, time) {
   return id
 }
 
+/**
+ *
+ * @param { any } context
+ * @param { number } id
+ */
 util.clearTimeout = function (context, id) {
   const { _timers } = context
   if (util.typeOf(_timers) === 'Array') {
@@ -283,6 +397,10 @@ util.clearTimeout = function (context, id) {
   }
 }
 
+/**
+ *
+ * @param { any } context
+ */
 util.clearAllTimers = function (context) {
   const { _timers } = context
   if (util.typeOf(_timers) === 'Array') {
@@ -293,6 +411,14 @@ util.clearAllTimers = function (context) {
   }
 }
 
+/**
+ *
+ * @param { string } name
+ * @param { string } imgUrl
+ * @param { number } [width]
+ * @param { number } [height]
+ * @returns { HTMLElement }
+ */
 util.createImgBtn = function (name, imgUrl, width, height) {
   const btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
   btn.style.backgroundImage = `url("${imgUrl}")`
@@ -320,6 +446,12 @@ util.createImgBtn = function (name, imgUrl, width, height) {
   return btn
 }
 
+/**
+ *
+ * @param { string } hex
+ * @param { string | number } alpha
+ * @returns { string }
+ */
 util.Hex2RGBA = function (hex, alpha) {
   const rgb = [] // 定义rgb数组
   // eslint-disable-next-line no-useless-escape
@@ -340,32 +472,62 @@ util.Hex2RGBA = function (hex, alpha) {
   }
 }
 
+/**
+ *
+ * @returns { HTMLElement | null }
+ */
 util.getFullScreenEl = function () {
   return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
 }
 
+/**
+ * @param { any }
+ * @returns { boolean }
+ */
 util.checkIsFunction = function (fun) {
   return fun && typeof fun === 'function'
 }
 
+/**
+ * @param { any }
+ * @returns { boolean }
+ */
 util.checkIsObject = function (obj) {
   return obj !== null && typeof obj === 'object'
 }
 
+/**
+ * @param { HTMLElement }
+ */
 util.hide = function (dom) {
   dom.style.display = 'none'
 }
 
+/**
+ * @param { HTMLElement }
+ * @param { block | flex | inline-block | inline-flex } [display]
+ */
 util.show = function (dom, display) {
   dom.style.display = display || 'block'
 }
 
+/**
+ *
+ * @param { any } val
+ * @returns { boolean }
+ */
 util.isUndefined = function (val) {
   if (typeof val === 'undefined' || val === null) {
     return true
   }
 }
 
+/**
+ *
+ * @param { HTMLElement } dom
+ * @param { string } [text]
+ * @returns
+ */
 util.setStyleFromCsstext = function (dom, text) {
   // dom.setAttribute(style, text)
   if (!text) {
@@ -388,6 +550,12 @@ util.setStyleFromCsstext = function (dom, text) {
   }
 }
 
+/**
+ *
+ * @param { string } key
+ * @param { Array<any>} list
+ * @returns { boolean }
+ */
 function checkIsIn (key, list) {
   for (let i = 0, len = list.length; i < len; i++) {
     if (key.indexOf(list[i]) > -1) {
@@ -397,6 +565,12 @@ function checkIsIn (key, list) {
   return false
 }
 
+/**
+ *
+ * @param { HTMLElement } dom
+ * @param { Array<string> } [list] attribute names to filter
+ * @returns { {} | {[propName: string]: any;} }
+ */
 util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'left', 'bottom', 'right', 'position', 'z-index', 'padding', 'margin', 'transform']) {
   const _cssText = dom.style.cssText
   if (!_cssText) {
@@ -423,34 +597,19 @@ util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'lef
     // netStyle += `${key}: ${remain[key]};`
     dom.style[key] = remain[key]
   })
-  // dom.setAttribute('style', netStyle)
-  // Object.keys(remain).map(key => {
-  //   dom.style[key] = remain[key]
-  // })
-  // console.log('remain', remain, netStyle)
   return ret
 }
 
+/**
+ *
+ * @param { HTMLElement } dom
+ * @returns { {} | {[propName: string]: any;} }
+ */
 util.getStyleFromCsstext = function (dom) {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
   }
-  const styleArr = _cssText.replace(/\s+/g, '').split(';')
-  const ret = {}
-  styleArr.map(item => {
-    if (item) {
-      const arr = item.split(':')
-      if (arr.length > 1) {
-        ret[arr[0]] = arr[1]
-      }
-    }
-  })
-  return ret
-}
-
-util.getStyleFromCsstext = function (dom) {
-  const _cssText = dom.style.cssText
   const styleArr = _cssText.replace(/\s+/g, '').split(';')
   const ret = {}
   styleArr.map(item => {

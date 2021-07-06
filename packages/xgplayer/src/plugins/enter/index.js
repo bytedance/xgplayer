@@ -1,10 +1,20 @@
 import Plugin, { Util } from '../../plugin'
 
+/**
+  * @typedef { {
+  *   innerHtml?: string,
+  *   [propName: string]: any
+  * } } IEnterConfig
+  */
+
 class Enter extends Plugin {
   static get pluginName () {
     return 'enter'
   }
 
+  /**
+   * @type IEnterConfig
+   */
   static get defaultConfig () {
     return {
       innerHtml: '',

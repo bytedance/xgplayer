@@ -11,8 +11,8 @@ class Analyze {
       return
     }
     const audioCtx = new Analyze.AudioCtx()
-    let analyser = audioCtx.createAnalyser()
-    let gainNode = audioCtx.createGain()
+    const analyser = audioCtx.createAnalyser()
+    const gainNode = audioCtx.createGain()
     analyser.minDecibels = -90
     analyser.maxDecibels = -10
     analyser.smoothingTimeConstant = 0.85
@@ -50,23 +50,23 @@ class Analyze {
   }
 
   __wave__ () {
-    cancel(this.__status__['wave'])
-    cancel(this.__status__['bars'])
+    cancel(this.__status__.wave)
+    cancel(this.__status__.bars)
     if (this.__status__.switch === 'off') {
       return
     }
-    let analyser = this.analyser
-    let canvas = this.canvas
-    let ctx = this.ctx
-    let bufferLen = analyser.frequencyBinCount
-    let dataArray = new Uint8Array(bufferLen)
+    const analyser = this.analyser
+    const canvas = this.canvas
+    const ctx = this.ctx
+    const bufferLen = analyser.frequencyBinCount
+    const dataArray = new Uint8Array(bufferLen)
     const WIDTH = canvas.width
     const HEIGHT = canvas.height
     const color = new Color(this.style.color).toRGB()
     const bgColor = new Color(this.style.color).toRGB()
     analyser.fftSize = this.__size__
     const draw = () => {
-      this.__status__['wave'] = req(draw)
+      this.__status__.wave = req(draw)
       analyser.getByteTimeDomainData(dataArray)
       ctx.clearRect(0, 0, WIDTH, HEIGHT)
       ctx.fillStyle = bgColor
@@ -76,8 +76,8 @@ class Analyze {
       const sliceWidth = WIDTH * 1.0 / bufferLen
       let x = 0
       for (let i = 0; i < bufferLen; i++) {
-        let v = dataArray[i] / 128.0
-        let y = v * HEIGHT / 2
+        const v = dataArray[i] / 128.0
+        const y = v * HEIGHT / 2
         if (i === 0) {
           ctx.moveTo(x, y)
         } else {
@@ -90,17 +90,18 @@ class Analyze {
     }
     draw()
   }
+
   __bars__ () {
-    cancel(this.__status__['wave'])
-    cancel(this.__status__['bars'])
+    cancel(this.__status__.wave)
+    cancel(this.__status__.bars)
     if (this.__status__.switch === 'off') {
       return
     }
-    let analyser = this.analyser
-    let canvas = this.canvas
-    let ctx = this.ctx
-    let bufferLen = analyser.frequencyBinCount
-    let dataArray = new Uint8Array(bufferLen)
+    const analyser = this.analyser
+    const canvas = this.canvas
+    const ctx = this.ctx
+    const bufferLen = analyser.frequencyBinCount
+    const dataArray = new Uint8Array(bufferLen)
     const WIDTH = canvas.width
     const HEIGHT = canvas.height
     const color = new Color(this.style.color).toArray()
@@ -108,7 +109,7 @@ class Analyze {
     analyser.fftSize = this.__size__
 
     const draw = () => {
-      this.__status__['bars'] = req(draw)
+      this.__status__.bars = req(draw)
       analyser.getByteFrequencyData(dataArray)
       ctx.clearRect(0, 0, WIDTH, HEIGHT)
       ctx.fillStyle = bgColor
@@ -116,7 +117,7 @@ class Analyze {
       const barWidth = (WIDTH / bufferLen) * 2.5
       let barHeight
       let x = 0
-      for (var i = 0; i < bufferLen; i++) {
+      for (let i = 0; i < bufferLen; i++) {
         barHeight = dataArray[i]
         ctx.fillStyle = `rgb(${barHeight + color[0]},${color[1]},${color[2]})`
         ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2)
@@ -125,15 +126,18 @@ class Analyze {
     }
     draw()
   }
+
   on () {
     this.__status__.switch = 'on'
     this[`__${this.__type__}__`]()
   }
+
   off () {
     this.__status__.switch = 'off'
-    cancel(this.__status__['wave'])
-    cancel(this.__status__['bars'])
+    cancel(this.__status__.wave)
+    cancel(this.__status__.bars)
   }
+
   set mode (mode) {
     if (Analyze.Mode.filter(item => item === mode).length) {
       this.__type__ = mode
@@ -142,9 +146,11 @@ class Analyze {
       }
     }
   }
+
   get mode () {
     return this.__type__
   }
+
   set size (num) {
     if (num < 65536 && isSqrt(num, 2)) {
       this.__size__ = num
@@ -152,15 +158,19 @@ class Analyze {
       this[`__${this.__type__}__`]()
     }
   }
+
   get size () {
     return this.__size__
   }
+
   get status () {
     return this.__status__.switch
   }
+
   static get AudioCtx () {
     return window.AudioContext || window.webkitAudioContext
   }
+
   static get Mode () {
     return ['wave', 'bars']
   }

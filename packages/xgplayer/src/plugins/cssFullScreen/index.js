@@ -2,11 +2,24 @@ import Plugin, { Events, POSITIONS } from '../../plugin'
 import CssFullSceenSvg from '../assets/requestCssFull.svg'
 import ExitCssFullSceenSvg from '../assets/exitCssFull.svg'
 
+/**
+  * @typedef { {
+  *  position: string,
+  *  index: number,
+  *  disable: boolean,
+  *  target: null | HTMLElement,
+  *  [propName: string]: any
+  * } } ICssConfig
+  */
+
 export default class CssFullScreen extends Plugin {
   static get pluginName () {
     return 'cssFullscreen'
   }
 
+  /**
+   * @type ICssConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,

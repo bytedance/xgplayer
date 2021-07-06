@@ -1,12 +1,31 @@
 import { Events, POSITIONS, Util } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
+/**
+ * @typedef {{
+ *   text?: string,
+ *   text?: string,
+ *   definition?: any
+ * }} IDefinition
+ */
 
+/**
+ * @typedef {{
+ *   position?: string,
+ *   index?: string,
+ *   list?: Array<IDefinition>,
+ *   disable?: any,
+ *   hidePortrait?: boolean,
+ *   className?: string
+ * }} IDefinitionConfig
+ */
 export default class DefinitionIcon extends OptionsIcon {
   static get pluginName () {
     return 'definition'
   }
 
-  // 默认配置信息
+  /**
+   * @type IDefinitionConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,

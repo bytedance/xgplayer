@@ -6,22 +6,22 @@ import MSE from './media/mse'
 import Task from './media/task'
 import Buffer from './fmp4/buffer'
 
-let isEnded = (player, mp4) => {
+const isEnded = (player, mp4) => {
   if (mp4.meta.endTime - player.currentTime < 2) {
-    let range = player.getBufferedRange()
+    const range = player.getBufferedRange()
     if (player.currentTime - range[1] < 0.1) {
       player.mse.endOfStream()
     }
   }
 }
 
-let mp4player = function () {
-  let player = this; let sniffer = Player.sniffer; let util = Player.util
-  let Errors = Player.Errors; let mainURL; let backupURL
-  let preloadTime = player.config.preloadTime || 15
+const mp4player = function () {
+  const player = this; const sniffer = Player.sniffer; const util = Player.util
+  const Errors = Player.Errors; let mainURL; let backupURL
+  const preloadTime = player.config.preloadTime || 15
   let waiterTimer
-  let url = player.config.url
-  let rule = player.config.pluginRule || function () { return true }
+  const url = player.config.url
+  const rule = player.config.pluginRule || function () { return true }
   if (!url) {
     player.emit('error', new Errors('other', player.config.vid))
     return
@@ -36,7 +36,7 @@ let mp4player = function () {
   }
   player.config._mainURL = mainURL
   player.config._backupURL = backupURL
-  let loadData = (i = 0, time = player.currentTime) => {
+  const loadData = (i = 0, time = player.currentTime) => {
     if (player.timer) {
       clearTimeout(player.timer)
     }
@@ -44,7 +44,7 @@ let mp4player = function () {
     player.timer = setTimeout(function () {
       player.mp4.seek(time + i * 0.1).then(buffer => {
         if (buffer) {
-          let mse = player.mse
+          const mse = player.mse
           mse.updating = true
           mse.appendBuffer(buffer)
           mse.once('updateend', () => {
@@ -60,8 +60,8 @@ let mp4player = function () {
       })
     }, 50)
   }
-  let init = (url) => {
-    let mp4 = new MP4(url, player.config)
+  const init = (url) => {
+    const mp4 = new MP4(url, player.config)
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('moovReady', () => {
@@ -83,7 +83,7 @@ let mp4player = function () {
       return false
     }
 
-    let errorHandle = (player, err) => {
+    const errorHandle = (player, err) => {
       err.vid = player.config.vid
       err.url = player.src
       if (err.errd && typeof err.errd === 'object') {
@@ -135,7 +135,7 @@ let mp4player = function () {
         player.once('canplay', () => {
           player.play()
         })
-        let mp4 = result[0]; let mse = result[1]
+        const mp4 = result[0]; const mse = result[1]
         player._start(mse.url)
         player.logParams.pluginSrc = url
         player.mp4 = mp4
@@ -150,15 +150,15 @@ let mp4player = function () {
       player.once('canplay', () => {
         // safari decoder time offset
         if (sniffer.browser === 'safari' && player.buffered) {
-          let start = player.buffered.start(0)
+          const start = player.buffered.start(0)
           player.currentTime = start + 0.1
         }
       })
     }
 
     player.cut = function (start = 0, end) {
-      let segment = new Buffer()
-      let mp4 = new MP4(url, player.config)
+      const segment = new Buffer()
+      const mp4 = new MP4(url, player.config)
       return new Promise((resolve, reject) => {
         mp4.once('moovReady', () => {
           if (!end || end <= start) {
@@ -170,7 +170,7 @@ let mp4player = function () {
           }
           mp4.cut(start, end).then(buffer => {
             if (buffer) {
-              let meta = Player.util.deepCopy({
+              const meta = Player.util.deepCopy({
                 duration: end - start,
                 audioDuration: end - start,
                 endTime: end - start
@@ -180,7 +180,7 @@ let mp4player = function () {
               meta.audioDuration = end - start
               meta.endTime = end - start
               segment.write(mp4.packMeta(meta), buffer)
-              resolve(new Blob([segment.buffer], {type: 'video/mp4; codecs="avc1.64001E, mp4a.40.5"'}))
+              resolve(new Blob([segment.buffer], { type: 'video/mp4; codecs="avc1.64001E, mp4a.40.5"' }))
             }
           })
         })
@@ -191,13 +191,13 @@ let mp4player = function () {
     }
 
     player.switchURL = (url) => {
-      let mp5 = new MP4(url, player.config)
-      let mp4 = player.mp4
+      const mp5 = new MP4(url, player.config)
+      const mp4 = player.mp4
       mp5.on('moovReady', () => {
-        let timeRange = mp4.timeRage; let curTime = player.currentTime
+        let timeRange = mp4.timeRage; const curTime = player.currentTime
         timeRange = mp4.timeRage
-        let start = timeRange.find(item => item[0] - curTime > 2)[0]
-        let end = player.getBufferedRange()[1]
+        const start = timeRange.find(item => item[0] - curTime > 2)[0]
+        const end = player.getBufferedRange()[1]
         if (end - start > 0 && sniffer.browser !== 'safari') {
           player.mse.removeBuffer(start, end)
         }
@@ -229,12 +229,12 @@ let mp4player = function () {
     }
 
     player.playNext = (url) => {
-      let mp5 = new MP4(url, player.config)
-      let mp4 = player.mp4
+      const mp5 = new MP4(url, player.config)
+      const mp4 = player.mp4
       mp5.on('moovReady', () => {
-        let range = [0, 0]
+        const range = [0, 0]
         let buffered = player.video.buffered
-        let currentTime = player.video.currentTime
+        const currentTime = player.video.currentTime
         let max = 0
         if (buffered) {
           for (let i = 0, len = buffered.length; i < len; i++) {
@@ -251,7 +251,7 @@ let mp4player = function () {
         let flag = true
         player.on('timeupdate', function () {
           if (flag && mp4.meta.endTime - player.currentTime < 2) {
-            let range = player.getBufferedRange()
+            const range = player.getBufferedRange()
             if (player.currentTime - range[1] < 0.1) {
               flag = false
               player.currentTime = 0
@@ -274,16 +274,16 @@ let mp4player = function () {
       })
     }
 
-    let timeupdateFunc = function () {
-      let mse = player.mse; let mp4 = player.mp4
+    const timeupdateFunc = function () {
+      const mse = player.mse; const mp4 = player.mp4
       if (mse && !mse.updating && mp4.canDownload) {
-        let timeRage = mp4.timeRage
-        let range = player.getBufferedRange(); let cacheMaxTime = player.currentTime + preloadTime
+        const timeRage = mp4.timeRage
+        const range = player.getBufferedRange(); const cacheMaxTime = player.currentTime + preloadTime
         if (range[1] - cacheMaxTime > 0) {
           return
         }
         timeRage.every((item, idx) => {
-          let start = item[0]; let end = item[1]; let center = (start + end) / 2
+          const start = item[0]; const end = item[1]; const center = (start + end) / 2
           if (range[1] === 0) {
             return false
           } else {
@@ -301,8 +301,8 @@ let mp4player = function () {
     // player.on('timeupdate', timeupdateFunc)
     player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
 
-    let seekingFunc = function () {
-      let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
+    const seekingFunc = function () {
+      const buffered = player.buffered; let hasBuffered = false; const curTime = player.currentTime
       Task.clear()
       if (buffered.length) {
         for (let i = 0, len = buffered.length; i < len; i++) {
@@ -320,31 +320,31 @@ let mp4player = function () {
     }
     player.on('seeking', seekingFunc)
 
-    let pauseFunc = function () {
+    const pauseFunc = function () {
       Task.clear()
     }
     player.on('pause', pauseFunc)
 
-    let playingFunc = function () {
+    const playingFunc = function () {
       if (waiterTimer) {
         clearTimeout(waiterTimer)
       }
     }
     player.on('playing', playingFunc)
 
-    let waitingFunc = function () {
-      let mp4 = player.mp4
+    const waitingFunc = function () {
+      const mp4 = player.mp4
       if (!mp4 || !mp4.meta) {
         return
       }
-      let range = player.getBufferedRange()
-      let duration = mp4.meta.videoDuration
+      const range = player.getBufferedRange()
+      const duration = mp4.meta.videoDuration
       if (duration - player.currentTime < 0.5 && duration - range[1] < 0.5) {
         player.mse.endOfStream()
       } else {
         loadData(0, range[1] + 1)
         waiterTimer = setTimeout(function () {
-          let buffered = player.buffered; let start
+          const buffered = player.buffered; let start
           for (let i = 0, len = buffered.length; i < len; i++) {
             start = buffered.start(i)
             if (start >= player.currentTime) {
@@ -357,14 +357,14 @@ let mp4player = function () {
     }
     player.on('waiting', waitingFunc)
 
-    let endedFunc = function () {
+    const endedFunc = function () {
       player.off('waiting', waitingFunc)
       // player.off('timeupdate', timeupdateFunc)
       clearInterval(player.mp4ProgressTimer)
     }
     player.on('ended', endedFunc)
 
-    let destroyFunc = function () {
+    const destroyFunc = function () {
       Task.clear()
       if (player.timer) {
         clearTimeout(player.timer)
@@ -376,7 +376,7 @@ let mp4player = function () {
       Task.clear()
       player.mp4.bufferCache.clear()
       init(player.mp4.url).then((result) => {
-        let mp4 = result[0]; let mse = result[1]
+        const mp4 = result[0]; const mse = result[1]
         player._start(mse.url)
         player.mp4 = mp4
         player.mse = mse

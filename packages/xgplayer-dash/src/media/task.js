@@ -1,30 +1,30 @@
 import EventEmitter from 'event-emitter'
 
 class Task {
-  constructor (url, callback, range) {
+  constructor (url, _callback, range) {
     EventEmitter(this)
     this.url = url
     this.on = false
     if (Task.queue.some(item => item.url === url)) {
       return
     }
-    let xhr = new XMLHttpRequest()
+    const xhr = new XMLHttpRequest()
     xhr.target = this
     xhr.responseType = 'arraybuffer'
     xhr.open('get', url)
-    if(range) {
+    if (range) {
       this.range = range
       this.id = range.join('-')
       xhr.setRequestHeader('Range', `bytes=${range.join('-')}`)
     }
     xhr.onload = function () {
       if (xhr.status === 200 || xhr.status === 206) {
-        if (callback && callback instanceof Function) {
-          callback(xhr.response)
+        if (_callback && _callback instanceof Function) {
+          _callback(xhr.response)
         }
       } else if (xhr.status === 404) {
-        if (callback && callback instanceof Function) {
-          callback('Not Found')
+        if (_callback && _callback instanceof Function) {
+          _callback('Not Found')
         }
       }
       xhr.target.remove()
@@ -39,6 +39,7 @@ class Task {
     Task.queue.push(this)
     this.update()
   }
+
   cancel () {
     this.xhr.abort()
   }
@@ -56,10 +57,10 @@ class Task {
   }
 
   update () {
-    let Queue = Task.queue
-    let sended = Queue.filter((item) => item.on)
-    let wait = Queue.filter(item => !item.on)
-    let max = Task.limit - sended.length
+    const Queue = Task.queue
+    const sended = Queue.filter((item) => item.on)
+    const wait = Queue.filter(item => !item.on)
+    const max = Task.limit - sended.length
     wait.forEach((item, idx) => {
       if (idx < max) {
         item.run()
