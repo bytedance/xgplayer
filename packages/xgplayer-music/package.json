@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build:umd": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build": "npm run build:umd && npm run build:style",
     "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
     "build:lib": "rm -rf ./lib && npx cross-env BABEL_TARGET=commonjs ../../node_modules/.bin/babel ./src --out-dir lib",
