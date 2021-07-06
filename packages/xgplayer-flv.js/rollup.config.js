@@ -3,7 +3,6 @@ const builtins = require('rollup-plugin-node-builtins')
 const replace = require('@rollup/plugin-replace')
 const { version } = require('./package.json')
 const uglify = process.env.NODE_ENV === 'production'
-console.log('builtins', builtins)
 const config = {
   input: 'src/index.js',
   name: 'FlvJsPlugin',

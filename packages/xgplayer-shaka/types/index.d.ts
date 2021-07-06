@@ -5,7 +5,7 @@ declare module 'xgplayer-shaka' {
     hlsOpts?: { [propName: string]: any; };
   }
 
-  class ShakaJsPlugin extends BasePlugin {
+  class ShakaPlugin extends BasePlugin {
     public static get pluginName(): string;
     public static get defaultConfig(): any;
     public static isSupported: boolean;
@@ -16,5 +16,5 @@ declare module 'xgplayer-shaka' {
     readonly player: any;
   }
 
-  export default ShakaJsPlugin;
+  export default ShakaPlugin;
 }

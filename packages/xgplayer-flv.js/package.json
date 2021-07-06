@@ -2,7 +2,7 @@
   "name": "xgplayer-flv.js",
   "version": "3.0.0",
   "description": "web video player",
-  "main": "./dist/index.js",
+  "main": "./lib/index.js",
   "module": "./es/index.js",
   "typings": "./types/index.d.ts",
   "scripts": {
