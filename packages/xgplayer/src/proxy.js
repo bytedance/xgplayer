@@ -121,7 +121,7 @@ class Proxy {
     }
 
     /**
-     * @type { HTMLMediaElement | HTMLElement | IVideoProxy | null }
+     * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IVideoProxy | null }
      */
     this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
 
