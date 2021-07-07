@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -50,7 +50,6 @@ export default class Fullscreen extends Plugin {
    * @private
    */
   afterCreate () {
-    hooksDescriptor(this)
     if (this.config.disable) {
       return
     }

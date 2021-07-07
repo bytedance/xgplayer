@@ -193,7 +193,6 @@ class Danmu extends Plugin {
   }
 
   changeSet (set) {
-    console.log('changeSet', set)
   }
 
   onSwitch (defaultOpen) {

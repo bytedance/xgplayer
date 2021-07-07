@@ -185,7 +185,6 @@ class Plugin extends BasePlugin {
    * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, root: HTMLElement, position: string, [propName: string]: any;}  } args
    */
   constructor (args = {}) {
-    console.log(args)
     super(args)
     /**
      * @private

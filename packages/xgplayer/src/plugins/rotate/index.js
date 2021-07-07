@@ -77,7 +77,6 @@ export default class Rotate extends Plugin {
       x = -(height - width) / 2
       y = -(width - height) / 2
     }
-    console.log(`rWidth:${rWidth} rHeight:${rHeight} x:${x} y:${y}`)
     const _transform = `translate(${x}px,${y}px) rotate(${rotateDeg}turn)`
     const _styles = {
       transformOrigin: 'center center',

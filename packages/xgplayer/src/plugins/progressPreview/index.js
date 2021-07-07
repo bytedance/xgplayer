@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Util, Sniffer } from '../../plugin'
+import Plugin, { Util, Sniffer } from '../../plugin'
 import initDotsAPI from './dotsApi'
 /**
  * @typedef {{
@@ -85,10 +85,6 @@ export default class ProgressPreview extends Plugin {
     initDotsAPI(this)
 
     this.bindEvents()
-  }
-
-  afterCreate () {
-    hooksDescriptor(this)
   }
 
   bindEvents () {
