@@ -18,6 +18,7 @@ class Mp4 extends Fmp4 {
     })
     return Mp4.initBox(size, 'moov', mvhd, trak)
   }
+
   static videoTrak (data) {
     let size = 8
 
@@ -50,6 +51,37 @@ class Mp4 extends Fmp4 {
     })
     return Mp4.initBox(size, 'trak', tkhd, mdia)
   }
+
+  static audioTrak (data) {
+    let size = 8
+    let tkhd = Mp4.tkhd({
+      id: 2,
+      duration: data.duration,
+      timescale: data.timescale || 1000,
+      width: 0,
+      height: 0,
+      type: 'audio'
+    })
+    let mdia = Mp4.mdia({
+      type: 'audio',
+      timescale: data.timescale || 1000,
+      duration: data.duration,
+      channelCount: data.channelCount,
+      samplerate: data.sampleRate,
+      config: data.config,
+      sampleDeltas: data.sampleDeltas,
+      keyFrames: data.keyFrames,
+      sampleCtss: data.sampleCtss,
+      chunks: data.chunks,
+      sampleSizes: data.sampleSizes,
+      chunksOffset: data.chunksOffset
+    });
+    [tkhd, mdia].forEach(item => {
+      size += item.byteLength
+    })
+    return Mp4.initBox(size, 'trak', tkhd, mdia)
+  }
+
   static mdia (data) {
     let size = 8
     let mdhd = Mp4.mdhd(data.timescale, data.duration)
@@ -60,6 +92,7 @@ class Mp4 extends Fmp4 {
     })
     return Mp4.initBox(size, 'mdia', mdhd, hdlr, minf)
   }
+
   static minf (data) {
     let size = 8
     let vmhd = data.type === 'video' ? Mp4.vmhd() : Mp4.smhd()
@@ -70,26 +103,42 @@ class Mp4 extends Fmp4 {
     })
     return Mp4.initBox(size, 'minf', vmhd, dinf, stbl)
   }
+
   static stbl (data) {
     let size = 8
     let stsd = Mp4.stsd(data)
     let stts = Mp4.stts(data.sampleDeltas)
-    let stss = Mp4.stss(data.keyFrames)
-    let ctts = Mp4.ctts(data.sampleCtss)
+    let stss
+    if (data.keyFrames) {
+      stss = Mp4.stss(data.keyFrames)
+    }
+    let ctts
+    if (data.sampleCtss) {
+      ctts = Mp4.ctts(data.sampleCtss)
+    }
     let stsc = Mp4.stsc(data.chunks)
     let stsz = Mp4.stsz(data.sampleSizes)
     let stco = Mp4.stco(data.chunksOffset);
-    [stsd, stts, stss, ctts, stsc, stsz, stco].forEach(item => {
+    let tables = [stsd, stts, stsc, stsz, stco]
+    if (stss) {
+      tables.push(stss)
+    }
+    if (ctts) {
+      tables.push(ctts)
+    }
+
+    tables.forEach(item => {
     // [stsd, stts, stss, stsc, stsz, stco].forEach(item => {
       size += item.byteLength
     })
-    return Mp4.initBox(size, 'stbl', stsd, stts, stss, ctts, stsc, stsz, stco)
+    return Mp4.initBox(size, 'stbl', ...tables)
     // return Mp4.initBox(size, 'stbl', stsd, stts, stss, stsc, stsz, stco)
   }
   /**
    * @description dts-sample的映射表，可以计算出每个sample的dts
    * @param {object} data
    */
+
   static stts (data) {
     let entryCount = data.length
     let uCount = new Uint8Array([
@@ -126,6 +175,7 @@ class Mp4 extends Fmp4 {
    * @description 可以计算出pts，保存了每个sample与dts的差值
    * @param {object} data
    */
+
   static ctts (data) {
     let entryCount = data.length
     let uCount = new Uint8Array([
@@ -162,6 +212,7 @@ class Mp4 extends Fmp4 {
    * @description trunk和sample的映射表
    * @param {object} data
    */
+
   static stsc (data) {
     let entryCount = data.length
     let uCount = new Uint8Array([
