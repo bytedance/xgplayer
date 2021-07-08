@@ -67,6 +67,7 @@ class HlsVodController {
     this._onRemuxError = this._onRemuxError.bind(this)
     this._onTimeUpdate = this._onTimeUpdate.bind(this)
     this._onWaiting = this._onWaiting.bind(this)
+    this._handleKeyFrame = this._handleKeyFrame.bind(this)
 
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete)
 
@@ -81,6 +82,8 @@ class HlsVodController {
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
+
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
 
@@ -185,8 +188,13 @@ class HlsVodController {
     this._seekToBufferStart()
     this._preload(this._player.currentTime)
   }
+
   _onDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _handleSEIParsed (sei) {

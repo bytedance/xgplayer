@@ -40,7 +40,7 @@
     }
   }
   window.HTMLElement = wrapperForTheName['HTMLElement']
-  window.HTMLElement.prototype = BuiltInHTMLElement.prototype
-  window.HTMLElement.prototype.constructor = HTMLElement
+  HTMLElement.prototype = BuiltInHTMLElement.prototype
+  HTMLElement.prototype.constructor = HTMLElement
   Object.setPrototypeOf(HTMLElement, BuiltInHTMLElement)
 })()

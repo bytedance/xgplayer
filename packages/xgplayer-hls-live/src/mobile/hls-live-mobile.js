@@ -59,6 +59,8 @@ class HlsLiveController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
 
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
+
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
 
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this))
@@ -118,6 +120,11 @@ class HlsLiveController {
     }
     this._consumeFragment()
   }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
+  }
+
   _onMetadataParsed (type) {
     logger.warn(this.TAG, 'meta detect or changed , ', type)
     if (type === 'audio') {

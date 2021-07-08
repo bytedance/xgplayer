@@ -50,12 +50,17 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
   }
 
   _handleMediaInfo () {
     if (!this._context.mediaInfo) {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _handleLoaderDataLoaded () {
