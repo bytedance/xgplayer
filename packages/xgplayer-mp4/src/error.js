@@ -1,9 +1,9 @@
 import { Errors } from 'xgplayer'
-// import { version } from '../package.json'
 
 class _Errors extends Errors {
   constructor (type, vid, errd = {}, url = '') {
-    errd.version = '__XGPLAYER_MP4__'
+    // eslint-disable-next-line no-undef
+    errd.version = __XGPLAYER_MP4__
     super(type, vid, errd)
     this.url = url
   }

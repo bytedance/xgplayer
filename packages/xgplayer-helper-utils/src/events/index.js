@@ -85,4 +85,4 @@ export default {
   CRYPTO_EVENTS,
   PLAYER_EVENTS,
   BROWSER_EVENTS
-};
+}

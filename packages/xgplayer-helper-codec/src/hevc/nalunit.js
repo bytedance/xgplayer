@@ -1,5 +1,5 @@
-import SpsParser from './sps';
-import SEIParser from './sei';
+import SpsParser from './sps'
+import SEIParser from './sei'
 
 class Nalunit {
   /**
@@ -8,17 +8,17 @@ class Nalunit {
    */
   static getNalunits (buffer) {
     if (buffer.length - buffer.position < 4) {
-      return [];
+      return []
     }
 
-    let buf = buffer.dataview;
-    let position = buffer.position;
+    let buf = buffer.dataview
+    let position = buffer.position
 
     if (buf.getInt32(position) === 1 ||
     (buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1)) {
-      return Nalunit.getAnnexbNals(buffer);
+      return Nalunit.getAnnexbNals(buffer)
     } else {
-      return Nalunit.getHvccNals(buffer);
+      return Nalunit.getHvccNals(buffer)
     }
   }
 
@@ -27,27 +27,27 @@ class Nalunit {
    * @return {[]}
    */
   static getAnnexbNals (buffer) {
-    let nals = [];
-    let position = Nalunit.getHeaderPositionAnnexB(buffer);
-    let start = position.pos;
-    let end = start;
+    let nals = []
+    let position = Nalunit.getHeaderPositionAnnexB(buffer)
+    let start = position.pos
+    let end = start
     while (start < buffer.length - 4) {
-      let header = buffer.buffer.slice(start, start + position.headerLength);
+      let header = buffer.buffer.slice(start, start + position.headerLength)
       if (position.pos === buffer.position) {
-        buffer.skip(position.headerLength);
+        buffer.skip(position.headerLength)
       }
-      position = Nalunit.getHeaderPositionAnnexB(buffer);
-      end = position.pos;
-      let body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
-      let unit = {header, body};
-      Nalunit.analyseNal(unit);
+      position = Nalunit.getHeaderPositionAnnexB(buffer)
+      end = position.pos
+      let body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end))
+      let unit = {header, body}
+      Nalunit.analyseNal(unit)
       if (unit.type <= 40) {
-        nals.push(unit);
+        nals.push(unit)
       }
-      buffer.skip(end - buffer.position);
-      start = end;
+      buffer.skip(end - buffer.position)
+      start = end
     }
-    return nals;
+    return nals
   }
 
   // |四字节 nalSize| nalUnit |
@@ -57,7 +57,7 @@ class Nalunit {
    */
   static getHvccNals (buffer) {
     // console.log('getHvccNals')
-    let nals = [];
+    let nals = []
     while (buffer.position < buffer.length - 4) {
       // console.log('buffer')
       // console.log(buffer)
@@ -65,167 +65,167 @@ class Nalunit {
       // console.log(buffer.length)
       // console.log(buffer.dataview)
       // let length = buffer.dataview.getInt32();
-      let length = buffer.dataview.getInt32(buffer.dataview.position);
+      let length = buffer.dataview.getInt32(buffer.dataview.position)
       if (buffer.length - buffer.position >= length) {
-        let header = buffer.buffer.slice(buffer.position, buffer.position + 4);
+        let header = buffer.buffer.slice(buffer.position, buffer.position + 4)
         buffer.skip(4)
-        let body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length));
-        buffer.skip(length);
-        let unit = {header, body};
+        let body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length))
+        buffer.skip(length)
+        let unit = {header, body}
         try {
-          Nalunit.analyseNal(unit);
+          Nalunit.analyseNal(unit)
         } catch (e) {
-          continue;
+          continue
         }
         if (unit.type <= 40) {
-          nals.push(unit);
+          nals.push(unit)
         }
       } else {
-        break;
+        break
       }
     }
-    return nals;
+    return nals
   }
 
   /**
    * @param {any} unit
    */
   static analyseNal (unit) {
-    let type = (unit.body[0] >>> 1) & 0x3f;
-    unit.type = type;
+    let type = (unit.body[0] >>> 1) & 0x3f
+    unit.type = type
     switch (type) {
       case 0:
         // SLICE_TRAIL_N
-        unit.slice_trail_n = true;
-        break;
+        unit.slice_trail_n = true
+        break
       case 1:
         // SLICE_TRAIL_R
-        unit.slice_trail_r = true;
-        unit.key = true;
-        break;
+        unit.slice_trail_r = true
+        unit.key = true
+        break
       case 2:
         // SLICE_TSA_N
-        unit.slice_tsa_n = true;
-        break;
+        unit.slice_tsa_n = true
+        break
       case 3:
         // SLICE_TSA_R
-        unit.slice_tsa_r = true;
-        unit.key = true;
-        break;
+        unit.slice_tsa_r = true
+        unit.key = true
+        break
       case 4:
         // SLICE_STSA_N
-        unit.slice_stsa_n = true;
-        break;
+        unit.slice_stsa_n = true
+        break
       case 5:
         // SLICE_STSA_R
-        unit.slice_stsa_r = true;
-        unit.key = true;
-        break;
+        unit.slice_stsa_r = true
+        unit.key = true
+        break
       case 6:
         // SLICE_RADL_N
-        unit.slice_radl_n = true;
-        break;
+        unit.slice_radl_n = true
+        break
       case 7:
         // SLICE_RADL_R
-        unit.slice_radl_r = true;
-        unit.key = true;
-        break;
+        unit.slice_radl_r = true
+        unit.key = true
+        break
       case 8:
         // SLICE_RASL_N
-        unit.slice_rasl_n = true;
-        break;
+        unit.slice_rasl_n = true
+        break
       case 9:
         // SLICE_RASL_R
-        unit.slice_rasl_r = true;
-        unit.key = true;
-        break;
+        unit.slice_rasl_r = true
+        unit.key = true
+        break
       case 16:
         // SLICE_BLA_W_LP
-        unit.slice_bla_w_lp = true;
-        break;
+        unit.slice_bla_w_lp = true
+        break
       case 17:
         // SLICE_BLA_W_RADL
-        unit.slice_bla_w_radl = true;
-        break;
+        unit.slice_bla_w_radl = true
+        break
       case 18:
         // SLICE_BLA_N_LP
-        unit.slice_bla_n_lp = true;
-        break;
+        unit.slice_bla_n_lp = true
+        break
       case 19:
         // SLICE_IDR_W_RADL
-        unit.slice_idl_w_radl = true;
-        unit.key = true;
-        break;
+        unit.slice_idl_w_radl = true
+        unit.key = true
+        break
       case 20:
         // SLICE_IDR_N_LP
-        unit.slice_idr_n_lp = true;
-        unit.key = true;
-        break;
+        unit.slice_idr_n_lp = true
+        unit.key = true
+        break
       case 21:
         // SLICE_CRA_NUT
-        unit.slice_cra_nut = true;
-        unit.key = true;
-        break;
+        unit.slice_cra_nut = true
+        unit.key = true
+        break
       case 32:
         // VPS
-        unit.vps = true;
-        break;
+        unit.vps = true
+        break
       case 33:
         // SPS
-        unit.sps = SpsParser.parseSPS(unit.body);
-        break;
+        unit.sps = SpsParser.parseSPS(unit.body)
+        break
       case 34:
         // PPS
-        unit.pps = true;
-        break;
+        unit.pps = true
+        break
       case 35:
         // AUD
-        break;
+        break
       case 36:
         // EOS
-        unit.aud = true;
-        break;
+        unit.aud = true
+        break
       case 37:
         // EOB
-        unit.eob = true;
-        break;
+        unit.eob = true
+        break
       case 38:
         // FD
-        unit.fd = true;
-        break;
+        unit.fd = true
+        break
       case 39:
         // PREFIX_SEI
         // unit.prefix_sei = true;
         try {
-          unit.sei = SEIParser.parse(unit.body.slice(1));
+          unit.sei = SEIParser.parse(unit.body.slice(1))
         } catch (e) {}
-        break;
+        break
       case 40:
         // SUFFIX_SEI
-        unit.sei = SEIParser.parse(unit.body.slice(1));
-        break;
+        unit.sei = SEIParser.parse(unit.body.slice(1))
+        break
       default:
-        break;
+        break
     }
   }
 
   static getHeaderPositionAnnexB (buffer) {
     // seperate
-    let pos = buffer.position;
-    let headerLength = 0;
-    const bufferLen = buffer.length;
+    let pos = buffer.position
+    let headerLength = 0
+    const bufferLen = buffer.length
     while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
       if (buffer.dataview.getInt16(pos) === 0) {
         if (buffer.dataview.getInt16(pos + 2) === 1) {
           // 0x00000001
-          headerLength = 4;
+          headerLength = 4
         } else if (buffer.dataview.getInt8(pos + 2) === 1) {
-          headerLength = 3;
+          headerLength = 3
         } else {
-          pos++;
+          pos++
         }
       } else {
-        pos++;
+        pos++
       }
     }
 
@@ -233,20 +233,20 @@ class Nalunit {
       if (buffer.dataview.getInt16(pos) === 0) {
         if (buffer.dataview.getInt16(pos + 2) === 1) {
           // 0x00000001
-          headerLength = 4;
+          headerLength = 4
         }
       } else {
-        pos++;
+        pos++
         if (buffer.dataview.getInt16(pos) === 0 && buffer.dataview.getInt8(pos) === 1) {
           // 0x000001
-          headerLength = 3;
+          headerLength = 3
         } else {
-          pos = bufferLen;
+          pos = bufferLen
         }
       }
     }
-    return {pos, headerLength};
+    return {pos, headerLength}
   }
 }
 
-export default Nalunit;
+export default Nalunit

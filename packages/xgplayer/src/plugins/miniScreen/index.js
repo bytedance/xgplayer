@@ -4,11 +4,29 @@ import PauseIcon from '../assets/pause.svg'
 import MiniScreenIcon from './miniScreenIcon'
 import Draggabilly from '../../utils/draggabilly'
 
+/**
+ * @typedef {{
+ *   index?: number,
+ *   disable?: boolean,
+ *   width?: number,
+ *   height?: number,
+ *   left?: number, // 默认左下角
+ *   top?: number, // 默认左下角
+ *   isShowIcon?: boolean, // 是否显示icon
+ *   isScrollSwitch?: boolean, // 滚动自动切换自动切换
+ *   scrollTop?: number, // 触发滚动的高度
+ *   disableDrag?: boolean, // 禁用拖拽
+ *   [propName: string]: any
+ * }} IMiniScreenConfig
+ */
 class MiniScreen extends Plugin {
   static get pluginName () {
     return 'miniscreen'
   }
 
+  /**
+   * @type IMiniScreenConfig
+   */
   static get defaultConfig () {
     return {
       index: 10,

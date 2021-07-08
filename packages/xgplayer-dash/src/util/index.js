@@ -1,8 +1,8 @@
-let util = {}
+const util = {}
 
 util.ArrayBufferToString = function (arr) {
   let str = ''
-  let view = new Uint8Array(arr)
+  const view = new Uint8Array(arr)
   for (let i = 0; i < view.length; i++) {
     str += String.fromCharCode(view[i])
   }
@@ -10,8 +10,8 @@ util.ArrayBufferToString = function (arr) {
 }
 
 util.StringToArrayBuffer = function (str) {
-  let arr = new ArrayBuffer(str.length)
-  let view = new Uint8Array(arr)
+  const arr = new ArrayBuffer(str.length)
+  const view = new Uint8Array(arr)
   for (let i = 0; i < str.length; i++) {
     view[i] = str.charCodeAt(i)
   }
@@ -19,7 +19,7 @@ util.StringToArrayBuffer = function (str) {
 }
 
 util.Base64ToHex = function (str) {
-  let bin = window.atob(str.replace(/-/g, '+').replace(/_/g, '/'))
+  const bin = window.atob(str.replace(/-/g, '+').replace(/_/g, '/'))
   let res = ''
   for (let i = 0; i < bin.length; i++) {
     res += ('0' + bin.charCodeAt(i).toString(16)).substr(-2)
@@ -45,7 +45,7 @@ util.HexToBase64 = function (hex) {
 util.findBox = function (root, type, result = []) {
   if (root.type !== type) {
     if (root && root.subBox) {
-      let box = root.subBox.filter(item => item.type === type)
+      const box = root.subBox.filter(item => item.type === type)
       if (box.length) {
         box.forEach(item => result.push(item))
       } else {
@@ -60,11 +60,11 @@ util.findBox = function (root, type, result = []) {
 }
 
 util.padStart = function (str, length, pad) {
-  let charstr = String(pad)
-  let len = length >> 0
+  const charstr = String(pad)
+  const len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
-  let chars = []
-  let r = String(str)
+  const chars = []
+  const r = String(str)
   while (maxlen--) {
     chars.push(charstr)
   }
@@ -110,7 +110,7 @@ util.preFixInterge = function (num, n) {
  * @return {String}       [十六进制]
  */
 util.toHex = function (...value) {
-  let hex = []
+  const hex = []
   value.forEach(item => {
     hex.push(util.padStart(Number(item).toString(16), 2, 0))
   })
@@ -134,15 +134,15 @@ util.toUTF8 = function (str) {
   // in the ASCII range, it is not converted; otherwise it will be converted to
   // a series of URI escape sequences according to UTF-8.
   // Example: 'g#€' -> 'g#%E3%82%AC'
-  let encoded = encodeURIComponent(str)
+  const encoded = encodeURIComponent(str)
   // Convert each escape sequence individually into a character.  Each escape
   // sequence is interpreted as a code-point, so if an escape sequence happens
   // to be part of a multi-byte sequence, each byte will be converted to a
   // single character.
   // Example: 'g#%E3%82%AC' -> '\x67\x35\xe3\x82\xac'
-  let utf8 = unescape(encoded)
+  const utf8 = unescape(encoded)
 
-  let result = new Uint8Array(utf8.length)
+  const result = new Uint8Array(utf8.length)
   for (let i = 0; i < utf8.length; ++i) {
     result[i] = utf8.charCodeAt(i)
   }
@@ -156,7 +156,7 @@ util.toUTF8 = function (str) {
  * @export
  */
 util.fromHex = function (str) {
-  let arr = new Uint8Array(str.length / 2)
+  const arr = new Uint8Array(str.length / 2)
   for (let i = 0; i < str.length; i += 2) {
     arr[i / 2] = window.parseInt(str.substr(i, 2), 16)
   }
@@ -174,10 +174,10 @@ util.fromHex = function (str) {
  * @return {string}
  */
 util.fromCharCode = function (array) {
-  let max = 16000
+  const max = 16000
   let ret = ''
   for (let i = 0; i < array.length; i += max) {
-    let subArray = array.subarray(i, i + max)
+    const subArray = array.subarray(i, i + max)
     ret += String.fromCharCode.apply(null, subArray)
   }
 
@@ -195,9 +195,9 @@ util.fromCharCode = function (array) {
  */
 util.toBase64 = function (arr, padding) {
   // btoa expects a "raw string" where each character is interpreted as a byte.
-  let bytes = util.fromCharCode(arr)
+  const bytes = util.fromCharCode(arr)
   padding = (padding === undefined) ? true : padding
-  let base64 = window.btoa(bytes).replace(/\+/g, '-').replace(/\//g, '_')
+  const base64 = window.btoa(bytes).replace(/\+/g, '-').replace(/\//g, '_')
   return padding ? base64 : base64.replace(/=*$/, '')
 }
 

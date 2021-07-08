@@ -1,0 +1,118 @@
+@import "~xgplayer/es/style/index.css";
+@import "~xgplayer/es/plugins/controls/index.css";
+@import "~xgplayer/es/plugins/play/index.css";
+@import "~xgplayer/es/plugins/volume/index.css";
+@import "~xgplayer/es/plugins/progress/index.css";
+@import "~xgplayer/es/plugins/time/index.css";
+.xgplayer.xgplayer-music {
+  background: none;
+  .xgplayer-controls {
+    display: block;
+    height: 100px;
+  }
+  .xg-inner-controls {
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
+    justify-content:space-between;
+    .xg-center-grid {
+      flex: 1;
+      transform: none;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0 20px;
+      top:0;
+    }
+  }
+  .xgplayer-progress {
+    top: 0;
+    transform: none;
+    .xg-tips {
+      opacity: 0;
+    }
+  }
+  .xgplayer xg-icon .xg-tips {
+    opacity: 0;
+  }
+  .xgplayer-backward, .xgplayer-backward-img {
+    order: 0;
+    cursor: pointer;
+    &:hover{
+        opacity: 0.85;
+    }
+  }
+  .xgplayer-cover {
+    position: static;
+    order: 6;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    position: relative;
+    top: 50%;
+    margin-top: -20px;
+    margin-left: 16px;
+    img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+  }
+  .xgplayer-name {
+    position: absolute;
+    left: 0px;
+    top: -16px;
+    font-size: 12px;
+    color: #ddd;
+  }
+  &.not-allow-autoplay ,&.xgplayer-inactive ,  &.xgplayer-nostart,  &.xgplayer-ended{
+    .xgplayer-controls{
+      pointer-events: auto;
+      visibility: visible;
+      cursor: pointer;
+      opacity: 1;
+    }
+  }
+}
+.xgplayer {
+  .xgplayer-lyric-item {
+    display: block;
+    line-height: 22px;
+    font-size: 14px;
+    color: black;
+    &.xgplayer-lyric-item-active {
+        color: aquamarine;
+    }
+  }
+  .xgplayer-lrcWrap {
+    overflow: auto;
+    height:300px;
+    border: 1px solid #ddd;
+    padding: 20px;
+  }
+  .xgplayer-lrcForward {
+    position: absolute;
+    top: 20%;
+    left: 300px;
+    cursor: pointer;
+    width:0;
+    height:0;
+    border-width:0 10px 10px;
+    border-style:solid;
+    border-color:transparent transparent #333;/*透明 透明  灰*/
+  }
+  .xgplayer-lrcBack {
+    position: absolute;
+    top: 80%;
+    left: 300px;
+    cursor: pointer;
+    width:0;
+    height:0;
+    border-width:10px 10px 0;
+    border-style:solid;
+    border-color:#333 transparent transparent;/*透明 透明  灰*/
+  }
+}

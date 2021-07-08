@@ -1,26 +1,26 @@
-import EVENTS from '../events';
+import EVENTS from '../events'
 import Speed from './speed'
 
-const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
-const READ_STREAM = 0;
-const READ_TEXT = 1;
-const READ_JSON = 2;
-const READ_BUFFER = 3;
+const LOADER_EVENTS = EVENTS.LOADER_EVENTS
+const READ_STREAM = 0
+const READ_TEXT = 1
+const READ_JSON = 2
+const READ_BUFFER = 3
 class FetchLoader {
   constructor (configs) {
-    this.configs = Object.assign({}, configs);
+    this.configs = Object.assign({}, configs)
     this.url = null
     this.status = 0
     this.error = null
-    this._reader = null;
-    this._canceled = false;
-    this._destroyed = false;
-    this.readtype = this.configs.readtype;
-    this.buffer = this.configs.buffer || 'LOADER_BUFFER';
-    this._loaderTaskNo = 0;
+    this._reader = null
+    this._canceled = false
+    this._destroyed = false
+    this.readtype = this.configs.readtype
+    this.buffer = this.configs.buffer || 'LOADER_BUFFER'
+    this._loaderTaskNo = 0
     this._speed = new Speed()
     if (window.AbortController) {
-      this.abortControllerEnabled = true;
+      this.abortControllerEnabled = true
     }
   }
 
@@ -45,7 +45,7 @@ class FetchLoader {
   fetch (url, params, timeout) {
     let timer = null
     if (this.abortControllerEnabled) {
-      this.abortController = new window.AbortController();
+      this.abortController = new window.AbortController()
     }
     Object.assign(params, {signal: this.abortController ? this.abortController.signal : undefined})
     return Promise.race([
@@ -58,7 +58,7 @@ class FetchLoader {
             message: 'fetch timeout'
           })
           if (this.abortController) {
-            this.abortController.abort();
+            this.abortController.abort()
           }
         }, timeout || 1e4) // 10s
       })
@@ -81,14 +81,14 @@ class FetchLoader {
    */
   internalLoad (url, params, retryTimes, totalRetry, delayTime = 0) {
     if (this._destroyed) return
-    this.loading = true;
+    this.loading = true
     return this.fetch(this.url, params).then((response) => {
       !this._destroyed && this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
 
       if (response.ok) {
         this.status = response.status
         Promise.resolve().then(() => {
-          this._onFetchResponse(response);
+          this._onFetchResponse(response)
         })
 
         return Promise.resolve(response)
@@ -104,16 +104,16 @@ class FetchLoader {
           return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
         }, delayTime)
       } else {
-        this.loading = false;
+        this.loading = false
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
           code: response.status || 21,
           message: `${response.status} (${response.statusText})`
-        });
+        })
       }
     }).catch((error) => {
-      this.loading = false;
+      this.loading = false
       if (this._destroyed) {
-        return;
+        return
       }
 
       if (retryTimes-- > 0) {
@@ -124,12 +124,12 @@ class FetchLoader {
             retryTime: totalRetry - retryTimes
           })
           return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
-        }, delayTime);
+        }, delayTime)
       } else {
         if (error && error.name === 'AbortError') {
-          return;
+          return
         }
-        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({code: 21}, error));
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({code: 21}, error))
       }
     })
   }
@@ -143,8 +143,8 @@ class FetchLoader {
    */
   load (url, opts = {}, retryTimes, delayTime) {
     retryTimes = retryTimes === undefined ? 3 : retryTimes
-    this.url = url;
-    this._canceled = false;
+    this.url = url
+    this._canceled = false
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
@@ -153,10 +153,10 @@ class FetchLoader {
   }
 
   _onFetchResponse (response) {
-    let _this = this;
-    let buffer = this._context.getInstance(this.buffer);
-    this._loaderTaskNo++;
-    let taskno = this._loaderTaskNo;
+    let _this = this
+    let buffer = this._context.getInstance(this.buffer)
+    this._loaderTaskNo++
+    let taskno = this._loaderTaskNo
     if (response.ok === true) {
       switch (this.readtype) {
         case READ_JSON:
@@ -164,51 +164,51 @@ class FetchLoader {
             _this.loading = false
             if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
-                buffer.push(data);
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+                buffer.push(data)
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
               } else {
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
               }
             }
-          });
-          break;
+          })
+          break
         case READ_TEXT:
           response.text().then((data) => {
             _this.loading = false
             if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
-                buffer.push(data);
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+                buffer.push(data)
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
               } else {
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
               }
             }
-          });
-          break;
+          })
+          break
         case READ_BUFFER:
           response.arrayBuffer().then((data) => {
             _this.loading = false
             if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
-                buffer.push(new Uint8Array(data));
+                buffer.push(new Uint8Array(data))
                 this._speed.addBytes(data.byteLength)
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
               } else {
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
               }
             }
           })
-          .catch(()=>{})
-          break;
+            .catch(() => {})
+          break
         case READ_STREAM:
         default:
-          return this._onReader(response.body.getReader(), taskno);
+          return this._onReader(response.body.getReader(), taskno)
       }
     }
   }
 
   _onReader (reader, taskno) {
-    let buffer = this._context.getInstance(this.buffer);
+    let buffer = this._context.getInstance(this.buffer)
     if ((!buffer && this._reader) || this._destroyed) {
       try {
         this._reader.cancel()
@@ -238,15 +238,15 @@ class FetchLoader {
             // DO NOTHING
           }
         }
-        return;
+        return
       }
       if (val.done) {
         this.loading = false
-        this.status = 0;
+        this.status = 0
         Promise.resolve().then(() => {
           this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
         })
-        return;
+        return
       }
 
       buffer.push(val.value)
@@ -257,9 +257,9 @@ class FetchLoader {
       return this._onReader(reader, taskno)
     }).catch((error) => {
       clearTimeout(this._noDataTimer)
-      this.loading = false;
-      if(error && error.name === 'AbortError') return;
-      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
+      this.loading = false
+      if (error && error.name === 'AbortError') return
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error)
     })
   }
 
@@ -310,12 +310,12 @@ class FetchLoader {
     }
 
     // TODO: Add ranges;
-    return params;
+    return params
   }
 
   // in KB/s
   get currentSpeed () {
-    return this._speed.lastSamplingKBps;
+    return this._speed.lastSamplingKBps
   }
 
   cancel () {
@@ -329,17 +329,17 @@ class FetchLoader {
       this.loading = false
     }
     clearTimeout(this._noDataTimer)
-    this._canceled = true;
+    this._canceled = true
     if (this.abortController) {
-      this.abortController.abort();
+      this.abortController.abort()
     }
   }
 
   destroy () {
     this._destroyed = true
-    clearTimeout(this._retryTimer);
+    clearTimeout(this._retryTimer)
     clearTimeout(this._noDataTimer)
-    this.cancel();
+    this.cancel()
     this._speed.reset()
   }
 }

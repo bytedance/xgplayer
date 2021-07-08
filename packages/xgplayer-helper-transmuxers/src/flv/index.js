@@ -1,9 +1,9 @@
-import Demuxer from './demuxer';
-import { AudioTrackMeta, VideoTrackMeta, VideoTrack, AudioTrack } from 'xgplayer-helper-models';
-import { EVENTS } from 'xgplayer-helper-utils';
+import Demuxer from './demuxer'
+import { AudioTrackMeta, VideoTrackMeta, VideoTrack, AudioTrack } from 'xgplayer-helper-models'
+import { EVENTS } from 'xgplayer-helper-utils'
 
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
-const INTERNAL_EVENTS = Demuxer.EVENTS;
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
+const INTERNAL_EVENTS = Demuxer.EVENTS
 class FlvDemuxer {
   constructor () {
     this.TAG = 'FLV_DEMUXER'
@@ -14,53 +14,53 @@ class FlvDemuxer {
     this._audioMetaChange = false
     this._hasVideoSequence = false
     this._hasAudioSequence = false
-    this.demuxer = new Demuxer();
+    this.demuxer = new Demuxer()
   }
 
   init () {
     this.on(DEMUX_EVENTS.DEMUX_START, this.demux.bind(this))
-    this.demuxer.on(INTERNAL_EVENTS.FILE_HEADER_PARSED, this.handleFileHeaderParsed.bind(this));
-    this.demuxer.on(INTERNAL_EVENTS.SCRIPT_TAG_PARSED, this.handleScriptTagParsed.bind(this));
-    this.demuxer.on(INTERNAL_EVENTS.AUDIO_META_PARSED, this.handleAudioMetaParsed.bind(this));
-    this.demuxer.on(INTERNAL_EVENTS.VIDEO_META_PARSED, this.handleVideoMetaParsed.bind(this));
-    this.demuxer.on(INTERNAL_EVENTS.VIDEO_SAMPLE_PARSED, this.handleVideoSampleParsed.bind(this));
-    this.demuxer.on(INTERNAL_EVENTS.AUDIO_SAMPLE_PARSED, this.handleAudioSampleParsed.bind(this));
-    this.demuxer.on(INTERNAL_EVENTS.VIDEO_SEI_PARSED, this.handleSeiParsed.bind(this));
+    this.demuxer.on(INTERNAL_EVENTS.FILE_HEADER_PARSED, this.handleFileHeaderParsed.bind(this))
+    this.demuxer.on(INTERNAL_EVENTS.SCRIPT_TAG_PARSED, this.handleScriptTagParsed.bind(this))
+    this.demuxer.on(INTERNAL_EVENTS.AUDIO_META_PARSED, this.handleAudioMetaParsed.bind(this))
+    this.demuxer.on(INTERNAL_EVENTS.VIDEO_META_PARSED, this.handleVideoMetaParsed.bind(this))
+    this.demuxer.on(INTERNAL_EVENTS.VIDEO_SAMPLE_PARSED, this.handleVideoSampleParsed.bind(this))
+    this.demuxer.on(INTERNAL_EVENTS.AUDIO_SAMPLE_PARSED, this.handleAudioSampleParsed.bind(this))
+    this.demuxer.on(INTERNAL_EVENTS.VIDEO_SEI_PARSED, this.handleSeiParsed.bind(this))
   }
 
   handleAudioMetaParsed (meta) {
     if (!this.tracks || !this.tracks.audioTrack) {
-      return;
+      return
     }
-    this._context.mediaInfo.hasAudio = true;
-    this.tracks.audioTrack.meta = meta;
+    this._context.mediaInfo.hasAudio = true
+    this.tracks.audioTrack.meta = meta
     if (!this._hasAudioSequence) {
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
     } else {
-      this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE);
+      this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
     }
   }
 
   handleVideoMetaParsed (meta) {
     if (!this.tracks || !this.tracks.videoTrack) {
-      return;
+      return
     }
-    this._context.mediaInfo.hasVideo = true;
-    this.tracks.videoTrack.meta = meta;
+    this._context.mediaInfo.hasVideo = true
+    this.tracks.videoTrack.meta = meta
     if (!this._hasVideoSequence) {
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
     } else {
-      this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE);
+      this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
     }
   }
 
   handleSeiParsed (seiObj) {
-    this.emit(DEMUX_EVENTS.SEI_PARSED, seiObj);
+    this.emit(DEMUX_EVENTS.SEI_PARSED, seiObj)
   }
 
   handleVideoSampleParsed (sample) {
     if (!this.tracks || !this.tracks.videoTrack) {
-      return;
+      return
     }
     if (sample.isKeyframe) {
       this.emit(DEMUX_EVENTS.ISKEYFRAME)
@@ -70,13 +70,13 @@ class FlvDemuxer {
 
   handleAudioSampleParsed (sample) {
     if (!this.tracks || !this.tracks.videoTrack) {
-      return;
+      return
     }
     this.tracks.audioTrack.samples.push(sample)
   }
 
   handleScriptTagParsed (onMetaData) {
-    const { videoTrack, audioTrack } = this;
+    const { videoTrack, audioTrack } = this
     // fill mediaInfo
     this._context.mediaInfo.duration = onMetaData.duration
     if (typeof onMetaData.hasAudio === 'boolean') {
@@ -211,7 +211,7 @@ class FlvDemuxer {
 
   destroy () {
     if (this.demuxer) {
-      this.demuxer.destroy();
+      this.demuxer.destroy()
     }
   }
 }

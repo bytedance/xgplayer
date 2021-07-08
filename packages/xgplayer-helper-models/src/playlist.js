@@ -11,38 +11,38 @@
 class Playlist {
   constructor (configs) {
     /** @type {string} */
-    this._baseURL = '';
+    this._baseURL = ''
     /** @type {Object.<number, string>} */
-    this._list = {};
+    this._list = {}
     /** @type {Object.<string, TSFrag>} */
-    this._ts = {};
+    this._ts = {}
     /** @type {number} */
-    this.version = 0;
+    this.version = 0
     /** @type {number} */
-    this.sequence = -1;
+    this.sequence = -1
     /** @type {number} */
-    this.targetduration = 0;
+    this.targetduration = 0
     /** @type {number} */
-    this.duration = 0;
+    this.duration = 0
     /** @type {number} */
-    this.fragLength = 0;
+    this.fragLength = 0
     /** @type {TSFrag | undefined} */
-    this._lastget = undefined;
+    this._lastget = undefined
     /** @type {boolean} */
-    this.end = false; // 判断live | vod , 对点播或直播结束时存在 EXT-X-ENDLIST
+    this.end = false // 判断live | vod , 对点播或直播结束时存在 EXT-X-ENDLIST
     /** @type {boolean} */
-    this.autoclear = configs.autoclear || false;
+    this.autoclear = configs.autoclear || false
     /** @type {*} */
-    this.logger = configs.logger;
+    this.logger = configs.logger
     /** @type {string[]} */
-    this.downloadedUrls = [];
+    this.downloadedUrls = []
   }
 
   /**
    * @return {Object<number, string>}
    */
   get list () {
-    return this._list;
+    return this._list
   }
 
   /**
@@ -50,8 +50,8 @@ class Playlist {
    */
   set baseURL (baseURL) {
     if (this.baseURL !== baseURL) {
-      this.clear();
-      this._baseURL = baseURL;
+      this.clear()
+      this._baseURL = baseURL
     }
   }
 
@@ -60,7 +60,7 @@ class Playlist {
    * @return {string}
    */
   get baseURL () {
-    return this._baseURL;
+    return this._baseURL
   }
 
   /**
@@ -80,10 +80,10 @@ class Playlist {
         discontinue: !!discontinue,
         id,
         cc
-      };
-      this._list[this.duration] = tsURL;
-      this.duration += duration;
-      this.fragLength += 1;
+      }
+      this._list[this.duration] = tsURL
+      this.duration += duration
+      this.fragLength += 1
     }
   }
 
@@ -103,9 +103,9 @@ class Playlist {
           id: this._ts[url].id
         }
       }
-      delete this._list[this._ts[url].start];
-      delete this._ts[url];
-      this.fragLength -= 1;
+      delete this._list[this._ts[url].start]
+      delete this._ts[url]
+      this.fragLength -= 1
     }
   }
 
@@ -117,50 +117,50 @@ class Playlist {
   pushM3U8 (data, deletepre) {
     // 常规信息替换
     if (!data) {
-      throw new Error(`No m3u8 data received.`);
+      throw new Error(`No m3u8 data received.`)
     }
-    this.version = data.version;
-    this.targetduration = data.targetduration;
+    this.version = data.version
+    this.targetduration = data.targetduration
     if (data.encrypt && !this.encrypt) {
-      this.encrypt = data.encrypt;
+      this.encrypt = data.encrypt
     }
 
-    this.end = data.end || false;
+    this.end = data.end || false
 
     if (!data.sequence) {
-      data.sequence = 0;
+      data.sequence = 0
     }
 
     // 新分片信息
     if (data.sequence > this.sequence) {
-      let len = data.frags.length;
+      let len = data.frags.length
       if (this.logger) {
         this.logger.log('PLAYLIST', `new playlist [${data.sequence}, ${data.sequence + len}]`)
       }
-      this.sequence = data.sequence;
+      this.sequence = data.sequence
       let newfraglist = []
       for (let i = 0; i < len; i++) {
-        let frag = data.frags[i];
+        let frag = data.frags[i]
         if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
           newfraglist.push(frag.url)
-          this.push(frag.url, frag.duration, frag.discontinue, frag.id, frag.cc);
+          this.push(frag.url, frag.duration, frag.discontinue, frag.id, frag.cc)
         }
       }
 
       if (newfraglist.length < 1) {
-        throw new Error(`Can not read ts file list.`);
+        throw new Error(`Can not read ts file list.`)
       }
 
       if (deletepre) {
-        let tslist = this.getTsList();
+        let tslist = this.getTsList()
         for (let i = 0; i < tslist.length; i++) {
           if (newfraglist.indexOf(tslist[i]) < 0) {
-            this.deleteFrag(tslist[i]);
+            this.deleteFrag(tslist[i])
           }
         }
       }
     } else {
-      throw new Error(`Old m3u8 file received, ${data.sequence}`);
+      throw new Error(`Old m3u8 file received, ${data.sequence}`)
     }
   }
 
@@ -169,7 +169,7 @@ class Playlist {
    * @return {string[]}
    */
   getTsList () {
-    return Object.keys(this._ts);
+    return Object.keys(this._ts)
   }
 
   /**
@@ -178,7 +178,7 @@ class Playlist {
    * @param {boolean} isloaded
    */
   downloaded (tsname, isloaded) {
-    let ts = this._ts[tsname];
+    let ts = this._ts[tsname]
     if (ts) {
       ts.downloaded = isloaded
     }
@@ -190,7 +190,7 @@ class Playlist {
    * @param {boolean} loading
    */
   downloading (tsname, loading) {
-    let ts = this._ts[tsname];
+    let ts = this._ts[tsname]
     if (ts) {
       ts.downloading = loading
     }
@@ -202,7 +202,7 @@ class Playlist {
    * @return {TSFrag}
    */
   getTsByName (name) {
-    return this._ts[name];
+    return this._ts[name]
   }
 
   /**
@@ -211,28 +211,28 @@ class Playlist {
    * @return {undefined|TSFrag}
    */
   getTs (time) {
-    let timelist = Object.keys(this._list);
-    let ts;
+    let timelist = Object.keys(this._list)
+    let ts
 
     if (time === undefined) {
       if (this._lastget) {
-        time = this._lastget.time + this._lastget.duration;
+        time = this._lastget.time + this._lastget.duration
       } else {
-        time = 0;
+        time = 0
       }
     }
 
     if (timelist.length < 1 || time >= this.duration) {
-      return undefined;
+      return undefined
     }
     timelist = timelist.sort((a, b) => {
       return parseFloat(a) - parseFloat(b)
-    });
+    })
     for (let i = 0; i < timelist.length; i++) {
       if (time >= parseInt(timelist[i])) {
-        let url = this._list[timelist[i]];
-        let downloaded = this._ts[url].downloaded;
-        let downloading = this._ts[url].downloading;
+        let url = this._list[timelist[i]]
+        let downloaded = this._ts[url].downloaded
+        let downloading = this._ts[url].downloading
         ts = {
           url,
           downloaded,
@@ -241,20 +241,20 @@ class Playlist {
           duration: parseInt(this._ts[url].duration),
           id: this._ts[url].id,
           cc: this._ts[url].cc
-        };
-        if (this.autoclear && this._lastget) {
-          delete this._ts[this._lastget.url];
-          delete this._list[this._lastget.time];
         }
-        this._lastget = ts;
+        if (this.autoclear && this._lastget) {
+          delete this._ts[this._lastget.url]
+          delete this._list[this._lastget.time]
+        }
+        this._lastget = ts
       } else {
-        break;
+        break
       }
     }
     if (ts) {
-      this.downloadedUrls.push(ts.url);
+      this.downloadedUrls.push(ts.url)
     }
-    return ts;
+    return ts
   }
 
   /**
@@ -264,53 +264,53 @@ class Playlist {
   getLastDownloadedTs () {
     let timelist = Object.keys(this._list).sort((a, b) => {
       const result = Number(a) - Number(b)
-      return result;
-    });
-    let found;
+      return result
+    })
+    let found
     for (let i = 0; i < timelist.length; i++) {
-      let url = this._list[timelist[i]];
-      let downloaded = this._ts[url].downloaded;
-      let downloading = this._ts[url].downloading;
+      let url = this._list[timelist[i]]
+      let downloaded = this._ts[url].downloaded
+      let downloading = this._ts[url].downloading
       if (downloaded) {
-        found = {url, downloaded, downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration)};
+        found = {url, downloaded, downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration)}
       } else {
-        break;
+        break
       }
     }
 
-    return found;
+    return found
   }
 
   clear () {
-    this._baseURL = '';
-    this._list = {};
-    this._ts = {};
-    this.version = 0;
-    this.sequence = -1;
-    this.targetduration = 0;
-    this.duration = 0;
+    this._baseURL = ''
+    this._list = {}
+    this._ts = {}
+    this.version = 0
+    this.sequence = -1
+    this.targetduration = 0
+    this.duration = 0
   }
 
   clearDownloaded () {
-    let list = Object.keys(this._ts);
+    let list = Object.keys(this._ts)
     for (let i = 0, l = list.length; i < l; i++) {
-      let ts = this._ts[list[i]];
-      ts.downloaded = false;
-      ts.downloading = false;
+      let ts = this._ts[list[i]]
+      ts.downloaded = false
+      ts.downloading = false
     }
   }
 
   destroy () {
-    this._baseURL = '';
-    this._list = {};
-    this._ts = {};
-    this.version = 0;
-    this.sequence = -1;
-    this.targetduration = 0;
-    this.duration = 0;
-    this.fragLength = 0;
-    this._lastget = undefined;
-    this.autoclear = false;
+    this._baseURL = ''
+    this._list = {}
+    this._ts = {}
+    this.version = 0
+    this.sequence = -1
+    this.targetduration = 0
+    this.duration = 0
+    this.fragLength = 0
+    this._lastget = undefined
+    this.autoclear = false
   }
 
   resetSequence () {
@@ -318,4 +318,4 @@ class Playlist {
   }
 }
 
-export default Playlist;
+export default Playlist

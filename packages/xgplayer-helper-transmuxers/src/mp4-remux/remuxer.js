@@ -1,6 +1,6 @@
 import { logger } from 'xgplayer-helper-utils'
-import EventEmitter from 'eventemitter3';
-import Buffer from './buffer';
+import EventEmitter from 'eventemitter3'
+import Buffer from './buffer'
 import Fmp4 from './fmp4'
 
 /**
@@ -12,14 +12,14 @@ import Fmp4 from './fmp4'
 
 export default class Mp4Remuxer extends EventEmitter {
   constructor ({ videoMeta, audioMeta, curTime }) {
-    super();
+    super()
     this._dtsBase = curTime * 1000
 
-    this._videoMeta = videoMeta;
-    this._audioMeta = audioMeta;
+    this._videoMeta = videoMeta
+    this._audioMeta = audioMeta
 
-    this._audioDtsBase = null;
-    this._videoDtsBase = null;
+    this._audioDtsBase = null
+    this._videoDtsBase = null
     this._isDtsBaseInited = false
 
     this.isFirstVideo = true
@@ -28,8 +28,8 @@ export default class Mp4Remuxer extends EventEmitter {
     this.videoAllDuration = 0
     this.audioAllDuration = 0
 
-    this.audioRemuxed = 0;
-    this.videoRemuxed = 0;
+    this.audioRemuxed = 0
+    this.videoRemuxed = 0
     this.mp4Durations = {
       keys: []
     }
@@ -50,7 +50,7 @@ export default class Mp4Remuxer extends EventEmitter {
       keys: []
     }
 
-    this.removeAllListeners();
+    this.removeAllListeners()
   }
 
   /**
@@ -62,7 +62,7 @@ export default class Mp4Remuxer extends EventEmitter {
     this.remuxVideo(videoTrack)
     this.remuxAudio(audioTrack)
 
-    logger.groupEnd();
+    logger.groupEnd()
   }
 
   resetDtsBase () {
@@ -70,7 +70,7 @@ export default class Mp4Remuxer extends EventEmitter {
   }
 
   seek (time) {
-    logger.log(this.TAG, 'set dtsBase for seek(),time=', time);
+    logger.log(this.TAG, 'set dtsBase for seek(),time=', time)
     if (!this._isDtsBaseInited) {
       this._dtsBase = time * 1000
     } else {
@@ -78,7 +78,7 @@ export default class Mp4Remuxer extends EventEmitter {
       this._dtsBase = time * 1000
     }
 
-    this._audioDtsBase = this._videoDtsBase = null;
+    this._audioDtsBase = this._videoDtsBase = null
   }
 
   /**
@@ -87,13 +87,13 @@ export default class Mp4Remuxer extends EventEmitter {
    * @return {Buffer}
    */
   remuxInitSegment (type, meta) {
-    logger.log(this.TAG, 'remuxInitSegment: type=', type);
+    logger.log(this.TAG, 'remuxInitSegment: type=', type)
     let initSegment = new Buffer()
     let ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp()
     let moov = Fmp4.moov({ type, meta: meta })
 
     initSegment.write(ftyp, moov)
-    return initSegment;
+    return initSegment
   }
 
   /**
@@ -102,46 +102,46 @@ export default class Mp4Remuxer extends EventEmitter {
    */
   calcDtsBase (audioTrack, videoTrack) {
     if (!audioTrack && videoTrack.samples.length) {
-      const firstSample = videoTrack.samples[0];
-      let start;
+      const firstSample = videoTrack.samples[0]
+      let start
       if (firstSample.options && firstSample.options.start) {
         start = firstSample.options.start
       }
       this._videoDtsBase = firstSample.dts - (start || this._dtsBase)
       this._isDtsBaseInited = true
-      return;
+      return
     }
 
     if ((!audioTrack || !audioTrack.samples.length) && (!videoTrack || !videoTrack.samples.length)) {
-      return;
+      return
     }
 
     let audioBase = null
     let videoBase = null
-    let start = null;
+    let start = null
     if (audioTrack && audioTrack.samples && audioTrack.samples.length) {
-      const firstSample = audioTrack.samples[0];
-      audioBase = firstSample.dts;
+      const firstSample = audioTrack.samples[0]
+      audioBase = firstSample.dts
       if (firstSample.options && firstSample.options.start) {
         start = firstSample.options.start
       }
     }
     if (videoTrack && videoTrack.samples && videoTrack.samples.length) {
-      const firstSample = videoTrack.samples[0];
-      videoBase = firstSample.dts;
+      const firstSample = videoTrack.samples[0]
+      videoBase = firstSample.dts
       if (firstSample.options && firstSample.options.start) {
         start = firstSample.options.start
       }
     }
 
-    this._videoDtsBase = (videoBase || audioBase) - (start || this._dtsBase);
-    this._audioDtsBase = (audioBase || videoBase) - (start || this._dtsBase);
+    this._videoDtsBase = (videoBase || audioBase) - (start || this._dtsBase)
+    this._audioDtsBase = (audioBase || videoBase) - (start || this._dtsBase)
     this._dtsBase = Math.min(videoBase, audioBase)
     this._isDtsBaseInited = true
 
-    logger.log(this.TAG, 'calcDtsBase');
-    logger.log(this.TAG, `video first dts: ${videoBase} , start:${start} , _videoDtsBase:${this._videoDtsBase} , _dtsBase:${this._dtsBase}`);
-    logger.log(this.TAG, `audio first dts: ${audioBase} , start:${start} , _audioDtsBase:${this._audioDtsBase}, _dtsBase:${this._dtsBase}`);
+    logger.log(this.TAG, 'calcDtsBase')
+    logger.log(this.TAG, `video first dts: ${videoBase} , start:${start} , _videoDtsBase:${this._videoDtsBase} , _dtsBase:${this._dtsBase}`)
+    logger.log(this.TAG, `audio first dts: ${audioBase} , start:${start} , _audioDtsBase:${this._audioDtsBase}, _dtsBase:${this._dtsBase}`)
   }
 
   /**
@@ -158,7 +158,7 @@ export default class Mp4Remuxer extends EventEmitter {
 
     let { samples, meta } = track
 
-    if (!meta) return;
+    if (!meta) return
 
     let firstDts = -1
 
@@ -180,7 +180,7 @@ export default class Mp4Remuxer extends EventEmitter {
         if (!options.isContinue) {
           this._videoDtsBase = 0
         }
-        break;
+        break
       }
       let dts = Math.max(0, avcSample.dts - this.videoDtsBase)
       if (firstDts === -1) {
@@ -205,7 +205,7 @@ export default class Mp4Remuxer extends EventEmitter {
 
       let sampleDuration = 0
       if (avcSample.duration) {
-        sampleDuration = avcSample.duration;
+        sampleDuration = avcSample.duration
       } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this.videoDtsBase
         sampleDuration = nextDts - dts
@@ -265,7 +265,7 @@ export default class Mp4Remuxer extends EventEmitter {
       })
     }
     if (mp4Samples.length) {
-      logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000]);
+      logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
     }
 
     const moofMdat = new Buffer()
@@ -286,13 +286,13 @@ export default class Mp4Remuxer extends EventEmitter {
 
       if (samples.length) {
         // second part of stream change
-        track.samples = samples;
+        track.samples = samples
         return this.remuxVideo(track)
       }
     }
 
     this.isFirstVideo = false
-    this.emit(Mp4Remuxer.EVENTS.TRACK_REMUXED, 'video', moofMdat);
+    this.emit(Mp4Remuxer.EVENTS.TRACK_REMUXED, 'video', moofMdat)
 
     track.samples = []
     track.length = 0
@@ -324,16 +324,16 @@ export default class Mp4Remuxer extends EventEmitter {
       const { data, options } = sample
       if (!this.isFirstAudio && options && options.meta) {
         initSegment = this.remuxInitSegment('audio', options.meta)
-        options.meta = null;
+        options.meta = null
         samples.unshift(sample)
         if (!options.isContinue) {
           this._audioDtsBase = 0
         }
-        break;
+        break
       }
 
-      let dts = Math.max(0, sample.dts - this.audioDtsBase);
-      let originDts = sample.originDts;
+      let dts = Math.max(0, sample.dts - this.audioDtsBase)
+      let originDts = sample.originDts
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
@@ -341,11 +341,11 @@ export default class Mp4Remuxer extends EventEmitter {
 
       let sampleDuration = 0
       if (sample.duration) {
-        sampleDuration = sample.duration;
+        sampleDuration = sample.duration
       } else if (this._audioMeta.refSampleDurationFixed) {
         sampleDuration = this._audioMeta.refSampleDurationFixed
       } else if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this.audioDtsBase;
+        const nextDts = samples[0].dts - this.audioDtsBase
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // use second last sample duration
@@ -394,7 +394,7 @@ export default class Mp4Remuxer extends EventEmitter {
     const moofMdat = new Buffer()
 
     if (mp4Samples.length && track.meta) {
-      logger.log(this.TAG, 'remux to mp4 audio:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000]);
+      logger.log(this.TAG, 'remux to mp4 audio:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
       const moof = Fmp4.moof({
         id: track.meta.id,
         time: firstDts,
@@ -410,7 +410,7 @@ export default class Mp4Remuxer extends EventEmitter {
       this.segmentRemuxed('audio', initSegment)
       if (samples.length) {
         // second part of stream change
-        track.samples = samples;
+        track.samples = samples
         return this.remuxAudio(track)
       }
     }
@@ -423,7 +423,7 @@ export default class Mp4Remuxer extends EventEmitter {
   }
 
   segmentRemuxed (type, buffer, bufferDuration) {
-    this.emit(Mp4Remuxer.EVENTS.MEDIA_SEGMENT, type, buffer, bufferDuration);
+    this.emit(Mp4Remuxer.EVENTS.MEDIA_SEGMENT, type, buffer, bufferDuration)
   }
 
   get videoDtsBase () {

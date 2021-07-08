@@ -1,20 +1,20 @@
-import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
-import FlvDemuxer from 'xgplayer-transmuxer-demux-flv';
-import Remuxer from 'xgplayer-transmuxer-remux-mp4';
-import EVENTS from 'xgplayer-transmuxer-constant-events';
-import Tracks from 'xgplayer-transmuxer-buffer-track';
-import PreSource from 'xgplayer-transmuxer-buffer-presource';
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
-import Compatibility from 'xgplayer-transmuxer-codec-compatibility';
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
+import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
+import Remuxer from 'xgplayer-transmuxer-remux-mp4'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import Tracks from 'xgplayer-transmuxer-buffer-track'
+import PreSource from 'xgplayer-transmuxer-buffer-presource'
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
 
 import Mse from 'xgplayer-utils-mse'
 
 import Player from 'xgplayer'
 
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
-const MSE_EVENTS = EVENTS.MSE_EVENTS;
+const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 const Tag = 'FLVController'
 
@@ -29,7 +29,7 @@ class FlvController {
     this.TAG = Tag
     this._player = player
 
-    this.mse = mse;
+    this.mse = mse
     this.state = {
       initSegmentArrived: false,
       range: {
@@ -67,8 +67,8 @@ class FlvController {
 
     this._context.registry('LOGGER', Logger)
     if (!this.mse) {
-      this.mse = new Mse({ container: this._player.video }, this._context);
-      this.mse.init();
+      this.mse = new Mse({ container: this._player.video }, this._context)
+      this.mse.init()
     }
 
     this.initListeners()
@@ -130,7 +130,7 @@ class FlvController {
 
   _handleMediaSegment () {
     this.mse.addSourceBuffers()
-    this.mse.doAppend();
+    this.mse.doAppend()
   }
 
   _handleNetworkError (tag, err) {
@@ -140,7 +140,7 @@ class FlvController {
 
   _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
-      fatal = false;
+      fatal = false
     }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
@@ -148,7 +148,7 @@ class FlvController {
 
   _handleMseError (tag, err, fatal) {
     if (fatal === undefined) {
-      fatal = false;
+      fatal = false
     }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
     this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
@@ -160,7 +160,7 @@ class FlvController {
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal || false
     }
-    this._player.emit(FLV_ERROR, error);
+    this._player.emit(FLV_ERROR, error)
   }
 
   seek (time) {
@@ -192,7 +192,7 @@ class FlvController {
     }
 
     if (this.loader.loading) {
-      return;
+      return
     }
 
     if (this.getNextRange(curTime)) {
@@ -253,18 +253,18 @@ class FlvController {
 
   getNextRange (time) {
     if (this.state.range.end === '') {
-      return;
+      return
     }
     const { end } = this.getSeekRange(time, this.config.preloadTime || 15)
     if (end <= this.state.range.end && end !== '') {
-      return;
+      return
     }
 
     this.state.range = {
       start: this.state.range.end + 1,
       end
     }
-    return true;
+    return true
   }
 
   destroy () {

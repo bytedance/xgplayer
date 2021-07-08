@@ -1,12 +1,22 @@
 import downloadUtil from 'downloadjs'
 import Plugin, { POSITIONS } from '../../plugin'
 import DownloadSvg from '../assets/download.svg'
-
+/**
+ * @typedef { {
+ *   position: string,
+ *   index: number,
+ *   disable: boolean,
+ *   [propName: string]: any
+ *  } } IDownloadConfig
+ */
 export default class Download extends Plugin {
   static get pluginName () {
     return 'downloadIcon'
   }
 
+  /**
+   * @type IDownloadConfig
+   */
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
@@ -77,9 +87,9 @@ export default class Download extends Plugin {
       return
     }
     return `<xg-icon class="xgplayer-download">
-      <div class="xgplayer-icon">
-      </div>
-      <div class="xg-tips" lang-key="${this.i18nKeys.DOWNLOAD_TIPS}">${this.i18n.DOWNLOAD_TIPS}</div>
+   <div class="xgplayer-icon">
+   </div>
+   <div class="xg-tips" lang-key="${this.i18nKeys.DOWNLOAD_TIPS}">${this.i18n.DOWNLOAD_TIPS}</div>
     </xg-icon>`
   }
 }

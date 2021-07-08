@@ -199,12 +199,16 @@ export default class VideoBaseRender extends BaseRender {
       logger.warn('isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height)
       if (type === 'cover') {
         if (isGapX) {
+          this._canvas.style.left = 0
+          this._canvas.style.top = 0
           this._canvas.style.height = 'auto'
           this._canvas.style.width = '100%'
           return
         }
+        this._canvas.style.left = 0
+        this._canvas.style.top = 0
         this._canvas.style.width = 'auto'
-        this.canvas.style.height = '100%'
+        this._canvas.style.height = '100%'
         return
       }
 

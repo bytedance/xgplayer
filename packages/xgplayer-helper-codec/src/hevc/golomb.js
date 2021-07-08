@@ -36,23 +36,23 @@ class Golomb {
    * @return {number|*|number}
    */
   readBits (size) {
-    let bits = Math.min(this._currentWordBitsLeft, size);// :uint
-    let valu = this._currentWord >>> (32 - bits);
+    let bits = Math.min(this._currentWordBitsLeft, size)// :uint
+    let valu = this._currentWord >>> (32 - bits)
     if (size > 32) {
-      throw new Error('Cannot read more than 32 bits at a time');
+      throw new Error('Cannot read more than 32 bits at a time')
     }
-    this._currentWordBitsLeft -= bits;
+    this._currentWordBitsLeft -= bits
     if (this._currentWordBitsLeft > 0) {
-      this._currentWord <<= bits;
+      this._currentWord <<= bits
     } else if (this._totalBytes - this._bufferIndex > 0) {
-      this._fillCurrentWord();
+      this._fillCurrentWord()
     }
 
-    bits = size - bits;
+    bits = size - bits
     if (bits > 0 && this._currentWordBitsLeft) {
-      return valu << bits | this.readBits(bits);
+      return valu << bits | this.readBits(bits)
     } else {
-      return valu;
+      return valu
     }
   }
 
@@ -105,11 +105,11 @@ class Golomb {
 
   readSliceType () {
     // skip NALu type Nal unit header 8bit
-    this.readByte();
+    this.readByte()
     // discard first_mb_in_slice
-    this.readUEG();
+    this.readUEG()
     // return slice_type
-    return this.readUEG();
+    return this.readUEG()
   }
 }
 

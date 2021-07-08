@@ -1,4 +1,15 @@
 # 版本更新记录
+## 3.0.0-alpha.90
+>* chore: babel.config.js替代.babelrc,解决lib目录下打包异常问题; version
+生成改成静态字符串替换方式
+>* feat: (xgplayer) 增加buffered2接口获取校准之后的缓存空间
+>* feat: (xgplayer) fullscreen插件修正接口名称,hook名称fullsreen_change更正为fullscreen_change
+>* feat: (xgplayer) ts声明增加SimplePlayer, 导出SimplePlayer; preset增加语言包能力，拆分仅有英文包的preset;
+>* fix:(xgplayer) 修复rotateFullScreen无法在指定target上触发的问题; canplay设置defaultPlaybackRate解决有倍速插件的情况下设置的video倍速失效问题
+>* feat: (xgplayer) player API play/pause/retry/replay等添加hook
+>* feat: (xgplayer) 支持自定义videoProxy构造造player.video对象
+>* feat: (xgplayer) hook增加参数回传，回调的第一个参数为当前对象（player或者对应插件实例）
+
 ## 3.0.0-alpha.89
 >* chore: 添加eslint规范，去除array-callback-return规则限制
 >* fix: (xgplayer) 修复进度条点击两个触发seek问题; 修复keybored取值异常问题

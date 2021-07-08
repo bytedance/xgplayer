@@ -13,8 +13,10 @@ export default {
   ACTIVE: 'xgplayer-inactive',
   FULLSCREEN: 'xgplayer-is-fullscreen',
   CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
-  ROTATE_FULLSCREEN: 'xgplayer-rotate-fullscreen',
   PARENT_FULLSCREEN: 'xgplayer-fullscreen-parent',
+  ROTATE_FULLSCREEN: 'xgplayer-rotate-fullscreen',
+  PARENT_ROTATE_FULLSCREEN: 'xgplayer-rotate-parent',
+  INNER_FULLSCREEN: 'xgplayer-inner-fullscreen',
   NO_CONTROLS: 'no-controls',
   FLEX_CONTROLS: 'flex-controls',
   CONTROLS_FOLLOW: 'controls-follow',
@@ -23,5 +25,5 @@ export default {
   SEEKING: 'seeking',
   PC: 'xgplayer-pc',
   MOBILE: 'xgplayer-mobile',
-  MINI: 'xgplayer-mini' // 小窗播放状态
+  MINI: 'xgplayer-mini' // mini screen play status
 }

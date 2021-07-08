@@ -27,30 +27,30 @@ export default class TsFrag {
    * @param {TsFragProps} props
    */
   constructor (props) {
-    const merged = Object.assign({}, TsFrag.getDefault(), props);
+    const merged = Object.assign({}, TsFrag.getDefault(), props)
     /**
      * @type {TsFragProps.id}
      */
-    this.id = merged.id;
+    this.id = merged.id
     /**
      * @type {TsFragProps.url}
      */
-    this.url = merged.url;
+    this.url = merged.url
     /**
      * @type {TsFragProps.start}
      */
-    this.start = merged.start;
+    this.start = merged.start
     /**
      * @type {TsFragProps.duration}
      */
-    this.duration = merged.duration;
+    this.duration = merged.duration
     /**
      * @type {TsFragProps.discontinue}
      */
-    this.discontinue = merged.discontinue;
+    this.discontinue = merged.discontinue
     /**
      * @type {TsFragProps.cc}
      */
-    this.cc = merged.cc;
+    this.cc = merged.cc
   }
 }

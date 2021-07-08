@@ -1,14 +1,29 @@
 {
   "name": "xgplayer-music",
-  "version": "2.0.1-beta.1",
+  "version": "3.0.0-alpha.0",
   "description": "xgplayer plugin for music",
   "main": "./dist/index.min.js",
-  "module": "./es/index.min.js",
+  "module": "./es/index.js",
+  "typings": "./types/index.d.ts",
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
+    "build:umd": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build": "npm run build:umd && npm run build:style",
+    "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
+    "build:lib": "rm -rf ./lib && npx cross-env BABEL_TARGET=commonjs ../../node_modules/.bin/babel ./src --out-dir lib",
+    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
+    "build:style": "node scripts/buildStyles.js",
+    "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
+    "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org",
+    "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org"
   },
+  "unpkgFiles": [
+    "browser",
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:bytedance/xgplayer.git"
@@ -23,9 +38,14 @@
   "license": "MIT",
   "dependencies": {
     "deepmerge": "^2.0.1",
-    "event-emitter": "^0.3.5"
+    "event-emitter": "^0.3.5",
+    "xgplayer": "^3.0.0-alpha.40"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
+  },
+  "devDependencies": {
+    "node-sass-package-importer": "^5.3.2",
+    "recursive-readdir": "^2.2.2"
   }
 }

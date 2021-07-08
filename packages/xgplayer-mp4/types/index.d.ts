@@ -1,4 +1,4 @@
-declare module 'xgplayer-mp4' {
+declare module 'xgplayer-hls.js' {
   import type { BasePlugin } from 'xgplayer';
   export interface IPluginConfig {
     // 请求是否带cookie
@@ -20,14 +20,20 @@ declare module 'xgplayer-mp4' {
     public static get pluginName(): string;
     public static get defaultConfig(): any;
     constructor(options: any);
-    private _destroy(): void;
+    public _destroy(): void;
+    public destroy(): void;
+    readonly player: any;
+    config: { [propName: string]: any; };
   }
 
   export class M4aPlayer extends BasePlugin {
     public static get pluginName(): string;
     public static get defaultConfig(): any;
     constructor(options: any);
-    private _destroy(): void;
+    public _destroy(): void;
+    public destroy(): void;
+    readonly player: any;
+    config: { [propName: string]: any; };
   }
 
   export default Mp4Player;

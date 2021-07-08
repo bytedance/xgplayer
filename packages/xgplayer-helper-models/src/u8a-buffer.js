@@ -119,4 +119,4 @@ class XgBuffer {
     return retInt
   }
 }
-export default XgBuffer;
+export default XgBuffer

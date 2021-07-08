@@ -1,13 +1,13 @@
-import { VideoTrackMeta, AudioTrackMeta, XGDataView, FlvTag, VideoSample } from 'xgplayer-helper-models';
-import { avc, hevc } from 'xgplayer-helper-codec';
+import { VideoTrackMeta, AudioTrackMeta, XGDataView, FlvTag, VideoSample } from 'xgplayer-helper-models'
+import { avc, hevc } from 'xgplayer-helper-codec'
 import AMFParser from './amf-parser'
-import EventEmitter from 'eventemitter3';
-const { SpsParser, NalUnit } = avc;
-const { SpsParserHEVC, NalUnitHEVC } = hevc;
+import EventEmitter from 'eventemitter3'
+const { SpsParser, NalUnit } = avc
+const { SpsParserHEVC, NalUnitHEVC } = hevc
 
 class FlvDemuxer extends EventEmitter {
   constructor () {
-    super();
+    super()
     /** @type {boolean} */
     this.headerParsed = false
     /** @type {number} */
@@ -21,7 +21,7 @@ class FlvDemuxer extends EventEmitter {
     /** @type {number} */
     this.gopId = 0
     /** @type {*}  */
-    this.onMetaData = null;
+    this.onMetaData = null
   }
 
   /**
@@ -83,7 +83,7 @@ class FlvDemuxer extends EventEmitter {
       if (buffer.length < 11) {
         return
       }
-      let flvTag;
+      let flvTag
 
       let loopMax = 10000 // avoid Infinite loop
       do {
@@ -94,7 +94,7 @@ class FlvDemuxer extends EventEmitter {
 
   parseFlvHeader (header) {
     if (!FlvDemuxer.isFlvFile(header)) {
-      throw new Error(`invalid flv file,${header.join(',')}`);
+      throw new Error(`invalid flv file,${header.join(',')}`)
     } else {
       this.headerParsed = true
 
@@ -103,7 +103,7 @@ class FlvDemuxer extends EventEmitter {
       this.emit(FlvDemuxer.EVENTS.FILE_HEADER_PARSED, {
         hasVideo,
         hasAudio
-      });
+      })
     }
   }
 
@@ -117,16 +117,16 @@ class FlvDemuxer extends EventEmitter {
    * }
    */
   _parseFlvTag (buffer) {
-    const tagSize = buffer.toInt(1, 3);
+    const tagSize = buffer.toInt(1, 3)
     if (buffer.length < 11 + tagSize + 4) {
       // no enough data for tag parsing
-      return null;
+      return null
     }
     let flvTag = this._parseFlvTagHeader(buffer)
     if (flvTag) {
       this._processTagData(flvTag, buffer)
       if (!this._datasizeValidator(flvTag.datasize, buffer)) {
-        throw new Error('TAG length error at ' + flvTag.datasize);
+        throw new Error('TAG length error at ' + flvTag.datasize)
       }
     }
     return flvTag
@@ -137,7 +137,7 @@ class FlvDemuxer extends EventEmitter {
    */
   _parseFlvTagHeader (buffer) {
     let offset = 0
-    let flvTag = new FlvTag();
+    let flvTag = new FlvTag()
 
     let tagType = buffer.toInt(offset, 1)
     offset += 1
@@ -209,11 +209,11 @@ class FlvDemuxer extends EventEmitter {
    * @private
    */
   _parseScriptData (flvTag, buffer) {
-    flvTag.data = buffer.shift(flvTag.datasize);
+    flvTag.data = buffer.shift(flvTag.datasize)
     const info = new AMFParser().resolve(flvTag.data, flvTag.data.length)
 
     this.onMetaData = info ? info.onMetaData : undefined
-    this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, this.onMetaData);
+    this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, this.onMetaData)
   }
 
   // ISO中定义的AudioSpecificConfig
@@ -234,54 +234,54 @@ class FlvDemuxer extends EventEmitter {
     ret.dependsOnCoreCoder = (data[2] & 2) >>> 1
     ret.extensionFlagIndex = data[2] & 1
 
-    let userAgent = window.navigator.userAgent.toLowerCase();
-    let extensionSamplingIndex;
+    let userAgent = window.navigator.userAgent.toLowerCase()
+    let extensionSamplingIndex
 
-    let config;
-    let samplingIndex = ret.sampleRateIndex;
+    let config
+    let samplingIndex = ret.sampleRateIndex
 
     if (userAgent.indexOf('firefox') !== -1) {
       // firefox: use SBR (HE-AAC) if freq less than 24kHz
       if (ret.sampleRateIndex >= 6) {
-        ret.objectType = 5;
-        config = new Array(4);
-        extensionSamplingIndex = samplingIndex - 3;
+        ret.objectType = 5
+        config = new Array(4)
+        extensionSamplingIndex = samplingIndex - 3
       } else { // use LC-AAC
-        ret.objectType = 2;
-        config = new Array(2);
-        extensionSamplingIndex = samplingIndex;
+        ret.objectType = 2
+        config = new Array(2)
+        extensionSamplingIndex = samplingIndex
       }
     } else if (userAgent.indexOf('android') !== -1 || userAgent.indexOf('safari') !== -1 || userAgent.indexOf('iphone') !== -1) {
       // android: always use LC-AAC
-      ret.objectType = 2;
-      config = new Array(2);
-      extensionSamplingIndex = samplingIndex;
+      ret.objectType = 2
+      config = new Array(2)
+      extensionSamplingIndex = samplingIndex
     } else {
       // for other browsers, e.g. chrome...
       // Always use HE-AAC to make it easier to switch aac codec profile
-      ret.objectType = 5;
-      extensionSamplingIndex = ret.sampleRateIndex;
-      config = new Array(4);
+      ret.objectType = 5
+      extensionSamplingIndex = ret.sampleRateIndex
+      config = new Array(4)
 
       if (ret.sampleRateIndex >= 6) {
-        extensionSamplingIndex = ret.sampleRateIndex - 3;
+        extensionSamplingIndex = ret.sampleRateIndex - 3
       } else if (ret.channelCount === 1) { // Mono channel
-        ret.objectType = 2;
-        config = new Array(2);
-        extensionSamplingIndex = ret.sampleRateIndex;
+        ret.objectType = 2
+        config = new Array(2)
+        extensionSamplingIndex = ret.sampleRateIndex
       }
     }
     ret.codec = `mp4a.40.${ret.objectType}`
-    config[0] = ret.objectType << 3;
-    config[0] |= (ret.sampleRateIndex & 0x0F) >>> 1;
-    config[1] = (ret.sampleRateIndex & 0x0F) << 7;
-    config[1] |= (ret.channelCount & 0x0F) << 3;
+    config[0] = ret.objectType << 3
+    config[0] |= (ret.sampleRateIndex & 0x0F) >>> 1
+    config[1] = (ret.sampleRateIndex & 0x0F) << 7
+    config[1] |= (ret.channelCount & 0x0F) << 3
     if (ret.objectType === 5) {
-      config[1] |= ((extensionSamplingIndex & 0x0F) >>> 1);
-      config[2] = (extensionSamplingIndex & 0x01) << 7;
+      config[1] |= ((extensionSamplingIndex & 0x0F) >>> 1)
+      config[2] = (extensionSamplingIndex & 0x01) << 7
       // extended audio object type: force to 2 (LC-AAC)
-      config[2] |= (2 << 2);
-      config[3] = 0;
+      config[2] |= (2 << 2)
+      config[3] = 0
     }
     ret.config = config
     return ret
@@ -336,9 +336,9 @@ class FlvDemuxer extends EventEmitter {
       meta.duration = this.onMetaData.duration * meta.timescale
       meta.config = aacHeader.config
       meta.objectType = aacHeader.objectType
-      meta.originObjectType = aacHeader.originObjectType;
+      meta.originObjectType = aacHeader.originObjectType
 
-      this.emit(FlvDemuxer.EVENTS.AUDIO_META_PARSED, meta);
+      this.emit(FlvDemuxer.EVENTS.AUDIO_META_PARSED, meta)
     } else {
       tag.data = tag.data.slice(1, tag.data.length)
       this.emit(FlvDemuxer.EVENTS.AUDIO_SAMPLE_PARSED, tag)
@@ -358,7 +358,7 @@ class FlvDemuxer extends EventEmitter {
   _parseVideoData (flvTag, buffer) {
     // header
     let header = buffer.shift(1)[0]
-    const vSample = new VideoSample(flvTag);
+    const vSample = new VideoSample(flvTag)
     const frameType = (header & 0xf0) >>> 4
     vSample.isKeyframe = frameType === 1
     let codecID = header & 0x0f
@@ -371,7 +371,7 @@ class FlvDemuxer extends EventEmitter {
 
     // 12 for hevc, 7 for avc
     if (codecID === 7 || codecID === 12) {
-      let hevc = codecID === 12;
+      let hevc = codecID === 12
       let data = buffer.shift(flvTag.datasize - 5) // 减5字节header信息
       if (data[4] === 0 && data[5] === 0 && data[6] === 0 && data[7] === 1) {
         let avcclength = 0
@@ -390,18 +390,18 @@ class FlvDemuxer extends EventEmitter {
 
       vSample.data = data
 
-      let videoMeta;
+      let videoMeta
       if (flvTag.avcPacketType === 0) {
         if (hevc) {
           videoMeta = this._hevcSequenceHeaderParser(data)
         } else {
           videoMeta = this._avcSequenceHeaderParser(data)
         }
-        videoMeta.codecID = codecID;
+        videoMeta.codecID = codecID
         this.emit(FlvDemuxer.EVENTS.VIDEO_META_PARSED, videoMeta)
       } else {
         const dv = new XGDataView(data.buffer)
-        const nals = hevc ? NalUnitHEVC.getHvccNals(dv) : NalUnit.getAvccNals(dv);
+        const nals = hevc ? NalUnitHEVC.getHvccNals(dv) : NalUnit.getAvccNals(dv)
         const keyTypes = hevc ? [19, 20, 21] : [5]
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
@@ -419,12 +419,12 @@ class FlvDemuxer extends EventEmitter {
         }
 
         vSample.gopId = this.gopId
-        vSample.nals = nals;
+        vSample.nals = nals
 
         this.emit(FlvDemuxer.EVENTS.VIDEO_SAMPLE_PARSED, vSample)
       }
     } else {
-      throw new Error(`video codeid is ${codecID}`);
+      throw new Error(`video codeid is ${codecID}`)
     }
   }
 
@@ -449,7 +449,7 @@ class FlvDemuxer extends EventEmitter {
   _avcSequenceHeaderParser (data) {
     let offset = 0
 
-    let meta = new VideoTrackMeta();
+    let meta = new VideoTrackMeta()
 
     meta.configurationVersion = data[0]
     meta.avcProfileIndication = data[1]
@@ -510,7 +510,7 @@ class FlvDemuxer extends EventEmitter {
     meta.avcc.set(data)
     meta.streamType = 0x1b
 
-    return meta;
+    return meta
   }
 
   /**
@@ -549,7 +549,7 @@ class FlvDemuxer extends EventEmitter {
    *       nalUint              bit(8 * nalUintLength)
    */
   _hevcSequenceHeaderParser (data) {
-    const meta = new VideoTrackMeta();
+    const meta = new VideoTrackMeta()
 
     let offset = 0
 
@@ -562,7 +562,7 @@ class FlvDemuxer extends EventEmitter {
       data[3],
       data[4],
       data[5]
-    ];
+    ]
     meta.hevcConstraintIndicatorFlags = [
       data[6],
       data[7],
@@ -570,7 +570,7 @@ class FlvDemuxer extends EventEmitter {
       data[9],
       data[10],
       data[11]
-    ];
+    ]
     meta.hevcLevelIdc = data[12]
     meta.minSpatialSegmentationIdc = data[13] & 0x0f + data[14] << 4
     meta.parallelismType = data[15] & 0x03
@@ -607,7 +607,7 @@ class FlvDemuxer extends EventEmitter {
               meta.vps = SpsParserHEVC._ebsp2rbsp(vps)
               meta.rawVps = vps
             }
-            break;
+            break
           case 33:
             if (!hasSPS) {
               hasSPS = true
@@ -617,7 +617,7 @@ class FlvDemuxer extends EventEmitter {
               meta.codec = 'hev1.1.6.L93.B0'
               config = SpsParserHEVC.parseSPS(sps)
             }
-            break;
+            break
           case 34:
             if (!hasPPS) {
               hasPPS = true
@@ -625,15 +625,15 @@ class FlvDemuxer extends EventEmitter {
               meta.pps = SpsParserHEVC._ebsp2rbsp(pps)
               meta.rawPps = pps
             }
-            break;
+            break
           case 39:
             // PREFIX_SEI
-            break;
+            break
           case 40:
             // SUFFIX_SEI
-            break;
+            break
           default:
-            break;
+            break
         }
         offset += 2 + nalUnitSize
       }
@@ -643,7 +643,7 @@ class FlvDemuxer extends EventEmitter {
 
     meta.streamType = 0x24
 
-    return meta;
+    return meta
   }
 
   /**
@@ -694,7 +694,7 @@ class FlvDemuxer extends EventEmitter {
   }
 
   destroy () {
-    super.removeAllListeners();
+    super.removeAllListeners()
   }
 }
 

@@ -4,7 +4,26 @@ import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors from './error'
 import { URL_CHANGE, DESTROY } from './events'
-
+/**
+ * @typedef { {
+ *   duration: number,
+ *   currentTime: number,
+ *   muted: boolean,
+ *   defaultMuted: boolean,
+ *   volume: number,
+ *   playbackRate: number,
+ *   defaultPlaybackRate: number,
+ *   autoplay: boolean,
+ *   readonly paused: boolean,
+ *   readonly ended: boolean,
+ *   readonly networkState: number,
+ *   readonly readyState: number,
+ *   readonly seeking: boolean,
+ *   src: any,
+ *   play: Function,
+ *   pause: Function,
+ * } } IVideoProxy
+ */
 const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
   'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
   'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort']
@@ -54,9 +73,22 @@ function getHandler (eventName, player) {
 }
 
 class Proxy {
+  /**
+   * @constructor
+   * @param {any} options
+   */
   constructor (options) {
+    /**
+     * @private
+     */
     this._hasStart = false
+    /**
+     * @private
+     */
     this._currentTime = 0
+    /**
+     * @private
+     */
     this._duration = 0
     this.videoConfig = Object.assign({}, {
       controls: false,
@@ -70,10 +102,10 @@ class Proxy {
       'webkit-airplay': options.airplay,
       tabindex: 2,
       mediaType: options.mediaType || 'video'
-    }, options.videoConfig, options.videoAttrbutes)
+    }, options.videoConfig, options.videoAttributes)
     /**
-     * @description 微信内部同层播放兼容
-     * x5-playsinline和x5-video-player-type互斥，只需要存在一个即可
+     * @description Compatible with WeChat webview
+     * "x5-playsinline' and 'x5-video-player-type' only one needs to exist
      * @doc https://x5.tencent.com/docs/video.html
      */
     const playerType = options['x5-video-player-type'] || options.x5VideoPlayerType
@@ -88,11 +120,14 @@ class Proxy {
       this.videoConfig.loop = 'loop'
     }
 
+    /**
+     * @type { HTMLMediaElement | HTMLElement | IVideoProxy | null }
+     */
     this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
 
-    if (options.defaultPlaybackRate) {
-      this.video.defaultPlaybackRate = this.video.playbackRate = options.defaultPlaybackRate
-    }
+    // if (options.defaultPlaybackRate) {
+    //   this.video.defaultPlaybackRate = this.video.playbackRate = options.defaultPlaybackRate
+    // }
 
     if (options.autoplayMuted) {
       this.video.muted = true
@@ -102,25 +137,46 @@ class Proxy {
     }
 
     EventEmitter(this)
+    /**
+     * @private
+     */
     this._interval = {}
+    /**
+     * @readonly
+     */
     this.videoEventMiddleware = {}
     this.attachVideoEvents()
   }
 
+  /**
+   * @description set middleware
+   * @param { Array<{[propName: string]: function}> } middlewares
+   */
   setEventsMiddleware (middlewares) {
     Object.keys(middlewares).map(key => {
       this.videoEventMiddleware[key] = middlewares[key]
     })
   }
 
+  /**
+   * @description remove middleware
+   * @param { Array<{[propName: string]: function}> } middlewares
+   */
   removeEventsMiddleware (middlewares) {
     Object.keys(middlewares).map(key => {
       delete this.videoEventMiddleware[key]
     })
   }
 
+  /**
+   * Add media eventListener to the video object
+   * @param { any } [video]
+   */
   attachVideoEvents (video) {
     if (!this.evHandlers) {
+      /**
+       * @private
+       */
       this._evHandlers = VIDEO_EVENTS.map(item => {
         return {
           [item]: getHandler(item, this)
@@ -137,7 +193,8 @@ class Proxy {
   }
 
   /**
-   * 解除video事件回调
+   * @description remove media eventListener from the video object
+   * @param { any } [video]
    */
   detachVideoEvents (video) {
     if (!video) {
@@ -150,7 +207,8 @@ class Proxy {
   }
 
   /**
-   * 错误监听处理逻辑抽离
+   * @description Media Error handler
+   * @param { string } eventName
    */
   errorHandler (name) {
     if (this.video && this.video.error) {
@@ -163,6 +221,9 @@ class Proxy {
     }
   }
 
+  /**
+   * @type { boolean }
+   */
   get hasStart () {
     return this._hasStart
   }
@@ -198,6 +259,10 @@ class Proxy {
     allOff(this)
   }
 
+  /**
+   *
+   * @returns {  Promise<void> | null }
+   */
   play () {
     return this.video ? this.video.play() : null
   }
@@ -206,18 +271,29 @@ class Proxy {
     this.video && this.video.pause()
   }
 
+  /**
+   *
+   * @param { string } type
+   * @returns { boolean }
+   */
   canPlayType (type) {
     return this.video.canPlayType(type)
   }
 
-  getBufferedRange () {
+  /**
+   *
+   * @param { any } [buffered]
+   * @returns { Array<number> }
+   */
+  getBufferedRange (buffered) {
     const range = [0, 0]
     if (!this.video) {
       return range
     }
-    const video = this.video
-    const buffered = video.buffered
-    const currentTime = video.currentTime
+    if (!buffered) {
+      buffered = this.video.buffered
+    }
+    const currentTime = this.video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         range[0] = buffered.start(i)
@@ -234,6 +310,9 @@ class Proxy {
     }
   }
 
+  /**
+   * @type { boolean }
+   */
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
   }
@@ -242,10 +321,23 @@ class Proxy {
     return this.video.autoplay
   }
 
+  /**
+   * @type { TimeRanges }
+   */
   get buffered () {
     return this.video.buffered
   }
 
+  /**
+   * @type { Array<{start: number, end: number}> }
+   */
+  get buffered2 () {
+    return Util.getBuffered2(this.video.buffered)
+  }
+
+  /**
+   * @type { {start: number, end: number} }
+   */
   get bufferedPoint () {
     const _buffered = this.video.buffered
     const ret = {
@@ -256,7 +348,7 @@ class Proxy {
       return ret
     }
     for (let i = 0; i < _buffered.length; i++) {
-      if (_buffered.start(i) <= this.currentTime && _buffered.end(i) >= this.currentTime) {
+      if ((_buffered.start(i) <= this.currentTime || _buffered.start(i) < 0.1) && _buffered.end(i) >= this.currentTime) {
         return {
           start: _buffered.start(i),
           end: _buffered.end(i)
@@ -266,6 +358,7 @@ class Proxy {
     return ret
   }
 
+  /** @type { string}  */
   get crossOrigin () {
     return this.video.crossOrigin
   }
@@ -274,6 +367,7 @@ class Proxy {
     this.video.crossOrigin = isTrue
   }
 
+  /** @type { string }  */
   get currentSrc () {
     return this.video.currentSrc
   }
@@ -282,6 +376,7 @@ class Proxy {
     this.video.currentSrc = src
   }
 
+  /** @type { number }  */
   get currentTime () {
     return this.video.currentTime || this._currentTime
   }
@@ -290,6 +385,7 @@ class Proxy {
     this.video.currentTime = time
   }
 
+  /** @type { boolean }  */
   get defaultMuted () {
     return this.video.defaultMuted
   }
@@ -298,14 +394,23 @@ class Proxy {
     this.video.defaultMuted = isTrue
   }
 
+  /** @type { number }  */
   get duration () {
     return this._duration
   }
 
+  /**
+   * @readonly
+   * @type { boolean }
+   * */
   get ended () {
     return this.video.ended
   }
 
+  /**
+   * @readonly
+   * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
+   */
   get error () {
     const err = this.video.error
     if (!err) {
@@ -320,6 +425,9 @@ class Proxy {
     return status[err.code - 1]
   }
 
+  /**
+   * @type { boolean }
+   */
   get loop () {
     return this.video.loop
   }
@@ -328,6 +436,9 @@ class Proxy {
     this.video.loop = isTrue
   }
 
+  /**
+   * @type { boolean }
+   */
   get muted () {
     return this.video.muted
   }
@@ -336,6 +447,10 @@ class Proxy {
     this.video.muted = isTrue
   }
 
+  /**
+   * @readonly
+   * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
+   */
   get networkState () {
     const status = [
       'NETWORK_EMPTY',
@@ -346,10 +461,17 @@ class Proxy {
     return status[this.video.networkState]
   }
 
+  /**
+   * @readonly
+   * @type { boolean }
+   */
   get paused () {
     return this.video.paused
   }
 
+  /**
+   * @type { number }
+   */
   get playbackRate () {
     return this.video.playbackRate
   }
@@ -359,10 +481,17 @@ class Proxy {
     this.video.playbackRate = rate
   }
 
+  /**
+   * @readonly
+   * @type { TimeRanges }
+   */
   get played () {
     return this.video.played
   }
 
+  /**
+   * @type { boolean }
+   */
   get preload () {
     return this.video.preload
   }
@@ -371,6 +500,9 @@ class Proxy {
     this.video.preload = isTrue
   }
 
+  /**
+   * @readonly
+   */
   get readyState () {
     const status = [
       'HAVE_NOTHING',
@@ -381,14 +513,25 @@ class Proxy {
     return status[this.video.readyState]
   }
 
+  /**
+   * @readonly
+   * @type { boolean }
+   */
   get seekable () {
     return this.video.seekable
   }
 
+  /**
+   * @readonly
+   * @type { boolean }
+   */
   get seeking () {
     return this.video.seeking
   }
 
+  /**
+   * @type { any }
+   */
   get src () {
     return this.video.src
   }
@@ -398,7 +541,7 @@ class Proxy {
     // this.video.pause()
     this._currentTime = 0
     this._duration = 0
-    // firefox有些版本无法识别blob类型的currentSrc
+    // Some firefox versions firefox Cannot recognize currentSrc of type Blob
     if (/^blob/.test(this.video.currentSrc) || /^blob/.test(this.video.src)) { // has transmuxer core
       this.onWaiting()
       return
@@ -406,6 +549,9 @@ class Proxy {
     this.video.src = url
   }
 
+  /**
+   * @type { number }
+   */
   get volume () {
     return this.video.volume
   }

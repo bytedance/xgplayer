@@ -1,7 +1,6 @@
 import Golomb from './golomb'
 
 class SPSParser {
-
   /**
    * 0x00000300  -> 0x000000
    * 0x00000301  -> 0x000001
@@ -110,8 +109,8 @@ class SPSParser {
       frame_crop_bottom_offset = gb.readUEG()
     }
 
-    let par_width = 1, par_height = 1
-    let fps = 0, fps_fixed = true, fps_num = 0, fps_den = 0
+    let par_width = 1; let par_height = 1
+    let fps = 0; let fps_fixed = true; let fps_num = 0; let fps_den = 0
 
     let vui_parameters_present_flag = gb.readBool()
     if (vui_parameters_present_flag) {
@@ -158,7 +157,7 @@ class SPSParser {
       parScale = par_width / par_height
     }
 
-    let crop_unit_x = 0, crop_unit_y = 0
+    let crop_unit_x = 0; let crop_unit_y = 0
     if (chroma_format_idc === 0) {
       crop_unit_x = 1
       crop_unit_y = 2 - frame_mbs_only_flag
@@ -212,9 +211,9 @@ class SPSParser {
   }
 
   static _skipScalingList (gb, count) {
-    let lastScale = 8;
+    let lastScale = 8
     let nextScale = 8
-    let deltaScale = 0;
+    let deltaScale = 0
     for (let i = 0; i < count; i++) {
       if (nextScale !== 0) {
         deltaScale = gb.readSEG()
@@ -286,7 +285,7 @@ class SPSParser {
     let fpsDen = meta.frameRate.fps_den
     let fpsNum = meta.frameRate.fps_num
     meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum))
-    return meta;
+    return meta
   }
 }
 

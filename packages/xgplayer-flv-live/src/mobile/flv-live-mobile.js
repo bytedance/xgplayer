@@ -14,7 +14,7 @@ export default class FlvController {
 
     this.state = {
       initSegmentArrived: false,
-      randomAccessPoints: [],
+      randomAccessPoints: []
     }
 
     this.bufferClearTimer = null
@@ -36,7 +36,7 @@ export default class FlvController {
 
     this._context.registry('LOGGER', Logger)
     this._context.registry('PAGE_VISIBILITY', PageVisibility)
-    if(decodeMode === 7){
+    if (decodeMode === 7) {
       this._context.registry('MP4_REMUXER', Remuxer)
     }
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
@@ -138,7 +138,7 @@ export default class FlvController {
       codeName: err.name,
       errorType: 'network',
       ex: `[${tag}]: ${err.message}`,
-      errd: {},
+      errd: {}
     })
   }
 
@@ -151,7 +151,7 @@ export default class FlvController {
       code: '31',
       errorType: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
-      errd: {},
+      errd: {}
     })
   }
 
@@ -165,7 +165,7 @@ export default class FlvController {
     let error = {
       errorType: type,
       errorDetails: `[${mod}]: ${err.message}`,
-      errorFatal: fatal || false,
+      errorFatal: fatal || false
     }
     console.error('flv onError')
     this._player.emit(FLV_ERROR, error)
@@ -183,15 +183,15 @@ export default class FlvController {
         code: '0',
         errorType: 'network',
         ex: `empty url`,
-        errd: {},
+        errd: {}
       })
       return
     }
 
     const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
-    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
+    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
+    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
     this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
   }
 

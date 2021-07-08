@@ -1,13 +1,13 @@
 class XHR {
-  constructor ({url, method = 'GET', type = 'arraybuffer', data = {}} = {}) {
+  constructor ({ url, method = 'GET', type = 'arraybuffer', data = {} } = {}) {
     return new Promise((resolve, reject) => {
-      let R = new window.XMLHttpRequest()
-      let _method = method.toUpperCase()
-      let _data = []
+      const R = new window.XMLHttpRequest()
+      const _method = method.toUpperCase()
+      const _data = []
       if (type) {
         R.responseType = type
       }
-      for (let k in data) {
+      for (const k in data) {
         _data.push(`k=${data[k]}`)
       }
       if (_method === 'GET') {
