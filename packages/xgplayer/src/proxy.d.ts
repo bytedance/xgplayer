@@ -18,7 +18,7 @@ export type IVideoProxy = {
     play: Function;
     pause: Function;
 };
-declare class Proxy extends EventEmitter{
+declare class Proxy extends EventEmitter {
     /**
      * @constructor
      * @param {any} options
@@ -38,9 +38,9 @@ declare class Proxy extends EventEmitter{
     private _duration;
     videoConfig: any;
     /**
-     * @type { HTMLMediaElement | HTMLElement | IVideoProxy | null }
+     * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IVideoProxy | null }
      */
-    video: HTMLMediaElement | HTMLElement | IVideoProxy | null;
+    video: HTMLVideoElement | HTMLAudioElement | HTMLElement | IVideoProxy | null;
     /**
      * @private
      */
@@ -205,4 +205,3 @@ declare class Proxy extends EventEmitter{
      */
     get volume(): number;
 }
-
