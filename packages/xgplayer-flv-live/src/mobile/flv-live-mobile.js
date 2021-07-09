@@ -50,12 +50,17 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
   }
 
   _handleMediaInfo () {
     if (!this._context.mediaInfo) {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _handleLoaderDataLoaded () {
@@ -67,32 +72,10 @@ export default class FlvController {
   }
 
   _handleDemuxComplete () {
-    if (this._player.video) {
+    let v = this._player.video
+    if (v && v.onDemuxComplete) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
-
-      // if (!this.isVideoDecode()) {
-      // videoTrack.samples.forEach((sample) => {
-      //   // const buffer = new Stream(sample.data.buffer)
-      //   // const nals = NalUnit.getNalunits(buffer);
-      //   const nals = sample.nals;
-      //   if (!nals) return;
-      //   const nalsLength = nals.reduce((len, current) => {
-      //     return len + 4 + current.body.byteLength;
-      //   }, 0);
-      //   const newData = new Uint8Array(nalsLength);
-      //   let offset = 0;
-      //   nals.forEach((nal) => {
-      //     newData.set([0, 0, 0, 1], offset)
-      //     offset += 4;
-      //     newData.set(new Uint8Array(nal.body), offset);
-      //     offset += nal.body.byteLength;
-      //   })
-      //   sample.nals = null;
-      //   sample.data = newData;
-      // })
-      // }
-
-      this._player.video.onDemuxComplete(videoTrack, audioTrack)
+      v.onDemuxComplete(videoTrack, audioTrack)
     }
   }
   _handleVisibilityChange (visible) {

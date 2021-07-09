@@ -17,7 +17,7 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   Object.keys(attrs).forEach(item => {
     const key = item
     const value = attrs[item]
-    if (el === 'video' || el === 'audio' || el === 'mobile-video') {
+    if (el === 'video' || el === 'audio' || el === 'live-video') {
       if (value) {
         dom.setAttribute(key, value)
       }

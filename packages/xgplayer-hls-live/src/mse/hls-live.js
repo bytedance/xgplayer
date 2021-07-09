@@ -74,6 +74,8 @@ class HlsLiveController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
 
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
+
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
@@ -110,6 +112,10 @@ class HlsLiveController {
     if (next) {
       this.emit(DEMUX_EVENTS.DEMUX_START, next, this._playlist.end)
     }
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _onWaiting () {

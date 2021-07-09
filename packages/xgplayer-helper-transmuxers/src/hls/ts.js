@@ -73,6 +73,9 @@ class TsDemuxer {
   }
 
   onVideoSampleParsed (sample) {
+    if (sample.isKeyframe) {
+      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.pts)
+    }
     this._tracks.videoTrack.samples.push(sample)
   }
 

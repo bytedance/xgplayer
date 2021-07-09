@@ -196,7 +196,7 @@ export default class VideoBaseRender extends BaseRender {
     this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, { width, height }) => {
       const { width: cvsWidth, height: cvsHeight } = this._canvas
       let isGapX = !width || width / height > cvsWidth / cvsHeight // 左右有黑边
-      logger.warn('isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height)
+      logger.warn(this.TAG, 'isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height)
       if (type === 'cover') {
         if (isGapX) {
           this._canvas.style.left = 0

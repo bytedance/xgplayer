@@ -165,7 +165,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
   }
 
   _render (force) {
-    let frame = this._frameQueue.nextFrame()
+    let frame = this._frameQueue && this._frameQueue.nextFrame()
     if (!frame || !this._timeRange) {
       logger.log(this.TAG, 'lack frame', this._wasmDecodeController.inDecoding)
       this._checkToDecode()

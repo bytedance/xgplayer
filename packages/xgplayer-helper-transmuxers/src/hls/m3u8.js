@@ -56,6 +56,8 @@ class M3U8Parser {
             nextDiscontinue = true
             break
           case 'EXT-X-ENDLIST':
+            let last = ret.frags[ret.frags.length - 1]
+            last.isLast = true
             ret.end = true
             break
           default:

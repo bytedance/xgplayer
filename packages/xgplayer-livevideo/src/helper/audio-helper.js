@@ -28,7 +28,7 @@ function initBgSilenceAudio () {
 let ele
 
 function playSlienceAudio () {
-  let MVideo = customElements.get('mobile-video')
+  let MVideo = customElements.get('live-video')
   if (MVideo.nobgAudio) return
   let audio = ele || (ele = document.querySelector('#hackAudioPP'))
   if (!audio) {

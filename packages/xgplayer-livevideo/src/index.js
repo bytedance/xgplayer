@@ -701,4 +701,4 @@ class MVideo extends HTMLElement {
   }
 }
 
-customElements.get('mobile-video') || customElements.define('mobile-video', MVideo)
+customElements.get('live-video') || customElements.define('live-video', MVideo)
