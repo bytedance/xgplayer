@@ -51,10 +51,11 @@ export default class Xglogger extends BasePlugin {
   }
 
   _onSeeking = () => {
-    if (!this.seekingStart) {
+    if (this.seekingStart) {
       return
     }
     this.seekingStart = now()
+    this.emitLog('seekStart', { start: now() })
   }
 
   _onSeeked = () => {
@@ -62,7 +63,7 @@ export default class Xglogger extends BasePlugin {
   }
 
   _onWaiting = () => {
-    if (this._isWaiting) {
+    if (this._isWaiting || this.seekingStart) {
       return
     }
     // 卡顿标记开始
