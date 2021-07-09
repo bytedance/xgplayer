@@ -172,9 +172,9 @@ export default class Mp4Box extends EventEmitter {
           size: 0
         }
         const sampleByteSize = sample.data.byteLength
-        // if (logger.long) {
-        //   logger.log(this.TAG, `video dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, isKeyframe, `originDts ${aacSample.originDts}`, `duration ${sampleDuration}`)
-        // }
+        if (logger.long) {
+          logger.log(this.TAG, `${type} dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, `isKeyframe ${isKeyframe}`, `originDts ${sample.originDts}`, `duration ${sampleDuration}`)
+        }
 
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample)
@@ -213,7 +213,7 @@ export default class Mp4Box extends EventEmitter {
       item.meta.sampleSizes = trackInfo[item.type].sampleSizes
       item.meta.chunksOffset = trackInfo[item.type].chunksOffset
     })
-    // todo
+
     moov = this.mixMoov(videoMeta.duration, videoMeta.timeScale, [videoMeta, audioMeta])
 
     let mp4 = new Buffer()
