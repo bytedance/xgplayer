@@ -8,6 +8,9 @@ export default class Mp4Remuxer {
   constructor (curTime = 0) {
     this.TAG = 'Mp4Remuxer'
     this._curTime = curTime
+    if (!this.remuxer) {
+      this.initRemuxer()
+    }
   }
 
   init () {
@@ -20,8 +23,8 @@ export default class Mp4Remuxer {
 
   initRemuxer () {
     this.remuxer = new Remuxer({
-      audioMeta: this.audioMeta,
-      videoMeta: this.videoMeta,
+      audioMeta: null,
+      videoMeta: null,
       curTime: this._curTime
     })
     this.remuxer.on(Remuxer.EVENTS.MEDIA_SEGMENT, this.writeToSource.bind(this))
@@ -29,9 +32,11 @@ export default class Mp4Remuxer {
   }
 
   remux () {
-    if (!this.remuxer) {
-      this.initRemuxer()
+    if (!this.remuxer.videoMeta) {
+      this.remuxer.videoMeta = this.videoMeta
+      this.remuxer.audioMeta = this.audioMeta
     }
+
     const {audioTrack, videoTrack} = this._context.getInstance('TRACKS')
     return this.remuxer.remux(audioTrack, videoTrack)
   }

@@ -42,6 +42,22 @@ export default class Mp4Box extends EventEmitter {
     }
   }
 
+  get videoMeta () {
+    return this._videoMeta
+  }
+
+  set videoMeta (meta) {
+    this._videoMeta = meta
+  }
+
+  get audioMeta () {
+    return this._audioMeta
+  }
+
+  set audioMeta (meta) {
+    this._audioMeta = meta
+  }
+
   destroy () {
     this._dtsBase = -1
     this._isDtsBaseInited = false

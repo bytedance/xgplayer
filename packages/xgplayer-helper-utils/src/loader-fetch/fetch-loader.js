@@ -49,7 +49,7 @@ class FetchLoader {
       this.abortController = new window.AbortController()
     }
     Object.assign(params, {signal: this.abortController ? this.abortController.signal : undefined})
-    let ts = performance.now()
+    let start = new Date().getTime()
     return Promise.race([
       fetch(url, params),
       new Promise((resolve, reject) => {
@@ -69,7 +69,12 @@ class FetchLoader {
         clearTimeout(timer)
         timer = null
       }
-      this.emit(LOADER_EVENTS.LOADER_TTFB, performance.now() - ts)
+      let end = new Date().getTime()
+      this.emit(LOADER_EVENTS.LOADER_TTFB, {
+        start,
+        end,
+        elapsed: end - start
+      })
       return response
     })
   }
