@@ -9,7 +9,7 @@ import Plugin, { pluginsManager, BasePlugin } from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
-import hooksDescriptor, { runHooks } from './plugin/hooksDescriptor'
+import hooksDescriptor, { runHooks, useHooks, usePluginHooks, hook } from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 
@@ -421,7 +421,6 @@ class Player extends VideoProxy {
    * @returns
    */
   _startInit (url) {
-    console.log('_startInit', url)
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
       XG_DEBUG.logWarn('config.url is null, please get url and run player._startInit(url)')
@@ -457,7 +456,6 @@ class Player extends VideoProxy {
         }))
       })
     } else {
-      console.log('this.video.src', url)
       this.video.src = url
     }
 
@@ -1376,6 +1374,37 @@ class Player extends VideoProxy {
   get cumulateTime () {
     const { acc, end, begin } = this._played
     return begin > -1 && end > begin ? (acc + end - begin) / 1000 : acc / 1000
+  }
+
+  /**
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param { {pre: Function| null , next: Function | null} } preset
+   * @returns
+   */
+  hook (hookName, handler, preset = { pre: null, next: null }) {
+    // eslint-disable-next-line no-return-assign
+    return hook.call(this, ...arguments)
+  }
+
+  /**
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param  {...any} [args]
+   */
+  useHooks (hookName, handler) {
+    useHooks.call(this, ...arguments)
+  }
+
+  /**
+   *
+   * @param { string } pluginName
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param  {...any} [args]
+   */
+  usePluginHooks (pluginName, hookName, handler, ...args) {
+    usePluginHooks.call(this, ...arguments)
   }
 
   /***

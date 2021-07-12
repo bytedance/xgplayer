@@ -121,7 +121,7 @@ class Proxy {
     }
 
     /**
-     * @type { HTMLMediaElement | HTMLElement | IVideoProxy | null }
+     * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IVideoProxy | null }
      */
     this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
 
@@ -400,7 +400,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { boolean }
    * */
   get ended () {
@@ -408,7 +407,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
    */
   get error () {
@@ -448,7 +446,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
    */
   get networkState () {
@@ -462,7 +459,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { boolean }
    */
   get paused () {
@@ -482,7 +478,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { TimeRanges }
    */
   get played () {
@@ -501,7 +496,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    */
   get readyState () {
     const status = [
@@ -514,7 +508,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { boolean }
    */
   get seekable () {
@@ -522,7 +515,6 @@ class Proxy {
   }
 
   /**
-   * @readonly
    * @type { boolean }
    */
   get seeking () {

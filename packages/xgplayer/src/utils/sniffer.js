@@ -1,3 +1,25 @@
+/**
+ * @typedef {{
+ *  device: 'pc' | 'mobile',
+ *  browser: 'ie' | 'firfox' | 'chrome' | 'opera' | 'safari',
+ *  os: {
+ *   isTablet: boolean,
+ *   isPhone: boolean,
+ *   isIpad: boolean,
+ *   isIos: boolean,
+ *   isAndroid: boolean,
+ *   isPc: boolean,
+ *   isSymbian: boolean,
+ *   isWindowsPhone: boolean,
+ *   isFireFox: boolean
+ *  },
+ *  isWeixin: boolean
+ * }} ISniffer
+ */
+
+/**
+ * @type ISniffer
+ */
 const sniffer = {
   get device () {
     const r = sniffer.os

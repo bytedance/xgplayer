@@ -911,7 +911,7 @@ declare module 'xgplayer' {
   }
 
   class Proxy extends EventEmitter {
-    video?: HTMLMediaElement | HTMLElement;
+    video?: HTMLVideoElement | HTMLAudioElement | HTMLElement;
 
     // 初始化时添加在video上的属性集合
     videoConfig?: {

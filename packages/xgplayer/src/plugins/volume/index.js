@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Util, Events, Sniffer, POSITIONS } from '../../plugin'
+import Plugin, { Util, Events, Sniffer, POSITIONS } from '../../plugin'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
@@ -40,7 +40,6 @@ class Volume extends Plugin {
   }
 
   afterCreate () {
-    hooksDescriptor(this)
     if (this.config.disable) {
       return
     }

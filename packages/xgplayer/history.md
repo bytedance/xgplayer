@@ -1,4 +1,9 @@
 # 版本更新记录
+## 3.0.0-alpha.91
+>* chore: (xgplayer) 删除src独立定义的d.ts文件，只保留proxy.d.ts
+>* feat: (xgplayer) 修改hook装饰器使用方式，在player和BasePlugin中显示声明hook相关API，便于d.ts文件生成
+>* chore: (xgplayer) 所有文件属性、api增加jsdoc，用于自动生成d.ts声明文件
+
 ## 3.0.0-alpha.90
 >* chore: babel.config.js替代.babelrc,解决lib目录下打包异常问题; version
 生成改成静态字符串替换方式

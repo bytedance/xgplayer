@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Events, Util } from '../../plugin'
+import Plugin, { Events, Util } from '../../plugin'
 
 export default class ErrorPlugin extends Plugin {
   static get pluginName () {
@@ -6,8 +6,6 @@ export default class ErrorPlugin extends Plugin {
   }
 
   afterCreate () {
-    hooksDescriptor(this)
-
     this.clickHandler = this.hook('errorRetry', this.errorRetry, {
       pre: (e) => {
         e.preventDefault()
