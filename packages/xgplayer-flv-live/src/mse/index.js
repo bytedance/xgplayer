@@ -276,7 +276,7 @@ class FlvPlayer extends BasePlugin {
     const context = new Context(this.player, this.config, flvAllowedEvents)
     let flv
     if (abr) {
-      const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER')
+      const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER').remuxer
       flv = context.registry('FLV_CONTROLLER', FLV)(this.mse, {
         remux: {
           _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited

@@ -37,7 +37,6 @@ class FlvPlayer extends BasePlugin {
     const { player } = this
     const preloadTime = player.config.preloadTime || this.config.preloadTime
     const innerDegrade = this.config.innerDegrade || player.config.innerDegrade
-    const mobilePluginName = FlvPlayer.pluginName.toLowerCase()
 
     if (player.video && innerDegrade) {
       player.video.setAttribute('innerdegrade', innerDegrade)
@@ -53,8 +52,9 @@ class FlvPlayer extends BasePlugin {
     if (!player.forceDegradeToVideo) {
       player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this)
     }
-
-    player.video.setDecodeMode(this.config.decodeMode)
+    if (player.video.setDecodeMode) {
+      player.video.setDecodeMode(this.config.decodeMode)
+    }
   }
 
   afterCreate () {
