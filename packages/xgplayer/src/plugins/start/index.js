@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Util, Events } from '../../plugin'
+import Plugin, { Util, Events } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
@@ -57,7 +57,6 @@ class Start extends Plugin {
 
   afterCreate () {
     const { player, playerConfig } = this
-    hooksDescriptor(this)
 
     this.initIcons()
     this.once(Events.READY, () => {

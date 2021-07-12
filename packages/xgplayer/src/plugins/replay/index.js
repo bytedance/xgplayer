@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Events, Util } from '../../plugin'
+import Plugin, { Events, Util } from '../../plugin'
 import ReplaySvg from '../assets/replay.svg'
 
 class Replay extends Plugin {
@@ -19,7 +19,6 @@ class Replay extends Plugin {
   }
 
   afterCreate () {
-    hooksDescriptor(this)
     Plugin.insert(this.icons.replay, this.root, 0)
     this.__handleReplay = this.hook('replayHandler', () => {
       this.player.replay()

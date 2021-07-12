@@ -72,12 +72,12 @@
  *     volumeColor?: string
  *   },
  *   [propName: string]: any; // 扩展定义
- * } } IPlayerConfigs
+ * } } IPlayerOptions
  */
 
 /**
  *
- * @returns IPlayerConfigs
+ * @returns IPlayerOptions
  */
 export default function getDefaultConfig () {
   return {

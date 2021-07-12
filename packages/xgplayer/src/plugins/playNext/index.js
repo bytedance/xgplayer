@@ -1,7 +1,7 @@
 /**
  * 下一个按钮组件
  */
-import Plugin, { hooksDescriptor, POSITIONS, Sniffer, Events } from '../../plugin'
+import Plugin, { POSITIONS, Sniffer, Events } from '../../plugin'
 import Next from '../assets/playNext.svg'
 
 export default class PlayNextIcon extends Plugin {
@@ -27,7 +27,6 @@ export default class PlayNextIcon extends Plugin {
     if (!this.config.urlList || this.config.urlList.length === 0) {
       return
     }
-    hooksDescriptor(this)
     this.appendChild('.xgplayer-icon', this.icons.playNext)
     this.initEvents()
   }

@@ -317,7 +317,7 @@ util.getBgImage = function (el) {
 /**
  *
  * @param {  HTMLElement } dom
- * @returns { HTMLElement || null }
+ * @returns { HTMLElement | null }
  */
 util.copyDom = function (dom) {
   if (dom && dom.nodeType === 1) {

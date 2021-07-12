@@ -6,7 +6,9 @@
     "src/*.d.ts"
   ],
   "compilerOptions": {
+    "module": "umd",
     "allowJs": true,
+    "outFile": "./types/es/index.js",
     "declaration": true,
     "emitDeclarationOnly": true,
     "experimentalDecorators": true,
