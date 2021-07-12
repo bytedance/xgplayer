@@ -203,14 +203,6 @@ class Plugin extends BasePlugin {
      * @readonly
      */
     this.icons = {}
-    /**
-     * @readonly
-     */
-    this.root = null
-    /**
-     * @readonly
-     */
-    this.parent = null
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
 
