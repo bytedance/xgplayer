@@ -1377,6 +1377,20 @@ class Player extends VideoProxy {
   }
 
   /**
+  * @type { number }
+  */
+  get zoom () {
+    return this.config.zoom
+  }
+
+  /**
+   * @type { number }
+   */
+  set zoom (value) {
+    this.config.zoom = value
+  }
+
+  /**
    * @param { string } hookName
    * @param { Function } handler
    * @param { {pre: Function| null , next: Function | null} } preset

@@ -705,4 +705,17 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
   return new XgplayerTimeRange(buffered2)
 }
 
+util.getEventPos = function (e, zoom = 1) {
+  return {
+    x: e.x / zoom,
+    y: e.y / zoom,
+    clientX: e.clientX / zoom,
+    clientY: e.clientY / zoom,
+    offsetX: e.offsetX / zoom,
+    offsetY: e.offsetY / zoom,
+    pageX: e.pageX / zoom,
+    pageY: e.pageY / zoom
+  }
+}
+
 export default util

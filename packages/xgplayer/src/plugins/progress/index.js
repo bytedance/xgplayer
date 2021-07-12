@@ -237,7 +237,8 @@ class Progress extends Plugin {
   onMoveOnly = (e) => {
     const { pos, config, player } = this
     Util.event(e)
-    const x = player.rotateDeg === 90 ? e.clientY : e.clientX
+    const _ePos = Util.getEventPos(e, player.zoom)
+    const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     if (pos.moving && Math.abs(pos.x - x) < config.miniMoveStep) {
       return
     }
@@ -254,7 +255,8 @@ class Progress extends Plugin {
 
   onMouseDown = (e) => {
     const { player, pos, config, playerConfig } = this
-    const x = player.rotateDeg === 90 ? e.clientY : e.clientX
+    const _ePos = Util.getEventPos(e, player.zoom)
+    const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
     }
@@ -345,7 +347,8 @@ class Progress extends Plugin {
       e.preventDefault()
     }
     Util.event(e)
-    const x = player.rotateDeg === 90 ? e.clientY : e.clientX
+    const _ePos = Util.getEventPos(e, player.zoom)
+    const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     const diff = Math.abs(pos.x - x)
     if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
       return
@@ -418,15 +421,16 @@ class Progress extends Plugin {
   computeTime (e) {
     const { player } = this
     const { width, height, top, left } = this.root.getBoundingClientRect()
+    const _ePos = Util.getEventPos(e, player.zoom)
     let rWidth, rLeft, clientX
     if (player.rotateDeg === 90) {
       rWidth = height
       rLeft = top
-      clientX = e.clientY
+      clientX = _ePos.clientY
     } else {
       rWidth = width
       rLeft = left
-      clientX = e.clientX
+      clientX = _ePos.clientX
     }
     let offset = clientX - rLeft
     offset = offset > rWidth ? rWidth : (offset < 0 ? 0 : offset)
