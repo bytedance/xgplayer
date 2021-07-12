@@ -336,6 +336,7 @@ class Player extends VideoProxy {
     this.onFullscreenChange = (event, isFullScreen) => {
       const fullEl = Util.getFullScreenEl()
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
+        this.video.focus()
         this.fullscreen = true
         // this.addClass(STATE_CLASS.FULLSCREEN)
         this.changeFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)

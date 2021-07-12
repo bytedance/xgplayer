@@ -44,6 +44,7 @@ export default class PCPlugin extends BasePlugin {
   }
 
   onMouseEnter = (e) => {
+    this.player.video.focus()
     if (this.playerConfig.closeDelayBlur) {
       this.emit(Events.PLAYER_FOCUS, { autoHide: false })
     } else {
