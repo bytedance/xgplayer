@@ -212,11 +212,22 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
+  /**
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param { {pre: Function| null , next: Function | null} } preset
+   * @returns
+   */
   hook (hookName, handler, preset = { pre: null, next: null }) {
     // eslint-disable-next-line no-return-assign
     return hook.call(this, ...arguments)
   }
 
+  /**
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param  {...any} [args]
+   */
   useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)
   }
