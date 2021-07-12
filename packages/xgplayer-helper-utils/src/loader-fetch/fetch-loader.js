@@ -18,6 +18,7 @@ class FetchLoader {
     this.readtype = this.configs.readtype
     this.buffer = this.configs.buffer || 'LOADER_BUFFER'
     this._loaderTaskNo = 0
+    this._ttfb = 0
     this._speed = new Speed()
     if (window.AbortController) {
       this.abortControllerEnabled = true
@@ -48,6 +49,7 @@ class FetchLoader {
       this.abortController = new window.AbortController()
     }
     Object.assign(params, {signal: this.abortController ? this.abortController.signal : undefined})
+    let ts = performance.now()
     return Promise.race([
       fetch(url, params),
       new Promise((resolve, reject) => {
@@ -67,6 +69,7 @@ class FetchLoader {
         clearTimeout(timer)
         timer = null
       }
+      this.emit(LOADER_EVENTS.LOADER_TTFB, performance.now() - ts)
       return response
     })
   }
