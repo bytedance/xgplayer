@@ -1,6 +1,6 @@
 /**
  * @typedef { {
- *   id?: str, // 播放器容器id
+ *   id?: string, // 播放器容器id
  *   el?: HTMLElement, // 播放器容器dom
  *   url?: any, // 播放url
  *   nullUrlStart?: boolean, // 空url起播
@@ -12,12 +12,12 @@
  *   volume?: number | { [propName: string]: any }, // 默认音量
  *   autoplay?: number, // 是否自动播放
  *   autoplayMuted?: number, // 是否自动静音
- *   loop?: number, // 是否循环播放
+ *   loop?: boolean, // 是否循环播放
  *   videoInit?: number, // 是否优先显示视频首帧
  *   poster?: string | { [propName: string]: any }, // 封面图地址
  *   isMobileSimulateMode?: false, // 模拟状态,取值mobile/pc
  *   defaultPlaybackRate?: number, // 默认播放倍数
- *   execBeforePluginsCall?: Function, // 默认插件组装前回调
+ *   execBeforePluginsCall?: () => any, // 默认插件组装前回调
  *   allowSeekAfterEnded?: boolean, // 播放结束之后是否允许seek
  *   enableContextmenu?: boolean, // 启用右键菜单
  *   closeVideoClick?: boolean, // 是否通过video的click/touchend行为切换播放暂停
@@ -35,7 +35,7 @@
  *   miniprogress?: boolean, // 是否启用迷你控制栏
  *   disableSwipeHandler?: () => any,
  *   enableSwipeHandler?: () => any,
- *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>;, // 禁用插件列表
+ *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>, // 禁用插件列表
  *   inactive?: number, // 进度条自动消失延时
  *   lang?: string,
  *   controls?: boolean | { [propName: string]: any },
@@ -49,22 +49,22 @@
  *   keyShortcut?: boolean, // 是否开启快捷键
  *   presets?: any[],
  *   plugins?: any[]
- *   playbackRate?: number | { [propName: string]: any },
+ *   playbackRate?: number | Array<number> | { [propName: string]: any },
  *   playsinline?: boolean,
  *   customDuration?: number, // 用户自定义时长
  *   timeOffset?: number, // 当前时长偏移
- *   icons?: { [propName: string]: string | HTMLElement | Function }, // 按钮配置
+ *   icons?: { [propName: string]: string | HTMLElement | () => HTMLElement | string }, // 按钮配置
  *   i18n?: Array<any>,
  *   thumbnail?: {
- *     urls: Array<String>; // 有多张大图就多个url就好
- *     pic_num: Number; // 每张图含有几个雪碧图
- *     col: Number; // 截图列数
- *     row: Number; // 截图行数
- *     height?: Number; // 缩略图高度, 默认90
- *     width?: Number; // 缩略图宽度， 默认160
+ *     urls: Array<string>, // 有多张大图就多个url就好
+ *     pic_num: number, // 每张图含有几个雪碧图
+ *     col: number, // 截图列数
+ *     row: number, // 截图行数
+ *     height?: number, // 缩略图高度, 默认90
+ *     width?: number, // 缩略图宽度， 默认160
  *   },
- *   videoConfig?: { [propName: string]: any }
- *   commonStyle?: { // 用于配置一些通用样式结构
+ *   videoConfig?: { [propName: string]: any },
+ *   commonStyle?: {
  *     progressColor?: string, // 进度条底色
  *     playedColor?: string, // 播放完成部分进度条底色
  *     cachedColor?: string, // 缓存部分进度条底色
@@ -77,7 +77,7 @@
 
 /**
  *
- * @returns IPlayerOptions
+ * @returns { IPlayerOptions }
  */
 export default function getDefaultConfig () {
   return {
@@ -149,7 +149,7 @@ export default function getDefaultConfig () {
       progressColor: '', // 进度条底色
       playedColor: '', // 播放完成部分进度条底色
       cachedColor: '', // 缓存部分进度条底色
-      sliderBtnStyle: '', // 进度条滑块样式
+      sliderBtnStyle: {}, // 进度条滑块样式
       volumeColor: ''
     }
   }

@@ -591,8 +591,14 @@ declare module 'xgplayer' {
     // 需要使用的preset列表
     presets?: any[];
 
-    // video标签扩展属性
+    /**
+     * @deprecated
+     * 已经废弃，后续使用videoAttributes
+     */
     videoAttrbutes?: any;
+
+    // video标签扩展属性
+    videoAttributes?: any;
 
     // 按钮配置列表
     icons?: any;

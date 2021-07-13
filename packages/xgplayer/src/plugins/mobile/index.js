@@ -10,26 +10,26 @@ import SeekTipIcon from '../assets/seekicon.svg'
  *   disableGesture?: boolean, // 是否禁用手势
  *   gestureX?: boolean, // 是否启用水平手势
  *   gestureY?: boolean, // 是否启用垂直手势
- *   updateGesture?: Function, // 手势处理回调
- *   onTouchStart?: Function, // 手势开始移动回调
- *   onTouchEnd?: Function, // 手势移动结束回调
+ *   updateGesture?: () => any, // 手势处理回调
+ *   onTouchStart?: () => any, // 手势开始移动回调
+ *   onTouchEnd?: () => any, // 手势移动结束回调
  *   gradient?: 'normal' | 'none' | 'top' | 'bottom', // 是否启用阴影
  *   isTouchingSeek?: boolean, // 是否在touchMove的同时更新currentTime
  *   miniMoveStep?: number, // 最小差异，用于move节流
  *   miniYPer?: number, // y方向最小位移百分比
  *   scopeL?: number, // 左侧手势范围比例
- *   scopeR？: number, // 右侧手势范围比例scopeM: 0.9, // 中间手势范围比例
- *   pressRate？: number, // 长按快进倍速
- *   darkness？: boolean, // 是否启用右侧调暗功能
- *   maxDarkness？: number, // 调暗最大暗度，即蒙层最大透明度
- *   disableActive？: boolean, // 是否禁用时间面板
- *   disableTimeProgress？: boolean, // 是否禁用时间进度条
- *   hideControlsActive:？ boolean, // 手势拖动的时候是否隐控制栏
- *   hideControlsEnd？: boolean, // 手势结束的时候隐控制栏
- *   moveDuration？: number, // 视频区对应的时长
- *   closedbClick？: boolean, // 是否关闭双击手势
- *   disablePress？: boolean, // 是否关闭长按手势
- *   disableSeekIcon？: boolean, // 禁用seek按钮
+ *   scopeR?: number, // 右侧手势范围比例scopeM: 0.9, // 中间手势范围比例
+ *   pressRate?: number, // 长按快进倍速
+ *   darkness?: boolean, // 是否启用右侧调暗功能
+ *   maxDarkness?: number, // 调暗最大暗度，即蒙层最大透明度
+ *   disableActive?: boolean, // 是否禁用时间面板
+ *   disableTimeProgress?: boolean, // 是否禁用时间进度条
+ *   hideControlsActive?: boolean, // 手势拖动的时候是否隐控制栏
+ *   hideControlsEnd?: boolean, // 手势结束的时候隐控制栏
+ *   moveDuration?: number, // 视频区对应的时长
+ *   closedbClick?: boolean, // 是否关闭双击手势
+ *   disablePress?: boolean, // 是否关闭长按手势
+ *   disableSeekIcon?: boolean,
  *   [propName: string]: any
  * }} IMobileConfig
  */
@@ -47,7 +47,7 @@ class MobilePlugin extends Plugin {
   }
 
   /**
-   * @type IMobileConfig
+   * @type IMobileConfig & { [propName: string]: any}
    */
   static get defaultConfig () {
     return {
