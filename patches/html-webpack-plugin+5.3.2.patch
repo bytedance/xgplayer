@@ -1,0 +1,14 @@
+diff --git a/node_modules/html-webpack-plugin/index.js b/node_modules/html-webpack-plugin/index.js
+index 45f286a..97768de 100644
+--- a/node_modules/html-webpack-plugin/index.js
++++ b/node_modules/html-webpack-plugin/index.js
+@@ -742,7 +742,8 @@ function hookIntoCompiler (compiler, options, plugin) {
+       meta: { plugin: 'html-webpack-plugin' },
+       attributes: {
+         defer: options.scriptLoading !== 'blocking',
+-        src: scriptAsset
++        src: scriptAsset,
++        type: scriptAsset.endsWith('.mjs') ? 'module' : ''
+       }
+     }));
+   }
