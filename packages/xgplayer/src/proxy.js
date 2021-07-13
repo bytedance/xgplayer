@@ -210,14 +210,15 @@ class Proxy {
    * @description Media Error handler
    * @param { string } eventName
    */
-  errorHandler (name) {
-    if (this.video && this.video.error) {
+  errorHandler (name, error = null) {
+    if (this.video && (this.video.error || error)) {
+      const _e = this.video.error || error
       this.emit(name, new Errors('other', this.currentTime, this.duration, this.networkState, this.readyState, this.currentSrc, this.src,
         this.ended, {
           line: 162,
           msg: this.error,
           handle: 'Constructor'
-        }, this.video.error.code, this.video.error))
+        }, _e.code, _e))
     }
   }
 
