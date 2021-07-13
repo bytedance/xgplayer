@@ -20,9 +20,8 @@ export default class FlvController {
     this.bufferClearTimer = null
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
-    this._handleCanplayDot = this._handleCanplayDot.bind(this)
+    this._handleKeyFrame = this._handleKeyFrame.bind(this)
 
-    this._fftd = 0 // 首次转封装耗时统计
     this.mse = mse
     this.configs = configs || {}
   }
@@ -40,7 +39,7 @@ export default class FlvController {
 
   initComponents () {
     const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, RemuxedBufferManager, Compatibility, Logger } = this._pluginConfig
-    const { remux } = this.configs
+    const { remux: remuxConfig } = this.configs
 
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -48,10 +47,11 @@ export default class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
-    if (remux) {
-      Object.keys(remux).forEach(key => {
-        remuxer[key] = remux[key]
+    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime).remuxer
+    // 目的是abr场景下 按原来的baseDts进行新流的时间戳偏移. FIXME！
+    if (remuxConfig) {
+      Object.keys(remuxConfig).forEach(key => {
+        remuxer[key] = remuxConfig[key]
       })
     }
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
@@ -67,10 +67,6 @@ export default class FlvController {
     this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry.bind(this))
     this.on(LOADER_EVENTS.LOADER_TTFB, this._handleTTFB.bind(this))
 
-    // 统计demux -> remux -> appendBuffer耗时
-    this.once(LOADER_EVENTS.LOADER_DATALOADED, this._handleOnceDataLoadedDot.bind(this))
-    this._player.once('canplay', this._handleCanplayDot)
-
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
@@ -83,7 +79,7 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
-    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
@@ -98,17 +94,8 @@ export default class FlvController {
     this._player && this._player.emit('isKeyframe', pts)
   }
 
-  _handleTTFB (elapsed) {
-    this._player && this._player.emit('ttfb', Math.floor(elapsed))
-  }
-
-  _handleOnceDataLoadedDot () {
-    this._fftd = performance.now()
-  }
-
-  _handleCanplayDot () {
-    this._fftd = performance.now() - this._fftd
-    this._player && this._player.emit('ttfd', Math.floor(this._fftd))
+  _handleTTFB (info) {
+    this._player && this._player.emit('ttfb', info)
   }
 
   _handleLoaderDataLoaded () {
@@ -310,7 +297,6 @@ export default class FlvController {
 
   destroy () {
     this._player.off('timeupdate', this._handleTimeUpdate)
-    this._player.off('canplay', this._handleCanplayDot)
     this.mse = null
     this.state.randomAccessPoints = []
     if (this._timer) clearInterval(this._timer)
