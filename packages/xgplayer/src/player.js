@@ -489,6 +489,12 @@ class Player extends VideoProxy {
     this.hasStart = true
   }
 
+  /**
+   * 针对source列表播放方式添加错误监听
+   * @doc https://stackoverflow.com/questions/47557135/html5-detect-the-type-of-error-when-trying-to-load-a-video-using-a-source-elem
+   * @protected
+   * @param { HTMLVideoElement | HTMLAudioElement } video
+   */
   _attachSourceEvents (video) {
     const _c = video.children
     /**
@@ -516,6 +522,11 @@ class Player extends VideoProxy {
     }
   }
 
+  /**
+   * 移除source列表错误事件监听
+   * @protected
+   * @param { HTMLVideoElement | HTMLAudioElement } video
+   */
   _detachSourceEvents (video) {
     const _c = video.children
     if (_c.length === 0 || !this._sourceError) {
