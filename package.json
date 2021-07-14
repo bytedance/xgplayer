@@ -10,6 +10,8 @@
   "scripts": {
     "postinstall": "patch-package",
     "dev:hls": "yarn dev:base --env target=hls",
+    "dev:flv": "yarn dev:base --env target=flv",
+    "dev:dash": "yarn dev:base --env target=dash",
     "dev:base": "webpack serve --config ./scripts/webpack.dev.js",
     "bootstrap": "npm install & lerna bootstrap",
     "watch": "http-server --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",

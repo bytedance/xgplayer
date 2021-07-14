@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require('webpack')
 const { execSync } = require('child_process')
 const { version } = require('../packages/xgplayer/package.json')
+const dashVersion = require('../packages/xgplayer-dash/package.json').version
 
 const packagesDir = path.resolve(__dirname, '../packages')
 const fixtureDir = path.resolve(__dirname, '../fixtures')
@@ -90,6 +91,9 @@ module.exports = env => {
                 rules: [{
                   search: /__XGPLAYER_VERSION__/,
                   replace: JSON.stringify(version)
+                }, {
+                  search: /__XGPLAYER_DASH__/,
+                  replace: JSON.stringify(dashVersion)
                 }]
               }
             ]] } }]
