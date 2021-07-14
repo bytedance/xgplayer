@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-utils",
-  "version": "2.4.30",
+  "version": "2.4.31",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -28,6 +28,6 @@
   "license": "ISC",
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-helper-models": "2.4.30"
+    "xgplayer-helper-models": "2.4.31"
   }
 }

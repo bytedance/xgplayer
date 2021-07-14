@@ -409,7 +409,7 @@ class Compatibility {
         sample.dts = sample.pts = lastSample.dts + lastSample.duration
       }
       sample.duration = iRefSampleDuration
-      this.audioUnsyncTime = caculate.fixedFloat(this.audioUnsyncTime + unSyncDuration, 2)
+      this.audioUnsyncTime = this.audioUnsyncTime + unSyncDuration
       if (this.audioUnsyncTime >= 1) {
         sample.duration += 1
         this.audioUnsyncTime -= 1
