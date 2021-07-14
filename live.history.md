@@ -8,3 +8,7 @@
 >* feat (xgplayer-flv-live): 新增 fftb fftd 事件用于耗时统计
 
 ## live@3.0.0-alpha.121 + helper@2.4.31
+>* fix: (xgplayer-helper-codec) compat中对48000采样率音频的处理会导致累计误差，造成音画不同步
+>* chore: (xgplayer-flv-live) 去除 fftb事件,fftb事件对外暴露参数调整
+>* fix: (xgplayer-helper-transmuxers) remuxer模块重构对flv abr使用的影响
+
