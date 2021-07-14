@@ -7,6 +7,7 @@
 >* feat: (xgplayer) 进入全屏和pc端鼠标hover的时候添加焦点确保快捷键生效
 >* feat: (xgplayer) 增加播放质量数据采集logger插件
 >* feat: (xgplayer) 针对videoSource列表播放资源方式添加error监听
+>* feat: (xgplayer) 增加快捷键事件emit,事件名为SHORTCUT
 
 ## 3.0.0-alpha.91
 >* chore: (xgplayer) 删除src独立定义的d.ts文件，只保留proxy.d.ts
