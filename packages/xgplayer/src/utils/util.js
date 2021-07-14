@@ -705,6 +705,13 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
   return new XgplayerTimeRange(buffered2)
 }
 
+/**
+ * @description css中有zoom的时候，位移会等比缩放，但是元素的宽高不会等比缩放，所以通过该api做统一
+ * https://bugs.chromium.org/p/chromium/issues/detail?id=429140#c8
+ * @param {Events} e
+ * @param {number} zoom
+ * @returns
+ */
 util.getEventPos = function (e, zoom = 1) {
   return {
     x: e.x / zoom,

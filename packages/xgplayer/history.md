@@ -1,4 +1,13 @@
 # 版本更新记录
+## 3.0.0-alpha.92
+>* chore: (xgplayer) 修正类型注释错误导致d.ts导出异常问题
+>* feat: (xgplayer) 增加zoom配置参数，用于兼容父节点css设置了zoom导致计算异常问题 https://bugs.chromium.org/p/chromium/issues/detail?id=429140#c8
+>* fix:  (xgplayer) fullscreen插件中orientationchange事件销毁移除
+>* fix:  (xgplayer) start和loading增加inner层，解决定位和动效都使用transform在ios上异常问题
+>* feat: (xgplayer) 进入全屏和pc端鼠标hover的时候添加焦点确保快捷键生效
+>* feat: (xgplayer) 增加播放质量数据采集logger插件
+>* feat: (xgplayer) 针对videoSource列表播放资源方式添加error监听
+
 ## 3.0.0-alpha.91
 >* chore: (xgplayer) 删除src独立定义的d.ts文件，只保留proxy.d.ts
 >* feat: (xgplayer) 修改hook装饰器使用方式，在player和BasePlugin中显示声明hook相关API，便于d.ts文件生成
