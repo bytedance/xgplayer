@@ -1,9 +1,6 @@
-import Flv from '/main.mjs';
-import Player from '/player.mjs'
-
-const player = new Player({
+const player = new window.xgplayer.default({
   id: 'video',
-  plugins: [...new Flv({ isLive: true }).plugins],
+  plugins: [...new window['xgplayer-flv']({ isLive: true }).plugins],
   url: 'https://pull-flv-l6.ixigua.com/game/stream-109134749158080942.flv',
   ignores: ['playbackrate','cssFullScreen'],
   loop: false,
@@ -11,4 +8,3 @@ const player = new Player({
   preloadTime:20,
   width: "100%",
 });
-

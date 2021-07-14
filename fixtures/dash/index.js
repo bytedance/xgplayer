@@ -1,9 +1,6 @@
-import Dash from '/main.mjs';
-import Player from '/player.mjs'
-
-const player = new Player({
+const player = new window.xgplayer.default({
   id: 'video',
-  plugins: [Dash],
+  plugins: [window['xgplayer-dash']],
   url: 'https://cmafref.akamaized.net/cmaf/live-ull/2006350/akambr/out.mpd',
   ignores: ['playbackrate','cssFullScreen'],
   loop: false,
