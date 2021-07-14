@@ -15,6 +15,9 @@
   },
   "author": "",
   "license": "ISC",
+  "unpkgFiles": [
+    "dist"
+  ],
   "dependencies": {
     "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.16",
     "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.16",
