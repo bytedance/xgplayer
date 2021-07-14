@@ -61,3 +61,5 @@ export const SCREEN_SHOT = 'screenShot'
 
 // play next
 export const PLAYNEXT = 'playnext'
+
+export const SHORTCUT = 'shortcut'

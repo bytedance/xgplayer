@@ -1,4 +1,4 @@
-import { BasePlugin } from '../../plugin'
+import { BasePlugin, Events } from '../../plugin'
 /**
  * @typedef {{
  *   seekStep?: number, // 左/右快进每次操作时长
@@ -178,7 +178,7 @@ class Keyboard extends BasePlugin {
       e.preventDefault()
       e.cancelBubble = true
       e.returnValue = false
-      this.handleKeyCode(keyCode)
+      this.handleKeyCode(keyCode, event)
       return false
     }
     return false
@@ -188,47 +188,33 @@ class Keyboard extends BasePlugin {
     if (this.config.disable) {
       return
     }
-    const player = this.player
     const e = event || window.event
     if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
-      player.emit('focus')
       e.preventDefault()
       e.cancelBubble = true
       e.returnValue = false
     } else {
       return true
     }
-    this.handleKeyCode(e.keyCode)
+    this.handleKeyCode(e.keyCode, event)
   }
 
-  handleKeyCode (keyCode) {
-    const { player } = this
-    if (keyCode === 40 || keyCode === 38) {
-      if (player.controls) {
-        // let volumeSlider = player.controls.querySelector('.xgplayer-slider')
-        // if (volumeSlider) {
-        //   if (Util.hasClass(volumeSlider, 'xgplayer-none')) {
-        //     Util.removeClass(volumeSlider, 'xgplayer-none')
-        //   }
-        //   if (player.sliderTimer) {
-        //     clearTimeout(player.sliderTimer)
-        //   }
-        //   player.sliderTimer = setTimeout(function () {
-        //     Util.addClass(volumeSlider, 'xgplayer-none')
-        //   }, player.config.inactive)
-        // }
-      }
-    }
+  handleKeyCode (curKeyCode, event) {
     Object.keys(this.keyCodeMap).map(key => {
-      if (this.keyCodeMap[key].keyCode === keyCode && !this.keyCodeMap[key].disable) {
-        if (typeof this.keyCodeMap[key].action === 'function') {
-          this.keyCodeMap[key].action()
-        } else if (typeof this.keyCodeMap[key].action === 'string') {
-          const funKey = this.keyCodeMap[key].action
-          if (typeof this[funKey] === 'function') {
-            this[funKey]()
+      const { action, keyCode, disable } = this.keyCodeMap[key]
+      if (keyCode === curKeyCode && !disable) {
+        if (typeof action === 'function') {
+          action()
+        } else if (typeof action === 'string') {
+          if (typeof this[action] === 'function') {
+            this[action]()
           }
         }
+        this.emit(Events.SHORTCUT, {
+          key: key,
+          target: event.target,
+          ...this.keyCodeMap[key]
+        })
       }
     })
   }
