@@ -12,7 +12,8 @@
  *   volume?: number | { [propName: string]: any }, // 默认音量
  *   autoplay?: number, // 是否自动播放
  *   autoplayMuted?: number, // 是否自动静音
- *   loop?: boolean, // 是否循环播放
+ *   loop?: number, // 是否循环播放
+ *   zoom?: number, // 缩放比例
  *   videoInit?: number, // 是否优先显示视频首帧
  *   poster?: string | { [propName: string]: any }, // 封面图地址
  *   isMobileSimulateMode?: false, // 模拟状态,取值mobile/pc
@@ -94,6 +95,7 @@ export default function getDefaultConfig () {
     autoplay: false, // 是否自动播放
     autoplayMuted: false, // 是否自动静音
     loop: false, // 是否循环播放
+    zoom: 1, // 缩放比例
     videoInit: true, // 是否优先显示视频首帧
     poster: '', // 封面图地址
     isMobileSimulateMode: false, // 模拟状态,取值mobile/pc

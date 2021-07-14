@@ -118,8 +118,8 @@ class Start extends Plugin {
 
   initIcons () {
     const { icons } = this
-    this.appendChild(icons.startPlay)
-    this.appendChild(icons.startPause)
+    this.appendChild('xg-start-inner', icons.startPlay)
+    this.appendChild('xg-start-inner', icons.startPause)
   }
 
   hide () {
@@ -224,6 +224,7 @@ class Start extends Plugin {
     const className = this.playerConfig.autoplay ? (this.config.mode === 'auto' ? 'auto-hide' : 'hide') : ''
     return `
     <xg-start class="xgplayer-start ${className}">
+    <xg-start-inner></xg-start-inner>
     </xg-start>`
   }
 }

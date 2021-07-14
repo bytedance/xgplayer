@@ -19,12 +19,13 @@ class Loading extends Plugin {
   }
 
   afterCreate () {
-    this.appendChild(this.icons.loadingIcon)
+    this.appendChild('xg-loading-inner', this.icons.loadingIcon)
   }
 
   render () {
     return `
     <xg-loading class="xgplayer-loading">
+      <xg-loading-inner></xg-loading-inner>
     </xg-loading>`
   }
 }

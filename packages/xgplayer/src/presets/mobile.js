@@ -1,3 +1,4 @@
+import Xglogger from '../plugins/logger'
 import Replay from '../plugins/replay'
 import Poster from '../plugins/poster'
 import Start from '../plugins/start'
@@ -28,7 +29,7 @@ export default class DefaultPreset {
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, MiniProgress]
 
-    this.plugins = [...contolsIcons, ...layers]
+    this.plugins = [Xglogger, ...contolsIcons, ...layers]
     this.ignores = []
     this.i18n = [ZH]
     // this.icons = {

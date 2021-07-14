@@ -1,5 +1,6 @@
 import sniffer from '../utils/sniffer'
 // import Danmu from '../plugins/danmu'
+import Xglogger from '../plugins/logger'
 import Replay from '../plugins/replay'
 import Poster from '../plugins/poster'
 import Start from '../plugins/start'
@@ -41,7 +42,7 @@ export default class DefaultPreset {
 
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview, DynamicBg]
 
-    this.plugins = [...contolsIcons, ...layers]
+    this.plugins = [Xglogger, ...contolsIcons, ...layers]
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':

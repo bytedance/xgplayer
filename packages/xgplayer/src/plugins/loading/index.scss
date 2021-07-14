@@ -2,19 +2,19 @@
 
 @keyframes loadingRotate {
   0% {
-    transform: translate(-50%, -50%) rotate(0);
+    transform: rotate(0);
   }
   25% {
-    transform: translate(-50%, -50%) rotate(90deg);
+    transform: rotate(90deg);
   }
   50% {
-    transform: translate(-50%, -50%) rotate(180deg);
+    transform: rotate(180deg);
   }
   75% {
-    transform: translate(-50%, -50%) rotate(270deg);
+    transform: rotate(270deg);
   }
   100% {
-    transform: translate(-50%, -50%) rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 @keyframes loadingDashOffset {
@@ -24,6 +24,13 @@
   100% {
     stroke-dashoffset: 0;
   }
+}
+xg-loading-inner {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: center;
+  animation: loadingRotate 1s 0.1s linear infinite;
 }
 .xgplayer-loading {
   display: none;
@@ -37,8 +44,6 @@
   top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  transform-origin: center;
-  animation: loadingRotate 1s linear infinite;
   svg {
     width: 100%;
     height: 100%;

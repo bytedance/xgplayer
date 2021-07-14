@@ -2,6 +2,7 @@ import Plugin, { Util, Events, Sniffer, POSITIONS } from '../../plugin'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
+
 /**
  * @typedef {{
  *   position?: string, // [可选]插件挂载的dom
@@ -83,23 +84,26 @@ class Volume extends Plugin {
   }
 
   onBarMousedown (e) {
+    const { player } = this
     const slider = this.find('.xgplayer-slider')
     const bar = this.find('.xgplayer-bar')
     slider.focus()
     Util.event(e)
 
     const barRect = bar.getBoundingClientRect()
-    const pos = { x: e.clientX, y: e.clientY }
-    const height = barRect.height - (e.clientY - barRect.top)
+    const _ePos = Util.getEventPos(e, player.zoom)
+    const pos = { x: _ePos.clientX, y: _ePos.clientY }
+    const height = barRect.height - (_ePos.clientY - barRect.top)
     this.updateVolumePos(height)
 
-    this.isMoveing = false
+    this.isMoving = false
     const onMove = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      this.isMoveing = true
-      const w = height - e.clientY + pos.y
+      const _ePos = Util.getEventPos(e, player.zoom)
+      this.isMoving = true
+      const w = height - _ePos.clientY + pos.y
       if (w > barRect.height) {
         return
       }
@@ -114,7 +118,7 @@ class Volume extends Plugin {
       window.removeEventListener('touchmove', onMove)
       window.removeEventListener('mouseup', onUp)
       window.removeEventListener('touchend', onUp)
-      this.isMoveing = false
+      this.isMoving = false
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('touchmove', onMove)
@@ -167,7 +171,7 @@ class Volume extends Plugin {
 
   onVolumeChange () {
     const { muted, volume } = this.player
-    if (!this.isMoveing) {
+    if (!this.isMoving) {
       this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '0px' : `${volume * 100}%`
     }
     this.animate(muted, volume)

@@ -79,15 +79,20 @@ export default class Fullscreen extends Plugin {
       })
     }
     if (Sniffer.device === 'mobile') {
-      window.addEventListener('orientationchange', () => {
-        if (this.player.fullscreen && this.config.rotateFullscreen) {
-          if (window.orientation === 90 || window.orientation === -90) {
-            this.setRotateDeg(0)
-          } else {
-            this.setRotateDeg(90)
-          }
-        }
-      })
+      window.addEventListener('orientationchange', this._onOrientationChange)
+    }
+  }
+
+  /**
+   * @private
+   */
+  _onOrientationChange = (e) => {
+    if (this.player.fullscreen && this.config.rotateFullscreen) {
+      if (window.orientation === 90 || window.orientation === -90) {
+        this.setRotateDeg(0)
+      } else {
+        this.setRotateDeg(90)
+      }
     }
   }
 
@@ -103,6 +108,9 @@ export default class Fullscreen extends Plugin {
 
   destroy () {
     this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.handleFullscreen)
+    if (Sniffer.device === 'mobile') {
+      window.removeEventListener('orientationchange', this._onOrientationChange)
+    }
   }
 
   initIcons () {

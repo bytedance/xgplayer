@@ -3,24 +3,29 @@
 .xgplayer {
   @keyframes playPause {
     0%{
-      transform:translate(-50%, -50%) scale(1);
+      transform: scale(1);
       opacity:1;
     }
     99%{
-      transform:translate(-50%, -50%) scale(1.3);
+      transform: scale(1.3);
       opacity:0;
     }
     to {
-      transform:translate(-50%, -50%) scale(1);
+      transform: scale(1);
       opacity:0;
     }
+  }
+  xg-start-inner {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 50%;
+    background: $startBgColor;
   }
   .xgplayer-start {
     width: 70px;
     height: 70px;
-    border-radius: 50%;
-    background: $startBgColor;
-    overflow: hidden;
     position: absolute;
     left: 50%;
     top: 50%;
@@ -56,7 +61,9 @@
       }
     }
     &.interact {
-      animation: playPause .4s ease-out forwards;
+      xg-start-inner {
+        animation: playPause .4s 0.1s ease-out forwards;
+      }
       display: block;
     }
     &.hide {
@@ -67,11 +74,13 @@
     }
   }
   &.xgplayer-mobile {
+    xg-start-inner {
+      background: initial;
+      border-radius: 0;
+    }
     .xgplayer-start {
       height: 50px;
       width: 50px;
-      background: initial;
-      border-radius: 0;
       &:hover{
         opacity: 1;
       }

@@ -336,6 +336,7 @@ class Player extends VideoProxy {
     this.onFullscreenChange = (event, isFullScreen) => {
       const fullEl = Util.getFullScreenEl()
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
+        this.video.focus()
         this.fullscreen = true
         // this.addClass(STATE_CLASS.FULLSCREEN)
         this.changeFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)
@@ -455,6 +456,7 @@ class Player extends VideoProxy {
           type: `${item.type || ''}`
         }))
       })
+      this._attachSourceEvents(this.video)
     } else {
       this.video.src = url
     }
@@ -485,6 +487,53 @@ class Player extends VideoProxy {
       pluginsManager.afterInit(this)
     }
     this.hasStart = true
+  }
+
+  /**
+   * 针对source列表播放方式添加错误监听
+   * @protected
+   * @param { HTMLVideoElement | HTMLAudioElement } video
+   */
+  _attachSourceEvents (video) {
+    const _c = video.children
+    /**
+     * @private
+     */
+    this._videoSourceCount = _c.length
+    /**
+     * @private
+     */
+    !this._sourceError && (this._sourceError = (e) => {
+      this._videoSourceCount--
+      if (this._videoSourceCount === 0) {
+        console.log('player.error', this.videoEventMiddleware.error)
+        if (this.videoEventMiddleware.error) {
+          this.videoEventMiddleware.error.call(this, e, () => {
+            this.errorHandler('error')
+          })
+        } else {
+          this.errorHandler('error', { code: 4, message: 'sources load error' })
+        }
+      }
+    })
+    for (let i = 0; i < _c.length; i++) {
+      _c[i].addEventListener('error', this._sourceError)
+    }
+  }
+
+  /**
+   * 移除source列表错误事件监听
+   * @protected
+   * @param { HTMLVideoElement | HTMLAudioElement } video
+   */
+  _detachSourceEvents (video) {
+    const _c = video.children
+    if (_c.length === 0 || !this._sourceError) {
+      return
+    }
+    for (let i = 0; i < _c.length; i++) {
+      _c[i].removeEventListener('error', this._sourceError)
+    }
   }
 
   /**
@@ -866,6 +915,7 @@ class Player extends VideoProxy {
       return
     }
     this._unbindEvents()
+    this._detachSourceEvents(this.video)
     // clearTimeout(this.waitTimer)
     // clearTimeout(this._errorTimer)
     Util.clearAllTimers(this)
@@ -923,7 +973,7 @@ class Player extends VideoProxy {
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
       this.pause()
-      this.src = this.config.url
+      this.src = this.currentSrc
       this.currentTime = cur
       this.play()
     })
@@ -1374,6 +1424,20 @@ class Player extends VideoProxy {
   get cumulateTime () {
     const { acc, end, begin } = this._played
     return begin > -1 && end > begin ? (acc + end - begin) / 1000 : acc / 1000
+  }
+
+  /**
+  * @type { number }
+  */
+  get zoom () {
+    return this.config.zoom
+  }
+
+  /**
+   * @type { number }
+   */
+  set zoom (value) {
+    this.config.zoom = value
   }
 
   /**
