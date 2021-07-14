@@ -491,6 +491,7 @@ class Player extends VideoProxy {
 
   /**
    * 针对source列表播放方式添加错误监听
+   * @doc https://stackoverflow.com/questions/47557135/html5-detect-the-type-of-error-when-trying-to-load-a-video-using-a-source-elem
    * @protected
    * @param { HTMLVideoElement | HTMLAudioElement } video
    */
