@@ -24,6 +24,9 @@
   ],
   "author": "fuyuhao@bytedance.com",
   "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
   "dependencies": {
     "xgplayer-flv-live": "3.0.0-alpha.16",
     "xgplayer-flv-vod": "file:../xgplayer-flv-vod"

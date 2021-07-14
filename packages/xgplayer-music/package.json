@@ -21,7 +21,6 @@
     "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org"
   },
   "unpkgFiles": [
-    "browser",
     "dist"
   ],
   "repository": {

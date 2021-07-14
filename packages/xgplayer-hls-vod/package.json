@@ -16,6 +16,9 @@
   },
   "author": "",
   "license": "ISC",
+  "unpkgFiles": [
+    "dist"
+  ],
   "dependencies": {
     "xgplayer-helper-codec": "2.4.30",
     "xgplayer-helper-models": "2.4.30",
