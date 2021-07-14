@@ -28,6 +28,9 @@
     "player",
     "video"
   ],
+  "unpkgFiles": [
+    "dist"
+  ],
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
