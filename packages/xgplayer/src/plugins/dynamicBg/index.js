@@ -190,6 +190,9 @@ class DynamicBg extends Plugin {
     const { width, height } = this.canvas.getBoundingClientRect()
     let image = new window.Image()
     image.onload = () => {
+      if (!this.canvas) {
+        return
+      }
       this.canvas.height = height
       this.canvas.width = width
       this.update(image, image.width, image.height)
