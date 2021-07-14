@@ -7,7 +7,7 @@ import PauseSvg from '../assets/pause.svg'
  *  isShowPause?: boolean, // 暂停是否常驻
  *  isShowEnd?: boolean, // 播放结束常驻
  *  disableAnimate?: boolean, // 禁用点击动画
- *  mode?: 'hide' | 'show' | 'auto // 控制模式: hide 常驻: show 跟随：auto
+ *  mode?: 'hide' | 'show' | 'auto' // 控制模式: hide 常驻: show 跟随：auto
  *  [propName: string]: any
  * }} IStartConfig
  */
