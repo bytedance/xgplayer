@@ -9,7 +9,7 @@ import ExitFullScreenSvg from '../assets/exitFull.svg'
  *   index?: number,
  *   useCssFullscreen?: boolean, //是否启用页面全屏实现
  *   rotateFullscreen?: boolean, ////是否启用旋转全屏
- *   switchCallback?: null | Function, // 自定义切换函数
+ *   switchCallback?: null | () => any, // 自定义切换函数
  *   target?: null | HTMLElement, // 触发元素
  *   disable?: boolean,
  *   needBackIcon?: boolean, // 全屏退出是否启用左上角返回按钮

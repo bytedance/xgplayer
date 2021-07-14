@@ -12,8 +12,8 @@ import InnerList from './innerList'
  *   fragments?: Array<{percent: number}>,
  *   miniMoveStep?: number,
  *   miniStartStep?: number,
- *   onMoveStart?: Function, // 手势开始移动回调,
- *   onMoveEnd?: Function, // 手势移动结束回调
+ *   onMoveStart?: () => any, // 手势开始移动回调,
+ *   onMoveEnd?: () => any, // 手势移动结束回调
  *   [propName: string]: any
  * }} IProgressConfig
  */
