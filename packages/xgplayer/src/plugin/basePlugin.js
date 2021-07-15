@@ -212,6 +212,28 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
+  emitUserAction (event, action, params = {}) {
+    if (!action || !event) {
+      return
+    }
+    const eventType = Util.typeOf(event) === 'String' ? event : (event.type || '')
+
+    if (action === 'switch_play_pause') {
+      Util.typeOf(params.paused) === 'Undefined' && (params.paused = this.player.paused)
+      params.isFirstStart = !this.player.playing
+    }
+    this.emit(Events.USER_ACTION, {
+      eventType,
+      action,
+      pluginName: this.pluginName,
+      currentTime: this.player.currentTime,
+      duration: this.player.duration,
+      ended: this.player.ended,
+      target: event.target || null,
+      ...params
+    })
+  }
+
   /**
    * @param { string } hookName
    * @param { Function } handler

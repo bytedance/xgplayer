@@ -335,6 +335,19 @@ class Player extends VideoProxy {
      */
     this.onFullscreenChange = (event, isFullScreen) => {
       const fullEl = Util.getFullScreenEl()
+      if (this._fullActionFrom) {
+        this._fullActionFrom = ''
+      } else {
+        // 快捷键触发
+        this.emit(Events.USER_ACTION, {
+          eventType: 'system',
+          action: 'switch_fullscreen',
+          pluginName: 'player',
+          currentTime: this.currentTime,
+          duration: this.duration,
+          fullscreen: this.fullscreen
+        })
+      }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         this.video.focus()
         this.fullscreen = true
@@ -1045,6 +1058,10 @@ class Player extends VideoProxy {
     //   root.removeAttribute('style')
     // }
     this._fullscreenEl = el
+    /**
+     * @private
+     */
+    this._fullActionFrom = 'get'
     for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
       const key = GET_FULLSCREEN_API[i]
       if (el[key]) {
@@ -1075,6 +1092,7 @@ class Player extends VideoProxy {
     if (el) {
       el = root
     }
+    this._fullActionFrom = 'exit'
     for (let i = 0; i < EXIT_FULLSCREEN_API.length; i++) {
       const key = EXIT_FULLSCREEN_API[i]
       if (document[key]) {

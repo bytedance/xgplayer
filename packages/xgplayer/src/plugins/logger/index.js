@@ -133,7 +133,7 @@ export default class Xglogger extends BasePlugin {
   emitLog (eventType, data) {
     const { player } = this
     // console.log('>>>emitLog', `eventType:${eventType}`, data)
-    this.emit('xglog', {
+    this.emit(Events.XGLOG, {
       eventType,
       currentTime: this.player.currentTime,
       readyState: player.video.readyState,
