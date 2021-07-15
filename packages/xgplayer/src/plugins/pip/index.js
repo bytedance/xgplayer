@@ -118,9 +118,11 @@ class PIP extends Plugin {
     e.stopPropagation()
     if (this.isPip) {
       this.exitPIP()
+      this.emitUserAction(e, 'change_pip', { from: 'pip', to: 'normal' })
       this.setAttr('data-state', 'normal')
     } else if (this.player.video.readyState === 4) {
       this.requestPIP()
+      this.emitUserAction(e, 'change_pip', { from: 'normal', to: 'pip' })
       this.setAttr('data-state', 'pip')
     }
   }

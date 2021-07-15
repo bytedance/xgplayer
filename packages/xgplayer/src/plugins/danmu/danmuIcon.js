@@ -13,7 +13,7 @@ class DanmuIcon extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 11,
-      onSwitch: (state) => {
+      onSwitch: (event, state) => {
       }
     }
   }
@@ -57,7 +57,7 @@ class DanmuIcon extends Plugin {
     const state = this.root.getAttribute('data-state')
     const isOpen = state === 'active'
     this.switchState(!isOpen)
-    this.config.onSwitch && this.config.onSwitch(!isOpen)
+    this.config.onSwitch && this.config.onSwitch(e, !isOpen)
   }
 
   show () {
