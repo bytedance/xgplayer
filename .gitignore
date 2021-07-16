@@ -85,3 +85,7 @@ examples/
 
 #http-server cert
 *.pem
+
+fixtures/*/main.js
+fixtures/*/player.css
+fixtures/*/player.js
