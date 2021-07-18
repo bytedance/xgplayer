@@ -175,7 +175,7 @@ export default class FlvController {
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
+    this.emit(LOADER_EVENTS.LOADER_START, url, {}, retryCount, retryDelay)
   }
 
   pause () {

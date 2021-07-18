@@ -151,7 +151,7 @@ class TsDemuxer extends EventEmitter {
       id: 2,
       sampleRateIndex: pes.ES.frequencyIndex
     })
-    meta.refSampleDuration = Math.floor(1024 / meta.audioSampleRate * meta.timescale)
+    meta.refSampleDuration = 1024 / meta.audioSampleRate * meta.timescale
 
     let metaEqual = TsDemuxer.compareMeta(this.audioTrack.meta, meta, true)
 
@@ -229,7 +229,7 @@ class TsDemuxer extends EventEmitter {
         meta.presentHeight = sps.sps.present_size.height
         meta.presentWidth = sps.sps.present_size.width
         meta.profile = sps.sps.profile_string
-        meta.refSampleDuration = Math.floor(meta.timescale * (sps.sps.frame_rate.fps_den / sps.sps.frame_rate.fps_num))
+        meta.refSampleDuration = meta.timescale * (sps.sps.frame_rate.fps_den / sps.sps.frame_rate.fps_num)
         meta.sarRatio = sps.sps.sar_ratio ? sps.sps.sar_ratio : sps.sps.par_ratio
       } else if (nal.pps) {
         meta.pps = nal.body
@@ -884,16 +884,8 @@ class TsDemuxer extends EventEmitter {
          (pts[4] & 0xfe) / 2
          // 不经过任何处理的原始的pts
         ret.purePts = p
-        buffer.dataview.position -= 5
+        ret.pts = p
         pts = []
-
-        next = buffer.readUint8()
-        pts.push(next >>> 1 & 0x07)
-        next = buffer.readUint16()
-        pts.push(next >>> 1)
-        next = buffer.readUint16()
-        pts.push(next >>> 1)
-        ret.pts = (pts[0] << 30 | pts[1] << 15 | pts[2])
         N1 -= 5
 
         // 视频如果没有dts用pts
@@ -903,13 +895,18 @@ class TsDemuxer extends EventEmitter {
 
         if (ret.ptsDTSFlag === 3) {
           let dts = []
-          next = buffer.readUint8()
-          dts.push(next >>> 1 & 0x07)
-          next = buffer.readUint16()
-          dts.push(next >>> 1)
-          next = buffer.readUint16()
-          dts.push(next >>> 1)
-          ret.dts = (dts[0] << 30 | dts[1] << 15 | dts[2])
+          dts.push(buffer.readUint8())
+          dts.push(buffer.readUint8())
+          dts.push(buffer.readUint8())
+          dts.push(buffer.readUint8())
+          dts.push(buffer.readUint8())
+
+          let d = (dts[0] & 0x0e) * 536870912 + // 1 << 29
+          (dts[1] & 0xff) * 4194304 + // 1 << 22
+          (dts[2] & 0xfe) * 16384 + // 1 << 14
+          (dts[3] & 0xff) * 128 + // 1 << 7
+          (dts[4] & 0xfe) / 2
+          ret.dts = d
           N1 -= 5
         }
 

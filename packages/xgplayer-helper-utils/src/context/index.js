@@ -208,6 +208,28 @@ class Context {
         }
       }
 
+      emitCoreEvent (eventName, ...eventInfo) {
+        if (!this._player) return
+
+        this._player.emit('core_event',
+          {
+            type: eventName,
+            data: eventInfo
+          })
+      }
+
+      // 内部模块间的事件直接转换成外部事件
+      connectEvent (innerEventName, outEventName) {
+        if (!this._player) return
+
+        this.on(innerEventName, (...info) => {
+          this._player.emit('core_event', {
+            type: outEventName,
+            data: info
+          })
+        })
+      }
+
       /**
        * 在组件销毁时，默认将它注册的事件全部卸载，确保不会造成内存泄漏
        */

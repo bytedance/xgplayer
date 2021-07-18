@@ -4,6 +4,8 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
+const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
+const CORE_EVENTS = EVENTS.CORE_EVENTS
 
 const Tag = 'FLVController'
 
@@ -47,7 +49,11 @@ export default class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime).remuxer
+    const remuxerWrapper = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
+
+    remuxerWrapper.setStreamProtocol('flv')
+
+    const remuxer = remuxerWrapper.remuxer
     // 目的是abr场景下 按原来的baseDts进行新流的时间戳偏移. FIXME！
     if (remuxConfig) {
       Object.keys(remuxConfig).forEach(key => {
@@ -65,7 +71,6 @@ export default class FlvController {
     this.on(LOADER_EVENTS.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this))
     this.on(LOADER_EVENTS.LOADER_ERROR, this._handleNetworkError.bind(this))
     this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry.bind(this))
-    this.on(LOADER_EVENTS.LOADER_TTFB, this._handleTTFB.bind(this))
 
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
@@ -79,7 +84,21 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
+
+    // 单独处理，插件层initFlvBackupEvents中会有销毁操作
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
+
+    // emit to out
+    this.connectEvent(LOADER_EVENTS.LOADER_START, CORE_EVENTS.LOADER_START)
+    this.connectEvent(LOADER_EVENTS.LOADER_COMPLETE, CORE_EVENTS.LOADER_COMPLETE)
+    this.connectEvent(LOADER_EVENTS.LOADER_RETRY, CORE_EVENTS.LOADER_RETRY)
+    this.connectEvent(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, CORE_EVENTS.LOADER_RESPONSE_HEADERS)
+    this.connectEvent(LOADER_EVENTS.LOADER_TTFB, CORE_EVENTS.TTFB)
+    this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
+    this.connectEvent(DEMUX_EVENTS.DEMUX_ERROR, CORE_EVENTS.DEMUX_ERROR)
+    this.connectEvent(DEMUX_EVENTS.METADATA_PARSED, CORE_EVENTS.METADATA_PARSED)
+    this.connectEvent(REMUX_EVENTS.REMUX_METADATA, CORE_EVENTS.REMUX_METADATA)
+    this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
@@ -90,24 +109,12 @@ export default class FlvController {
     }
   }
 
-  _handleKeyFrame (pts) {
-    this._player && this._player.emit('isKeyframe', pts)
-  }
-
-  _handleTTFB (info) {
-    this._player && this._player.emit('ttfb', info)
-  }
-
   _handleLoaderDataLoaded () {
     this.emitTo('FLV_DEMUXER', DEMUX_EVENTS.DEMUX_START)
   }
 
   _handleMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
-  }
-
-  _handleSEIParsed (sei) {
-    this._player.emit('SEI_PARSED', sei)
   }
 
   _handleDemuxComplete () {
@@ -205,6 +212,54 @@ export default class FlvController {
     }
   }
 
+  _handleAddRAP (rap) {
+    if (this.state.randomAccessPoints) {
+      this.state.randomAccessPoints.push(rap)
+    }
+  }
+
+  seek () {
+    if (!this.state.initSegmentArrived) {
+      this.loadData()
+    }
+  }
+
+  loadData (url = this._player.config.url) {
+    if (!url) {
+      this._player.emit('error', {
+        code: '0',
+        errorType: 'network',
+        ex: `empty url`,
+        errd: {}
+      })
+      return
+    }
+    const { count: times, delay: delayTime } = this._player.config.retry || {}
+    // 兼容player.config上传入retry参数的逻辑
+    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
+    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
+
+    this.emit(LOADER_EVENTS.LOADER_START, url, {}, retryCount, retryDelay)
+  }
+
+  pause () {
+    const loader = this._context.getInstance('FETCH_LOADER')
+
+    if (loader) {
+      loader.cancel()
+    }
+  }
+
+  /** *********** 对外事件 ********************/
+
+  _handleSEIParsed (sei) {
+    this._player.emit('SEI_PARSED', sei)
+  }
+
+  _handleKeyFrame (pts) {
+    this.emitCoreEvent(CORE_EVENTS.KEYFRAME, pts)
+  }
+
   _handleNetworkError (tag, err) {
     this._player.emit('error', {
       code: err.code,
@@ -247,12 +302,6 @@ export default class FlvController {
     this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 
-  _handleAddRAP (rap) {
-    if (this.state.randomAccessPoints) {
-      this.state.randomAccessPoints.push(rap)
-    }
-  }
-
   _onError (type, mod, err, fatal) {
     let error = {
       code: err.code,
@@ -261,38 +310,6 @@ export default class FlvController {
       errorFatal: fatal || false
     }
     this._player.emit(FLV_ERROR, error)
-  }
-
-  seek () {
-    if (!this.state.initSegmentArrived) {
-      this.loadData()
-    }
-  }
-
-  loadData (url = this._player.config.url) {
-    if (!url) {
-      this._player.emit('error', {
-        code: '0',
-        errorType: 'network',
-        ex: `empty url`,
-        errd: {}
-      })
-      return
-    }
-    const { count: times, delay: delayTime } = this._player.config.retry || {}
-    // 兼容player.config上传入retry参数的逻辑
-    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
-    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
-  }
-
-  pause () {
-    const loader = this._context.getInstance('FETCH_LOADER')
-
-    if (loader) {
-      loader.cancel()
-    }
   }
 
   destroy () {

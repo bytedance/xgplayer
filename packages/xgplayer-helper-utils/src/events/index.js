@@ -6,7 +6,7 @@ const PLAYER_EVENTS = {
 }
 
 const LOADER_EVENTS = {
-  LADER_START: 'LOADER_START',
+  LOADER_START: 'LOADER_START',
   LOADER_DATALOADED: 'LOADER_DATALOADED',
   LOADER_COMPLETE: 'LOADER_COMPLETE',
   LOADER_RESPONSE_HEADERS: 'LOADER_RESPONSE_HEADERS',
@@ -53,6 +53,32 @@ const HLS_EVENTS = {
   RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
 }
 
+const COMPATIBILITY_EVENTS = {
+  EXCEPTION: 'EXCEPTION'
+}
+
+/**
+ * 对外抛出的非video原生事件, emit info:
+ * @typedef  {name: string, data: object} CustomCoreEvent
+ *
+ */
+const CORE_EVENTS = {
+  LOADER_START: 'core.loadstart',
+  LOADER_RESPONSE_HEADERS: 'loadresponseheaders',
+  LOADER_COMPLETE: 'core.loadcomplete',
+  TTFB: 'core.ttfb',
+  LOADER_RETRY: 'core.loadretry',
+  DEMUX_ERROR: 'core.demuxerror',
+  METADATA_PARSED: 'core.metadataparsed',
+  REMUX_METADATA: 'core.remuxmetadata',
+  KEYFRAME: 'core.keyframe',
+  BUFFER_APPENDED: 'core.bufferappended',
+  SEI_PARSED: 'core.seiparsed',
+  LOWDECODE: 'core.lowdecode',
+  LARGE_AVGAP: 'core.largeavgap',
+  STREAM_EXCEPTION: 'core.streamexception'
+}
+
 const CRYPTO_EVENTS = {
   START_DECRYPTOO: 'START_DECRYPTO',
   DECRYPTED: 'DECRYPTED'
@@ -85,5 +111,7 @@ export default {
   HlsAllowedEvents,
   CRYPTO_EVENTS,
   PLAYER_EVENTS,
-  BROWSER_EVENTS
+  BROWSER_EVENTS,
+  CORE_EVENTS,
+  COMPATIBILITY_EVENTS
 }

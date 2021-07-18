@@ -6,6 +6,8 @@ const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const HLS_EVENTS = EVENTS.HLS_EVENTS
 const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
+const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
+const CORE_EVENTS = EVENTS.CORE_EVENTS
 const HLS_ERROR = 'HLS_ERROR'
 
 const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g
@@ -15,14 +17,12 @@ class HlsLiveController {
     this.baseurl = ''
     this.sequence = 0
     this._playlist = null
-    this.m3u8FlushDuration = 4
+    this._m3u8FlushDuration = 4
     this.firstFramePts = -1
     this._m3u8lasttime = 0
     this._timmer = setInterval(this._checkStatus.bind(this), 300)
     this.m3u8Text = null
     this._downloadedFragmentQueue = []
-    this._onWaiting = this._onWaiting.bind(this)
-    this._onEnded = this._onEnded.bind(this)
   }
 
   init () {
@@ -74,8 +74,6 @@ class HlsLiveController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
 
-    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
-
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
@@ -84,21 +82,21 @@ class HlsLiveController {
 
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this))
 
-    this._player.on('waiting', this._onWaiting)
-    this._player.on('ended', this._onEnded)
+    // emit to out
+    this.connectEvent(LOADER_EVENTS.LOADER_START, CORE_EVENTS.LOADER_START)
+    this.connectEvent(LOADER_EVENTS.LOADER_COMPLETE, CORE_EVENTS.LOADER_COMPLETE)
+    this.connectEvent(LOADER_EVENTS.LOADER_RETRY, CORE_EVENTS.LOADER_RETRY)
+    this.connectEvent(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, CORE_EVENTS.LOADER_RESPONSE_HEADERS)
+    this.connectEvent(DEMUX_EVENTS.ISKEYFRAME, CORE_EVENTS.KEYFRAME)
+    this.connectEvent(LOADER_EVENTS.LOADER_TTFB, CORE_EVENTS.TTFB)
+    this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
+    this.connectEvent(DEMUX_EVENTS.DEMUX_ERROR, CORE_EVENTS.DEMUX_ERROR)
+    this.connectEvent(DEMUX_EVENTS.METADATA_PARSED, CORE_EVENTS.METADATA_PARSED)
+    this.connectEvent(REMUX_EVENTS.REMUX_METADATA, CORE_EVENTS.REMUX_METADATA)
+    this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
   }
 
-  _onError (type, mod, err, fatal) {
-    let error = {
-      code: err.code,
-      errorType: type,
-      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
-      errorFatal: fatal
-    }
-    this._player.emit(HLS_ERROR, error)
-  }
-
-  _onDemuxComplete (track1, track2) {
+  _onDemuxComplete () {
     if (this.firstFramePts === -1) {
       let tracks = this._context.getInstance('TRACKS')
       let samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0]
@@ -114,31 +112,6 @@ class HlsLiveController {
     }
   }
 
-  _handleKeyFrame (pts) {
-    this._player && this._player.emit('isKeyframe', pts)
-  }
-
-  _onWaiting () {
-    this._throwTrackChangeError()
-  }
-
-  _onEnded () {
-    this._throwTrackChangeError()
-  }
-
-  _throwTrackChangeError () {
-    if (!this._needRecreateMs) return
-
-    this._needRecreateMs = false
-    this._player.emit('error', {
-      code: 3,
-      errorType: 'parse',
-      ex: `decode error`,
-      errd: {}
-    })
-    this.destroy()
-  }
-
   _onMetadataParsed (type) {
     logger.warn(this.TAG, 'meta detect or changed , ', type)
     if (type === 'video') {
@@ -152,52 +125,6 @@ class HlsLiveController {
   _onMediaSegment () {
     this.mse.addSourceBuffers()
     this.mse.doAppend()
-  }
-
-  _onLoadError (loader, error) {
-    this._player.pause()
-    this._player.emit('error', {
-      code: error.code,
-      errorType: 'network',
-      ex: `[${loader}]: ${error.message}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true)
-    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
-    this.destroy()
-  }
-
-  _onDemuxError (mod, error, fatal) {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${mod}]: ${error ? error.message : ''}`,
-      errd: {}
-    })
-    this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal)
-  }
-
-  _onRemuxError (mod, error, fatal) {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
-  }
-
-  _handleMseError (tag, err, fatal) {
-    if (fatal === undefined) {
-      fatal = false
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${tag}]: ${err ? err.message : ''}`,
-      errd: {}
-    })
-    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 
   _handleSEIParsed (sei) {
@@ -250,7 +177,7 @@ class HlsLiveController {
         // 兼容player.config上传入retry参数的逻辑
         const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
         const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
       } else {
         this._m3u8Loaded(mdata)
       }
@@ -280,18 +207,12 @@ class HlsLiveController {
     }
   }
 
-  _handleFetchRetry (tag, info) {
-    this._player.emit('retry', Object.assign({
-      tag
-    }, info))
-  }
-
   _onDcripted () {
     this.emit(DEMUX_EVENTS.DEMUX_START)
   }
 
   _m3u8Loaded () {
-    this.m3u8FlushDuration = this._playlist.targetduration || this.m3u8FlushDuration
+    this._m3u8FlushDuration = this._playlist.targetduration || this._m3u8FlushDuration
     if (!this.preloadTime) {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5
     }
@@ -328,7 +249,7 @@ class HlsLiveController {
   }
 
   _preload () {
-    if (this._tsloader.loading || this._m3u8loader.loading || this._needRecreateMs) {
+    if (this._tsloader.loading || this._m3u8loader.loading) {
       return
     }
     let frag = this._playlist.getTs()
@@ -340,13 +261,13 @@ class HlsLiveController {
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag)
       this._playlist.downloading(frag.url, true)
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, retryCount, retryDelay)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions, retryCount, retryDelay)
     } else {
       let current = new Date().getTime()
       if ((!frag || frag.downloaded) &&
-        (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
+        (current - this._m3u8lasttime) / 1000 > this._m3u8FlushDuration) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, retryCount, retryDelay)
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, fetchOptions, retryCount, retryDelay)
       }
     }
   }
@@ -379,13 +300,73 @@ class HlsLiveController {
     this._preload()
   }
 
+  /** *********** 对外事件 ********************/
+
+  _handleFetchRetry (tag, info) {
+    this._player.emit('retry', Object.assign({
+      tag
+    }, info))
+  }
+
+  _onLoadError (loader, error) {
+    this._player.pause()
+    this._player.emit('error', {
+      code: error.code,
+      errorType: 'network',
+      ex: `[${loader}]: ${error.message}`,
+      errd: {}
+    })
+    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true)
+    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
+    this.destroy()
+  }
+
+  _onDemuxError (mod, error, fatal) {
+    if (fatal === undefined) {
+      fatal = true
+    }
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${mod}]: ${error ? error.message : ''}`,
+      errd: {}
+    })
+    this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal)
+  }
+
+  _onRemuxError (mod, error, fatal) {
+    if (fatal === undefined) {
+      fatal = true
+    }
+    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
+  }
+
+  _handleMseError (tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false
+    }
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    })
+    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
+  }
+
+  _onError (type, mod, err, fatal) {
+    let error = {
+      code: err.code,
+      errorType: type,
+      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
+      errorFatal: fatal
+    }
+    this._player.emit(HLS_ERROR, error)
+  }
+
   destroy () {
     if (this._timmer) {
       clearInterval(this._timmer)
-    }
-    if (this._player) {
-      this._player.off('waiting', this._onWaiting)
-      this._player.off('ended', this._onEnded)
     }
     this.mse = null
     this.m3u8Text = null

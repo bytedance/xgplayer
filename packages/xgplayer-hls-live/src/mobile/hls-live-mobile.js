@@ -230,7 +230,7 @@ class HlsLiveController {
         const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
         const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
       } else {
         this._m3u8Loaded(mdata)
       }
@@ -320,14 +320,14 @@ class HlsLiveController {
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag)
       this._playlist.downloading(frag.url, true)
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, retryCount, retryDelay)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, {}, retryCount, retryDelay)
     } else {
       this._consumeFragment(true)
       let current = new Date().getTime()
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, retryCount, retryDelay)
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, {}, retryCount, retryDelay)
       }
     }
   }

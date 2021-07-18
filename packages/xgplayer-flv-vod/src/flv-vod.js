@@ -202,7 +202,7 @@ class FlvController {
 
   loadData () {
     const { start, end } = this.state.range
-    this.emit(LOADER_EVENTS.LADER_START, this._player.config.url, {
+    this.emit(LOADER_EVENTS.LOADER_START, this._player.config.url, {
       headers: {
         method: 'get',
         Range: `bytes=${start}-${end}`

@@ -80,9 +80,6 @@ class FlvPlayer extends BasePlugin {
       }
     })
 
-    flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, (type, dtses) => {
-      this.player && this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, type, dtses)
-    })
     flv.on(EVENTS.MSE_EVENTS.MSE_WRONG_TRACK_ADD, () => {
       this.reload()
     })
@@ -130,9 +127,6 @@ class FlvPlayer extends BasePlugin {
       ctx.destroy()
     })
 
-    flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, (type, dtses) => {
-      this.player && this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, type, dtses)
-    })
     flv.on(EVENTS.MSE_EVENTS.MSE_WRONG_TRACK_ADD, () => {
       this.reload()
     })

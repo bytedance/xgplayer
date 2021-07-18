@@ -328,7 +328,7 @@ class FlvDemuxer extends EventEmitter {
       let aacHeader = this._aacSequenceHeaderParser(tag.data)
       audioSampleRate = aacHeader.audiosamplerate || meta.audioSampleRate
       audioSampleRateIndex = aacHeader.sampleRateIndex || meta.sampleRateIndex
-      refSampleDuration = Math.floor(1024 / audioSampleRate * meta.timescale)
+      refSampleDuration = 1024 / audioSampleRate * meta.timescale
 
       meta.channelCount = aacHeader.channelCount
       meta.sampleRate = audioSampleRate

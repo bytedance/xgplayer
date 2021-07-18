@@ -14,23 +14,18 @@ export default class Mp4Remuxer extends EventEmitter {
   constructor ({ videoMeta, audioMeta, curTime }) {
     super()
     this.TAG = 'Fmp4Remuxer'
-    this._dtsBase = curTime * 1000
 
     this._videoMeta = videoMeta
     this._audioMeta = audioMeta
 
-    this._audioDtsBase = null
-    this._videoDtsBase = null
-    this._isDtsBaseInited = false
+    this._isFirstVideo = true
+    this._isFirstAudio = true
 
-    this.isFirstVideo = true
-    this.isFirstAudio = true
-
-    this.videoAllDuration = 0
-    this.audioAllDuration = 0
+    this._protocol = ''
 
     this.audioRemuxed = 0
     this.videoRemuxed = 0
+
     this.mp4Durations = {
       keys: []
     }
@@ -45,8 +40,6 @@ export default class Mp4Remuxer extends EventEmitter {
   }
 
   destroy () {
-    this._dtsBase = -1
-    this._isDtsBaseInited = false
     this.mp4Durations = {
       keys: []
     }
@@ -54,32 +47,19 @@ export default class Mp4Remuxer extends EventEmitter {
     this.removeAllListeners()
   }
 
+  setStreamProtocol (protocal) {
+    this._protocol = protocal
+  }
+
   /**
    * @param {AudioTrack} audioTrack
    * @param {VideoTrack} videoTrack
    */
   remux (audioTrack, videoTrack) {
-    !this._isDtsBaseInited && this.calcDtsBase(audioTrack, videoTrack)
     this.remuxVideo(videoTrack)
     this.remuxAudio(audioTrack)
 
     logger.groupEnd()
-  }
-
-  resetDtsBase () {
-    this._dtsBase = 0
-  }
-
-  seek (time) {
-    logger.log(this.TAG, 'set dtsBase for seek(),time=', time)
-    if (!this._isDtsBaseInited) {
-      this._dtsBase = time * 1000
-    } else {
-      this._isDtsBaseInited = false
-      this._dtsBase = time * 1000
-    }
-
-    this._audioDtsBase = this._videoDtsBase = null
   }
 
   /**
@@ -88,72 +68,13 @@ export default class Mp4Remuxer extends EventEmitter {
    * @return {Buffer}
    */
   remuxInitSegment (type, meta) {
-    logger.log(this.TAG, 'remuxInitSegment: type=', type)
+    logger.log(this.TAG, `remuxInitSegment: type=${type}, duration=${meta.duration}, timescale=${meta.timescale}`)
     let initSegment = new Buffer()
     let ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp()
     let moov = Fmp4.moov({ type, meta: meta })
 
     initSegment.write(ftyp, moov)
     return initSegment
-  }
-
-  /**
-   * @param {AudioTrack} audioTrack
-   * @param {VideoTrack} videoTrack
-   */
-  calcDtsBase (audioTrack, videoTrack) {
-    if (!audioTrack && videoTrack.samples.length) {
-      const firstSample = videoTrack.samples[0]
-      let start
-      if (firstSample.options && firstSample.options.start) {
-        start = firstSample.options.start
-      }
-      this._videoDtsBase = firstSample.dts - (start || this._dtsBase)
-      this._isDtsBaseInited = true
-      return
-    }
-
-    if ((!audioTrack || !audioTrack.samples.length) && (!videoTrack || !videoTrack.samples.length)) {
-      return
-    }
-
-    let audioBase = null
-    let videoBase = null
-    let start = null
-    if (audioTrack && audioTrack.samples && audioTrack.samples.length) {
-      const firstSample = audioTrack.samples[0]
-      audioBase = firstSample.dts
-      if (firstSample.options && firstSample.options.start) {
-        start = firstSample.options.start
-      }
-    }
-    if (videoTrack && videoTrack.samples && videoTrack.samples.length) {
-      const firstSample = videoTrack.samples[0]
-      videoBase = firstSample.dts
-      if (firstSample.options && firstSample.options.start) {
-        start = firstSample.options.start
-      }
-    }
-
-    let delta = audioBase - videoBase
-    // 临时兼容逻辑， hls 考虑上av之间的差值
-    if (delta < 0 && start !== null) {
-      videoTrack.samples.forEach(x => {
-        x.dts -= delta
-        if (x.pts) {
-          x.pts -= delta
-        }
-      })
-    }
-
-    this._videoDtsBase = (videoBase || audioBase) - (start || this._dtsBase)
-    this._audioDtsBase = (audioBase || videoBase) - (start || this._dtsBase)
-    this._dtsBase = Math.min(videoBase, audioBase)
-    this._isDtsBaseInited = true
-
-    logger.log(this.TAG, 'calcDtsBase')
-    logger.log(this.TAG, `video first dts: ${videoBase} , start:${start} , _videoDtsBase:${this._videoDtsBase} , _dtsBase:${this._dtsBase}`)
-    logger.log(this.TAG, `audio first dts: ${audioBase} , start:${start} , _audioDtsBase:${this._audioDtsBase}, _dtsBase:${this._dtsBase}`)
   }
 
   /**
@@ -185,16 +106,13 @@ export default class Mp4Remuxer extends EventEmitter {
       const avcSample = samples.shift()
 
       const { isKeyframe, options } = avcSample
-      if (!this.isFirstVideo && options && options.meta) {
+      if (!this._isFirstVideo && options && options.meta) {
         initSegment = this.remuxInitSegment('video', options.meta)
         options.meta = null
         samples.unshift(avcSample)
-        if (!options.isContinue) {
-          this._videoDtsBase = 0
-        }
         break
       }
-      let dts = Math.max(0, avcSample.dts - this.videoDtsBase)
+      let dts = avcSample.dts
       if (firstDts === -1) {
         firstDts = dts
       }
@@ -202,7 +120,7 @@ export default class Mp4Remuxer extends EventEmitter {
       let cts
       let pts
       if (avcSample.pts !== undefined) {
-        pts = avcSample.pts - this._dtsBase
+        pts = avcSample.pts
         cts = pts - dts
       }
       if (avcSample.cts !== undefined) {
@@ -215,19 +133,8 @@ export default class Mp4Remuxer extends EventEmitter {
         size: 0
       }
 
-      let sampleDuration = 0
-      if (avcSample.duration) {
-        sampleDuration = avcSample.duration
-      } else if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this.videoDtsBase
-        sampleDuration = nextDts - dts
-      } else {
-        if (mp4Samples.length >= 1) { // lastest sample, use second last duration
-          sampleDuration = mp4Samples[mp4Samples.length - 1].duration
-        } else { // the only one sample, use reference duration
-          sampleDuration = this._videoMeta.refSampleDuration
-        }
-      }
+      let sampleDuration = avcSample.duration
+
       this.videoAllDuration += sampleDuration
       if (logger.long) {
         logger.log(this.TAG, `video dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
@@ -276,8 +183,15 @@ export default class Mp4Remuxer extends EventEmitter {
         this.mp4Durations[key] = tmp[key]
       })
     }
+
     if (mp4Samples.length) {
-      logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
+      if (this._protocol === 'flv') {
+        if (logger.long) {
+          logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
+        }
+      } else {
+        logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
+      }
     }
 
     const moofMdat = new Buffer()
@@ -303,7 +217,7 @@ export default class Mp4Remuxer extends EventEmitter {
       }
     }
 
-    this.isFirstVideo = false
+    this._isFirstVideo = false
     this.emit(Mp4Remuxer.EVENTS.TRACK_REMUXED, 'video', moofMdat)
 
     track.samples = []
@@ -334,38 +248,21 @@ export default class Mp4Remuxer extends EventEmitter {
     while (samples.length && maxLoop-- > 0) {
       let sample = samples.shift()
       const { data, options } = sample
-      if (!this.isFirstAudio && options && options.meta) {
+      if (!this._isFirstAudio && options && options.meta) {
         initSegment = this.remuxInitSegment('audio', options.meta)
         options.meta = null
         samples.unshift(sample)
-        if (!options.isContinue) {
-          this._audioDtsBase = 0
-        }
         break
       }
 
-      let dts = Math.max(0, sample.dts - this.audioDtsBase)
+      let dts = sample.dts
       let originDts = sample.originDts
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
       }
 
-      let sampleDuration = 0
-      if (sample.duration) {
-        sampleDuration = sample.duration
-      } else if (this._audioMeta.refSampleDurationFixed) {
-        sampleDuration = this._audioMeta.refSampleDurationFixed
-      } else if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this.audioDtsBase
-        sampleDuration = nextDts - dts
-      } else {
-        if (mp4Samples.length >= 1) { // use second last sample duration
-          sampleDuration = mp4Samples[mp4Samples.length - 1].duration
-        } else { // the only one sample, use reference sample duration
-          sampleDuration = this._audioMeta.refSampleDuration
-        }
-      }
+      let sampleDuration = sample.duration
 
       if (logger.long) {
         logger.log(this.TAG, `audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
@@ -376,7 +273,7 @@ export default class Mp4Remuxer extends EventEmitter {
         pts: dts,
         cts: 0,
         size: data.byteLength,
-        duration: sample.duration ? sample.duration : sampleDuration,
+        duration: sampleDuration,
         flags: {
           isLeading: 0,
           dependsOn: 1,
@@ -406,7 +303,14 @@ export default class Mp4Remuxer extends EventEmitter {
     const moofMdat = new Buffer()
 
     if (mp4Samples.length && track.meta) {
-      logger.log(this.TAG, 'remux to mp4 audio:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
+      if (this._protocol === 'flv') {
+        if (logger.long) {
+          logger.log(this.TAG, 'remux to mp4 audio:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
+        }
+      } else {
+        logger.log(this.TAG, 'remux to mp4 audio:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000])
+      }
+
       const moof = Fmp4.moof({
         id: track.meta.id,
         time: firstDts,
@@ -427,7 +331,7 @@ export default class Mp4Remuxer extends EventEmitter {
       }
     }
 
-    this.isFirstAudio = false
+    this._isFirstAudio = false
     this.emit(Mp4Remuxer.EVENTS.TRACK_REMUXED, 'audio', moofMdat)
 
     track.samples = []

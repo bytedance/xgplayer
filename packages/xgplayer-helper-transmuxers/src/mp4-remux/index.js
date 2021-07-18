@@ -2,36 +2,36 @@ import { EVENTS } from 'xgplayer-helper-utils'
 import Remuxer from './remuxer'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
-const PLAYER_EVENTS = EVENTS.PLAYER_EVENTS
 
 export default class Mp4Remuxer {
   constructor (curTime = 0) {
     this.TAG = 'Mp4Remuxer'
     this._curTime = curTime
     if (!this.remuxer) {
-      this.initRemuxer()
+      this._initRemuxer()
     }
   }
 
   init () {
-    this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this))
-    this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this))
-    this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this))
-    this.on(REMUX_EVENTS.DETECT_FRAG_ID_DISCONTINUE, this.seek.bind(this))
-    this.on(PLAYER_EVENTS.SEEK, this.seek.bind(this))
+    this.on(REMUX_EVENTS.REMUX_MEDIA, this._remux.bind(this))
+    this.on(REMUX_EVENTS.REMUX_METADATA, this._onMetaDataReady.bind(this))
   }
 
-  initRemuxer () {
+  setStreamProtocol (protocol) {
+    this.remuxer.setStreamProtocol(protocol)
+  }
+
+  _initRemuxer () {
     this.remuxer = new Remuxer({
       audioMeta: null,
       videoMeta: null,
       curTime: this._curTime
     })
-    this.remuxer.on(Remuxer.EVENTS.MEDIA_SEGMENT, this.writeToSource.bind(this))
-    this.remuxer.on(Remuxer.EVENTS.TRACK_REMUXED, this.onTrackRemuxed.bind(this))
+    this.remuxer.on(Remuxer.EVENTS.MEDIA_SEGMENT, this._writeToSource.bind(this))
+    this.remuxer.on(Remuxer.EVENTS.TRACK_REMUXED, this._onTrackRemuxed.bind(this))
   }
 
-  remux () {
+  _remux () {
     if (!this.remuxer.videoMeta) {
       this.remuxer.videoMeta = this.videoMeta
       this.remuxer.audioMeta = this.audioMeta
@@ -41,17 +41,9 @@ export default class Mp4Remuxer {
     return this.remuxer.remux(audioTrack, videoTrack)
   }
 
-  resetDtsBase () {
-    this.remuxer && this.remuxer.resetDtsBase()
-  }
-
-  seek (time) {
-    this.remuxer && this.remuxer.seek(time)
-  }
-
-  onMetaDataReady (type) {
+  _onMetaDataReady (type) {
     if (!this.remuxer) {
-      this.initRemuxer()
+      this._initRemuxer()
     }
     let track
 
@@ -75,11 +67,11 @@ export default class Mp4Remuxer {
     this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 
-  onTrackRemuxed (track) {
+  _onTrackRemuxed (track) {
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, track)
   }
 
-  writeToSource (type, buffer, bufferDuration) {
+  _writeToSource (type, buffer, bufferDuration) {
     let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
     let source = presourcebuffer.getSource(type)
     if (!source) {
@@ -92,11 +84,13 @@ export default class Mp4Remuxer {
   }
 
   get videoMeta () {
-    return this._context.getInstance('TRACKS').videoTrack.meta
+    let track = this._context.getInstance('TRACKS').videoTrack
+    return track ? track.meta : null
   }
 
   get audioMeta () {
-    return this._context.getInstance('TRACKS').audioTrack.meta
+    let track = this._context.getInstance('TRACKS').audioTrack
+    return track ? track.meta : null
   }
 
   destroy () {

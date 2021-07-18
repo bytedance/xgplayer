@@ -1,4 +1,4 @@
-import { BasePlugin, Events } from 'xgplayer'
+import { BasePlugin, Events, Util } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 
 import HLS from './hls-live-mobile'
@@ -199,7 +199,7 @@ class HlsPlayer extends BasePlugin {
 
   addLiveFlag () {
     const { player } = this
-    Player.Util.addClass(player.root, 'xgplayer-is-live')
+    Util.addClass(player.root, 'xgplayer-is-live')
   }
 
   destroy () {

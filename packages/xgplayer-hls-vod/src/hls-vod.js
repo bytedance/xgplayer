@@ -10,6 +10,8 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const HLS_EVENTS = EVENTS.HLS_EVENTS
 const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
+const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
+const CORE_EVENTS = EVENTS.CORE_EVENTS
 const HLS_ERROR = 'HLS_ERROR'
 class HlsVodController {
   constructor (mse) {
@@ -67,7 +69,6 @@ class HlsVodController {
     this._onRemuxError = this._onRemuxError.bind(this)
     this._onTimeUpdate = this._onTimeUpdate.bind(this)
     this._onWaiting = this._onWaiting.bind(this)
-    this._handleKeyFrame = this._handleKeyFrame.bind(this)
 
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete)
 
@@ -83,55 +84,26 @@ class HlsVodController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
 
-    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
-
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
 
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
 
     this._player.on('timeupdate', this._onTimeUpdate)
 
+    // emit to out
+    this.connectEvent(LOADER_EVENTS.LOADER_START, CORE_EVENTS.LOADER_START)
+    this.connectEvent(LOADER_EVENTS.LOADER_COMPLETE, CORE_EVENTS.LOADER_COMPLETE)
+    this.connectEvent(LOADER_EVENTS.LOADER_RETRY, CORE_EVENTS.LOADER_RETRY)
+    this.connectEvent(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, CORE_EVENTS.LOADER_RESPONSE_HEADERS)
+    this.connectEvent(DEMUX_EVENTS.ISKEYFRAME, CORE_EVENTS.KEYFRAME)
+    this.connectEvent(LOADER_EVENTS.LOADER_TTFB, CORE_EVENTS.TTFB)
+    this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
+    this.connectEvent(DEMUX_EVENTS.DEMUX_ERROR, CORE_EVENTS.DEMUX_ERROR)
+    this.connectEvent(DEMUX_EVENTS.METADATA_PARSED, CORE_EVENTS.METADATA_PARSED)
+    this.connectEvent(REMUX_EVENTS.REMUX_METADATA, CORE_EVENTS.REMUX_METADATA)
+    this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
+
     this._player.on('waiting', this._onWaiting)
-  }
-
-  _onError (type, mod, err, fatal) {
-    let error = {
-      errorType: type,
-      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
-      errorFatal: fatal
-    }
-    this._player && this._player.emit(HLS_ERROR, error)
-  }
-
-  _onLoadError (mod, error) {
-    this._player.emit('error', {
-      code: error.code,
-      errorType: 'network',
-      ex: `[${mod}]: ${error.message}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true)
-    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
-  }
-
-  _onDemuxError (mod, error, fatal) {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${mod}]: ${error ? error.message : ''}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal)
-  }
-
-  _onRemuxError (mod, error, fatal) {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
   }
 
   _onWaiting () {
@@ -184,6 +156,7 @@ class HlsVodController {
       video.currentTime = bufferStart
     }
   }
+
   _onTimeUpdate () {
     this._seekToBufferStart()
     this._preload(this._player.currentTime)
@@ -191,14 +164,6 @@ class HlsVodController {
 
   _onDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
-  }
-
-  _handleKeyFrame (pts) {
-    this._player && this._player.emit('isKeyframe', pts)
-  }
-
-  _handleSEIParsed (sei) {
-    this._player.emit('SEI_PARSED', sei)
   }
 
   _onMetadataParsed (type) {
@@ -238,7 +203,7 @@ class HlsVodController {
         this._context.registry('KEY_BUFFER', XgBuffer)()
         this._tsloader.buffer = 'DECRYPT_BUFFER'
         this._keyLoader = this._context.registry('KEY_LOADER', Loader)({buffer: 'KEY_BUFFER', readtype: 3})
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, fetchOptions)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, fetchOptions)
       } else {
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
@@ -254,11 +219,11 @@ class HlsVodController {
         if (frag) {
           this._logDownSegment(frag)
           this._playlist.downloading(frag.url, true)
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions)
         } else {
           if (this.retrytimes > 0) {
             this.retrytimes--
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions)
+            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, fetchOptions)
           }
         }
       }
@@ -287,11 +252,11 @@ class HlsVodController {
       let frag = this._playlist.getTs()
       if (frag) {
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions)
       } else {
         if (this.retrytimes > 0) {
           this.retrytimes--
-          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions)
+          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, fetchOptions)
         }
       }
     }
@@ -345,7 +310,7 @@ class HlsVodController {
     const {fetchOptions = {}} = this._pluginConfig
     this.baseurl = M3U8Parser.parseURL(url)
     this.url = url
-    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url, fetchOptions)
+    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, url, fetchOptions)
   }
 
   _preload (time) {
@@ -373,7 +338,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag)
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions)
       }
     } else if (currentbufferend < video.currentTime + this.preloadTime) {
       let frag = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000)
@@ -401,7 +366,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag)
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions)
       }
     }
   }
@@ -410,6 +375,53 @@ class HlsVodController {
     if (!frag) return
     logger.groupEnd()
     logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`)
+  }
+
+  /** *********** 对外事件 ********************/
+
+  // 兼容老的业务使用
+  _handleSEIParsed (sei) {
+    this._player.emit('SEI_PARSED', sei)
+  }
+
+  _onError (type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
+      errorFatal: fatal
+    }
+    this._player && this._player.emit(HLS_ERROR, error)
+  }
+
+  _onLoadError (mod, error) {
+    this._player.emit('error', {
+      code: error.code,
+      errorType: 'network',
+      ex: `[${mod}]: ${error.message}`,
+      errd: {}
+    })
+    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true)
+    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
+  }
+
+  _onDemuxError (mod, error, fatal) {
+    if (fatal === undefined) {
+      fatal = true
+    }
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${mod}]: ${error ? error.message : ''}`,
+      errd: {}
+    })
+    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal)
+  }
+
+  _onRemuxError (mod, error, fatal) {
+    if (fatal === undefined) {
+      fatal = true
+    }
+    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
   }
 
   destroy () {

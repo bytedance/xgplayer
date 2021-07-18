@@ -30,7 +30,7 @@ class FetchLoader {
   }
 
   init () {
-    this.on(LOADER_EVENTS.LADER_START, this.load.bind(this))
+    this.on(LOADER_EVENTS.LOADER_START, this.load.bind(this))
   }
 
   static get type () {
@@ -73,7 +73,8 @@ class FetchLoader {
       this.emit(LOADER_EVENTS.LOADER_TTFB, {
         start,
         end,
-        elapsed: end - start
+        elapsed: end - start,
+        url
       })
       return response
     })

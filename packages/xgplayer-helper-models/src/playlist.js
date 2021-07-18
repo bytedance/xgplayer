@@ -64,6 +64,21 @@ class Playlist {
   }
 
   /**
+   * get discontinue count of last segment
+   * @return {number}
+   */
+  get cc () {
+    let keys = Object.keys(this._list)
+
+    if (!keys.length) return 0
+
+    let len = keys.length
+    let last = this._list[keys[len - 1]]
+
+    return last.cc
+  }
+
+  /**
    * add a ts frag to play list
    * @param {string} tsURL ts frag url
    * @param {number} duration ts frag duration

@@ -1,4 +1,4 @@
-import { EVENTS } from 'xgplayer-helper-utils'
+import { EVENTS, logger } from 'xgplayer-helper-utils'
 import {AudioTrack, VideoTrack} from 'xgplayer-helper-models'
 import Demuxer from './ts-demuxer'
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
@@ -57,6 +57,14 @@ class TsDemuxer {
   onMetaDataParsed (type, meta) {
     const { videoTrack, audioTrack } = this._tracks
     let track = videoTrack
+
+    if (type === 'video') {
+      logger.warn(this.TAG, `[ video metadata: codec=${meta.codec}, timescale=${meta.timescale},presentWidth=${meta.presentWidth}, presentHeight=${meta.presentHeight}, timescale.den=${meta.frameRate.fps_den}, timescale.num=${meta.frameRate.fps_num}, refSampleDuration=${meta.refSampleDuration} ]`)
+    }
+
+    if (type === 'audio') {
+      logger.warn(this.TAG, `[ audio metadata: codec=${meta.codec}, samplerate=${meta.sampleRate}, timescale=${meta.timescale}, refSampleDuration:${meta.refSampleDuration}, sampleRateIndex=${meta.sampleRateIndex}, objectType=${meta.objectType}, originObjectType=${meta.originObjectType} ]`)
+    }
 
     switch (type) {
       case 'video':

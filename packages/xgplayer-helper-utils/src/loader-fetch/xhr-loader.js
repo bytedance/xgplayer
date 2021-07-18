@@ -32,7 +32,7 @@ class XhrLoader {
   }
 
   init () {
-    this.on(LOADER_EVENTS.LADER_START, this.load.bind(this))
+    this.on(LOADER_EVENTS.LOADER_START, this.load.bind(this))
   }
 
   _createXhr () {

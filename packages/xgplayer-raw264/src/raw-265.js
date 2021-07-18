@@ -30,7 +30,7 @@ class H265Demuxer {
   }
 
   load (url) {
-    this.emit(Events.LOADER_EVENTS.LADER_START, url)
+    this.emit(Events.LOADER_EVENTS.LOADER_START, url)
   }
 
   handleDataLoaded () {

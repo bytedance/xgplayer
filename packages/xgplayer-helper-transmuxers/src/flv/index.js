@@ -1,6 +1,7 @@
+/* eslint-disable camelcase */
 import Demuxer from './demuxer'
 import { AudioTrackMeta, VideoTrackMeta, VideoTrack, AudioTrack } from 'xgplayer-helper-models'
-import { EVENTS } from 'xgplayer-helper-utils'
+import { EVENTS, logger } from 'xgplayer-helper-utils'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const INTERNAL_EVENTS = Demuxer.EVENTS
@@ -32,10 +33,11 @@ class FlvDemuxer {
     if (!this.tracks || !this.tracks.audioTrack) {
       return
     }
+    logger.warn(this.TAG, `[ audio metadata: codec=${meta.codec}, samplerate=${meta.sampleRate}, timescale=${meta.timescale}, refSampleDuration:${meta.refSampleDuration}, sampleRateIndex=${meta.sampleRateIndex}, objectType=${meta.objectType}, originObjectType=${meta.originObjectType} ]`)
     this._context.mediaInfo.hasAudio = true
     this.tracks.audioTrack.meta = meta
     if (!this._hasAudioSequence) {
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio', meta)
     } else {
       this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
     }
@@ -45,10 +47,16 @@ class FlvDemuxer {
     if (!this.tracks || !this.tracks.videoTrack) {
       return
     }
+    if (Number.isNaN(meta.refSampleDuration)) {
+      const {fps_den, fps_num} = meta.frameRate
+      meta.refSampleDuration = Math.round(1000 / (fps_num / fps_den))
+    }
+
+    logger.warn(this.TAG, `[ video metadata: codec=${meta.codec}, timescale=${meta.timescale},presentWidth=${meta.presentWidth}, presentHeight=${meta.presentHeight}, timescale.den=${meta.frameRate.fps_den}, timescale.num=${meta.frameRate.fps_num}, refSampleDuration=${meta.refSampleDuration} ]`)
     this._context.mediaInfo.hasVideo = true
     this.tracks.videoTrack.meta = meta
     if (!this._hasVideoSequence) {
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video', meta)
     } else {
       this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
     }
@@ -130,6 +138,7 @@ class FlvDemuxer {
   }
 
   handleFileHeaderParsed ({ hasVideo, hasAudio }) {
+    logger.log(this.TAG, `flv header parsed, hasVideo=${hasVideo}, hasAudio=${hasAudio}`)
     this._context.mediaInfo.hasVideo = hasVideo
     this._context.mediaInfo.hasAudio = hasAudio
 

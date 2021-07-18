@@ -101,15 +101,6 @@ class FlvPlayer extends BasePlugin {
       // 报错时，调用pasue，停止http请求
       this.pause()
     })
-    window.addEventListener('unload', () => {
-      // this.pause()
-      // let myStorage = window.localStorage
-      // myStorage.setItem('pause', new Date())
-    })
-    // this.player.video.addEventListener('notautoplay', () => {
-    //   //video硬解时，自动播放失败，调用pasue，停止http请求
-    //   this.pause()
-    // })
   }
 
   // 降级时到不同的播放方式
