@@ -107,6 +107,7 @@ class DynamicBg extends Plugin {
     })
     if (mode !== MODES.FIRST_FRAME) {
       this.on(Events.PLAY, () => {
+        console.log('dynamicBg play')
         this.start()
       })
       this.on(Events.PAUSE, () => {
@@ -165,6 +166,7 @@ class DynamicBg extends Plugin {
     if (!checkIsSupport(video)) {
       return
     }
+    this.stop()
     if (this.config.mode === MODES.REAL_TIME) {
       video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
@@ -236,6 +238,8 @@ class DynamicBg extends Plugin {
 
   destroy () {
     this.stop()
+    this.canvasCtx = null
+    this.canvas = null
   }
 
   render () {

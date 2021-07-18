@@ -1116,13 +1116,14 @@ class Player extends VideoProxy {
    * @returns
    */
   getCssFullscreen (el) {
+    if (this.fullscreen) {
+      console.log('getCssFullscreen')
+      this.exitFullscreen()
+    }
     this._cssfullscreenEl = el
     this.changeFullStyle(this.root, el, el ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.CSS_FULLSCREEN)
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
-    if (this.fullscreen) {
-      this.exitFullscreen()
-    }
   }
 
   /**
