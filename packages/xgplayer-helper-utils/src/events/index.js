@@ -64,7 +64,7 @@ const COMPATIBILITY_EVENTS = {
  */
 const CORE_EVENTS = {
   LOADER_START: 'core.loadstart',
-  LOADER_RESPONSE_HEADERS: 'loadresponseheaders',
+  LOADER_RESPONSE_HEADERS: 'core.loadresponseheaders',
   LOADER_COMPLETE: 'core.loadcomplete',
   TTFB: 'core.ttfb',
   LOADER_RETRY: 'core.loadretry',

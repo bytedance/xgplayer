@@ -442,7 +442,7 @@ export default class AudioRender extends BaseRender {
     // get length
     let length = 0
     for (let i = 0, k = samples.length; i < k; i++) {
-      if (gap && (i % gap == 0)) {
+      if (gap && (i % gap === 0)) {
         continue
       }
       length += samples[i].byteLength
@@ -452,7 +452,7 @@ export default class AudioRender extends BaseRender {
     let offset = 0
     // combile data;
     for (let i = 0, k = samples.length; i < k; i++) {
-      if (gap && (i % gap == 0)) {
+      if (gap && (i % gap === 0)) {
         continue
       }
       ret.set(samples[i], offset)

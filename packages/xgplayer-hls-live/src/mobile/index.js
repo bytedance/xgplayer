@@ -1,9 +1,10 @@
 import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
-
 import HLS from './hls-live-mobile'
 import defaultConfig from './config'
+
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents
+const CORE_EVENTS = EVENTS.CORE_EVENTS
 const { softSolutionProbe } = common
 
 class HlsPlayer extends BasePlugin {
@@ -79,12 +80,14 @@ class HlsPlayer extends BasePlugin {
 
   _largeavgap = () => {
     this.emit('largeavgap', this.player.video.unsyncInfo)
+    this.hls.emitCoreEvent(CORE_EVENTS.LARGE_AVGAP, this.player.video.unsyncInfo)
   }
 
   _lowdecode = () => {
     const { player } = this
 
     this.emit('lowdecode', player.video.degradeInfo)
+    this.hls.emitCoreEvent(CORE_EVENTS.LOWDECODE, player.video.degradeInfo)
 
     // 降级到video直接播放hls
     const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
@@ -98,7 +101,7 @@ class HlsPlayer extends BasePlugin {
    * @param {string} url  降级到的地址
    * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
    */
-  _degrade (url) {
+  _degrade = (url) => {
     const { player } = this
     let mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
@@ -149,7 +152,7 @@ class HlsPlayer extends BasePlugin {
     this.player.hasStart = false
   }
 
-  _loadData () {
+  _loadData = () => {
     const { player } = this
     if (this.hls) {
       this.hls.load(player.config.url)
@@ -167,7 +170,7 @@ class HlsPlayer extends BasePlugin {
     this._reloadStream()
   }
 
-  _reloadStream () {
+  _reloadStream = () => {
     if (this.player) {
       this.player.play()
     }
@@ -177,11 +180,11 @@ class HlsPlayer extends BasePlugin {
     this._switchURL(url)
   }
 
-  destroy () {
+  destroy = () => {
     this._destroyInternal()
   }
 
-  _destroyInternal () {
+  _destroyInternal = () => {
     if (!this._context) {
       return
     }

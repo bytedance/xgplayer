@@ -17,7 +17,7 @@ export default class FlvLiveWrapperPlayer extends BasePlugin {
     } else {
       this.flvLive = player.registerPlugin(FlvLiveMsePlayer)
     }
-    if (!this.hlsLive) return
+    if (!this.flvLive) return
     this.flvLive.wrapper = this
   }
 

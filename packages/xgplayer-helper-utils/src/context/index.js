@@ -95,6 +95,7 @@ class Context {
         this.TAG = tag
         this._context = self
       }
+
       /**
        * @param {string} messageName
        * @param {function} callback
@@ -141,6 +142,7 @@ class Context {
         emitter.once(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
         return emitter.once(messageName, callback)
       }
+
       /**
        * @param {string} messageName
        * @param {any[]} args
@@ -168,7 +170,6 @@ class Context {
        */
       emitTo (tag, messageName, ...args) {
         checkMessageName(messageName)
-
         return emitter.emit(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, ...args)
       }
 
@@ -223,6 +224,16 @@ class Context {
         if (!this._player) return
 
         this.on(innerEventName, (...info) => {
+          this._player.emit('core_event', {
+            type: outEventName,
+            data: info
+          })
+        })
+      }
+
+      connectEventTo (innerEventName, targetName, outEventName) {
+        if (!this._player) return
+        this.on(`${innerEventName}${DIRECT_EMIT_FLAG}${targetName}`, (...info) => {
           this._player.emit('core_event', {
             type: outEventName,
             data: info

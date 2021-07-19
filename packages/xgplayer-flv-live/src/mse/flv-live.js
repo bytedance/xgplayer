@@ -3,6 +3,7 @@ import FlvBaseController from '../base-controller'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
+const CORE_EVENTS = EVENTS.CORE_EVENTS
 
 const Tag = 'FLVController'
 
@@ -74,6 +75,9 @@ export default class FlvController extends FlvBaseController {
     if (length === 0) {
       return
     }
+
+    // 对外事件
+    this.emitCoreEvent(CORE_EVENTS.BUFFER_APPENDED)
 
     const bufferEnd = video.buffered.end(length - 1)
     if (bufferEnd - time > preloadTime * 2 && !this._player.paused) {

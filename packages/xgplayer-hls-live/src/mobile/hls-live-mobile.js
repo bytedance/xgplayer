@@ -9,7 +9,6 @@ class HlsLiveController extends BaseController {
     super()
     this.TAG = 'HlsLiveMobileController'
     this._lastCheck = 0
-    this.setDataInterval = null
   }
 
   init () {

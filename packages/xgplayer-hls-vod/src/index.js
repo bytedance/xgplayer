@@ -13,12 +13,12 @@ export default class HlsVodWrapperPlayer extends BasePlugin {
     const player = config.player
 
     if (player.config.mediaType === 'live-video') {
-      this.flvLive = player.registerPlugin(HlsVodMobilePlayer)
+      this.hlsVod = player.registerPlugin(HlsVodMobilePlayer)
     } else {
-      this.flvLive = player.registerPlugin(HlsVodMsePlayer)
+      this.hlsVod = player.registerPlugin(HlsVodMsePlayer)
     }
 
-    this.flvLive.wrapper = this
+    this.hlsVod.wrapper = this
   }
 
   static isSupported (mediaType) {

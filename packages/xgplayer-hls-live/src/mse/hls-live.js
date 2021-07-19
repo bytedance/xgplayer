@@ -3,11 +3,10 @@ import BaseController from '../base-controlller'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const HLS_EVENTS = EVENTS.HLS_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
-const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
 const CORE_EVENTS = EVENTS.CORE_EVENTS
+
 class HlsLiveController extends BaseController {
   constructor () {
     super()
@@ -36,19 +35,6 @@ class HlsLiveController extends BaseController {
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment)
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd)
-
-    // emit to out
-    this.connectEvent(LOADER_EVENTS.LOADER_START, CORE_EVENTS.LOADER_START)
-    this.connectEvent(LOADER_EVENTS.LOADER_COMPLETE, CORE_EVENTS.LOADER_COMPLETE)
-    this.connectEvent(LOADER_EVENTS.LOADER_RETRY, CORE_EVENTS.LOADER_RETRY)
-    this.connectEvent(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, CORE_EVENTS.LOADER_RESPONSE_HEADERS)
-    this.connectEvent(DEMUX_EVENTS.ISKEYFRAME, CORE_EVENTS.KEYFRAME)
-    this.connectEvent(LOADER_EVENTS.LOADER_TTFB, CORE_EVENTS.TTFB)
-    this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
-    this.connectEvent(DEMUX_EVENTS.DEMUX_ERROR, CORE_EVENTS.DEMUX_ERROR)
-    this.connectEvent(DEMUX_EVENTS.METADATA_PARSED, CORE_EVENTS.METADATA_PARSED)
-    this.connectEvent(REMUX_EVENTS.REMUX_METADATA, CORE_EVENTS.REMUX_METADATA)
-    this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
   }
 
   _onInitSegment = () => {
@@ -124,6 +110,13 @@ class HlsLiveController extends BaseController {
   }
 
   _handleSourceUpdateEnd = () => {
+    const video = this._player.video
+
+    if (!video || !video.buffered.length) return
+
+    // 对外事件
+    this.emitCoreEvent(CORE_EVENTS.BUFFER_APPENDED)
+
     // 判断最后一个分片下载完了
     if (this._playlist.end) {
       let list = this._playlist.list

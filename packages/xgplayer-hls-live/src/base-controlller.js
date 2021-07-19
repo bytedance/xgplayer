@@ -3,6 +3,9 @@ const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const HLS_EVENTS = EVENTS.HLS_EVENTS
 const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
+const CORE_EVENTS = EVENTS.CORE_EVENTS
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
 const HLS_ERROR = 'HLS_ERROR'
 
 const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g
@@ -22,7 +25,6 @@ export default class BaseController {
     const { XgBuffer, Tracks, Playlist, FetchLoader, XhrLoader, TsDemuxer, Compatibility } = this._pluginConfig
     const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader
 
-    this._timmer = setInterval(this._checkStatus, 300)
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer)
     this._context.registry('TS_BUFFER', XgBuffer)
@@ -43,54 +45,46 @@ export default class BaseController {
 
   _initEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete)
+    this.once(LOADER_EVENTS.LOADER_COMPLETE, this._bootStrap)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
-
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
+
+    // emit to out
+    this.connectEventTo(LOADER_EVENTS.LOADER_START, 'M3U8_LOADER', CORE_EVENTS.LOADER_START)
+    this.connectEventTo(LOADER_EVENTS.LOADER_START, 'TS_LOADER', CORE_EVENTS.LOADER_START)
+    this.connectEvent(LOADER_EVENTS.LOADER_COMPLETE, CORE_EVENTS.LOADER_COMPLETE)
+    this.connectEvent(LOADER_EVENTS.LOADER_RETRY, CORE_EVENTS.LOADER_RETRY)
+    this.connectEvent(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, CORE_EVENTS.LOADER_RESPONSE_HEADERS)
+    this.connectEvent(DEMUX_EVENTS.ISKEYFRAME, CORE_EVENTS.KEYFRAME)
+    this.connectEvent(LOADER_EVENTS.LOADER_TTFB, CORE_EVENTS.TTFB)
+    this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
+    this.connectEvent(DEMUX_EVENTS.DEMUX_ERROR, CORE_EVENTS.DEMUX_ERROR)
+    this.connectEvent(DEMUX_EVENTS.METADATA_PARSED, CORE_EVENTS.METADATA_PARSED)
+    this.connectEvent(REMUX_EVENTS.REMUX_METADATA, CORE_EVENTS.REMUX_METADATA)
+    this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
   }
 
-  _onError (type, mod, err, fatal) {
-    const error = {
-      code: err.code,
-      errorType: type,
-      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
-      errorFatal: fatal
-    }
-    this._player.emit(HLS_ERROR, error)
+  _checkStatus () {
+    throw new Error('need override by children')
   }
 
-  _onLoadError = (loader, error) => {
-    this._player.pause()
-    const err = {
-      code: error.code,
-      errorType: 'network',
-      ex: `[${loader}]: ${error.message}`,
-      errd: {}
-    }
-    this._player.emit('error', err)
-
-    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true)
-    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
-    this.destroy()
+  _onMetadataParsed () {
+    throw new Error('need override by children')
   }
 
-  _onDemuxError = (mod, error, fatal) => {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${mod}]: ${error ? error.message : ''}`,
-      errd: {}
-    })
-    this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal)
+  _onDemuxComplete () {
+    throw new Error('need override by children')
   }
 
   _handleSEIParsed = (sei) => {
     this._player.emit('SEI_PARSED', sei)
+  }
+
+  _bootStrap = () => {
+    this._timmer = setInterval(this._checkStatus, 300)
   }
 
   _onLoadComplete = (buffer) => {
@@ -166,7 +160,7 @@ export default class BaseController {
 
   // 占位符
   _streamEnd () {
-    console.log('父类继承实现')
+    throw new Error('need override by children')
   }
 
   _onDcripted = () => {
@@ -174,7 +168,7 @@ export default class BaseController {
   }
 
   _preload () {
-    if (this.retryTimes < 1 || this._tsloader.loading || this._m3u8loader.loading) {
+    if (this._tsloader.loading || this._m3u8loader.loading) {
       return
     }
     let frag = this._playlist.getTs()
@@ -201,6 +195,44 @@ export default class BaseController {
     if (!frag) return
     logger.groupEnd()
     logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`)
+  }
+
+  _onError (type, mod, err, fatal) {
+    const error = {
+      code: err.code,
+      errorType: type,
+      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
+      errorFatal: fatal
+    }
+    this._player.emit(HLS_ERROR, error)
+  }
+
+  _onLoadError = (loader, error) => {
+    this._player.pause()
+    const err = {
+      code: error.code,
+      errorType: 'network',
+      ex: `[${loader}]: ${error.message}`,
+      errd: {}
+    }
+    this._player.emit('error', err)
+
+    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true)
+    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
+    this.destroy()
+  }
+
+  _onDemuxError = (mod, error, fatal) => {
+    if (fatal === undefined) {
+      fatal = true
+    }
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${mod}]: ${error ? error.message : ''}`,
+      errd: {}
+    })
+    this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal)
   }
 
   load (url) {

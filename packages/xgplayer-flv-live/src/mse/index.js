@@ -158,7 +158,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   _seekingHandler = () => {
-    if (!this.player) return
+    if (!this.player || !this.player.getBufferedRange) return
     const time = this.player.currentTime
     const range = this.player.getBufferedRange()
     if (time > range[1] || time < range[0]) {
@@ -175,7 +175,7 @@ class FlvPlayer extends BasePlugin {
     this._switchURLInternal(url, abr)
   }
 
-  _destroyHandler () {
+  _destroyHandler = () => {
     return this._destroyInternal()
   }
 

@@ -2,7 +2,10 @@ import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
 import defaultConfig from '../config'
+
 const flvAllowedEvents = EVENTS.FlvAllowedEvents
+const CORE_EVENTS = EVENTS.CORE_EVENTS
+
 const { softSolutionProbe } = common
 
 class FlvPlayer extends BasePlugin {
@@ -70,10 +73,12 @@ class FlvPlayer extends BasePlugin {
     const innerDegrade = this.config.innerDegrade || player.config.innerDegrade
     const { video } = player
 
-    if (video && innerDegrade) {
+    if (!video) return
+
+    if (innerDegrade) {
       video.setAttribute('innerdegrade', innerDegrade)
     }
-    if (video && preloadTime) {
+    if (preloadTime) {
       video.setAttribute('preloadtime', preloadTime)
     }
 
@@ -114,7 +119,9 @@ class FlvPlayer extends BasePlugin {
     const innerDegrade = playerInnerDegrade || pluginInnerDegrade
     const backupURL = playerBackupURL || pluginBackupURL
 
-    this.emit('lowdecode', this.player.video.degradeInfo)
+    const degradeInfo = this.player.video.degradeInfo
+    this.emit('lowdecode', degradeInfo)
+    this.flv.emitCoreEvent(CORE_EVENTS.LOWDECODE, degradeInfo)
 
     // 内部降级到mse
     if (innerDegrade === 2) {

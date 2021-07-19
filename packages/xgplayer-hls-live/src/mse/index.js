@@ -91,7 +91,7 @@ export default class HlsLivePlayer extends BasePlugin {
     this._destroyInternal()
   }
 
-  _destroyInternal () {
+  _destroyInternal = () => {
     if (!this.hls || !this.hls.mse || !this._context) return Promise.resolve()
     return this.hls.mse
       .destroy()

@@ -330,7 +330,9 @@ class MVideo extends HTMLElement {
 
   pause () {
     this._playRequest = null
-    this.timeline.pause()
+    if (this.timeline) {
+      this.timeline.pause()
+    }
     try {
       this._noSleep.disable()
       pauseSlienceAudio()

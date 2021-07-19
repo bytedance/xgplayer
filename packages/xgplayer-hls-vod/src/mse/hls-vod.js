@@ -5,6 +5,7 @@ import BaseController from '../base-controller'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
+const CORE_EVENTS = EVENTS.CORE_EVENTS
 
 class HlsVodController extends BaseController {
   constructor (mse) {
@@ -50,8 +51,9 @@ class HlsVodController extends BaseController {
   }
 
   _onSourceUpdateEnd = () => {
-    if (!this.player || !this.player.video) return
+    if (!this._player || !this._player.video) return
     const player = this._player
+
     if (player.video.readyState === 1 || player.video.readyState === 2) {
       const { gap, start, method } = this._detectBufferGap()
       if (gap) {
@@ -62,6 +64,11 @@ class HlsVodController extends BaseController {
         }
       }
     }
+
+    const video = player.video
+    if (!video.buffered.length) return
+    // 对外事件
+    this.emitCoreEvent(CORE_EVENTS.BUFFER_APPENDED)
   }
 
   _seekToBufferStart = () => {
