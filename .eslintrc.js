@@ -9,7 +9,7 @@ module.exports = {
     sourceType: 'module',
     allowImportExportEverywhere: false,
     babelOptions: {
-      configFile: './.babelrc'
+      configFile: './babel.config.js'
     }
   },
   extends: [

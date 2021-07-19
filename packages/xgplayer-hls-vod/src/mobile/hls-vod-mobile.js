@@ -1,7 +1,7 @@
 // eslint-disable-next-line standard/object-curly-even-spacing
 import { EVENTS, Crypto, FetchLoader, logger} from 'xgplayer-helper-utils'
 import { Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
-import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
+import { M3U8ParserNew, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
@@ -175,7 +175,7 @@ class HlsVodMobileController {
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
       try {
-        let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
+        let mdata = M3U8ParserNew.tempAdapter(M3U8ParserNew.parse(this.m3u8Text, this.url))
         this._playlist.pushM3U8(mdata)
         this._player.video.duration = mdata.duration / 1000
       } catch (error) {
@@ -283,7 +283,6 @@ class HlsVodMobileController {
   }
 
   load (url) {
-    this.baseurl = M3U8Parser.parseURL(url)
     this.url = url
     this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, url)
   }

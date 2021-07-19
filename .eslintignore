@@ -3,3 +3,4 @@ browser/*
 dist/*
 scripts/*
 fixtures/*
+/**/__tests__/*

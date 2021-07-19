@@ -10,8 +10,6 @@ const HLS_EVENTS = EVENTS.HLS_EVENTS
 const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
 const HLS_ERROR = 'HLS_ERROR'
 
-const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g
-
 class HlsLiveController {
   constructor () {
     this.TAG = 'HlsLiveMobile'
@@ -185,17 +183,17 @@ class HlsLiveController {
   }
 
   _onLoadComplete (buffer) {
-    const { M3U8Parser, XgBuffer, FetchLoader, Crypto } = this._pluginConfig
+    const { M3U8ParserNew, XgBuffer, FetchLoader, Crypto } = this._pluginConfig
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata
       try {
         this.m3u8Text = buffer.shift()
-        let result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
-        if (result && result[2]) {
+        const parsed = M3U8ParserNew.parse(this.m3u8Text, this.url)
+        if (parsed && Array.isArray(parsed.streams)) {
           // redirect
-          this.load(result[2])
+          this.load(parsed.streams[0]?.url)
         } else {
-          mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
+          mdata = M3U8ParserNew.tempAdapter(parsed)
         }
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false)
@@ -343,7 +341,6 @@ class HlsLiveController {
   }
 
   load (url) {
-    this.baseurl = this._pluginConfig.M3U8Parser.parseURL(url)
     this.url = url
     this._preload()
   }
