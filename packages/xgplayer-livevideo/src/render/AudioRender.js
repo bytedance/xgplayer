@@ -254,7 +254,7 @@ export default class AudioRender extends BaseRender {
       (uncompress) => {
         if (!this._timeRange) return
 
-        if (this._lastAudioBufferInfo) {
+        if (this._lastAudioBufferInfo && this.isLive) {
           let info = this._lastAudioBufferInfo
           let endTime = info.dts + info.duration
           delay = samp0.dts - endTime

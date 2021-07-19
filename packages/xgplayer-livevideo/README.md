@@ -1,17 +1,17 @@
-# xgplyer-mobilevideo
+# xgplyer-livevideo
 
-xgplyer-mobilevideo 是可以防止劫持、能够实现移动端软解播放的播放器，通过接受h264帧与AAC数据，实现高效、流畅的播放体验。
+xgplyer-livevideo 是可以防止劫持、能够实现移动端软解播放的播放器，通过接受h264帧与AAC数据，实现高效、流畅的播放体验。
 
 ## 安装
 
 ```bash
-npm i xgplayer-mobilevideo 
+npm i xgplayer-livevideo 
 ```
 
 ## 使用
 
 ```js
-import 'xgplayer-mobilevideo';
+import 'xgplayer-livevideo';
 
 const video = document.createElement('live-video');
 
@@ -63,7 +63,7 @@ video.onDemuxComplete(videoTrack, audioTrack);
 | data   | 帧数据   |
 
 ### 事件
-mobilevideo的事件基本向HTML video看齐，同时有一些专有的事件向外抛出
+livevideo的事件基本向HTML video看齐，同时有一些专有的事件向外抛出
 
 
 | 事件名 | 参数 | 含义 |

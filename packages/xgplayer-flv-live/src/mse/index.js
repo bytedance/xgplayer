@@ -140,6 +140,7 @@ class FlvPlayer extends BasePlugin {
 
   initEvents () {
     this.on('seeking', () => {
+      if (!this.player || !this.player.getBufferedRange) return
       const time = this.player.currentTime
       const range = this.player.getBufferedRange()
       if (time > range[1] || time < range[0]) {
