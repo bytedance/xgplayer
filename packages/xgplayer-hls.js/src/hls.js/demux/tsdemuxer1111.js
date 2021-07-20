@@ -40,7 +40,6 @@
   }
 
   switchLevel() {
-    // console.log('switchLevel')
     this.pmtParsed = false;
     this._pmtId = -1;
     // codec HEVC = 0x24, AVC = 0x1b
@@ -122,7 +121,6 @@
         }
         switch(pid) {
           case videoPID:
-            // console.log('videoPID start: ', start)
             if (stt) {
               if (videoData) {
                 var pesData = parsePES(videoData);
@@ -157,7 +155,6 @@
             }
             break;
           case aacId:
-            // console.log('aacId start: ', start)
             if (stt) {
               if (aacData) {
                 parseAACPES(parsePES(aacData));
@@ -395,10 +392,7 @@
         length = 0,
         // expGolombDecoder,
         avcSample,
-        push,
-        hasVPS = false,
-        hasSPS = false,
-        hasPPS = false;
+        push;
         // i;
     // no NALu found
     if (units.length === 0 && samples.length > 0) {
@@ -432,7 +426,6 @@
           track.nbNalu += units2.length;
         } else {
           // dropped samples, track it
-          // console.log('dropped samples, track it')
           track.dropped++;
         }
         units2 = [];
@@ -547,62 +540,47 @@
           key = true;
           break;
         case 32:
-          if(hasVPS) {
-            push = false;
-          } else {
-            hasVPS = true;
-            push = true;
-            unit.data = this.discardEPB(unit.data);
-            track.vps = [unit.data];
-            if(debug) {
-              debugString += 'VPS ';
-            }
+          push = true;
+          unit.data = this.discardEPB(unit.data);
+          track.vps = [unit.data];
+          if(debug) {
+            debugString += 'VPS ';
           }
           break;
         //SPS
         case 33:
-          if(hasSPS) {
-            push = false;
-          } else {
-            hasSPS = true;
-            push = true;
-            if(debug) {
-              debugString += 'SPS ';
-            }
-            unit.data = this.discardEPB(unit.data);
-            track.sps = [unit.data];
-
-            var hevcSPSParser = new HEVCSpsParser(unit.data);
-            var config = hevcSPSParser.readSPSHEVC();
-            track.width = config.width;
-            track.height = config.height;
-            track.general_profile_space = config.general_profile_space;
-            track.general_tier_flag = config.general_tier_flag;
-            track.general_profile_idc = config.general_profile_idc;
-            track.general_level_idc = config.general_level_idc
-            track.duration = this._duration;
-            track.codec = 'hev1.1.6.L93.B0';
-            track.chromaFormatIdc = config.chromaFormatIdc;
-            track.bitDepthLumaMinus8 = config.bitDepthLumaMinus8;
-            track.bitDepthChromaMinus8 = config.bitDepthChromaMinus8;
-            // console.log('hevc sps: ')
-            // console.log(config)
+          push = true;
+          if(debug) {
+            debugString += 'SPS ';
           }
+          unit.data = this.discardEPB(unit.data);
+          track.sps = [unit.data];
+
+          var hevcSPSParser = new HEVCSpsParser(unit.data);
+          var config = hevcSPSParser.readSPSHEVC();
+          track.width = config.width;
+          track.height = config.height;
+          track.general_profile_space = config.general_profile_space;
+          track.general_tier_flag = config.general_tier_flag;
+          track.general_profile_idc = config.general_profile_idc;
+          track.general_level_idc = config.general_level_idc
+          track.duration = this._duration;
+          track.codec = 'hev1.1.6.L93.B0';
+          track.chromaFormatIdc = config.chromaFormatIdc;
+          track.bitDepthLumaMinus8 = config.bitDepthLumaMinus8;
+          track.bitDepthChromaMinus8 = config.bitDepthChromaMinus8;
+          // console.log('hevc sps: ')
+          // console.log(config)
           break;
         //PPS
         case 34:
-          if(hasPPS) {
-            push = false;
-          } else {
-            hasPPS = true;
-            push = true;
-            if(debug) {
-              debugString += 'PPS ';
-            }
-            // if (!track.pps) {
-              track.pps = [unit.data];
-            // }
+          push = true;
+          if(debug) {
+            debugString += 'PPS ';
           }
+          // if (!track.pps) {
+            track.pps = [unit.data];
+          // }
           break;
         case 35:
           push = false;

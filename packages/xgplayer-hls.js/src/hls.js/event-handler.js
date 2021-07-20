@@ -4,18 +4,13 @@
 *
 */
 
-import { logger } from './utils/logger';
-import { ErrorTypes, ErrorDetails } from './errors';
+import {logger} from './utils/logger';
+import {ErrorTypes, ErrorDetails} from './errors';
 import Event from './events';
 
-const FORBIDDEN_EVENT_NAMES = {
-  'hlsEventGeneric': true,
-  'hlsHandlerDestroying': true,
-  'hlsHandlerDestroyed': true
-};
-
 class EventHandler {
-  constructor (hls, ...events) {
+
+  constructor(hls, ...events) {
     this.hls = hls;
     this.onEvent = this.onEvent.bind(this);
     this.handledEvents = events;
@@ -24,60 +19,56 @@ class EventHandler {
     this.registerListeners();
   }
 
-  destroy () {
-    this.onHandlerDestroying();
+  destroy() {
     this.unregisterListeners();
-    this.onHandlerDestroyed();
   }
 
-  onHandlerDestroying () {}
-  onHandlerDestroyed () {}
-
-  isEventHandler () {
+  isEventHandler() {
     return typeof this.handledEvents === 'object' && this.handledEvents.length && typeof this.onEvent === 'function';
   }
 
-  registerListeners () {
+  registerListeners() {
     if (this.isEventHandler()) {
-      this.handledEvents.forEach(function (event) {
-        if (FORBIDDEN_EVENT_NAMES[event]) {
-          throw new Error('Forbidden event-name: ' + event);
+      this.handledEvents.forEach(function(event) {
+        if (event === 'hlsEventGeneric') {
+          throw new Error('Forbidden event name: ' + event);
         }
-
         this.hls.on(event, this.onEvent);
-      }, this);
+      }.bind(this));
     }
   }
 
-  unregisterListeners () {
+  unregisterListeners() {
     if (this.isEventHandler()) {
-      this.handledEvents.forEach(function (event) {
+      this.handledEvents.forEach(function(event) {
         this.hls.off(event, this.onEvent);
-      }, this);
+      }.bind(this));
     }
   }
 
   /**
    * arguments: event (string), data (any)
    */
-  onEvent (event, data) {
+  onEvent(event, data) {
     this.onEventGeneric(event, data);
   }
 
-  onEventGeneric (event, data) {
-    let eventToFunction = function (event, data) {
-      let funcName = 'on' + event.replace('hls', '');
+  onEventGeneric(event, data) {
+    var eventToFunction = function(event, data) {
+      var funcName = 'on' + event.replace('hls', '');
       if (typeof this[funcName] !== 'function') {
         throw new Error(`Event ${event} has no generic handler in this ${this.constructor.name} class (tried ${funcName})`);
       }
-
+      // console.log(this[funcName])
       return this[funcName].bind(this, data);
     };
     try {
+      // console.log(event)
+      // console.log(data)
       eventToFunction.call(this, event, data).call();
     } catch (err) {
-      logger.error(`An internal error happened while handling event ${event}. Error message: "${err.message}". Here is a stacktrace:`, err);
-      this.hls.trigger(Event.ERROR, { type: ErrorTypes.OTHER_ERROR, details: ErrorDetails.INTERNAL_EXCEPTION, fatal: false, event: event, err: err });
+      logger.error(`internal error happened while processing ${event}:${err.message}`);
+      this.hls.trigger(Event.ERROR, {type: ErrorTypes.OTHER_ERROR, details: ErrorDetails.INTERNAL_EXCEPTION, fatal: false, event : event, err : err});
     }
   }
 }

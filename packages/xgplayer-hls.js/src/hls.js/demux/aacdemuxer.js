@@ -1,91 +1,119 @@
 /**
  * AAC demuxer
  */
-import * as ADTS from './adts';
-import { logger } from '../utils/logger';
+import ADTS from './adts';
+import {logger} from '../utils/logger';
 import ID3 from '../demux/id3';
 
-class AACDemuxer {
-  constructor (observer, remuxer, config) {
+ class AACDemuxer {
+
+  constructor(observer, id, remuxerClass, config) {
     this.observer = observer;
+    this.id = id;
+    this.remuxerClass = remuxerClass;
     this.config = config;
-    this.remuxer = remuxer;
+    this.remuxer = new this.remuxerClass(observer,id, config);
+    this.insertDiscontinuity();
   }
 
-  resetInitSegment (initSegment, audioCodec, videoCodec, duration) {
-    this._audioTrack = { container: 'audio/adts', type: 'audio', id: 0, sequenceNumber: 0, isAAC: true, samples: [], len: 0, manifestCodec: audioCodec, duration: duration, inputTimeScale: 90000 };
+  insertDiscontinuity() {
+    this._aacTrack = {container : 'audio/adts', type: 'audio', id :-1, sequenceNumber: 0, samples : [], len : 0};
   }
 
-  resetTimeStamp () {
-  }
-
-  static probe (data) {
-    if (!data) {
-      return false;
-    }
-
-    // Check for the ADTS sync word
-    // Look for ADTS header | 1111 1111 | 1111 X00X | where X can be either 0 or 1
-    // Layer bits (position 14 and 15) in header should be always 0 for ADTS
-    // More info https://wiki.multimedia.cx/index.php?title=ADTS
-    const id3Data = ID3.getID3Data(data, 0) || [];
-    let offset = id3Data.length;
-
-    for (let length = data.length; offset < length; offset++) {
-      if (ADTS.probe(data, offset)) {
-        logger.log('ADTS sync word found !');
-        return true;
+  static probe(data) {
+    // check if data contains ID3 timestamp and ADTS sync worc
+    var id3 = new ID3(data), offset,len;
+    if(id3.hasTimeStamp) {
+      // look for ADTS header (0xFFFx)
+      for (offset = id3.length, len = data.length; offset < len - 1; offset++) {
+        if ((data[offset] === 0xff) && (data[offset+1] & 0xf0) === 0xf0) {
+          //logger.log('ADTS sync word found !');
+          return true;
+        }
       }
     }
     return false;
   }
 
+
   // feed incoming data to the front of the parsing pipeline
-  append (data, timeOffset, contiguous, accurateTimeOffset) {
-    let track = this._audioTrack;
-    let id3Data = ID3.getID3Data(data, 0) || [];
-    let timestamp = ID3.getTimeStamp(id3Data);
-    let pts = Number.isFinite(timestamp) ? timestamp * 90 : timeOffset * 90000;
-    let frameIndex = 0;
-    let stamp = pts;
-    let length = data.length;
-    let offset = id3Data.length;
+  push(data, audioCodec, videoCodec, timeOffset, cc, level, sn, duration) {
+    var track,
+        id3 = new ID3(data),
+        pts = 90*id3.timeStamp,
+        config, frameLength, frameDuration, frameIndex, offset, headerLength, stamp, len, aacSample;
 
-    let id3Samples = [{ pts: stamp, dts: stamp, data: id3Data }];
+    let contiguous = false;
+    if (cc !== this.lastCC) {
+      logger.log(`${this.id} discontinuity detected`);
+      this.lastCC = cc;
+      this.insertDiscontinuity();
+      this.remuxer.switchLevel();
+      this.remuxer.insertDiscontinuity();
+    } else if (level !== this.lastLevel) {
+      logger.log('audio track switch detected');
+      this.lastLevel = level;
+      this.remuxer.switchLevel();
+      this.insertDiscontinuity();
+    } else if (sn === (this.lastSN+1)) {
+      contiguous = true;
+    }
+    track = this._aacTrack;
+    this.lastSN = sn;
+    this.lastLevel = level;
 
-    while (offset < length - 1) {
-      if (ADTS.isHeader(data, offset) && (offset + 5) < length) {
-        ADTS.initTrackConfig(track, this.observer, data, offset, track.manifestCodec);
-        let frame = ADTS.appendFrame(track, data, offset, pts, frameIndex);
-        if (frame) {
-          offset += frame.length;
-          stamp = frame.sample.pts;
-          frameIndex++;
-        } else {
-          logger.log('Unable to parse AAC frame');
-          break;
-        }
-      } else if (ID3.isHeader(data, offset)) {
-        id3Data = ID3.getID3Data(data, offset);
-        id3Samples.push({ pts: stamp, dts: stamp, data: id3Data });
-        offset += id3Data.length;
-      } else {
-        // nothing found, keep looking
-        offset++;
+    // look for ADTS header (0xFFFx)
+    for (offset = id3.length, len = data.length; offset < len - 1; offset++) {
+      if ((data[offset] === 0xff) && (data[offset+1] & 0xf0) === 0xf0) {
+        break;
       }
     }
 
-    this.remuxer.remux(track,
-      { samples: [] },
-      { samples: id3Samples, inputTimeScale: 90000 },
-      { samples: [] },
-      timeOffset,
-      contiguous,
-      accurateTimeOffset);
+    if (!track.audiosamplerate) {
+      config = ADTS.getAudioConfig(this.observer,data, offset, audioCodec);
+      track.config = config.config;
+      track.audiosamplerate = config.samplerate;
+      track.channelCount = config.channelCount;
+      track.codec = config.codec;
+      track.duration = duration;
+      logger.log(`parsed codec:${track.codec},rate:${config.samplerate},nb channel:${config.channelCount}`);
+    }
+    frameIndex = 0;
+    frameDuration = 1024 * 90000 / track.audiosamplerate;
+    while ((offset + 5) < len) {
+      // The protection skip bit tells us if we have 2 bytes of CRC data at the end of the ADTS header
+      headerLength = (!!(data[offset + 1] & 0x01) ? 7 : 9);
+      // retrieve frame size
+      frameLength = ((data[offset + 3] & 0x03) << 11) |
+                     (data[offset + 4] << 3) |
+                    ((data[offset + 5] & 0xE0) >>> 5);
+      frameLength  -= headerLength;
+      //stamp = pes.pts;
+
+      if ((frameLength > 0) && ((offset + headerLength + frameLength) <= len)) {
+        stamp = pts + frameIndex * frameDuration;
+        //logger.log(`AAC frame, offset/length/total/pts:${offset+headerLength}/${frameLength}/${data.byteLength}/${(stamp/90).toFixed(0)}`);
+        aacSample = {unit: data.subarray(offset + headerLength, offset + headerLength + frameLength), pts: stamp, dts: stamp};
+        track.samples.push(aacSample);
+        track.len += frameLength;
+        offset += frameLength + headerLength;
+        frameIndex++;
+        // look for ADTS header (0xFFFx)
+        for ( ; offset < (len - 1); offset++) {
+          if ((data[offset] === 0xff) && ((data[offset + 1] & 0xf0) === 0xf0)) {
+            break;
+          }
+        }
+      } else {
+        break;
+      }
+    }
+    this.remuxer.remux(level, sn , this._aacTrack,{samples : []}, {samples : [ { pts: pts, dts : pts, unit : id3.payload} ]}, { samples: [] }, timeOffset, contiguous);
   }
 
-  destroy () {
+  destroy() {
   }
+
 }
 
 export default AACDemuxer;
