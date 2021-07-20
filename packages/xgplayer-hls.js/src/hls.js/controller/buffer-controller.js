@@ -53,7 +53,7 @@ class BufferController extends EventHandler {
     let media = this.media = data.media;
     if (media) {
       // setup the media source
-      var ms = this.mediaSource = new MediaSource();
+      var ms = this.mediaSource = new MediaSource(data.mediaType);
       //Media Source listeners
       this.onmso = this.onMediaSourceOpen.bind(this);
       this.onmse = this.onMediaSourceEnded.bind(this);

@@ -6,6 +6,7 @@ class HlsJsPlayer extends Player {
   constructor (options) {
     super(options)
     this.hlsOpts = options.hlsOpts || {}
+    this.hlsOpts.mediaType = this.config.mediaType
     let util = Player.util
     let player = this
 

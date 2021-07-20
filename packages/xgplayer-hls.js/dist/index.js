@@ -1814,6 +1814,7 @@ var HlsJsPlayer = function (_Player) {
     var _this = _possibleConstructorReturn(this, (HlsJsPlayer.__proto__ || Object.getPrototypeOf(HlsJsPlayer)).call(this, options));
 
     _this.hlsOpts = options.hlsOpts || {};
+    _this.hlsOpts.mediaType = _this.config.mediaType;
     var util = _xgplayer2.default.util;
     var player = _this;
 
@@ -2319,7 +2320,7 @@ var Hls = function () {
     value: function attachMedia(media) {
       _logger.logger.log('attachMedia');
       this.media = media;
-      this.trigger(_events2.default.MEDIA_ATTACHING, { media: media });
+      this.trigger(_events2.default.MEDIA_ATTACHING, { media: media, mediaType: this.config.mediaType });
     }
   }, {
     key: 'detachMedia',
@@ -3870,7 +3871,7 @@ var BufferController = function (_EventHandler) {
       var media = this.media = data.media;
       if (media) {
         // setup the media source
-        var ms = this.mediaSource = new MediaSource();
+        var ms = this.mediaSource = new MediaSource(data.mediaType);
         //Media Source listeners
         this.onmso = this.onMediaSourceOpen.bind(this);
         this.onmse = this.onMediaSourceEnded.bind(this);
