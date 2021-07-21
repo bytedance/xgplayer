@@ -33,7 +33,7 @@ const sniffer = {
     const ua = navigator.userAgent.toLowerCase()
     const reg = {
       ie: /rv:([\d.]+)\) like gecko/,
-      firfox: /firefox\/([\d.]+)/,
+      firefox: /firefox\/([\d.]+)/,
       chrome: /chrome\/([\d.]+)/,
       opera: /opera.([\d.]+)/,
       safari: /version\/([\d.]+).*safari/

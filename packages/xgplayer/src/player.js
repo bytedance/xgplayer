@@ -663,7 +663,7 @@ class Player extends VideoProxy {
 
   /**
    *
-   * @param { object } plugin
+   * @param { object | string } plugin
    */
   unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
