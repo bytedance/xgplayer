@@ -51,9 +51,8 @@ class Volume extends Plugin {
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
-    this.changeMutedHandler = this.hook('muted_change', () => {
-      const { player } = this
-      player.muted = !player.muted
+    this.changeMutedHandler = this.hook('muted_change', (e) => {
+      this.changeMuted(e)
     }, {
       pre: (e) => {
         e.preventDefault()
@@ -166,9 +165,13 @@ class Volume extends Plugin {
 
   changeMuted (e) {
     // e.preventDefault()
-    e.stopPropagation()
+    e && e.stopPropagation()
     const { player } = this
-    player.muted = !player.muted
+    if (player.volume < 0.1) {
+      player.volume = this.config.default
+    } else {
+      player.muted = !player.muted
+    }
   }
 
   onVolumeChange () {

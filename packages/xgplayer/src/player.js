@@ -916,11 +916,12 @@ class Player extends VideoProxy {
   }
 
   resetClasses () {
-    const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR } = STATE_CLASS
-    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR]
+    const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR, LOADING } = STATE_CLASS
+    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR, LOADING]
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
+    this.addClass(STATE_CLASS.ENTER)
   }
 
   /**
