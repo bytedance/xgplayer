@@ -1,21 +1,6 @@
 import Util from '../utils/util'
 import EN from './en'
 
-function deepMerge (dst, src) {
-  Object.keys(src).map(key => {
-    if (Util.typeOf(src[key]) === 'Array' && Util.typeOf(dst[key]) === 'Array') {
-      if (Util.typeOf(dst[key]) === 'Array') {
-        dst[key].push(...src[key])
-      }
-    } else if (Util.typeOf(dst[key]) === Util.typeOf(src[key]) && dst[key] !== null && Util.typeOf(dst[key]) === 'Object' && !(src[key] instanceof window.Node)) {
-      deepMerge(dst[key], src[key])
-    } else {
-      src[key] !== null && (dst[key] = src[key])
-    }
-  })
-  return dst
-}
-
 const XGI18nLang = {}
 const XGI18nTextKeys = {}
 const XGI18nLangKeys = []
@@ -44,7 +29,7 @@ function extend (XGI18nText) {
     if (!XGI18nLang[item.LANG]) {
       XGI18nLangPreExtends[item.LANG] = item.TEXT
     } else {
-      deepMerge(XGI18nLang[item.LANG] || {}, item.TEXT || {})
+      Util.deepMerge(XGI18nLang[item.LANG] || {}, item.TEXT || {})
     }
   })
   updateKeys()
