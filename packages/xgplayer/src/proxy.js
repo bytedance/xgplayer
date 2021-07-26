@@ -378,7 +378,7 @@ class Proxy {
 
   /** @type { number }  */
   get currentTime () {
-    return this.video.currentTime || this._currentTime
+    return this.video.currentTime !== undefined ? this.video.currentTime : this._currentTime
   }
 
   set currentTime (time) {
