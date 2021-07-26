@@ -1,7 +1,7 @@
 /**
  * @typedef {{
  *  device: 'pc' | 'mobile',
- *  browser: 'ie' | 'firfox' | 'chrome' | 'opera' | 'safari',
+ *  browser: 'ie' | 'firefox' | 'chrome' | 'opera' | 'safari',
  *  os: {
  *   isTablet: boolean,
  *   isPhone: boolean,

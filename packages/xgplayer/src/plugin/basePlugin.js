@@ -17,7 +17,7 @@ class BasePlugin {
   }
 
   /**
-   * @type { object }
+   * @type { { [propName: string]: any } }
    */
   static get defaultConfig () {
     return {}
@@ -32,7 +32,7 @@ class BasePlugin {
 
   /**
    * @constructor
-   * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   * @param { { index?: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
    */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
@@ -247,8 +247,8 @@ class BasePlugin {
 
   /**
    * @param { string } hookName
-   * @param { Function } handler
-   * @param  {...any} [args]
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
    */
   useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)

@@ -25,7 +25,7 @@ const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 class Player extends VideoProxy {
   /**
    * @constructor
-   * @param IPlayerConfigs options
+   * @param { IPlayerOptions } options
    * @returns
    */
   constructor (options) {
@@ -37,7 +37,7 @@ class Player extends VideoProxy {
     })
 
     /**
-     * @type IPlayerConfigs
+     * @type { IPlayerOptions }
      */
     this.config = config
     bindDebug(this)
@@ -190,6 +190,7 @@ class Player extends VideoProxy {
 
     /**
      * @readonly
+     * @type {any}
      */
     this.database = new Database()
 
@@ -997,7 +998,7 @@ class Player extends VideoProxy {
    *
    * @param { HTMLElement } [root]
    * @param { HTMLElement } [el]
-   * @param { string } rootClass
+   * @param { string } [rootClass]
    * @param { string } [pClassName]
    */
   changeFullStyle (root, el, rootClass, pClassName) {
@@ -1021,7 +1022,7 @@ class Player extends VideoProxy {
    *
    * @param { HTMLElement } [root]
    * @param { HTMLElement } [el]
-   * @param { string } rootClass
+   * @param { string } [rootClass]
    * @param { string } [pClassName]
    */
   recoverFullStyle (root, el, rootClass, pClassName) {
@@ -1175,11 +1176,17 @@ class Player extends VideoProxy {
     }
   }
 
+  /**
+   * @protected
+   */
   onCanplay () {
     this.removeClass(STATE_CLASS.ENTER)
     this.isCanplay = true
   }
 
+  /**
+   * @protected
+   */
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
@@ -1188,6 +1195,9 @@ class Player extends VideoProxy {
     !this.config.closePlayVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
+  /**
+   * @protected
+   */
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
     if (this.config.closePauseVideoFocus) {
@@ -1198,11 +1208,17 @@ class Player extends VideoProxy {
     }
   }
 
+  /**
+   * @protected
+   */
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
     // this.removeClass(STATE_CLASS.PLAYING)
   }
 
+  /**
+   * @protected
+   */
   onError () {
     this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.NO_START)
@@ -1210,6 +1226,9 @@ class Player extends VideoProxy {
     this.addClass(STATE_CLASS.ERROR)
   }
 
+  /**
+   * @protected
+   */
   onSeeking () {
     if (!this.isSeeking) {
       const { _played } = this
@@ -1221,6 +1240,9 @@ class Player extends VideoProxy {
     this.addClass(STATE_CLASS.SEEKING)
   }
 
+  /**
+   * @protected
+   */
   onSeeked () {
     this.isSeeking = false
     // for ie,playing fired before waiting
@@ -1231,6 +1253,9 @@ class Player extends VideoProxy {
     this.removeClass(STATE_CLASS.SEEKING)
   }
 
+  /**
+   * @protected
+   */
   onWaiting () {
     if (this.waitTimer) {
       Util.clearTimeout(this, this.waitTimer)
@@ -1242,6 +1267,9 @@ class Player extends VideoProxy {
     }, 500)
   }
 
+  /**
+   * @protected
+   */
   onPlaying () {
     const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
     const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY]
@@ -1250,6 +1278,9 @@ class Player extends VideoProxy {
     })
   }
 
+  /**
+   * @protected
+   */
   onTimeupdate () {
     !this._videoHeight && this.getVideoSize()
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
@@ -1473,7 +1504,7 @@ class Player extends VideoProxy {
 
   /**
    * @param { string } hookName
-   * @param { Function } handler
+   * @param { (player: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} [args]
    */
   useHooks (hookName, handler) {
@@ -1484,8 +1515,8 @@ class Player extends VideoProxy {
    *
    * @param { string } pluginName
    * @param { string } hookName
-   * @param { Function } handler
-   * @param  {...any} [args]
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
    */
   usePluginHooks (pluginName, hookName, handler, ...args) {
     usePluginHooks.call(this, ...arguments)
@@ -1516,6 +1547,11 @@ class Player extends VideoProxy {
   }
 
   static defaultPreset = null
+
+  /**
+   * @description 自定义media构造函数
+   */
+  static XgVideoProxy = null
 }
 
 export {

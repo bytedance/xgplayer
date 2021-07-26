@@ -90,6 +90,10 @@ class Proxy {
      * @private
      */
     this._duration = 0
+    /**
+     * @description 初始化时添加在video上的属性集合
+     * @type { {[propName: string]: any; } }
+     */
     this.videoConfig = Object.assign({}, {
       controls: false,
       autoplay: options.autoplay,
@@ -150,7 +154,7 @@ class Proxy {
 
   /**
    * @description set middleware
-   * @param { Array<{[propName: string]: function}> } middlewares
+   * @param { {[propName: string]: (e: {player: any, eventName: string}, callback: () => void) => any} } middlewares
    */
   setEventsMiddleware (middlewares) {
     Object.keys(middlewares).map(key => {
@@ -160,7 +164,7 @@ class Proxy {
 
   /**
    * @description remove middleware
-   * @param { Array<{[propName: string]: function}> } middlewares
+   * @param { { [propName: string]: (e: {player: any, eventName: string}, callback: () => void) => any} } middlewares
    */
   removeEventsMiddleware (middlewares) {
     Object.keys(middlewares).map(key => {
@@ -224,6 +228,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description 是否开始播放
    */
   get hasStart () {
     return this._hasStart
@@ -313,6 +318,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description 设置/返回 自动播放属性
    */
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
@@ -324,6 +330,7 @@ class Proxy {
 
   /**
    * @type { TimeRanges }
+   * @description  返回当前缓冲的TimeRange对象集合
    */
   get buffered () {
     return this.video.buffered
@@ -331,6 +338,7 @@ class Proxy {
 
   /**
    * @type { Array<{start: number, end: number}> }
+   * @description  返回当前自定义的缓存列表
    */
   get buffered2 () {
     return Util.getBuffered2(this.video.buffered)
@@ -359,7 +367,10 @@ class Proxy {
     return ret
   }
 
-  /** @type { string}  */
+  /**
+   * @type { string}
+   * @description 设置/返回是否跨域
+   * */
   get crossOrigin () {
     return this.video.crossOrigin
   }
@@ -368,7 +379,10 @@ class Proxy {
     this.video.crossOrigin = isTrue
   }
 
-  /** @type { string }  */
+  /**
+   * @type { string }
+   * @description 设置/返回视频播放地址
+   * */
   get currentSrc () {
     return this.video.currentSrc
   }
@@ -377,7 +391,10 @@ class Proxy {
     this.video.currentSrc = src
   }
 
-  /** @type { number }  */
+  /**
+   * @type { number }
+   * @description 设置/返回视频当前播放时间
+   * */
   get currentTime () {
     return this.video.currentTime || this._currentTime
   }
@@ -386,7 +403,10 @@ class Proxy {
     this.video.currentTime = time
   }
 
-  /** @type { boolean }  */
+  /**
+   * @type { boolean }
+   * 设置/返回视频默认静音
+   * */
   get defaultMuted () {
     return this.video.defaultMuted
   }
@@ -395,13 +415,17 @@ class Proxy {
     this.video.defaultMuted = isTrue
   }
 
-  /** @type { number }  */
+  /**
+   * @type { number }
+   * @description 返回视频时长，单位：s
+   * */
   get duration () {
     return this._duration
   }
 
   /**
    * @type { boolean }
+   * @description  回视频是否播放结束
    * */
   get ended () {
     return this.video.ended
@@ -409,6 +433,7 @@ class Proxy {
 
   /**
    * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
+   * @description  频错误信息，该错误会返回当前语言的文本
    */
   get error () {
     const err = this.video.error
@@ -426,6 +451,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description 否开启了循环播放
    */
   get loop () {
     return this.video.loop
@@ -437,6 +463,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description 静音
    */
   get muted () {
     return this.video.muted
@@ -448,6 +475,7 @@ class Proxy {
 
   /**
    * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
+   * @description  返回视频的当前网络状态
    */
   get networkState () {
     const status = [
@@ -461,6 +489,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description  回当前视频是否是暂停状态
    */
   get paused () {
     return this.video.paused
@@ -468,6 +497,7 @@ class Proxy {
 
   /**
    * @type { number }
+   * @description 返回/设置倍速
    */
   get playbackRate () {
     return this.video.playbackRate
@@ -497,6 +527,8 @@ class Proxy {
   }
 
   /**
+   * @type { string }
+   * @description 回视频的就绪状态
    */
   get readyState () {
     const status = [
@@ -510,6 +542,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description 当前视频是否可以seek
    */
   get seekable () {
     return this.video.seekable
@@ -517,6 +550,7 @@ class Proxy {
 
   /**
    * @type { boolean }
+   * @description 当前视频是否处于seeking状态下
    */
   get seeking () {
     return this.video.seeking
@@ -524,6 +558,7 @@ class Proxy {
 
   /**
    * @type { any }
+   * @description 设置/返回当前视频的地址
    */
   get src () {
     return this.video.src
@@ -544,6 +579,7 @@ class Proxy {
 
   /**
    * @type { number }
+   * @description 设置/返回视频的音量
    */
   get volume () {
     return this.video.volume
