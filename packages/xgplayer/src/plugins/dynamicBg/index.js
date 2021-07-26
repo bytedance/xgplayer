@@ -107,7 +107,6 @@ class DynamicBg extends Plugin {
     })
     if (mode !== MODES.FIRST_FRAME) {
       this.on(Events.PLAY, () => {
-        console.log('dynamicBg play')
         this.start()
       })
       this.on(Events.PAUSE, () => {

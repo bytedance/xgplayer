@@ -44,7 +44,7 @@ function extend (XGI18nText) {
     if (!XGI18nLang[item.LANG]) {
       XGI18nLangPreExtends[item.LANG] = item.TEXT
     } else {
-      deepMerge(XGI18nLang[item.LANG], item.TEXT)
+      deepMerge(XGI18nLang[item.LANG] || {}, item.TEXT || {})
     }
   })
   updateKeys()
