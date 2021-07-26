@@ -38,6 +38,7 @@ class Player extends VideoProxy {
 
     /**
      * @type { IPlayerOptions }
+     * @description 当前播放器的配置信息
      */
     this.config = config
     bindDebug(this)
@@ -161,12 +162,14 @@ class Player extends VideoProxy {
     /**
      * @type { null | HTMLElement }
      * @readonly
+     * @description  控制栏和video不同布局的时候内部容器
      */
     this.innerContainer = null
 
     /**
      * @type { null | Object }
      * @readonly
+     * @description 控制栏插件
      */
     this.controls = null
 
@@ -185,6 +188,7 @@ class Player extends VideoProxy {
     /**
      * @type { null | HTMLElement }
      * @readonly
+     * @description 当前播放器根节点
      */
     this.root = null
 
@@ -521,7 +525,6 @@ class Player extends VideoProxy {
     !this._sourceError && (this._sourceError = (e) => {
       this._videoSourceCount--
       if (this._videoSourceCount === 0) {
-        console.log('player.error', this.videoEventMiddleware.error)
         if (this.videoEventMiddleware.error) {
           this.videoEventMiddleware.error.call(this, e, () => {
             this.errorHandler('error')
@@ -758,7 +761,8 @@ class Player extends VideoProxy {
   /**
    *
    * @param { any } url
-   * @returns { Promise<void>; }
+   * @returns { Promise<void> | void }
+   * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
    */
   start (url) {
     // 已经开始初始化播放了 则直接调用play
@@ -987,10 +991,12 @@ class Player extends VideoProxy {
     this.addClass(STATE_CLASS.LOADING)
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
-      this.pause()
-      this.src = this.currentSrc
-      this.currentTime = cur
-      this.play()
+      this.videoPause()
+      this.src = this.config.url
+      !this.config.isLive && (this.currentTime = cur)
+      this.once(Events.CANPLAY, () => {
+        this.videoPlay()
+      })
     })
   }
 
@@ -1118,7 +1124,6 @@ class Player extends VideoProxy {
    */
   getCssFullscreen (el) {
     if (this.fullscreen) {
-      console.log('getCssFullscreen')
       this.exitFullscreen()
     }
     this._cssfullscreenEl = el
@@ -1505,10 +1510,10 @@ class Player extends VideoProxy {
   /**
    * @param { string } hookName
    * @param { (player: any, ...args) => boolean | Promise<any> } handler
-   * @param  {...any} [args]
+   * @param  {...any} args
    */
   useHooks (hookName, handler) {
-    useHooks.call(this, ...arguments)
+    return useHooks.call(this, ...arguments)
   }
 
   /**
@@ -1519,7 +1524,7 @@ class Player extends VideoProxy {
    * @param  {...any} args
    */
   usePluginHooks (pluginName, hookName, handler, ...args) {
-    usePluginHooks.call(this, ...arguments)
+    return usePluginHooks.call(this, ...arguments)
   }
 
   /***
