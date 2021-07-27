@@ -1,14 +1,14 @@
-import { BasePlugin, Events, Util } from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 
 import HLS from './hls-live-mobile'
 import defaultConfig from './config'
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents
-const {softSolutionProbe} = common
+const { softSolutionProbe } = common
 
 class HlsPlayer extends BasePlugin {
   static get pluginName () {
-    return 'hlsLiveMobile'
+    return 'hlsLive'
   }
 
   static get defaultConfig () {
@@ -16,7 +16,8 @@ class HlsPlayer extends BasePlugin {
       preloadTime: 10,
       retryTimes: 3,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 0,
+      innerDegrade: 0
     })
   }
 
@@ -24,16 +25,15 @@ class HlsPlayer extends BasePlugin {
     return softSolutionProbe()
   }
 
-  constructor (options) {
-    super(options)
-    this.play = this.play.bind(this)
-    this.switchURL = this.switchURL.bind(this)
-    this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
-    this.lowdecode = this.lowdecode.bind(this)
-    this.largeavgap = this.largeavgap.bind(this)
+  beforePlayerInit () {
+    this.player.switchURL = this.switchURL
+    this._prepareForLiveVideo()
+    this._initHlsCtr()
+    this._bindPlayerEvents()
+    this.emit('core_inited', this.hls)
   }
 
-  beforePlayerInit () {
+  _prepareForLiveVideo () {
     const { player } = this
     if (player.video) {
       player.video.setAttribute('preloadtime', this.player.config.preloadTime || this.config.preloadTime)
@@ -41,22 +41,21 @@ class HlsPlayer extends BasePlugin {
       if (player.config.innerDegrade === true) {
         player.config.innerDegrade = 1
       }
-      if (player.config.innerDegrade) {
-        player.video.setAttribute('innerdegrade', player.config.innerDegrade)
+      const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
+      if (innerDegrade) {
+        player.video.setAttribute('innerdegrade', innerDegrade)
       }
     }
-    this._initProcess()
-    this.initEvents()
   }
 
-  _initProcess () {
+  _initHlsCtr () {
     const { player } = this
     this._context = new Context(this.player, this.config, hlsAllowedEvents)
-    this.initHls()
+    this.hls = this._context.registry('HLS_CONTROLLER', HLS)()
     this._context.init()
-    this.loadData()
+    this._loadData()
     if (!player.forceDegradeToVideo) {
-      player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this)
+      player.forceDegradeToVideo = this._forceDegradeToVideo
     }
   }
 
@@ -67,43 +66,40 @@ class HlsPlayer extends BasePlugin {
     video.style.outline = 'none'
   }
 
-  initEvents () {
-    const {player} = this
-    this.on(Events.PLAY, this.play)
-    this.on(Events.URL_CHANGE, this.switchURL)
-    this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
-    player.video.addEventListener('lowdecode', this.lowdecode)
-    player.video.addEventListener('largeavgap', this.largeavgap)
+  _bindPlayerEvents () {
+    const { player } = this
+    this.player.useHooks('play', this._handlePlay)
+
+    this.on(Events.URL_CHANGE, this._switchURL)
+    this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
+
+    player.video.addEventListener('lowdecode', this._lowdecode)
+    player.video.addEventListener('largeavgap', this._largeavgap)
   }
 
-  largeavgap () {
+  _largeavgap = () => {
     this.emit('largeavgap', this.player.video.unsyncInfo)
   }
 
-  lowdecode () {
+  _lowdecode = () => {
     const { player } = this
 
     this.emit('lowdecode', player.video.degradeInfo)
 
-    // 降级到mse
-    if (player.config.innerDegrade === 2) {
-      this._degrade()
-      this._toUseMse()
-      return
-    }
-
     // 降级到video直接播放hls
-    if (player.config.innerDegrade === 1) {
+    const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
+    if (innerDegrade === 1) {
       this._degrade(player.video.src)
     }
   }
 
   /**
+   * @description 该方法用来软解降级到video
    * @param {string} url  降级到的地址
    * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
    */
   _degrade (url) {
-    const {player} = this
+    const { player } = this
     let mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
       let newVideo = player.video.degradeVideo
@@ -120,6 +116,13 @@ class HlsPlayer extends BasePlugin {
         player.root.replaceChild(newVideo, firstChild)
       }
 
+      const mobilePluginName = HlsPlayer.pluginName.toLowerCase()
+      const wrapperPluginName = this.wrapper && this.wrapper.constructor.pluginName
+      player.plugins[mobilePluginName] = null
+      if (wrapperPluginName) {
+        player.plugins[wrapperPluginName.toLowerCase()] = null
+      }
+
       // play
       player.once('canplay', () => {
         player.play()
@@ -127,92 +130,67 @@ class HlsPlayer extends BasePlugin {
     }
   }
 
-  _toUseMse () {
-    const { player } = this
-    const {backupConstructor, backupURL} = player.config
-    if (backupConstructor) {
-      player.config.url = backupURL
-      let hlsMsePlayer = player.registerPlugin(backupConstructor)
-      hlsMsePlayer.beforePlayerInit()
-      Promise.resolve().then(() => {
-        player.video.src = player.url
-        const mobilePluginName = HlsPlayer.pluginName.toLowerCase()
-        player.plugins[mobilePluginName] = null
-      })
-    }
-  }
-
   // 外部强制降级
   // m3u8 -> h5 m3u8
   // m3u8 -> web mse
-  forceDegradeToVideo (url) {
+  _forceDegradeToVideo = (url) => {
     this.player.removeClass('xgplayer-is-error')
     const { player } = this
 
-    // 降级到mse
-    if (player.config.innerDegrade === 2) {
-      player.config.backupURL = url
-      this._degrade()
-      this._toUseMse()
-      return
-    }
-
     // 降级到video直接播放hls
-    if (player.config.innerDegrade === 1) {
+    const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
+    if (innerDegrade === 1) {
       this._degrade(url)
     }
   }
 
-  initHls () {
-    this.hls = this._context.registry('HLS_CONTROLLER', HLS)()
-    this.emit('core_inited', this.hls)
+  _handlePlay = () => {
+    this._destroyInternal()
+    this.player.hasStart = false
   }
 
-  play () {
-    if (this.played) {
-      this._destroy()
-      this._initProcess()
-    } else {
-      this.addLiveFlag()
-    }
-    this.played = true
-  }
-
-  loadData () {
+  _loadData () {
     const { player } = this
     if (this.hls) {
       this.hls.load(player.config.url)
     }
   }
 
-  handleDefinitionChange (change) {
+  _handleDefinitionChange = (change) => {
     const { to } = change
-    this.switchURL(to)
+    this._switchURL(to)
   }
 
-  switchURL (url) {
+  _switchURL = (url) => {
     this.player.config.url = url
-    this._destroy()
-    this.played = false
-    this._initProcess()
+    this._destroyInternal()
+    this._reloadStream()
   }
 
-  addLiveFlag () {
-    const { player } = this
-    Util.addClass(player.root, 'xgplayer-is-live')
+  _reloadStream () {
+    if (this.player) {
+      this.player.play()
+    }
+  }
+
+  switchURL = (url) => {
+    this._switchURL(url)
   }
 
   destroy () {
-    super.offAll()
-    this._destroy()
+    this._destroyInternal()
   }
 
-  _destroy () {
-    if (this._context) {
-      this._context.destroy()
+  _destroyInternal () {
+    if (!this._context) {
+      return
     }
+    super.offAll()
+    this._context.destroy()
     this.hls = null
     this._context = null
+    this.player.video.removeEventListener('lowdecode', this._lowdecode)
+    this.player.video.removeEventListener('largeavgap', this._largeavgap)
   }
 
   get core () {
