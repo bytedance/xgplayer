@@ -45,6 +45,7 @@ export default class M3U8Parser {
     }
 
     let start = 0
+    let duration = 0
     ret.frags = media.segments.map(x => {
       const frag = {}
       frag.url = x.url
@@ -53,8 +54,10 @@ export default class M3U8Parser {
       frag.cc = x.cc
       frag.id = x.sn
       start += frag.duration
+      duration += frag.duration
       return frag
     })
+    ret.duration = duration
     console.log(ret)
     return ret
   }

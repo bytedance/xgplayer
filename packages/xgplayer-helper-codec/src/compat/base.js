@@ -7,8 +7,9 @@ const isSafari = /Safari/.test(ua) && /Version/.test(ua) && !/Chrome/.test(ua)
 const { REMUX_EVENTS, COMPATIBILITY_EVENTS } = EVENTS
 
 const LARGE_AV_FIRST_FRAME_GAP = 500 // ms
-const AUDIO_GAP_OVERLAP_THRESHOLD = 3
+const AUDIO_GAP_OVERLAP_THRESHOLD_COUNT = 3
 const MAX_SILENT_FRAME_DURATION = 1000 // ms
+const AUDIO_EXCETION_LOG_EMIT_DURATION = 5000 // 5s
 
 class BaseCompatibility {
   constructor () {
@@ -16,14 +17,15 @@ class BaseCompatibility {
     this._baseDts = -1
     this._baseDtsInited = false
 
-    this._audioBaseDts = Infinity
-    this._videoBaseDts = Infinity
-
     this._audioNextDts = undefined
     this._videoNextDts = undefined
 
     this._audioTimestampBreak = false
     this._videoTimestampBreak = false
+
+    this._lastAudioExceptionGapDot = 0
+    this._lastAudioExceptionOverlapDot = 0
+    this._lastAudioExceptionLargeGapDot = 0
 
     this._videoLargeGap = 0
     this._audioLargeGap = 0
@@ -46,10 +48,26 @@ class BaseCompatibility {
   }
 
   init () {
-    this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
+    this.before(REMUX_EVENTS.REMUX_MEDIA, this._doFix.bind(this))
   }
 
-  reset () {}
+  setBaseDts (timestamp) {
+    this._baseDts = timestamp
+    this._baseDtsInited = true
+    logger.log(this.TAG, `set _baseDts=${timestamp}`)
+  }
+
+  getBaseDts () {
+    return this._baseDts
+  }
+
+  doFix () {
+    this._doFix()
+  }
+
+  _doFix () {
+    throw new Error('need override by children')
+  }
 
   _getSilentFrame () {
     return this._silentFrame || (this._silentFrame = AAC.getSilentFrame(this.audioTrack.meta.codec, this.audioTrack.meta.channelCount))
@@ -61,35 +79,39 @@ class BaseCompatibility {
     let videoSamps = videoTrack.samples
 
     if (!audioSamps.length && !videoSamps.length) {
-      return
+      return false
     }
 
+    let _audioBaseDts = Infinity
+    let _videoBaseDts = Infinity
+
     if (audioSamps.length) {
-      this._audioBaseDts = audioSamps[0].dts
+      _audioBaseDts = audioSamps[0].dts
     }
 
     if (videoSamps.length) {
-      this._videoBaseDts = videoSamps[0].dts
+      _videoBaseDts = videoSamps[0].dts
     }
 
-    this._baseDts = Math.min(this._audioBaseDts, this._videoBaseDts)
+    this._baseDts = Math.min(_audioBaseDts, _videoBaseDts)
 
-    let delta = this._videoBaseDts - this._audioBaseDts
+    let delta = _videoBaseDts - _audioBaseDts
 
     // 音视频首帧dts差距过大
     if (Number.isFinite(delta) && Math.abs(delta) > LARGE_AV_FIRST_FRAME_GAP) {
       this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
         msg: BaseCompatibility.EXCEPTION.LARGE_AV_FIRST_FRAME_GAP_DETECT,
         info: {
-          videoBaseDts: this._videoBaseDts,
-          audioBaseDts: this._audioBaseDts,
+          videoBaseDts: _videoBaseDts,
+          audioBaseDts: _audioBaseDts,
           delta
         }
       })
     }
-    logger.log(this.TAG, `calc base dts: vBaseDts=${this._videoBaseDts} aBaseDts=${this._audioBaseDts} baseDts=${this._baseDts}, delta=${delta}`)
+    logger.log(this.TAG, `calc base dts: vBaseDts=${_videoBaseDts} aBaseDts=${_audioBaseDts} baseDts=${this._baseDts}, delta=${delta}`)
 
     this._baseDtsInited = true
+    return true
   }
 
   _resetBaseDtsWhenStreamBreaked () {
@@ -108,7 +130,9 @@ class BaseCompatibility {
        */
 
       // 先根据跳变后的采样计算baseDts
-      this._calculateBaseDts(this.audioTrack, this.videoTrack)
+      let calc = this._calculateBaseDts(this.audioTrack, this.videoTrack)
+
+      if (!calc) return
 
       // 考虑上下一帧期望的dts, 为了将采样变成以nextDts开始
       this._baseDts -= Math.min(this._audioNextDts, this._videoNextDts)
@@ -137,11 +161,9 @@ class BaseCompatibility {
     let refSampleDurationInt = Math.floor(refSampleDuration)
 
     if (this._audioNextDts === undefined) {
-      this._audioNextDts = this._audioBaseDts - this._baseDts
+      let samp0 = samples[0]
+      this._audioNextDts = samp0.dts
     }
-
-    let overlapEmited = false
-    let largeGapEmited = false
 
     for (let i = 0; i < samples.length; i++) {
       let nextDts = this._audioNextDts
@@ -150,20 +172,24 @@ class BaseCompatibility {
 
       // 需要补帧
       // >= 3帧时长 && <= 500s 范围内补帧
-      if (delta >= AUDIO_GAP_OVERLAP_THRESHOLD * refSampleDurationInt && delta <= MAX_SILENT_FRAME_DURATION && !BaseCompatibility.isSafari) {
+      if (delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDurationInt && delta <= MAX_SILENT_FRAME_DURATION && !BaseCompatibility.isSafari) {
         const silentFrame = this._getSilentFrame()
         const count = Math.floor(delta / refSampleDurationInt)
 
-        this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-          msg: BaseCompatibility.EXCEPTION.AUDIO_GAP_DETECT,
-          info: {
-            dts: sample.dts,
-            originDts: sample.originDts,
-            nextDts: nextDts,
-            count,
-            refSampleDurationInt
-          }
-        })
+        if (Math.abs(sample.dts - this._lastAudioExceptionGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+          this._lastAudioExceptionGapDot = sample.dts
+          this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
+            msg: BaseCompatibility.EXCEPTION.AUDIO_GAP_DETECT,
+            info: {
+              dts: sample.dts,
+              originDts: sample.originDts,
+              nextDts: nextDts,
+              count,
+              refSampleDurationInt
+            }
+          })
+        }
+
         logger.warn(this.TAG, `需要补${count}帧, for ${delta} ms gap`)
 
         for (let j = 0; j < count; j++) {
@@ -181,10 +207,10 @@ class BaseCompatibility {
 
         i--
         // overlap 在 <= -3帧时长 && >= -500ms范围内丢帧
-      } else if (delta <= -AUDIO_GAP_OVERLAP_THRESHOLD * refSampleDurationInt && delta >= -1 * MAX_SILENT_FRAME_DURATION) {
+      } else if (delta <= -AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDurationInt && delta >= -1 * MAX_SILENT_FRAME_DURATION) {
         // 需要丢帧
-        if (!overlapEmited) {
-          overlapEmited = true
+        if (Math.abs(sample.dts - this._lastAudioExceptionOverlapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+          this._lastAudioExceptionOverlapDot = sample.dts
           this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
             msg: BaseCompatibility.EXCEPTION.AUDIO_OVERLAP_DETECT,
             info: {
@@ -195,16 +221,16 @@ class BaseCompatibility {
             }
           })
         }
-        logger.warn(this.TAG, `需要丢帧: dts=${sample.dts}, nextDts=${nextDts}`)
 
+        logger.warn(this.TAG, `需要丢帧: dts=${sample.dts}, nextDts=${nextDts}`)
         samples.splice(i, 1)
         i--
       } else {
         if (Math.abs(delta) > MAX_SILENT_FRAME_DURATION) {
           this._audioTimestampBreak = true
 
-          if (!largeGapEmited) {
-            largeGapEmited = true
+          if (Math.abs(sample.dts - this._lastAudioExceptionLargeGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+            this._lastAudioExceptionLargeGapDot = sample.dts
             // emit stream breaked
             this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
               msg: BaseCompatibility.EXCEPTION.LARGE_AUDIO_DTS_GAP_DETECT,
@@ -232,7 +258,7 @@ class BaseCompatibility {
     }
   }
 
-  fixVideoRefSampleDuration (track) {
+  _fixVideoRefSampleDuration (track) {
     if (!track.meta) return
 
     if (track.meta.refSampleDuration > 15) return
