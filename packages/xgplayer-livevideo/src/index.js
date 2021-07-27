@@ -52,7 +52,7 @@ class MVideo extends HTMLElement {
   }
 
   static isSupported () {
-    let v = localStorage.getItem('mvideo_dis265')
+    const v = localStorage.getItem('mvideo_dis265')
     if (!v) return true
 
     if (v === '1') return false
@@ -60,7 +60,7 @@ class MVideo extends HTMLElement {
     if (v === '2') {
       let disTime = localStorage.getItem('mvideo_disTime') || 0
       disTime = Number(disTime)
-      let disDuration = (new Date().getTime() - disTime) / 1000
+      const disDuration = (new Date().getTime() - disTime) / 1000
 
       if (disDuration < 3600 * 24) {
         return false
@@ -73,7 +73,7 @@ class MVideo extends HTMLElement {
 
   addEventListener (eventName, handler, capture) {
     super.addEventListener(eventName, handler, capture)
-    this._eventsBackup.push([ eventName, handler, capture ])
+    this._eventsBackup.push([eventName, handler, capture])
   }
 
   removeEventListener (eventName, handler, capture) {
@@ -117,7 +117,6 @@ class MVideo extends HTMLElement {
     if (this.innerDegrade) {
       this.timeline.emit(Events.TIMELINE.INNER_DEGRADE)
     }
-
     this.timeline.emit(Events.TIMELINE.SET_PLAY_MODE, this._isLive ? 'LIVE' : 'VOD')
     this.muted = this.muted
   }
@@ -211,7 +210,7 @@ class MVideo extends HTMLElement {
    *  @param {string} url  强制切换到url地址并且使用video直接播放
    */
   degrade (url) {
-    let canvasAppended = !!this.querySelector('canvas')
+    const canvasAppended = !!this.querySelector('canvas')
     if (canvasAppended) {
       this.replaceChild(this._degradeVideo, this.canvas)
     } else {
@@ -220,7 +219,7 @@ class MVideo extends HTMLElement {
     this.destroy()
 
     // 销毁MVideo上的事件
-    this._eventsBackup.forEach(([ eName, eHandler, capture ]) => {
+    this._eventsBackup.forEach(([eName, eHandler, capture]) => {
       super.removeEventListener.call(this, eName, eHandler, capture)
       // 给degradeVideo 绑定事件
       this._degradeVideo.addEventListener(eName, eHandler, capture)
@@ -272,7 +271,7 @@ class MVideo extends HTMLElement {
     // Note
     if (this._degradeVideo && (this.innerDegrade === 1 || this.innerDegrade === 3)) {
       if (this._degradeVideoUserGestured) return
-      let req = this._degradeVideo.play()
+      const req = this._degradeVideo.play()
       req &&
         req
           .then(() => {
@@ -345,15 +344,15 @@ class MVideo extends HTMLElement {
   onDemuxComplete (videoTrack, audioTrack) {
     if (this.error || !this.timeline) return
     if (!this._logFirstFrame) {
-      let vSam0 = videoTrack && videoTrack.samples[0]
-      let aSam0 = audioTrack && audioTrack.samples[0]
+      const vSam0 = videoTrack && videoTrack.samples[0]
+      const aSam0 = audioTrack && audioTrack.samples[0]
       if (!vSam0 && !aSam0) return
       if (vSam0 || aSam0) {
         logger.warn(this.TAG, `video firstDts:${vSam0 && vSam0.dts} , audio firstDts:${aSam0 && aSam0.dts}`)
         this._logFirstFrame = true
       }
       if (this.lowlatency || (!aSam0 && !this._aMeta)) {
-        let type = this.lowlatency ? 1 : 2
+        const type = this.lowlatency ? 1 : 2
         logger.warn(this.TAG, 'video set noAudio! type=', type)
         this.timeline.emit(Events.TIMELINE.NO_AUDIO, type)
       }
@@ -362,6 +361,7 @@ class MVideo extends HTMLElement {
 
     this.timeline.appendBuffer(videoTrack, audioTrack)
   }
+
   setAudioMeta (meta) {
     this._aMeta = meta
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'audio', meta)
@@ -414,7 +414,7 @@ class MVideo extends HTMLElement {
   // 只初始化播放器时记录一次
   updateCanplayStatus (canplay) {
     if (canplay) return
-    let ua = navigator.userAgent
+    const ua = navigator.userAgent
     // chrome下首个webaudio不能自动播放，但手势交互后后续新建的webaudio可自动播放
     if (/Chrome/.test(ua)) return
     this._audioCanAutoplay = canplay
@@ -473,6 +473,7 @@ class MVideo extends HTMLElement {
   get __canvas () {
     return this.timeline.canvas
   }
+
   get __ended () {
     if (this._isLive) return false
     return Math.abs(this.currentTime - this.duration) < 0.5
@@ -535,8 +536,8 @@ class MVideo extends HTMLElement {
 
   get __currentTime () {
     if (!this.timeline) return 0
-    let c = this.timeline.currentTime
-    let d = this.timeline.duration
+    const c = this.timeline.currentTime
+    const d = this.timeline.duration
     return Math.min(c, d)
   }
 
@@ -648,7 +649,7 @@ class MVideo extends HTMLElement {
   }
 
   get innerDegrade () {
-    let v = this.getAttribute('innerdegrade')
+    const v = this.getAttribute('innerdegrade')
     return parseInt(v)
   }
 
@@ -690,12 +691,13 @@ class MVideo extends HTMLElement {
   }
 
   get containerLayout () {
-    let p = this.parentNode
+    const p = this.parentNode
     return {
       width: p.clientWidth,
       height: p.clientHeight
     }
   }
+
   get videoDecode () {
     return this.getAttribute('decodeMode') === VIDEO_DECODE_MODE_VALUE
   }

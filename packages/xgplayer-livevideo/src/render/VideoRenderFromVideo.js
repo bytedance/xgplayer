@@ -88,6 +88,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     }
     this._startDecode()
   }
+
   _onFirstFrame (frame) {
     logger.log(this.TAG, 'onFirstFrame')
     this._receiveFrame(frame)

@@ -160,7 +160,7 @@ export default class WasmDecodeController extends EventEmitter {
   }
 
   _initDecodeWorkerInternal (delay) {
-    let { decoder } = this._selectDecodeWorkerFromCache()
+    const { decoder } = this._selectDecodeWorkerFromCache()
     if (decoder) {
       logger.warn(this.TAG, 'select decoder from cache')
       this._avccpushed = false
@@ -176,7 +176,7 @@ export default class WasmDecodeController extends EventEmitter {
       }
       this._initDecoderInternal(decoder, this._meta)
     } else {
-      let { decoder, url } = this._selectDecodeWorker()
+      const { decoder, url } = this._selectDecodeWorker()
       this._avccpushed = false
       this._bindWorkerEvent(decoder)
       // 初始化wasm实例
@@ -241,12 +241,12 @@ export default class WasmDecodeController extends EventEmitter {
         // ready 之后才可用
         if (this._wasmWorkers.length >= 2) return
 
-        let nextFrame = _timeRange.nextFrame()
+        const nextFrame = _timeRange.nextFrame()
 
-        let currentGopId = nextFrame ? nextFrame.gopId : 0
+        const currentGopId = nextFrame ? nextFrame.gopId : 0
 
         // 当前正在解码的gop沿用老worker
-        let odd = (currentGopId - 1) % 2
+        const odd = (currentGopId - 1) % 2
 
         if (odd) {
           this._wasmWorkers.unshift(decoder)
@@ -255,7 +255,7 @@ export default class WasmDecodeController extends EventEmitter {
         }
 
         // 大约 [80,120] 帧
-        let maxDecodeOnce = Math.max(
+        const maxDecodeOnce = Math.max(
           Math.min(
             // 防止gop过大、preloadTime过大
             gopLength * 2,
@@ -286,7 +286,7 @@ export default class WasmDecodeController extends EventEmitter {
     const sps = meta.rawSps || meta.sps
     const pps = meta.rawPps || meta.pps
     if (vps) {
-      let data = new Uint8Array(vps.byteLength + 4)
+      const data = new Uint8Array(vps.byteLength + 4)
       data.set([0, 0, 0, 1])
       data.set(vps, 4)
       worker.postMessage({
@@ -318,7 +318,7 @@ export default class WasmDecodeController extends EventEmitter {
   }
 
   _doDecodeInternal (sample) {
-    let len = this._wasmWorkers.length
+    const len = this._wasmWorkers.length
     let gopId = 0
     if (sample.gopId) {
       gopId = sample.gopId - 1
@@ -354,7 +354,7 @@ export default class WasmDecodeController extends EventEmitter {
 
     if (!this.wasmReady || !_timeRange) return
 
-    let rest = _timeRange.frameLength
+    const rest = _timeRange.frameLength
 
     if (!rest) return
 
@@ -364,10 +364,10 @@ export default class WasmDecodeController extends EventEmitter {
       _decodeEstimate.resetDecodeDot(performance.now())
     }
 
-    let frameList = []
+    const frameList = []
 
     while (len >= 0) {
-      let sample = _timeRange && _timeRange.getFrame()
+      const sample = _timeRange && _timeRange.getFrame()
       if (!sample) break
       frameList.push(sample)
       if (sample.gopId && sample.gopId - 1 === 0) {
@@ -430,7 +430,7 @@ export default class WasmDecodeController extends EventEmitter {
     if (reuseWorker) {
       // 只在单worker时使用
       if (!workerCached.length && !this.isHevc && this._wasmWorkers.length === 1) {
-        let worker = this._wasmWorkers.pop()
+        const worker = this._wasmWorkers.pop()
         worker.removeEventListener('message', worker.onMessage)
         worker.removeEventListener('error', worker.onError)
         workerCached.push(worker)

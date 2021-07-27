@@ -16,7 +16,9 @@ module.exports = {
     'standard'
   ],
   rules: {
-    'array-callback-return': 0
+    'array-callback-return': 0,
+    'prefer-const': 0,
+    'no-var': 0
     // allowImplicit: false
   },
   overrides: [

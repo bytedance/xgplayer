@@ -338,6 +338,7 @@ class YUVCanvas {
       this._drawPicture2d(data)
     }
   }
+
   resetMeta (meta) {
     this.meta = Object.assign({}, meta)
     this._initMeta()
