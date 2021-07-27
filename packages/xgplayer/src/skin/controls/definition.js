@@ -94,7 +94,9 @@ let s_definition = function () {
 
   function onPlayingChangeDefinition () {
     player.currentTime = player.curTime
-    if (!paused) {
+    if (paused) {
+      player.pause()
+    } else {
       let playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.catch(err => {})
