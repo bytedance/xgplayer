@@ -1,6 +1,6 @@
 
-const commonRollup = require('../../rollup.config');
-const uglify = process.env.NODE_ENV === 'production';
+const commonRollup = require('../../rollup.config')
+const uglify = process.env.NODE_ENV === 'production'
 
 const config = {
   input: 'src/index.js',
@@ -8,7 +8,7 @@ const config = {
   uglify: uglify,
   external: ['xgplayer'],
   globals: {
-    'xgplayer': 'Player'
+    xgplayer: 'Player'
   }
 }
 
@@ -21,7 +21,7 @@ const mobileConfig = {
       format: 'umd',
       sourcemap: !uglify,
       globals: {
-        'xgplayer': 'Player'
+        xgplayer: 'Player'
       }
     }
   ],
@@ -29,7 +29,7 @@ const mobileConfig = {
   uglify: uglify,
   external: ['xgplayer'],
   globals: {
-    'xgplayer': 'Player'
+    xgplayer: 'Player'
   }
 }
 

@@ -5,190 +5,104 @@ import HlsVodMobileController from './hls-vod-mobile'
 const { debounce, softSolutionProbe } = common
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
-const HLS_EVENTS = EVENTS.HLS_EVENTS
-const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 class HlsVodMobilePlayer extends BasePlugin {
   static get pluginName () {
-    return 'hlsVodMobile'
+    return 'hlsVod'
   }
 
   static get defaultConfig () {
     return {
       preloadTime: 5,
-      retryTimes: 3,
-      innerDegrade: null
+      retryCount: 3,
+      retryDelay: 0,
+      fetchOptions: {}
     }
-  }
-
-  constructor (options) {
-    super(options)
-    this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
-    this.destroy = this.destroy.bind(this)
-    this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
-    this.handleUrlChange = this.handleUrlChange.bind(this)
   }
 
   static isSupported () {
     return softSolutionProbe()
   }
 
+  constructor (options) {
+    super(options)
+    this._handleSetCurrentTime = debounce(this._handleSetCurrentTime, 200)
+  }
+
   beforePlayerInit () {
+    this.player.switchURL = this.switchURL
     const { player } = this
-    const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
     if (player.video) {
       player.video.setPlayMode('VOD')
-      player.video.setAttribute('innerdegrade', innerDegrade)
     }
-
-    if (!this._context) {
-      this._context = new Context(this.player, this.config, HlsAllowedEvents)
-    }
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)()
-    this._context.init()
-    this.hls.load(this.player.config.url)
-    this._initEvents()
+    this._initHlsCtr()
     this.emit('core_inited', this.hls)
   }
 
-  handleUrlChange (url) {
-    this._switch(url)
+  _initHlsCtr () {
+    this._context = new Context(this.player, this.config, HlsAllowedEvents)
+    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)()
+    this._context.init()
+    this.hls.load(this.player.config.url)
+    this._bindPlayerEvents()
   }
 
-  handleDefinitionChange (change) {
-    const { to } = change
-    this.handleUrlChange(to)
+  _bindPlayerEvents () {
+    this.on(Events.SEEKING, this._handleSetCurrentTime)
+    this.on(Events.URL_CHANGE, this._handleUrlChange)
+    this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
+    this.on(Events.REPLAY, this._replay)
+    this.on(Events.DESTROY, this.destroy)
   }
 
-  _handleSetCurrentTime () {
+  /** *********** player event handler *********************** */
+
+  _handleSetCurrentTime = () => {
     const time = parseFloat(this.player.video.currentTime)
     if (this._context) {
       this.hls.seek(time)
     }
   }
 
-  play () {
-    return this.player.play().catch((e) => {
-      if (e && e.code === 20) { // fix: chrome The play() request was interrupted by a new load request.
-        this.player.once('canplay', () => {
-          this.player.play()
-        })
-      }
-    })
+  _handleUrlChange = (url) => {
+    this._handleUrlChangeInternal(url)
   }
 
-  _initEvents () {
-    const {player} = this
-
-    this.hls.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
-      this.emit('error', new Player.Errors('network', this.config.url))
-    })
-
-    this.hls.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
-      this._onSourceUpdateEnd()
-    })
-
-    this.lowdecode = () => {
-      this.emit('lowdecode', player.video.degradeInfo)
-      if (player.config.innerDegrade) {
-        let currentTime = player.currentTime
-        let mVideo = player.video
-        let newVideo = player.video.degradeVideo
-        this.destroy()
-        this._context = null
-        player.video = newVideo
-        mVideo.degrade()
-        player.once('canplay', () => {
-          player.currentTime = currentTime
-        })
-      }
-    }
-
-    this.on(Events.SEEKING, this._handleSetCurrentTime)
-    this.on(Events.URL_CHANGE, this.handleUrlChange)
-    this.on(Events.DESTROY, this.destroy)
-    player.video.addEventListener('lowdecode', this.lowdecode)
+  _handleDefinitionChange = (change) => {
+    const { to } = change
+    this._handleUrlChangeInternal(to)
   }
 
-  _onSourceUpdateEnd () {
-    if (this.player.video.readyState === 1 || this.player.video.readyState === 2) {
-      const { gap, start, method } = this.detectBufferGap()
-      if (gap) {
-        if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
-          this.player.currentTime = Math[method](start)
-        } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
-          this.player.currentTime = Math[method](start)
-        }
-      }
-    }
+  _handleUrlChangeInternal = (url) => {
+    this.player.config.url = url
+    this._destroyInternal()
+    this.player.hasStart = false
+    this._reloadStream()
   }
 
-  _switch (url) {
-    this.config.url = url
-    this._context.destroy()
-    this._context = null
-    this.hls = null
-    const context = new Context(this.player, this.config, HlsAllowedEvents)
-    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)()
-    this._context = context
-    this.hls = hls
-    context.init()
-    hls.load(url)
-    this.emit('core_inited', hls)
+  _replay = () => {
+    this.player.currentTime = 0
   }
 
-  switchURL (url) {
-    let cTime = this.player.currentTime
-    // reset MVideo timeline
-    this.player.video.src = url
-    this._switch(url)
-    this.once(Events.PLAYING, () => {
-      this.player.currentTime = cTime
-    })
+  _reloadStream () {
+    this.player.play()
   }
 
-  destroy () {
+  switchURL = (url) => {
+    this._handleUrlChangeInternal(url)
+  }
+
+  destroy = () => {
+    this._destroyInternal()
+  }
+
+  _destroyInternal = () => {
+    if (!this._context) return
     if (this._context) {
       this._context.destroy()
+      this._context = null
     }
-  }
-
-  detectBufferGap () {
-    const { video } = this.player
-    let result = {
-      gap: false,
-      start: -1
-    }
-    for (let i = 0; i < video.buffered.length; i++) {
-      const bufferStart = video.buffered.start(i)
-      const bufferEnd = video.buffered.end(i)
-      if (!video.played.length || (bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5)) {
-        break
-      }
-      const startGap = bufferStart - this.currentTime
-      const endGap = this.currentTime - bufferEnd
-      if (startGap > 0.01 && startGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferStart,
-          method: 'ceil'
-        }
-        break
-      } else if (endGap > 0.1 && endGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferEnd,
-          method: 'floor'
-        }
-      } else {
-        result = {
-          gap: false,
-          start: -1
-        }
-      }
-    }
-
-    return result
+    super.offAll()
   }
 
   get core () {
