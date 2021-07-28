@@ -63,3 +63,7 @@ export const SCREEN_SHOT = 'screenShot'
 export const PLAYNEXT = 'playnext'
 
 export const SHORTCUT = 'shortcut'
+
+export const XGLOG = 'xglog'
+
+export const USER_ACTION = 'user_action'

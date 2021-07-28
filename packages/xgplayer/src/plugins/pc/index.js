@@ -100,6 +100,7 @@ export default class PCPlugin extends BasePlugin {
         return
       }
       this.clickTimer = setTimeout(() => {
+        this.emitUserAction(e, 'switch_play_pause')
         fun.call(player)
         clearTimeout(this.clickTimer)
         this.clickTimer = null
@@ -118,6 +119,7 @@ export default class PCPlugin extends BasePlugin {
     }
     e.preventDefault()
     e.stopPropagation()
+    this.emitUserAction(e, 'switch_fullscreen', { fullscreen: player.fullscreen })
     player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
   }
 

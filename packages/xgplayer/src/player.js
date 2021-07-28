@@ -25,7 +25,7 @@ const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 class Player extends VideoProxy {
   /**
    * @constructor
-   * @param IPlayerConfigs options
+   * @param { IPlayerOptions } options
    * @returns
    */
   constructor (options) {
@@ -37,7 +37,8 @@ class Player extends VideoProxy {
     })
 
     /**
-     * @type IPlayerConfigs
+     * @type { IPlayerOptions }
+     * @description 当前播放器的配置信息
      */
     this.config = config
     bindDebug(this)
@@ -161,12 +162,14 @@ class Player extends VideoProxy {
     /**
      * @type { null | HTMLElement }
      * @readonly
+     * @description  控制栏和video不同布局的时候内部容器
      */
     this.innerContainer = null
 
     /**
      * @type { null | Object }
      * @readonly
+     * @description 控制栏插件
      */
     this.controls = null
 
@@ -185,11 +188,13 @@ class Player extends VideoProxy {
     /**
      * @type { null | HTMLElement }
      * @readonly
+     * @description 当前播放器根节点
      */
     this.root = null
 
     /**
      * @readonly
+     * @type {any}
      */
     this.database = new Database()
 
@@ -335,6 +340,19 @@ class Player extends VideoProxy {
      */
     this.onFullscreenChange = (event, isFullScreen) => {
       const fullEl = Util.getFullScreenEl()
+      if (this._fullActionFrom) {
+        this._fullActionFrom = ''
+      } else {
+        // 快捷键触发
+        this.emit(Events.USER_ACTION, {
+          eventType: 'system',
+          action: 'switch_fullscreen',
+          pluginName: 'player',
+          currentTime: this.currentTime,
+          duration: this.duration,
+          fullscreen: this.fullscreen
+        })
+      }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         this.video.focus()
         this.fullscreen = true
@@ -507,7 +525,6 @@ class Player extends VideoProxy {
     !this._sourceError && (this._sourceError = (e) => {
       this._videoSourceCount--
       if (this._videoSourceCount === 0) {
-        console.log('player.error', this.videoEventMiddleware.error)
         if (this.videoEventMiddleware.error) {
           this.videoEventMiddleware.error.call(this, e, () => {
             this.errorHandler('error')
@@ -650,7 +667,7 @@ class Player extends VideoProxy {
 
   /**
    *
-   * @param { object } plugin
+   * @param { object | string } plugin
    */
   unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
@@ -744,7 +761,8 @@ class Player extends VideoProxy {
   /**
    *
    * @param { any } url
-   * @returns { Promise<void>; }
+   * @returns { Promise<void> | void }
+   * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
    */
   start (url) {
     // 已经开始初始化播放了 则直接调用play
@@ -898,11 +916,12 @@ class Player extends VideoProxy {
   }
 
   resetClasses () {
-    const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR } = STATE_CLASS
-    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR]
+    const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR, LOADING } = STATE_CLASS
+    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR, LOADING]
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
+    this.addClass(STATE_CLASS.ENTER)
   }
 
   /**
@@ -973,10 +992,12 @@ class Player extends VideoProxy {
     this.addClass(STATE_CLASS.LOADING)
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
-      this.pause()
-      this.src = this.currentSrc
-      this.currentTime = cur
-      this.play()
+      this.videoPause()
+      this.src = this.config.url
+      !this.config.isLive && (this.currentTime = cur)
+      this.once(Events.CANPLAY, () => {
+        this.videoPlay()
+      })
     })
   }
 
@@ -984,7 +1005,7 @@ class Player extends VideoProxy {
    *
    * @param { HTMLElement } [root]
    * @param { HTMLElement } [el]
-   * @param { string } rootClass
+   * @param { string } [rootClass]
    * @param { string } [pClassName]
    */
   changeFullStyle (root, el, rootClass, pClassName) {
@@ -1008,7 +1029,7 @@ class Player extends VideoProxy {
    *
    * @param { HTMLElement } [root]
    * @param { HTMLElement } [el]
-   * @param { string } rootClass
+   * @param { string } [rootClass]
    * @param { string } [pClassName]
    */
   recoverFullStyle (root, el, rootClass, pClassName) {
@@ -1045,6 +1066,10 @@ class Player extends VideoProxy {
     //   root.removeAttribute('style')
     // }
     this._fullscreenEl = el
+    /**
+     * @private
+     */
+    this._fullActionFrom = 'get'
     for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
       const key = GET_FULLSCREEN_API[i]
       if (el[key]) {
@@ -1075,6 +1100,7 @@ class Player extends VideoProxy {
     if (el) {
       el = root
     }
+    this._fullActionFrom = 'exit'
     for (let i = 0; i < EXIT_FULLSCREEN_API.length; i++) {
       const key = EXIT_FULLSCREEN_API[i]
       if (document[key]) {
@@ -1098,13 +1124,13 @@ class Player extends VideoProxy {
    * @returns
    */
   getCssFullscreen (el) {
+    if (this.fullscreen) {
+      this.exitFullscreen()
+    }
     this._cssfullscreenEl = el
     this.changeFullStyle(this.root, el, el ? STATE_CLASS.INNER_FULLSCREEN : STATE_CLASS.CSS_FULLSCREEN)
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
-    if (this.fullscreen) {
-      this.exitFullscreen()
-    }
   }
 
   /**
@@ -1156,11 +1182,17 @@ class Player extends VideoProxy {
     }
   }
 
+  /**
+   * @protected
+   */
   onCanplay () {
     this.removeClass(STATE_CLASS.ENTER)
     this.isCanplay = true
   }
 
+  /**
+   * @protected
+   */
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
@@ -1169,6 +1201,9 @@ class Player extends VideoProxy {
     !this.config.closePlayVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
+  /**
+   * @protected
+   */
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
     if (this.config.closePauseVideoFocus) {
@@ -1179,11 +1214,17 @@ class Player extends VideoProxy {
     }
   }
 
+  /**
+   * @protected
+   */
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
     // this.removeClass(STATE_CLASS.PLAYING)
   }
 
+  /**
+   * @protected
+   */
   onError () {
     this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.NO_START)
@@ -1191,6 +1232,9 @@ class Player extends VideoProxy {
     this.addClass(STATE_CLASS.ERROR)
   }
 
+  /**
+   * @protected
+   */
   onSeeking () {
     if (!this.isSeeking) {
       const { _played } = this
@@ -1202,6 +1246,9 @@ class Player extends VideoProxy {
     this.addClass(STATE_CLASS.SEEKING)
   }
 
+  /**
+   * @protected
+   */
   onSeeked () {
     this.isSeeking = false
     // for ie,playing fired before waiting
@@ -1212,6 +1259,9 @@ class Player extends VideoProxy {
     this.removeClass(STATE_CLASS.SEEKING)
   }
 
+  /**
+   * @protected
+   */
   onWaiting () {
     if (this.waitTimer) {
       Util.clearTimeout(this, this.waitTimer)
@@ -1223,6 +1273,9 @@ class Player extends VideoProxy {
     }, 500)
   }
 
+  /**
+   * @protected
+   */
   onPlaying () {
     const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
     const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY]
@@ -1231,6 +1284,9 @@ class Player extends VideoProxy {
     })
   }
 
+  /**
+   * @protected
+   */
   onTimeupdate () {
     !this._videoHeight && this.getVideoSize()
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
@@ -1454,22 +1510,22 @@ class Player extends VideoProxy {
 
   /**
    * @param { string } hookName
-   * @param { Function } handler
-   * @param  {...any} [args]
+   * @param { (player: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
    */
   useHooks (hookName, handler) {
-    useHooks.call(this, ...arguments)
+    return useHooks.call(this, ...arguments)
   }
 
   /**
    *
    * @param { string } pluginName
    * @param { string } hookName
-   * @param { Function } handler
-   * @param  {...any} [args]
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
    */
   usePluginHooks (pluginName, hookName, handler, ...args) {
-    usePluginHooks.call(this, ...arguments)
+    return usePluginHooks.call(this, ...arguments)
   }
 
   /***
@@ -1497,6 +1553,11 @@ class Player extends VideoProxy {
   }
 
   static defaultPreset = null
+
+  /**
+   * @description 自定义media构造函数
+   */
+  static XgVideoProxy = null
 }
 
 export {

@@ -17,7 +17,7 @@ class BasePlugin {
   }
 
   /**
-   * @type { object }
+   * @type { { [propName: string]: any } }
    */
   static get defaultConfig () {
     return {}
@@ -32,7 +32,7 @@ class BasePlugin {
 
   /**
    * @constructor
-   * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   * @param { { index?: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
    */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
@@ -212,6 +212,28 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
+  emitUserAction (event, action, params = {}) {
+    if (!action || !event) {
+      return
+    }
+    const eventType = Util.typeOf(event) === 'String' ? event : (event.type || '')
+
+    if (action === 'switch_play_pause') {
+      Util.typeOf(params.paused) === 'Undefined' && (params.paused = this.player.paused)
+      params.isFirstStart = !this.player.playing
+    }
+    this.emit(Events.USER_ACTION, {
+      eventType,
+      action,
+      pluginName: this.pluginName,
+      currentTime: this.player.currentTime,
+      duration: this.player.duration,
+      ended: this.player.ended,
+      target: event.target || null,
+      ...params
+    })
+  }
+
   /**
    * @param { string } hookName
    * @param { Function } handler
@@ -225,8 +247,8 @@ class BasePlugin {
 
   /**
    * @param { string } hookName
-   * @param { Function } handler
-   * @param  {...any} [args]
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
    */
   useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)

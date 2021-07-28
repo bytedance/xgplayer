@@ -99,6 +99,7 @@ class Start extends Plugin {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
+        this.emitUserAction(e, 'switch_play_pause')
       }
     })
 

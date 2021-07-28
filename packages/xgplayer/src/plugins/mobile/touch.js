@@ -181,7 +181,7 @@ class Touche {
     e.press = _pos.press
     _pos.press && this.trigger(EVENTS.PRESS_END, e)
     this.trigger(EVENTS.TOUCH_END, e)
-    !_pos.press && !_pos.moving && this.__setDb()
+    !_pos.press && !_pos.moving && this.__setDb(e)
     _pos.press = false
     _pos.start = false
     _pos.moving = false
