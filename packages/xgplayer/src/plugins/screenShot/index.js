@@ -64,6 +64,7 @@ export default class ScreenShot extends Plugin {
   onClickBtn (e) {
     e.preventDefault()
     e.stopPropagation()
+    this.emitUserAction(e, 'shot')
     this.shot().then((data) => {
       this.emit(Events.SCREEN_SHOT, data)
       this.saveScreenShot(data, this.config.name + this.config.format)

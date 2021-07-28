@@ -474,14 +474,20 @@ class MobilePlugin extends Plugin {
   onClick (e) {
     const { player, config, playerConfig } = this
     if (!player.isPlaying) {
-      !playerConfig.closeVideoClick && player.play()
+      if (!playerConfig.closeVideoClick) {
+        this.emitUserAction('click', 'switch_play_pause')
+        player.play()
+      }
       return
     }
 
     if (!config.closedbClick || playerConfig.closeVideoClick) {
       player.isActive ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
     } else if (!playerConfig.closeVideoClick) {
-      player.isActive && this.switchPlayPause()
+      if (player.isActive) {
+        this.emitUserAction('click', 'switch_play_pause')
+        this.switchPlayPause()
+      }
       player.emit(Events.PLAYER_FOCUS)
     }
   }
@@ -489,6 +495,7 @@ class MobilePlugin extends Plugin {
   onDbClick (e) {
     const { config, player } = this
     if (!config.closedbClick && player.isPlaying) {
+      this.emitUserAction('dblclick', 'switch_play_pause')
       this.switchPlayPause()
     }
   }
@@ -499,6 +506,7 @@ class MobilePlugin extends Plugin {
       return
     }
     pos.rate = this.player.playbackRate
+    this.emitUserAction('press', 'change_rate', { from: player.playbackRate, to: config.pressRate })
     player.playbackRate = config.pressRate
     this.changeAction(ACTIONS.PLAYBACK)
   }
@@ -508,6 +516,7 @@ class MobilePlugin extends Plugin {
     if (config.disablePress) {
       return
     }
+    this.emitUserAction('pressend', 'change_rate', { from: player.playbackRate, to: pos.rate })
     player.playbackRate = pos.rate
     pos.rate = 1
     this.changeAction(ACTIONS.AUTO)

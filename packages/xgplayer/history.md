@@ -1,4 +1,12 @@
 # 版本更新记录
+## 3.0.0-alpha.93
+>* feat: (xgplayer) 音量插件音量为0取消静音的时候设置默认音量
+>* fix:(xgplayer) 修复retry直播流程异常问题; player.useHooks增加return值
+>* feat:(xgplayer) 修改一些ts相关声明
+>* feat(xgplayer): 更新语言注册逻辑, 增加语言注册之前的扩展数据缓存
+>* feat:(xgplayer-mp4) unRegister 增加插件名小写转换; dynamicBg start增加stop之前的动画逻辑
+>* feat:(xgplayer): 增加內置插件用戶行为数据触发事件USER_ACTION, plugin封装统一的触发API-> emitUserAction
+
 ## 3.0.0-alpha.92
 >* chore: (xgplayer) 修正类型注释错误导致d.ts导出异常问题
 >* feat: (xgplayer) 增加zoom配置参数，用于兼容父节点css设置了zoom导致计算异常问题 https://bugs.chromium.org/p/chromium/issues/detail?id=429140#c8

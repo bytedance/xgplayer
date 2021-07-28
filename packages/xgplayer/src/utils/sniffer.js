@@ -1,7 +1,7 @@
 /**
  * @typedef {{
  *  device: 'pc' | 'mobile',
- *  browser: 'ie' | 'firfox' | 'chrome' | 'opera' | 'safari',
+ *  browser: 'ie' | 'firefox' | 'chrome' | 'opera' | 'safari',
  *  os: {
  *   isTablet: boolean,
  *   isPhone: boolean,
@@ -33,7 +33,7 @@ const sniffer = {
     const ua = navigator.userAgent.toLowerCase()
     const reg = {
       ie: /rv:([\d.]+)\) like gecko/,
-      firfox: /firefox\/([\d.]+)/,
+      firefox: /firefox\/([\d.]+)/,
       chrome: /chrome\/([\d.]+)/,
       opera: /opera.([\d.]+)/,
       safari: /version\/([\d.]+).*safari/

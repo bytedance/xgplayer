@@ -42,7 +42,6 @@ export default class Download extends Plugin {
       return
     }
     this.appendChild('.xgplayer-icon', this.icons.download)
-    this.download = this.download.bind(this)
     this.bind(['click', 'touchend'], this.download)
   }
 
@@ -52,10 +51,11 @@ export default class Download extends Plugin {
     }
   }
 
-  download () {
+  download = (e) => {
     if (this.isLock) {
       return
     }
+    this.emitUserAction(e, 'download')
     const url = this.getAbsoluteURL(this.player.src)
     downloadUtil(url)
     this.isLock = true

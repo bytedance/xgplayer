@@ -44,6 +44,7 @@ class Play extends Plugin {
     e.preventDefault()
     e.stopPropagation()
     const { player } = this
+    this.emitUserAction(e, 'switch_play_pause')
     if (player.paused) {
       player.play()
       this.animate(false)

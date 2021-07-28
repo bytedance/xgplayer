@@ -95,7 +95,7 @@ function usePluginHooks (pluginName, ...args) {
     return
   }
   const plugin = this.plugins[pluginName.toLowerCase()]
-  plugin.useHooks && plugin.useHooks(...args)
+  return plugin.useHooks && plugin.useHooks(...args)
 }
 
 /**

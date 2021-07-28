@@ -112,44 +112,53 @@ class Keyboard extends BasePlugin {
     return flag
   }
 
-  downVolume () {
+  downVolume (event) {
     const { player } = this
-    if (player.volume - 0.1 >= 0) {
-      player.volume = parseFloat((player.volume - 0.1).toFixed(1))
+    const val = parseFloat((player.volume - 0.1).toFixed(1))
+    this.emitUserAction(event, 'change_volume', { from: player.volume, to: val })
+    if (val >= 0) {
+      player.volume = val
     } else {
       player.volume = 0
     }
   }
 
-  upVolume () {
+  upVolume (event) {
     const { player } = this
-    if (player.volume + 0.1 <= 1) {
-      player.volume = parseFloat((player.volume + 0.1).toFixed(1))
+    const val = parseFloat((player.volume + 0.1).toFixed(1))
+    this.emitUserAction(event, 'change_volume', { from: player.volume, to: val })
+    if (val <= 1) {
+      player.volume = val
     } else {
       player.volume = 1
     }
   }
 
-  seek () {
-    const { player } = this
-    if (player.currentTime + this.seekStep <= player.duration) {
-      player.currentTime += this.seekStep
+  seek (event) {
+    const { currentTime, duration } = this.player
+    let _time = currentTime
+    if (currentTime + this.seekStep <= duration) {
+      _time = currentTime + this.seekStep
     } else {
-      player.currentTime = player.duration - 1
+      _time = duration - 1
     }
+    this.emitUserAction(event, 'seek', { from: currentTime, to: _time })
+    this.player.currentTime = _time
   }
 
-  seekBack () {
-    const { player } = this
-    if (player.currentTime - this.seekStep >= 0) {
-      player.currentTime -= this.seekStep
-    } else {
-      player.currentTime = 0
+  seekBack (event) {
+    const { currentTime } = this.player
+    let _time = 0
+    if (currentTime - this.seekStep >= 0) {
+      _time = currentTime - this.seekStep
     }
+    this.emitUserAction(event, 'seek', { from: currentTime, to: _time })
+    this.player.currentTime = _time
   }
 
-  playPause () {
+  playPause (event) {
     const { player } = this
+    this.emitUserAction(event, 'switch_play_pause')
     if (player.paused) {
       // eslint-disable-next-line handle-callback-err
       player.play()
@@ -158,13 +167,16 @@ class Keyboard extends BasePlugin {
     }
   }
 
-  exitFullscreen () {
+  exitFullscreen (event) {
     const { player } = this
-    if (player.fullscreen) {
+    const { isCssfullScreen, fullscreen } = player
+    if (fullscreen) {
       player.exitFullscreen()
+      this.emitUserAction('keyup', 'switch_fullscreen', { fullscreen })
     }
-    if (player.isCssfullScreen) {
+    if (isCssfullScreen) {
       player.exitCssFullscreen()
+      this.emitUserAction('keyup', 'switch_css_fullscreen', { cssfullscreen: isCssfullScreen })
     }
   }
 
@@ -204,10 +216,10 @@ class Keyboard extends BasePlugin {
       const { action, keyCode, disable } = this.keyCodeMap[key]
       if (keyCode === curKeyCode && !disable) {
         if (typeof action === 'function') {
-          action()
+          action(event)
         } else if (typeof action === 'string') {
           if (typeof this[action] === 'function') {
-            this[action]()
+            this[action](event)
           }
         }
         this.emit(Events.SHORTCUT, {
