@@ -48,7 +48,7 @@ class FetchLoader {
     if (this.abortControllerEnabled) {
       this.abortController = new window.AbortController()
     }
-    Object.assign(params, {signal: this.abortController ? this.abortController.signal : undefined})
+    Object.assign(params, { signal: this.abortController ? this.abortController.signal : undefined })
     let start = new Date().getTime()
     return Promise.race([
       fetch(url, params),
@@ -87,10 +87,10 @@ class FetchLoader {
    * @param {number}      delayTime
    * @return {Promise<{ok} | minimist.Opts.unknown>}
    */
-  internalLoad (url, params, retryTimes, totalRetry, delayTime = 0) {
+  internalLoad (url, params, retryTimes, totalRetry, delayTime = 0, loadTimeout) {
     if (this._destroyed) return
     this.loading = true
-    return this.fetch(this.url, params).then((response) => {
+    return this.fetch(this.url, params, loadTimeout).then((response) => {
       !this._destroyed && this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
 
       if (response.ok) {
@@ -109,7 +109,7 @@ class FetchLoader {
             reason: 'response not ok',
             retryTime: totalRetry - retryTimes
           })
-          return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
+          return this.internalLoad(url, params, retryTimes, totalRetry, delayTime, loadTimeout)
         }, delayTime)
       } else {
         this.loading = false
@@ -131,13 +131,13 @@ class FetchLoader {
             reason: 'fetch error',
             retryTime: totalRetry - retryTimes
           })
-          return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
+          return this.internalLoad(url, params, retryTimes, totalRetry, delayTime, loadTimeout)
         }, delayTime)
       } else {
         if (error && error.name === 'AbortError') {
           return
         }
-        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({code: 21}, error))
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({ code: 21 }, error))
       }
     })
   }
@@ -149,15 +149,15 @@ class FetchLoader {
    * @param {number}      delayTime
    * @return {Promise<{ok} | minimist.Opts.unknown>}
    */
-  load (url, opts = {}, retryTimes, delayTime) {
-    retryTimes = retryTimes === undefined ? 3 : retryTimes
+  load (url, opts = {}, { retryCount, retryDelay, loadTimeout }) {
+    retryCount = retryCount === undefined ? 3 : retryCount
     this.url = url
     this._canceled = false
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
 
-    return this.internalLoad(url, params, retryTimes, retryTimes, delayTime)
+    return this.internalLoad(url, params, retryCount, retryCount, retryDelay, loadTimeout)
   }
 
   _onFetchResponse (response) {

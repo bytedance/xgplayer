@@ -274,7 +274,7 @@ export default class FlvController {
       this._player.emit('error', {
         code: '0',
         errorType: 'network',
-        ex: `empty url`,
+        ex: 'empty url',
         errd: {}
       })
       return
@@ -284,7 +284,11 @@ export default class FlvController {
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, {
+      retryCount,
+      retryDelay,
+      loadTimeout: this._pluginConfig.loadTimeout
+    })
   }
 
   pause () {

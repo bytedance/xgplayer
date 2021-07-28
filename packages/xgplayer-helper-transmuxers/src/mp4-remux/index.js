@@ -32,12 +32,12 @@ export default class Mp4Remuxer {
   }
 
   remux () {
-    if (!this.remuxer.videoMeta) {
-      this.remuxer.videoMeta = this.videoMeta
-      this.remuxer.audioMeta = this.audioMeta
+    if (!this.remuxer._videoMeta) {
+      this.remuxer._videoMeta = this.videoMeta
+      this.remuxer._audioMeta = this.audioMeta
     }
 
-    const {audioTrack, videoTrack} = this._context.getInstance('TRACKS')
+    const { audioTrack, videoTrack } = this._context.getInstance('TRACKS')
     return this.remuxer.remux(audioTrack, videoTrack)
   }
 
@@ -56,14 +56,14 @@ export default class Mp4Remuxer {
     let track
 
     if (type === 'audio') {
-      const {audioTrack} = this._context.getInstance('TRACKS')
+      const { audioTrack } = this._context.getInstance('TRACKS')
       track = audioTrack
     } else {
-      const {videoTrack} = this._context.getInstance('TRACKS')
+      const { videoTrack } = this._context.getInstance('TRACKS')
       track = videoTrack
     }
 
-    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
+    const presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
     let source = presourcebuffer.getSource(type)
     if (!source) {
       source = presourcebuffer.createSource(type)
@@ -80,7 +80,7 @@ export default class Mp4Remuxer {
   }
 
   writeToSource (type, buffer, bufferDuration) {
-    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
+    const presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
     let source = presourcebuffer.getSource(type)
     if (!source) {
       source = presourcebuffer.createSource(type)

@@ -94,8 +94,8 @@ export default class Mp4Box extends EventEmitter {
       return
     }
 
-    let { samples: audioSamples, meta: audioMeta } = audioTrack
-    let { samples: videoSamples, meta: videoMeta } = videoTrack
+    const { samples: audioSamples, meta: audioMeta } = audioTrack
+    const { samples: videoSamples, meta: videoMeta } = videoTrack
 
     if (!audioMeta || !videoMeta) {
       return
@@ -232,7 +232,7 @@ export default class Mp4Box extends EventEmitter {
 
     moov = this.mixMoov(videoMeta.duration, videoMeta.timeScale, [videoMeta, audioMeta])
 
-    let mp4 = new Buffer()
+    const mp4 = new Buffer()
     mp4.write(ftyp, mdat, moov)
     this.emit(Mp4Box.EVENTS.TRACK_REMUXED, type, mp4)
     // 下载mp4文件到本地，测试用
@@ -250,7 +250,7 @@ export default class Mp4Box extends EventEmitter {
       return
     }
 
-    let { samples, meta } = track
+    const { samples, meta } = track
 
     if (!meta) {
       return
@@ -260,20 +260,20 @@ export default class Mp4Box extends EventEmitter {
     let moov = null
     // 1 构造ftyp
     const ftyp = Mp4.ftyp()
-    let keyFrames = []
+    const keyFrames = []
     const mdatBox = {
       samples: []
     }
 
-    let firstSample = samples[0]
-    let baseDts = firstSample.dts || 0
+    const firstSample = samples[0]
+    const baseDts = firstSample.dts || 0
     let trackDuration = 0
-    let sampleDeltas = []
-    let sampleCtss = []
-    let chunks = []
-    let sampleSizes = []
-    let sampleCount = samples.length
-    let chunksOffset = []
+    const sampleDeltas = []
+    const sampleCtss = []
+    const chunks = []
+    const sampleSizes = []
+    const sampleCount = samples.length
+    const chunksOffset = []
     let chunkOffset = ftyp.byteLength + 8
     let maxLoop = 10000
     try {
@@ -282,7 +282,7 @@ export default class Mp4Box extends EventEmitter {
         const { isKeyframe } = currentSample
         let cts
         let pts
-        let dts = Math.max(0, currentSample.dts - baseDts)
+        const dts = Math.max(0, currentSample.dts - baseDts)
 
         if (currentSample.pts !== undefined) {
           pts = currentSample.pts - baseDts
@@ -293,15 +293,15 @@ export default class Mp4Box extends EventEmitter {
           pts = currentSample.cts + dts
           cts = currentSample.cts
         }
-        let sampleDuration = this.getSttsBoxData(currentSample, samples[0], sampleDeltas)
+        const sampleDuration = this.getSttsBoxData(currentSample, samples[0], sampleDeltas)
         trackDuration = this.getDuration(trackDuration, sampleDuration)
         this.getCttsBoxData(cts, sampleCtss)
 
-        let mdatSample = {
+        const mdatSample = {
           buffer: [],
           size: 0
         }
-        let sampleByteSize = currentSample.data.byteLength
+        const sampleByteSize = currentSample.data.byteLength
         if (logger.long) {
           logger.log(this.TAG, `video dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, isKeyframe, `originDts ${currentSample.originDts}`, `duration ${sampleDuration}`)
         }
@@ -344,7 +344,7 @@ export default class Mp4Box extends EventEmitter {
     track.samples = []
     track.length = 0
 
-    let mp4 = new Buffer()
+    const mp4 = new Buffer()
     mp4.write(ftyp, mdat, moov)
     this.emit(Mp4Box.EVENTS.TRACK_REMUXED, type, mp4)
     this.ctsNum = 0
@@ -361,8 +361,8 @@ export default class Mp4Box extends EventEmitter {
    */
   mixMoov (duration, timeScale, tracksMeta) {
     let size = 8
-    let mvhd = Mp4.mvhd(duration, timeScale)
-    let tracks = []
+    const mvhd = Mp4.mvhd(duration, timeScale)
+    const tracks = []
     tracksMeta.forEach((item) => {
       let track
       if (item.type === 'video') {
@@ -387,13 +387,13 @@ export default class Mp4Box extends EventEmitter {
    * @returns sample的duration
    */
   getSttsBoxData (sample, nextSample, sampleDeltas) {
-    let duration = sample.duration
-    let len = sampleDeltas.length
+    const duration = sample.duration
+    const len = sampleDeltas.length
     let delta
     // samples 数量大于等于2
     if (nextSample) {
-      let dts = sample.dts
-      let nextDts = nextSample.dts
+      const dts = sample.dts
+      const nextDts = nextSample.dts
       if (duration) {
         delta = duration
       } else {
@@ -429,7 +429,7 @@ export default class Mp4Box extends EventEmitter {
    * @returns null
    */
   getCttsBoxData (cts, ctsEntry) {
-    let len = ctsEntry.length
+    const len = ctsEntry.length
     // 第一个sample
     if (!len) {
       this.ctsNum += 1

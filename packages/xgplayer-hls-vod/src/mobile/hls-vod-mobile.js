@@ -1,5 +1,5 @@
 // eslint-disable-next-line standard/object-curly-even-spacing
-import { EVENTS, Crypto, FetchLoader, logger} from 'xgplayer-helper-utils'
+import { EVENTS, Crypto, FetchLoader, logger } from 'xgplayer-helper-utils'
 import { Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
@@ -27,7 +27,7 @@ class HlsVodMobileController {
     this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer)()
     this._tracks = this._context.registry('TRACKS', Tracks)()
 
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: false})
+    this._playlist = this._context.registry('PLAYLIST', Playlist)({ autoclear: false })
 
     // this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
@@ -109,9 +109,11 @@ class HlsVodMobileController {
       video.currentTime = bufferStart
     }
   }
+
   _onTimeUpdate () {
     this._preload(this._player.currentTime)
   }
+
   _onDemuxComplete () {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
@@ -185,7 +187,7 @@ class HlsVodMobileController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)()
         this._context.registry('KEY_BUFFER', XgBuffer)()
         this._tsloader.buffer = 'DECRYPT_BUFFER'
-        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3})
+        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({ buffer: 'KEY_BUFFER', readtype: 3 })
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri)
       } else {
         if (!this.preloadTime) {
@@ -210,13 +212,13 @@ class HlsVodMobileController {
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
       this._playlist.downloaded(this._tsloader.url, true)
-      this._demuxer.demux(Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this._demuxer.demux(Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]))
       this._preload(this._player.currentTime)
       // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3
       this._playlist.downloaded(this._tsloader.url, true)
-      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]))
     } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3
       this._playlist.encrypt.key = buffer.shift()

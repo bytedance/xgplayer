@@ -1,7 +1,6 @@
 import { EVENTS } from 'xgplayer-helper-utils'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 
 const Tag = 'FLVController'
@@ -78,6 +77,7 @@ export default class FlvController {
       v.onDemuxComplete(videoTrack, audioTrack)
     }
   }
+
   _handleVisibilityChange (visible) {
     if (!visible && !this._player.paused) {
       this._player.pause()
@@ -150,7 +150,6 @@ export default class FlvController {
       errorDetails: `[${mod}]: ${err.message}`,
       errorFatal: fatal || false
     }
-    console.error('flv onError')
     this._player.emit(FLV_ERROR, error)
   }
 
@@ -165,7 +164,7 @@ export default class FlvController {
       this._player.emit('error', {
         code: '0',
         errorType: 'network',
-        ex: `empty url`,
+        ex: 'empty url',
         errd: {}
       })
       return
@@ -175,7 +174,11 @@ export default class FlvController {
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, {
+      retryCount,
+      retryDelay,
+      loadTimeout: this._pluginConfig.loadTimeout
+    })
   }
 
   pause () {

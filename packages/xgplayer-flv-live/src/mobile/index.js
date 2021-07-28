@@ -15,10 +15,11 @@ class FlvPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 5,
-      innerDegrade: null,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 0,
+      innerDegrade: null
     })
   }
 
@@ -169,7 +170,7 @@ class FlvPlayer extends BasePlugin {
     const { player } = this
     const backupConstructor = player.config.backupConstructor || this.config.backupConstructor
     if (!backupConstructor || !url) {
-      throw new Error(`need backupConstructor and backupURL`)
+      throw new Error('need backupConstructor and backupURL')
     }
     if (backupConstructor) {
       player.config.url = url

@@ -12,6 +12,7 @@ class FlvPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 5,
       retryCount: 3,
       retryDelay: 0
@@ -42,7 +43,7 @@ class FlvPlayer extends BasePlugin {
     this.player.switchURL = this.switchURL
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             return this.mse.url
           },

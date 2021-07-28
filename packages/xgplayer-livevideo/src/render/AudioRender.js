@@ -31,9 +31,11 @@ export default class AudioRender extends BaseRender {
     this._initAudioCtx(config.volume || 0.6)
     this._bindEvents()
   }
+
   get baseDts () {
     return this._timeRange._baseDts
   }
+
   get currentTime () {
     if (!this._audioCtx) return 0
     return this._lastTimeLineTime + this._audioCtx.currentTime + this._delay
@@ -80,7 +82,7 @@ export default class AudioRender extends BaseRender {
   }
 
   _assembleErr (msg) {
-    let err = new Error(msg)
+    const err = new Error(msg)
     err.code = MEDIA_ERR_DECODE
     return err
   }
@@ -151,14 +153,13 @@ export default class AudioRender extends BaseRender {
       this._meta = audioTrack.meta
     }
 
-    let { samples } = audioTrack
-    let options = samples[0] && samples[0].options
+    const { samples } = audioTrack
     if (samples.length) {
       this._sampleQueue = this._sampleQueue.concat(samples)
       audioTrack.samples = []
       if (this._inDecoding) return
       try {
-        this._assembleAAC(options && options.start)
+        this._assembleAAC()
       } catch (e) {
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`))
       }
@@ -174,7 +175,11 @@ export default class AudioRender extends BaseRender {
     if (this._noAudio || this._parent.seeking) {
       return
     }
-    this.resume()
+    if (!this._source) {
+      this._startRender()
+    } else {
+      this.resume()
+    }
   }
 
   _doPause () {
@@ -192,7 +197,7 @@ export default class AudioRender extends BaseRender {
 
     // reinit,连续seek时,新建的audioCtx还没使用过的话,不再新建
     if (this._ready && this._audioCtx.currentTime) {
-      let volume = this._gainNode.gain.value
+      const volume = this._gainNode.gain.value
       return this._audioCtx.close().then(() => {
         this._audioCtx.removeEventListener('statechange', this._onStateChange)
         this._audioCtx = null
@@ -217,7 +222,7 @@ export default class AudioRender extends BaseRender {
 
   // 直播追帧
   _doChaseFrame ({ position }) {
-    let next = this._timeRange.deletePassed(position)
+    const next = this._timeRange.deletePassed(position)
     if (!next) return
     logger.log(this.TAG, '_doChaseFrame', 'startTime:', next.start, 'buffeLength:', this.buffered.end(0) - next.start)
     this._reInitAudioCtx(next.start)
@@ -228,23 +233,23 @@ export default class AudioRender extends BaseRender {
       .catch((e) => {})
   }
 
-  _assembleAAC (segmentStart) {
-    let len = this._sampleQueue.length
-    let samp0 = this._sampleQueue[0]
-    let sampLast = this._sampleQueue[len - 1]
-    let less = (sampLast.dts - samp0.dts) / this.timescale < this.preloadTime
+  _assembleAAC () {
+    const len = this._sampleQueue.length
+    const samp0 = this._sampleQueue[0]
+    const sampLast = this._sampleQueue[len - 1]
+    const less = (sampLast.dts - samp0.dts) / this.timescale < this.preloadTime
     let delay = 0
 
     if (len < 500 && less) {
       return
     }
-    let adtss = this._sampleQueue.map((sample) => {
+    const adtss = this._sampleQueue.map((sample) => {
       return AudioRender.getAACData(this._meta, sample)
     })
 
     this._sampleQueue = []
 
-    let chunkBuffer = AudioRender.combileData(adtss, 0)
+    const chunkBuffer = AudioRender.combileData(adtss, 0)
     // let chunkBuffer = AudioRender.combileData(adtss, this._dropSampleGap)
 
     // 存在第二块buffer先于第一块解码完成的情况
@@ -255,8 +260,8 @@ export default class AudioRender extends BaseRender {
         if (!this._timeRange) return
 
         if (this._lastAudioBufferInfo && this.isLive) {
-          let info = this._lastAudioBufferInfo
-          let endTime = info.dts + info.duration
+          const info = this._lastAudioBufferInfo
+          const endTime = info.dts + info.duration
           delay = samp0.dts - endTime
           if (delay > 1) {
             // 把丢掉音频帧的时长加上
@@ -271,13 +276,13 @@ export default class AudioRender extends BaseRender {
           dts: samp0.dts
         }
 
-        const start = this._timeRange.append(uncompress, uncompress.duration, samp0.dts, segmentStart, delay / 1000)
+        const start = this._timeRange.append(uncompress, uncompress.duration, samp0.dts, delay / 1000)
 
         this._inDecoding = false
 
         if (!this._ready) {
           // init background Audio ele
-          let canEmit = this.isLive || Math.floor(Math.abs(start - this.currentTime)) <= Math.ceil(uncompress.duration)
+          const canEmit = this.isLive || Math.floor(Math.abs(start - this.currentTime)) <= Math.ceil(uncompress.duration)
           if (canEmit) {
             this._ready = true
             logger.log(this.TAG, '_assembleAAC', 'set ready true')
@@ -311,9 +316,9 @@ export default class AudioRender extends BaseRender {
   // 两个来源: 1. seek的位置存在buffer,_getAudioBuffer中直接执行
   //          2. seek位置无buffer，等待下载,decodeAudioData()执行完后 监听 AUDIO_READY
   _ajustSeekTime (time) {
-    let buffer = this._timeRange.getBuffer(time, 0)
+    const buffer = this._timeRange.getBuffer(time, 0)
     if (buffer) {
-      logger.log(this.TAG, `ajust seek time to:`, buffer.start)
+      logger.log(this.TAG, 'ajust seek time to:', buffer.start)
       this._lastTimeLineTime = buffer.start
       this._parent.emit(Events.TIMELINE.ADJUST_SEEK_TIME, buffer.start)
     }
@@ -321,7 +326,7 @@ export default class AudioRender extends BaseRender {
 
   _getAudioBuffer (inSeeking) {
     if (!this._timeRange) return
-    let buffer = this._timeRange.getBuffer(this._lastBuffer ? this._lastBuffer.end : this.currentTime, 0)
+    const buffer = this._timeRange.getBuffer(this._lastBuffer ? this._lastBuffer.end : this.currentTime, 0)
     if (!buffer) {
       // check end  for vod
       if (!this.isLive && this.currentTime - this.duration > -1) {
@@ -358,7 +363,7 @@ export default class AudioRender extends BaseRender {
       this._doPlay()
       return
     }
-    let buffer = this._getAudioBuffer()
+    const buffer = this._getAudioBuffer()
 
     if (!buffer) return
     if (this._audioCtx.state === 'suspended') {
@@ -368,7 +373,7 @@ export default class AudioRender extends BaseRender {
     this._lastBuffer = buffer
     this._source = null
 
-    let _source = this._audioCtx.createBufferSource()
+    const _source = this._audioCtx.createBufferSource()
     _source.buffer = buffer.source
     _source.loop = false
     // 保存引用,移动浏览器下,对source的回收机制有差异，不保存引用会提前回收,导致ended事件不触发
@@ -382,11 +387,11 @@ export default class AudioRender extends BaseRender {
       this._delay += buffer.delay
     }
 
-    let startDts = buffer.startDts
-    let currentDTS = this._timeRange._baseDts + Math.floor(this.currentTime * 1000)
+    const startDts = buffer.startDts
+    const currentDTS = this._timeRange._baseDts + Math.floor(this.currentTime * 1000)
     // console.log(this.TAG, '_startRender base + currentTime:', currentDTS)
     // console.log(this.TAG, '_startRender, startDts duration:', startDts, duration, bTime, 'start, end:', buffer.start * 1000, parseInt(buffer.end * 1000))
-    let delay = startDts - currentDTS
+    const delay = startDts - currentDTS
 
     if (delay > 1) {
       console.error(this.TAG, 'error', 'startDts:', startDts, 'currentDTS:', currentDTS, 'this._delay:', this._delay * 1000, 'delay:', delay)
@@ -403,9 +408,9 @@ export default class AudioRender extends BaseRender {
   }
 
   _checkBufferLength () {
-    let currentTime = this.currentTime
-    let bufferEndTime = this.buffered.end(0)
-    let bufferLength = bufferEndTime - currentTime
+    const currentTime = this.currentTime
+    const bufferEndTime = this.buffered.end(0)
+    const bufferLength = bufferEndTime - currentTime
     if (bufferLength > 6) {
       this._dropSampleGap = 50
     }
@@ -430,8 +435,8 @@ export default class AudioRender extends BaseRender {
   }
 
   static getAACData (meta, sample) {
-    let buffer = new Uint8Array(sample.data.byteLength + 7)
-    let adts = AudioRender.getAdts(meta, sample.data)
+    const buffer = new Uint8Array(sample.data.byteLength + 7)
+    const adts = AudioRender.getAdts(meta, sample.data)
     buffer.set(adts)
     buffer.set(sample.data, 7)
     return buffer
@@ -441,17 +446,17 @@ export default class AudioRender extends BaseRender {
     // get length
     let length = 0
     for (let i = 0, k = samples.length; i < k; i++) {
-      if (gap && (i % gap == 0)) {
+      if (gap && (i % gap === 0)) {
         continue
       }
       length += samples[i].byteLength
     }
 
-    let ret = new Uint8Array(length)
+    const ret = new Uint8Array(length)
     let offset = 0
     // combile data;
     for (let i = 0, k = samples.length; i < k; i++) {
-      if (gap && (i % gap == 0)) {
+      if (gap && (i % gap === 0)) {
         continue
       }
       ret.set(samples[i], offset)
@@ -461,7 +466,7 @@ export default class AudioRender extends BaseRender {
   }
 
   static getAdts (meta, data) {
-    let adts = new Uint8Array(7)
+    const adts = new Uint8Array(7)
 
     // 设置同步位 0xfff 12bit
     adts[0] = 0xff
@@ -491,7 +496,7 @@ export default class AudioRender extends BaseRender {
     // copyrighted_id_start 0 1bit
 
     // aac_frame_length 13bit;
-    let aacframelength = data.byteLength + 7
+    const aacframelength = data.byteLength + 7
 
     adts[3] = adts[3] | (0x03 & (aacframelength >> 11))
     adts[4] = 0xff & (aacframelength >> 3)
