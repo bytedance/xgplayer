@@ -134,6 +134,7 @@ let s_definition = function () {
         to = li.getAttribute('cname')
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}`
         a.href = li.getAttribute('url')
+        paused = player.paused
         if (player.switchURL) {
           let curRUL = document.createElement('a');
           ['mp4', 'hls', '__flv__', 'dash'].every(item => {
@@ -165,16 +166,16 @@ let s_definition = function () {
             curRUL = player['hls'].url
           }
           if (a.href !== player.currentSrc) {
-            player.curTime = player.currentTime, paused = player.paused
+            player.curTime = player.currentTime
             if (!player.ended) {
               player.src = a.href
-              if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
-                player.once('timeupdate', onTimeupdateChangeDefinition)
-              } else {
-                player.once('playing', onPlayingChangeDefinition)
-              }
             }
           }
+        }
+        if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
+          player.once('timeupdate', onTimeupdateChangeDefinition)
+        } else {
+          player.once('playing', onPlayingChangeDefinition)
         }
         player.emit('definitionChange', {from, to})
         if (sniffer.device === 'mobile') {
