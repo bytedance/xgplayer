@@ -27,7 +27,6 @@ import Error from '../plugins/error'
 import Prompt from '../plugins/prompt'
 import ProgressPreview from '../plugins/progressPreview'
 import Thumbnail from '../plugins/common/thumbnail'
-import TextTrack from '../plugins/track'
 import MiniProgress from '../plugins/progress/miniProgress'
 import DynamicBg from '../plugins/dynamicBg'
 
@@ -35,7 +34,7 @@ export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, TextTrack, MiniProgress]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, MiniProgress]
 
     const barIcons = [PIPIcon]
 
