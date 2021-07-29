@@ -1,7 +1,7 @@
 import { EVENTS, Mse, Crypto, FetchLoader, XhrLoader, logger } from 'xgplayer-helper-utils'
 import { RemuxedBufferManager, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { CompatHls as Compatibility } from 'xgplayer-helper-codec'
-import { Mp4Remuxer, M3U8ParserNew, TsDemuxer } from 'xgplayer-helper-transmuxers'
+import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
 const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader
 
@@ -193,7 +193,7 @@ class HlsVodController {
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
       try {
-        let mdata = M3U8ParserNew.tempAdapter(M3U8ParserNew.parse(this.m3u8Text, this.url))
+        let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
         this._playlist.pushM3U8(mdata)
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true)
@@ -308,6 +308,7 @@ class HlsVodController {
 
   load (url) {
     const {fetchOptions = {}} = this._pluginConfig
+    this.baseurl = M3U8Parser.parseURL(url)
     this.url = url
     this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, url, fetchOptions)
   }

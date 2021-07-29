@@ -1,9 +1,11 @@
 import { BasePlugin, Events, Util } from 'xgplayer'
-import { Context, EVENTS } from 'xgplayer-helper-utils'
-import HlsLiveController from './hls-live'
+import { Context, EVENTS, common } from 'xgplayer-helper-utils'
+import HlsLiveController from './hls-live-new'
 import defaultConfig from './config'
+
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const { softSolutionProbe } = common
 
 export default class HlsLivePlayer extends BasePlugin {
   static get pluginName () {
@@ -30,18 +32,22 @@ export default class HlsLivePlayer extends BasePlugin {
     this.autoPlayStarted = false
   }
 
+  get _isMobile () {
+    return softSolutionProbe() && this.options?.player?.config?.mediaType === 'live-video'
+  }
+
   beforePlayerInit () {
     const { url } = this.player.config
-    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)()
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)(this._isMobile)
     this._context.init()
     this.hls.load(url)
     this._initEvents()
     this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
-            return this.hls.mse.url
+            return this.hls.mse?.url
           },
           configurable: true
         }
@@ -59,7 +65,7 @@ export default class HlsLivePlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
-    let canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
+    const canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
     if (this.playerConfig.autoplay) {
       this.on(Events.AUTOPLAY_STARTED, () => {
         this.autoPlayStarted = true

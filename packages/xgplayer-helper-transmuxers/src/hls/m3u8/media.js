@@ -1,4 +1,4 @@
-import { MediaPlaylist, MediaSegment, MediaSegmentKey } from './model'
+import { MediaPlaylist, MediaSegment, MediaSegmentKey } from 'xgplayer-helper-models'
 import { getAbsoluteUrl, parseAttr, parseTag } from './utils'
 
 /**
@@ -43,10 +43,15 @@ export function parseMediaPlaylist (lines, parentUrl) {
         media.type = data?.toUpperCase()
         break
       case 'TARGETDURATION':
-        media.targetDuration = parseFloat(data)
+        media.targetDuration = parseFloat(data) * 1000
         break
-      case 'ENDLIST':
+      case 'ENDLIST': {
+        const lastSegment = media.segments[media.segments.length - 1]
+        if (lastSegment) {
+          lastSegment.isLast = true
+        }
         media.live = false
+      }
         break
       case 'MEDIA-SEQUENCE':
         curSN = media.startSN = parseInt(data)
@@ -57,23 +62,38 @@ export function parseMediaPlaylist (lines, parentUrl) {
       case 'DISCONTINUITY':
         curCC++
         break
-      case 'KEY':
-        curKey = new MediaSegmentKey(parseAttr(data), parentUrl)
-        break
       case 'BYTERANGE':
-        setByteRange(data, curSegment, media.segments[media.segments.length - 1])
+        curSegment.setByteRange(data, media.segments[media.segments.length - 1])
         break
       case 'EXTINF': {
         const [duration, title] = data.split(',')
-        curSegment.duration = parseFloat(duration)
+        curSegment.start = totalDuration
+        curSegment.duration = parseFloat(duration) * 1000
         totalDuration += curSegment.duration
         curSegment.title = title
+      }
+        break
+      case 'KEY': {
+        const attr = parseAttr(data)
+        curKey = new MediaSegmentKey()
+        curKey.method = attr.METHOD
+        curKey.url = getAbsoluteUrl(attr.URI, parentUrl)
+        curKey.keyFormat = attr.KEYFORMAT || 'identity'
+        curKey.keyFormatVersions = attr.KEYFORMATVERSIONS
+        if (attr.IV) {
+          let str = attr.IV.slice(2)
+          str = (str.length & 1 ? '0' : '') + str
+          curKey.iv = new Uint8Array(str.length / 2)
+          for (let i = 0, l = str.length / 2; i < l; i++) {
+            curKey.iv[i] = parseInt(str.slice(i * 2, i * 2 + 2), 16)
+          }
+        }
       }
         break
       case 'MAP': {
         const attr = parseAttr(data)
         curSegment.url = getAbsoluteUrl(attr.URI, parentUrl)
-        if (attr.BYTERANGE) setByteRange(attr.BYTERANGE, curSegment)
+        if (attr.BYTERANGE) curSegment.setByteRange(attr.BYTERANGE)
         curSegment.isInitSegment = true
         curSegment.sn = 0
         if (curKey) {
@@ -94,15 +114,4 @@ export function parseMediaPlaylist (lines, parentUrl) {
   media.endCC = curCC
 
   return media
-}
-
-function setByteRange (data, segment, prevSegment) {
-  segment.byteRange = [0]
-  const bytes = data.split('@')
-  if (bytes.length === 1 && prevSegment && prevSegment.byteRange) {
-    segment.byteRange[0] = prevSegment.byteRange[1] || 0
-  } else {
-    segment.byteRange[0] = parseInt(bytes[1])
-  }
-  segment.byteRange[1] = segment.byteRange[0] + parseInt(bytes[0])
 }
