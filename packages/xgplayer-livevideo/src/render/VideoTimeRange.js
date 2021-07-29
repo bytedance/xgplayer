@@ -70,6 +70,7 @@ export default class VideoTimeRange {
   get keyFrameLength () {
     return this._keyframeQueue.length
   }
+
   get totalSize () {
     return this._totalSize
   }

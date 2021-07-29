@@ -2,6 +2,8 @@ import { EVENTS, logger } from 'xgplayer-helper-utils'
 import Base from './base'
 
 const MAX_VIDEO_FRAME_DURATION = 1000 // ms
+const MAX_DTS_DELTA_WITH_NEXT_CHUNK = 200 // ms
+const VIDEO_EXCETION_LOG_EMIT_DURATION = 5000 // 5s
 
 const { COMPATIBILITY_EVENTS } = EVENTS
 
@@ -9,10 +11,12 @@ class FlvCompatibility extends Base {
   constructor () {
     super()
     this.TAG = 'FlvCompatibility'
+    this._lastVideoExceptionLargeGapDot = 0
+    this._lastVideoExceptionChunkFirstDtsDot = 0
   }
 
-  doFix () {
-    this.fixVideoRefSampleDuration(this.videoTrack)
+  _doFix () {
+    this._fixVideoRefSampleDuration(this.videoTrack)
 
     if (!this._baseDtsInited) {
       this._calculateBaseDts(this.audioTrack, this.videoTrack)
@@ -53,16 +57,45 @@ class FlvCompatibility extends Base {
     if (!samples.length) return
 
     if (this._videoNextDts === undefined) {
-      this._videoNextDts = this._videoBaseDts - this._baseDts
+      let samp0 = samples[0]
+      this._videoNextDts = samp0.dts
     }
 
     let len = samples.length
     let sampleDuration = 0
+    let firstSample = samples[0]
+    let nextSample = samples[1]
     let refSampleDurationInt = Math.floor(this.videoTrack.meta.refSampleDuration)
+    let vDelta = this._videoNextDts - firstSample.dts
+
+    if (Math.abs(vDelta) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
+      // emit large delta of first sample with expect
+      if (Math.abs(firstSample.dts - this._lastVideoExceptionChunkFirstDtsDot) > VIDEO_EXCETION_LOG_EMIT_DURATION) {
+        this._lastVideoExceptionChunkFirstDtsDot = firstSample.dts
+        this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
+          msg: FlvCompatibility.EXCEPTION.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT,
+          info: {
+            videoNextDts: this._videoNextDts,
+            firstSampleDts: firstSample.dts,
+            nextSampleDts: nextSample ? nextSample.dts : 0,
+            vDelta
+          }
+        })
+      }
+
+      logger.log(this.TAG, `首帧dts和期望值差距过大, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
+
+      // 只处理首帧
+      firstSample.dts += vDelta
+      firstSample.pts += vDelta
+    }
+
     for (let i = 0; i < len; i++) {
       let dts = samples[i].dts
+      let nextSample = samples[i + 1]
+
       if (i < len - 1) {
-        sampleDuration = samples[i + 1].dts - dts
+        sampleDuration = nextSample.dts - dts
       } else if (lastSample) {
         sampleDuration = lastSample.dts - dts
       } else {
@@ -70,21 +103,27 @@ class FlvCompatibility extends Base {
       }
 
       if (sampleDuration > MAX_VIDEO_FRAME_DURATION || sampleDuration < 0) {
-        // dts异常
-        logger.log(this.TAG, `视频duration异常: dts=${dts}, duration=${sampleDuration}`)
+        // emit stream breaked
+        if (Math.abs(dts - this._lastVideoExceptionLargeGapDot) > VIDEO_EXCETION_LOG_EMIT_DURATION) {
+          this._lastVideoExceptionLargeGapDot = dts
+          this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
+            msg: FlvCompatibility.EXCEPTION.LARGE_VIDEO_DTS_GAP_DETECT,
+            info: {
+              dts,
+              originDts: samples[i].originDts,
+              nextDts: this._videoNextDts,
+              nextSampleDts: nextSample ? nextSample.dts : 0,
+              sampleDuration,
+              refSampleDurationInt,
+              currentTime: dts / 1000
+            }
+          })
+        }
+
+        logger.log(this.TAG, `视频duration异常: currentTime=${dts / 1000}s,  dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
+
         this._videoTimestampBreak = true
         sampleDuration = refSampleDurationInt
-
-        // emit stream breaked
-        this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-          msg: FlvCompatibility.EXCEPTION.LARGE_VIDEO_DTS_GAP_DETECT,
-          info: {
-            dts,
-            originDts: samples[i].originDts,
-            sampleDuration,
-            refSampleDurationInt
-          }
-        })
       }
 
       samples[i].duration = sampleDuration

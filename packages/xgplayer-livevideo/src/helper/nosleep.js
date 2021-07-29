@@ -73,7 +73,6 @@ class NoSleep {
         .then((wakeLock) => {
           this._wakeLock = wakeLock
           this.enabled = true
-          console.log('Wake Lock active.')
           this._wakeLock.addEventListener('release', () => {
             // ToDo: Potentially emit an event for the page to observe since
             // Wake Lock releases happen when page visibility changes.

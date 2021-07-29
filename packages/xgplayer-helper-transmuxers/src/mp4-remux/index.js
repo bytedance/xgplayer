@@ -6,7 +6,6 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 export default class Mp4Remuxer {
   constructor (curTime = 0) {
     this.TAG = 'Mp4Remuxer'
-    this._curTime = curTime
     if (!this.remuxer) {
       this._initRemuxer()
     }
@@ -24,8 +23,7 @@ export default class Mp4Remuxer {
   _initRemuxer () {
     this.remuxer = new Remuxer({
       audioMeta: null,
-      videoMeta: null,
-      curTime: this._curTime
+      videoMeta: null
     })
     this.remuxer.on(Remuxer.EVENTS.MEDIA_SEGMENT, this._writeToSource.bind(this))
     this.remuxer.on(Remuxer.EVENTS.TRACK_REMUXED, this._onTrackRemuxed.bind(this))

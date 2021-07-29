@@ -1,10 +1,10 @@
-import {EVENTS, logger} from 'xgplayer-helper-utils'
+import { EVENTS, logger } from 'xgplayer-helper-utils'
 import Base from './base'
 
 const MAX_VIDEO_FRAME_DURATION = 1000 // ms
-const MAX_DTS_DELTA_WITH_NEXT_SEGMENT = 200 // ms
+const MAX_DTS_DELTA_WITH_NEXT_CHUNK = 500 // ms
 
-const {COMPATIBILITY_EVENTS} = EVENTS
+const { COMPATIBILITY_EVENTS } = EVENTS
 
 class HlsCompatibility extends Base {
   constructor () {
@@ -29,13 +29,13 @@ class HlsCompatibility extends Base {
     return false
   }
 
-  doFix () {
+  _doFix () {
     let vSamples = this.tracks.videoTrack.samples
     let aSamples = this.tracks.audioTrack.samples
 
     if (!vSamples.length && !aSamples.length) return
 
-    this.fixVideoRefSampleDuration(this.videoTrack)
+    this._fixVideoRefSampleDuration(this.videoTrack)
 
     let firstVideoSample = vSamples[0]
     let firstAudioSample = aSamples[0]
@@ -79,18 +79,18 @@ class HlsCompatibility extends Base {
        *                   v
        */
       this._videoNextDts = vaDelta > 0 ? segment.start + vaDelta : segment.start
-      this._audioNextDts = vaDelta > 0 ? segment.start : segment.start + vaDelta
+      this._audioNextDts = vaDelta > 0 ? segment.start : segment.start - vaDelta
       logger.log(this.TAG, `id不连续: _videoNextDts=${this._videoNextDts}, _audioNextDts=${this._audioNextDts}, delta=${vaDelta}`)
 
-      let vDeltaToNextDts = firstVideoSample ? firstVideoSample.dts - this._videoBaseDts - this._videoNextDts : 0
-      let aDeltaToNextDts = firstAudioSample ? firstAudioSample.dts - this._audioBaseDts - this._audioNextDts : 0
+      let vDeltaToNextDts = firstVideoSample ? firstVideoSample.dts - this._baseDts - this._videoNextDts : 0
+      let aDeltaToNextDts = firstAudioSample ? firstAudioSample.dts - this._baseDts - this._audioNextDts : 0
 
       // 直播中间丢分片了
       if (Math.abs(vDeltaToNextDts || aDeltaToNextDts) > MAX_VIDEO_FRAME_DURATION) {
         // 调整baseDts
         this._calculateBaseDts(this.tracks.audioTrack, this.tracks.videoTrack)
         this._baseDts -= segment.start
-        logger.log(this.TAG, `直播中间丢分片了: _videoNextDts:${this._videoNextDts}, _baseDts =${this._baseDts}, vDeltaToNextDts:${vDeltaToNextDts} aDeltaToNextDts:${aDeltaToNextDts}`)
+        logger.log(this.TAG, `直播中间丢分片了: _videoNextDts:${this._videoNextDts}, _audioNextDts:${this._audioNextDts}, _baseDts =${this._baseDts}, vDeltaToNextDts:${vDeltaToNextDts} aDeltaToNextDts:${aDeltaToNextDts}`)
       }
     }
 
@@ -118,7 +118,8 @@ class HlsCompatibility extends Base {
     })
 
     if (this._videoNextDts === undefined) {
-      this._videoNextDts = this._videoBaseDts - this._baseDts
+      let samp0 = samples[0]
+      this._videoNextDts = samp0.dts
     }
 
     let len = samples.length
@@ -127,7 +128,7 @@ class HlsCompatibility extends Base {
     let nextSample = samples[1]
     let vDelta = this._videoNextDts - firstSample.dts
 
-    if (Math.abs(vDelta) > MAX_DTS_DELTA_WITH_NEXT_SEGMENT) {
+    if (Math.abs(vDelta) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
       // emit large delta of first sample with expect
       this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
         msg: HlsCompatibility.EXCEPTION.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT,
@@ -138,14 +139,14 @@ class HlsCompatibility extends Base {
           vDelta
         }
       })
-      logger.log(this.TAG, `分片首帧dts和期望值差距过大, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
+      logger.log(this.TAG, `首帧dts和期望值差距过大, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
 
       // 只处理首帧
       firstSample.dts += vDelta
       firstSample.pts += vDelta
 
       // 是否需要整个分片调整时间戳
-      if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_DTS_DELTA_WITH_NEXT_SEGMENT) {
+      if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
         this._videoTimestampBreak = true
         samples.forEach((x, i) => {
           if (i === 0) return
@@ -168,7 +169,7 @@ class HlsCompatibility extends Base {
 
       if (sampleDuration > MAX_VIDEO_FRAME_DURATION || sampleDuration < 0) {
         // dts异常
-        logger.log(this.TAG, `视频duration异常: dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
+        logger.log(this.TAG, `视频duration异常:currentTime=${dts / 1000}, dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
         this._videoTimestampBreak = true
         sampleDuration = refSampleDurationInt
 
@@ -180,7 +181,8 @@ class HlsCompatibility extends Base {
             originDts: samples[i].originDts,
             nextSampleDts: nextSample ? nextSample.dts : 0,
             sampleDuration,
-            refSampleDurationInt
+            refSampleDurationInt,
+            currentTime: dts / 1000
           }
         })
       }

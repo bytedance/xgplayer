@@ -124,6 +124,7 @@ export default class TimeLine extends EventEmitter {
   get currentAudioCanAutoplay () {
     return this.audioRender.audioCanAutoplay
   }
+
   _getController (videoDecode, config) {
     if (videoDecode) {
       return new VideoRenderFromVideo(config, this)
@@ -131,6 +132,7 @@ export default class TimeLine extends EventEmitter {
       return new VideoRenderFromWasm(config, this)
     }
   }
+
   _resetReadyStatus () {
     this._readyStatus.audio = false
     this._readyStatus.video = false
@@ -350,7 +352,7 @@ export default class TimeLine extends EventEmitter {
           return
         }
         // 暂时没有和音频不能自动播放合到一起
-        if (!this.videoRender.canAutoPlay) {
+        if (this.videoRender && !this.videoRender.canAutoPlay) {
           console.warn('video render 不能自动播放')
           this.pause()
           // this.emit(Events.TIMELINE.PLAY_EVENT, 'notautoplay')

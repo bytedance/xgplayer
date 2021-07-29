@@ -1,8 +1,8 @@
-const commonRollup = require('../../rollup.config');
-const uglify = process.env.NODE_ENV === 'production';
+const commonRollup = require('../../rollup.config')
+const uglify = process.env.NODE_ENV === 'production'
 
 const config = {
-  input: 'src/mse/index.js',
+  input: 'src/index.js',
   name: 'FlvLivePlayer',
   uglify: uglify,
   external: ['xgplayer'],

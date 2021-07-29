@@ -1,29 +1,30 @@
-import FlvLiveMsePlayer from './mse'
-import FlvLiveMobilePlayer from './mobile'
+import { BasePlugin } from 'xgplayer'
+import FlvLiveMsePlayer from './mse/index'
+import FlvLiveMobilePlayer from './mobile/index'
 
-export default class FlvLivePlayer {
+export default class FlvLiveWrapperPlayer extends BasePlugin {
   static get pluginName () {
-    return FlvLiveMsePlayer.pluginName
-  }
-
-  static get defaultConfig () {
-    return FlvLiveMsePlayer.defaultConfig
+    return 'flvLiveWrapper'
   }
 
   constructor (config) {
-    if (FlvLiveMobilePlayer.isSupported() && config.player.config.mediaType === 'live-video') {
-      return new FlvLiveMobilePlayer(config)
-    } if (FlvLiveMsePlayer.isSupported()) {
-      return new FlvLiveMsePlayer(config)
+    super(config)
+
+    const player = config.player
+
+    if (player.config.mediaType === 'live-video') {
+      this.flvLive = player.registerPlugin(FlvLiveMobilePlayer)
+    } else {
+      this.flvLive = player.registerPlugin(FlvLiveMsePlayer)
     }
+    if (!this.flvLive) return
+    this.flvLive.wrapper = this
   }
 
-  static isSupported () {
-    return FlvLiveMsePlayer.isSupported() || FlvLiveMobilePlayer.isSupported()
+  static isSupported (mediaType) {
+    if (mediaType === 'live-video') {
+      return FlvLiveMobilePlayer.isSupported()
+    }
+    return FlvLiveMsePlayer.isSupported()
   }
-}
-
-export {
-  FlvLiveMsePlayer,
-  FlvLiveMobilePlayer
 }

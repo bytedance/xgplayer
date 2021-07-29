@@ -1,12 +1,16 @@
-import { BasePlugin, Events, Util } from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
-import defaultConfig from './config'
+import defaultConfig from '../config'
+
 const flvAllowedEvents = EVENTS.FlvAllowedEvents
+const CORE_EVENTS = EVENTS.CORE_EVENTS
+
 const { softSolutionProbe } = common
+
 class FlvPlayer extends BasePlugin {
   static get pluginName () {
-    return 'flvLiveMobile'
+    return 'flvLive'
   }
 
   static isSupported () {
@@ -16,45 +20,25 @@ class FlvPlayer extends BasePlugin {
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
       preloadTime: 5,
-      innerDegrade: null,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 0,
+      backupURL: '',
+      backupConstructor: null,
+      decodeMode: 0,
+      innerDegrade: 0
     })
   }
 
   constructor (options) {
     super(options)
-    this.play = this.play.bind(this)
-    this.pause = this.pause.bind(this)
-    this.canplay = this.canplay.bind(this)
-    this.switchURL = this.switchURL.bind(this)
-    this.progress = this.progress.bind(this)
-    this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
-    this.lowdecode = this.lowdecode.bind(this)
+    this._bindPlayerEvents()
+    this._stopStreamWhenNotAutoPlay()
   }
 
   beforePlayerInit () {
-    const { player } = this
-    const preloadTime = player.config.preloadTime || this.config.preloadTime
-    const innerDegrade = this.config.innerDegrade || player.config.innerDegrade
-
-    if (player.video && innerDegrade) {
-      player.video.setAttribute('innerdegrade', innerDegrade)
-    }
-    if (player.video && preloadTime) {
-      player.video.setAttribute('preloadtime', preloadTime)
-    }
-    this._context = new Context(this.player, this.config, flvAllowedEvents)
-    this.initFlv()
-    this._context.init()
-    this.loadData()
-    this.initEvents()
-    if (!player.forceDegradeToVideo) {
-      player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this)
-    }
-    if (player.video.setDecodeMode) {
-      player.video.setDecodeMode(this.config.decodeMode)
-    }
+    this._prepareForLiveVideo()
+    this._initFlvCtr()
+    this.player.switchURL = this._switchURLHandler
   }
 
   afterCreate () {
@@ -64,47 +48,70 @@ class FlvPlayer extends BasePlugin {
     video.style.outline = 'none'
   }
 
-  initFlvEvents (flv) {
-    const { player } = this
-
-    flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
-      // 直播完成，待播放器播完缓存后发送关闭事件
-      if (!player.paused) {
-        const timer = setInterval(() => {
-          if (!player || !player.video) return window.clearInterval(timer)
-          const end = player.getBufferedRange()[1]
-          if (Math.abs(player.currentTime - end) < 0.5) {
-            player.emit('ended')
-            window.clearInterval(timer)
-          }
-        }, 200)
+  _stopStreamWhenNotAutoPlay () {
+    this.once(Events.CANPLAY, () => {
+      if (!this.playerConfig.autoplay) {
+        this._pauseHandler()
       }
     })
   }
 
-  initEvents () {
-    this.on(Events.PLAY, this.play)
-    this.on(Events.PAUSE, this.pause)
-    this.on(Events.CANPLAY, this.canplay)
-    this.on(Events.URL_CHANGE, this.switchURL)
-    this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
-    this.on(Events.PROGRESS, this.progress)
-
-    // autoplay:true 不能自动播放的, 停止拉流
-    this.on(Events.AUTOPLAY_PREVENTED, () => {
-      if (!this.flv) return
-      this.flv.pause()
-    })
-    this.player.video.addEventListener('lowdecode', this.lowdecode)
-
-    this.player.video.addEventListener('error', () => {
-      // 报错时，调用pasue，停止http请求
-      this.pause()
-    })
+  _initFlvCtr = () => {
+    const context = new Context(this.player, this.config, flvAllowedEvents)
+    const flv = context.registry('FLV_CONTROLLER', FLV)()
+    context.init()
+    this.flv = flv
+    this.context = context
+    this._bindFlvEvents()
+    this._loadStream()
+    this.emit('core_inited', flv)
   }
 
+  _prepareForLiveVideo = () => {
+    const { player } = this
+    const preloadTime = player.config.preloadTime || this.config.preloadTime
+    const innerDegrade = this.config.innerDegrade || player.config.innerDegrade
+    const { video } = player
+
+    if (!video) return
+
+    if (innerDegrade) {
+      video.setAttribute('innerdegrade', innerDegrade)
+    }
+    if (preloadTime) {
+      video.setAttribute('preloadtime', preloadTime)
+    }
+
+    if (!player.forceDegradeToVideo) {
+      player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this)
+    }
+    if (video.setDecodeMode) {
+      video.setDecodeMode(this.config.decodeMode)
+    }
+  }
+
+  _bindFlvEvents () {
+    let flv = this.flv
+
+    flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, this._onLoadCompleteHandler)
+  }
+
+  _bindPlayerEvents () {
+    this.player.useHooks('play', this._playHandler)
+    this.player.useHooks('pause', this._pauseHandler)
+
+    this.on(Events.PROGRESS, this._progressHandler)
+    this.on(Events.URL_CHANGE, this._switchURLHandler)
+    this.on(Events.DEFINITION_CHANGE, this._definitionChangeHandler)
+
+    this.player.video.addEventListener('lowdecode', this._lowdecodeHandler)
+    this.player.video.addEventListener('error', this._pauseHandler)
+  }
+
+  /** ********* 降级相关 *********************** */
+
   // 降级时到不同的播放方式
-  lowdecode () {
+  _lowdecodeHandler = () => {
     const { player } = this
     const { backupURL: playerBackupURL, innerDegrade: playerInnerDegrade } = player.config
     const { backupURL: pluginBackupURL, innerDegrade: pluginInnerDegrade } = this.config
@@ -112,7 +119,9 @@ class FlvPlayer extends BasePlugin {
     const innerDegrade = playerInnerDegrade || pluginInnerDegrade
     const backupURL = playerBackupURL || pluginBackupURL
 
-    this.emit('lowdecode', this.player.video.degradeInfo)
+    const degradeInfo = this.player.video.degradeInfo
+    this.emit('lowdecode', degradeInfo)
+    this.flv.emitCoreEvent(CORE_EVENTS.LOWDECODE, degradeInfo)
 
     // 内部降级到mse
     if (innerDegrade === 2) {
@@ -129,7 +138,7 @@ class FlvPlayer extends BasePlugin {
   /**
    * @param {string | undefined} url  降级到的地址
    */
-  _degrade (url) {
+  _degrade = (url) => {
     const { player } = this
     let mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
@@ -147,7 +156,11 @@ class FlvPlayer extends BasePlugin {
         player.root.replaceChild(newVideo, firstChild)
       }
       const mobilePluginName = FlvPlayer.pluginName.toLowerCase()
+      const wrapperPluginName = this.wrapper && this.wrapper.constructor.pluginName
       player.plugins[mobilePluginName] = null
+      if (wrapperPluginName) {
+        player.plugins[wrapperPluginName.toLowerCase()] = null
+      }
 
       // play
       player.once('canplay', () => {
@@ -156,20 +169,19 @@ class FlvPlayer extends BasePlugin {
     }
   }
 
-  _toUseMse (url) {
+  _toUseMse = (url) => {
     const { player } = this
-    const backupConstructor = player.config.backupConstructor || this.config.backupConstructor
+    const backupConstructor = player.config.backupConstructor || this.config.backupConstructor || (this.wrapper && this.wrapper.constructor)
     if (!backupConstructor || !url) {
-      throw new Error(`need backupConstructor and backupURL`)
+      throw new Error('need backupConstructor and backupURL')
     }
     if (backupConstructor) {
       player.config.url = url
-      let flvMsePlayer = player.registerPlugin(backupConstructor)
-      flvMsePlayer.beforePlayerInit()
+      player.config.mediaType = 'video'
+      let flvWrapper = player.registerPlugin(backupConstructor)
+      flvWrapper.flvLive.beforePlayerInit()
       Promise.resolve().then(() => {
         player.video.src = player.url
-        const mobilePluginName = FlvPlayer.pluginName.toLowerCase()
-        player.plugins[mobilePluginName] = null
       })
     }
   }
@@ -177,7 +189,7 @@ class FlvPlayer extends BasePlugin {
   // 外部强制降级
   // flv -> h5 m3u8
   // flv -> web mse
-  forceDegradeToVideo (url) {
+  forceDegradeToVideo = (url) => {
     this.player.removeClass('xgplayer-is-error')
     let isHls = /\.m3u8?/.test(url)
     // flv -> h5 hls
@@ -188,79 +200,68 @@ class FlvPlayer extends BasePlugin {
     this._degrade()
     this._toUseMse(url)
   }
+  /** ********* 降级相关 end *********************** */
 
-  offEvents () {
-    this.off(Events.PLAY, this.play)
-    this.off(Events.PAUSE, this.pause)
-    this.off(Events.CANPLAY, this.canplay)
-    this.off(Events.URL_CHANGE, this.switchURL)
-    this.off(Events.PROGRESS, this.progress)
-    this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
-    this.player.video.removeEventListener('lowdecode', this.lowdecode)
-  }
+  /** *********** player event handler *********************** */
 
-  initFlv () {
-    const flv = this._context.registry('FLV_CONTROLLER', FLV)()
-    this.initFlvEvents(flv)
-    this.flv = flv
-    this.emit('core_inited', flv)
-  }
+  _onLoadCompleteHandler = () => {
+    const { player, flv } = this
 
-  canplay () {
-    if (!this.player.video) return
-    if (this.player.config.autoplay) return
-
-    // autoplay:false 初始化后停止拉流
-    if (!this.played) {
-      this.flv.pause()
+    // 直播完成，待播放器播完缓存后发送关闭事件
+    if (flv && flv._context) {
+      const loader = flv._context.getInstance('FETCH_LOADER')
+      loader && loader.cancel()
     }
 
-    if (this.player.video.buffered.length) {
-      this.played = true
+    if (!this.paused) {
+      const checkEnd = () => {
+        if (!player || !player.video) return
+        const end = player.getBufferedRange()[1]
+        if (Math.abs(player.currentTime - end) < 0.5) {
+          this.emit('ended')
+          return
+        }
+        setTimeout(checkEnd, 200)
+      }
+      checkEnd()
+      return
     }
+
+    this.emit('ended')
   }
 
-  play () {
-    const { player } = this
-    if (this.played) {
-      this._destroy()
-      player.hasStart = false
-      player.start()
-    } else {
-      this.addLiveFlag()
-    }
-    this.played = true
+  _playHandler = () => {
+    return this._destroyInternal().then(() => {
+      this._bindPlayerEvents()
+      this.player.hasStart = false
+    })
   }
 
-  pause () {
+  _pauseHandler = () => {
     if (this.flv) {
       this.flv.pause()
     }
   }
 
-  loadData (time = this.player.currentTime) {
-    if (this.flv) {
-      this.flv.seek(time)
-    }
+  _switchURLHandler = (url) => {
+    this._destroyInternal().then(() => {
+      const { player } = this
+      player.config.url = url
+      this._reloadStream()
+    })
   }
 
-  switchURL (url) {
-    this._destroy()
-    const { player } = this
-    player.config.url = url
-    player.hasStart = false
-    player.start()
-  }
-
-  handleDefinitionChange (change) {
+  _definitionChangeHandler = (change) => {
     const { to } = change
-    this.switchURL(to)
+    this._switchURLHandler(to)
   }
 
-  progress () {
+  // 软解追帧
+  _progressHandler = () => {
     if (!this.player || !this.player.video) return
     const { buffered, currentTime, config } = this.player
     const preloadTime = config.preloadTime || this.config.preloadTime
+    if (!buffered.length) return
     let bufferEnd = buffered.end(0)
     let waterLevel = bufferEnd - currentTime
     if (waterLevel > preloadTime * 2) {
@@ -269,22 +270,38 @@ class FlvPlayer extends BasePlugin {
       }
     }
   }
+  /** *********** player event handler end *********************** */
+
+  _loadStream = (time = this.player.currentTime) => {
+    if (this.flv) {
+      this.flv.seek(time)
+    }
+  }
+
+  _reloadStream () {
+    if (this.player) {
+      this.player.play()
+    }
+  }
+
+  _destroyInternal () {
+    return new Promise((resolve) => {
+      if (!this._context) {
+        resolve()
+        return
+      }
+      this._context.destroy()
+      super.offAll()
+      this.player.video.removeEventListener('lowdecode', this._lowdecodeHandler)
+      this.player.video.removeEventListener('error', this._pauseHandler)
+      this.flv = null
+      this._context = null
+      resolve()
+    })
+  }
 
   destroy () {
-    this._destroy()
-  }
-
-  addLiveFlag () {
-    const { player } = this
-    Util.addClass(player.root, 'xgplayer-is-live')
-  }
-
-  _destroy () {
-    if (!this._context) return
-    this.offEvents()
-    this._context.destroy()
-    this.flv = null
-    this._context = null
+    return this._destroyInternal()
   }
 
   get core () {
@@ -293,6 +310,10 @@ class FlvPlayer extends BasePlugin {
 
   get context () {
     return this._context
+  }
+
+  set context (ctx) {
+    this._context = ctx
   }
 }
 

@@ -11,7 +11,7 @@ import Fmp4 from './fmp4'
  */
 
 export default class Mp4Remuxer extends EventEmitter {
-  constructor ({ videoMeta, audioMeta, curTime }) {
+  constructor ({ videoMeta, audioMeta }) {
     super()
     this.TAG = 'Fmp4Remuxer'
 
