@@ -313,7 +313,7 @@ export default class Mp4Box extends EventEmitter {
         }
         frameIndex++
         this.getStszBoxData(sampleByteSize, sampleSizes)
-        chunkOffset = this.getStcoBoxData(frameIndex, sampleByteSize, sampleCount, chunkOffset, chunksOffset)
+        chunkOffset = this.getStcoBoxData(frameIndex - 1, sampleByteSize, sampleCount, chunkOffset, chunksOffset)
 
         if (isKeyframe) {
           this.getStssBoxData(frameIndex, keyFrames)
