@@ -32,7 +32,9 @@ let s_error = function () {
           e.preventDefault()
           e.stopPropagation()
           player.autoplay = true
+          let currentTime = player.currentTime
           player.once('playing', () => {
+            player.currentTime = currentTime
             removeClass(player.root, 'xgplayer-is-error')
           })
           player.src = player.config.url
