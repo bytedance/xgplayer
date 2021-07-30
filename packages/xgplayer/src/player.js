@@ -192,6 +192,10 @@ class Player extends VideoProxy {
      */
     this.root = null
 
+    // android 6以下不支持自动播放
+    if (Sniffer.os.isAndroid && Sniffer.osVersion > 0 && Sniffer.osVersion < 6) {
+      this.config.autoplay = false
+    }
     /**
      * @readonly
      * @type {any}
