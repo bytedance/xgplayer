@@ -65,7 +65,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
  * @returns { boolean }
  */
 util.hasClass = function (el, className) {
-  if (!el) {
+  if (!el || !className) {
     return false
   }
   try {
@@ -114,13 +114,12 @@ util.addClass = function (el, className) {
  * @returns { void }
  */
 util.removeClass = function (el, className) {
-  if (!el || className) {
+  if (!el || !className) {
     return
   }
-
   try {
     className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
-      item && el.classList.add(item)
+      item && el.classList.remove(item)
     })
   } catch (e) {
     if (util.hasClass(el, className)) {
