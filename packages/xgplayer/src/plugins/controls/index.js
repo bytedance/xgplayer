@@ -180,12 +180,14 @@ class Controls extends Plugin {
       return
     }
     const className = Util.classNames(
+      { 'xgplayer-controls': true },
       { 'flex-controls': mode === 'flex' },
       { 'bottom-controls': mode === 'bottom' },
       { control_autohide: autoHide },
       { controls_permanent: !autoHide },
       { 'xgplayer-controls-initshow': initShow || !autoHide })
-    return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
+    console.log('className', className)
+    return `<xg-controls class="${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">
       </xg-left-grid>

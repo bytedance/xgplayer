@@ -39,13 +39,13 @@ export default class DefaultPreset {
 
     const barIcons = [PIPIcon]
 
-    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview, DynamicBg]
+    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview]
 
     this.plugins = [Xglogger, ...contolsIcons, ...layers]
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen, DynamicBg)
         break
       case 'mobile':
         this.plugins.push(...[Mobile, ...barIcons], Miniscreen)
