@@ -35,6 +35,7 @@ export default class Mp4Remuxer extends EventEmitter {
       keys: []
     }
   }
+
   static get EVENTS () {
     return {
       MEDIA_SEGMENT: 'MEDIA_SEGMENT',
@@ -89,9 +90,9 @@ export default class Mp4Remuxer extends EventEmitter {
    */
   remuxInitSegment (type, meta) {
     logger.log(this.TAG, 'remuxInitSegment: type=', type)
-    let initSegment = new Buffer()
-    let ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp()
-    let moov = Fmp4.moov({ type, meta: meta })
+    const initSegment = new Buffer()
+    const ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp()
+    const moov = Fmp4.moov({ type, meta: meta })
 
     initSegment.write(ftyp, moov)
     return initSegment
@@ -135,7 +136,7 @@ export default class Mp4Remuxer extends EventEmitter {
       }
     }
 
-    let delta = audioBase - videoBase
+    const delta = audioBase - videoBase
     // 临时兼容逻辑， hls 考虑上av之间的差值
     if (delta < 0 && start !== null) {
       videoTrack.samples.forEach(x => {
@@ -168,7 +169,7 @@ export default class Mp4Remuxer extends EventEmitter {
       return
     }
 
-    let { samples, meta } = track
+    const { samples, meta } = track
 
     if (!meta) return
 
@@ -194,7 +195,7 @@ export default class Mp4Remuxer extends EventEmitter {
         }
         break
       }
-      let dts = Math.max(0, avcSample.dts - this.videoDtsBase)
+      const dts = Math.max(0, avcSample.dts - this.videoDtsBase)
       if (firstDts === -1) {
         firstDts = dts
       }
@@ -210,7 +211,7 @@ export default class Mp4Remuxer extends EventEmitter {
         cts = avcSample.cts
       }
 
-      let mdatSample = {
+      const mdatSample = {
         buffer: [],
         size: 0
       }
@@ -319,7 +320,7 @@ export default class Mp4Remuxer extends EventEmitter {
   remuxAudio (track) {
     const { samples } = (track || {})
     let firstDts = -1
-    let mp4Samples = []
+    const mp4Samples = []
 
     let initSegment = null
     const mdatBox = {
@@ -332,7 +333,7 @@ export default class Mp4Remuxer extends EventEmitter {
     let maxLoop = 10000
     let isFirstDtsInited = false
     while (samples.length && maxLoop-- > 0) {
-      let sample = samples.shift()
+      const sample = samples.shift()
       const { data, options } = sample
       if (!this.isFirstAudio && options && options.meta) {
         initSegment = this.remuxInitSegment('audio', options.meta)
@@ -344,8 +345,8 @@ export default class Mp4Remuxer extends EventEmitter {
         break
       }
 
-      let dts = Math.max(0, sample.dts - this.audioDtsBase)
-      let originDts = sample.originDts
+      const dts = Math.max(0, sample.dts - this.audioDtsBase)
+      const originDts = sample.originDts
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
@@ -389,7 +390,7 @@ export default class Mp4Remuxer extends EventEmitter {
         type: 'audio'
       }
 
-      let mdatSample = {
+      const mdatSample = {
         buffer: [],
         size: 0
       }

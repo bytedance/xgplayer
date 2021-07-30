@@ -124,6 +124,7 @@ export default class TimeLine extends EventEmitter {
   get currentAudioCanAutoplay () {
     return this.audioRender.audioCanAutoplay
   }
+
   _getController (videoDecode, config) {
     if (videoDecode) {
       return new VideoRenderFromVideo(config, this)
@@ -131,6 +132,7 @@ export default class TimeLine extends EventEmitter {
       return new VideoRenderFromWasm(config, this)
     }
   }
+
   _resetReadyStatus () {
     this._readyStatus.audio = false
     this._readyStatus.video = false
@@ -231,10 +233,16 @@ export default class TimeLine extends EventEmitter {
     if (this._noAudio) {
       this.emit(Events.TIMELINE.SYNC_DTS, 0)
     }
-    logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking)
+    logger.log(this.TAG, 'startRender: time=', this.currentTime, 'paused:', this.paused, 'seeking:', this.seeking)
 
     // 首帧画面显示
     this.videoRender.forceRender()
+
+    if (!this._parent.live && this._paused && this.seeking) {
+      this._seeking = false
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.SEEKED)
+      return
+    }
 
     this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY)
 
@@ -249,7 +257,7 @@ export default class TimeLine extends EventEmitter {
     }
     this.emit(Events.TIMELINE.READY)
     if (this._seeking) {
-      if (!this.currentAudioCanAutoplay) {
+      if (!this.currentAudioCanAutoplay || this._paused) {
         this.pause()
       }
       this._seeking = false

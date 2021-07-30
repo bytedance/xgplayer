@@ -36,6 +36,7 @@ class Playlist {
     this.logger = configs.logger
     /** @type {string[]} */
     this.downloadedUrls = []
+    this._avgSegmentDuration = 4
   }
 
   /**
@@ -63,6 +64,10 @@ class Playlist {
     return this._baseURL
   }
 
+  get avgSegmentDuration () {
+    return this._avgSegmentDuration
+  }
+
   /**
    * add a ts frag to play list
    * @param {string} tsURL ts frag url
@@ -73,7 +78,8 @@ class Playlist {
    */
   push (tsURL, duration, discontinue, id, cc, isLast) {
     if (!this._ts[tsURL]) {
-      this._ts[tsURL] = {duration: duration,
+      this._ts[tsURL] = {
+        duration: duration,
         downloaded: false,
         downloading: false,
         start: this.duration,
@@ -110,6 +116,12 @@ class Playlist {
     }
   }
 
+  _calcAvgFrgmentDuration (data) {
+    if (!data.frags) return data.targetduration
+    let fragLen = data.frags.length
+    return Math.floor(data.duration / fragLen / 1000)
+  }
+
   /**
    * add m3u8 to current play list
    * @param {*} data
@@ -118,10 +130,14 @@ class Playlist {
   pushM3U8 (data, deletepre) {
     // 常规信息替换
     if (!data) {
-      throw new Error(`No m3u8 data received.`)
+      throw new Error('No m3u8 data received.')
     }
     this.version = data.version
+
     this.targetduration = data.targetduration
+
+    this._avgSegmentDuration = Math.min(this.targetduration, this._calcAvgFrgmentDuration(data))
+
     if (data.encrypt && !this.encrypt) {
       this.encrypt = data.encrypt
     }
@@ -136,7 +152,7 @@ class Playlist {
     if (data.sequence > this.sequence) {
       let len = data.frags.length
       if (this.logger) {
-        this.logger.log('PLAYLIST', `new playlist [${data.sequence}, ${data.sequence + len}]`)
+        this.logger.log('PLAYLIST', `new playlist [${data.sequence}, ${data.sequence + len - 1}]`)
       }
       this.sequence = data.sequence
       let newfraglist = []
@@ -149,7 +165,7 @@ class Playlist {
       }
 
       if (newfraglist.length < 1) {
-        throw new Error(`Can not read ts file list.`)
+        throw new Error('Can not read ts file list.')
       }
 
       if (deletepre) {
@@ -274,7 +290,7 @@ class Playlist {
       let downloaded = this._ts[url].downloaded
       let downloading = this._ts[url].downloading
       if (downloaded) {
-        found = {url, downloaded, downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration)}
+        found = { url, downloaded, downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration) }
       } else {
         break
       }

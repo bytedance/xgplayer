@@ -31,15 +31,15 @@ export default class AudioTimeRange {
       }
     }
 
-    let buffers = this._mergeBufferRanges()
+    const buffers = this._mergeBufferRanges()
     return {
       length: buffers.length,
       start: (i) => {
-        let buffer = buffers[i]
+        const buffer = buffers[i]
         return buffer ? buffer.start : 0
       },
       end: (i) => {
-        let buffer = buffers[i]
+        const buffer = buffers[i]
         return buffer ? buffer.end : Infinity
       }
     }
@@ -50,8 +50,8 @@ export default class AudioTimeRange {
   }
 
   dump () {
-    let buffered = this.buffered
-    let len = buffered.length
+    const buffered = this.buffered
+    const len = buffered.length
     let ret = ''
 
     for (let i = 0; i < len; i++) {
@@ -66,7 +66,7 @@ export default class AudioTimeRange {
     const transitionCount = 50
 
     for (let channel = 0; channel < numberOfChannels; channel++) {
-      let audioData = audioBufferSource.getChannelData(channel)
+      const audioData = audioBufferSource.getChannelData(channel)
 
       for (let i = 0; i < transitionCount; i++) {
         /* fadein */
@@ -80,25 +80,20 @@ export default class AudioTimeRange {
     }
   }
 
-  append (source, duration, startDts, segmentStart, delay) {
+  append (source, duration, startDts, delay) {
     if (this._baseDts === -1) {
       this._baseDts = startDts
     }
     this._transitionSamples(source)
-    let start = (startDts - this._baseDts) / 1000
-    let end = start + duration
-    let buffer = {
+    const start = (startDts - this._baseDts) / 1000
+    const end = start + duration
+    const buffer = {
       start,
       end,
       startDts,
       source,
       duration,
       delay
-    }
-
-    if (!this.isLive && segmentStart) {
-      buffer.start = segmentStart / 1000
-      buffer.end = buffer.start - start + end
     }
 
     logger.log(this.TAG, `add new buffer range, [${buffer.start} , ${buffer.end}]`)
@@ -124,16 +119,16 @@ export default class AudioTimeRange {
   }
 
   canSeek (time) {
-    let last = this._buffers[this._buffers.length - 1]
+    const last = this._buffers[this._buffers.length - 1]
     if (!last) return false
     if (last.start < time) return false
     return true
   }
 
   _mergeBufferRanges () {
-    let buffers = this._buffers.sort((a, b) => (a.start > b.start ? 1 : -1))
-    let len = buffers.length
-    let ret = []
+    const buffers = this._buffers.sort((a, b) => (a.start > b.start ? 1 : -1))
+    const len = buffers.length
+    const ret = []
     if (!len) return ret
 
     let last = {
@@ -142,7 +137,7 @@ export default class AudioTimeRange {
     }
 
     for (let i = 1; i < len; i++) {
-      let c = buffers[i]
+      const c = buffers[i]
       if (Math.abs(last.end - c.start) < TOLERANCE) {
         last.end = c.end
       } else {
@@ -161,7 +156,7 @@ export default class AudioTimeRange {
     if (this.isLive) {
       return this._buffers.shift()
     }
-    let buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0]
+    const buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0]
     logger.log(this.TAG, `get audio buffer , currentTime:${time} ,buffer:[${buffer && buffer.start} , ${buffer && buffer.end}]`)
     return buffer
   }

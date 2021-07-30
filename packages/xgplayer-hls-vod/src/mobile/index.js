@@ -5,7 +5,6 @@ import HlsVodMobileController from './hls-vod-mobile'
 const { debounce, softSolutionProbe } = common
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
-const HLS_EVENTS = EVENTS.HLS_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 class HlsVodMobilePlayer extends BasePlugin {
@@ -78,11 +77,7 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   _initEvents () {
-    const {player} = this
-
-    this.hls.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
-      this.emit('error', new Player.Errors('network', this.config.url))
-    })
+    const { player } = this
 
     this.hls.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
       this._onSourceUpdateEnd()

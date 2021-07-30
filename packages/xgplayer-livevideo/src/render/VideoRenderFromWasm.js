@@ -94,7 +94,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
     switch (type) {
       case 'DECODER_READY':
         if (!this._frameRender) {
-          let config = Object.assign(this._config, {
+          const config = Object.assign(this._config, {
             meta: this._meta,
             canvas: this._canvas
           })
@@ -151,7 +151,6 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
 
   _switchVideoBuffer (time) {
     this._timeRange.switchBuffer(time)
-    this._setMetadata('video', this._meta)
     this._startDecode()
   }
 
@@ -165,7 +164,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
   }
 
   _render (force) {
-    let frame = this._frameQueue && this._frameQueue.nextFrame()
+    const frame = this._frameQueue && this._frameQueue.nextFrame()
     if (!frame || !this._timeRange) {
       logger.log(this.TAG, 'lack frame', this._wasmDecodeController.inDecoding)
       this._checkToDecode()
@@ -178,7 +177,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
       return
     }
 
-    let { info } = frame
+    const { info } = frame
 
     if (!info) {
       this._frameQueue.shift()
@@ -187,7 +186,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
     }
 
     this._renderDts = info.dts
-    let _renderDelay = info.dts - this.preciseVideoDts
+    const _renderDelay = info.dts - this.preciseVideoDts
 
     if (!force && _renderDelay > 0 && _renderDelay < 60000) {
       // 60s
@@ -207,7 +206,7 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
         `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} , gopID:${info.gopId} , rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`
       )
     }
-    let ts = performance.now()
+    const ts = performance.now()
     this._frameRender.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize)
     this._renderCost = performance.now() - ts
     this._checkToDecode()
