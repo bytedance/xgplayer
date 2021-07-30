@@ -93,21 +93,25 @@ class Controls extends Plugin {
   }
 
   onMouseLeave = () => {
+    console.log('onMouseLeave')
     const { player, playerConfig } = this
     const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
-    player.emit(Events.PLAYER_FOCUS, { delay })
+    player.focus({ delay })
   }
 
   focus () {
-    this.player.emit(Events.PLAYER_FOCUS, { autoHide: false })
+    console.log('controls focus')
+    this.player.focus({ autoHide: false })
   }
 
   unFocus () {
-    this.player.emit(Events.PLAYER_FOCUS, { autoHide: true })
+    console.log('controls unFocus')
+    this.player.focus({ autoHide: true })
   }
 
   blur () {
-    this.player.emit(Events.PLAYER_BLUR, { ignoreStatus: true })
+    console.log('controls blur')
+    this.player.blur({ ignorePaused: true })
   }
 
   recoverAutoHide () {

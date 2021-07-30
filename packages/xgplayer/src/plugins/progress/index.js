@@ -271,7 +271,7 @@ class Progress extends Plugin {
     pos.moving = false
 
     // 交互开始 禁止控制栏的自动隐藏功能
-    player.emit(Events.PLAYER_FOCUS, { autoHide: false })
+    player.focus({ autoHide: false })
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'active')
 
@@ -337,7 +337,7 @@ class Progress extends Plugin {
       this.resetSeekState()
     }, 10)
     // 交互结束 恢复控制栏的隐藏流程
-    player.emit(Events.PLAYER_FOCUS)
+    player.focus()
   }
 
   onMouseMove = (e) => {

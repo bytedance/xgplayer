@@ -1151,7 +1151,40 @@ class Player extends VideoProxy {
   }
 
   /**
-   *
+   * @description 播放器焦点状态，控制栏显示
+   * @param { {
+   *   autoHide?: boolean, // 是否可以自动隐藏
+   *   delay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
+   * } } [data]
+   */
+  focus (data = { autoHide: true, delay: 0 }) {
+    if (this.isActive) {
+      return
+    }
+    this.emit(Events.PLAYER_FOCUS, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @description 取消播放器当前焦点状态
+   * @param { { ignorePaused?: boolean } } [data]
+   */
+  blur (data = { ignorePaused: false }) {
+    if (!this.isActive) {
+      return
+    }
+    this.emit(Events.PLAYER_BLUR, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @protected
    * @param { { autoHide?: boolean, delay?: number} } [data]
    * @returns
    */
@@ -1166,22 +1199,22 @@ class Player extends VideoProxy {
     }
     const time = data && data.delay ? data.delay : this.config.inactive
     this.userTimer = Util.setTimeout(this, () => {
-      this.emit(Events.PLAYER_BLUR)
+      this.blur()
     }, time)
   }
 
   /**
-   *
-   * @param {{ ignoreStatus?: boolean }} [data]
+   * @protected
+   * @param {{ ignorePaused?: boolean }} [data]
    * @returns
    */
-  onBlur (data = { ignoreStatus: false }) {
+  onBlur (data = { ignorePaused: false }) {
     if (!this.isActive) {
       return
     }
     const { closePauseVideoFocus } = this.config
     this.isActive = false
-    if (data.ignoreStatus || closePauseVideoFocus || (!this.paused && !this.ended)) {
+    if (data.ignorePaused || closePauseVideoFocus || (!this.paused && !this.ended)) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
   }
@@ -1202,7 +1235,7 @@ class Player extends VideoProxy {
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
-    !this.config.closePlayVideoFocus && this.emit(Events.PLAYER_FOCUS)
+    !this.config.closePlayVideoFocus && this.focus()
   }
 
   /**
@@ -1210,11 +1243,11 @@ class Player extends VideoProxy {
    */
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
-    if (this.config.closePauseVideoFocus) {
+    if (!this.config.closePauseVideoFocus) {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
       }
-      this.emit(Events.PLAYER_FOCUS)
+      this.focus()
     }
   }
 
