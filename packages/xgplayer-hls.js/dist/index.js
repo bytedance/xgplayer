@@ -1889,9 +1889,11 @@ var HlsJsPlayer = function (_Player) {
     _this.register(_this.config.url);
     _this.once('complete', function () {
       hls.attachMedia(player.video);
-      player.once('canplay', function () {
-        player.play().catch(function (err) {});
-      });
+      if (!player.config.videoInit) {
+        player.once('canplay', function () {
+          player.play().catch(function (err) {});
+        });
+      }
     });
     _this.once('destroy', function () {
       hls.stopLoad();

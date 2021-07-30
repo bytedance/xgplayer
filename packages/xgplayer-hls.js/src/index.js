@@ -80,9 +80,11 @@ class HlsJsPlayer extends Player {
     this.register(this.config.url)
     this.once('complete', () => {
       hls.attachMedia(player.video)
-      player.once('canplay', () => {
-        player.play().catch(err => {})
-      })
+      if(!player.config.videoInit) {
+        player.once('canplay', () => {
+          player.play().catch(err => {})
+        })
+      }
     })
     this.once('destroy', () => {
       hls.stopLoad()
