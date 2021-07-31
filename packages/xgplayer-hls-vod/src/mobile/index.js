@@ -14,9 +14,13 @@ class HlsVodMobilePlayer extends BasePlugin {
 
   static get defaultConfig () {
     return {
+      loadTimeout: 10000,
+      fetchOptions: {},
       preloadTime: 5,
       retryTimes: 3,
-      innerDegrade: null
+      retryCount: 3,
+      retryDelay: 1000,
+      innerDegrade: 0
     }
   }
 
@@ -85,10 +89,11 @@ class HlsVodMobilePlayer extends BasePlugin {
 
     this.lowdecode = () => {
       this.emit('lowdecode', player.video.degradeInfo)
-      if (player.config.innerDegrade) {
-        let currentTime = player.currentTime
-        let mVideo = player.video
-        let newVideo = player.video.degradeVideo
+      const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
+      if (innerDegrade) {
+        const currentTime = player.currentTime
+        const mVideo = player.video
+        const newVideo = player.video.degradeVideo
         this.destroy()
         this._context = null
         player.video = newVideo
@@ -133,7 +138,7 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   switchURL (url) {
-    let cTime = this.player.currentTime
+    const cTime = this.player.currentTime
     // reset MVideo timeline
     this.player.video.src = url
     this._switch(url)

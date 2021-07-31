@@ -183,7 +183,7 @@ export default class TimeLine extends EventEmitter {
     this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady)
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
-      let canSwitchToMultiWorker =
+      const canSwitchToMultiWorker =
         this._parent.live &&
         this.videoRender.decodeMode === 2 &&
         !this._switchToMultiWorker &&
@@ -288,11 +288,11 @@ export default class TimeLine extends EventEmitter {
       breakedFrag = true
     }
     // 考虑不存在不连续标记、但流时间戳变化了
-    let fStart = frag.start / 1000
-    let fEnd = fStart + frag.duration / 1000
-    let isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime
+    const fStart = frag.start / 1000
+    const fEnd = fStart + frag.duration / 1000
+    const isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime
     if (!breakedFrag && isSeekingFrag) {
-      let expectDts = this.videoRender.getDtsOfTime(fStart)
+      const expectDts = this.videoRender.getDtsOfTime(fStart)
       if (Math.abs(vSamp0.dts - expectDts) > 5000) {
         // 5s
         breakedFrag = true
@@ -358,7 +358,7 @@ export default class TimeLine extends EventEmitter {
           return
         }
         // 暂时没有和音频不能自动播放合到一起
-        if (!this.videoRender.canAutoPlay) {
+        if (this.videoRender && !this.videoRender.canAutoPlay) {
           console.warn('video render 不能自动播放')
           this.pause()
           // this.emit(Events.TIMELINE.PLAY_EVENT, 'notautoplay')
@@ -404,10 +404,10 @@ export default class TimeLine extends EventEmitter {
        * 4. audioRender 删除 A 之前的buffer块,重建 audioCtx
        * 5. 音频播放，视频解码 (视频位置 < 音频块位置)会短暂追帧
        */
-      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1)
+      const keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1)
       if (keyframe) {
-        let audioCanSeek = this.audioRender.canSeek(keyframe.position)
-        let videoCanSeek = this.videoRender.canSeek(keyframe)
+        const audioCanSeek = this.audioRender.canSeek(keyframe.position)
+        const videoCanSeek = this.videoRender.canSeek(keyframe)
         if (!audioCanSeek || !videoCanSeek) {
           logger.log(this.TAG, 'seek, !!!!!!!!!can not seek, audioCanSeek:', audioCanSeek, 'videoCanSeek:', videoCanSeek)
           return

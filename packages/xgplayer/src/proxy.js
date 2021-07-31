@@ -243,7 +243,9 @@ class Proxy {
 
   destroy () {
     if (this.video) {
-      this.video.pause()
+      if (this.video.pause) {
+        this.video.pause()
+      }
       this.video.removeAttribute('src') // empty source
       // this.video.load()
     }

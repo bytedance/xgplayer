@@ -49,7 +49,7 @@ class FetchLoader {
       this.abortController = new window.AbortController()
     }
     Object.assign(params, { signal: this.abortController ? this.abortController.signal : undefined })
-    let start = new Date().getTime()
+    const start = new Date().getTime()
     return Promise.race([
       fetch(url, params),
       new Promise((resolve, reject) => {
@@ -69,7 +69,7 @@ class FetchLoader {
         clearTimeout(timer)
         timer = null
       }
-      let end = new Date().getTime()
+      const end = new Date().getTime()
       this.emit(LOADER_EVENTS.LOADER_TTFB, {
         start,
         end,
@@ -119,8 +119,8 @@ class FetchLoader {
         })
       }
     }).catch((error) => {
-      this.loading = false
       if (this._destroyed) {
+        this.loading = false
         return
       }
 
@@ -134,6 +134,7 @@ class FetchLoader {
           return this.internalLoad(url, params, retryTimes, totalRetry, delayTime, loadTimeout)
         }, delayTime)
       } else {
+        this.loading = false
         if (error && error.name === 'AbortError') {
           return
         }
@@ -145,26 +146,25 @@ class FetchLoader {
   /**
    * @param {string}      url
    * @param {RequestInit} opts
-   * @param {number}      retryTimes
-   * @param {number}      delayTime
+   * @param {retryCount, retryDelay, loadTimeout}  pluginConfig
    * @return {Promise<{ok} | minimist.Opts.unknown>}
    */
-  load (url, opts = {}, { retryCount, retryDelay, loadTimeout }) {
+  load (url, opts = {}, { retryCount, retryDelay, loadTimeout } = {}) {
     retryCount = retryCount === undefined ? 3 : retryCount
     this.url = url
     this._canceled = false
 
     // TODO: Add Ranges
-    let params = this.getParams(opts)
+    const params = this.getParams(opts)
 
     return this.internalLoad(url, params, retryCount, retryCount, retryDelay, loadTimeout)
   }
 
   _onFetchResponse (response) {
-    let _this = this
-    let buffer = this._context.getInstance(this.buffer)
+    const _this = this
+    const buffer = this._context.getInstance(this.buffer)
     this._loaderTaskNo++
-    let taskno = this._loaderTaskNo
+    const taskno = this._loaderTaskNo
     if (response.ok === true) {
       switch (this.readtype) {
         case READ_JSON:
@@ -216,7 +216,7 @@ class FetchLoader {
   }
 
   _onReader (reader, taskno) {
-    let buffer = this._context.getInstance(this.buffer)
+    const buffer = this._context.getInstance(this.buffer)
     if ((!buffer && this._reader) || this._destroyed) {
       try {
         this._reader.cancel()
@@ -277,10 +277,10 @@ class FetchLoader {
    * @return {{mode: string, headers: Headers, cache: string, method: string}}
    */
   getParams (opts) {
-    let options = Object.assign({}, opts)
-    let headers = new Headers()
+    const options = Object.assign({}, opts)
+    const headers = new Headers()
 
-    let params = {
+    const params = {
       method: 'GET',
       headers: headers,
       mode: 'cors',
@@ -290,8 +290,8 @@ class FetchLoader {
     // add custmor headers
     // 添加自定义头
     if (typeof this.configs.headers === 'object') {
-      let configHeaders = this.configs.headers
-      for (let key in configHeaders) {
+      const configHeaders = this.configs.headers
+      for (const key in configHeaders) {
         if (configHeaders.hasOwnProperty(key)) {
           headers.append(key, configHeaders[key])
         }
@@ -299,8 +299,8 @@ class FetchLoader {
     }
 
     if (typeof options.headers === 'object') {
-      let optHeaders = options.headers
-      for (let key in optHeaders) {
+      const optHeaders = options.headers
+      for (const key in optHeaders) {
         if (optHeaders.hasOwnProperty(key)) {
           headers.append(key, optHeaders[key])
         }

@@ -15,8 +15,12 @@ class HlsVodPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return {
+      loadTimeout: 10000,
+      fetchOptions: {},
       preloadTime: 5,
-      retryTimes: 3
+      retryTimes: 3,
+      retryCount: 3,
+      retryDelay: 1000
     }
   }
 
