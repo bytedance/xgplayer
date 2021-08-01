@@ -257,7 +257,7 @@ export default class TimeLine extends EventEmitter {
     }
     this.emit(Events.TIMELINE.READY)
     if (this._seeking) {
-      if (!this.currentAudioCanAutoplay || this._paused) {
+      if (!this.currentAudioCanAutoplay) {
         this.pause()
       }
       this._seeking = false

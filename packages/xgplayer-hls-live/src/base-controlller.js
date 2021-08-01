@@ -218,7 +218,6 @@ export default class BaseController {
   }
 
   _onLoadError = (loader, error) => {
-    this._player.pause()
     const err = {
       code: error.code,
       errorType: 'network',

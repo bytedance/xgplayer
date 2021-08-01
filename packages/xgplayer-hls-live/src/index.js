@@ -17,13 +17,6 @@ export default class HlsLivePlayer extends BasePlugin {
     })
   }
 
-  static isSupported (mediaType) {
-    if (mediaType === 'live-video') {
-      return HlsMobileLivePlayer.isSupported()
-    }
-    return HlsMSELivePlayer.isSupported()
-  }
-
   constructor (options = {}) {
     super(options)
     const player = options.player
@@ -39,5 +32,12 @@ export default class HlsLivePlayer extends BasePlugin {
     }
     if (!this.hlsLive) return
     this.hlsLive.wrapper = this
+  }
+
+  static isSupported (mediaType) {
+    if (mediaType === 'live-video') {
+      return HlsMobileLivePlayer.isSupported()
+    }
+    return HlsMSELivePlayer.isSupported()
   }
 }

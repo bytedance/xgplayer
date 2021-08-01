@@ -1,6 +1,7 @@
 import EVENTS from '../events'
 import { MediaInfo } from 'xgplayer-helper-models'
 import EventEmitter from 'eventemitter3'
+import CoreEventMaps from './core-event-maps'
 
 const DIRECT_EMIT_FLAG = '__TO__'
 
@@ -209,14 +210,39 @@ class Context {
         }
       }
 
-      emitCoreEvent (eventName, ...eventInfo) {
+      _mergeParams (eventName, paramsList) {
+        const keysList = CoreEventMaps[eventName]
+        const len = keysList ? keysList.length : 0
+        const param0 = paramsList[0]
+
+        if (!len && !param0) {
+          return {
+            eventName
+          }
+        }
+
+        if (!len) {
+          return {
+            eventName,
+            ...param0
+          }
+        }
+
+        const params = {
+          eventName
+        }
+
+        for (let i = 0; i < len; i++) {
+          params[keysList[i]] = paramsList[i]
+        }
+
+        return params
+      }
+
+      emitCoreEvent (eventName, ...info) {
         if (!this._player) return
 
-        this._player.emit('core_event',
-          {
-            type: eventName,
-            data: eventInfo
-          })
+        this._player.emit('core_event', this._mergeParams(eventName, info))
       }
 
       // 内部模块间的事件直接转换成外部事件
@@ -224,20 +250,14 @@ class Context {
         if (!this._player) return
 
         this.on(innerEventName, (...info) => {
-          this._player.emit('core_event', {
-            type: outEventName,
-            data: info
-          })
+          this._player.emit('core_event', this._mergeParams(outEventName, info))
         })
       }
 
       connectEventTo (innerEventName, targetName, outEventName) {
         if (!this._player) return
         this.on(`${innerEventName}${DIRECT_EMIT_FLAG}${targetName}`, (...info) => {
-          this._player.emit('core_event', {
-            type: outEventName,
-            data: info
-          })
+          this._player.emit('core_event', this._mergeParams(outEventName, info))
         })
       }
 

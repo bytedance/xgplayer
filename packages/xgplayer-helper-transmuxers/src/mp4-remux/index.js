@@ -29,7 +29,7 @@ export default class Mp4Remuxer {
     this.remuxer.on(Remuxer.EVENTS.TRACK_REMUXED, this._onTrackRemuxed.bind(this))
   }
 
-  remux () {
+  _remux () {
     if (!this.remuxer._videoMeta) {
       this.remuxer._videoMeta = this.videoMeta
       this.remuxer._audioMeta = this.audioMeta
@@ -69,7 +69,7 @@ export default class Mp4Remuxer {
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, track)
   }
 
-  writeToSource (type, buffer, bufferDuration) {
+  _writeToSource (type, buffer, bufferDuration) {
     const presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
     let source = presourcebuffer.getSource(type)
     if (!source) {

@@ -92,7 +92,7 @@ class FetchLoader {
     if (this._destroyed) return
     this.loading = true
     return this.fetch(this.url, params, loadTimeout).then((response) => {
-      !this._destroyed && this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
+      !this._destroyed && this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, response.headers)
 
       if (response.ok) {
         this.status = response.status
@@ -105,7 +105,7 @@ class FetchLoader {
 
       if (retryTimes-- > 0) {
         this._retryTimer = setTimeout(() => {
-          this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
+          this.emit(LOADER_EVENTS.LOADER_RETRY, {
             response: response,
             reason: 'response not ok',
             retryTime: totalRetry - retryTimes
@@ -127,7 +127,7 @@ class FetchLoader {
 
       if (retryTimes-- > 0) {
         this._retryTimer = setTimeout(() => {
-          this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
+          this.emit(LOADER_EVENTS.LOADER_RETRY, {
             error: error,
             reason: 'fetch error',
             retryTime: totalRetry - retryTimes
