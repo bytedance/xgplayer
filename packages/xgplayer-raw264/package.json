@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-raw264",
-  "version": "2.4.31",
+  "version": "2.4.32",
   "description": "",
   "browser":"dist/index.min.js",
   "main": "lib/index.js",
@@ -17,9 +17,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-codec": "2.4.31",
-    "xgplayer-helper-models": "2.4.31",
-    "xgplayer-helper-utils": "2.4.31",
-    "xgplayer-livevideo": "2.4.31"
+    "xgplayer-helper-codec": "2.4.32",
+    "xgplayer-helper-models": "2.4.32",
+    "xgplayer-helper-utils": "2.4.32",
+    "xgplayer-livevideo": "2.4.32"
   }
 }

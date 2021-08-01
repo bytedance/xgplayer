@@ -85,11 +85,10 @@ class HlsVodController {
   }
 
   _onLoaderCompete = (buffer) => {
-    const { fetchOptions = {}, retryCount, retryDelay } = this._pluginConfig
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
       try {
-        let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
+        const mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
         this._playlist.pushM3U8(mdata)
         if (this._player.config.mediaType === 'live-video') {
           this._player.video.duration = mdata.duration / 1000
@@ -103,7 +102,7 @@ class HlsVodController {
         this._context.registry('KEY_BUFFER', XgBuffer)()
         this._tsloader.buffer = 'DECRYPT_BUFFER'
         this._keyLoader = this._context.registry('KEY_LOADER', Loader)({ buffer: 'KEY_BUFFER', readtype: 3 })
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, fetchOptions, retryCount, retryDelay)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, this._pluginConfig)
       } else {
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
@@ -122,11 +121,11 @@ class HlsVodController {
         if (frag) {
           this._logDownSegment(frag)
           this._playlist.downloading(frag.url, true)
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions, retryCount, retryDelay)
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, this._pluginConfig)
         } else {
           if (this.retrytimes > 0) {
             this.retrytimes--
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, fetchOptions, retryCount, retryDelay)
+            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, this._pluginConfig)
           }
         }
       }
@@ -155,11 +154,11 @@ class HlsVodController {
       const frag = this._playlist.getTs()
       if (frag) {
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions, retryCount, retryDelay)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, this._pluginConfig)
       } else {
         if (this.retrytimes > 0) {
           this.retrytimes--
-          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, fetchOptions, retryCount, retryDelay)
+          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, this._pluginConfig)
         }
       }
     }
@@ -205,10 +204,9 @@ class HlsVodController {
   }
 
   load = (url) => {
-    const { fetchOptions = {}, retryCount, retryDelay } = this._pluginConfig
     this.baseurl = M3U8Parser.parseURL(url)
     this.url = url
-    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, url, fetchOptions, retryCount, retryDelay)
+    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, url, this._pluginConfig)
   }
 
   _preload = (time) => {
@@ -217,7 +215,6 @@ class HlsVodController {
       return
     }
     const video = this._player.video
-    const { fetchOptions = {}, retryCount, retryDelay } = this._pluginConfig
 
     // Get current time range
     let currentbufferend = -1
@@ -235,7 +232,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag)
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions, retryCount, retryDelay)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, this._pluginConfig)
       }
     } else if (currentbufferend < video.currentTime + this.preloadTime) {
       let frag = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000)
@@ -263,7 +260,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag)
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions, retryCount, retryDelay)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, this._pluginConfig)
       }
     }
   }

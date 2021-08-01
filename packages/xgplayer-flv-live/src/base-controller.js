@@ -182,7 +182,11 @@ export default class FlvBaseController {
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
-    this.emit(LOADER_EVENTS.LOADER_START, url, {}, retryCount, retryDelay)
+    this.emit(LOADER_EVENTS.LOADER_START, url, {
+      retryCount,
+      retryDelay,
+      loadTimeout: this._pluginConfig.loadTimeout
+    })
   }
 
   pause () {

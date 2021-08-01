@@ -175,7 +175,11 @@ export default class AudioRender extends BaseRender {
     if (this._noAudio || this._parent.seeking) {
       return
     }
-    this.resume()
+    if (!this._source) {
+      this._startRender()
+    } else {
+      this.resume()
+    }
   }
 
   _doPause () {

@@ -11,10 +11,12 @@ export default class HlsLivePlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      options: {},
+      loadTimeout: 10000,
       preloadTime: 5,
       retryTimes: 3,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 1000
     })
   }
 
@@ -47,6 +49,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
   _bindPlayerEvents () {
     this.player.useHooks('play', this._handlePlay)
+    this.player.useHooks('pause', this._handlePause)
 
     this.on(Events.URL_CHANGE, this._handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
@@ -67,6 +70,10 @@ export default class HlsLivePlayer extends BasePlugin {
         this.player.hasStart = false
       })
     ])
+  }
+
+  _handlePause = () => {
+    this._destroyInternal()
   }
 
   _handleUrlChange = (url) => {

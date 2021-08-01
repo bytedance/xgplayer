@@ -131,7 +131,11 @@ export default class BaseController {
         // 兼容player.config上传入retry参数的逻辑
         const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
         const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LOADER_START, this._playlist.encrypt.uri, {
+          retryCount,
+          retryDelay,
+          loadTimeout: this._pluginConfig.loadTimeout
+        })
       } else {
         this._m3u8Loaded(mdata)
       }
@@ -176,17 +180,23 @@ export default class BaseController {
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-    const { fetchOptions = {} } = this._pluginConfig
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag)
       this._playlist.downloading(frag.url, true)
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, fetchOptions, retryCount, retryDelay)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LOADER_START, frag.url, {
+        retryCount,
+        retryDelay,
+        loadTimeout: this._pluginConfig.loadTimeout
+      })
     } else {
       let current = new Date().getTime()
-      if ((!frag || frag.downloaded) &&
-        (current - this._m3u8lasttime) / 1000 > this._m3u8FlushDuration) {
+      if ((current - this._m3u8lasttime) / 1000 > this._m3u8FlushDuration) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, fetchOptions, retryCount, retryDelay)
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LOADER_START, this.url, {
+          retryCount,
+          retryDelay,
+          loadTimeout: this._pluginConfig.loadTimeout
+        })
       }
     }
   }

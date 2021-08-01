@@ -51,13 +51,13 @@ class Volume extends Plugin {
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
-    this.changeMutedHandler = this.hook('muted_change', () => {
-      const { player } = this
-      player.muted = !player.muted
+    this.changeMutedHandler = this.hook('muted_change', (e) => {
+      this.changeMuted(e)
     }, {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
+        this.emitUserAction(e, 'change_muted', { muted: this.player.muted })
       }
     })
     this.onBarMousedown = this.onBarMousedown.bind(this)
@@ -94,7 +94,7 @@ class Volume extends Plugin {
     const _ePos = Util.getEventPos(e, player.zoom)
     const pos = { x: _ePos.clientX, y: _ePos.clientY }
     const height = barRect.height - (_ePos.clientY - barRect.top)
-    this.updateVolumePos(height)
+    this.updateVolumePos(height, e)
 
     this.isMoving = false
     const onMove = (e) => {
@@ -107,7 +107,7 @@ class Volume extends Plugin {
       if (w > barRect.height) {
         return
       }
-      this.updateVolumePos(w)
+      this.updateVolumePos(w, e)
     }
 
     const onUp = (e) => {
@@ -127,12 +127,13 @@ class Volume extends Plugin {
     return false
   }
 
-  updateVolumePos (height) {
+  updateVolumePos (height, event) {
     const { player } = this
     const drag = this.find('.xgplayer-drag')
     const bar = this.find('.xgplayer-bar')
     const now = height / bar.getBoundingClientRect().height
     drag.style.height = `${height}px`
+    this.emitUserAction(event, 'change_volume', { muted: player.muted, volume: player.volume })
     player.volume = Math.max(Math.min(now, 1), 0)
     player.muted = false
 
@@ -164,9 +165,13 @@ class Volume extends Plugin {
 
   changeMuted (e) {
     // e.preventDefault()
-    e.stopPropagation()
+    e && e.stopPropagation()
     const { player } = this
-    player.muted = !player.muted
+    if (player.volume < 0.1) {
+      player.volume = this.config.default
+    } else {
+      player.muted = !player.muted
+    }
   }
 
   onVolumeChange () {

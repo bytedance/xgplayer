@@ -56,6 +56,7 @@ export default class Rotate extends Plugin {
   onBtnClick (e) {
     e.preventDefault()
     e.stopPropagation()
+    this.emitUserAction(e, 'rotate')
     this.rotate(this.config.clockwise, this.config.innerRotate, 1)
   }
 

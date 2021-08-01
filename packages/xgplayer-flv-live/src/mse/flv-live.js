@@ -164,8 +164,6 @@ export default class FlvController extends FlvBaseController {
     this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 
-  /** *********** 上层调用 ********************/
-
   destroy () {
     super.destroy()
     this.mse = null

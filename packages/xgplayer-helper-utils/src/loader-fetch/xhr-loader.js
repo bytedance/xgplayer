@@ -45,21 +45,22 @@ class XhrLoader {
     return xhr
   }
 
-  load (url, opts = {}, retryTimes = 0, delayTime = 0) {
-    let options = Object.assign({}, opts)
+  load (url, { options = {}, retryCount, retryDelay, loadTimeout } = {}) {
+    let ops = Object.assign({}, options)
     this._requestInfo = {
       url,
-      options,
-      retryTimes,
-      totalRetry: retryTimes,
-      delayTime
+      options: ops,
+      retryTimes: retryCount,
+      totalRetry: retryCount,
+      delayTime: retryDelay,
+      loadTimeout
     }
     this._xhr = this._createXhr()
     this.loading = true
 
     try {
       this._bindEvents()
-      this._loadInternal(url, options)
+      this._loadInternal(url, ops)
     } catch (e) {
       this._whenError({
         code: this._xhr.status,

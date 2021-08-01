@@ -14,10 +14,12 @@ class HlsPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      options: {},
+      loadTimeout: 10000,
       preloadTime: 10,
       retryTimes: 3,
       retryCount: 3,
-      retryDelay: 0,
+      retryDelay: 1000,
       innerDegrade: 0
     })
   }
@@ -70,6 +72,7 @@ class HlsPlayer extends BasePlugin {
   _bindPlayerEvents () {
     const { player } = this
     this.player.useHooks('play', this._handlePlay)
+    this.player.useHooks('pause', this._handlePause)
 
     this.on(Events.URL_CHANGE, this._switchURL)
     this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
@@ -150,6 +153,10 @@ class HlsPlayer extends BasePlugin {
   _handlePlay = () => {
     this._destroyInternal()
     this.player.hasStart = false
+  }
+
+  _handlePause = () => {
+    this._destroyInternal()
   }
 
   _loadData = () => {

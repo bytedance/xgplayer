@@ -13,10 +13,13 @@ class HlsVodMobilePlayer extends BasePlugin {
 
   static get defaultConfig () {
     return {
+      options: {},
+      loadTimeout: 10000,
       preloadTime: 5,
       retryCount: 3,
-      retryDelay: 0,
-      fetchOptions: {}
+      retryDelay: 1000,
+      retryTimes: 3,
+      innerDegrade: 0
     }
   }
 

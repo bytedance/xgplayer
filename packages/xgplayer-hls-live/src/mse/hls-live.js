@@ -43,8 +43,8 @@ class HlsLiveController extends BaseController {
 
   _onDemuxComplete = () => {
     if (this.firstFramePts === -1) {
-      let tracks = this._context.getInstance('TRACKS')
-      let samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0]
+      const tracks = this._context.getInstance('TRACKS')
+      const samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0]
       this.firstFramePts = samp0 ? samp0.purePts : -1
       logger.warn(this.TAG, `first frame pts: ${this.firstFramePts}`)
     }
@@ -73,39 +73,28 @@ class HlsLiveController extends BaseController {
   }
 
   _m3u8Loaded () {
-    this._m3u8FlushDuration = this._playlist.targetduration || this._m3u8FlushDuration
+    this._m3u8FlushDuration = this._playlist.avgSegmentDuration || this._m3u8FlushDuration
     if (!this.preloadTime) {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5
     }
   }
 
   _checkStatus = () => {
-    const container = this._player.video
-    if (!container) {
+    const video = this._player.video
+    if (!video) {
       clearInterval(this._timmer)
       return
     }
-    if (container.buffered.length < 1) {
+    if (video.buffered.length < 1) {
       this._preload()
     } else {
       // Check for load.
-      let currentTime = container.currentTime
-      let bufferstart = container.buffered.start(container.buffered.length - 1)
-      if (container.readyState <= 2) {
-        if (currentTime < bufferstart) {
-          container.currentTime = bufferstart
-          currentTime = bufferstart
-        } else {
-          this._preload()
-        }
-      }
-      let bufferend = container.buffered.end(container.buffered.length - 1)
+      const currentTime = video.currentTime
+      const bufferend = video.buffered.end(video.buffered.length - 1)
       if (currentTime < bufferend - (this.preloadTime * 2)) {
-        container.currentTime = bufferend - this.preloadTime
+        video.currentTime = bufferend - this.preloadTime
       }
-      if (currentTime > bufferend - this.preloadTime) {
-        this._preload()
-      }
+      this._preload()
     }
   }
 
@@ -119,11 +108,11 @@ class HlsLiveController extends BaseController {
 
     // 判断最后一个分片下载完了
     if (this._playlist.end) {
-      let list = this._playlist.list
-      let keys = Object.keys(list).map(x => Number(x)).sort((a, b) => a > b ? 1 : -1)
-      let lastKey = keys.pop()
-      let url = list[lastKey]
-      let lastSeg = this._playlist._ts[url]
+      const list = this._playlist.list
+      const keys = Object.keys(list).map(x => Number(x)).sort((a, b) => a > b ? 1 : -1)
+      const lastKey = keys.pop()
+      const url = list[lastKey]
+      const lastSeg = this._playlist._ts[url]
       if (lastSeg && lastSeg.downloaded) {
         logger.warn(this.TAG, '直播结束,断流')
         this.mse.endOfStream()

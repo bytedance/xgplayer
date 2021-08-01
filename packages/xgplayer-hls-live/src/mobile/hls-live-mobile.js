@@ -72,8 +72,8 @@ class HlsLiveController extends BaseController {
     }
   }
 
-  _m3u8Loaded (mdata) {
-    this._m3u8FlushDuration = this._playlist.targetduration || this._m3u8FlushDuration
+  _m3u8Loaded () {
+    this.m3u8FlushDuration = this._playlist.avgSegmentDuration || this.m3u8FlushDuration
     if (this._playlist.fragLength > 0) {
       this.retryTimes = this._pluginConfig.retryTimes
     } else {
@@ -90,23 +90,12 @@ class HlsLiveController extends BaseController {
   }
 
   _checkStatus = () => {
-    if (this.retryTimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
+    const video = this._player.video
+    if (!video) {
+      clearInterval(this._timmer)
       return
     }
-    this._lastCheck = new Date().getTime()
-    if (this._player.buffered.length < 1) {
-      this._preload()
-    } else {
-      // Check for load.
-      let currentTime = this._player.currentTime
-      if (this._player.readyState <= 2) {
-        this._preload()
-      }
-      let bufferend = this._player.buffered.end(this._player.buffered.length - 1)
-      if (currentTime > bufferend - this.preloadTime) {
-        this._preload()
-      }
-    }
+    this._preload()
   }
 
   _isHEVC (meta) {
