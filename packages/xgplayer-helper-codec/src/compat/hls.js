@@ -146,7 +146,7 @@ class HlsCompatibility extends Base {
       firstSample.pts += vDelta
 
       // 是否需要整个分片调整时间戳
-      if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
+      if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_VIDEO_FRAME_DURATION) {
         this._videoTimestampBreak = true
         samples.forEach((x, i) => {
           if (i === 0) return
