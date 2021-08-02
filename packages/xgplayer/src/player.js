@@ -204,6 +204,7 @@ class Player extends Proxy {
     let player = this
     if (!url || url === '') {
       this.emit('urlNull')
+      return
     }
     this.canPlayFunc = function () {
       player.off('canplay', player.canPlayFunc)
