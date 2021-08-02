@@ -1,7 +1,7 @@
 
 test(
   // 'https://pull-hls-l6-admin.douyincdn.com/radio/stream-109107030176301091/index.m3u8?BeginTime=1625821577&EndTime=1625821714&session_id=202107091705500100110600890041CB7&vcodec=h264'
-  'https://pull-hls-l1.ixigua.com/game/stream-109217255074300333_hd/playlist.m3u8'
+  'https://pull-hls-l6.ixigua.com/game/stream-109246663655424029_uhd/index.m3u8'
 )
 
 function test(url) {

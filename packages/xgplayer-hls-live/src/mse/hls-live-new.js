@@ -108,23 +108,6 @@ export default class HlsLiveController {
     if (this.mse) this.mse.endOfStream()
   }
 
-  // 当直播结束后，可能没有 ENDLIST TAG
-  get _isEndOfStream () {
-    const video = this._player.video
-    const lastSegment = this._playlist.lastSegment
-    if (
-      !video ||
-      !lastSegment ||
-      this._currentBufferedSN < lastSegment.sn ||
-      this._m3u8Loader?.loading
-    ) return false
-
-    const buffered = GapJumper.getBuffered(video)
-    if (!buffered.length) return false
-
-    if (video.currentTime + 0.5 >= buffered.end(buffered.length - 1)) return true
-  }
-
   _tick = () => {
     this._stopTick()
     if (this._videoPaused) return
@@ -132,7 +115,6 @@ export default class HlsLiveController {
 
     const lastSegment = this._playlist?.lastSegment
     if (lastSegment) {
-      if (this._isEndOfStream) return this._end()
       this._gapJumper.tryJump(this._player.video, this._maxDelay)
     }
   }
@@ -167,7 +149,7 @@ export default class HlsLiveController {
 
     const interval = level.targetDuration || level.segments[0].duration
     this._maxDelay = ((interval || 5000) * Math.min(3, Math.max(1, level.endSN - level.startSN))) / 1000
-    if (interval) this._m3u8RefreshInterval = interval - 500 // TODO: Loader 支持传入加载耗时
+    if (interval) this._m3u8RefreshInterval = Math.max(interval - 500, 2000) // TODO: Loader 支持传入加载耗时
     clearTimeout(this._m3u8RefreshTimer)
     if (!this._videoPaused) {
       this._m3u8RefreshTimer = setTimeout(this._loadM3U8, this._m3u8RefreshInterval)
@@ -343,6 +325,11 @@ export default class HlsLiveController {
     this._currentBufferedSN = this._currentDemuxSN
     this.mse.addSourceBuffers()
     this.mse.doAppend()
+
+    const lastSegment = this._playlist.lastSegment
+    if (lastSegment && lastSegment.isLast && this._currentBufferedSN >= lastSegment.sn) {
+      this._end()
+    }
   }
 
   _onDemuxError = (mod, error, fatal) => {
