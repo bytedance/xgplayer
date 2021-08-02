@@ -205,6 +205,7 @@ class FlvPlayer extends BasePlugin {
 
   reload () {
     return this._destroy().then(() => {
+      if (!this.initEvents) return
       this.initEvents()
       this._context = new Context(this.player, this.config, flvAllowedEvents)
       setTimeout(() => {
