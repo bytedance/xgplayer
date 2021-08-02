@@ -38,7 +38,22 @@ export class Level {
     } else if (Array.isArray(playlist.segments)) { // media
       if (this.live == null) this.live = playlist.live
       if (this.live) {
-        if (this.endSN < playlist.endSN) {
+        if (this.endSN < playlist.endSN && playlist.segments.length) {
+          if (this.segments.length) {
+            const lastSeg = this.segments[this.segments.length - 1]
+
+            let endTime = lastSeg.end
+            playlist.segments.forEach(seg => {
+              seg.start = endTime
+              endTime = seg.end
+            })
+
+            const lastCC = lastSeg.cc
+            if (lastCC > playlist.segments[0].cc) {
+              playlist.segments.forEach(seg => (seg.cc += lastCC))
+            }
+          }
+
           const index = playlist.segments.findIndex(x => x.sn === this.endSN)
           this.segments = this.segments.concat(index < 0 ? playlist.segments : playlist.segments.slice(index + 1))
         }
