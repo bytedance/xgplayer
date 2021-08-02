@@ -175,7 +175,7 @@ let s_definition = function () {
         if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
           player.once('timeupdate', onTimeupdateChangeDefinition)
         } else {
-          player.once('playing', onPlayingChangeDefinition)
+          player.once('loadedmetadata', onPlayingChangeDefinition)
         }
         player.emit('definitionChange', {from, to})
         if (sniffer.device === 'mobile') {
@@ -211,7 +211,7 @@ let s_definition = function () {
       player.off('timeupdate', onTimeupdateChangeDefinition)
       player.off('timeupdate', onPlayingChangeDefinition)
     } else {
-      player.off('playing', onPlayingChangeDefinition)
+      player.off('loadedmetadata', onPlayingChangeDefinition)
     }
     player.off('blur', onBlur)
     player.off('destroy', onDestroy)
