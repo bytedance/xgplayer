@@ -8,7 +8,17 @@ import hooksDescriptor, { hook, useHooks } from '../plugin/hooksDescriptor'
 function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
 }
-
+/**
+  * @typedef {{
+  * index?: number,
+  * player: any,
+  * pluginName: string,
+  * config: {
+  *   [propName: string]: any
+  * },
+  * [propName: string]: any;
+  * }} IBasePluginOptions
+ */
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
     for (const key in map) {
@@ -32,7 +42,7 @@ class BasePlugin {
 
   /**
    * @constructor
-   * @param { { index?: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   * @param { IBasePluginOptions } args
    */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
@@ -50,7 +60,7 @@ class BasePlugin {
     this.config = args.config || {}
     /**
      * @readonly
-     * @type {object}
+     * @type {any}
      */
     this.player = null
     /**

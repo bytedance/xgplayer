@@ -730,6 +730,26 @@ declare module 'xgplayer' {
     use: (data: XGI18nLang) => void;
   }
 
+  export type IBasePluginOptions = {
+    [propName: string]: any;
+    index?: number;
+    player: any;
+    pluginName: string;
+    config: {
+      [propName: string]: any;
+    };
+  };
+  /**
+    * @typedef {{
+    * index?: number,
+    * player: any,
+    * pluginName: string,
+    * config: {
+    *   [propName: string]: any
+    * },
+    * [propName: string]: any;
+    * }} IBasePluginOptions
+   */
   export class BasePlugin {
     static defineGetterOrSetter(Obj: any, map: any): void;
     /**
@@ -744,17 +764,9 @@ declare module 'xgplayer' {
     static get pluginName(): string;
     /**
      * @constructor
-     * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+     * @param { IBasePluginOptions } args
      */
-    constructor(args: {
-      [propName: string]: any;
-      index: number;
-      player: object;
-      pluginName: string;
-      config: {
-        [propName: string]: any;
-      };
-    });
+    constructor(args: IBasePluginOptions);
     /**
      * @private
      */
@@ -768,9 +780,9 @@ declare module 'xgplayer' {
     };
     /**
      * @readonly
-     * @type {object}
+     * @type {any}
      */
-    readonly player: object;
+    readonly player: any;
     /**
        * @readonly
        * @type {object}
@@ -865,7 +877,6 @@ declare module 'xgplayer' {
     getPlugin(name: string): object | null;
     __destroy(): void;
   }
-
   interface ROOT_TYPES {
     CONTROLS: string;
     ROOT: string;
@@ -882,63 +893,171 @@ declare module 'xgplayer' {
     CONTROLS: string;
   }
 
+  export type IPluginOptions = {
+    [propName: string]: any;
+    index?: number;
+    player: any;
+    pluginName: string;
+    config: {
+      [propName: string]: any;
+    };
+    root: HTMLElement;
+    position?: string;
+  };
+  /**
+   * @typedef {{
+   *  index?: number,
+   *  player: any,
+   *  pluginName: string,
+   *  config: {
+   *   [propName: string]: any
+   *  },
+   *  root: HTMLElement,
+   *  position?: string,
+   *  [propName: string]: any
+   * }} IPluginOptions
+  */
   export class Plugin extends BasePlugin {
-
-    static ROOT_TYPES: ROOT_TYPES;
-
-    static POSITIONS: POSITIONS;
     /**
       * 插入dom结构
-      * @param {String | Element} html html字符串或者dom
-      * @param {Element} parent
-      * @param {*} index
+      * @param { String | HTMLElement } html html字符串或者dom
+      * @param { HTMLElement } parent
+      * @param { number } index
+      * @returns { HTMLElement }
       */
-    static insert(html: string, parent: HTMLElement, index: number): HTMLElement;
-
+    static insert(html: string | HTMLElement, parent: HTMLElement, index?: number): HTMLElement;
+    static get defaultConfig(): {};
     /**
-     * 默认配置信息
+     *
+     * @param { HTMLElement } root
+     * @param { String } querySelector
+     * @param { String | Array<String> } eventType
+     * @param { Function } callback
+     * @param { boolean } [capture=false]
+     * @returns
      */
-    static defaultConfig: object;
-
-    static delegate(root: HTMLElement, querySelector?: string, eventType?: string | Array<string>, callback?: Function, capture?: boolean): void;
-
-    static removeDelegate(root: HTMLElement, eventType?: string | Array<string>, callback?: Function, capture?: boolean): void;
-
+    static delegate(root: HTMLElement, querySelector: string, eventType: string | Array<string>, callback: Function, capture?: boolean): any[];
+    static get ROOT_TYPES(): {
+      CONTROLS: string;
+      ROOT: string;
+    };
+    static get POSITIONS(): {
+      ROOT: string;
+      ROOT_LEFT: string;
+      ROOT_RIGHT: string;
+      ROOT_TOP: string;
+      CONTROLS_LEFT: string;
+      CONTROLS_RIGTH: string;
+      CONTROLS_RIGHT: string;
+      CONTROLS_CENTER: string;
+      CONTROLS: string;
+    };
     /**
-     * 插件根节点
+     * @constructor
+     * @param { IPluginOptions } args
      */
-    root: HTMLElement;
-
+    constructor(args?: IPluginOptions);
     /**
-     * 插件父节点
+     * @private
      */
-    parent: HTMLElement;
+    private __delegates;
     /**
-     * 获取子插件列表
+     * @readonly
      */
-    children(): object;
+    readonly icons: {};
+    langText: {};
     /**
-     * 在当前插件根节点查找dom
-     * @param selector 选择器
+     * @private
      */
-    find(selector: string): HTMLElement;
+    private __registeChildren;
     /**
-     * 给当前插件设置行间样式
-     * @param name css属性名
-     * @param value css属性值
+     * @private
      */
-    setStyle(name: string, value: string): void;
-    setStyle(styles: object): void;
-    setAttr(name: string | object, value?: string): void;
-
+    private _children;
+    changeLangTextKey(dom: any, key?: string): void;
+    plugins(): any[];
+    children(): {};
+    registerIcons(): {};
+    registerLangauageTexts(): {};
+    /**
+     *
+     * @param { string } qs
+     * @returns { HTMLElement | null }
+     */
+    find(qs: string): HTMLElement | null;
+    /**
+     * 绑定事件
+     * @param { string | Array<string> } querySelector
+     * @param { string | Function } eventType
+     * @param { Function } [callback]
+     */
+    bind(querySelector: string | Array<string>, eventType: string | Function, callback?: Function, ...args: any[]): void;
+    /**
+     * 绑定事件
+     * @param { string | Array<string> } querySelector
+     * @param { string | Function } eventType
+     */
+    unbind(querySelector: string | Array<string>, eventType: string | Function, ...args: any[]): void;
+    /**
+     * 给插件设置样式
+     * @param { string | {[propName: string]: any} } name
+     * @param { ？ | any } value
+     * @returns
+     */
+    setStyle(name: string | {
+      [propName: string]: any;
+    }, value: any): any;
+    /**
+     * 给插件根节点设置属性
+     * @param { string | {[propName: string]: any} } name
+     * @param { ？ | any } value
+     * @returns
+     */
+    setAttr(name: string | {
+      [propName: string]: any;
+    }, value: any): any;
+    /**
+     *
+     * @param { string } htmlStr
+     * @param { Function } [callback]
+     * @returns
+     */
     setHtml(htmlStr: string, callback?: Function): void;
-
-    show(value?: string): void;
-
+    /**
+     *
+     * @param { string } event
+     * @param { Function } eventHandle
+     * @param { boolean } [isBubble=false]
+     * @returns
+     */
+    bindEL(event: string, eventHandle: Function, isBubble?: boolean): void;
+    /**
+     *
+     * @param { string } event
+     * @param { Function } eventHandle
+     * @param { boolean } [isBubble]
+     * @returns
+     */
+    unbindEL(event: string, eventHandle: Function, isBubble?: boolean): void;
+    /**
+     *
+     * @param { string } [value]
+     * @returns
+     */
+    show(value?: string): string;
     hide(): void;
-
-    appendChild(pdom: HTMLElement | string, child?: HTMLElement): HTMLElement | null;
-    render(): string;
+    /**
+     *
+     * @param { string | HTMLElement } pdom
+     * @param { HTMLElement} child
+     * @returns { HTMLElement | nul }
+     */
+    appendChild(pdom: string | HTMLElement, child: HTMLElement, ...args: any[]): HTMLElement | any;
+    /**
+     *
+     * @returns { string | HTMLElement }
+     */
+    render(): string | HTMLElement;
   }
 
   class DefaultPreset {
@@ -1451,9 +1570,9 @@ declare module 'xgplayer' {
     /**
      *
      * @param { string } pluginName
-     * @returns { object | null }
+     * @returns { BasePlugin | null }
      */
-    getPlugin(pluginName: string): object | null;
+    getPlugin(pluginName: string): BasePlugin | null;
     /**
      *
      * @param { string } className
