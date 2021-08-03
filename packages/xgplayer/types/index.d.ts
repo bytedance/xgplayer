@@ -339,6 +339,9 @@ declare module 'xgplayer' {
 
         //video元素样式
         videoStyle?: object;
+
+        //是否定时检查播放卡死
+        enableStallCheck?: boolean;
     }
 
     class Proxy extends EventEmitter {
