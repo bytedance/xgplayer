@@ -164,8 +164,8 @@ class Progress extends Plugin {
 
   /**
    * 触发某一类回调监听
-   * @param {*} type 类型 drag/dragend
-   * @param {Object} data 具体数据
+   * @param { string } type 类型 drag/dragend
+   * @param { any} data 具体数据
    */
   triggerCallbacks (type, data) {
     if (this.__dragCallBacks.length > 0) {
@@ -184,11 +184,11 @@ class Progress extends Plugin {
   /**
    * 供外部插件添加回调
    * @param {string} type 类型 drag/dragend
-   * @param {function} event 回调函数句柄
+   * @param {function} handle 回调函数句柄
    */
-  addCallBack (type, event) {
-    if (event && typeof event === 'function') {
-      this.__dragCallBacks.push({ type: type, handler: event })
+  addCallBack (type, handle) {
+    if (handle && typeof handle === 'function') {
+      this.__dragCallBacks.push({ type: type, handler: handle })
     }
   }
 

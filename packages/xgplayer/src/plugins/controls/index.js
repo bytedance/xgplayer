@@ -142,7 +142,7 @@ class Controls extends Plugin {
    * @param {} plugin
    * @param { {config?: {[propName: string]: any}, position?:string, root?: HTMLElement, pluginName?: string}} options
    * @param { string } name
-   * @returns { object }
+   * @returns { any }
    */
   registerPlugin (plugin, options = {}, name) {
     if (!this.root) {

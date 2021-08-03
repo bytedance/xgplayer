@@ -6,7 +6,7 @@ const util = {}
  *
  * @param { string } el
  * @param { string } [tpl=]
- * @param { object } [attrs={}]
+ * @param { {[propName: string]: any }} [attrs={}]
  * @param { string } [cname='']
  * @returns { HTMLElement | null }
  */

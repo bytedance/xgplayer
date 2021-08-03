@@ -286,12 +286,12 @@ class MobilePlugin extends Plugin {
 
   /**
    * 校验具体的操作范围
-   * @param {number} x 方向位移
-   * @param {number} y 方向位移
-   * @param {number} diffx 方向位移差
-   * @param {number} diffy 方向位移差
-   * @param {Object} pos 当前操作区域位置信息 包含{width, height}
-   * @return {number} scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
+   * @param { number } x 方向位移
+   * @param { number } y 方向位移
+   * @param { number } diffx 方向位移差
+   * @param { number } diffy 方向位移差
+   * @param { any } pos 当前操作区域位置信息 包含{width, height}
+   * @return { number } scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    */
   checkScope (x, y, diffx, diffy, pos) {
     const { width } = pos

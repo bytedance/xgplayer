@@ -18,28 +18,15 @@ import I18N from './lang/i18n'
 import version from './version'
 
 /**
- * @typedef { import ('./plugin/basePlugin').default } BasePlugin
- */
-
-/**
- * @typedef { import ('./plugin/plugin').default } Plugin
- */
-
-/**
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
  */
 
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 
-/**
- * @constructor
- */
 class Player extends VideoProxy {
   /**
-   * @constructor
    * @param { IPlayerOptions } options
-   * @returns
    */
   constructor (options) {
     const config = Util.deepMerge(getDefaultConfig(), options)
@@ -626,7 +613,7 @@ class Player extends VideoProxy {
    *
    * @param { {plugin: function, options:object} | function } plugin
    * @param { {[propName: string]: any;} } [config]
-   * @returns { Plugin | BasePlugin } plugin
+   * @returns { any } plugin
    */
   registerPlugin (plugin, config) {
     let PLUFGIN = null
@@ -681,7 +668,7 @@ class Player extends VideoProxy {
 
   /**
    *
-   * @param { Plugin | BasePlugin } plugin
+   * @param { any } plugin
    */
   unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
@@ -692,7 +679,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 当前播放器挂在的插件实例代码
+   * 当前播放器挂载的插件实例列表
    * @type { {[propName: string]: any } }
    */
   get plugins () {
@@ -700,9 +687,9 @@ class Player extends VideoProxy {
   }
 
   /**
-   *
+   * get a plugin instance
    * @param { string } pluginName
-   * @returns { any } [plugin]
+   * @return { any } plugin
    */
   getPlugin (pluginName) {
     const plugin = pluginsManager.findPlugin(this, pluginName)
@@ -1561,6 +1548,7 @@ class Player extends VideoProxy {
    * @param { string } hookName
    * @param { (player: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns {boolean} isSuccess
    */
   useHooks (hookName, handler) {
     return useHooks.call(this, ...arguments)
@@ -1572,6 +1560,7 @@ class Player extends VideoProxy {
    * @param { string } hookName
    * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns { boolean } isSuccess
    */
   usePluginHooks (pluginName, hookName, handler, ...args) {
     return usePluginHooks.call(this, ...arguments)
@@ -1611,6 +1600,8 @@ class Player extends VideoProxy {
 
 export {
   Player as default,
+  Plugin,
+  BasePlugin,
   Events,
   Errors,
   Sniffer,

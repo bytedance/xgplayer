@@ -74,7 +74,6 @@ function getHandler (eventName, player) {
 }
 class VideoProxy {
   /**
-   * @constructor
    * @param {any} options
    */
   constructor (options) {

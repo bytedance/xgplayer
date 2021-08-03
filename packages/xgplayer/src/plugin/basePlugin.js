@@ -50,7 +50,6 @@ class BasePlugin {
   }
 
   /**
-   * @constructor
    * @param { IBasePluginOptions } args
    */
   constructor (args) {
@@ -268,6 +267,7 @@ class BasePlugin {
    * @param { string } hookName
    * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns { boolean } isSuccess
    */
   useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)
@@ -278,7 +278,7 @@ class BasePlugin {
    * @param { any } plugin
    * @param { any } [options]
    * @param { string } [name]
-   * @returns { object }
+   * @returns { any }
    */
   registerPlugin (plugin, options = {}, name = '') {
     name && (options.pluginName = name)
@@ -288,7 +288,7 @@ class BasePlugin {
   /**
    *
    * @param { string } name
-   * @returns { object | null }
+   * @returns { any | null }
    */
   getPlugin (name) {
     return this.player.getPlugin(name)

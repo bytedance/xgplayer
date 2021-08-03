@@ -24,7 +24,7 @@ const POSITIONS = {
 
 /**
  * Check if the url is a link address
- * @param {String} str
+ * @param { string } str
  */
 function isUrl (str) {
   if (!str) {
@@ -222,7 +222,6 @@ class Plugin extends BasePlugin {
   }
 
   /**
-   * @constructor
    * @param { IPluginOptions } args
    */
   constructor (args = {}) {
