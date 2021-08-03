@@ -594,10 +594,10 @@ class VideoProxy {
   /**
    *
    * @param { string } event
-   * @param { any } [res]
+   * @param { any } [data]
    * @returns
    */
-  emit (event, res) {
+  emit (event, data) {
   }
 
   /**
