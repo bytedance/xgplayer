@@ -4,6 +4,7 @@ import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors from './error'
 import { URL_CHANGE, DESTROY } from './events'
+
 /**
  * @typedef { {
  *   duration: number,
@@ -71,8 +72,7 @@ function getHandler (eventName, player) {
     }
   }
 }
-
-class Proxy {
+class VideoProxy {
   /**
    * @constructor
    * @param {any} options
@@ -588,6 +588,40 @@ class Proxy {
   set volume (vol) {
     this.video.volume = vol
   }
+
+  /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
+
+  /**
+   *
+   * @param { string } event
+   * @param { any } [res]
+   * @returns
+   */
+  emit (event, res) {
+  }
+
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  on (event, callback) {}
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  once (event, callback) {}
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  off (event, callback) {}
+  offAll () {}
 }
 
-export default Proxy
+export default VideoProxy
