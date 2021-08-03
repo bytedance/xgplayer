@@ -8,10 +8,19 @@ import hooksDescriptor, { hook, useHooks } from '../plugin/hooksDescriptor'
 function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
 }
+
+/**
+ * @typedef { import ('../player').default } Player
+ */
+
+/**
+ * @typedef { import ('../defaultConfig').IPlayerOptions } IPlayerOptions
+ */
+
 /**
   * @typedef {{
   * index?: number,
-  * player: any,
+  * player: Player,
   * pluginName: string,
   * config: {
   *   [propName: string]: any
@@ -60,12 +69,12 @@ class BasePlugin {
     this.config = args.config || {}
     /**
      * @readonly
-     * @type {any}
+     * @type { Player }
      */
     this.player = null
     /**
        * @readonly
-       * @type {object}
+       * @type { IPlayerOptions }
        */
     this.playerConfig = {}
     /**
@@ -215,7 +224,7 @@ class BasePlugin {
   /**
    *
    * @param { string } event
-   * @param { any } res
+   * @param { any } [res]
    * @returns
    */
   emit (event, res) {

@@ -120,16 +120,19 @@ function registerTextObj (textConfig, plugin) {
     })
   })
 }
+/**
+ * @typedef { import ('../player').default } Player
+ */
 
 /**
  * @typedef {{
  *  index?: number,
- *  player: any,
+ *  player: Player,
  *  pluginName: string,
  *  config: {
  *   [propName: string]: any
  *  },
- *  root: HTMLElement,
+ *  root?: HTMLElement,
  *  position?: string,
  *  [propName: string]: any
  * }} IPluginOptions
@@ -241,11 +244,24 @@ class Plugin extends BasePlugin {
      * @readonly
      */
     this.icons = {}
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
+    this.root = null
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
+    this.parent = null
+
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
-
+    /**
+     * @readonly
+     */
     this.langText = {}
-    const defaultTexConfig = this.registerLangauageTexts() || {}
+    const defaultTexConfig = this.registerLanguageTexts() || {}
     registerTextObj(defaultTexConfig, this)
     let renderStr = ''
     try {
@@ -399,7 +415,7 @@ class Plugin extends BasePlugin {
     return {}
   }
 
-  registerLangauageTexts () {
+  registerLanguageTexts () {
     return {}
   }
 
