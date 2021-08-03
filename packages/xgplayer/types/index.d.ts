@@ -1778,17 +1778,17 @@ declare module "player" {
         unRegisterPlugin(plugin: Plugin | BasePlugin): void;
         /**
          * 当前播放器挂在的插件实例代码
-         * @type { {[propName: string]: Plugin | BasePlugin } }
+         * @type { {[propName: string]: any } }
          */
         get plugins(): {
-            [propName: string]: BasePlugin | Plugin;
+            [propName: string]: any;
         };
         /**
          *
          * @param { string } pluginName
-         * @returns { BasePlugin | Plugin | null } plugin
+         * @returns { any } [plugin]
          */
-        getPlugin(pluginName: string): BasePlugin | Plugin | null;
+        getPlugin(pluginName: string): any;
         /**
          *
          * @param { string } className
