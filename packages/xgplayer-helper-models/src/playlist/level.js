@@ -39,23 +39,24 @@ export class Level {
       if (this.live == null) this.live = playlist.live
       if (this.live) {
         if (this.endSN < playlist.endSN && playlist.segments.length) {
-          if (this.segments.length) {
-            const lastSeg = this.segments[this.segments.length - 1]
+          const index = playlist.segments.findIndex(x => x.sn === this.endSN)
+          const toAppend = index < 0 ? playlist.segments : playlist.segments.slice(index + 1)
 
+          if (this.segments.length && toAppend.length) {
+            const lastSeg = this.segments[this.segments.length - 1]
             let endTime = lastSeg.end
-            playlist.segments.forEach(seg => {
+            toAppend.forEach(seg => {
               seg.start = endTime
               endTime = seg.end
             })
 
             const lastCC = lastSeg.cc
-            if (lastCC > playlist.segments[0].cc) {
-              playlist.segments.forEach(seg => (seg.cc += lastCC))
+            if (lastCC > toAppend[0].cc) {
+              toAppend.forEach(seg => (seg.cc += lastCC))
             }
           }
 
-          const index = playlist.segments.findIndex(x => x.sn === this.endSN)
-          this.segments = this.segments.concat(index < 0 ? playlist.segments : playlist.segments.slice(index + 1))
+          this.segments = this.segments.concat(toAppend)
         }
       } else {
         this.segments = playlist.segments
