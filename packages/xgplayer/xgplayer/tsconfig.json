@@ -1,0 +1,19 @@
+{
+  "include": [
+    "../src/xgplayer.js"
+  ],
+  "exclude": [
+    "../src/*.d.ts"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
+    "emitBOM": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "es",
+    "module": "AMD",
+    "outFile": "../types/index.d.ts"
+  }
+}

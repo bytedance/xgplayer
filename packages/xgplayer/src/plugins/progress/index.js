@@ -183,8 +183,8 @@ class Progress extends Plugin {
 
   /**
    * 供外部插件添加回调
-   * @param {String} type 类型 drag/dragend
-   * @param {Function} event 回调函数句柄
+   * @param {string} type 类型 drag/dragend
+   * @param {function} event 回调函数句柄
    */
   addCallBack (type, event) {
     if (event && typeof event === 'function') {
@@ -194,7 +194,7 @@ class Progress extends Plugin {
 
   /**
    * 供外部插件移除回调
-   * @param {String} type 类型 drag/dragend
+   * @param {string} type 类型 drag/dragend
    * @param {Function} event 回调函数句柄
    */
   removeCallBack (type, event) {

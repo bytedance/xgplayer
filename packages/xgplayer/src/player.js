@@ -5,16 +5,29 @@ import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
 import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API } from './constant'
-import Plugin, { pluginsManager, BasePlugin } from './plugin'
+import Plugin from './plugin/plugin'
+import BasePlugin from './plugin/basePlugin'
+import pluginsManager from './plugin/pluginsManager'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
 import hooksDescriptor, { runHooks, useHooks, usePluginHooks, hook } from './plugin/hooksDescriptor'
-import Controls from './plugins/controls'
+import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
-
-import I18N from './lang'
+import I18N from './lang/i18n'
 import version from './version'
+
+/**
+ * @typedef { import ('./plugin/basePlugin').default } BasePlugin
+ */
+
+/**
+ * @typedef { import ('./plugin/plugin').default } Plugin
+ */
+
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
 
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
@@ -54,9 +67,6 @@ class Player extends VideoProxy {
     }
 
     // timer and flags
-    /**
-     * @private
-     */
     this.userTimer = null
     /**
      * @private
@@ -616,7 +626,7 @@ class Player extends VideoProxy {
    *
    * @param { {plugin: function, options:object} | function } plugin
    * @param { {[propName: string]: any;} } [config]
-   * @returns { object }
+   * @returns { Plugin | BasePlugin } plugin
    */
   registerPlugin (plugin, config) {
     let PLUFGIN = null
@@ -671,7 +681,7 @@ class Player extends VideoProxy {
 
   /**
    *
-   * @param { object | string } plugin
+   * @param { Plugin | BasePlugin } plugin
    */
   unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
@@ -683,7 +693,7 @@ class Player extends VideoProxy {
 
   /**
    * 当前播放器挂在的插件实例代码
-   * @type { {[propName: string]: any} }
+   * @type { {[propName: string]: Plugin | BasePlugin } }
    */
   get plugins () {
     return pluginsManager.getPlugins(this)
@@ -692,7 +702,7 @@ class Player extends VideoProxy {
   /**
    *
    * @param { string } pluginName
-   * @returns { object | null }
+   * @returns { BasePlugin | Plugin | null } plugin
    */
   getPlugin (pluginName) {
     const plugin = pluginsManager.findPlugin(this, pluginName)
@@ -727,7 +737,7 @@ class Player extends VideoProxy {
   /**
    *
    * @param { string } className
-   * @returns { boolean }
+   * @returns { boolean } has
    */
   hasClass (className) {
     if (!this.root) {
@@ -740,7 +750,7 @@ class Player extends VideoProxy {
    *
    * @param { string } key
    * @param { any } value
-   * @returns
+   * @returns void
    */
   setAttribute (key, value) {
     if (!this.root) {
@@ -753,7 +763,7 @@ class Player extends VideoProxy {
    *
    * @param { string } key
    * @param { any } value
-   * @returns
+   * @returns void
    */
   removeAttribute (key, value) {
     if (!this.root) {
@@ -1158,9 +1168,6 @@ class Player extends VideoProxy {
    * } } [data]
    */
   focus (data = { autoHide: true, delay: 0 }) {
-    if (this.isActive) {
-      return
-    }
     this.emit(Events.PLAYER_FOCUS, {
       paused: this.paused,
       ended: this.ended,
@@ -1599,8 +1606,6 @@ class Player extends VideoProxy {
 
 export {
   Player as default,
-  BasePlugin,
-  Plugin,
   Events,
   Errors,
   Sniffer,

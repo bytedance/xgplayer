@@ -62,7 +62,7 @@ const APIS = {
 
   /**
    * 根据id查找节点
-   * @param {String} id
+   * @param {string} id
    */
   findDot (id) {
     if (!this.player.plugins.progress) {
@@ -118,7 +118,7 @@ const APIS = {
 
   /**
    * 删除某个故事点
-   * @param {String} id
+   * @param {string | number } id
    */
   deleteDot (id) {
     const { _ispots } = this

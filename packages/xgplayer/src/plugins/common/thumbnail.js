@@ -3,7 +3,7 @@ import BasePlugin, { Util } from '../../plugin'
 /**
  * @typedef {{
  *   isShow?: boolean,
- *   urls?: Array<String>, // 有多张大图就多个url就好
+ *   urls?: Array<string>, // 有多张大图就多个url
  *   pic_num?: number, // 每张图含有几个雪碧图
  *   col?: number, // 截图列数
  *   row?: number, // 截图行数
