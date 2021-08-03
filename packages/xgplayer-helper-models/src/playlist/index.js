@@ -41,6 +41,19 @@ export class Playlist {
     }
   }
 
+  setCurrentSegmentBySN (sn) {
+    const segments = this.currentSegments
+    if (segments) {
+      const index = segments.findIndex(seg => seg.sn === sn)
+      if (index >= 0) {
+        this._currentSegmentIndex = index
+        return true
+      }
+    }
+
+    return false
+  }
+
   clearOldSegments () {
     const level = this.currentLevel
     if (level) {

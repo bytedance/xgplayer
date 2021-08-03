@@ -1,4 +1,5 @@
 import { EVENTS, logger } from 'xgplayer-helper-utils'
+import { getLastBufferedEnd, clamp } from './helper'
 import { GapJumper } from './gap-jumper'
 
 const {
@@ -40,14 +41,26 @@ export default class HlsLiveController {
 
   _tickTimer = null
   _tickInterval = 300
-  _maxDelay = 10
   _gapJumper = new GapJumper()
 
   _currentDemuxSN = -1;
   _currentBufferedSN = -1;
 
-  constructor (isMobile) {
+  constructor ({
+    isMobile,
+    ...rest
+  } = {}) {
     this._isMobile = isMobile
+
+    this._opts = Object.assign({
+      lowLatencyMode: true, // 是否启用快放追帧
+      maxCatchUpRate: 1.5, // 最大追赶速率
+      targetLatency: 0, // 播放延迟，默认等于单次 playlist 总时长, 毫秒
+      skipSegmentLatency: 0, // 跳过未加载分片的最大延迟，默认两倍的 targetLatency
+      skipSegment: true, // 当延迟过高时，是否允许跳过未下载的分片
+
+      gapDistance: 0.1 // 当因播放问题停滞时，向前跳跃的间距
+    }, rest)
   }
 
   load (url) {
@@ -85,7 +98,16 @@ export default class HlsLiveController {
   destroy () {
     log('Destroy')
     this.reset()
+    this._player?.video?.addEventListener('timeupdate', this._onTimeUpdate)
     if (this.mse) this.mse.endOfStream()
+  }
+
+  enableLowLatency () {
+    this._opts.lowLatencyMode = true
+  }
+
+  disableLowLatency () {
+    this._opts.lowLatencyMode = false
   }
 
   get _fetchOptions () {
@@ -120,7 +142,7 @@ export default class HlsLiveController {
 
     const lastSegment = this._playlist?.lastSegment
     if (lastSegment) {
-      this._gapJumper.tryJump(this._player.video, this._maxDelay)
+      this._gapJumper.tryJump(this._player.video, this._opts.gapDistance)
     }
   }
 
@@ -150,20 +172,61 @@ export default class HlsLiveController {
       return this._loadM3U8(level.url)
     }
 
+    level.refreshedAt = Date.now()
+
     const segments = level.segments
     if (!segments || !segments.length) {
       if (this._shouldRetryM3U8()) return this._loadM3U8(this._m3u8Url)
       return
     }
 
-    const interval = level.targetDuration || level.segments[0].duration
-    this._maxDelay = ((interval || 5000) * Math.min(3, Math.max(1, level.endSN - level.startSN))) / 1000
-    if (interval) this._m3u8RefreshInterval = Math.max(interval - 500, 2000) // TODO: Loader 支持传入加载耗时
+    const interval = level.segmentDuration
+    if (interval) this._m3u8RefreshInterval = Math.max(interval / 2, 2000) // TODO: Loader 支持传入加载耗时
     clearTimeout(this._m3u8RefreshTimer)
 
     log('M3U8 refresh interval: ', this._m3u8RefreshInterval)
 
+    if (!this._opts.targetLatency) {
+      this._opts.targetLatency = level.segmentDuration * playlist.segments.length
+    }
+
+    if (!this._opts.skipSegmentLatency) {
+      this._opts.skipSegmentLatency = this._opts.targetLatency * 2
+    }
+
     if (!this._videoPaused) {
+      const currentTime = this._player?.video?.currentTime
+
+      if (
+        currentTime &&
+        this._opts.lowLatencyMode &&
+        this._opts.skipSegment &&
+        this._opts.skipSegmentLatency &&
+        currentTime * 1000 + this._opts.skipSegmentLatency < level.liveEdge
+      ) {
+        const time = level.liveEdge - this._opts.targetLatency
+        const seg = this._playlist.findSegmentByTime(time)
+        const currentSN = this._playlist.currentSegment?.sn
+
+        if (seg && seg.sn > currentSN) {
+          let sn = seg.sn
+          if (sn === this._playlist.currentLevel?.lastSegmentSN) sn--
+
+          if (this._playlist.setCurrentSegmentBySN(seg.sn)) {
+            if (this._segmentLoader) this._segmentLoader.cancel()
+            if (this._segmentKeyLoader) this._segmentKeyLoader.cancel()
+            if (this._segmentBuffer) this._segmentBuffer.clear()
+
+            this._segmentLoading = false
+            this._demuxQueue = []
+            this._decrypting = false
+            this._currentLoadingKeyUrl = ''
+
+            warn(`Skip segment, currentSegment: ${currentSN} -> `, seg)
+          }
+        }
+      }
+
       this._m3u8RefreshTimer = setTimeout(this._loadM3U8, this._m3u8RefreshInterval)
       this._loadSegment()
     }
@@ -353,6 +416,46 @@ export default class HlsLiveController {
     }
   }
 
+  _onTimeUpdate = () => {
+    this._catchUp()
+  }
+
+  _catchUp () {
+    if (!this._opts.lowLatencyMode || this._videoPaused) return
+    const video = this._player?.video
+    const currentTime = video?.currentTime
+    const liveEdge = this._playlist.currentLevel?.liveEdge
+    if (!currentTime || !liveEdge) return
+
+    const { maxCatchUpRate, targetLatency } = this._opts
+    if (maxCatchUpRate <= 1 || !targetLatency) return
+
+    const currentRate = video.playbackRate
+
+    const latency = liveEdge - currentTime * 1000
+    const deltaLatency = latency - targetLatency
+    const deltaBuffer = getLastBufferedEnd(video) - currentTime
+
+    let newRate = 0
+    if (
+      deltaLatency > 0.1 &&
+      deltaBuffer > 2
+    ) {
+      // 当落后超过 5s 就会按 2 倍速追赶
+      newRate = clamp(
+        Math.round((2 / (1 + Math.exp(-deltaLatency / 1000))) * 100) / 100,
+        1, maxCatchUpRate
+      )
+    } else {
+      newRate = 1
+    }
+
+    if (currentRate !== newRate) {
+      log(`Catch up, Latency: ${deltaLatency}, playbackRate ${currentRate} -> ${newRate}`)
+      video.playbackRate = newRate
+    }
+  }
+
   _onDemuxError = (mod, error, fatal) => {
     if (fatal === undefined) fatal = true
     this._player.emit('error', {
@@ -413,6 +516,8 @@ export default class HlsLiveController {
       this._context.registry('COMPATIBILITY', Compatibility)()
       this._context.registry('MP4_REMUXER', Mp4Remuxer)
     }
+
+    this._player.video.addEventListener('timeupdate', this._onTimeUpdate)
 
     this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
       switch (buffer.TAG) {

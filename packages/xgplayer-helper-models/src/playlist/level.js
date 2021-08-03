@@ -19,6 +19,35 @@ export class Level {
   live = undefined
   segments = [] // MediaSegment
 
+  refreshedAt = 0
+
+  get lastSegmentSN () {
+    return this.lastSegment?.sn || -1
+  }
+
+  get lastSegment () {
+    if (this.segments.length) {
+      return this.segments[this.segments.length - 1]
+    }
+  }
+
+  get segmentDuration () {
+    return this.targetDuration || this.segments[0]?.duration || 0
+  }
+
+  get liveEdge () {
+    return this.endTime + this.age
+  }
+
+  get endTime () {
+    return this.lastSegment?.end || 0
+  }
+
+  get age () {
+    if (this.refreshedAt) return Date.now() - this.refreshedAt
+    return 0
+  }
+
   constructor (playlist, levelId) {
     this.levelId = levelId
     this.update(playlist)
