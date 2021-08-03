@@ -12,9 +12,10 @@ const {
 } = EVENTS
 const HLS_ERROR = 'HLS_ERROR'
 
-export default class HlsLiveController {
-  TAG = 'HlsLiveController'
+const log = logger.log.bind(logger, 'HlsLiveController')
+const warn = logger.warn.bind(logger, 'HlsLiveController')
 
+export default class HlsLiveController {
   firstFramePts = -1
   mse = null
 
@@ -57,6 +58,7 @@ export default class HlsLiveController {
   }
 
   reset () {
+    log('Reset')
     clearTimeout(this._m3u8RefreshTimer)
     this._stopTick()
     this._demuxQueue = []
@@ -76,10 +78,12 @@ export default class HlsLiveController {
   }
 
   reload () {
+    log('Reload', this._url)
     this.load(this._url)
   }
 
   destroy () {
+    log('Destroy')
     this.reset()
     if (this.mse) this.mse.endOfStream()
   }
@@ -103,6 +107,7 @@ export default class HlsLiveController {
   }
 
   _end () {
+    log('End of stream')
     clearTimeout(this._m3u8RefreshTimer)
     this._stopTick()
     if (this.mse) this.mse.endOfStream()
@@ -125,6 +130,7 @@ export default class HlsLiveController {
 
   _loadM3U8 = (url) => {
     if (url) this._m3u8Url = url
+    log('Start load M3U8', this._m3u8Url)
     this._m3u8Loader.load(this._m3u8Url, this._fetchOptions, this._retryCount, this._retryDelay)
   }
 
@@ -139,7 +145,10 @@ export default class HlsLiveController {
       return
     }
 
-    if (playlist.isMaster) return this._loadM3U8(level.url)
+    if (playlist.isMaster) {
+      log('Master playlist, load level', level)
+      return this._loadM3U8(level.url)
+    }
 
     const segments = level.segments
     if (!segments || !segments.length) {
@@ -151,6 +160,9 @@ export default class HlsLiveController {
     this._maxDelay = ((interval || 5000) * Math.min(3, Math.max(1, level.endSN - level.startSN))) / 1000
     if (interval) this._m3u8RefreshInterval = Math.max(interval - 500, 2000) // TODO: Loader 支持传入加载耗时
     clearTimeout(this._m3u8RefreshTimer)
+
+    log('M3U8 refresh interval: ', this._m3u8RefreshInterval)
+
     if (!this._videoPaused) {
       this._m3u8RefreshTimer = setTimeout(this._loadM3U8, this._m3u8RefreshInterval)
       this._loadSegment()
@@ -164,6 +176,7 @@ export default class HlsLiveController {
       return false
     }
     this._m3u8RetryCount++
+    log(`Retry load M3U8: ${this._m3u8Url}, count: ${this._m3u8RetryCount}`)
     return true
   }
 
@@ -187,6 +200,7 @@ export default class HlsLiveController {
       }
 
       this._segmentLoading = true
+      log('Start load segment: ', segment)
       this._segmentLoader.load(segment.url, this._fetchOptions, this._retryCount, this._retryDelay)
     }
   }
@@ -239,6 +253,8 @@ export default class HlsLiveController {
       this._crypto.on(CRYPTO_EVENTS.DECRYPTED, this._onSegmentDecrypted)
     }
 
+    log('Start decrypt segment: ', segment.key)
+
     this._crypto.key = this._playlist.getKey(segment.key.url)
     this._crypto.iv = segment.key.iv
     this._crypto.method = segment.key.method
@@ -256,6 +272,7 @@ export default class HlsLiveController {
     if (this._demuxQueue.length) {
       const seg = this._demuxQueue.shift()
       this._currentDemuxSN = seg.id
+      log('Start demux segment: ', seg)
       this.emit(DEMUX_EVENTS.DEMUX_START, seg, !this._playlist.currentLevel?.live)
     }
   }
@@ -265,7 +282,7 @@ export default class HlsLiveController {
       const tracks = this._context.getInstance('TRACKS')
       const samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0]
       this.firstFramePts = samp0 ? samp0.purePts : -1
-      logger.warn(this.TAG, `first frame pts: ${this.firstFramePts}`)
+      warn('first frame pts: ', this.firstFramePts)
     }
 
     if (this._isMobile) {
@@ -291,13 +308,14 @@ export default class HlsLiveController {
         this._player.video.onDemuxComplete(videoTrack, audioTrack)
       }
     } else {
+      log('Start remux segment')
       this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
     }
     this._demux()
   }
 
   _onMetadataParsed = (type) => {
-    logger.warn(this.TAG, 'meta detect or changed , ', type)
+    warn('meta detect or changed , ', type)
     if (this._isMobile) {
       if (type === 'audio') {
         // 将音频meta信息交给audioContext，不走remux封装
@@ -323,6 +341,9 @@ export default class HlsLiveController {
 
   _onMediaSegment = () => {
     this._currentBufferedSN = this._currentDemuxSN
+
+    log('append to mse SN: ', this._currentBufferedSN)
+
     this.mse.addSourceBuffers()
     this.mse.doAppend()
 

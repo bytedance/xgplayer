@@ -1,3 +1,5 @@
+import { logger } from 'xgplayer-helper-utils'
+
 export class GapJumper {
   _lastCurrentTime = -1
 
@@ -39,6 +41,7 @@ export class GapJumper {
     }
 
     if (jumpTo) {
+      logger.warn('GapJumper', `Jump: ${video.currentTime} -> ${jumpTo}`)
       video.currentTime = jumpTo
     }
   }
