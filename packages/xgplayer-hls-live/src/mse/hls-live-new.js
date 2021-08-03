@@ -62,6 +62,8 @@ export default class HlsLiveController {
 
       gapDistance: 0.1 // 当因播放问题停滞时，向前跳跃的间距
     }, rest)
+
+    log('new instance: ', this._opts, isMobile)
   }
 
   load (url) {
@@ -163,7 +165,7 @@ export default class HlsLiveController {
     try {
       playlist = this._pluginConfig.M3U8ParserNew.parse(buffer.shift(), this._m3u8Url)
     } catch (error) {
-      this._emitError(Err.M3U8ParseError(error))
+      this._emitError(Err.M3U8Parse(error))
       this.destroy()
       return
     }
@@ -189,12 +191,6 @@ export default class HlsLiveController {
       if (this._shouldRetryM3U8()) return this._loadM3U8(this._m3u8Url)
       return
     }
-
-    const interval = level.segmentDuration
-    if (interval) this._m3u8RefreshInterval = Math.max(interval / 2, 2000) // TODO: Loader 支持传入加载耗时
-    clearTimeout(this._m3u8RefreshTimer)
-
-    log('M3U8 refresh interval: ', this._m3u8RefreshInterval)
 
     if (!this._opts.targetLatency) {
       this._opts.targetLatency = level.segmentDuration * playlist.segments.length
@@ -237,7 +233,14 @@ export default class HlsLiveController {
         }
       }
 
-      this._m3u8RefreshTimer = setTimeout(this._loadM3U8, this._m3u8RefreshInterval)
+      if (level.live) {
+        const interval = level.segmentDuration
+        if (interval) this._m3u8RefreshInterval = Math.max(interval / 2, 2000) // TODO: Loader 支持传入加载耗时
+        clearTimeout(this._m3u8RefreshTimer)
+        log('M3U8 refresh interval: ', this._m3u8RefreshInterval)
+        this._m3u8RefreshTimer = setTimeout(this._loadM3U8, this._m3u8RefreshInterval)
+      }
+
       this._loadSegment()
     }
   }
@@ -431,7 +434,7 @@ export default class HlsLiveController {
   }
 
   _catchUp () {
-    if (!this._opts.lowLatencyMode || this._videoPaused) return
+    if (!this._opts.lowLatencyMode) return
     const video = this._player?.video
     const currentTime = video?.currentTime
     const liveEdge = this._playlist.currentLevel?.liveEdge
