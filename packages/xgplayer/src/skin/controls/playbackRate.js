@@ -120,6 +120,15 @@ let s_playbackRate = function () {
       player.video.playbackRate = selectedSpeed
     }
   })
+
+  player.switchPlaybackRate = function (playbackRateObj = {}) {
+    let liList = player.controls.querySelectorAll('.xgplayer-playbackrate ul li')
+    for(let i = 0; i < liList.length; i++) {
+      if(liList[i].getAttribute('cname') === `${playbackRateObj.playbackRate}` || i === playbackRateObj.index) {
+        liList[i].click()
+      }
+    }
+  }
 }
 
 export default {

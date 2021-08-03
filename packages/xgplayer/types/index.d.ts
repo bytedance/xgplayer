@@ -726,6 +726,12 @@ declare module 'xgplayer' {
          *
          */
         public switchDefinition(definitionObj: object): void;
+
+        /**
+         * 切换到指定播放速率
+         *
+         */
+        public switchPlaybackRate(playbackRateObj: object): void;
     }
 
     export default Player;
