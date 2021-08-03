@@ -1,5 +1,6 @@
 import { EVENTS, logger } from 'xgplayer-helper-utils'
 import { getLastBufferedEnd, clamp } from './helper'
+import { Err } from './error'
 import { GapJumper } from './gap-jumper'
 
 const {
@@ -53,10 +54,10 @@ export default class HlsLiveController {
     this._isMobile = isMobile
 
     this._opts = Object.assign({
-      lowLatencyMode: true, // 是否启用快放追帧
-      maxCatchUpRate: 1.5, // 最大追赶速率
-      targetLatency: 0, // 播放延迟，默认等于单次 playlist 总时长, 毫秒
-      skipSegmentLatency: 0, // 跳过未加载分片的最大延迟，默认两倍的 targetLatency
+      lowLatencyMode: true, // 是否启用低延迟模式
+      maxCatchUpRate: 1.5, // 低延迟模式，最大追赶速率
+      targetLatency: 0, // 播放延迟，超过该延迟将会快放追帧，默认等于单次 playlist 总时长, 毫秒
+      skipSegmentLatency: 0, // 跳过未加载分片的最大延迟，超过该延迟将会跳片，默认两倍的 targetLatency
       skipSegment: true, // 当延迟过高时，是否允许跳过未下载的分片
 
       gapDistance: 0.1 // 当因播放问题停滞时，向前跳跃的间距
@@ -157,7 +158,16 @@ export default class HlsLiveController {
   }
 
   _onLoadedM3U8 = (buffer) => {
-    const playlist = this._pluginConfig.M3U8ParserNew.parse(buffer.shift(), this._m3u8Url)
+    let playlist
+
+    try {
+      playlist = this._pluginConfig.M3U8ParserNew.parse(buffer.shift(), this._m3u8Url)
+    } catch (error) {
+      this._emitError(Err.M3U8ParseError(error))
+      this.destroy()
+      return
+    }
+
     this._playlist.clearOldSegments()
     this._playlist.upsertPlaylist(playlist)
     const level = this._playlist.currentLevel
@@ -494,6 +504,10 @@ export default class HlsLiveController {
       errorFatal: fatal
     }
     this._player.emit(HLS_ERROR, error)
+  }
+
+  _emitError (error) {
+    this._player?.emit(HLS_ERROR, error)
   }
 
   init () {
