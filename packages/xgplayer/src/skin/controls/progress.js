@@ -331,7 +331,7 @@ let s_progress = function () {
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
-    if (!player.isProgressMoving) {
+    if (!player.isProgressMoving && !player.isSeeking && !player.seeking) {
       const precent = player.currentTime / player.duration
       const prevPrecent = Number(progress.style.width.replace('%', '') || '0') / Number(container.style.width || '100');
       if (Math.abs(precent - prevPrecent) <= 1) {
@@ -341,8 +341,8 @@ let s_progress = function () {
   }
   player.on('timeupdate', onTimeupdate)
 
-  let onCurrentTimeChange = function () {
-    progress.style.width = `${player.currentTime * 100 / player.duration}%`
+  let onCurrentTimeChange = function (time) {
+    progress.style.width = `${time * 100 / player.duration}%`
   }
   player.on('currentTimeChange', onCurrentTimeChange)
 

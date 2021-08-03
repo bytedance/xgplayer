@@ -279,7 +279,7 @@ class Proxy {
     } else {
       this.video.currentTime = time
     }
-    this.emit('currentTimeChange')
+    this.emit('currentTimeChange', time)
   }
   get defaultMuted () {
     if(this.video) {

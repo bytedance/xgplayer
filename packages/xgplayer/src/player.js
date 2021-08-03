@@ -463,7 +463,9 @@ class Player extends Proxy {
 
   onSeeked () {
     // for ie,playing fired before waiting
-    this.isSeeking = false
+    this.once('timeupdate', () => {
+      this.isSeeking = false
+    })
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
