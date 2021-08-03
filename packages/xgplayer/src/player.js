@@ -1168,6 +1168,10 @@ class Player extends VideoProxy {
    * } } [data]
    */
   focus (data = { autoHide: true, delay: 0 }) {
+    if (this.isActive) {
+      this.onFocus(data)
+      return
+    }
     this.emit(Events.PLAYER_FOCUS, {
       paused: this.paused,
       ended: this.ended,
@@ -1181,6 +1185,7 @@ class Player extends VideoProxy {
    */
   blur (data = { ignorePaused: false }) {
     if (!this.isActive) {
+      this.onBlur(data)
       return
     }
     this.emit(Events.PLAYER_BLUR, {
