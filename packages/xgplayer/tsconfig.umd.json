@@ -1,9 +1,9 @@
 {
   "include": [
-    "../src/xgplayer.js"
+    "./src/xgplayer.js"
   ],
   "exclude": [
-    "../src/*.d.ts"
+    "./src/*.d.ts"
   ],
   "compilerOptions": {
     "allowJs": true,
@@ -14,6 +14,6 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "es",
     "module": "AMD",
-    "outFile": "../types/index.d.ts"
+    "outFile": "./types/index.d.ts"
   }
 }
