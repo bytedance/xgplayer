@@ -1,3 +1,5 @@
 node_modules/*
 browser/*
 dist/*
+scripts/*
+fixtures/*

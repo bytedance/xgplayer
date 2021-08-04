@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-codec",
-  "version": "2.4.29",
+  "version": "2.4.32",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -10,10 +10,10 @@
     "prepare": "npm run build",
     "watch": "npm run watch:es & npm run watch:lib",
     "watch:es": "babel src  --out-dir es --watch",
-    "watch:lib": "babel src  --out-dir lib  --watch & tsc --watch",
+    "watch:lib": "babel src --presets @babel/preset-env --out-dir lib  --watch & tsc --watch",
     "build": "npm run build:es && npm run build:lib",
     "build:es": "babel src  --out-dir es && tsc",
-    "build:lib": "babel src --out-dir lib  && tsc --module CommonJS --outDir lib"
+    "build:lib": "babel src --presets @babel/preset-env --out-dir lib  && tsc --module CommonJS --outDir lib"
   },
   "babel": {
     "presets": [
@@ -28,6 +28,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-utils": "2.4.29"
+    "xgplayer-helper-utils": "2.4.32"
   }
 }

@@ -5,7 +5,7 @@ import PanelIcon from '../assets/panel.svg'
   * @typedef {{
   *   position?: string,
   *   index?: number,
-  *   onChangeSet?: Function,
+  *   onChangeSet?: () => any,
   *   speed?: number,
   *   area?: any,
   *   opacity?: number,

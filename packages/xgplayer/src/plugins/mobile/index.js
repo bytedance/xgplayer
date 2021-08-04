@@ -10,26 +10,26 @@ import SeekTipIcon from '../assets/seekicon.svg'
  *   disableGesture?: boolean, // 是否禁用手势
  *   gestureX?: boolean, // 是否启用水平手势
  *   gestureY?: boolean, // 是否启用垂直手势
- *   updateGesture?: Function, // 手势处理回调
- *   onTouchStart?: Function, // 手势开始移动回调
- *   onTouchEnd?: Function, // 手势移动结束回调
+ *   updateGesture?: () => any, // 手势处理回调
+ *   onTouchStart?: () => any, // 手势开始移动回调
+ *   onTouchEnd?: () => any, // 手势移动结束回调
  *   gradient?: 'normal' | 'none' | 'top' | 'bottom', // 是否启用阴影
  *   isTouchingSeek?: boolean, // 是否在touchMove的同时更新currentTime
  *   miniMoveStep?: number, // 最小差异，用于move节流
  *   miniYPer?: number, // y方向最小位移百分比
  *   scopeL?: number, // 左侧手势范围比例
- *   scopeR？: number, // 右侧手势范围比例scopeM: 0.9, // 中间手势范围比例
- *   pressRate？: number, // 长按快进倍速
- *   darkness？: boolean, // 是否启用右侧调暗功能
- *   maxDarkness？: number, // 调暗最大暗度，即蒙层最大透明度
- *   disableActive？: boolean, // 是否禁用时间面板
- *   disableTimeProgress？: boolean, // 是否禁用时间进度条
- *   hideControlsActive:？ boolean, // 手势拖动的时候是否隐控制栏
- *   hideControlsEnd？: boolean, // 手势结束的时候隐控制栏
- *   moveDuration？: number, // 视频区对应的时长
- *   closedbClick？: boolean, // 是否关闭双击手势
- *   disablePress？: boolean, // 是否关闭长按手势
- *   disableSeekIcon？: boolean, // 禁用seek按钮
+ *   scopeR?: number, // 右侧手势范围比例scopeM: 0.9, // 中间手势范围比例
+ *   pressRate?: number, // 长按快进倍速
+ *   darkness?: boolean, // 是否启用右侧调暗功能
+ *   maxDarkness?: number, // 调暗最大暗度，即蒙层最大透明度
+ *   disableActive?: boolean, // 是否禁用时间面板
+ *   disableTimeProgress?: boolean, // 是否禁用时间进度条
+ *   hideControlsActive?: boolean, // 手势拖动的时候是否隐控制栏
+ *   hideControlsEnd?: boolean, // 手势结束的时候隐控制栏
+ *   moveDuration?: number, // 视频区对应的时长
+ *   closedbClick?: boolean, // 是否关闭双击手势
+ *   disablePress?: boolean, // 是否关闭长按手势
+ *   disableSeekIcon?: boolean,
  *   [propName: string]: any
  * }} IMobileConfig
  */
@@ -47,7 +47,7 @@ class MobilePlugin extends Plugin {
   }
 
   /**
-   * @type IMobileConfig
+   * @type IMobileConfig & { [propName: string]: any}
    */
   static get defaultConfig () {
     return {
@@ -474,14 +474,20 @@ class MobilePlugin extends Plugin {
   onClick (e) {
     const { player, config, playerConfig } = this
     if (!player.isPlaying) {
-      !playerConfig.closeVideoClick && player.play()
+      if (!playerConfig.closeVideoClick) {
+        this.emitUserAction('click', 'switch_play_pause')
+        player.play()
+      }
       return
     }
 
     if (!config.closedbClick || playerConfig.closeVideoClick) {
       player.isActive ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
     } else if (!playerConfig.closeVideoClick) {
-      player.isActive && this.switchPlayPause()
+      if (player.isActive) {
+        this.emitUserAction('click', 'switch_play_pause')
+        this.switchPlayPause()
+      }
       player.emit(Events.PLAYER_FOCUS)
     }
   }
@@ -489,6 +495,7 @@ class MobilePlugin extends Plugin {
   onDbClick (e) {
     const { config, player } = this
     if (!config.closedbClick && player.isPlaying) {
+      this.emitUserAction('dblclick', 'switch_play_pause')
       this.switchPlayPause()
     }
   }
@@ -499,6 +506,7 @@ class MobilePlugin extends Plugin {
       return
     }
     pos.rate = this.player.playbackRate
+    this.emitUserAction('press', 'change_rate', { from: player.playbackRate, to: config.pressRate })
     player.playbackRate = config.pressRate
     this.changeAction(ACTIONS.PLAYBACK)
   }
@@ -508,6 +516,7 @@ class MobilePlugin extends Plugin {
     if (config.disablePress) {
       return
     }
+    this.emitUserAction('pressend', 'change_rate', { from: player.playbackRate, to: pos.rate })
     player.playbackRate = pos.rate
     pos.rate = 1
     this.changeAction(ACTIONS.AUTO)

@@ -179,8 +179,8 @@ class Danmu extends Plugin {
     if (!config.closeDefaultBtn) {
       const buttonOptions = {
         config: {
-          onSwitch: (isOpen) => {
-            this.onSwitch(isOpen)
+          onSwitch: (event, isOpen) => {
+            this.onSwitch(event, isOpen)
           }
         }
       }
@@ -193,10 +193,10 @@ class Danmu extends Plugin {
   }
 
   changeSet (set) {
-    console.log('changeSet', set)
   }
 
-  onSwitch (defaultOpen) {
+  onSwitch (event, defaultOpen) {
+    this.emitUserAction(event, 'switch_danmu', { isOpen: defaultOpen })
     if (defaultOpen) {
       this.start()
     } else {

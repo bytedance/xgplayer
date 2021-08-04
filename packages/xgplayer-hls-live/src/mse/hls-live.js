@@ -35,7 +35,7 @@ class HlsLiveController {
     this._context.registry('TS_BUFFER', XgBuffer)
     this._track = this._context.registry('TRACKS', Tracks)()
 
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger})
+    this._playlist = this._context.registry('PLAYLIST', Playlist)({ autoclear: true, logger })
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
 
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)()
@@ -51,7 +51,7 @@ class HlsLiveController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer)
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)({container: this._player.video, format: 'hls'})
+    this.mse = this._context.registry('MSE', Mse)({ container: this._player.video, format: 'hls' })
 
     this.preloadTime = this._player.config.preloadTime || this._pluginConfig.preloadTime
     this.retrytimes = this._pluginConfig.retrytimes
@@ -74,6 +74,8 @@ class HlsLiveController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
 
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
+
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
@@ -87,7 +89,7 @@ class HlsLiveController {
   }
 
   _onError (type, mod, err, fatal) {
-    let error = {
+    const error = {
       code: err.code,
       errorType: type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
@@ -98,18 +100,22 @@ class HlsLiveController {
 
   _onDemuxComplete (track1, track2) {
     if (this.firstFramePts === -1) {
-      let tracks = this._context.getInstance('TRACKS')
-      let samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0]
+      const tracks = this._context.getInstance('TRACKS')
+      const samp0 = tracks && tracks.videoTrack && tracks.videoTrack.samples[0]
       this.firstFramePts = samp0 ? samp0.purePts : -1
       logger.warn(this.TAG, `first frame pts: ${this.firstFramePts}`)
     }
 
     this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
     this._downloadedFragmentQueue.shift()
-    let next = this._downloadedFragmentQueue[0]
+    const next = this._downloadedFragmentQueue[0]
     if (next) {
       this.emit(DEMUX_EVENTS.DEMUX_START, next, this._playlist.end)
     }
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _onWaiting () {
@@ -127,7 +133,7 @@ class HlsLiveController {
     this._player.emit('error', {
       code: 3,
       errorType: 'parse',
-      ex: `decode error`,
+      ex: 'decode error',
       errd: {}
     })
     this.destroy()
@@ -149,6 +155,7 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
+    if (!this._player.pause) return
     this._player.pause()
     this._player.emit('error', {
       code: error.code,
@@ -207,7 +214,7 @@ class HlsLiveController {
       let mdata
       try {
         this.m3u8Text = buffer.shift()
-        let result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
+        const result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
         if (result && result[2]) {
           // redirect
           this.load(result[2])
@@ -239,19 +246,23 @@ class HlsLiveController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)()
         this._context.registry('KEY_BUFFER', XgBuffer)()
         this._tsloader.buffer = 'DECRYPT_BUFFER'
-        this._keyLoader = this._context.registry('KEY_LOADER', Loader)({buffer: 'KEY_BUFFER', readtype: 3})
+        this._keyLoader = this._context.registry('KEY_LOADER', Loader)({ buffer: 'KEY_BUFFER', readtype: 3 })
         const { count: times, delay: delayTime } = this._player.config.retry || {}
         // 兼容player.config上传入retry参数的逻辑
         const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
         const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, {
+          retryCount,
+          retryDelay,
+          loadTimeout: this._pluginConfig.loadTimeout
+        })
       } else {
         this._m3u8Loaded(mdata)
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3
       this._playlist.downloaded(this._tsloader.url, true)
-      let seg = Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url])
+      const seg = Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url])
       this._downloadedFragmentQueue.push(seg)
       if (this._player.buffered.length === 0 || this._downloadedFragmentQueue.length === 1) {
         this.emit(DEMUX_EVENTS.DEMUX_START, seg, this._playlist.end)
@@ -285,39 +296,30 @@ class HlsLiveController {
   }
 
   _m3u8Loaded () {
-    this.m3u8FlushDuration = this._playlist.targetduration || this.m3u8FlushDuration
+    this.m3u8FlushDuration = this._playlist.avgSegmentDuration || this.m3u8FlushDuration
+
     if (!this.preloadTime) {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5
     }
   }
 
   _checkStatus () {
-    const container = this._player.video
-    if (!container) {
+    const video = this._player.video
+
+    if (!video) {
       clearInterval(this._timmer)
       return
     }
-    if (container.buffered.length < 1) {
+    if (video.buffered.length < 1) {
       this._preload()
     } else {
       // Check for load.
-      let currentTime = container.currentTime
-      let bufferstart = container.buffered.start(container.buffered.length - 1)
-      if (container.readyState <= 2) {
-        if (currentTime < bufferstart) {
-          container.currentTime = bufferstart
-          currentTime = bufferstart
-        } else {
-          this._preload()
-        }
-      }
-      let bufferend = container.buffered.end(container.buffered.length - 1)
+      const currentTime = video.currentTime
+      const bufferend = video.buffered.end(video.buffered.length - 1)
       if (currentTime < bufferend - (this.preloadTime * 2)) {
-        container.currentTime = bufferend - this.preloadTime
+        video.currentTime = bufferend - this.preloadTime
       }
-      if (currentTime > bufferend - this.preloadTime) {
-        this._preload()
-      }
+      this._preload()
     }
   }
 
@@ -325,34 +327,42 @@ class HlsLiveController {
     if (this._tsloader.loading || this._m3u8loader.loading || this._needRecreateMs) {
       return
     }
-    let frag = this._playlist.getTs()
+    const frag = this._playlist.getTs()
     const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
-    const {fetchOptions = {}} = this._pluginConfig
+    const { fetchOptions = {} } = this._pluginConfig
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag)
       this._playlist.downloading(frag.url, true)
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, retryCount, retryDelay)
-    } else {
-      let current = new Date().getTime()
-      if ((!frag || frag.downloaded) &&
-        (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
-        this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, retryCount, retryDelay)
-      }
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, {
+        retryCount,
+        retryDelay,
+        loadTimeout: this._pluginConfig.loadTimeout
+      })
+    }
+
+    const current = new Date().getTime()
+
+    if ((current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
+      this._m3u8lasttime = current
+      this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, {
+        retryCount,
+        retryDelay,
+        loadTimeout: this._pluginConfig.loadTimeout
+      })
     }
   }
 
   _handleSourceUpdateEnd () {
     // 判断最后一个分片下载完了
     if (this._playlist.end) {
-      let list = this._playlist.list
-      let keys = Object.keys(list).map(x => Number(x)).sort((a, b) => a > b ? 1 : -1)
-      let lastKey = keys.pop()
-      let url = list[lastKey]
-      let lastSeg = this._playlist._ts[url]
+      const list = this._playlist.list
+      const keys = Object.keys(list).map(x => Number(x)).sort((a, b) => a > b ? 1 : -1)
+      const lastKey = keys.pop()
+      const url = list[lastKey]
+      const lastSeg = this._playlist._ts[url]
       if (lastSeg && lastSeg.downloaded) {
         logger.warn(this.TAG, '直播结束,断流')
         this.mse.endOfStream()

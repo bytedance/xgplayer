@@ -32,6 +32,9 @@
   ],
   "author": "zhangxin.frontend@bytedance.com",
   "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
   "dependencies": {},
   "peerDependency": {
     "xgplayer": "^0.1.0"

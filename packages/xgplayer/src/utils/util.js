@@ -17,7 +17,7 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   Object.keys(attrs).forEach(item => {
     const key = item
     const value = attrs[item]
-    if (el === 'video' || el === 'audio' || el === 'mobile-video') {
+    if (el === 'video' || el === 'audio' || el === 'live-video') {
       if (value) {
         dom.setAttribute(key, value)
       }
@@ -317,7 +317,7 @@ util.getBgImage = function (el) {
 /**
  *
  * @param {  HTMLElement } dom
- * @returns { HTMLElement || null }
+ * @returns { HTMLElement | null }
  */
 util.copyDom = function (dom) {
   if (dom && dom.nodeType === 1) {
@@ -703,6 +703,26 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
     buffered2 = buffered
   }
   return new XgplayerTimeRange(buffered2)
+}
+
+/**
+ * @description css中有zoom的时候，位移会等比缩放，但是元素的宽高不会等比缩放，所以通过该api做统一
+ * https://bugs.chromium.org/p/chromium/issues/detail?id=429140#c8
+ * @param {Events} e
+ * @param {number} zoom
+ * @returns
+ */
+util.getEventPos = function (e, zoom = 1) {
+  return {
+    x: e.x / zoom,
+    y: e.y / zoom,
+    clientX: e.clientX / zoom,
+    clientY: e.clientY / zoom,
+    offsetX: e.offsetX / zoom,
+    offsetY: e.offsetY / zoom,
+    pageX: e.pageX / zoom,
+    pageY: e.pageY / zoom
+  }
 }
 
 export default util

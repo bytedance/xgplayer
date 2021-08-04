@@ -56,6 +56,7 @@ export default class Rotate extends Plugin {
   onBtnClick (e) {
     e.preventDefault()
     e.stopPropagation()
+    this.emitUserAction(e, 'rotate')
     this.rotate(this.config.clockwise, this.config.innerRotate, 1)
   }
 
@@ -77,7 +78,6 @@ export default class Rotate extends Plugin {
       x = -(height - width) / 2
       y = -(width - height) / 2
     }
-    console.log(`rWidth:${rWidth} rHeight:${rHeight} x:${x} y:${y}`)
     const _transform = `translate(${x}px,${y}px) rotate(${rotateDeg}turn)`
     const _styles = {
       transformOrigin: 'center center',

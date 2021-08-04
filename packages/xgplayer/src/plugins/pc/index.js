@@ -44,6 +44,7 @@ export default class PCPlugin extends BasePlugin {
   }
 
   onMouseEnter = (e) => {
+    this.player.video.focus()
     if (this.playerConfig.closeDelayBlur) {
       this.emit(Events.PLAYER_FOCUS, { autoHide: false })
     } else {
@@ -80,7 +81,7 @@ export default class PCPlugin extends BasePlugin {
     if (e.target && playerConfig.closeVideoClick) {
       return
     }
-    if (e.target === player.root || e.target === player.video || e.target === player.innerContainer) {
+    if (e.target === player.root || e.target === player.video || e.target === player.innerContainer || e.target === player.video.__canvas) {
       e.preventDefault()
       if (!playerConfig.closeVideoStopPropagation) {
         e.stopPropagation()
@@ -99,6 +100,7 @@ export default class PCPlugin extends BasePlugin {
         return
       }
       this.clickTimer = setTimeout(() => {
+        this.emitUserAction(e, 'switch_play_pause')
         fun.call(player)
         clearTimeout(this.clickTimer)
         this.clickTimer = null
@@ -108,7 +110,7 @@ export default class PCPlugin extends BasePlugin {
 
   onVideoDblClick = (e) => {
     const { player, playerConfig } = this
-    if (!e.target || e.target !== player.video || playerConfig.closeVideoDblclick) {
+    if (!e.target || (e.target !== player.video && e.target !== player.video.__canvas) || playerConfig.closeVideoDblclick) {
       return
     }
     if (this.clickTimer) {
@@ -117,6 +119,7 @@ export default class PCPlugin extends BasePlugin {
     }
     e.preventDefault()
     e.stopPropagation()
+    this.emitUserAction(e, 'switch_fullscreen', { fullscreen: player.fullscreen })
     player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
   }
 

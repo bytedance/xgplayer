@@ -25,6 +25,9 @@
   ],
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
   "dependencies": {
     "xgplayer-hls-live": "3.0.0-alpha.16",
     "xgplayer-hls-vod": "3.0.0-alpha.16"

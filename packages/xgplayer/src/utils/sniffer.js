@@ -1,3 +1,25 @@
+/**
+ * @typedef {{
+ *  device: 'pc' | 'mobile',
+ *  browser: 'ie' | 'firefox' | 'chrome' | 'opera' | 'safari',
+ *  os: {
+ *   isTablet: boolean,
+ *   isPhone: boolean,
+ *   isIpad: boolean,
+ *   isIos: boolean,
+ *   isAndroid: boolean,
+ *   isPc: boolean,
+ *   isSymbian: boolean,
+ *   isWindowsPhone: boolean,
+ *   isFireFox: boolean
+ *  },
+ *  isWeixin: boolean
+ * }} ISniffer
+ */
+
+/**
+ * @type ISniffer
+ */
 const sniffer = {
   get device () {
     const r = sniffer.os
@@ -11,7 +33,7 @@ const sniffer = {
     const ua = navigator.userAgent.toLowerCase()
     const reg = {
       ie: /rv:([\d.]+)\) like gecko/,
-      firfox: /firefox\/([\d.]+)/,
+      firefox: /firefox\/([\d.]+)/,
       chrome: /chrome\/([\d.]+)/,
       opera: /opera.([\d.]+)/,
       safari: /version\/([\d.]+).*safari/

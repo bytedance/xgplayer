@@ -39,7 +39,7 @@ export default class FlvController {
 
   initComponents () {
     const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, RemuxedBufferManager, Compatibility, Logger } = this._pluginConfig
-    const { remux } = this.configs
+    const { remux: remuxConfig } = this.configs
 
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -47,10 +47,11 @@ export default class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
-    if (remux) {
-      Object.keys(remux).forEach(key => {
-        remuxer[key] = remux[key]
+    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime).remuxer
+    // 目的是abr场景下 按原来的baseDts进行新流的时间戳偏移. FIXME！
+    if (remuxConfig) {
+      Object.keys(remuxConfig).forEach(key => {
+        remuxer[key] = remuxConfig[key]
       })
     }
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
@@ -64,6 +65,7 @@ export default class FlvController {
     this.on(LOADER_EVENTS.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this))
     this.on(LOADER_EVENTS.LOADER_ERROR, this._handleNetworkError.bind(this))
     this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry.bind(this))
+    this.on(LOADER_EVENTS.LOADER_TTFB, this._handleTTFB.bind(this))
 
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
@@ -90,6 +92,10 @@ export default class FlvController {
 
   _handleKeyFrame (pts) {
     this._player && this._player.emit('isKeyframe', pts)
+  }
+
+  _handleTTFB (info) {
+    this._player && this._player.emit('ttfb', info)
   }
 
   _handleLoaderDataLoaded () {
@@ -268,7 +274,7 @@ export default class FlvController {
       this._player.emit('error', {
         code: '0',
         errorType: 'network',
-        ex: `empty url`,
+        ex: 'empty url',
         errd: {}
       })
       return
@@ -278,7 +284,11 @@ export default class FlvController {
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, {
+      retryCount,
+      retryDelay,
+      loadTimeout: this._pluginConfig.loadTimeout
+    })
   }
 
   pause () {

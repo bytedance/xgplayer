@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-raw264",
-  "version": "2.4.29",
+  "version": "2.4.32",
   "description": "",
   "browser":"dist/index.min.js",
   "main": "lib/index.js",
@@ -11,15 +11,15 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf es && babel src --out-dir es",
-    "build:lib": "rm -rf lib && babel src --out-dir lib",
+    "build:lib": "rm -rf lib && babel src --presets @babel/preset-env --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-codec": "2.4.29",
-    "xgplayer-helper-models": "2.4.29",
-    "xgplayer-helper-utils": "2.4.29",
-    "xgplayer-mobilevideo": "2.4.29"
+    "xgplayer-helper-codec": "2.4.32",
+    "xgplayer-helper-models": "2.4.32",
+    "xgplayer-helper-utils": "2.4.32",
+    "xgplayer-livevideo": "2.4.32"
   }
 }

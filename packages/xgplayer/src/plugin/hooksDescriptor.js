@@ -73,6 +73,9 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
  */
 function useHooks (hookName, handler) {
   const { __hooks } = this
+  if (!__hooks) {
+    return
+  }
   // eslint-disable-next-line no-prototype-builtins
   if (!__hooks.hasOwnProperty(hookName)) {
     console.warn(`has no supported hook which name [${hookName}]`)
@@ -92,7 +95,7 @@ function usePluginHooks (pluginName, ...args) {
     return
   }
   const plugin = this.plugins[pluginName.toLowerCase()]
-  plugin.useHooks && plugin.useHooks(...args)
+  return plugin.useHooks && plugin.useHooks(...args)
 }
 
 /**
@@ -110,11 +113,11 @@ function hooksDescriptor (instance) {
       })
     }
   })
-  instance.hook = hook.bind(instance)
-  instance.useHooks = useHooks.bind(instance)
-  if (instance.plugins) {
-    instance.usePluginHooks = usePluginHooks.bind(instance)
-  }
+  // instance.hook = hook.bind(instance)
+  // instance.useHooks = useHooks.bind(instance)
+  // if (instance.plugins) {
+  //   instance.usePluginHooks = usePluginHooks.bind(instance)
+  // }
 }
 
 function runHooks (obj, hookName, handler, ...args) {
@@ -136,5 +139,8 @@ function runHooks (obj, hookName, handler, ...args) {
 
 export {
   hooksDescriptor as default,
+  hook,
+  useHooks,
+  usePluginHooks,
   runHooks
 }

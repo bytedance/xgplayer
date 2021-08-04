@@ -1037,7 +1037,7 @@ class TsDemuxer extends EventEmitter {
     let extensionSampleIndex
     ret.originAudioObjectType = ret.audioObjectType
     if (/firefox/i.test(userAgent)) {
-      if (ret.frequencyIndex >= 6) {
+      if (ret.frequencyIndex >= 8) {
         ret.audioObjectType = 5
         config = new Array(4)
         extensionSampleIndex = ret.frequencyIndex - 3

@@ -343,7 +343,9 @@ class MSE {
       }
 
       this.endOfStream()
-      window.URL.revokeObjectURL(this.url)
+      try {
+        window.URL.revokeObjectURL(this.url)
+      } catch (e) {}
 
       this.url = null
       this.configs = {}
@@ -375,7 +377,9 @@ class MSE {
 
   get url () {
     if (!this._url) {
-      this._url = window.URL.createObjectURL(this.mediaSource)
+      try {
+        this._url = window.URL.createObjectURL(this.mediaSource)
+      } catch (e) {}
     }
     return this._url
   }

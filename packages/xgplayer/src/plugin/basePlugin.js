@@ -3,6 +3,7 @@ import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import XG_DEBUG from '../utils/debug'
+import hooksDescriptor, { hook, useHooks } from '../plugin/hooksDescriptor'
 
 function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
@@ -16,7 +17,7 @@ class BasePlugin {
   }
 
   /**
-   * @type { object }
+   * @type { { [propName: string]: any } }
    */
   static get defaultConfig () {
     return {}
@@ -31,12 +32,13 @@ class BasePlugin {
 
   /**
    * @constructor
-   * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   * @param { { index?: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
    */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
       this.beforeCreate(args)
     }
+    hooksDescriptor(this)
     /**
      * @private
      */
@@ -208,6 +210,48 @@ class BasePlugin {
    */
   emit (event, res) {
     this.player.emit(event, res)
+  }
+
+  emitUserAction (event, action, params = {}) {
+    if (!action || !event) {
+      return
+    }
+    const eventType = Util.typeOf(event) === 'String' ? event : (event.type || '')
+
+    if (action === 'switch_play_pause') {
+      Util.typeOf(params.paused) === 'Undefined' && (params.paused = this.player.paused)
+      params.isFirstStart = !this.player.playing
+    }
+    this.emit(Events.USER_ACTION, {
+      eventType,
+      action,
+      pluginName: this.pluginName,
+      currentTime: this.player.currentTime,
+      duration: this.player.duration,
+      ended: this.player.ended,
+      target: event.target || null,
+      ...params
+    })
+  }
+
+  /**
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param { {pre: Function| null , next: Function | null} } preset
+   * @returns
+   */
+  hook (hookName, handler, preset = { pre: null, next: null }) {
+    // eslint-disable-next-line no-return-assign
+    return hook.call(this, ...arguments)
+  }
+
+  /**
+   * @param { string } hookName
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
+   */
+  useHooks (hookName, handler, ...args) {
+    return useHooks.call(this, ...arguments)
   }
 
   /**

@@ -12,6 +12,7 @@ class FlvPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 5,
       retryCount: 3,
       retryDelay: 0
@@ -42,7 +43,7 @@ class FlvPlayer extends BasePlugin {
     this.player.switchURL = this.switchURL
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             return this.mse.url
           },
@@ -140,6 +141,7 @@ class FlvPlayer extends BasePlugin {
 
   initEvents () {
     this.on('seeking', () => {
+      if (!this.player || !this.player.getBufferedRange) return
       const time = this.player.currentTime
       const range = this.player.getBufferedRange()
       if (time > range[1] || time < range[0]) {
@@ -276,7 +278,7 @@ class FlvPlayer extends BasePlugin {
     const context = new Context(this.player, this.config, flvAllowedEvents)
     let flv
     if (abr) {
-      const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER')
+      const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER').remuxer
       flv = context.registry('FLV_CONTROLLER', FLV)(this.mse, {
         remux: {
           _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited

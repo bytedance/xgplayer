@@ -4,6 +4,7 @@ import EN from './en'
 const XGI18nLang = {}
 const XGI18nTextKeys = {}
 const XGI18nLangKeys = []
+const XGI18nLangPreExtends = {}
 
 function updateKeys () {
   Object.keys(XGI18nLang.en).map(key => {
@@ -12,14 +13,23 @@ function updateKeys () {
 }
 
 function extend (XGI18nText) {
-  Object.keys(XGI18nText).map(lang => {
-    if (!XGI18nLang[lang]) {
-      XGI18nLang[lang] = {}
-    }
-    if (lang === 'zh') {
-      Util.deepMerge(XGI18nLang['zh-cn'], XGI18nText[lang])
+  let ext = []
+  if (Util.typeOf(XGI18nText) !== 'Array') {
+    ext = Object.keys(XGI18nText).map(lang => {
+      const keyLang = lang === 'zh' ? 'zh-cn' : lang
+      return {
+        LANG: keyLang,
+        TEXT: XGI18nText[lang]
+      }
+    })
+  } else {
+    ext = XGI18nText
+  }
+  ext.map(item => {
+    if (!XGI18nLang[item.LANG]) {
+      XGI18nLangPreExtends[item.LANG] = item.TEXT
     } else {
-      Util.deepMerge(XGI18nLang[lang], XGI18nText[lang])
+      Util.deepMerge(XGI18nLang[item.LANG] || {}, item.TEXT || {})
     }
   })
   updateKeys()
@@ -32,9 +42,13 @@ function use (data) {
     XGI18nLangKeys.push(lang)
   }
   if (XGI18nLang[lang]) {
-    Util.deepMerge(XGI18nLang[lang], texts)
+    Util.deepMerge(texts, XGI18nLang[lang])
   } else {
     XGI18nLang[lang] = texts
+  }
+  if (XGI18nLangPreExtends[lang]) {
+    extend([{ LANG: lang, TEXT: XGI18nLangPreExtends[lang] }])
+    delete XGI18nLangPreExtends[lang]
   }
   if (lang === 'zh-cn') {
     XGI18nLang.zh = XGI18nLang['zh-cn']

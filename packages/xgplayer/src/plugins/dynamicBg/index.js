@@ -165,6 +165,7 @@ class DynamicBg extends Plugin {
     if (!checkIsSupport(video)) {
       return
     }
+    this.stop()
     if (this.config.mode === MODES.REAL_TIME) {
       video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
@@ -190,6 +191,9 @@ class DynamicBg extends Plugin {
     const { width, height } = this.canvas.getBoundingClientRect()
     let image = new window.Image()
     image.onload = () => {
+      if (!this.canvas) {
+        return
+      }
       this.canvas.height = height
       this.canvas.width = width
       this.update(image, image.width, image.height)
@@ -233,6 +237,8 @@ class DynamicBg extends Plugin {
 
   destroy () {
     this.stop()
+    this.canvasCtx = null
+    this.canvas = null
   }
 
   render () {

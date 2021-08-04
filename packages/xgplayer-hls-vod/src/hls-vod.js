@@ -29,7 +29,7 @@ class HlsVodController {
     this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer)()
     this._tracks = this._context.registry('TRACKS', Tracks)()
 
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: false})
+    this._playlist = this._context.registry('PLAYLIST', Playlist)({ autoclear: false })
     this._presource = this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)()
 
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)()
@@ -67,6 +67,7 @@ class HlsVodController {
     this._onRemuxError = this._onRemuxError.bind(this)
     this._onTimeUpdate = this._onTimeUpdate.bind(this)
     this._onWaiting = this._onWaiting.bind(this)
+    this._handleKeyFrame = this._handleKeyFrame.bind(this)
 
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete)
 
@@ -82,6 +83,8 @@ class HlsVodController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
 
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
+
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
 
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
@@ -92,7 +95,7 @@ class HlsVodController {
   }
 
   _onError (type, mod, err, fatal) {
-    let error = {
+    const error = {
       errorType: type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
@@ -147,7 +150,7 @@ class HlsVodController {
       }
     }
     if (end) {
-      let ts = this._playlist.getTs(this._player.currentTime * 1000)
+      const ts = this._playlist.getTs(this._player.currentTime * 1000)
       if (!ts) {
         this._player.emit('ended')
         this.mse.endOfStream()
@@ -162,9 +165,9 @@ class HlsVodController {
 
   _seekToBufferStart () {
     const video = this._player.video
-    let buffered = video.buffered
-    let range = [0, 0]
-    let currentTime = video.currentTime
+    const buffered = video.buffered
+    const range = [0, 0]
+    const currentTime = video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         range[0] = buffered.start(i)
@@ -181,12 +184,18 @@ class HlsVodController {
       video.currentTime = bufferStart
     }
   }
+
   _onTimeUpdate () {
     this._seekToBufferStart()
     this._preload(this._player.currentTime)
   }
+
   _onDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _handleSEIParsed (sei) {
@@ -194,7 +203,7 @@ class HlsVodController {
   }
 
   _onMetadataParsed (type) {
-    let duration = parseInt(this._playlist.duration)
+    const duration = parseInt(this._playlist.duration)
     if (type === 'video') {
       this._tracks.videoTrack.meta.duration = duration
     } else if (type === 'audio') {
@@ -216,11 +225,11 @@ class HlsVodController {
   }
 
   _onLoaderCompete (buffer) {
-    const {fetchOptions = {}} = this._pluginConfig
+    const { fetchOptions = {} } = this._pluginConfig
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
       try {
-        let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
+        const mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl)
         this._playlist.pushM3U8(mdata)
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true)
@@ -229,8 +238,8 @@ class HlsVodController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)()
         this._context.registry('KEY_BUFFER', XgBuffer)()
         this._tsloader.buffer = 'DECRYPT_BUFFER'
-        this._keyLoader = this._context.registry('KEY_LOADER', Loader)({buffer: 'KEY_BUFFER', readtype: 3})
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, fetchOptions)
+        this._keyLoader = this._context.registry('KEY_LOADER', Loader)({ buffer: 'KEY_BUFFER', readtype: 3 })
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, fetchOptions, this._pluginConfig)
       } else {
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
@@ -242,27 +251,27 @@ class HlsVodController {
           }
         }
 
-        let frag = this._playlist.getTs(this._player.currentTime * 1000)
+        const frag = this._playlist.getTs(this._player.currentTime * 1000)
         if (frag) {
           this._logDownSegment(frag)
           this._playlist.downloading(frag.url, true)
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, this._pluginConfig)
         } else {
           if (this.retrytimes > 0) {
             this.retrytimes--
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions)
+            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, this._pluginConfig)
           }
         }
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
       this._playlist.downloaded(this._tsloader.url, true)
-      this._demuxer.demux(Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this._demuxer.demux(Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]))
       this._preload(this._player.currentTime)
       // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3
       this._playlist.downloaded(this._tsloader.url, true)
-      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]))
     } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3
       this._playlist.encrypt.key = buffer.shift()
@@ -276,14 +285,14 @@ class HlsVodController {
 
       this._crypto.on(CRYPTO_EVENTS.DECRYPTED, this._onDcripted.bind(this))
 
-      let frag = this._playlist.getTs()
+      const frag = this._playlist.getTs()
       if (frag) {
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, this._pluginConfig)
       } else {
         if (this.retrytimes > 0) {
           this.retrytimes--
-          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions)
+          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, this._pluginConfig)
         }
       }
     }
@@ -334,10 +343,10 @@ class HlsVodController {
   }
 
   load (url) {
-    const {fetchOptions = {}} = this._pluginConfig
+    const { fetchOptions = {} } = this._pluginConfig
     this.baseurl = M3U8Parser.parseURL(url)
     this.url = url
-    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url, fetchOptions)
+    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url, fetchOptions, this._pluginConfig)
   }
 
   _preload (time) {
@@ -345,8 +354,8 @@ class HlsVodController {
     if (this._tsloader.loading) {
       return
     }
-    let video = this._player.video
-    const {fetchOptions = {}} = this._pluginConfig
+    const video = this._player.video
+    const { fetchOptions = {} } = this._pluginConfig
 
     // Get current time range
     let currentbufferend = -1
@@ -365,7 +374,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag)
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, this._pluginConfig)
       }
     } else if (currentbufferend < video.currentTime + this.preloadTime) {
       let frag = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000)
@@ -393,7 +402,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag)
         this._playlist.downloading(frag.url, true)
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, this._pluginConfig)
       }
     }
   }

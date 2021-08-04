@@ -69,7 +69,7 @@ class Context {
     if (this._inited) {
       return
     }
-    for (let tag in this._clsMap) {
+    for (const tag in this._clsMap) {
       // if not inited, init an instance
       if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
         this.initInstance(tag, config)
@@ -95,6 +95,7 @@ class Context {
         this.TAG = tag
         this._context = self
       }
+
       /**
        * @param {string} messageName
        * @param {function} callback
@@ -141,6 +142,7 @@ class Context {
         emitter.once(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
         return emitter.once(messageName, callback)
       }
+
       /**
        * @param {string} messageName
        * @param {any[]} args
@@ -185,7 +187,7 @@ class Context {
       removeListeners () {
         const hasOwn = Object.prototype.hasOwnProperty.bind(this.listeners)
 
-        for (let messageName in this.listeners) {
+        for (const messageName in this.listeners) {
           if (hasOwn(messageName)) {
             const callbacks = this.listeners[messageName] || []
             for (let i = 0; i < callbacks.length; i++) {
@@ -196,7 +198,7 @@ class Context {
           }
         }
 
-        for (let messageName in this.onceListeners) {
+        for (const messageName in this.onceListeners) {
           if (hasOwn(messageName)) {
             const callbacks = this.onceListeners[messageName] || []
             for (let i = 0; i < callbacks.length; i++) {
@@ -278,7 +280,9 @@ class Context {
    */
   destroy () {
     this.destroyInstances()
-    this._emitter.removeAllListeners()
+    if (this._emitter) {
+      this._emitter.removeAllListeners()
+    }
     this._emitter = null
     this.allowedEvents = []
     this._clsMap = null

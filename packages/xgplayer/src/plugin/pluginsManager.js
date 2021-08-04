@@ -161,6 +161,7 @@ const pluginsManager = {
     if (cgid._pluginInfoId) {
       cgid = cgid._pluginInfoId
     }
+    name = name.toLowerCase()
     try {
       const plugin = this.pluginGroup[cgid]._plugins[name]
       if (plugin) {

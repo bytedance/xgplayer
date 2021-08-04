@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv-live",
-  "version": "3.0.0-alpha.119",
+  "version": "3.0.0-alpha.122",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -12,7 +12,7 @@
     "analyze": "cross-env NODE_ENV=production ANALYZE=1 npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js && cross-env NODE_ENV=production rollup -c rollup.config.mobile.js ",
     "build:es": "rm -rf es && babel src --out-dir es && cp types/es.d.ts es/index.d.ts",
-    "build:lib": "rm -rf lib && babel src --out-dir lib",
+    "build:lib": "rm -rf lib && babel src --presets @babel/preset-env --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch",
     "watch:mobile": "cross-env NODE_ENV=development rollup -c ./rollup.config.mobile.js --watch"
   },
@@ -28,10 +28,13 @@
   },
   "author": "",
   "license": "ISC",
+  "unpkgFiles": [
+    "dist"
+  ],
   "dependencies": {
-    "xgplayer-helper-codec": "2.4.29",
-    "xgplayer-helper-models": "2.4.29",
-    "xgplayer-helper-transmuxers": "2.4.29",
-    "xgplayer-helper-utils": "2.4.29"
+    "xgplayer-helper-codec": "2.4.32",
+    "xgplayer-helper-models": "2.4.32",
+    "xgplayer-helper-transmuxers": "2.4.32",
+    "xgplayer-helper-utils": "2.4.32"
   }
 }

@@ -28,15 +28,15 @@
     "player",
     "video"
   ],
+  "unpkgFiles": [
+    "dist"
+  ],
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
     "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "event-emitter": "^0.3.5"
-  },
-  "peerDependencies": {
-    "xgplayer": "3.0.0-alpha.16"
   },
   "devDependencies": {}
 }

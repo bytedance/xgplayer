@@ -57,7 +57,9 @@ export default class CssFullScreen extends Plugin {
   btnClick (e) {
     e.preventDefault()
     e.stopPropagation()
-    if (!this.player.isCssfullScreen) {
+    const { isCssfullScreen } = this.player
+    this.emitUserAction(e, 'switch_css_fullscreen', { cssfullscreen: isCssfullScreen })
+    if (!isCssfullScreen) {
       this.player.getCssFullscreen(this.config.target)
     } else {
       this.player.exitCssFullscreen(this.config.target)

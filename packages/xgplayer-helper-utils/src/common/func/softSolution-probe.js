@@ -28,7 +28,7 @@ export default function () {
   const WebComponentSupported = 'customElements' in window && window.customElements.define
   let isComponentDefined
   if (WebComponentSupported) {
-    let mVideo = window.customElements.get('mobile-video')
+    let mVideo = window.customElements.get('live-video')
     isComponentDefined = mVideo && mVideo.isSupported()
   }
 

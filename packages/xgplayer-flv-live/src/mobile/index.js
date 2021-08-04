@@ -15,10 +15,11 @@ class FlvPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 5,
-      innerDegrade: null,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 0,
+      innerDegrade: null
     })
   }
 
@@ -37,7 +38,6 @@ class FlvPlayer extends BasePlugin {
     const { player } = this
     const preloadTime = player.config.preloadTime || this.config.preloadTime
     const innerDegrade = this.config.innerDegrade || player.config.innerDegrade
-    const mobilePluginName = FlvPlayer.pluginName.toLowerCase()
 
     if (player.video && innerDegrade) {
       player.video.setAttribute('innerdegrade', innerDegrade)
@@ -53,8 +53,9 @@ class FlvPlayer extends BasePlugin {
     if (!player.forceDegradeToVideo) {
       player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this)
     }
-
-    player.video.setDecodeMode(this.config.decodeMode)
+    if (player.video.setDecodeMode) {
+      player.video.setDecodeMode(this.config.decodeMode)
+    }
   }
 
   afterCreate () {
@@ -71,6 +72,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!player.paused) {
         const timer = setInterval(() => {
+          if (!player || !player.video) return window.clearInterval(timer)
           const end = player.getBufferedRange()[1]
           if (Math.abs(player.currentTime - end) < 0.5) {
             player.emit('ended')
@@ -91,6 +93,7 @@ class FlvPlayer extends BasePlugin {
 
     // autoplay:true 不能自动播放的, 停止拉流
     this.on(Events.AUTOPLAY_PREVENTED, () => {
+      if (!this.flv) return
       this.flv.pause()
     })
     this.player.video.addEventListener('lowdecode', this.lowdecode)
@@ -167,7 +170,7 @@ class FlvPlayer extends BasePlugin {
     const { player } = this
     const backupConstructor = player.config.backupConstructor || this.config.backupConstructor
     if (!backupConstructor || !url) {
-      throw new Error(`need backupConstructor and backupURL`)
+      throw new Error('need backupConstructor and backupURL')
     }
     if (backupConstructor) {
       player.config.url = url

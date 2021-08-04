@@ -11,7 +11,7 @@ export default class FlvLivePlayer {
   }
 
   constructor (config) {
-    if (FlvLiveMobilePlayer.isSupported() && config.player.config.mediaType === 'mobile-video') {
+    if (FlvLiveMobilePlayer.isSupported() && config.player.config.mediaType === 'live-video') {
       return new FlvLiveMobilePlayer(config)
     } if (FlvLiveMsePlayer.isSupported()) {
       return new FlvLiveMsePlayer(config)

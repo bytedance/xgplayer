@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -9,7 +9,7 @@ import ExitFullScreenSvg from '../assets/exitFull.svg'
  *   index?: number,
  *   useCssFullscreen?: boolean, //是否启用页面全屏实现
  *   rotateFullscreen?: boolean, ////是否启用旋转全屏
- *   switchCallback?: null | Function, // 自定义切换函数
+ *   switchCallback?: () => any, // 自定义切换函数
  *   target?: null | HTMLElement, // 触发元素
  *   disable?: boolean,
  *   needBackIcon?: boolean, // 全屏退出是否启用左上角返回按钮
@@ -50,13 +50,16 @@ export default class Fullscreen extends Plugin {
    * @private
    */
   afterCreate () {
-    hooksDescriptor(this)
     if (this.config.disable) {
       return
     }
     this.initIcons()
 
-    this.handleFullscreen = this.hook('fullscreen_change', this.changeFullScreen)
+    this.handleFullscreen = this.hook('fullscreen_change', this.changeFullScreen, {
+      pre: (e) => {
+        this.emitUserAction(e, 'switch_fullscreen', { fullscreen: this.player.fullscreen })
+      }
+    })
 
     this.bind('.xgplayer-fullscreen', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.handleFullscreen)
 
@@ -80,15 +83,20 @@ export default class Fullscreen extends Plugin {
       })
     }
     if (Sniffer.device === 'mobile') {
-      window.addEventListener('orientationchange', () => {
-        if (this.player.fullscreen && this.config.rotateFullscreen) {
-          if (window.orientation === 90 || window.orientation === -90) {
-            this.setRotateDeg(0)
-          } else {
-            this.setRotateDeg(90)
-          }
-        }
-      })
+      window.addEventListener('orientationchange', this._onOrientationChange)
+    }
+  }
+
+  /**
+   * @private
+   */
+  _onOrientationChange = (e) => {
+    if (this.player.fullscreen && this.config.rotateFullscreen) {
+      if (window.orientation === 90 || window.orientation === -90) {
+        this.setRotateDeg(0)
+      } else {
+        this.setRotateDeg(90)
+      }
     }
   }
 
@@ -104,6 +112,9 @@ export default class Fullscreen extends Plugin {
 
   destroy () {
     this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.handleFullscreen)
+    if (Sniffer.device === 'mobile') {
+      window.removeEventListener('orientationchange', this._onOrientationChange)
+    }
   }
 
   initIcons () {

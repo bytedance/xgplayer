@@ -74,12 +74,13 @@ export default class PlaybackRate extends OptionsIcon {
   onItemClick (e, data) {
     super.onItemClick(...arguments)
     const target = e.delegateTarget
-    const rate = target.getAttribute('rate')
-    if (Number(rate) === this.curValue) {
+    const rate = Number(target.getAttribute('rate'))
+    if (!rate || rate === this.curValue) {
       return false
     }
-    this.curValue = Number(rate)
-    this.player.playbackRate = Number(rate)
+    this.emitUserAction(e, 'change_rate', { from: this.player.playbackRate, to: rate })
+    this.curValue = rate
+    this.player.playbackRate = rate
   }
 
   renderItemList () {

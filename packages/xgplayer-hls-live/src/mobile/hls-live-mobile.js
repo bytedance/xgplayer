@@ -36,7 +36,7 @@ class HlsLiveController {
     this._context.registry('TS_BUFFER', XgBuffer)
     this._context.registry('TRACKS', Tracks)
 
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger})
+    this._playlist = this._context.registry('PLAYLIST', Playlist)({ autoclear: true, logger })
 
     // 初始化M3U8Loader;
     this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 })
@@ -58,6 +58,8 @@ class HlsLiveController {
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
+
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame.bind(this))
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
 
@@ -118,6 +120,11 @@ class HlsLiveController {
     }
     this._consumeFragment()
   }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
+  }
+
   _onMetadataParsed (type) {
     logger.warn(this.TAG, 'meta detect or changed , ', type)
     if (type === 'audio') {
@@ -217,20 +224,24 @@ class HlsLiveController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)()
         this._context.registry('KEY_BUFFER', XgBuffer)()
         this._tsloader.buffer = 'DECRYPT_BUFFER'
-        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3})
+        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({ buffer: 'KEY_BUFFER', readtype: 3 })
         const { count: times, delay: delayTime } = this._player.config.retry || {}
         // 兼容player.config上传入retry参数的逻辑
         const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
         const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay)
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, {
+          retryCount,
+          retryDelay,
+          loadTimeout: this._pluginConfig.loadTimeout
+        })
       } else {
         this._m3u8Loaded(mdata)
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retryTimes = this._pluginConfig.retryTimes
       this._playlist.downloaded(this._tsloader.url, true)
-      this._downloadedFragmentQueue.push(Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this._downloadedFragmentQueue.push(Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]))
       this._consumeFragment()
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retryTimes = this._pluginConfig.retryTimes
@@ -265,7 +276,7 @@ class HlsLiveController {
   }
 
   _m3u8Loaded (mdata) {
-    this.m3u8FlushDuration = this._playlist.targetduration || this.m3u8FlushDuration
+    this.m3u8FlushDuration = this._playlist.avgSegmentDuration || this.m3u8FlushDuration
     if (this._playlist.fragLength > 0) {
       this.retryTimes = this._pluginConfig.retryTimes
     } else {
@@ -280,6 +291,7 @@ class HlsLiveController {
       }
     }
   }
+
   _checkStatus () {
     if (this.retryTimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
       return
@@ -313,14 +325,22 @@ class HlsLiveController {
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag)
       this._playlist.downloading(frag.url, true)
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, retryCount, retryDelay)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, {
+        retryCount,
+        retryDelay,
+        loadTimeout: this._pluginConfig.loadTimeout
+      })
     } else {
       this._consumeFragment(true)
       let current = new Date().getTime()
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, retryCount, retryDelay)
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, {
+          retryCount,
+          retryDelay,
+          loadTimeout: this._pluginConfig.loadTimeout
+        })
       }
     }
   }

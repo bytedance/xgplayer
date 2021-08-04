@@ -1,4 +1,4 @@
-import Plugin, { hooksDescriptor, Util, Events } from '../../plugin'
+import Plugin, { Util, Events } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
@@ -7,7 +7,7 @@ import PauseSvg from '../assets/pause.svg'
  *  isShowPause?: boolean, // 暂停是否常驻
  *  isShowEnd?: boolean, // 播放结束常驻
  *  disableAnimate?: boolean, // 禁用点击动画
- *  mode?: 'hide' | 'show' | 'auto // 控制模式: hide 常驻: show 跟随：auto
+ *  mode?: 'hide' | 'show' | 'auto' // 控制模式: hide 常驻: show 跟随：auto
  *  [propName: string]: any
  * }} IStartConfig
  */
@@ -57,7 +57,6 @@ class Start extends Plugin {
 
   afterCreate () {
     const { player, playerConfig } = this
-    hooksDescriptor(this)
 
     this.initIcons()
     this.once(Events.READY, () => {
@@ -100,6 +99,7 @@ class Start extends Plugin {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
+        this.emitUserAction(e, 'switch_play_pause')
       }
     })
 
@@ -119,8 +119,8 @@ class Start extends Plugin {
 
   initIcons () {
     const { icons } = this
-    this.appendChild(icons.startPlay)
-    this.appendChild(icons.startPause)
+    this.appendChild('xg-start-inner', icons.startPlay)
+    this.appendChild('xg-start-inner', icons.startPause)
   }
 
   hide () {
@@ -225,6 +225,7 @@ class Start extends Plugin {
     const className = this.playerConfig.autoplay ? (this.config.mode === 'auto' ? 'auto-hide' : 'hide') : ''
     return `
     <xg-start class="xgplayer-start ${className}">
+    <xg-start-inner></xg-start-inner>
     </xg-start>`
   }
 }

@@ -1,4 +1,27 @@
 # 版本更新记录
+## 3.0.0-alpha.93
+>* feat: (xgplayer) 音量插件音量为0取消静音的时候设置默认音量
+>* fix:(xgplayer) 修复retry直播流程异常问题; player.useHooks增加return值
+>* feat:(xgplayer) 修改一些ts相关声明
+>* feat(xgplayer): 更新语言注册逻辑, 增加语言注册之前的扩展数据缓存
+>* feat:(xgplayer-mp4) unRegister 增加插件名小写转换; dynamicBg start增加stop之前的动画逻辑
+>* feat:(xgplayer): 增加內置插件用戶行为数据触发事件USER_ACTION, plugin封装统一的触发API-> emitUserAction
+
+## 3.0.0-alpha.92
+>* chore: (xgplayer) 修正类型注释错误导致d.ts导出异常问题
+>* feat: (xgplayer) 增加zoom配置参数，用于兼容父节点css设置了zoom导致计算异常问题 https://bugs.chromium.org/p/chromium/issues/detail?id=429140#c8
+>* fix:  (xgplayer) fullscreen插件中orientationchange事件销毁移除
+>* fix:  (xgplayer) start和loading增加inner层，解决定位和动效都使用transform在ios上异常问题
+>* feat: (xgplayer) 进入全屏和pc端鼠标hover的时候添加焦点确保快捷键生效
+>* feat: (xgplayer) 增加播放质量数据采集logger插件
+>* feat: (xgplayer) 针对videoSource列表播放资源方式添加error监听
+>* feat: (xgplayer) 增加快捷键事件emit,事件名为SHORTCUT
+
+## 3.0.0-alpha.91
+>* chore: (xgplayer) 删除src独立定义的d.ts文件，只保留proxy.d.ts
+>* feat: (xgplayer) 修改hook装饰器使用方式，在player和BasePlugin中显示声明hook相关API，便于d.ts文件生成
+>* chore: (xgplayer) 所有文件属性、api增加jsdoc，用于自动生成d.ts声明文件
+
 ## 3.0.0-alpha.90
 >* chore: babel.config.js替代.babelrc,解决lib目录下打包异常问题; version
 生成改成静态字符串替换方式

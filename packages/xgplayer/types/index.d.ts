@@ -366,44 +366,33 @@ declare module 'xgplayer' {
     STALLED: 'stalled',
     SUSPEND: 'suspend',
     ABORT: 'abort',
-    // player events,
     BUFFER_CHANGE: 'bufferedChange',
     PLAYER_FOCUS: 'focus',
     PLAYER_BLUR: 'blur',
     READY: 'ready',
     URL_NULL: 'urlNull',
-    /**
-     * 自动起播成功
-     */
     AUTOPLAY_STARTED: 'autoplay_started',
-    /**
-     * 自动起播失败
-     */
     AUTOPLAY_PREVENTED: 'autoplay_was_prevented',
     COMPLETE: 'complete',
     REPLAY: 'replay',
     DESTROY: 'destroy',
     URL_CHANGE: 'urlchange',
-    // screen change evnets,
     FULLSCREEN_CHANGE: 'fullscreen_change',
     CSS_FULLSCREEN_CHANGE: 'cssFullscreen_change',
     MINI_STATE_CHANGE: 'mini_state_change',
     DEFINITION_CHANGE: 'definition_change',
     BEFORE_DEFINITION_CHANGE: 'before_definition_change',
     AFTER_DEFINITION_CHANGE: 'after_definition_change',
-    // transmuxer events,
     SEI_PARSED: 'SEI_PARSED',
     RETRY: 'retry',
-    // 容器宽高变化,
     VIDEO_RESIZE: 'video_resize',
-    // picture-in-picture状态变化,
     PIP_CHANGE: 'pip_change',
-    // rotate change
     ROTATE: 'rotate',
-    // screenShot
-    SCREEN_SHOT: 'screenShot'
-    // play next
-    PLAYNEXT: 'playnext'
+    SCREEN_SHOT: 'screenShot',
+    PLAYNEXT: 'playnext',
+    SHORTCUT: 'shortcut',
+    XGLOG: 'xglog',
+    USER_ACTION: 'user_action',
   }
 
   interface STATE_CLASS {
@@ -421,7 +410,10 @@ declare module 'xgplayer' {
     ACTIVE: 'xgplayer-inactive',
     FULLSCREEN: 'xgplayer-is-fullscreen',
     CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
+    PARENT_FULLSCREEN: 'xgplayer-fullscreen-parent',
     ROTATE_FULLSCREEN: 'xgplayer-rotate-fullscreen',
+    PARENT_ROTATE_FULLSCREEN: 'xgplayer-rotate-parent',
+    INNER_FULLSCREEN: 'xgplayer-inner-fullscreen',
     NO_CONTROLS: 'no-controls',
     FLEX_CONTROLS: 'flex-controls',
     CONTROLS_FOLLOW: 'controls-follow',
@@ -430,7 +422,7 @@ declare module 'xgplayer' {
     SEEKING: 'seeking',
     PC: 'xgplayer-pc',
     MOBILE: 'xgplayer-mobile',
-    MINI: 'xgplayer-mini' // 小窗播放状态 // 小窗播放状态
+    MINI: 'xgplayer-mini' // mini screen play status
   }
 
   // export interface TextTrack {
@@ -591,8 +583,14 @@ declare module 'xgplayer' {
     // 需要使用的preset列表
     presets?: any[];
 
-    // video标签扩展属性
+    /**
+     * @deprecated
+     * 已经废弃，后续使用videoAttributes
+     */
     videoAttrbutes?: any;
+
+    // video标签扩展属性
+    videoAttributes?: any;
 
     // 按钮配置列表
     icons?: any;
@@ -732,100 +730,139 @@ declare module 'xgplayer' {
     use: (data: XGI18nLang) => void;
   }
 
-  class BasePlugin {
-    static defineGetterOrSetter(Obj: object, map: object): void;
-    constructor(args: object);
+  export class BasePlugin {
+    static defineGetterOrSetter(Obj: any, map: any): void;
     /**
-     * 播放器实例
+     * @type { { [propName: string]: any } }
      */
-    player: any;
-
+    static get defaultConfig(): {
+      [propName: string]: any;
+    };
     /**
-     * 播放器配置
+     * @type { string }
      */
-    playerConfig: any;
-
+    static get pluginName(): string;
     /**
-     * 插件名
+     * @constructor
+     * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
      */
-    pluginName: string;
-
+    constructor(args: {
+      [propName: string]: any;
+      index: number;
+      player: object;
+      pluginName: string;
+      config: {
+        [propName: string]: any;
+      };
+    });
     /**
-     * 日志对象
+     * @private
      */
-    logger: any;
-
+    private __args;
+    /**
+     * @private
+     */
+    private __events;
+    config: {
+      [propName: string]: any;
+    };
+    /**
+     * @readonly
+     * @type {object}
+     */
+    readonly player: object;
+    /**
+       * @readonly
+       * @type {object}
+       */
+    readonly playerConfig: object;
+    /**
+       * @readonly
+       * @type {string}
+       */
+    readonly pluginName: string;
+    beforeCreate(): void;
+    afterCreate(): void;
+    beforePlayerInit(): void;
+    onPluginsReady(): void;
+    afterPlayerInit(): void;
+    destroy(): void;
+    /**
+     * @private
+     * @param { any } args
+     */
+    private __init;
     /**
      * 更新语言
-     * @param lang
+     * @param { string } lang
      */
     updateLang(lang: string): void;
-
     /**
-     * 当前语言
-     * @param lang
+     * @type { string }
      */
-    lang: string;
-
-    i18n: any;
-
-    i18nKeys: any;
-
+    get lang(): string;
+    get i18n(): any;
+    get i18nKeys(): any;
     /**
-     * 添加事件监听
-     * @param event
-     * @param callback
+     *
+     * @param { string | Array<string> } event
+     * @param { Function } callback
+     * @returns
      */
-    on(event: string, callback: Function): void;
-
+    on(event: string | Array<string>, callback: Function): void;
     /**
-     * 添加事件监听
-     * @param event
-     * @param callback
+     *
+     * @param { string } event
+     * @param { Function } callback
+     * @returns
      */
     once(event: string, callback: Function): void;
-
     /**
-     * 解除事件监听
-     * @param event
-     * @param callback
+     *
+     * @param { string } event
+     * @param { Function } callback
+     * @returns
      */
     off(event: string, callback: Function): void;
-
-    /**
-     * 解除所有事件监听
-     */
     offAll(): void;
-
     /**
-     * 触发某个事件
-     * @param event
-     * @param data
+     *
+     * @param { string } event
+     * @param { any } res
+     * @returns
      */
-    emit(event: string, data: any): void;
-
+    emit(event: string, res: any): void;
+    emitUserAction(event: any, action: any, params?: {}): void;
     /**
-     * 注册一个插件
-     * @param plugin 插件构造器
-     * @param options 插件配置
-     * @param name 插件名称
+     * @param { string } hookName
+     * @param { Function } handler
+     * @param { {pre: Function| null , next: Function | null} } preset
+     * @returns
      */
-    registerPlugin(plugin: object, options?: object, name?: string): BasePlugin | null;
-
+    hook(hookName: string, handler: Function, preset?: {
+      pre: Function | null;
+      next: Function | null;
+    }, ...args: any[]): any;
     /**
-     * 根据插件名称获取插件实例
-     * @param name
+     * @param { string } hookName
+     * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+     * @param  {...any} args
      */
-    getPlugin(name: string): BasePlugin;
-
+    useHooks(hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): any;
     /**
-     * 播放器销毁回调
+     * 注册子插件
+     * @param { any } plugin
+     * @param { any } [options]
+     * @param { string } [name]
+     * @returns { object }
      */
-    destroy(): void;
-
+    registerPlugin(plugin: any, options?: any, name?: string): object;
     /**
-     * 销毁播放器
+     *
+     * @param { string } name
+     * @returns { object | null }
      */
+    getPlugin(name: string): object | null;
     __destroy(): void;
   }
 
@@ -845,7 +882,7 @@ declare module 'xgplayer' {
     CONTROLS: string;
   }
 
-  class Plugin extends BasePlugin {
+  export class Plugin extends BasePlugin {
 
     static ROOT_TYPES: ROOT_TYPES;
 
@@ -910,432 +947,753 @@ declare module 'xgplayer' {
     ignores: Array<string>
   }
 
-  class Proxy extends EventEmitter {
-    video?: HTMLMediaElement | HTMLElement;
+  export type IVideoProxy = {
+    duration: number;
+    currentTime: number;
+    muted: boolean;
+    defaultMuted: boolean;
+    volume: number;
+    playbackRate: number;
+    defaultPlaybackRate: number;
+    autoplay: boolean;
+    readonly paused: boolean;
+    readonly ended: boolean;
+    readonly networkState: number;
+    readonly readyState: number;
+    readonly seeking: boolean;
+    src: any;
+    play: Function;
+    pause: Function;
+  };
 
-    // 初始化时添加在video上的属性集合
-    videoConfig?: {
+  class Proxy extends EventEmitter {
+    /**
+     * @constructor
+     * @param {any} options
+     */
+    constructor(options: any);
+    /**
+     * @private
+     */
+    private _hasStart;
+    /**
+     * @private
+     */
+    private _currentTime;
+    /**
+     * @private
+     */
+    private _duration;
+    /**
+     * @description 初始化时添加在video上的属性集合
+     * @type { {[propName: string]: any; } }
+     */
+    videoConfig: {
       [propName: string]: any;
     };
-
-    // 是否开始播放
-    get hasStart(): boolean;
-    set hasStart(value: boolean);
-
-    // 设置/返回 自动播放属性
-    get autoplay(): boolean;
-    set autoplay(value: boolean);
-
-    // 返回当前缓冲的TimeRange对象集合
-    get buffered(): TimeRanges;
-
-    get bufferedPoint(): Array<{
-      start: number;
-      end: number;
-    }>;
-
-    // 设置/返回是否跨域
-    get crossOrigin(): string | null;
-    set crossOrigin(value: string | null);
-
-    // 设置/返回视频播放地址
-    get currentSrc(): any;
-    set currentSrc(value: any);
-
-    // 设置/返回视频当前播放时间
-    get currentTime(): number;
-    set currentTime(value: number);
-
-    // 设置/返回视频默认静音
-    get defaultMuted(): boolean;
-    set defaultMuted(value: boolean);
-
-    // 返回视频时长，单位：秒
-    get duration(): number;
-
-    // 返回视频是否播放结束
-    get ended(): boolean;
-
-    // 视频错误信息，该错误会返回当前语言的文本
-    get error(): string;
-
-    // 是否开启了循环播放
-    get loop(): boolean;
-    set loop(value: boolean);
-
-    // 静音
-    get muted(): boolean;
-    set muted(value: boolean);
-
-    // 返回视频的当前网络状态
-    get networkState(): string | undefined;
-
-    // 返回当前视频是否是暂停状态
-    get paused(): boolean;
-
-    get played(): any;
-
-    get preload(): boolean;
-    // set preload(value: boolean): void;
-
-    // 返回视频的就绪状态
-    get readyState(): string;
-
-    // 当前视频是否可以seek
-    get seekable(): boolean;
-
-    // 当前视频是否处于seeking状态下
-    get seeking(): boolean;
-
-    // 设置/返回当前视频的地址
-    get src(): any;
-    set src(value: any);
-
-    // 设置/返回视频的音量
-    get volume(): number;
-    set volume(value: number);
-
-    // // 播放器外层容器 DOM
-    // root: HTMLElement;
-
-    // // 播放器控制条外层容器 DOM
-    // controls: HTMLElement;
-
-    // // 播放器是否处于全屏状态
-    // readonly fullscreen: boolean;
-
-    // // 播放器弹幕是否开启
-    // readonly bullet: boolean;
-
-    // // 播放器外挂字幕是否开启
-    // readonly textTrack: boolean;
-
-    // // 播放器画中画是否开启
-    // readonly pip: boolean;
-
     /**
-     * 播放
+     * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IVideoProxy | null }
+     */
+    video: HTMLVideoElement | HTMLAudioElement | HTMLElement | IVideoProxy | null;
+    /**
+     * @private
+     */
+    private _interval;
+    /**
+     * @readonly
+     */
+    readonly videoEventMiddleware: {};
+    /**
+     * @description set middleware
+     * @param { {[propName: string]: (e: {player: any, eventName: string}, callback: () => void) => any} } middlewares
+     */
+    setEventsMiddleware(middlewares: {
+      [propName: string]: (e: {
+        player: any;
+        eventName: string;
+      }, callback: () => void) => any;
+    }): void;
+    /**
+     * @description remove middleware
+     * @param { { [propName: string]: (e: {player: any, eventName: string}, callback: () => void) => any} } middlewares
+     */
+    removeEventsMiddleware(middlewares: {
+      [propName: string]: (e: {
+        player: any;
+        eventName: string;
+      }, callback: () => void) => any;
+    }): void;
+    /**
+     * Add media eventListener to the video object
+     * @param { any } [video]
+     */
+    attachVideoEvents(video?: any): void;
+    /**
+     * @private
+     */
+    private _evHandlers;
+    /**
+     * @description remove media eventListener from the video object
+     * @param { any } [video]
+     */
+    detachVideoEvents(video?: any): void;
+    /**
+     * @description Media Error handler
+     * @param { string } eventName
+     */
+    errorHandler(name: any, error?: any): void;
+    set hasStart(arg: boolean);
+    /**
+     * @type { boolean }
+     * @description 是否开始播放
+     */
+    get hasStart(): boolean;
+    destroy(): void;
+    /**
      *
+     * @returns {  Promise<void> | null }
      */
     play(): Promise<void> | null;
-
-    /**
-     * 播放
-     *
-     */
     pause(): void;
-
     /**
-     * 检测您的浏览器是否能播放不同类型的视频
      *
-     * @param type 可播放类型，'video/mp4; codecs="avc1.64001E, mp4a.40.5"'
+     * @param { string } type
+     * @returns { boolean }
      */
-    canPlayType(type: string): CanPlayTypeResult;
-
+    canPlayType(type: string): boolean;
     /**
-     *  返回当前的缓冲片段时间范围，start表示缓冲起始时间，end表示缓存截止时间
      *
+     * @param { any } [buffered]
+     * @returns { Array<number> }
      */
-    getBufferedRange(): Array<{
+    getBufferedRange(buffered?: any): Array<number>;
+    /**
+     * @type { boolean }
+     * @description 设置/返回 自动播放属性
+     */
+    set autoplay(arg: any);
+    get autoplay(): any;
+    /**
+     * @type { TimeRanges }
+     * @description  返回当前缓冲的TimeRange对象集合
+     */
+    get buffered(): TimeRanges;
+    /**
+     * @type { Array<{start: number, end: number}> }
+     * @description  返回当前自定义的缓存列表
+     */
+    get buffered2(): {
       start: number;
       end: number;
-    }>;
-
+    }[];
     /**
-     * 播放器销毁
-     *
+     * @type { {start: number, end: number} }
      */
-    destroy(): void;
-
+    get bufferedPoint(): {
+      start: number;
+      end: number;
+    };
+    set crossOrigin(arg: string);
     /**
-     * 绑定video对象
-     */
-    attachVideoEvents(el: HTMLElement): void;
-
+     * @type { string}
+     * @description 设置/返回是否跨域
+     * */
+    get crossOrigin(): string;
+    set currentSrc(arg: string);
     /**
-     * 解除绑定video元素
-     */
-    detachVideoEvents(el: HTMLElement): void;
-
-    // /**
-    //  * 添加事件监听
-    //  * @param event
-    //  * @param callback
-    //  */
-    // on(event: string, callback: Function): void;
-
-    // /**
-    //  * 添加事件监听
-    //  * @param event
-    //  * @param callback
-    //  */
-    // once(event: string, callback: Function): void;
-
-    // /**
-    //  * 解除事件监听
-    //  * @param event
-    //  * @param callback
-    //  */
-    // off(event: string, callback: Function): void;
-
+     * @type { string }
+     * @description 设置/返回视频播放地址
+     * */
+    get currentSrc(): string;
+    set currentTime(arg: number);
     /**
-     * 解除所有事件监听
+     * @type { number }
+     * @description 设置/返回视频当前播放时间
+     * */
+    get currentTime(): number;
+    set defaultMuted(arg: boolean);
+    /**
+     * @type { boolean }
+     * 设置/返回视频默认静音
+     * */
+    get defaultMuted(): boolean;
+    /**
+     * @type { number }
+     * @description 返回视频时长，单位：s
+     * */
+    get duration(): number;
+    /**
+     * @type { boolean }
+     * @description  回视频是否播放结束
+     * */
+    get ended(): boolean;
+    /**
+     * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
+     * @description  频错误信息，该错误会返回当前语言的文本
      */
-    offAll(): void;
-
-    // /**
-    //  * 触发某个事件
-    //  * @param event
-    //  * @param data
-    //  */
-    // emit(event: string, data: any): void;
+    get error(): any;
+    set loop(arg: boolean);
+    /**
+     * @type { boolean }
+     * @description 否开启了循环播放
+     */
+    get loop(): boolean;
+    set muted(arg: boolean);
+    /**
+     * @type { boolean }
+     * @description 静音
+     */
+    get muted(): boolean;
+    /**
+     * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
+     * @description  返回视频的当前网络状态
+     */
+    get networkState(): any;
+    /**
+     * @type { boolean }
+     * @description  回当前视频是否是暂停状态
+     */
+    get paused(): boolean;
+    set playbackRate(arg: number);
+    /**
+     * @type { number }
+     * @description 返回/设置倍速
+     */
+    get playbackRate(): number;
+    /**
+     * @type { TimeRanges }
+     */
+    get played(): TimeRanges;
+    set preload(arg: boolean);
+    /**
+     * @type { boolean }
+     */
+    get preload(): boolean;
+    /**
+     * @type { string }
+     * @description 回视频的就绪状态
+     */
+    get readyState(): string;
+    /**
+     * @type { boolean }
+     * @description 当前视频是否可以seek
+     */
+    get seekable(): boolean;
+    /**
+     * @type { boolean }
+     * @description 当前视频是否处于seeking状态下
+     */
+    get seeking(): boolean;
+    set src(arg: any);
+    /**
+     * @type { any }
+     * @description 设置/返回当前视频的地址
+     */
+    get src(): any;
+    set volume(arg: number);
+    /**
+     * @type { number }
+     * @description 设置/返回视频的音量
+     */
+    get volume(): number;
   }
 
   export class SimplePlayer extends Proxy {
+    /***
+     * @deprecated
+     * 插件全部迁移完成再做删除
+     */
+    static install(name: any, descriptor: any): void;
+    /***
+     * @deprecated
+     * 插件全部迁移完成再做删除
+     */
+    static use(name: any, descriptor: any): void;
+    static defaultPreset: any;
+    /**
+     * @description 自定义media构造函数
+     */
+    static XgVideoProxy: any;
+    /**
+     * @constructor
+     * @param { IPlayerOptions } options
+     * @returns
+     */
     constructor(options: IPlayerOptions);
-
     /**
-     * 当前播放器的配置信息
+     * @type { IPlayerOptions }
+     * @description 当前播放器的配置信息
      */
-    config?: IPlayerOptions;
-
+    config: IPlayerOptions;
     /**
-     * 当前播放器根节点
+     * @private
      */
-    readonly root?: HTMLElement;
-
+    private userTimer;
     /**
-     * 控制栏和video不同布局的时候内部容器
+     * @private
      */
-    readonly innerContainer?: HTMLElement;
-
-    // 控制栏插件
-    readonly controls?: any;
-
+    private waitTimer;
+    /**
+     * @type { boolean }
+     * @readonly
+     */
     readonly isReady: boolean;
-
-    // 是否进入正常播放流程
-    isPlaying: boolean;
-
-    // 是否处于seeking进行状态
-    isSeeking: boolean;
-
-    // 是否处于可播放状态
-    isCanplay: boolean;
-
-    // 当前是否处于焦点状态
-    isActive: boolean;
-
-    // 当前是否处于css全屏状态
+    /**
+     * Whether the player is real start state
+     * @type { boolean }
+     * @readonly
+     */
+    readonly isPlaying: boolean;
+    /**
+     * Whether the player is in the seeking state
+     * @type { boolean }
+     * @readonly
+     */
+    readonly isSeeking: boolean;
+    /**
+     * @type { boolean }
+     * @readonly
+     */
+    readonly isCanplay: boolean;
+    /**
+     * @private
+     * @readonly
+     */
+    private readonly _runPending;
+    /**
+     *  @type { number }
+     */
+    rotateDeg: number;
+    /**
+     * Whether the player is focus
+     * @type { boolean }
+     * @readonly
+     */
+    readonly isActive: boolean;
+    /**
+     * @type { boolean }
+     * @readonly
+     */
     readonly isCssfullScreen: boolean;
-
-    // 当前是否处于全屏状态
-    readonly fullscreen: boolean;
-
+    set fullscreen(arg: boolean);
     /**
-     * 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
+     * @type { boolean }
+     */
+    get fullscreen(): boolean;
+    /**
+     * fullscreenElement
+     * @type { HTMLElement | null }
+     * @readonly
+     */
+    readonly _fullscreenEl: HTMLElement | null;
+    /**
+     * cssFullscreen target Element
+     * @type { HTMLElement | null }
+     * @readonly
+     */
+    readonly _cssfullscreenEl: HTMLElement | null;
+    /**
+     * @private
+     * @type { string }
+     */
+    private _orgCss;
+    /**
+     * @readonly
+     * @type { number }
+     */
+    readonly _fullScreenOffset: number;
+    /**
+     * @private
+     * @type { number }
+     */
+    private _videoHeight;
+    /**
+     * @private
+     * @type { number }
+     */
+    private _videoWidth;
+    /**
+     * @private
+     * @type { { begin: number, end:number, acc: number } }
+     */
+    private _played;
+    /**
+     * @type { null | HTMLElement }
+     * @readonly
+     * @description  控制栏和video不同布局的时候内部容器
+     */
+    readonly innerContainer: null | HTMLElement;
+    /**
+     * @type { null | Object }
+     * @readonly
+     * @description 控制栏插件
+     */
+    readonly controls: null | any;
+    /**
+     * @type { null | HTMLElement }
+     * @readonly
+     */
+    readonly topBar: null | HTMLElement;
+    /**
+     * @type { null | HTMLElement }
+     * @readonly
+     * @description 当前播放器根节点
+     */
+    readonly root: null | HTMLElement;
+    /**
+     * @readonly
+     * @type {any}
+     */
+    readonly database: any;
+    /**
+     * init control bar
+     * @private
+     */
+    private _initDOM;
+    /**
+     * @private
+     */
+    private _initBaseDoms;
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
+    readonly leftBar: HTMLElement;
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
+    readonly rightBar: HTMLElement;
+    /**
+     * @private
+     */
+    private _bindEvents;
+    /**
+     * @private
+     */
+    private onFullscreenChange;
+    _fullActionFrom: string;
+    /**
+     * @private
+     */
+    private __webkitbeginfullscreen;
+    /**
+     * @private
+     */
+    private __webkitendfullscreen;
+    playFunc: () => void;
+    /**
+     * @private
+     */
+    private _unbindEvents;
+    /**
      *
-     * @param url 视频地址
+     * @param { any } url
+     * @returns
      */
-    start(url?: string): void;
-
+    _startInit(url: any): void;
+    canPlayFunc: any;
     /**
-     * 重新加载视频
+     * 针对source列表播放方式添加错误监听
+     * @doc https://stackoverflow.com/questions/47557135/html5-detect-the-type-of-error-when-trying-to-load-a-video-using-a-source-elem
+     * @protected
+     * @param { HTMLVideoElement | HTMLAudioElement } video
+     */
+    protected _attachSourceEvents(video: HTMLVideoElement | HTMLAudioElement): void;
+    /**
+     * @private
+     */
+    private _videoSourceCount;
+    _sourceError: (e: any) => void;
+    /**
+     * 移除source列表错误事件监听
+     * @protected
+     * @param { HTMLVideoElement | HTMLAudioElement } video
+     */
+    protected _detachSourceEvents(video: HTMLVideoElement | HTMLAudioElement): void;
+    /**
+     * 注册组件 组件列表config.plugins
+     * @private
+     */
+    private _registerPlugins;
+    /**
+     * @private
+     */
+    private _loadingPlugins;
+    /**
+     * @private
+     */
+    private _registerPresets;
+    /**
      *
+     * @param { {plugin: function, options:object} | function } plugin
+     * @param { {[propName: string]: any;} } [config]
+     * @returns { object }
      */
-    reload(): void;
-
+    registerPlugin(plugin: Function | {
+      plugin: Function;
+      options: object;
+    }, config?: {
+      [propName: string]: any;
+    }): object;
     /**
-     * 播放器销毁
      *
-     * @param isDelDom 是否删除Dom
+     * @param { object | string } plugin
      */
-    destroy(isDelDom?: boolean): void;
-
+    unRegisterPlugin(plugin: object | string): void;
     /**
-     *  播放器重播，重播的组件就调用了此API
+     * 当前播放器挂在的插件实例代码
+     * @type { {[propName: string]: any} }
+     */
+    get plugins(): {
+      [propName: string]: any;
+    };
+    /**
      *
+     * @param { string } pluginName
+     * @returns { object | null }
      */
-    replay(): void;
-
+    getPlugin(pluginName: string): object | null;
     /**
-    *  播放器重试，错误重试组件调用了此API
-    *
-    */
-    retry(): void;
-
-    /**
-     * 重置播放器根节点css状态类名
-     */
-    resetClasses(): void;
-    /**
-      * 播放器进入全屏
-      *
-      * @param el 要进入的元素，不传默认`player.root`
-      */
-    getFullscreen(el?: HTMLElement): void;
-
-    /**
-      * 播放器退出全屏
-      *
-      * @param el 要进入的元素，不传默认`player.root`
-      */
-    exitFullscreen(el?: HTMLElement): void;
-
-    /**
-     * 播放器进入样式全屏
-     * @param el 要进入的元素，不传默认`player.root`
-     */
-    getCssFullscreen(el?: HTMLElement): void;
-
-    /**
-     * 播放器退出样式全屏
-     * @param el 要进入的元素，不传默认`player.root`
-     */
-    exitCssFullscreen(el?: HTMLElement): void;
-
-    /**
-     * 播放器旋转
      *
-     * @param clockwise 是否顺时针旋转，默认false
-     * @param innerRotate 是否内部旋转，默认true
-     * @param times 旋转次数（一次旋转90度），默认1
-     */
-    rotate(clockwise?: boolean, innerRotate?: boolean, times?: number): void;
-
-    /**
-     * 注册插件
-     * @param plugin 插件构造函数以及插件位置信息
-     * @param config 插件配置信息
-     */
-    registerPlugin(plugin: any, config?: any): any;
-
-    /**
-     * 注销插件
-     * @param 插件配置
-     */
-    unRegisterPlugin(plugin: any): any;
-
-    /**
-     * 根据插件名称获取插件对象
-     * @param pluginName
-     */
-    getPlugin(pluginName: string): any;
-
-    /**
-     * 给播放器根节点添加className
-     * @param className
+     * @param { string } className
      */
     addClass(className: string): void;
-
     /**
-     * 给播放器根节点移除className
-     * @param className
+     *
+     * @param { string } className
+     * @returns
      */
     removeClass(className: string): void;
-
     /**
-     * 验证当前播放器根节点是否有某个className
-     * @param className
+     *
+     * @param { string } className
+     * @returns { boolean }
      */
     hasClass(className: string): boolean;
-
     /**
-     * 给播放器根节点添加某个属性
-     * @param key
-     * @param value
+     *
+     * @param { string } key
+     * @param { any } value
+     * @returns
      */
-    setAttribute(key: string, value: string): void;
-
+    setAttribute(key: string, value: any): void;
     /**
-     * 给播放器根节点移除某个属性
-     * @param key 
+     *
+     * @param { string } key
+     * @param { any } value
+     * @returns
      */
-    removeAttribute(key: string): void;
-
+    removeAttribute(key: string, value: any): void;
     /**
-     * 快进/快退
-     * @param time
+     *
+     * @param { any } url
+     * @returns { Promise<void> | void }
+     * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
+     */
+    start(url: any): Promise<void> | void;
+    load(): void;
+    videoPlay(): Promise<void>;
+    /**
+     * @private
+     */
+    private _errorTimer;
+    videoPause(): void;
+    /**
+     *
+     * @param { number } time
+     * @returns
      */
     seek(time: number): void;
-
+    reload(): void;
     /**
-     * 检测某个事件是否在缓冲区域内
-     * @param time
+     * @private
+     */
+    private reloadFunc;
+    resetClasses(): void;
+    replay(): void;
+    retry(): void;
+    /**
+     *
+     * @param { HTMLElement } [root]
+     * @param { HTMLElement } [el]
+     * @param { string } [rootClass]
+     * @param { string } [pClassName]
+     */
+    changeFullStyle(root?: HTMLElement, el?: HTMLElement, rootClass?: string, pClassName?: string): void;
+    /**
+     * @private
+     */
+    private _orgPCss;
+    /**
+     *
+     * @param { HTMLElement } [root]
+     * @param { HTMLElement } [el]
+     * @param { string } [rootClass]
+     * @param { string } [pClassName]
+     */
+    recoverFullStyle(root?: HTMLElement, el?: HTMLElement, rootClass?: string, pClassName?: string): void;
+    /**
+     * @param { HTMLElement } [el]
+     * @returns { Promise<void>; }
+     */
+    getFullscreen(el?: HTMLElement): Promise<void>;
+    /**
+     * @param { HTMLElement } [el]
+     * @returns { Promise<void>; }
+     */
+    exitFullscreen(el?: HTMLElement): Promise<void>;
+    /**
+     * @param { HTMLElement } [el]
+     * @returns
+     */
+    getCssFullscreen(el?: HTMLElement): void;
+    /**
+     * @param { HTMLElement } [el]
+     * @returns
+     */
+    exitCssFullscreen(): void;
+    /**
+     *
+     * @param { { autoHide?: boolean, delay?: number} } [data]
+     * @returns
+     */
+    onFocus(data?: {
+      autoHide?: boolean;
+      delay?: number;
+    }): void;
+    /**
+     *
+     * @param {{ ignoreStatus?: boolean }} [data]
+     * @returns
+     */
+    onBlur(data?: {
+      ignoreStatus?: boolean;
+    }): void;
+    /**
+     * @protected
+     */
+    protected onCanplay(): void;
+    /**
+     * @protected
+     */
+    protected onPlay(): void;
+    /**
+     * @protected
+     */
+    protected onPause(): void;
+    /**
+     * @protected
+     */
+    protected onEnded(): void;
+    /**
+     * @protected
+     */
+    protected onError(): void;
+    /**
+     * @protected
+     */
+    protected onSeeking(): void;
+    /**
+     * @protected
+     */
+    protected onSeeked(): void;
+    /**
+     * @protected
+     */
+    protected onWaiting(): void;
+    /**
+     * @protected
+     */
+    protected onPlaying(): void;
+    /**
+     * @protected
+     */
+    protected onTimeupdate(): void;
+    /**
+     *
+     * @param { number } time
+     * @returns { boolean }
      */
     checkBuffer(time: number): boolean;
-
-    /**
-     * 根据视频尺寸和容器尺寸调整宽高
-     */
     getVideoSize(): void;
-
     /**
-     * 调整video对象显示的偏移情况
-     * @param left
-     * @param top
+     *
+     * @param { number } left
+     * @param { number } top
+     * @returns
      */
-    updateObjectPosition(left: number, top: number): void;
-
+    updateObjectPosition(left?: number, top?: number): void;
     /**
-     * 启用某个插件定义的hook
-     * @param pluginName 插件名称/key
-     * @param hookName
-     * @param handler
+     * @type { string }
      */
-    usePluginHooks(pluginName: string, hookName: string, handler: (data?: any) => any): void;
-
+    set lang(arg: any);
+    get lang(): any;
+    get i18n(): any;
+    get i18nKeys(): {};
     /**
-     * 获取当前播放器注册的插件实例列表
-     */
-    get plugins(): any;
-
-    /**
-      * 当前语言
-      */
-    set lang(lang: string);
-    get lang(): string;
-
-    /**
-      * 当前语言包
-      */
-    get i18n(): Object;
-
-    /**
-      * 当前语言包包含的信息
-      */
-    get i18nKeys(): Object;
-
-    /**
-     * 当前sdk版本号
+     * @type { string }
      */
     get version(): string;
-
     /**
-     * 设置config中的url
+     * @type { any }
      */
-    // set url(url: any);
-    // get url(): any;
-
+    set url(arg: any);
+    get url(): any;
     /**
-     * 设置当前封面图
+     * @private
      */
-    set poster(posterUrl: string);
-
+    private __url;
     /**
-     * 获取当前是否是全屏切换进行中状态
+     * @type { string }
+     */
+    set poster(arg: any);
+    get poster(): any;
+    /**
+     * @private
+     */
+    private _isFullScreen;
+    /**
+     * @type { boolean }
      */
     get fullscreenChanging(): boolean;
-
     /**
-     * 获取累计播放时长
+     * 累计观看时长
+     * @type number
      */
     get cumulateTime(): number;
-
     /**
-     * 默认preset
+     * @type { number }
      */
-    static defaultPreset: any
+    set zoom(arg: number);
+    /**
+    * @type { number }
+    */
+    get zoom(): number;
+    /**
+     * @param { string } hookName
+     * @param { Function } handler
+     * @param { {pre: Function| null , next: Function | null} } preset
+     * @returns
+     */
+    hook(hookName: string, handler: Function, preset?: {
+      pre: Function | null;
+      next: Function | null;
+    }, ...args: any[]): any;
+    /**
+     * @param { string } hookName
+     * @param { (player: any, ...args) => boolean | Promise<any> } handler
+     * @param  {...any} args
+     */
+    useHooks(hookName: string, handler: (player: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): void;
+    /**
+     *
+     * @param { string } pluginName
+     * @param { string } hookName
+     * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+     * @param  {...any} args
+     */
+    usePluginHooks(pluginName: string, hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): void;
   }
 
   export default class PresetPlayer extends SimplePlayer {
