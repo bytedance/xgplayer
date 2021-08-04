@@ -1,4 +1,5 @@
 import EVENTS from '../events'
+import { Err } from '../errors'
 import Speed from './speed'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
@@ -116,7 +117,9 @@ class FetchLoader {
         this.loading = false
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
           code: response.status || 21,
-          message: `${response.status} (${response.statusText})`
+          message: `${response.status} (${response.statusText})`,
+          // TODO: 重构老对象
+          err: Err.NETWORK(new Error(response.statusText), url, response.status, response)
         })
       }
     }).catch((error) => {
@@ -139,7 +142,11 @@ class FetchLoader {
         if (error && error.name === 'AbortError') {
           return
         }
-        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({ code: 21 }, error))
+        // TODO: 重构老对象
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({
+          code: 21,
+          err: Err.NETWORK_UNEXPECTED(error, url)
+        }, error))
       }
     })
   }
@@ -267,7 +274,11 @@ class FetchLoader {
       clearTimeout(this._noDataTimer)
       this.loading = false
       if (error && error.name === 'AbortError') return
-      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error)
+      // TODO: 重构老对象
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
+        ...error,
+        err: Err.NETWORK_OTHER(error)
+      })
     })
   }
 

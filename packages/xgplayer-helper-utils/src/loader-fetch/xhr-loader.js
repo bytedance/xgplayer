@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-
+import { Err } from '../errors'
 import EVENTS from '../events'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
@@ -191,7 +191,7 @@ class XhrLoader {
     if (!retryTimes) {
       // emit error
       this.loading = false
-      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, info)
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, { ...info, err: Err.NETWORK(new Error(), url, info?.code, info) })
       return
     }
 

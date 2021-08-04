@@ -19,7 +19,6 @@ export class GapJumper {
       this._lastCurrentTime = currentTime
       return
     }
-    this._lastCurrentTime = currentTime
 
     const buffered = getBuffered(video)
 
