@@ -9,8 +9,10 @@ import EVENTS from './events'
 import FetchLoader from './loader-fetch/fetch-loader'
 import XhrLoader from './loader-fetch/xhr-loader'
 import logger from './common/dev-logger'
+import { Err } from './errors'
 
 export {
+  Err,
   common,
   Context,
   Crypto,
