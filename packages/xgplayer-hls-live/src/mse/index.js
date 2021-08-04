@@ -40,11 +40,11 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _initHlsCtr () {
-    const { url, mediaType } = this.player.config
+    const { url } = this.player.config
     this._context = new Context(this.player, this.config, HlsAllowedEvents)
 
     this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({
-      isMobile: mediaType === 'live-video',
+      isMobile: false,
       ...this.config
     })
     this._context.init()

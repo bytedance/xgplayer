@@ -39,6 +39,7 @@ export default class HlsLiveController {
   _segmentBuffer = null
   _segmentKeyLoader = null
   _crypto = null
+  _compat = null
 
   _tickTimer = null
   _tickInterval = 300
@@ -128,7 +129,7 @@ export default class HlsLiveController {
   // 恢复播放时，外部插件会销毁重建。这里只管暂停，不管恢复播放
   get _videoPaused () {
     const video = this._player?.video
-    return video && video.played.length && video.paused
+    return video && video.played?.length && video.paused
   }
 
   _end () {
@@ -365,27 +366,14 @@ export default class HlsLiveController {
       if (this._player.video) {
         const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
         if (!videoTrack) return
-        videoTrack.samples.forEach((sample) => {
-          if (sample.analyzed) return
-          sample.analyzed = true
-          const nals = sample.nals
-          const nalsLength = nals.reduce((len, current) => (len + 4 + current.body.byteLength), 0)
-          const newData = new Uint8Array(nalsLength)
-          let offset = 0
-          nals.forEach((nal) => {
-            newData.set([0, 0, 0, 1], offset)
-            offset += 4
-            newData.set(new Uint8Array(nal.body), offset)
-            offset += nal.body.byteLength
-          })
-          sample.nals = null
-          sample.data = newData
-        })
+        if (this._compat) {
+          this._compat.doFix()
+        }
         this._player.video.onDemuxComplete(videoTrack, audioTrack)
       }
     } else {
       log('Start remux segment')
-      this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+      this.emit(REMUX_EVENTS.REMUX_MEDIA)
     }
     this._demux()
   }
@@ -399,19 +387,32 @@ export default class HlsLiveController {
         if (audioTrack && audioTrack.meta) {
           this._setMetaToAudio(audioTrack.meta)
         }
-      } else {
-        const { videoTrack } = this._context.getInstance('TRACKS')
-        if (videoTrack && videoTrack.meta) {
-          this._setMetaToVideo(videoTrack.meta)
-        }
+        return
       }
-    } else {
-      if (type === 'video') {
-        this._context.mediaInfo.hasVideo = true
-      } else if (type === 'audio') {
-        this._context.mediaInfo.hasAudio = true
+      const { videoTrack } = this._context.getInstance('TRACKS')
+      if (videoTrack && videoTrack.meta) {
+        this._setMetaToVideo(videoTrack.meta)
       }
-      this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+      return
+    }
+
+    if (type === 'video') {
+      this._context.mediaInfo.hasVideo = true
+    } else if (type === 'audio') {
+      this._context.mediaInfo.hasAudio = true
+    }
+    this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+
+  _setMetaToAudio (audioMeta) {
+    if (this._player.video) {
+      this._player.video.setAudioMeta(audioMeta)
+    }
+  }
+
+  _setMetaToVideo (videoMeta) {
+    if (this._player.video) {
+      this._player.video.setVideoMeta(videoMeta)
     }
   }
 
@@ -430,6 +431,7 @@ export default class HlsLiveController {
   }
 
   _onTimeUpdate = () => {
+    if (this._isMobile) return
     this._catchUp()
   }
 
@@ -522,6 +524,7 @@ export default class HlsLiveController {
     this._playlist = this._context.registry('PLAYLIST', PlaylistNew)()
     this._segmentBuffer = this._context.registry('TS_BUFFER', XgBuffer)()
     this._m3u8RetryTimes = (this._pluginConfig.retrytimes == null) ? this._m3u8RetryTimes : this._pluginConfig.retrytimes
+    this._compat = this._context.registry('COMPATIBILITY', Compatibility)()
 
     this._context.registry('M3U8_BUFFER', XgBuffer)
     this._context.registry('TRACKS', Tracks)()
@@ -530,7 +533,6 @@ export default class HlsLiveController {
     if (!this._isMobile) {
       this.mse = this._context.registry('MSE', Mse)({ container: this._player.video, format: 'hls' })
       this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
-      this._context.registry('COMPATIBILITY', Compatibility)()
       this._context.registry('MP4_REMUXER', Mp4Remuxer)
     }
 
@@ -544,7 +546,9 @@ export default class HlsLiveController {
       }
     })
 
-    this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse))
+    if (this.mse) {
+      this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse))
+    }
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
