@@ -1,6 +1,6 @@
 
 test(
-  'https://pull-hls-l1.ixigua.com/game/stream-109252217386303917_hd/playlist.m3u8'
+  'https://pull-hls-l1.ixigua.com/game/stream-109257009899766189_hd/playlist.m3u8'
 )
 
 function test(url) {

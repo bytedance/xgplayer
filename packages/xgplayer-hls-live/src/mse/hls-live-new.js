@@ -1,6 +1,5 @@
-import { EVENTS, logger } from 'xgplayer-helper-utils'
+import { EVENTS, Err, logger } from 'xgplayer-helper-utils'
 import { getLastBufferedEnd, clamp } from './helper'
-import { Err } from './error'
 import { GapJumper } from './gap-jumper'
 
 const {
@@ -12,7 +11,6 @@ const {
   COMPATIBILITY_EVENTS,
   CORE_EVENTS
 } = EVENTS
-const HLS_ERROR = 'HLS_ERROR'
 
 const log = logger.log.bind(logger, 'HlsLiveController')
 const warn = logger.warn.bind(logger, 'HlsLiveController')
@@ -166,7 +164,7 @@ export default class HlsLiveController {
     try {
       playlist = this._pluginConfig.M3U8ParserNew.parse(buffer.shift(), this._m3u8Url)
     } catch (error) {
-      this._emitError(Err.M3U8Parse(error))
+      this._emitError(Err.M3U8_PARSE(error))
       this.destroy()
       return
     }
@@ -194,7 +192,7 @@ export default class HlsLiveController {
     }
 
     if (!this._opts.targetLatency) {
-      this._opts.targetLatency = level.segmentDuration * playlist.segments.length
+      this._opts.targetLatency = playlist.segments.reduce((t, c) => (t + c.duration), 0)
     }
 
     if (!this._opts.skipSegmentLatency) {
@@ -248,6 +246,7 @@ export default class HlsLiveController {
 
   _shouldRetryM3U8 () {
     if (this._m3u8RetryCount > this._m3u8RetryTimes) {
+      this._emitError(Err.M3U8_CONTENT(new Error('Empty or wrong content')))
       this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
       this.destroy()
       return false
@@ -471,48 +470,26 @@ export default class HlsLiveController {
     }
   }
 
-  _onDemuxError = (mod, error, fatal) => {
-    if (fatal === undefined) fatal = true
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${mod}]: ${error ? error.message : ''}`,
-      errd: {}
-    })
-    this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal)
+  _onDemuxError = (mod, error) => {
+    this._emitError(Err.DEMUX(error))
   }
 
-  _onRemuxError = (mod, error, fatal) => {
-    if (fatal === undefined) fatal = true
-    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
+  _onRemuxError = (mod, error) => {
+    this._emitError(Err.REMUX(error))
   }
 
   _onLoadError = (loader, error) => {
     this._segmentLoading = false
     this._player.pause()
-    this._player.emit('error', {
-      code: error.code,
-      errorType: 'network',
-      ex: `[${loader}]: ${error.message}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true)
+
+    this._emitError(error?.err)
+
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
     this.destroy()
   }
 
-  _onError = (type, mod, err, fatal) => {
-    const error = {
-      code: err.code,
-      errorType: type,
-      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
-      errorFatal: fatal
-    }
-    this._player.emit(HLS_ERROR, error)
-  }
-
   _emitError (error) {
-    this._player?.emit(HLS_ERROR, error)
+    this._player?.emit('error', error)
   }
 
   init () {
