@@ -26,11 +26,13 @@ declare module "utils/util" {
          *
          * @param { string } el
          * @param { string } [tpl=]
-         * @param { object } [attrs={}]
+         * @param { {[propName: string]: any }} [attrs={}]
          * @param { string } [cname='']
          * @returns { HTMLElement | null }
          */
-        function createDom(el?: string, tpl?: string, attrs?: any, cname?: string): HTMLElement;
+        function createDom(el?: string, tpl?: string, attrs?: {
+            [propName: string]: any;
+        }, cname?: string): HTMLElement;
         /**
          *
          * @param { string } html
@@ -371,7 +373,6 @@ declare module "proxy" {
     };
     class VideoProxy {
         /**
-         * @constructor
          * @param {any} options
          */
         constructor(options: any);
@@ -677,38 +678,44 @@ declare module "plugin/hooksDescriptor" {
     function hooksDescriptor(instance: any): void;
     /**
      * 给某个处理函数添加hook能力
-     * @param {String} hookName
-     * @param {Function} handler
-     * @param {Object} preset
+     * @param { string } hookName
+     * @param { Function } handler
+     * @param { { pre?: any, next?:any } } preset
      * {
      *   pre: () => { // run beafore hook},
      *   next: () => { // run after hook return}
      * }
      */
-    export function hook(hookName: string, handler: Function, preset?: any): any;
+    export function hook(hookName: string, handler: Function, preset?: {
+        pre?: any;
+        next?: any;
+    }): any;
     export class hook {
         /**
          * 给某个处理函数添加hook能力
-         * @param {String} hookName
-         * @param {Function} handler
-         * @param {Object} preset
+         * @param { string } hookName
+         * @param { Function } handler
+         * @param { { pre?: any, next?:any } } preset
          * {
          *   pre: () => { // run beafore hook},
          *   next: () => { // run after hook return}
          * }
          */
-        constructor(hookName: string, handler: Function, preset?: any);
+        constructor(hookName: string, handler: Function, preset?: {
+            pre?: any;
+            next?: any;
+        });
         __hooks: {};
     }
     /**
      * 添加hooks
-     * @param {String} 支持的hook名称
-     * @param {Function} 具体的处理函数
+     * @param { string } 支持的hook名称
+     * @param { Function } 具体的处理函数
      */
     export function useHooks(hookName: any, handler: any): boolean;
     /**
      * 给某个插件添加hooks
-     * @param {String} pluginName
+     * @param { string } pluginName
      * @param  {...any} args
      */
     export function usePluginHooks(pluginName: string, ...args: any[]): any;
@@ -944,7 +951,6 @@ declare module "plugin/basePlugin" {
          */
         static get pluginName(): string;
         /**
-         * @constructor
          * @param { IBasePluginOptions } args
          */
         constructor(args: IBasePluginOptions);
@@ -1040,22 +1046,23 @@ declare module "plugin/basePlugin" {
          * @param { string } hookName
          * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
          * @param  {...any} args
+         * @returns { boolean } isSuccess
          */
-        useHooks(hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): any;
+        useHooks(hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): boolean;
         /**
          * 注册子插件
          * @param { any } plugin
          * @param { any } [options]
          * @param { string } [name]
-         * @returns { object }
+         * @returns { any }
          */
-        registerPlugin(plugin: any, options?: any, name?: string): object;
+        registerPlugin(plugin: any, options?: any, name?: string): any;
         /**
          *
          * @param { string } name
-         * @returns { object | null }
+         * @returns { any | null }
          */
-        getPlugin(name: string): object | null;
+        getPlugin(name: string): any | null;
         __destroy(): void;
     }
     import Util from "utils/util";
@@ -1130,7 +1137,6 @@ declare module "plugin/plugin" {
             CONTROLS: string;
         };
         /**
-         * @constructor
          * @param { IPluginOptions } args
          */
         constructor(args?: IPluginOptions);
@@ -1286,66 +1292,66 @@ declare module "plugin/pluginsManager" {
         function checkPlayerRoot(root: Element): any;
         /**
          * register a lazy plugin
-         * @param { object } player instance
-         * @param { object } lazyPlugin config
+         * @param { any } player instance
+         * @param { any } lazyPlugin config
          *
          */
         function lazyRegister(player: any, lazyPlugin: any): Promise<any>;
         /**
          * register a lazy plugin
-         * @param { object } player instance
-         * @param { object } lazyPlugin config
+         * @param { any } player instance
+         * @param { any } lazyPlugin config
          *
          */
         function lazyRegister(player: any, lazyPlugin: any): Promise<any>;
         /**
         * register a Plugin
-        * @param { object } player the plugins install
-        * @param { function } plugin the plugin contructor
-        * @param { object } options the plugin configuration
-        * @return { object } Plugin the plugin instance
+        * @param { any } player the plugins register
+        * @param { any } plugin the plugin contructor
+        * @param { any } options the plugin configuration
+        * @return { any } Plugin the plugin instance
         **/
-        function register(player: any, plugin: Function, options?: any): any;
+        function register(player: any, plugin: any, options?: any): any;
         /**
         * register a Plugin
-        * @param { object } player the plugins install
-        * @param { function } plugin the plugin contructor
-        * @param { object } options the plugin configuration
-        * @return { object } Plugin the plugin instance
+        * @param { any } player the plugins register
+        * @param { any } plugin the plugin contructor
+        * @param { any } options the plugin configuration
+        * @return { any } Plugin the plugin instance
         **/
-        function register(player: any, plugin: Function, options?: any): any;
+        function register(player: any, plugin: any, options?: any): any;
         /**
          * Unregister a plugin from player instance
-         * @param {String} cgid
-         * @param {String} name
+         * @param { string } cgid
+         * @param { string } name
          */
         function unRegister(cgid: string, name: string): void;
         /**
          * Unregister a plugin from player instance
-         * @param {String} cgid
-         * @param {String} name
+         * @param { string } cgid
+         * @param { string } name
          */
         function unRegister(cgid: string, name: string): void;
         /**
          * remove a plugin instance from the player plugin list
-         * @param {Object} player
-         * @param {String} name
+         * @param { any } player
+         * @param { string } name
          */
         function deletePlugin(player: any, name: string): void;
         /**
          * remove a plugin instance from the player plugin list
-         * @param {Object} player
-         * @param {String} name
+         * @param { any } player
+         * @param { string } name
          */
         function deletePlugin(player: any, name: string): void;
         /**
          * get all plugin instance of player
-         * @param {*} player
+         * @param { any } player
          */
         function getPlugins(player: any): any;
         /**
          * get all plugin instance of player
-         * @param {*} player
+         * @param { any } player
          */
         function getPlugins(player: any): any;
         function findPlugin(player: any, name: any): any;
@@ -1463,7 +1469,7 @@ declare module "plugins/controls/index" {
          * @param {} plugin
          * @param { {config?: {[propName: string]: any}, position?:string, root?: HTMLElement, pluginName?: string}} options
          * @param { string } name
-         * @returns { object }
+         * @returns { any }
          */
         registerPlugin(plugin: any, options: {
             config?: {
@@ -1472,7 +1478,7 @@ declare module "plugins/controls/index" {
             position?: string;
             root?: HTMLElement;
             pluginName?: string;
-        }, name: string): object;
+        }, name: string): any;
         destroy(): void;
         render(): string;
     }
@@ -1530,12 +1536,7 @@ declare module "lang/i18n" {
     function use(data: any): void;
 }
 declare module "player" {
-    export type BasePlugin = import("plugin/basePlugin").default;
-    export type Plugin = import("plugin/plugin").default;
     export type IPlayerOptions = import("defaultConfig").IPlayerOptions;
-    /**
-     * @constructor
-     */
     class Player extends VideoProxy {
         /***
          * @deprecated
@@ -1553,9 +1554,7 @@ declare module "player" {
          */
         static XgVideoProxy: any;
         /**
-         * @constructor
          * @param { IPlayerOptions } options
-         * @returns
          */
         constructor(options: IPlayerOptions);
         /**
@@ -1763,30 +1762,30 @@ declare module "player" {
          *
          * @param { {plugin: function, options:object} | function } plugin
          * @param { {[propName: string]: any;} } [config]
-         * @returns { Plugin | BasePlugin } plugin
+         * @returns { any } plugin
          */
         registerPlugin(plugin: Function | {
             plugin: Function;
             options: object;
         }, config?: {
             [propName: string]: any;
-        }): Plugin | BasePlugin;
+        }): any;
         /**
          *
-         * @param { Plugin | BasePlugin } plugin
+         * @param { any } plugin
          */
-        unRegisterPlugin(plugin: Plugin | BasePlugin): void;
+        unRegisterPlugin(plugin: any): void;
         /**
-         * 当前播放器挂在的插件实例代码
+         * 当前播放器挂载的插件实例列表
          * @type { {[propName: string]: any } }
          */
         get plugins(): {
             [propName: string]: any;
         };
         /**
-         *
+         * get a plugin instance
          * @param { string } pluginName
-         * @returns { any } [plugin]
+         * @return { any } plugin
          */
         getPlugin(pluginName: string): any;
         /**
@@ -2037,17 +2036,21 @@ declare module "player" {
          * @param { string } hookName
          * @param { (player: any, ...args) => boolean | Promise<any> } handler
          * @param  {...any} args
+         * @returns {boolean} isSuccess
          */
-        useHooks(hookName: string, handler: (player: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): any;
+        useHooks(hookName: string, handler: (player: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): boolean;
         /**
          *
          * @param { string } pluginName
          * @param { string } hookName
          * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
          * @param  {...any} args
+         * @returns { boolean } isSuccess
          */
-        usePluginHooks(pluginName: string, hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): any;
+        usePluginHooks(pluginName: string, hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): boolean;
     }
+    import Plugin from "plugin/plugin";
+    import BasePlugin from "plugin/basePlugin";
     import * as Events from "events";
     import Errors from "error";
     import Sniffer from "utils/sniffer";
@@ -2055,9 +2058,7 @@ declare module "player" {
     import STATE_CLASS from "stateClassMap";
     import I18N from "lang/i18n";
     import VideoProxy from "proxy";
-    import Plugin from "plugin/plugin";
-    import BasePlugin from "plugin/basePlugin";
-    export { Player as default, Events, Errors, Sniffer, Util, STATE_CLASS, I18N };
+    export { Player as default, Plugin, BasePlugin, Events, Errors, Sniffer, Util, STATE_CLASS, I18N };
 }
 declare module "plugins/common/thumbnail" {
     /**
