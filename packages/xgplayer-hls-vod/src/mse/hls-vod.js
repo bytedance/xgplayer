@@ -35,7 +35,8 @@ class HlsVodController extends BaseController {
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment)
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment)
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._onSourceUpdateEnd)
-    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
+    this.on(MSE_EVENTS.MSE_ERROR, this._onError)
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onError)
   }
 
   _onInitSegment = () => {

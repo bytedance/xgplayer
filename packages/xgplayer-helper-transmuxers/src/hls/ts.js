@@ -1,5 +1,5 @@
-import { EVENTS, logger } from 'xgplayer-helper-utils'
-import {AudioTrack, VideoTrack} from 'xgplayer-helper-models'
+import { EVENTS, logger, Err } from 'xgplayer-helper-utils'
+import { AudioTrack, VideoTrack } from 'xgplayer-helper-models'
 import Demuxer from './ts-demuxer'
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 
@@ -47,7 +47,7 @@ class TsDemuxer {
     try {
       this.demuxer.demux(frag, this.inputBuffer, isVod)
     } catch (e) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, e, false)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, Err.DEMUX(e))
     }
     const hasVideo = this._tracks.videoTrack && this._tracks.videoTrack.samples.length ? 1 : 0
     const hasAudio = this._tracks.audioTrack && this._tracks.audioTrack.samples.length ? 1 : 0

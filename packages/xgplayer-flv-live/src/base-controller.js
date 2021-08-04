@@ -1,13 +1,11 @@
-import { EVENTS } from 'xgplayer-helper-utils'
+import { Errors } from 'xgplayer'
+import { EVENTS, Err } from 'xgplayer-helper-utils'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
-const MSE_EVENTS = EVENTS.MSE_EVENTS
 const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
 const CORE_EVENTS = EVENTS.CORE_EVENTS
-
-const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvBaseController {
   constructor (mse, configs) {
@@ -45,14 +43,14 @@ export default class FlvBaseController {
 
   _bindEvents () {
     this.on(LOADER_EVENTS.LOADER_DATALOADED, this._handleLoaderDataLoaded)
-    this.on(LOADER_EVENTS.LOADER_ERROR, this._handleNetworkError)
     this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry)
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete)
-    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError)
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
     this.on(REMUX_EVENTS.RANDOM_ACCESS_POINT, this._handleAddRAP)
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onError)
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onError)
 
     // 单独处理，插件层initFlvBackupEvents中会有销毁操作
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
@@ -78,7 +76,7 @@ export default class FlvBaseController {
 
   _handleMediaInfo = () => {
     if (!this._context.mediaInfo) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, Err.DEMUX(new Error('failed to get mediainfo')))
     }
   }
 
@@ -107,56 +105,14 @@ export default class FlvBaseController {
     this.emitCoreEvent(CORE_EVENTS.KEYFRAME, pts)
   }
 
-  _handleNetworkError = (tag, err) => {
-    this._player.emit('error', {
-      code: err.code,
-      errorType: 'network',
-      ex: `[${tag}]: ${err.message}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
-  }
-
   _handleFetchRetry = (tag, info) => {
-    this._player.emit('retry', Object.assign({
+    this._player?.emit('retry', Object.assign({
       tag
     }, info))
   }
 
-  _handleDemuxError = (tag, err, fatal) => {
-    if (fatal === undefined) {
-      fatal = false
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${tag}]: ${err ? err.message : ''}`,
-      errd: {}
-    })
-    this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
-  }
-
-  _handleMseError = (tag, err, fatal) => {
-    if (fatal === undefined) {
-      fatal = false
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${tag}]: ${err ? err.message : ''}`,
-      errd: {}
-    })
-    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
-  }
-
-  _onError = (type, mod, err, fatal) => {
-    const error = {
-      code: err.code,
-      errorType: type,
-      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
-      errorFatal: fatal || false
-    }
-    this._player.emit(FLV_ERROR, error)
+  _onError = (_, error) => {
+    this._player?.emit('error', new Errors(this._player, error?.err || error))
   }
 
   /** *********** 上层调用 ********************/
@@ -169,12 +125,6 @@ export default class FlvBaseController {
 
   loadData (url = this._player.config.url) {
     if (!url) {
-      this._player.emit('error', {
-        code: '0',
-        errorType: 'network',
-        ex: 'empty url',
-        errd: {}
-      })
       return
     }
     const { count: times, delay: delayTime } = this._player.config.retry || {}

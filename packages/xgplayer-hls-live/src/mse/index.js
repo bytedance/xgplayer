@@ -1,6 +1,6 @@
 import { BasePlugin, Events } from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-helper-utils'
-import HlsLiveController from './hls-live-new'
+import HlsLiveController from '../hls-live-controller'
 import defaultConfig from './config'
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents

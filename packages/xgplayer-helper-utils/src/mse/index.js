@@ -1,4 +1,5 @@
 import EVENTS from '../events'
+import { Err } from '../errors'
 
 const { MSE_EVENTS } = EVENTS
 class MSE {
@@ -62,6 +63,7 @@ class MSE {
     this.emit(MSE_EVENTS.SOURCE_UPDATE_END)
     this.doAppend()
   }
+
   addSourceBuffers () {
     if (!this.mediaSource || this.mediaSource.readyState !== 'open' || !this.opened) {
       return
@@ -110,7 +112,7 @@ class MSE {
           if ((e.code === 22) && (Object.keys(this.sourceBuffers).length > 0)) {
             return this.emit(MSE_EVENTS.MSE_WRONG_TRACK_ADD, type)
           }
-          this.emit(MSE_EVENTS.MSE_ERROR, this.TAG, new Error(e.message))
+          this.emit(MSE_EVENTS.MSE_ERROR, this.TAG, Err.MSE(e))
         }
       }
       if (Object.keys(this.sourceBuffers).length === this.sourceBufferLen) {
@@ -200,11 +202,11 @@ class MSE {
           if (currentTime - start >= autoCleanupMinBackwardDuration) {
             doRemove = true
             let removeEnd = currentTime - autoCleanupMinBackwardDuration
-            _pendingRemoveRanges[type].push({start: start, end: removeEnd})
+            _pendingRemoveRanges[type].push({ start: start, end: removeEnd })
           }
         } else if (end < currentTime && (currentTime - start >= autoCleanupMinBackwardDuration)) {
           doRemove = true
-          _pendingRemoveRanges[type].push({start: start, end: end})
+          _pendingRemoveRanges[type].push({ start: start, end: end })
         }
       }
       if (doRemove && !sourceBuffer.updating) {

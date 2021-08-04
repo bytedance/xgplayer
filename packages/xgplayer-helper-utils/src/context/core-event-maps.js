@@ -12,7 +12,7 @@ export default {
   [CORE_EVENTS.LOADER_COMPLETE]: ['xgbuffer'],
   [CORE_EVENTS.LOADER_RETRY]: [],
   [CORE_EVENTS.TTFB]: [],
-  [CORE_EVENTS.DEMUX_ERROR]: [],
+  [CORE_EVENTS.DEMUX_ERROR]: ['tag', 'error'],
   [CORE_EVENTS.METADATA_PARSED]: ['type', 'meta'],
   [CORE_EVENTS.REMUX_METADATA]: ['type'],
   [CORE_EVENTS.KEYFRAME]: ['pts'],

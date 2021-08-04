@@ -39,8 +39,9 @@ export default class FlvController extends FlvBaseController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment)
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment)
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onError)
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd)
-    this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError)
+    this.on(MSE_EVENTS.MSE_ERROR, this._onError)
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
@@ -150,19 +151,6 @@ export default class FlvController extends FlvBaseController {
   }
 
   /** *********** 对外事件 ********************/
-
-  _handleMseError = (tag, err, fatal) => {
-    if (fatal === undefined) {
-      fatal = false
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${tag}]: ${err ? err.message : ''}`,
-      errd: {}
-    })
-    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
-  }
 
   destroy () {
     super.destroy()

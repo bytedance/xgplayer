@@ -1,6 +1,6 @@
 import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
-import HLS from '../mse/hls-live-new'
+import HlsLiveController from '../hls-live-controller'
 import defaultConfig from './config'
 
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents
@@ -54,7 +54,7 @@ class HlsPlayer extends BasePlugin {
   _initHlsCtr () {
     const { player } = this
     this._context = new Context(this.player, this.config, hlsAllowedEvents)
-    this.hls = this._context.registry('HLS_CONTROLLER', HLS)({
+    this.hls = this._context.registry('HLS_CONTROLLER', HlsLiveController)({
       isMobile: true,
       ...this.config
     })
