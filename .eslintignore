@@ -4,3 +4,4 @@ dist/*
 scripts/*
 fixtures/*
 /**/__tests__/*
+jest.config.js

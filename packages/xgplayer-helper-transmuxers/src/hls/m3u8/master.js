@@ -1,5 +1,5 @@
-import { MasterPlaylist, MasterStream } from './model'
-import { parseAttr, parseTag } from './utils'
+import { MasterPlaylist, MasterStream } from 'xgplayer-helper-models'
+import { parseAttr, parseTag, getAbsoluteUrl, getCodecs } from './utils'
 
 /**
  * @param {Array<string>} lines
@@ -19,7 +19,25 @@ export function parseMasterPlaylist (lines, parentUrl) {
     if (name === 'VERSION') {
       master.version = parseInt(data)
     } else if (name === 'STREAM-INF' && data) {
-      master.streams.push(new MasterStream(parseAttr(data), lines[index++], parentUrl))
+      const stream = new MasterStream()
+      const attr = parseAttr(data)
+
+      stream.bitrate = parseInt(attr['AVERAGE-BANDWIDTH'] || attr.BANDWIDTH)
+      stream.name = attr.NAME
+      stream.url = getAbsoluteUrl(lines[index++], parentUrl)
+      if (attr.RESOLUTION) {
+        const [w, h] = attr.RESOLUTION.split('x')
+        stream.width = parseInt(w)
+        stream.height = parseInt(h)
+      }
+      if (attr.CODECS) {
+        const codecs = attr.CODECS.split(/[ ,]+/).filter(Boolean)
+        stream.videoCodec = getCodecs('video', codecs)
+        stream.audioCodec = getCodecs('audio', codecs)
+        stream.textCodec = getCodecs('text', codecs)
+      }
+
+      master.streams.push(stream)
     }
   }
 
