@@ -1,6 +1,7 @@
 import M3U8Parser from '../../src/hls/m3u8/index'
 
 describe('m3u8 parser', () => {
+
   test('No #EXTM3U', () => {
     expect(() => {
       M3U8Parser.parse('')
@@ -125,14 +126,15 @@ describe('m3u8 parser', () => {
     #EXT-X-BYTERANGE:143068
     #EXTINF:15.123,title
     fileSequence53-b.ts
+    #EXT-X-ENDLIST
     `,
     'https://test/video')
 
     expect(ret.version).toBe(3)
     expect(ret.type).toBe('VOD')
-    expect(ret.live).toBe(true)
-    expect(ret.targetDuration).toBe(15)
-    expect(ret.totalDuration).toBe(2.833+15+13.333+15+15.123)
+    expect(ret.live).toBe(false)
+    expect(ret.targetDuration).toBe(15000)
+    expect(ret.totalDuration).toBe(2.833*1000+15*1000+13.333*1000+15*1000+15.123*1000)
     expect(ret.startSN).toBe(7794)
     expect(ret.endSN).toBe(7798)
     expect(ret.startCC).toBe(20)
@@ -151,11 +153,23 @@ describe('m3u8 parser', () => {
     expect(ret.segments[3].cc).toBe(21)
     expect(ret.segments[4].cc).toBe(21)
 
-    expect(ret.segments[0].duration).toBe(2.833)
-    expect(ret.segments[1].duration).toBe(15)
-    expect(ret.segments[2].duration).toBe(13.333)
-    expect(ret.segments[3].duration).toBe(15)
-    expect(ret.segments[4].duration).toBe(15.123)
+    expect(ret.segments[0].duration).toBe(2.833 * 1000)
+    expect(ret.segments[1].duration).toBe(15 * 1000)
+    expect(ret.segments[2].duration).toBe(13.333 * 1000)
+    expect(ret.segments[3].duration).toBe(15 * 1000)
+    expect(ret.segments[4].duration).toBe(15.123 * 1000)
+
+    expect(ret.segments[0].start).toBe(0)
+    expect(ret.segments[1].start).toBe(2.833 * 1000)
+    expect(ret.segments[2].start).toBe(2.833 * 1000+15 * 1000)
+    expect(ret.segments[3].start).toBe(2.833 * 1000+15 * 1000+13.333 * 1000)
+    expect(ret.segments[4].start).toBe(2.833 * 1000+15 * 1000+13.333 * 1000+15 * 1000)
+
+    expect(ret.segments[0].isLast).toBe(false)
+    expect(ret.segments[1].isLast).toBe(false)
+    expect(ret.segments[2].isLast).toBe(false)
+    expect(ret.segments[3].isLast).toBe(false)
+    expect(ret.segments[4].isLast).toBe(true)
 
     expect(ret.segments[0].url).toBe('//xg.com/fileSequence52-A.ts')
     expect(ret.segments[1].url).toBe('https://test/fileSequence52-B.ts')
@@ -217,4 +231,5 @@ describe('m3u8 parser', () => {
     expect(ret.segments[3].key.iv).toEqual(new Uint8Array([...Array(14).fill(0), 0x1e, 0x75])) // 7797
     expect(ret.segments[4].key.iv).toBe(null)
   })
+
 })

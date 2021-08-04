@@ -5,12 +5,35 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link rel="stylesheet" href="player.css">
   <script src="player.js"></script>
   <script src="main.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+    }
+    #video-hls-container {
+      display: flex;
+      justify-content: center;
+      height: 33vh;
+    }
+    #video-hls {
+      height: 100%;
+    }
+    #play-pause {
+      position: fixed;
+      right: 10px;
+      top: 10px;
+    }
+  </style>
 </head>
 <body>
+  <div id="video-hls-container"><video id="video-hls" controls></video></div>
   <div id="video"></div>
+  <div id="video2"></div>
+  <button id="play-pause">播放</button>
   <script defer src="index.js"></script>
 </body>
 </html>

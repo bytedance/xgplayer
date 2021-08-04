@@ -1,7 +1,30 @@
 module.exports = api => {
   if (api.env('test')) {
     return {
-      presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
+      presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+      plugins: [
+        [
+          'inline-svg',
+          {
+            svgo: {
+              plugins: [
+                {
+                  removeViewBox: false,
+                  removeDimensions: true
+                }
+              ]
+            }
+          }
+        ], [
+          'search-and-replace',
+          {
+            rules: [{
+              search: /__XGPLAYER_VERSION__/,
+              replace: JSON.stringify('TEST')
+            }]
+          }
+        ]
+      ]
     }
   }
 

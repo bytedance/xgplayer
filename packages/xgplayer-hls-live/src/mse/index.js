@@ -1,7 +1,8 @@
 import { BasePlugin, Events } from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-helper-utils'
-import HlsLiveController from './hls-live'
+import HlsLiveController from './hls-live-new'
 import defaultConfig from './config'
+
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
 
 export default class HlsLivePlayer extends BasePlugin {
@@ -28,7 +29,7 @@ export default class HlsLivePlayer extends BasePlugin {
       BasePlugin.defineGetterOrSetter(this.player, {
         __url: {
           get: () => {
-            return this.hls.mse.url
+            return this.hls.mse?.url
           },
           configurable: true
         }
@@ -39,9 +40,13 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _initHlsCtr () {
-    const { url } = this.player.config
+    const { url, mediaType } = this.player.config
     this._context = new Context(this.player, this.config, HlsAllowedEvents)
-    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)()
+
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({
+      isMobile: mediaType === 'live-video',
+      ...this.config
+    })
     this._context.init()
     this.hls.load(url)
     this._bindPlayerEvents()
