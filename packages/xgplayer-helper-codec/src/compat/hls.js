@@ -163,8 +163,10 @@ class HlsCompatibility extends Base {
       let nextSample = samples[i + 1]
       if (i < len - 1) {
         sampleDuration = nextSample.dts - dts
-      } else {
+      } else if (samples[i - 1]) {
         sampleDuration = dts - samples[i - 1].dts
+      } else {
+        sampleDuration = refSampleDurationInt
       }
 
       if (sampleDuration > MAX_VIDEO_FRAME_DURATION || sampleDuration < 0) {

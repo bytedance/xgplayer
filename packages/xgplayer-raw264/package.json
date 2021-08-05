@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-raw264",
-  "version": "2.4.32",
+  "version": "2.4.32-beta.1",
   "description": "",
   "browser":"dist/index.min.js",
   "main": "lib/index.js",
