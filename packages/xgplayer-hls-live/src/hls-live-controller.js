@@ -169,7 +169,7 @@ export default class HlsLiveController {
     try {
       playlist = this._pluginConfig.M3U8Parser.parse(buffer.shift(), this._m3u8Url)
     } catch (error) {
-      this._emitError('HlsLiveController', Err.M3U8_PARSE(error))
+      this._emitError(Err.M3U8_PARSE(error))
       this.destroy()
       return
     }
@@ -251,7 +251,7 @@ export default class HlsLiveController {
 
   _shouldRetryM3U8 () {
     if (this._m3u8RetryCount > this._m3u8RetryTimes) {
-      this._emitError('HlsLiveController', Err.M3U8_CONTENT(new Error('Empty or wrong content')))
+      this._emitError(Err.M3U8_CONTENT(new Error('Empty or wrong content')))
       this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
       this.destroy()
       return false
@@ -487,7 +487,7 @@ export default class HlsLiveController {
     this.destroy()
   }
 
-  _emitError (_, error) {
+  _emitError (error) {
     this._player?.emit('error', new Errors(this._player, error))
   }
 
@@ -525,13 +525,16 @@ export default class HlsLiveController {
     if (this.mse) {
       this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse))
     }
+
+    const _onError = (_, error) => this._emitError(error)
+
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
-    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._emitError)
-    this.on(REMUX_EVENTS.REMUX_ERROR, this._emitError)
-    this.on(MSE_EVENTS.MSE_ERROR, this._emitError)
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, _onError)
+    this.on(REMUX_EVENTS.REMUX_ERROR, _onError)
+    this.on(MSE_EVENTS.MSE_ERROR, _onError)
 
     this.on(DEMUX_EVENTS.SEI_PARSED, (sei) => this._player.emit('SEI_PARSED', sei))
     this.on(LOADER_EVENTS.LOADER_RETRY, (tag, info) => this._player.emit('retry', Object.assign({ tag }, info)))

@@ -47,6 +47,7 @@ class XhrLoader {
 
   load (url, { options = {}, retryCount, retryDelay, loadTimeout } = {}) {
     let ops = Object.assign({}, options)
+    ops.timeout || (ops.timeout = loadTimeout)
     this._requestInfo = {
       url,
       options: ops,
