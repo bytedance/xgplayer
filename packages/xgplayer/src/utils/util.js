@@ -646,7 +646,6 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
       onload && onload(e)
     }
     img.onerror = (e) => {
-      console.log('img.onerror')
       img = null
       onerror && onerror(e)
     }
