@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import Demuxer from './demuxer'
 import { AudioTrackMeta, VideoTrackMeta, VideoTrack, AudioTrack } from 'xgplayer-helper-models'
-import { EVENTS, logger } from 'xgplayer-helper-utils'
+import { EVENTS, logger, Err } from 'xgplayer-helper-utils'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const INTERNAL_EVENTS = Demuxer.EVENTS
@@ -48,7 +48,7 @@ class FlvDemuxer {
       return
     }
     if (Number.isNaN(meta.refSampleDuration)) {
-      const {fps_den, fps_num} = meta.frameRate
+      const { fps_den, fps_num } = meta.frameRate
       meta.refSampleDuration = Math.round(1000 / (fps_num / fps_den))
     }
 
@@ -156,6 +156,7 @@ class FlvDemuxer {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
   }
+
   /**
    * If the stream has audio or video.
    * @param {number} streamFlag - Data from the stream which is define whether the audio / video track is exist.
@@ -206,7 +207,7 @@ class FlvDemuxer {
     if (buffer) {
       return buffer
     } else {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('找不到 loaderBuffer 实例'))
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, Err.DEMUX(new Error('找不到 loaderBuffer 实例')))
     }
   }
 

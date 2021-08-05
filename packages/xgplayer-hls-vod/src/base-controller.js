@@ -1,4 +1,5 @@
-import { EVENTS, Crypto, FetchLoader, XhrLoader, logger } from 'xgplayer-helper-utils'
+import { Errors } from 'xgplayer'
+import { EVENTS, Err, Crypto, FetchLoader, XhrLoader, logger } from 'xgplayer-helper-utils'
 import { Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { CompatHls as Compatibility } from 'xgplayer-helper-codec'
 import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
@@ -10,7 +11,6 @@ const HLS_EVENTS = EVENTS.HLS_EVENTS
 const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
 const COMPATIBILITY_EVENTS = EVENTS.COMPATIBILITY_EVENTS
 const CORE_EVENTS = EVENTS.CORE_EVENTS
-const HLS_ERROR = 'HLS_ERROR'
 
 class HlsVodController {
   constructor () {
@@ -48,7 +48,7 @@ class HlsVodController {
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
-    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onError)
 
     // emit to out
     this.connectEventTo(LOADER_EVENTS.LOADER_START, 'M3U8_LOADER', CORE_EVENTS.LOADER_START)
@@ -94,7 +94,7 @@ class HlsVodController {
           this._player.video.duration = mdata.duration / 1000
         }
       } catch (error) {
-        this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true)
+        this._onError('HlsVodController', Err.M3U8_PARSE(error))
       }
       if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
         const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader
@@ -278,37 +278,13 @@ class HlsVodController {
     this._player.emit('SEI_PARSED', sei)
   }
 
-  _onError = (type, mod, err, fatal) => {
-    const error = {
-      errorType: type,
-      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
-      errorFatal: fatal
-    }
-    this._player && this._player.emit(HLS_ERROR, error)
-  }
-
   _onLoadError = (mod, error) => {
-    this._player.emit('error', {
-      code: error.code,
-      errorType: 'network',
-      ex: `[${mod}]: ${error.message}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true)
+    this._onError(mod, error?.err)
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
   }
 
-  _onDemuxError = (mod, error, fatal) => {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${mod}]: ${error ? error.message : ''}`,
-      errd: {}
-    })
-    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal)
+  _onError = (_, error) => {
+    this._player?.emit('error', new Errors(this._player, error))
   }
 
   destroy () {

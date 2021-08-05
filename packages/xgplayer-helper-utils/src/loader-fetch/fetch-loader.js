@@ -142,6 +142,15 @@ class FetchLoader {
         if (error && error.name === 'AbortError') {
           return
         }
+
+        if (error && error.code === 999) {
+          this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({
+            code: error.code,
+            err: Err.NETWORK_TIMEOUT(error, url)
+          }, error))
+          return
+        }
+
         // TODO: 重构老对象
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({
           code: 21,

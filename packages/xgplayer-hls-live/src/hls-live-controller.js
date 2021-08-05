@@ -1,11 +1,13 @@
+import { Errors } from 'xgplayer'
 import { EVENTS, Err, logger } from 'xgplayer-helper-utils'
-import { getLastBufferedEnd, clamp } from './helper'
-import { GapJumper } from './gap-jumper'
+import { getLastBufferedEnd, clamp } from './mse/helper'
+import { GapJumper } from './mse/gap-jumper'
 
 const {
   LOADER_EVENTS,
   REMUX_EVENTS,
   HLS_EVENTS,
+  MSE_EVENTS,
   DEMUX_EVENTS,
   CRYPTO_EVENTS,
   COMPATIBILITY_EVENTS,
@@ -37,6 +39,7 @@ export default class HlsLiveController {
   _segmentBuffer = null
   _segmentKeyLoader = null
   _crypto = null
+  _compat = null
 
   _tickTimer = null
   _tickInterval = 300
@@ -99,8 +102,11 @@ export default class HlsLiveController {
   destroy () {
     log('Destroy')
     this.reset()
-    this._player?.video?.addEventListener('timeupdate', this._onTimeUpdate)
-    if (this.mse) this.mse.endOfStream()
+    this._player?.video?.removeEventListener('timeupdate', this._onTimeUpdate)
+    if (this.mse && this._player?.video.readyState) {
+      this.mse.endOfStream()
+      this.mse = null
+    }
   }
 
   enableLowLatency () {
@@ -126,7 +132,7 @@ export default class HlsLiveController {
   // 恢复播放时，外部插件会销毁重建。这里只管暂停，不管恢复播放
   get _videoPaused () {
     const video = this._player?.video
-    return video && video.played.length && video.paused
+    return video && video.played?.length && video.paused
   }
 
   _end () {
@@ -154,16 +160,16 @@ export default class HlsLiveController {
   _loadM3U8 = (url) => {
     if (url) this._m3u8Url = url
     log('Start load M3U8', this._m3u8Url)
-    this._m3u8Loader.load(this._m3u8Url, this._fetchOptions, this._retryCount, this._retryDelay)
+    this._m3u8Loader.load(this._m3u8Url, this._pluginConfig)
   }
 
   _onLoadedM3U8 = (buffer) => {
     let playlist
 
     try {
-      playlist = this._pluginConfig.M3U8ParserNew.parse(buffer.shift(), this._m3u8Url)
+      playlist = this._pluginConfig.M3U8Parser.parse(buffer.shift(), this._m3u8Url)
     } catch (error) {
-      this._emitError(Err.M3U8_PARSE(error))
+      this._emitError('HlsLiveController', Err.M3U8_PARSE(error))
       this.destroy()
       return
     }
@@ -245,7 +251,7 @@ export default class HlsLiveController {
 
   _shouldRetryM3U8 () {
     if (this._m3u8RetryCount > this._m3u8RetryTimes) {
-      this._emitError(Err.M3U8_CONTENT(new Error('Empty or wrong content')))
+      this._emitError('HlsLiveController', Err.M3U8_CONTENT(new Error('Empty or wrong content')))
       this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
       this.destroy()
       return false
@@ -276,7 +282,7 @@ export default class HlsLiveController {
 
       this._segmentLoading = true
       log('Start load segment: ', segment)
-      this._segmentLoader.load(segment.url, this._fetchOptions, this._retryCount, this._retryDelay)
+      this._segmentLoader.load(segment.url, this._pluginConfig)
     }
   }
 
@@ -289,7 +295,7 @@ export default class HlsLiveController {
     }
 
     this._currentLoadingKeyUrl = keyUrl
-    this._segmentKeyLoader.load(keyUrl, this._fetchOptions, this._retryCount, this._retryDelay)
+    this._segmentKeyLoader.load(keyUrl, this._pluginConfig)
   }
 
   _onLoadedSegmentKey = (buffer) => {
@@ -364,27 +370,14 @@ export default class HlsLiveController {
       if (this._player.video) {
         const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
         if (!videoTrack) return
-        videoTrack.samples.forEach((sample) => {
-          if (sample.analyzed) return
-          sample.analyzed = true
-          const nals = sample.nals
-          const nalsLength = nals.reduce((len, current) => (len + 4 + current.body.byteLength), 0)
-          const newData = new Uint8Array(nalsLength)
-          let offset = 0
-          nals.forEach((nal) => {
-            newData.set([0, 0, 0, 1], offset)
-            offset += 4
-            newData.set(new Uint8Array(nal.body), offset)
-            offset += nal.body.byteLength
-          })
-          sample.nals = null
-          sample.data = newData
-        })
+        if (this._compat) {
+          this._compat.doFix()
+        }
         this._player.video.onDemuxComplete(videoTrack, audioTrack)
       }
     } else {
       log('Start remux segment')
-      this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+      this.emit(REMUX_EVENTS.REMUX_MEDIA)
     }
     this._demux()
   }
@@ -398,19 +391,32 @@ export default class HlsLiveController {
         if (audioTrack && audioTrack.meta) {
           this._setMetaToAudio(audioTrack.meta)
         }
-      } else {
-        const { videoTrack } = this._context.getInstance('TRACKS')
-        if (videoTrack && videoTrack.meta) {
-          this._setMetaToVideo(videoTrack.meta)
-        }
+        return
       }
-    } else {
-      if (type === 'video') {
-        this._context.mediaInfo.hasVideo = true
-      } else if (type === 'audio') {
-        this._context.mediaInfo.hasAudio = true
+      const { videoTrack } = this._context.getInstance('TRACKS')
+      if (videoTrack && videoTrack.meta) {
+        this._setMetaToVideo(videoTrack.meta)
       }
-      this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+      return
+    }
+
+    if (type === 'video') {
+      this._context.mediaInfo.hasVideo = true
+    } else if (type === 'audio') {
+      this._context.mediaInfo.hasAudio = true
+    }
+    this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+
+  _setMetaToAudio (audioMeta) {
+    if (this._player.video) {
+      this._player.video.setAudioMeta(audioMeta)
+    }
+  }
+
+  _setMetaToVideo (videoMeta) {
+    if (this._player.video) {
+      this._player.video.setVideoMeta(videoMeta)
     }
   }
 
@@ -429,6 +435,7 @@ export default class HlsLiveController {
   }
 
   _onTimeUpdate = () => {
+    if (this._isMobile) return
     this._catchUp()
   }
 
@@ -468,37 +475,32 @@ export default class HlsLiveController {
     }
   }
 
-  _onDemuxError = (mod, error) => {
-    this._emitError(Err.DEMUX(error))
-  }
-
-  _onRemuxError = (mod, error) => {
-    this._emitError(Err.REMUX(error))
-  }
-
   _onLoadError = (loader, error) => {
     this._segmentLoading = false
-    this._player.pause()
 
-    this._emitError(error?.err)
+    if (!this._player?.video?.paused) {
+      this._player.pause()
+    }
 
+    this._emitError(loader, error?.err)
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
     this.destroy()
   }
 
-  _emitError (error) {
-    this._player?.emit('error', error)
+  _emitError (_, error) {
+    this._player?.emit('error', new Errors(this._player, error))
   }
 
   init () {
-    const { XgBuffer, Tracks, PlaylistNew, RemuxedBufferManager, Compatibility, FetchLoader, XhrLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
+    const { XgBuffer, Tracks, Playlist, RemuxedBufferManager, Compatibility, FetchLoader, XhrLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
     const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader
 
     this._m3u8Loader = this._context.registry('M3U8_LOADER', Loader)({ buffer: 'M3U8_BUFFER', readtype: 1 })
     this._segmentLoader = this._context.registry('TS_LOADER', Loader)({ buffer: 'TS_BUFFER', readtype: 3 })
-    this._playlist = this._context.registry('PLAYLIST', PlaylistNew)()
+    this._playlist = this._context.registry('PLAYLIST', Playlist)()
     this._segmentBuffer = this._context.registry('TS_BUFFER', XgBuffer)()
     this._m3u8RetryTimes = (this._pluginConfig.retrytimes == null) ? this._m3u8RetryTimes : this._pluginConfig.retrytimes
+    this._compat = this._context.registry('COMPATIBILITY', Compatibility)()
 
     this._context.registry('M3U8_BUFFER', XgBuffer)
     this._context.registry('TRACKS', Tracks)()
@@ -507,7 +509,6 @@ export default class HlsLiveController {
     if (!this._isMobile) {
       this.mse = this._context.registry('MSE', Mse)({ container: this._player.video, format: 'hls' })
       this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
-      this._context.registry('COMPATIBILITY', Compatibility)()
       this._context.registry('MP4_REMUXER', Mp4Remuxer)
     }
 
@@ -521,13 +522,16 @@ export default class HlsLiveController {
       }
     })
 
-    this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse))
+    if (this.mse) {
+      this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse))
+    }
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
-    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
-    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._emitError)
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._emitError)
+    this.on(MSE_EVENTS.MSE_ERROR, this._emitError)
 
     this.on(DEMUX_EVENTS.SEI_PARSED, (sei) => this._player.emit('SEI_PARSED', sei))
     this.on(LOADER_EVENTS.LOADER_RETRY, (tag, info) => this._player.emit('retry', Object.assign({ tag }, info)))
