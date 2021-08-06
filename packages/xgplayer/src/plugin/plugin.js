@@ -5,9 +5,26 @@
 import BasePlugin, { Util, XG_DEBUG } from './basePlugin'
 import delegate from 'delegate'
 
+const ROOT_TYPES = {
+  CONTROLS: 'controls',
+  ROOT: 'root'
+}
+
+const POSITIONS = {
+  ROOT: 'root',
+  ROOT_LEFT: 'rootLeft',
+  ROOT_RIGHT: 'rootRight',
+  ROOT_TOP: 'rootTop',
+  CONTROLS_LEFT: 'controlsLeft',
+  CONTROLS_RIGTH: 'controlsRight',
+  CONTROLS_RIGHT: 'controlsRight',
+  CONTROLS_CENTER: 'controlsCenter',
+  CONTROLS: 'controls'
+}
+
 /**
  * Check if the url is a link address
- * @param {String} str
+ * @param { string } str
  */
 function isUrl (str) {
   if (!str) {
@@ -103,7 +120,23 @@ function registerTextObj (textConfig, plugin) {
     })
   })
 }
+/**
+ * @typedef { import ('../player').default } Player
+ */
 
+/**
+ * @typedef {{
+ *  index?: number,
+ *  player: Player,
+ *  pluginName: string,
+ *  config: {
+ *   [propName: string]: any
+ *  },
+ *  root?: HTMLElement,
+ *  position?: string,
+ *  [propName: string]: any
+ * }} IPluginOptions
+*/
 class Plugin extends BasePlugin {
   /**
     * 插入dom结构
@@ -180,9 +213,16 @@ class Plugin extends BasePlugin {
     return dels
   }
 
+  static get ROOT_TYPES () {
+    return ROOT_TYPES
+  }
+
+  static get POSITIONS () {
+    return POSITIONS
+  }
+
   /**
-   * @constructor
-   * @param { { index: number, player: object, pluginName: string, config: { [propName: string]: any }, root: HTMLElement, position: string, [propName: string]: any;}  } args
+   * @param { IPluginOptions } args
    */
   constructor (args = {}) {
     super(args)
@@ -203,11 +243,24 @@ class Plugin extends BasePlugin {
      * @readonly
      */
     this.icons = {}
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
+    this.root = null
+    /**
+     * @readonly
+     * @type { HTMLElement }
+     */
+    this.parent = null
+
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
-
+    /**
+     * @readonly
+     */
     this.langText = {}
-    const defaultTexConfig = this.registerLangauageTexts() || {}
+    const defaultTexConfig = this.registerLanguageTexts() || {}
     registerTextObj(defaultTexConfig, this)
     let renderStr = ''
     try {
@@ -361,7 +414,7 @@ class Plugin extends BasePlugin {
     return {}
   }
 
-  registerLangauageTexts () {
+  registerLanguageTexts () {
     return {}
   }
 
@@ -558,7 +611,7 @@ class Plugin extends BasePlugin {
 
   /**
    *
-   * @returns { string }
+   * @returns { string | HTMLElement }
    */
   render () {
     return ''
@@ -597,26 +650,6 @@ class Plugin extends BasePlugin {
     })
   }
 }
-
-const ROOT_TYPES = {
-  CONTROLS: 'controls',
-  ROOT: 'root'
-}
-
-const POSITIONS = {
-  ROOT: 'root',
-  ROOT_LEFT: 'rootLeft',
-  ROOT_RIGHT: 'rootRight',
-  ROOT_TOP: 'rootTop',
-  CONTROLS_LEFT: 'controlsLeft',
-  CONTROLS_RIGTH: 'controlsRight',
-  CONTROLS_RIGHT: 'controlsRight',
-  CONTROLS_CENTER: 'controlsCenter',
-  CONTROLS: 'controls'
-}
-
-Plugin.POSITIONS = POSITIONS
-Plugin.ROOT_TYPES = ROOT_TYPES
 
 export {
   Plugin as default,

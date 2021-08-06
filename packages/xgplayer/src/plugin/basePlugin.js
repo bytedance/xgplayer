@@ -9,6 +9,25 @@ function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
 }
 
+/**
+ * @typedef { import ('../player').default } Player
+ */
+
+/**
+ * @typedef { import ('../defaultConfig').IPlayerOptions } IPlayerOptions
+ */
+
+/**
+  * @typedef {{
+  * index?: number,
+  * player: Player,
+  * pluginName: string,
+  * config: {
+  *   [propName: string]: any
+  * },
+  * [propName: string]: any;
+  * }} IBasePluginOptions
+ */
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
     for (const key in map) {
@@ -31,8 +50,7 @@ class BasePlugin {
   }
 
   /**
-   * @constructor
-   * @param { { index?: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   * @param { IBasePluginOptions } args
    */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
@@ -50,12 +68,12 @@ class BasePlugin {
     this.config = args.config || {}
     /**
      * @readonly
-     * @type {object}
+     * @type { Player }
      */
     this.player = null
     /**
        * @readonly
-       * @type {object}
+       * @type { IPlayerOptions }
        */
     this.playerConfig = {}
     /**
@@ -205,7 +223,7 @@ class BasePlugin {
   /**
    *
    * @param { string } event
-   * @param { any } res
+   * @param { any } [res]
    * @returns
    */
   emit (event, res) {
@@ -249,6 +267,7 @@ class BasePlugin {
    * @param { string } hookName
    * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns { boolean } isSuccess
    */
   useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)
@@ -259,7 +278,7 @@ class BasePlugin {
    * @param { any } plugin
    * @param { any } [options]
    * @param { string } [name]
-   * @returns { object }
+   * @returns { any }
    */
   registerPlugin (plugin, options = {}, name = '') {
     name && (options.pluginName = name)
@@ -269,7 +288,7 @@ class BasePlugin {
   /**
    *
    * @param { string } name
-   * @returns { object | null }
+   * @returns { any | null }
    */
   getPlugin (name) {
     return this.player.getPlugin(name)

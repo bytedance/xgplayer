@@ -14,9 +14,9 @@ function callHandler (obj, handler, next, ...args) {
 
 /**
  * 给某个处理函数添加hook能力
- * @param {String} hookName
- * @param {Function} handler
- * @param {Object} preset
+ * @param { string } hookName
+ * @param { Function } handler
+ * @param { { pre?: any, next?:any } } preset
  * {
  *   pre: () => { // run beafore hook},
  *   next: () => { // run after hook return}
@@ -68,8 +68,8 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
 
 /**
  * 添加hooks
- * @param {String} 支持的hook名称
- * @param {Function} 具体的处理函数
+ * @param { string } 支持的hook名称
+ * @param { Function } 具体的处理函数
  */
 function useHooks (hookName, handler) {
   const { __hooks } = this
@@ -87,7 +87,7 @@ function useHooks (hookName, handler) {
 
 /**
  * 给某个插件添加hooks
- * @param {String} pluginName
+ * @param { string } pluginName
  * @param  {...any} args
  */
 function usePluginHooks (pluginName, ...args) {

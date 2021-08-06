@@ -286,12 +286,12 @@ class MobilePlugin extends Plugin {
 
   /**
    * 校验具体的操作范围
-   * @param {number} x 方向位移
-   * @param {number} y 方向位移
-   * @param {number} diffx 方向位移差
-   * @param {number} diffy 方向位移差
-   * @param {Object} pos 当前操作区域位置信息 包含{width, height}
-   * @return {number} scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
+   * @param { number } x 方向位移
+   * @param { number } y 方向位移
+   * @param { number } diffx 方向位移差
+   * @param { number } diffy 方向位移差
+   * @param { any } pos 当前操作区域位置信息 包含{width, height}
+   * @return { number } scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    */
   checkScope (x, y, diffx, diffy, pos) {
     const { width } = pos
@@ -346,7 +346,7 @@ class MobilePlugin extends Plugin {
     switch (lastScope) {
       case 0:
         player.seek(Number(time).toFixed(1))
-        config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
+        config.hideControlsEnd ? player.blur() : player.focus()
         this.timer = setTimeout(() => {
           this.pos.time = 0
         }, 500)
@@ -405,7 +405,7 @@ class MobilePlugin extends Plugin {
         scope = this.checkScope(x, y, diffx, diffy, pos)
         // 手势为快进快退记录起始操作时间
         if (scope === 0) {
-          !hideControlsActive ? player.emit(Events.PLAYER_FOCUS, { autoHide: false }) : player.emit(Events.PLAYER_BLUR)
+          !hideControlsActive ? player.focus({ autoHide: false }) : player.blur()
           !pos.time && (pos.time = parseInt(player.currentTime * 1000, 10) + this.timeOffset * 1000)
         }
         pos.scope = scope
@@ -482,13 +482,13 @@ class MobilePlugin extends Plugin {
     }
 
     if (!config.closedbClick || playerConfig.closeVideoClick) {
-      player.isActive ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
+      player.isActive ? player.blur() : player.focus()
     } else if (!playerConfig.closeVideoClick) {
       if (player.isActive) {
         this.emitUserAction('click', 'switch_play_pause')
         this.switchPlayPause()
       }
-      player.emit(Events.PLAYER_FOCUS)
+      player.focus()
     }
   }
 

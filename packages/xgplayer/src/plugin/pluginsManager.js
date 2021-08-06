@@ -43,8 +43,8 @@ const pluginsManager = {
 
   /**
    * register a lazy plugin
-   * @param { object } player instance
-   * @param { object } lazyPlugin config
+   * @param { any } player instance
+   * @param { any } lazyPlugin config
    *
    */
   lazyRegister (player, lazyPlugin) {
@@ -68,10 +68,10 @@ const pluginsManager = {
   },
   /**
   * register a Plugin
-  * @param { object } player the plugins install
-  * @param { function } plugin the plugin contructor
-  * @param { object } options the plugin configuration
-  * @return { object } Plugin the plugin instance
+  * @param { any } player the plugins register
+  * @param { any } plugin the plugin contructor
+  * @param { any } options the plugin configuration
+  * @return { any } Plugin the plugin instance
   **/
   register (player, plugin, options = {}) {
     if (!player || !plugin || typeof plugin !== 'function' || plugin.prototype === undefined) {
@@ -154,8 +154,8 @@ const pluginsManager = {
 
   /**
    * Unregister a plugin from player instance
-   * @param {String} cgid
-   * @param {String} name
+   * @param { string } cgid
+   * @param { string } name
    */
   unRegister (cgid, name) {
     if (cgid._pluginInfoId) {
@@ -175,8 +175,8 @@ const pluginsManager = {
 
   /**
    * remove a plugin instance from the player plugin list
-   * @param {Object} player
-   * @param {String} name
+   * @param { any } player
+   * @param { string } name
    */
   deletePlugin (player, name) {
     const cgid = player._pluginInfoId
@@ -188,7 +188,7 @@ const pluginsManager = {
 
   /**
    * get all plugin instance of player
-   * @param {*} player
+   * @param { any } player
    */
   getPlugins (player) {
     const cgid = player._pluginInfoId
