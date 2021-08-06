@@ -1,0 +1,18 @@
+{
+  "include": [
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "src/*.d.ts",
+    "src/fmp4/*.js",
+    "src/parse/*.js",
+    "src/write/*.js"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
+    "outDir": "es"
+  }
+}

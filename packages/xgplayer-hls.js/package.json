@@ -36,7 +36,7 @@
     "event-emitter": "^0.3.5",
     "hls.js": "^1.0.7"
   },
-  "peerDependency": {
-    "xgplayer": "^0.1.0"
+  "peerDependencies": {
+    "xgplayer": "3.0.0-alpha.89"
   }
 }

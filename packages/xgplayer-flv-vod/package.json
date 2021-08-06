@@ -30,6 +30,9 @@
     "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.16",
     "xgplayer-utils-mse": "3.0.0-alpha.16"
   },
+  "peerDependencies": {
+    "xgplayer": "3.0.0-alpha.89"
+  },
   "babel": {
     "presets": [
       [

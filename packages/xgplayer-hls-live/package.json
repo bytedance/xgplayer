@@ -26,6 +26,9 @@
     "xgplayer-helper-transmuxers": "2.4.32",
     "xgplayer-helper-utils": "2.4.32"
   },
+  "peerDependencies": {
+    "xgplayer": "3.0.0-alpha.89"
+  },
   "babel": {
     "presets": [
       [

@@ -1,4 +1,4 @@
-declare module 'xgplayer-mp4' {
+declare module 'xgplayer-hls.js' {
   import type { BasePlugin } from 'xgplayer';
   export interface IPluginConfig {
     // 请求是否带cookie
