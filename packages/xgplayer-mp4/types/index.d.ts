@@ -1,5 +1,5 @@
+import { BasePlugin } from 'xgplayer';
 declare module 'xgplayer-mp4' {
-  import type { BasePlugin } from 'xgplayer';
   export interface IPluginConfig {
     // 请求是否带cookie
     withCredentials?: boolean;
@@ -16,7 +16,7 @@ declare module 'xgplayer-mp4' {
     // 加载定时器时间间隔，默认300
     mp4ProgressTimer?: number
   }
-  class Mp4Player extends BasePlugin {
+  export default class Mp4Player extends BasePlugin {
     public static get pluginName(): string;
     public static get defaultConfig(): any;
     constructor(options: any);
@@ -29,6 +29,4 @@ declare module 'xgplayer-mp4' {
     constructor(options: any);
     private _destroy(): void;
   }
-
-  export default Mp4Player;
 }
