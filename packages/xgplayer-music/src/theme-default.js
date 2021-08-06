@@ -4,6 +4,7 @@ const defaultTheme = function (player) {
   const config = player.config
   const util = player.constructor.util
   const controlEl = player.controls
+  const ev = ['click', 'touchstart']
 
   if (!config.controls) {
     player.root.style.display = 'none'
@@ -25,7 +26,7 @@ const defaultTheme = function (player) {
             d="m 14,2.99996 0,10 -7,-5 7,-5 z m -7,5 0,5 -7,-5 7,-5 0,5 z m -7,0 0,0 z"></path>
         </svg></xg-icon>`, {}, 'xgplayer-backward')
   controlEl.appendChild(backward)
-  const ev = ['click', 'touchstart']
+
   ev.forEach(item => {
     backward.addEventListener(item, function (e) {
       e.preventDefault()
@@ -38,7 +39,7 @@ const defaultTheme = function (player) {
             d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>
         </svg></xg-icon>`, {}, 'xgplayer-prev')
   controlEl.appendChild(prev)
-  const ev = ['click', 'touchstart']
+
   ev.forEach(item => {
     prev.addEventListener(item, function (e) {
       e.preventDefault()
@@ -63,7 +64,7 @@ const defaultTheme = function (player) {
             d="m 2,2.99996 0,10 7,-5 -7,-5 z m 7,5 0,5 7,-5 -7,-5 0,5 z m 7,0 0,0 z"></path>
         </svg></xg-icon>`, {}, 'xgplayer-forward')
   controlEl.appendChild(forward)
-  const ev = ['click', 'touchstart']
+
   ev.forEach(item => {
     forward.addEventListener(item, function (e) {
       e.preventDefault()
