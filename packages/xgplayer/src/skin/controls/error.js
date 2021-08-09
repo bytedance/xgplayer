@@ -11,6 +11,11 @@ let s_error = function () {
   });
 
   let text = error.querySelector('.xgplayer-error-text')
+  if (player.config.lang && player.config.lang === 'zh-cn') {
+    text.innerHTML = player.config.errorTips || `请<span class="xgplayer-error-refresh">刷新</span>试试`
+  } else {
+    text.innerHTML = player.config.errorTips || `please try to <span class="xgplayer-error-refresh">refresh</span>`
+  }
   let refresh = null
 
   function onError () {
@@ -18,11 +23,7 @@ let s_error = function () {
     // if (player.error) {
     //   text.innerHTML = player.error
     // } else {
-    if (player.config.lang && player.config.lang === 'zh-cn') {
-      text.innerHTML = player.config.errorTips || `请<span class="xgplayer-error-refresh">刷新</span>试试`
-    } else {
-      text.innerHTML = player.config.errorTips || `please try to <span class="xgplayer-error-refresh">refresh</span>`
-    }
+    
     // }
     addClass(player.root, 'xgplayer-is-error')
     refresh = error.querySelector('.xgplayer-error-refresh')
@@ -32,7 +33,9 @@ let s_error = function () {
           e.preventDefault()
           e.stopPropagation()
           player.autoplay = true
+          let currentTime = player.currentTime
           player.once('playing', () => {
+            player.currentTime = currentTime
             removeClass(player.root, 'xgplayer-is-error')
           })
           player.src = player.config.url

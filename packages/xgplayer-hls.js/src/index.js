@@ -6,6 +6,7 @@ class HlsJsPlayer extends Player {
   constructor (options) {
     super(options)
     this.hlsOpts = options.hlsOpts || {}
+    this.hlsOpts.mediaType = this.config.mediaType
     let util = Player.util
     let player = this
 
@@ -79,9 +80,11 @@ class HlsJsPlayer extends Player {
     this.register(this.config.url)
     this.once('complete', () => {
       hls.attachMedia(player.video)
-      player.once('canplay', () => {
-        player.play().catch(err => {})
-      })
+      if(!player.config.videoInit) {
+        player.once('canplay', () => {
+          player.play().catch(err => {})
+        })
+      }
     })
     this.once('destroy', () => {
       hls.stopLoad()
@@ -121,7 +124,7 @@ class HlsJsPlayer extends Player {
         if (e && e.details && e.details.live) {
           util.addClass(player.root, 'xgplayer-is-live')
           if(!util.findDom(player.root, '.xgplayer-live')) {
-            const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+            const live = util.createDom('xg-live', player.lang.LIVE || '正在直播', {}, 'xgplayer-live')
             player.controls.appendChild(live)
           }
         }

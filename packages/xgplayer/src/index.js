@@ -20,6 +20,7 @@ import Reload from './controls/reload.js'
 import Replay from './controls/replay.js'
 import Rotate from './controls/rotate.js'
 import ScreenShot from './controls/screenShot.js'
+import StallCheck from './controls/stallCheck.js'
 import Start from './controls/start.js'
 import Volume from './controls/volume.js'
 
@@ -44,6 +45,7 @@ Player.installAll([
     Replay,
     Rotate,
     ScreenShot,
+    StallCheck,
     Start,
     Volume,    
 ])

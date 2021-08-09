@@ -1,5 +1,5 @@
 import EventEmitter from 'event-emitter'
-import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2 } from './utils/util'
+import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2, setStyle } from './utils/util'
 import Errors from './error'
 
 class Proxy {
@@ -64,10 +64,16 @@ class Proxy {
       }
     }
     let el = options.el ? options.el : findDom(document, `#${options.id}`)
-    if(window.XgVideoProxy && el.hasAttribute('data-xgmse')) {
-      this.video = new window.XgVideoProxy(el, options)
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if(XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
+      this.video = new XgVideoProxy(el, options)
     } else {
       this.video = createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    }
+    if (options.videoStyle) {
+      Object.keys(options.videoStyle).forEach(key => {
+        setStyle(this.video, key, options.videoStyle[key])
+      })
     }
     if (!this.textTrackShowDefault && textTrackDom) {
       let trackDoms = this.video.getElementsByTagName('Track')
@@ -218,25 +224,45 @@ class Proxy {
     once(this, event, fn, 'destroy')
   }
   set autoplay (isTrue) {
-    this.video.autoplay = isTrue
+    if(this.video) {
+      this.video.autoplay = isTrue
+    }
   }
   get autoplay () {
-    return this.video.autoplay
+    if(this.video) {
+      return this.video.autoplay
+    } else {
+      return false
+    }
   }
   get buffered () {
-    return this.video.buffered
+    if(this.video) {
+      return this.video.buffered
+    } else {
+      return undefined
+    }
   }
   get buffered2 () {
     return getBuffered2(this.video.buffered)
   }
   get crossOrigin () {
-    return this.video.crossOrigin
+    if(this.video) {
+      return this.video.crossOrigin
+    } else {
+      return false
+    }
   }
   set crossOrigin (isTrue) {
-    this.video.crossOrigin = isTrue
+    if(this.video) {
+      this.video.crossOrigin = isTrue
+    }
   }
   get currentSrc () {
-    return this.video.currentSrc
+    if(this.video) {
+      return this.video.currentSrc
+    } else {
+      return undefined
+    }
   }
   get currentTime () {
     if(this.video) {
@@ -253,13 +279,19 @@ class Proxy {
     } else {
       this.video.currentTime = time
     }
-    this.emit('currentTimeChange')
+    this.emit('currentTimeChange', time)
   }
   get defaultMuted () {
-    return this.video.defaultMuted
+    if(this.video) {
+      return this.video.defaultMuted
+    } else {
+      return false
+    }
   }
   set defaultMuted (isTrue) {
-    this.video.defaultMuted = isTrue
+    if(this.video) {
+      this.video.defaultMuted = isTrue
+    }
   }
   get duration () {
     if(this.config.duration) {
@@ -297,16 +329,28 @@ class Proxy {
     return this.lang ? this.lang[status[err.code - 1].en] : status[err.code - 1].en
   }
   get loop () {
-    return this.video.loop
+    if(this.video) {
+      return this.video.loop
+    } else {
+      return false
+    }
   }
   set loop (isTrue) {
-    this.video.loop = isTrue
+    if(this.video) {
+      this.video.loop = isTrue
+    }
   }
   get muted () {
-    return this.video.muted
+    if(this.video) {
+      return this.video.muted
+    } else {
+      return false
+    }
   }
   set muted (isTrue) {
-    this.video.muted = isTrue
+    if(this.video) {
+      this.video.muted = isTrue
+    }
   }
   get networkState () {
     let status = [{
@@ -325,22 +369,42 @@ class Proxy {
     return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
   }
   get paused () {
-    return this.video.paused
+    if(this.video) {
+      return this.video.paused
+    } else {
+      return false
+    }
   }
   get playbackRate () {
-    return this.video.playbackRate
+    if(this.video) {
+      return this.video.playbackRate
+    } else {
+      return 1
+    }
   }
   set playbackRate (rate) {
-    this.video.playbackRate = rate
+    if(this.video) {
+      this.video.playbackRate = rate
+    }
   }
   get played () {
-    return this.video.played
+    if(this.video) {
+      return this.video.played
+    } else {
+      return undefined
+    }
   }
   get preload () {
-    return this.video.preload
+    if(this.video) {
+      return this.video.preload
+    } else {
+      return false
+    }
   }
   set preload (isTrue) {
-    this.video.preload = isTrue
+    if(this.video) {
+      this.video.preload = isTrue
+    }
   }
   get readyState () {
     let status = [{
@@ -362,13 +426,25 @@ class Proxy {
     return this.lang ? this.lang[status[this.video.readyState].en] : status[this.video.readyState]
   }
   get seekable () {
-    return this.video.seekable
+    if(this.video) {
+      return this.video.seekable
+    } else {
+      return false
+    }
   }
   get seeking () {
-    return this.video.seeking
+    if(this.video) {
+      return this.video.seeking
+    } else {
+      return false
+    }
   }
   get src () {
-    return this.video.src
+    if(this.video) {
+      return this.video.src
+    } else {
+      return undefined
+    }
   }
   set src (url) {
     if (!hasClass(this.root, 'xgplayer-ended')) {
@@ -386,10 +462,16 @@ class Proxy {
     }
   }
   get volume () {
-    return this.video.volume
+    if(this.video) {
+      return this.video.volume
+    } else {
+      return 1
+    }
   }
   set volume (vol) {
-    this.video.volume = vol
+    if(this.video) {
+      this.video.volume = vol
+    }
   }
   get fullscreen () {
     return hasClass(this.root, 'xgplayer-is-fullscreen') || hasClass(this.root, 'xgplayer-fullscreen-active')

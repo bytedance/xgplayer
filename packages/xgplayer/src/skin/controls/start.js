@@ -26,6 +26,10 @@ let s_start = function () {
     }
   }
 
+  if(player.config && player.config.hideStartBtn) {
+    addClass(root, 'xgplayer-start-hide')
+  }
+
   if (player.isReady) {
     root.appendChild(btn)
     onPlayerReady(player)

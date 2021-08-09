@@ -160,7 +160,7 @@ class Keyboard {
         if (player.currentTime + currentTimeStep <= player.duration) {
           player.currentTime += currentTimeStep
         } else {
-          player.currentTime = player.duration - 1
+          player.currentTime = player.duration + 1
         }
       }
     }

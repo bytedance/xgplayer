@@ -85,7 +85,7 @@ let s_definition = function () {
   }
   function onResourceReady (list) {
     player.definitionList = list
-    if (list && list instanceof Array && list.length > 1) {
+    if (list && list instanceof Array && list.length > 0) {
       addClass(root, 'xgplayer-is-definition')
       player.once('canplay', onCanplayResourceReady)
     }
@@ -94,7 +94,9 @@ let s_definition = function () {
 
   function onPlayingChangeDefinition () {
     player.currentTime = player.curTime
-    if (!paused) {
+    if (paused) {
+      player.pause()
+    } else {
       let playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.catch(err => {})
@@ -132,6 +134,7 @@ let s_definition = function () {
         to = li.getAttribute('cname')
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}`
         a.href = li.getAttribute('url')
+        paused = player.paused
         if (player.switchURL) {
           let curRUL = document.createElement('a');
           ['mp4', 'hls', '__flv__', 'dash'].every(item => {
@@ -163,16 +166,16 @@ let s_definition = function () {
             curRUL = player['hls'].url
           }
           if (a.href !== player.currentSrc) {
-            player.curTime = player.currentTime, paused = player.paused
+            player.curTime = player.currentTime
             if (!player.ended) {
               player.src = a.href
-              if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
-                player.once('timeupdate', onTimeupdateChangeDefinition)
-              } else {
-                player.once('playing', onPlayingChangeDefinition)
-              }
             }
           }
+        }
+        if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
+          player.once('timeupdate', onTimeupdateChangeDefinition)
+        } else {
+          player.once('loadedmetadata', onPlayingChangeDefinition)
         }
         player.emit('definitionChange', {from, to})
         if (sniffer.device === 'mobile') {
@@ -208,12 +211,37 @@ let s_definition = function () {
       player.off('timeupdate', onTimeupdateChangeDefinition)
       player.off('timeupdate', onPlayingChangeDefinition)
     } else {
-      player.off('playing', onPlayingChangeDefinition)
+      player.off('loadedmetadata', onPlayingChangeDefinition)
     }
     player.off('blur', onBlur)
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)
+
+  player.getCurrentDefinition = function () {
+    let liList = player.controls.querySelectorAll('.xgplayer-definition ul li')
+    for(let i = 0; i < liList.length; i++) {
+      if(liList[i].className && liList[i].className.indexOf('selected') > -1) {
+        return {
+          name: liList[i].getAttribute('cname'),
+          url: liList[i].getAttribute('url')
+        }
+      }
+    }
+    return {
+      name: liList[0].getAttribute('cname'),
+      url: liList[0].getAttribute('url')
+    }
+  }
+
+  player.switchDefinition = function (definitionObj = {}) {
+    let liList = player.controls.querySelectorAll('.xgplayer-definition ul li')
+    for(let i = 0; i < liList.length; i++) {
+      if(liList[i].getAttribute('cname') === definitionObj.name || liList[i].getAttribute('url') === definitionObj.url || i === definitionObj.index) {
+        liList[i].click()
+      }
+    }
+  }
 }
 
 export default {

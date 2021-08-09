@@ -333,6 +333,15 @@ declare module 'xgplayer' {
 
         //提示文字展示时长（单位：秒）
         lastPlayTimeHideDelay?: number;
+
+        //隐藏中间按钮
+        hideStartBtn?: boolean;
+
+        //video元素样式
+        videoStyle?: object;
+
+        //是否定时检查播放卡死
+        enableStallCheck?: boolean;
     }
 
     class Proxy extends EventEmitter {
@@ -705,6 +714,24 @@ declare module 'xgplayer' {
          *
          */
         public removeAllProgressDot(): void;
+
+        /**
+         * 获取当前清晰度
+         *
+         */
+         public getCurrentDefinition(): object;
+
+         /**
+         * 切换到指定清晰度
+         *
+         */
+        public switchDefinition(definitionObj: object): void;
+
+        /**
+         * 切换到指定播放速率
+         *
+         */
+        public switchPlaybackRate(playbackRateObj: object): void;
     }
 
     export default Player;

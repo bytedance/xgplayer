@@ -3,7 +3,7 @@ import '../style/controls/pip.scss'
 
 let s_pip = function () {
   let player = this
-  if (!player.config.pip) { return }
+  if (!player.config.pip || typeof player.video.requestPictureInPicture !== 'function') { return }
   let pip = player.lang.PIP
   let btn = createDom('xg-pip', `<p class="name"><span>${pip}</span></p>`, {tabindex: 9}, 'xgplayer-pip')
 

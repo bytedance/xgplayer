@@ -33,6 +33,16 @@
   }
 }
 
+.xgplayer-skin-default.xgplayer-start-hide {
+  .xgplayer-start {
+    display: none;
+  }
+}
+.xgplayer-skin-default.xgplayer-pause.xgplayer-start-hide {
+  .xgplayer-start {
+    display: none;
+  }
+}
 .xgplayer-skin-default.xgplayer-playing {
   .xgplayer-start {
     display: none;

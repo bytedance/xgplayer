@@ -1,5 +1,5 @@
 import Proxy from './proxy'
-import { util, deepCopy, findDom, createDom, addClass, typeOf, hasClass, removeClass } from './utils/util'
+import { util, deepCopy, findDom, createDom, addClass, typeOf, hasClass, removeClass, checkIsBrowser } from './utils/util'
 import sniffer from './utils/sniffer'
 import XgplayerTimeRange from './utils/xgplayerTimeRange'
 import Errors from './error'
@@ -188,7 +188,7 @@ class Player extends Proxy {
   }
 
   attachVideo () {
-    if(!window.XgVideoProxy) {
+    if(this.video && this.video.nodeType === 1) {
       this.root.insertBefore(this.video, this.root.firstChild)
     }
     setTimeout(() => {
@@ -200,9 +200,11 @@ class Player extends Proxy {
   }
 
   start (url = this.config.url) {
+    if(!this.video) return
     let player = this
     if (!url || url === '') {
       this.emit('urlNull')
+      return
     }
     this.canPlayFunc = function () {
       player.off('canplay', player.canPlayFunc)
@@ -461,7 +463,9 @@ class Player extends Proxy {
 
   onSeeked () {
     // for ie,playing fired before waiting
-    this.isSeeking = false
+    this.once('timeupdate', () => {
+      this.isSeeking = false
+    })
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
@@ -504,6 +508,9 @@ class Player extends Proxy {
   }
 
   static install (name, descriptor) {
+    if (!checkIsBrowser()) {
+      return
+    }
     if (!Player.plugins) {
       Player.plugins = {}
     }

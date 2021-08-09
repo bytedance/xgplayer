@@ -57,6 +57,7 @@ const umd = {
     path: `${__dirname}/dist`,
     filename: '[name].js',
     library: 'xgplayer',
+    globalObject: 'this',
     libraryTarget: 'umd'
   },
   mode: 'production',
