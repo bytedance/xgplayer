@@ -24,6 +24,10 @@ class HlsVodPlayer extends BasePlugin {
     }
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   constructor (options) {
     super(options)
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)

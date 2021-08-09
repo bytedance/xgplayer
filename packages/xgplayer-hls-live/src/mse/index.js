@@ -20,6 +20,10 @@ export default class HlsLivePlayer extends BasePlugin {
     })
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   constructor (options) {
     super(options)
     this.played = false

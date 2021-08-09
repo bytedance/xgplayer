@@ -7,14 +7,14 @@
 // https://github.com/darionco/rollup-plugin-web-worker-loader
 // https://github.com/btd/rollup-plugin-visualizer
 
-const { babel } = require('@rollup/plugin-babel');
-const webWorkerLoader = require('rollup-plugin-web-worker-loader');
-const { nodeResolve } = require('@rollup/plugin-node-resolve');
-const commonjs = require('@rollup/plugin-commonjs');
-const json = require('@rollup/plugin-json');
-const { terser } = require('rollup-plugin-terser');
-const postcss = require('rollup-plugin-postcss');
-const { visualizer } = require('rollup-plugin-visualizer');
+const { babel } = require('@rollup/plugin-babel')
+const webWorkerLoader = require('rollup-plugin-web-worker-loader')
+const { nodeResolve } = require('@rollup/plugin-node-resolve')
+const commonjs = require('@rollup/plugin-commonjs')
+const json = require('@rollup/plugin-json')
+const { terser } = require('rollup-plugin-terser')
+const postcss = require('rollup-plugin-postcss')
+const { visualizer } = require('rollup-plugin-visualizer')
 const sourcemap = process.env.NODE_ENV === 'production'
 
 const defaultRollup = {
@@ -30,10 +30,10 @@ const defaultRollup = {
   resolve: {},
   babel: {},
   watch: {}
-};
+}
 
 const commonRollup = function (config = {}) {
-  const rollupConfig = Object.assign({}, defaultRollup, config);
+  const rollupConfig = Object.assign({}, defaultRollup, config)
   return {
     input: rollupConfig.input,
     output: config.output || [
@@ -62,17 +62,17 @@ const commonRollup = function (config = {}) {
       nodeResolve(),
       commonjs(),
       babel({
-        exclude: [/core-js/,/worker.js/,/hevc-worker.js/,/hevc-worker-thread.js/,/node_modules/],
+        exclude: [/core-js/, /worker.js/, /hevc-worker.js/, /hevc-worker-thread.js/, /node_modules/],
         babelHelpers: 'runtime',
         presets: [
           [
             '@babel/env',
             {
               // eslint-disable-next-line standard/object-curly-even-spacing
-              targets: rollupConfig.targets || { chrome: '58'},
-              'useBuiltIns': 'usage',
-              'corejs': 3,
-            },
+              targets: rollupConfig.targets || { chrome: '58' },
+              useBuiltIns: 'usage',
+              corejs: 3
+            }
           ]
         ],
         plugins: [
@@ -82,6 +82,18 @@ const commonRollup = function (config = {}) {
               corejs: false,
               helpers: true,
               regenerator: true
+            }
+          ],
+          [
+            'search-and-replace',
+            {
+              rules: [
+                {
+                  search: '__VERSION__',
+                  searchTemplateStrings: true,
+                  replace: '3.0.0-alpha.122'
+                }
+              ]
             }
           ]
         ],
@@ -96,6 +108,6 @@ const commonRollup = function (config = {}) {
     watch: {
       ...config.watch
     }
-  };
-};
-module.exports = commonRollup;
+  }
+}
+module.exports = commonRollup

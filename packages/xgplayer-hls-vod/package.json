@@ -36,6 +36,20 @@
           "modules": false
         }
       ]
+    ],
+    "plugins": [
+      [
+        "search-and-replace",
+        {
+          "rules": [
+            {
+              "search": "__VERSION__",
+              "searchTemplateStrings": true,
+              "replace": "3.0.0-alpha.122"
+            }
+          ]
+        }
+      ]
     ]
   }
 }

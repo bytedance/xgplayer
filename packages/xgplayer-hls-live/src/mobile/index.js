@@ -25,6 +25,10 @@ class HlsPlayer extends BasePlugin {
     return softSolutionProbe()
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   constructor (options) {
     super(options)
     this.play = this.play.bind(this)
@@ -105,9 +109,9 @@ class HlsPlayer extends BasePlugin {
    */
   _degrade (url) {
     const { player } = this
-    let mVideo = player.video
+    const mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
-      let newVideo = player.video.degradeVideo
+      const newVideo = player.video.degradeVideo
       this.destroy()
       player.video = newVideo
       mVideo.degrade(url)
@@ -116,7 +120,7 @@ class HlsPlayer extends BasePlugin {
       }
 
       // 替换下dom元素
-      let firstChild = player.root.firstChild
+      const firstChild = player.root.firstChild
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
@@ -133,7 +137,7 @@ class HlsPlayer extends BasePlugin {
     const { backupConstructor, backupURL } = player.config
     if (backupConstructor) {
       player.config.url = backupURL
-      let hlsMsePlayer = player.registerPlugin(backupConstructor)
+      const hlsMsePlayer = player.registerPlugin(backupConstructor)
       hlsMsePlayer.beforePlayerInit()
       Promise.resolve().then(() => {
         player.video.src = player.url

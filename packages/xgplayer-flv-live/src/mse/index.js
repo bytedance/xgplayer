@@ -19,6 +19,10 @@ class FlvPlayer extends BasePlugin {
     })
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   constructor (config) {
     super(config)
     this._context = new Context(this.player, this.config, flvAllowedEvents)
