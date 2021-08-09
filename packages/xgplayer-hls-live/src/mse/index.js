@@ -21,6 +21,10 @@ export default class HlsLivePlayer extends BasePlugin {
     })
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   beforePlayerInit () {
     this.player.switchURL = this.switchURL
     this._initHlsCtr()

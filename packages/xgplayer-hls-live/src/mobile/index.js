@@ -28,6 +28,10 @@ class HlsPlayer extends BasePlugin {
     return softSolutionProbe()
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   beforePlayerInit () {
     this.player.switchURL = this.switchURL
     this._prepareForLiveVideo()

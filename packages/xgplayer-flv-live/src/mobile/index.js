@@ -31,6 +31,10 @@ class FlvPlayer extends BasePlugin {
     })
   }
 
+  get version () {
+    return '__VERSION__'
+  }
+
   constructor (options) {
     super(options)
     this._bindPlayerEvents()
