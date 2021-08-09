@@ -164,8 +164,8 @@ class Progress extends Plugin {
 
   /**
    * 触发某一类回调监听
-   * @param {*} type 类型 drag/dragend
-   * @param {Object} data 具体数据
+   * @param { string } type 类型 drag/dragend
+   * @param { any} data 具体数据
    */
   triggerCallbacks (type, data) {
     if (this.__dragCallBacks.length > 0) {
@@ -183,18 +183,18 @@ class Progress extends Plugin {
 
   /**
    * 供外部插件添加回调
-   * @param {String} type 类型 drag/dragend
-   * @param {Function} event 回调函数句柄
+   * @param {string} type 类型 drag/dragend
+   * @param {function} handle 回调函数句柄
    */
-  addCallBack (type, event) {
-    if (event && typeof event === 'function') {
-      this.__dragCallBacks.push({ type: type, handler: event })
+  addCallBack (type, handle) {
+    if (handle && typeof handle === 'function') {
+      this.__dragCallBacks.push({ type: type, handler: handle })
     }
   }
 
   /**
    * 供外部插件移除回调
-   * @param {String} type 类型 drag/dragend
+   * @param {string} type 类型 drag/dragend
    * @param {Function} event 回调函数句柄
    */
   removeCallBack (type, event) {
@@ -271,7 +271,7 @@ class Progress extends Plugin {
     pos.moving = false
 
     // 交互开始 禁止控制栏的自动隐藏功能
-    player.emit(Events.PLAYER_FOCUS, { autoHide: false })
+    player.focus({ autoHide: false })
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'active')
 
@@ -337,7 +337,7 @@ class Progress extends Plugin {
       this.resetSeekState()
     }, 10)
     // 交互结束 恢复控制栏的隐藏流程
-    player.emit(Events.PLAYER_FOCUS)
+    player.focus()
   }
 
   onMouseMove = (e) => {

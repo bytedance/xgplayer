@@ -5,28 +5,28 @@ import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
 import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API } from './constant'
-import Plugin, { pluginsManager, BasePlugin } from './plugin'
+import Plugin from './plugin/plugin'
+import BasePlugin from './plugin/basePlugin'
+import pluginsManager from './plugin/pluginsManager'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
 import hooksDescriptor, { runHooks, useHooks, usePluginHooks, hook } from './plugin/hooksDescriptor'
-import Controls from './plugins/controls'
+import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
-
-import I18N from './lang'
+import I18N from './lang/i18n'
 import version from './version'
+
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
 
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 
-/**
- * @constructor
- */
 class Player extends VideoProxy {
   /**
-   * @constructor
    * @param { IPlayerOptions } options
-   * @returns
    */
   constructor (options) {
     const config = Util.deepMerge(getDefaultConfig(), options)
@@ -54,9 +54,6 @@ class Player extends VideoProxy {
     }
 
     // timer and flags
-    /**
-     * @private
-     */
     this.userTimer = null
     /**
      * @private
@@ -192,6 +189,10 @@ class Player extends VideoProxy {
      */
     this.root = null
 
+    // android 6以下不支持自动播放
+    if (Sniffer.os.isAndroid && Sniffer.osVersion > 0 && Sniffer.osVersion < 6) {
+      this.config.autoplay = false
+    }
     /**
      * @readonly
      * @type {any}
@@ -612,7 +613,7 @@ class Player extends VideoProxy {
    *
    * @param { {plugin: function, options:object} | function } plugin
    * @param { {[propName: string]: any;} } [config]
-   * @returns { object }
+   * @returns { any } plugin
    */
   registerPlugin (plugin, config) {
     let PLUFGIN = null
@@ -667,7 +668,7 @@ class Player extends VideoProxy {
 
   /**
    *
-   * @param { object | string } plugin
+   * @param { any } plugin
    */
   unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
@@ -678,17 +679,17 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 当前播放器挂在的插件实例代码
-   * @type { {[propName: string]: any} }
+   * 当前播放器挂载的插件实例列表
+   * @type { {[propName: string]: any } }
    */
   get plugins () {
     return pluginsManager.getPlugins(this)
   }
 
   /**
-   *
+   * get a plugin instance
    * @param { string } pluginName
-   * @returns { object | null }
+   * @return { any } plugin
    */
   getPlugin (pluginName) {
     const plugin = pluginsManager.findPlugin(this, pluginName)
@@ -723,7 +724,7 @@ class Player extends VideoProxy {
   /**
    *
    * @param { string } className
-   * @returns { boolean }
+   * @returns { boolean } has
    */
   hasClass (className) {
     if (!this.root) {
@@ -736,7 +737,7 @@ class Player extends VideoProxy {
    *
    * @param { string } key
    * @param { any } value
-   * @returns
+   * @returns void
    */
   setAttribute (key, value) {
     if (!this.root) {
@@ -749,7 +750,7 @@ class Player extends VideoProxy {
    *
    * @param { string } key
    * @param { any } value
-   * @returns
+   * @returns void
    */
   removeAttribute (key, value) {
     if (!this.root) {
@@ -1147,7 +1148,42 @@ class Player extends VideoProxy {
   }
 
   /**
-   *
+   * @description 播放器焦点状态，控制栏显示
+   * @param { {
+   *   autoHide?: boolean, // 是否可以自动隐藏
+   *   delay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
+   * } } [data]
+   */
+  focus (data = { autoHide: true, delay: 0 }) {
+    if (this.isActive) {
+      this.onFocus(data)
+      return
+    }
+    this.emit(Events.PLAYER_FOCUS, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @description 取消播放器当前焦点状态
+   * @param { { ignorePaused?: boolean } } [data]
+   */
+  blur (data = { ignorePaused: false }) {
+    if (!this.isActive) {
+      this.onBlur(data)
+      return
+    }
+    this.emit(Events.PLAYER_BLUR, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @protected
    * @param { { autoHide?: boolean, delay?: number} } [data]
    * @returns
    */
@@ -1162,22 +1198,22 @@ class Player extends VideoProxy {
     }
     const time = data && data.delay ? data.delay : this.config.inactive
     this.userTimer = Util.setTimeout(this, () => {
-      this.emit(Events.PLAYER_BLUR)
+      this.blur()
     }, time)
   }
 
   /**
-   *
-   * @param {{ ignoreStatus?: boolean }} [data]
+   * @protected
+   * @param {{ ignorePaused?: boolean }} [data]
    * @returns
    */
-  onBlur (data = { ignoreStatus: false }) {
+  onBlur (data = { ignorePaused: false }) {
     if (!this.isActive) {
       return
     }
     const { closePauseVideoFocus } = this.config
     this.isActive = false
-    if (data.ignoreStatus || closePauseVideoFocus || (!this.paused && !this.ended)) {
+    if (data.ignorePaused || closePauseVideoFocus || (!this.paused && !this.ended)) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
   }
@@ -1198,7 +1234,7 @@ class Player extends VideoProxy {
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
-    !this.config.closePlayVideoFocus && this.emit(Events.PLAYER_FOCUS)
+    !this.config.closePlayVideoFocus && this.focus()
   }
 
   /**
@@ -1206,11 +1242,11 @@ class Player extends VideoProxy {
    */
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
-    if (this.config.closePauseVideoFocus) {
+    if (!this.config.closePauseVideoFocus) {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
       }
-      this.emit(Events.PLAYER_FOCUS)
+      this.focus()
     }
   }
 
@@ -1512,6 +1548,7 @@ class Player extends VideoProxy {
    * @param { string } hookName
    * @param { (player: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns {boolean} isSuccess
    */
   useHooks (hookName, handler) {
     return useHooks.call(this, ...arguments)
@@ -1523,6 +1560,7 @@ class Player extends VideoProxy {
    * @param { string } hookName
    * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns { boolean } isSuccess
    */
   usePluginHooks (pluginName, hookName, handler, ...args) {
     return usePluginHooks.call(this, ...arguments)
@@ -1562,8 +1600,8 @@ class Player extends VideoProxy {
 
 export {
   Player as default,
-  BasePlugin,
   Plugin,
+  BasePlugin,
   Events,
   Errors,
   Sniffer,

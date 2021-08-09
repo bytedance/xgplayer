@@ -10,13 +10,13 @@
  *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
  *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover', // video画面填充模式 fillHeight/fillWidth/fill/auto
  *   volume?: number | { [propName: string]: any }, // 默认音量
- *   autoplay?: number, // 是否自动播放
- *   autoplayMuted?: number, // 是否自动静音
- *   loop?: number, // 是否循环播放
+ *   autoplay?: boolean, // 是否自动播放
+ *   autoplayMuted?: boolean, // 是否自动静音
+ *   loop?: boolean, // 是否循环播放
  *   zoom?: number, // 缩放比例
- *   videoInit?: number, // 是否优先显示视频首帧
+ *   videoInit?: boolean, // 是否优先显示视频首帧
  *   poster?: string | { [propName: string]: any }, // 封面图地址
- *   isMobileSimulateMode?: false, // 模拟状态,取值mobile/pc
+ *   isMobileSimulateMode?: 'mobile' | 'pc', // 模拟状态,取值mobile/pc
  *   defaultPlaybackRate?: number, // 默认播放倍数
  *   execBeforePluginsCall?: () => any, // 默认插件组装前回调
  *   allowSeekAfterEnded?: boolean, // 播放结束之后是否允许seek

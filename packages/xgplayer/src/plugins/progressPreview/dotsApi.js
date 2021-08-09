@@ -28,8 +28,8 @@ const APIS = {
   },
   /**
    * 创建一个故事点
-   * @param {Object} iSpot
-   * @param {boolean} isNew
+   * @param { object } iSpot
+   * @param { boolean } isNew
    */
   createDot (iSpot, isNew = true) {
     const { progress } = this.player.plugins
@@ -62,7 +62,7 @@ const APIS = {
 
   /**
    * 根据id查找节点
-   * @param {String} id
+   * @param {string} id
    */
   findDot (id) {
     if (!this.player.plugins.progress) {
@@ -76,8 +76,8 @@ const APIS = {
 
   /**
    * 更新故事点
-   * @param {Object} iSpot
-   * @param {Boolean} needShow
+   * @param {any} iSpot
+   * @param {boolean} needShow
    */
   updateDot (iSpot, needShow = false) {
     const { progress } = this.player.plugins
@@ -118,7 +118,7 @@ const APIS = {
 
   /**
    * 删除某个故事点
-   * @param {String} id
+   * @param {string | number } id
    */
   deleteDot (id) {
     const { _ispots } = this

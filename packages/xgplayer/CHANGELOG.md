@@ -1,10 +1,20 @@
 # 版本更新记录
+## 3.0.0-alpha.94
+>* feat: (xgplayer) 重构Error类型
+>* fix:(xgplayer) types/index.d.ts 命令行生成
+>* feat:(xgplayer) 新增focus和blur两个api用户控制播放器的焦点状态
+>* feat(xgplayer) Plugin和BasePlugin增加初始化参类型定义; plugin中registerLangauageTexts修改为registerLanguageTexts
+>* fix:(xgplayer) 移动端禁用DynamicBg插件
+>* fix:(xgplayer) autoplay增加android6.0以下测试 android 6.0以下不允许自动播放设置
+>* feat:(xgplayer)  删除defaultpreset中texttrack插件的集成; 将danmu.js和xgplayer-subtitles依赖移动到peerDependencies
+>* feat:(xgplayer) pc插件增加videoClick和videoDbClick两个hook
+
 ## 3.0.0-alpha.93
 >* feat: (xgplayer) 音量插件音量为0取消静音的时候设置默认音量
 >* fix:(xgplayer) 修复retry直播流程异常问题; player.useHooks增加return值
 >* feat:(xgplayer) 修改一些ts相关声明
 >* feat(xgplayer): 更新语言注册逻辑, 增加语言注册之前的扩展数据缓存
->* feat:(xgplayer-mp4) unRegister 增加插件名小写转换; dynamicBg start增加stop之前的动画逻辑
+>* feat:(xgplayer) unRegister 增加插件名小写转换; dynamicBg start增加stop之前的动画逻辑
 >* feat:(xgplayer): 增加內置插件用戶行为数据触发事件USER_ACTION, plugin封装统一的触发API-> emitUserAction
 
 ## 3.0.0-alpha.92
