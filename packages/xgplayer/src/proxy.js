@@ -250,6 +250,8 @@ class VideoProxy {
     }
     this._currentTime = 0
     this._duration = 0
+    this._hasStart = false
+    this.videoConfig = null
     for (const k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
@@ -263,6 +265,9 @@ class VideoProxy {
         this.off(eventKey, this[funName])
       }
     })
+    this._evHandlers = null
+    this.video = null
+    this.videoEventMiddleware = {}
     allOff(this)
   }
 

@@ -86,6 +86,20 @@ function useHooks (hookName, handler) {
 }
 
 /**
+ * 移除hook
+ * @param { string } hookName
+ * @param { (plugin: any, ..args) => {} } handler
+ * @returns void
+ */
+function removeHooks (hookName, handler) {
+  const { __hooks } = this
+  if (!__hooks) {
+    return
+  }
+  __hooks[hookName] = null
+}
+
+/**
  * 给某个插件添加hooks
  * @param { string } pluginName
  * @param  {...any} args
@@ -100,24 +114,27 @@ function usePluginHooks (pluginName, ...args) {
 
 /**
  * hook装饰器，为某个实例添加usePluginHooks/hook/useHooks的能力
- * @param {*} instance
+ * @param { any } instance
+ * @param { Array<string> } [hookNames]
  */
-function hooksDescriptor (instance) {
+function hooksDescriptor (instance, presetHooks = []) {
   instance.__hooks = {}
+  presetHooks && presetHooks.map(item => {
+    instance.__hooks[item] = null
+  })
   Object.defineProperty(instance, 'hooks', {
     get: () => {
-      return Object.keys(instance.__hooks).map(key => {
+      return instance.__hooks && Object.keys(instance.__hooks).map(key => {
         if (instance.__hooks[key]) {
           return key
         }
       })
     }
   })
-  // instance.hook = hook.bind(instance)
-  // instance.useHooks = useHooks.bind(instance)
-  // if (instance.plugins) {
-  //   instance.usePluginHooks = usePluginHooks.bind(instance)
-  // }
+}
+
+function delHooksDescriptor (instance) {
+  instance.__hooks = null
 }
 
 function runHooks (obj, hookName, handler, ...args) {
@@ -142,5 +159,7 @@ export {
   hook,
   useHooks,
   usePluginHooks,
+  removeHooks,
+  delHooksDescriptor,
   runHooks
 }

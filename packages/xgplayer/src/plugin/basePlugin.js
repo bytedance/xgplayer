@@ -3,7 +3,7 @@ import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import XG_DEBUG from '../utils/debug'
-import hooksDescriptor, { hook, useHooks } from '../plugin/hooksDescriptor'
+import hooksDescriptor, { hook, useHooks, delHooksDescriptor } from '../plugin/hooksDescriptor'
 
 function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
@@ -96,37 +96,41 @@ class BasePlugin {
    * @param { any } args
    */
   __init (args) {
-    BasePlugin.defineGetterOrSetter(this, {
-      player: {
-        get: () => {
-          return args.player
-        },
-        configurable: true
-      },
-      playerConfig: {
-        get: () => {
-          return args.player && args.player.config
-        },
-        configurable: true
-      },
+    this.player = args.player
+    this.playerConfig = args.player && args.player.config
+    this.pluginName = args.pluginName ? args.pluginName.toLowerCase() : this.constructor.pluginName.toLowerCase()
+    this.logger = args.player && args.player.logger
+    // BasePlugin.defineGetterOrSetter(this, {
+    //   player: {
+    //     get: () => {
+    //       return args.player
+    //     },
+    //     configurable: true
+    //   },
+    //   playerConfig: {
+    //     get: () => {
+    //       return args.player && args.player.config
+    //     },
+    //     configurable: true
+    //   },
 
-      pluginName: {
-        get: () => {
-          if (args.pluginName) {
-            return args.pluginName.toLowerCase()
-          } else {
-            return this.constructor.pluginName.toLowerCase()
-          }
-        },
-        configurable: true
-      },
-      logger: {
-        get: () => {
-          return args.player.logger
-        },
-        configurable: true
-      }
-    })
+    //   pluginName: {
+    //     get: () => {
+    //       if (args.pluginName) {
+    //         return args.pluginName.toLowerCase()
+    //       } else {
+    //         return this.constructor.pluginName.toLowerCase()
+    //       }
+    //     },
+    //     configurable: true
+    //   },
+    //   logger: {
+    //     get: () => {
+    //       return args.player.logger
+    //     },
+    //     configurable: true
+    //   }
+    // })
   }
 
   /**
@@ -273,6 +277,8 @@ class BasePlugin {
     return useHooks.call(this, ...arguments)
   }
 
+  useHooks
+
   /**
    * 注册子插件
    * @param { any } plugin
@@ -303,25 +309,13 @@ class BasePlugin {
       this.destroy()
     }
 
-    ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
-      Object.defineProperty(this, item, {
-        writable: true
-      })
+    ['player', 'playerConfig', 'pluginName', 'logger', '__args', '__hooks'].map(item => {
+      this[item] = null
     })
-    Object.keys(this).map(key => {
-      this[key] = null
-      delete this[key]
-    })
-    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
     player.unRegisterPlugin(pluginName)
+    delHooksDescriptor(this)
   }
 }
-
-// BasePlugin.Util = Util
-// BasePlugin.Sniffer = Sniffer
-// BasePlugin.Errors = Errors
-// BasePlugin.Events = Events
-// BasePlugin.XG_DEBUG = XG_DEBUG
 export {
   BasePlugin as default,
   Util,
