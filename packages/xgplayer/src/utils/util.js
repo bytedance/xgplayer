@@ -734,4 +734,27 @@ util.getEventPos = function (e, zoom = 1) {
   }
 }
 
+util.requestAnimationFrame = function (callback) {
+  const _fun = window.requestAnimationFrame ||
+  // Older versions Chrome/Webkit
+  window.webkitRequestAnimationFrame ||
+
+   // Firefox < 23
+   window.mozRequestAnimationFrame ||
+
+   // opera
+   window.oRequestAnimationFrame ||
+
+   // ie
+   window.msRequestAnimationFrame
+  if (_fun) {
+    return _fun(callback)
+  }
+}
+
+util.cancelAnimationFrame = function (frameId) {
+  const _fun = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.cancelRequestAnimationFrame
+  _fun && _fun(frameId)
+}
+
 export default util

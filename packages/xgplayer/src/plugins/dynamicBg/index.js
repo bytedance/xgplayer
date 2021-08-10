@@ -1,4 +1,5 @@
 import Plugin, { Events, Util, Sniffer } from '../../plugin'
+import XG_DEBUG from '../../utils/debug'
 
 const MODES = {
   REAL_TIME: 'realtime',
@@ -34,6 +35,7 @@ function checkIsSupport (video) {
  * } } IDynamicBgConfig
  */
 
+const isSupport = null
 class DynamicBg extends Plugin {
   static get pluginName () {
     return 'dynamicBg'
@@ -53,9 +55,35 @@ class DynamicBg extends Plugin {
     }
   }
 
+  static checkSupport () {
+    try {
+      const ctx = document.createElement('canvasobj').getContext
+      if (ctx) {
+        return true
+      }
+      return false
+    } catch (e) {
+      return false
+    }
+  }
+
+  /**
+   * @type {boolean}
+   * @description Does the current environment support Canvas
+   */
+  static get isSupport () {
+    if (typeof isSupport === 'boolean') {
+      return isSupport
+    }
+    return DynamicBg.checkSupport()
+  }
+
   afterCreate () {
     if (this.playerConfig.dynamicBg === true) {
       this.config.disable = false
+    }
+    if (DynamicBg.isSupport) {
+      this.config.disable = true
     }
     const { disable, mode } = this.config
     if (disable) {
@@ -155,14 +183,14 @@ class DynamicBg extends Plugin {
         this.updateImg(url)
       }
     } catch (e) {
-      console.error('plugin:VideoBg', e)
+      XG_DEBUG.logError('plugin:DynamicBg', e)
     }
   }
 
   start = () => {
     const { video } = this.player
     const _now = nowTime()
-    if (!checkIsSupport(video)) {
+    if (!checkIsSupport(video) || !this.canvasCtx) {
       return
     }
     this.stop()
@@ -173,12 +201,12 @@ class DynamicBg extends Plugin {
       video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
     }
-    this.frameId = window.requestAnimationFrame(this.start)
+    this.frameId = Util.requestAnimationFrame(this.start)
   }
 
   stop = () => {
     if (this.frameId) {
-      window.cancelAnimationFrame(this.frameId)
+      Util.cancelAnimationFrame(this.frameId)
       this.frameId = null
     }
   }
@@ -203,36 +231,40 @@ class DynamicBg extends Plugin {
   }
 
   update (video, videoWidth, videoHeight) {
-    if (!this.canvas) {
+    if (!this.canvas || !this.canvasCtx) {
       return
     }
-    const { _pos, config } = this
-    const { width, height } = this.canvas.getBoundingClientRect()
-    this.videoPI = parseInt(videoWidth / videoHeight * 100, 10)
-    if (width !== _pos.width || height !== _pos.height) {
-      const pi = parseInt(width / height * 100, 10)
-      _pos.width = this.canvas.width = width
-      _pos.height = this.canvas.height = height
-      let rheight = height
-      let rwidth = width
-      if (pi < this.videoPI) {
-        rwidth = parseInt(height * this.videoPI / 100, 10)
-      } else if (pi > this.videoPI) {
-        rheight = parseInt(width * 100 / this.videoPI, 10)
+    try {
+      const { _pos, config } = this
+      const { width, height } = this.canvas.getBoundingClientRect()
+      this.videoPI = parseInt(videoWidth / videoHeight * 100, 10)
+      if (width !== _pos.width || height !== _pos.height) {
+        const pi = parseInt(width / height * 100, 10)
+        _pos.width = this.canvas.width = width
+        _pos.height = this.canvas.height = height
+        let rheight = height
+        let rwidth = width
+        if (pi < this.videoPI) {
+          rwidth = parseInt(height * this.videoPI / 100, 10)
+        } else if (pi > this.videoPI) {
+          rheight = parseInt(width * 100 / this.videoPI, 10)
+        }
+        if (pi < this.videoPI) {
+          rwidth = parseInt(height * this.videoPI / 100, 10)
+        } else if (pi > this.videoPI) {
+          rheight = parseInt(width * 100 / this.videoPI, 10)
+        }
+        _pos.rwidth = rwidth * 1.2
+        _pos.rheight = rheight * 1.2
+        _pos.x = (width - _pos.rwidth) / 2
+        _pos.y = (height - _pos.rheight) / 2
       }
-      if (pi < this.videoPI) {
-        rwidth = parseInt(height * this.videoPI / 100, 10)
-      } else if (pi > this.videoPI) {
-        rheight = parseInt(width * 100 / this.videoPI, 10)
-      }
-      _pos.rwidth = rwidth * 1.2
-      _pos.rheight = rheight * 1.2
-      _pos.x = (width - _pos.rwidth) / 2
-      _pos.y = (height - _pos.rheight) / 2
+      // console.log(`x:${_pos.x} y:${_pos.y}  rwidth:${_pos.rwidth} rheight:${ _pos.rheight}`)
+      this.canvasCtx.filter = config.filter
+      this.canvasCtx.drawImage(video, _pos.x, _pos.y, _pos.rwidth, _pos.rheight)
+    } catch (e) {
+      XG_DEBUG.logError('plugin:DynamicBg', e)
     }
-    // console.log(`x:${_pos.x} y:${_pos.y}  rwidth:${_pos.rwidth} rheight:${ _pos.rheight}`)
-    this.canvasCtx.filter = config.filter
-    this.canvasCtx.drawImage(video, _pos.x, _pos.y, _pos.rwidth, _pos.rheight)
   }
 
   destroy () {
