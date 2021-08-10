@@ -36,7 +36,7 @@ class FlvCompatibility extends Base {
 
     if (!samples.length) return
 
-    // 先以baseDts为基准 偏移dts、pts
+    // offset dts、pts of frame first by baseDts
     samples.forEach(x => {
       x.originDts = x.dts
       x.pts = x.originPts = x.dts + x.cts
@@ -85,7 +85,7 @@ class FlvCompatibility extends Base {
 
       logger.log(this.TAG, `首帧dts和期望值差距过大, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
 
-      // 只处理首帧
+      // resolve first frame only
       firstSample.dts += vDelta
       firstSample.pts += vDelta
     }

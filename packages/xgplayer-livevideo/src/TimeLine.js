@@ -116,7 +116,8 @@ export default class TimeLine extends EventEmitter {
     return this._parent.lowlatency
   }
 
-  // 播放器初始化时第一个WebAudio能否自动播放的状态,后续重新创建的不算,用于safari下非用户交互创建的 webaudio 不能自动播放
+  // the autoplay status for the first webaudio instance
+  // for webaudio can't autoplay without user gesture on safari
   get audioCanAutoplay () {
     return this._parent._audioCanAutoplay
   }
@@ -142,7 +143,8 @@ export default class TimeLine extends EventEmitter {
     this.on(Events.DECODE_EVENTS.REMUX, (remux) => {
       this.videoRender.setRemux(remux)
     })
-    // 硬解追帧流程是在视频追帧完成之后触发音频追帧
+
+    // audio chase frame aftrer video chase frame
     this.on(Events.DECODE_EVENTS.CHASE_VIDEO_FRAME_END, (keyframe) => {
       this.emit(Events.DECODE_EVENTS.CHASE_AUDIO_FRAME, keyframe)
     })
@@ -196,8 +198,10 @@ export default class TimeLine extends EventEmitter {
         this.videoRender.switchToMultiWorker()
         return
       }
+
       if (this.currentTime < 5) return
-      // 对外只触发一次
+
+      // emit only once
       if (this._lowdecodeEmited) return
       this._lowdecodeEmited = true
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE)
@@ -218,7 +222,7 @@ export default class TimeLine extends EventEmitter {
       this.audioRender = null
     })
 
-    // 点播暂停后重新起播
+    // for vod
     this.on(Events.TIMELINE.DO_PLAY, (e) => {
       if (!this._parent.startPlayed) {
         this._parent.startPlayed = true
@@ -235,7 +239,7 @@ export default class TimeLine extends EventEmitter {
     }
     logger.log(this.TAG, 'startRender: time=', this.currentTime, 'paused:', this.paused, 'seeking:', this.seeking)
 
-    // 首帧画面显示
+    // for first frame show
     this.videoRender.forceRender()
 
     if (!this._parent.live && this._paused && this.seeking) {
@@ -250,7 +254,8 @@ export default class TimeLine extends EventEmitter {
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.FIRST_FRAME)
     }
 
-    // 对autoplay:false 起播阶段不执行这个,在外面调用play()时分发 START_RENDER
+    // for autoplay:false not run
+    // opposite emit START_RENDER by play() call index.js
     if (this._parent.autoplay || this._parent.startPlayed) {
       this._parent.startPlayed = true
       this.emit(Events.TIMELINE.START_RENDER, from)
@@ -266,13 +271,13 @@ export default class TimeLine extends EventEmitter {
     }
   }
 
-  // 对点播、分片不连续时resetDts
+  // for vod. reset dts when segment discontinue
   _checkResetBaseDts (vTrack, aTrack) {
     const vSamp0 = vTrack && vTrack.samples[0]
     const aSamp0 = aTrack && aTrack.samples[0]
     if (!vSamp0 || !aSamp0) {
       if (!this.buffered.length) {
-        // 暂不支持只有单track
+        // todo: single track support
         this.emit(Events.TIMELINE.PLAY_EVENT, 'error', new Error('lack video or audio sample'))
       }
       return
@@ -287,7 +292,8 @@ export default class TimeLine extends EventEmitter {
     if (this._lastSegment && this._lastSegment.cc !== frag.cc) {
       breakedFrag = true
     }
-    // 考虑不存在不连续标记、但流时间戳变化了
+
+    // for no discontinu tag exist, but timestamp breaked
     const fStart = frag.start / 1000
     const fEnd = fStart + frag.duration / 1000
     const isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime
@@ -330,9 +336,9 @@ export default class TimeLine extends EventEmitter {
         resumed = true
       } else if (this.audioRender) {
         this.audioRender.resume().then(() => {
-          logger.log(this.TAG, 'audioCtx 开始播放')
+          logger.log(this.TAG, 'audioCtx start play')
           if (this._paused) {
-            // resume()返回晚于timer时
+            // resume() finish after timer
             this.emit(Events.TIMELINE.DO_PAUSE)
             return
           }
@@ -344,7 +350,7 @@ export default class TimeLine extends EventEmitter {
         this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
 
         if (!resumed) {
-          logger.log(this.TAG, 'audioCtx 不能自动播放')
+          logger.log(this.TAG, "audioCtx can't autoplay")
           if (this._parent.firstWebAudio) {
             this._paused = true
             // eslint-disable-next-line prefer-promise-reject-errors
@@ -359,7 +365,7 @@ export default class TimeLine extends EventEmitter {
         }
         // 暂时没有和音频不能自动播放合到一起
         if (this.videoRender && !this.videoRender.canAutoPlay) {
-          console.warn('video render 不能自动播放')
+          console.warn("video render an't autoplay")
           this.pause()
           // this.emit(Events.TIMELINE.PLAY_EVENT, 'notautoplay')
           // eslint-disable-next-line prefer-promise-reject-errors
@@ -397,12 +403,11 @@ export default class TimeLine extends EventEmitter {
       if (this.currentTime < 0.1 || !this.audioCanAutoplay) return
 
       /**
-       * 追帧流程
-       * 1. 从 time 位置往前找最近的关键帧, time - keyframePosition < preloadTime
-       * 2. 对 audio._timeRange, 从keyframePosition 往后找最近的buffer块 A, 可能找不到。
-       * 3. videoRender刷新解码器,清空解码帧、删除keyframePosition之间的压缩帧
-       * 4. audioRender 删除 A 之前的buffer块,重建 audioCtx
-       * 5. 音频播放，视频解码 (视频位置 < 音频块位置)会短暂追帧
+       * process of chase frame:
+       * 1. find the recently keyframe before time, time - keyframePosition < preloadTime
+       * 2. for audio._timeRange, find the recently buffer `A` after keyframePosition, may no exist
+       * 3. videoRender flush decoder, empty frameQueue and delete all frames in timeRage before keyframePosition
+       * 4. audioRender deleta buffer before `A`,recreate audioCtx
        */
       const keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1)
       if (keyframe) {
@@ -428,7 +433,6 @@ export default class TimeLine extends EventEmitter {
 
     this._lastSeekTime = time
 
-    // 调整为最后一个分片
     if (time >= this.duration) {
       time = this.duration - 1
     }
@@ -439,7 +443,7 @@ export default class TimeLine extends EventEmitter {
 
     logger.group(this.TAG, 'start seek to:', time)
 
-    /** 点播 seek 链路:
+    /** seek process for vod:
      *  音视频流程暂停, videoRender 销毁audioCtx并新建、videoRender timer暂停,清空_frameQueue
      *  1. seek位置无buffer,emit waiting,等待下载,下载完后 audioRender中调整seek时间，通知videoRender解码
      *  2. seek位置有buffer,直接切换buffer,中调整seek时间，通知videoRender解码

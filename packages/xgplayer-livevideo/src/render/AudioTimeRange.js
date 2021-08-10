@@ -113,7 +113,6 @@ export default class AudioTimeRange {
   }
 
   deletePassed (time) {
-    // 少删除一个音频buffer，缓解追帧时音视频差值过大
     this._buffers = this._buffers.filter((x) => x.start >= time)
     return this._buffers[0]
   }

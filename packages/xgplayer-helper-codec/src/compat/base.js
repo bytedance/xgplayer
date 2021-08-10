@@ -97,7 +97,7 @@ class BaseCompatibility {
 
     let delta = _videoBaseDts - _audioBaseDts
 
-    // 音视频首帧dts差距过大
+    // large av first dts delta
     if (Number.isFinite(delta) && Math.abs(delta) > LARGE_AV_FIRST_FRAME_GAP) {
       this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
         msg: BaseCompatibility.EXCEPTION.LARGE_AV_FIRST_FRAME_GAP_DETECT,
@@ -117,7 +117,7 @@ class BaseCompatibility {
   _resetBaseDtsWhenStreamBreaked () {
     if (this._baseDtsInited && this._videoTimestampBreak && this._audioTimestampBreak) {
       /**
-       * 中间发生了时间戳跳变
+       * timestamp breaked
        *                     _audioNextDts
        *  ---------------------|
        * (_baseDts)          _videoNextDts
@@ -129,14 +129,14 @@ class BaseCompatibility {
        * ---------------------------------------|
        */
 
-      // 先根据跳变后的采样计算baseDts
+      // calc baseDts base on new samples
       let calc = this._calculateBaseDts(this.audioTrack, this.videoTrack)
 
       if (!calc) return
 
-      // 考虑上下一帧期望的dts, 为了将采样变成以nextDts开始
+      // consider the expect dts for next frame
       this._baseDts -= Math.min(this._audioNextDts, this._videoNextDts)
-      logger.warn(this.TAG, `stream breaked, 调整_baseDts: ${this._baseDts}`)
+      logger.warn(this.TAG, `stream breaked, _baseDts: ${this._baseDts}`)
       this._audioLastSample = null
       this._videoLastSample = null
       this._videoTimestampBreak = false
@@ -170,8 +170,9 @@ class BaseCompatibility {
       let sample = samples[i]
       let delta = sample.dts - nextDts
 
-      // 需要补帧
-      // >= 3帧时长 && <= 500s 范围内补帧
+      // fill frames
+      // delta >= 3 * refSampleDurationInt
+      // delta <= 500s
       if (delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDurationInt && delta <= MAX_SILENT_FRAME_DURATION && !BaseCompatibility.isSafari) {
         const silentFrame = this._getSilentFrame()
         const count = Math.floor(delta / refSampleDurationInt)
@@ -190,7 +191,7 @@ class BaseCompatibility {
           })
         }
 
-        logger.warn(this.TAG, `需要补${count}帧, for ${delta} ms gap`)
+        logger.warn(this.TAG, `need fill ${count} frames, for ${delta} ms gap`)
 
         for (let j = 0; j < count; j++) {
           const silentSample = {
@@ -201,14 +202,15 @@ class BaseCompatibility {
             filtered: 0
           }
           samples.splice(i, 0, silentSample)
-          this._audioNextDts += refSampleDuration // 浮点型
+          this._audioNextDts += refSampleDuration // float
           i++
         }
 
         i--
-        // overlap 在 <= -3帧时长 && >= -500ms范围内丢帧
+        // delta  <= -3 * refSampleDurationInt
+        // delta  >= -500ms
       } else if (delta <= -AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDurationInt && delta >= -1 * MAX_SILENT_FRAME_DURATION) {
-        // 需要丢帧
+        // need discard frames
         if (Math.abs(sample.dts - this._lastAudioExceptionOverlapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
           this._lastAudioExceptionOverlapDot = sample.dts
           this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
@@ -222,7 +224,7 @@ class BaseCompatibility {
           })
         }
 
-        logger.warn(this.TAG, `需要丢帧: dts=${sample.dts}, nextDts=${nextDts}`)
+        logger.warn(this.TAG, `need discard frames: dts=${sample.dts}, nextDts=${nextDts}`)
         samples.splice(i, 1)
         i--
       } else {
@@ -276,7 +278,7 @@ class BaseCompatibility {
     let duration = Math.floor((last.dts - first.dts) / (len - 1))
 
     track.meta.refSampleDuration = duration
-    logger.log(this.TAG, `根据采样评估videoRefDuration: ${originDuration} -> ${duration}`)
+    logger.log(this.TAG, `calc videoRefDuration: ${originDuration} -> ${duration}`)
   }
 
   get tracks () {

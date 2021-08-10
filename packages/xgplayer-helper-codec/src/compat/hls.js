@@ -13,7 +13,6 @@ class HlsCompatibility extends Base {
     this._lastSegment = null
   }
 
-  // id是否连续
   _isIdContinue (segment) {
     if (!this._lastSegment) return true
 

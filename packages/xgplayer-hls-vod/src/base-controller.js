@@ -23,7 +23,6 @@ class HlsVodController {
   }
 
   init () {
-    // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer)
     this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer)()
     this._tracks = this._context.registry('TRACKS', Tracks)()
@@ -32,7 +31,7 @@ class HlsVodController {
 
     const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader
 
-    // 初始化M3U8Loader;
+    // loader for m3u8、ts
     this._context.registry('M3U8_LOADER', Loader)({ buffer: 'M3U8_BUFFER', readtype: 1 })
     this._tsloader = this._context.registry('TS_LOADER', Loader)({ buffer: 'TS_BUFFER', readtype: 3 })
 
@@ -45,10 +44,10 @@ class HlsVodController {
   _bindEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
-    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onError)
+    this.on(DEMUX_EVENTS.SEI_PARSED, sei => this._player.emit('SEI_PARSED', sei))
 
     // emit to out
     this.connectEventTo(LOADER_EVENTS.LOADER_START, 'M3U8_LOADER', CORE_EVENTS.LOADER_START)
@@ -271,12 +270,7 @@ class HlsVodController {
     logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`)
   }
 
-  /** *********** 对外事件 ********************/
-
-  // 兼容老的业务使用
-  _handleSEIParsed = (sei) => {
-    this._player.emit('SEI_PARSED', sei)
-  }
+  /** *********** emit to out ********************/
 
   _onLoadError = (mod, error) => {
     this._onError(mod, error?.err)

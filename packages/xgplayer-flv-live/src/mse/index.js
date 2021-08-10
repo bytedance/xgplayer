@@ -54,7 +54,7 @@ class FlvPlayer extends BasePlugin {
   beforePlayerInit () {
     this._initFlvCtr()
     this.player.switchURL = this._switchURLHandler
-    // video.src 设置成mse中生成的blob地址
+    // video.src: the blob url create by mse component
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         __url: {
@@ -112,7 +112,6 @@ class FlvPlayer extends BasePlugin {
   _onLoadCompleteHandler = () => {
     const { player, flv } = this
 
-    // 直播完成，待播放器播完缓存后发送关闭事件
     if (flv && flv._context) {
       const loader = flv._context.getInstance('FETCH_LOADER')
       loader && loader.cancel()
@@ -145,13 +144,13 @@ class FlvPlayer extends BasePlugin {
 
     const { video } = this.player
 
-    // 兼容safari下不允许自动播放时, click  handler里面需要直接调用 video.play() 点击播放才能生效
     return Promise.all(
       [
+        // for not allowed autoplay by browser
         video.readyState ? video.play().catch(() => {}) : Promise.resolve(),
         this._destroyInternal().then(() => {
           this._bindPlayerEvents()
-          // player中重新走 playHook -> videoPlay() -> start()流程
+          // playHook -> videoPlay() -> start()
           this.player.hasStart = false
         })
       ])

@@ -96,7 +96,8 @@ export default class AudioRender extends BaseRender {
     this._audioCtx = new AudioContext()
     if (!this._audioCtx) {
       logger.warn(this.TAG, 'create webaudio error!')
-      // AudioRender在Timeline constructor中实例化,timeline error handler还未绑定,异步触发
+      // AudioRender instantiate  by Timeline, and timeline error handler no bind that time
+      // so emit sync here
       setTimeout(() => {
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(ERROR_MSG.INIT_AUDIO_ERR))
       })
@@ -132,7 +133,7 @@ export default class AudioRender extends BaseRender {
       this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.VOLUME_CHANGE)
     })
 
-    // 点播设置duration
+    // for vod
     this._parent.on(Events.TIMELINE.SET_VIDEO_DURATION, (v) => {
       this._timeRange.duration = v
     })
@@ -195,23 +196,25 @@ export default class AudioRender extends BaseRender {
     this._lastAudioBufferInfo = null
     this._delay = 0
 
-    // reinit,连续seek时,新建的audioCtx还没使用过的话,不再新建
-    if (this._ready && this._audioCtx.currentTime) {
-      const volume = this._gainNode.gain.value
-      return this._audioCtx.close().then(() => {
-        this._audioCtx.removeEventListener('statechange', this._onStateChange)
-        this._audioCtx = null
-        if (this._source) {
-          this._source.removeEventListener('ended', this._onSourceBufferEnded)
-        }
-        this._source = null
-        return this._initAudioCtx(volume)
-      })
+    // for seek continuous
+    if (!(this._ready && this._audioCtx.currentTime)) {
+      return Promise.resolve()
     }
-    return Promise.resolve()
+
+    const volume = this._gainNode.gain.value
+
+    return this._audioCtx.close().then(() => {
+      this._audioCtx.removeEventListener('statechange', this._onStateChange)
+      this._audioCtx = null
+      if (this._source) {
+        this._source.removeEventListener('ended', this._onSourceBufferEnded)
+      }
+      this._source = null
+      return this._initAudioCtx(volume)
+    })
   }
 
-  // 点播seek
+  // seek for vod
   _doSeek (time) {
     this._reInitAudioCtx(time)
       .then(() => {
@@ -220,7 +223,7 @@ export default class AudioRender extends BaseRender {
       .catch((e) => {})
   }
 
-  // 直播追帧
+  // for live
   _doChaseFrame ({ position }) {
     const next = this._timeRange.deletePassed(position)
     if (!next) return
@@ -252,7 +255,7 @@ export default class AudioRender extends BaseRender {
     const chunkBuffer = AudioRender.combileData(adtss, 0)
     // let chunkBuffer = AudioRender.combileData(adtss, this._dropSampleGap)
 
-    // 存在第二块buffer先于第一块解码完成的情况
+    // promise the audio decode order
     this._inDecoding = true
     this._audioCtx.decodeAudioData(
       chunkBuffer.buffer,
@@ -376,9 +379,10 @@ export default class AudioRender extends BaseRender {
     const _source = this._audioCtx.createBufferSource()
     _source.buffer = buffer.source
     _source.loop = false
-    // 保存引用,移动浏览器下,对source的回收机制有差异，不保存引用会提前回收,导致ended事件不触发
 
+    // 保存引用,移动浏览器下,对source的回收机制有差异，不保存引用会提前回收,导致ended事件不触发
     this._source = _source
+
     _source.addEventListener('ended', this._onSourceBufferEnded)
     _source.connect(this._gainNode)
 
@@ -389,19 +393,20 @@ export default class AudioRender extends BaseRender {
 
     const startDts = buffer.startDts
     const currentDTS = this._timeRange._baseDts + Math.floor(this.currentTime * 1000)
-    // console.log(this.TAG, '_startRender base + currentTime:', currentDTS)
-    // console.log(this.TAG, '_startRender, startDts duration:', startDts, duration, bTime, 'start, end:', buffer.start * 1000, parseInt(buffer.end * 1000))
+
     const delay = startDts - currentDTS
 
     if (delay > 1) {
       console.error(this.TAG, 'error', 'startDts:', startDts, 'currentDTS:', currentDTS, 'this._delay:', this._delay * 1000, 'delay:', delay)
     }
+
     this.startDts = buffer.startDts
+
     try {
       this._isSourceBufferEnd = false
-      // console.error('duration:', buffer.duration)
       _source.start()
     } catch (e) {}
+
     if (buffer.startDts) {
       this._emitTimelineEvents(Events.TIMELINE.SYNC_DTS, buffer.startDts)
     }

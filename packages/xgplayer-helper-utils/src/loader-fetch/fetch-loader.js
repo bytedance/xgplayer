@@ -308,7 +308,6 @@ class FetchLoader {
     }
 
     // add custmor headers
-    // 添加自定义头
     if (typeof this.configs.headers === 'object') {
       const configHeaders = this.configs.headers
       for (const key in configHeaders) {
@@ -332,7 +331,6 @@ class FetchLoader {
     }
 
     // withCredentials is disabled by default
-    // withCredentials 在默认情况下不被使用。
     if (options.withCredentials) {
       params.credentials = 'include'
     }

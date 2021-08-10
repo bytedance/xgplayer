@@ -70,12 +70,12 @@ export default class HlsLivePlayer extends BasePlugin {
 
     const { video } = this.player
 
-    // 兼容safari下不允许自动播放时, click  handler里面需要直接调用 video.play() 点击播放才能生效
     return Promise.all([
+      // for browser not allowed autoplay
       video.readyState ? video.play().catch(() => {}) : Promise.resolve(),
       this._destroyInternal().then(() => {
         this._bindPlayerEvents()
-        // player中重新走 playHook -> videoPlay() -> start()流程
+        // playHook -> videoPlay() -> start()
         this.player.hasStart = false
       })
     ])

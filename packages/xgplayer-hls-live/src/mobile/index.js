@@ -44,7 +44,7 @@ class HlsPlayer extends BasePlugin {
     const { player } = this
     if (player.video) {
       player.video.setAttribute('preloadtime', this.player.config.preloadTime || this.config.preloadTime)
-      // 先兼容传递 innerDegrade = true
+      // for innerDegrade:true
       if (player.config.innerDegrade === true) {
         player.config.innerDegrade = 1
       }
@@ -99,7 +99,7 @@ class HlsPlayer extends BasePlugin {
     this.emit('lowdecode', player.video.degradeInfo)
     this.hls.emitCoreEvent(CORE_EVENTS.LOWDECODE, player.video.degradeInfo)
 
-    // 降级到video直接播放hls
+    // degrade to video+m3u8
     const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
     if (innerDegrade === 1) {
       this._degrade(player.video.src)
@@ -107,9 +107,7 @@ class HlsPlayer extends BasePlugin {
   }
 
   /**
-   * @description 该方法用来软解降级到video
-   * @param {string} url  降级到的地址
-   * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
+   * @param {string} url  the live url for degrade use
    */
   _degrade = (url) => {
     const { player } = this
@@ -143,14 +141,13 @@ class HlsPlayer extends BasePlugin {
     }
   }
 
-  // 外部强制降级
   // m3u8 -> h5 m3u8
   // m3u8 -> web mse
   _forceDegradeToVideo = (url) => {
     this.player.removeClass('xgplayer-is-error')
     const { player } = this
 
-    // 降级到video直接播放hls
+    // 降级to video+m3u8
     const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
     if (innerDegrade === 1) {
       this._degrade(url)

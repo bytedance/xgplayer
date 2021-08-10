@@ -163,8 +163,6 @@ class HlsVodController extends BaseController {
     }
   }
 
-  /** *********** 对外事件 ********************/
-
   _onRemuxError (mod, error, fatal) {
     if (fatal === undefined) {
       fatal = true

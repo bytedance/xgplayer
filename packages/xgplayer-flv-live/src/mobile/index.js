@@ -73,6 +73,7 @@ class FlvPlayer extends BasePlugin {
     this.emit('core_inited', flv)
   }
 
+  // append attrs to live-video
   _prepareForLiveVideo = () => {
     const { player } = this
     const preloadTime = player.config.preloadTime || this.config.preloadTime
@@ -114,9 +115,8 @@ class FlvPlayer extends BasePlugin {
     this.player.video.addEventListener('error', this._pauseHandler)
   }
 
-  /** ********* 降级相关 *********************** */
+  /** ********* livevideo degrade *********************** */
 
-  // 降级时到不同的播放方式
   _lowdecodeHandler = () => {
     const { player } = this
     const { backupURL: playerBackupURL, innerDegrade: playerInnerDegrade } = player.config
@@ -129,20 +129,20 @@ class FlvPlayer extends BasePlugin {
     this.emit('lowdecode', degradeInfo)
     this.flv.emitCoreEvent(CORE_EVENTS.LOWDECODE, degradeInfo)
 
-    // 内部降级到mse
+    // degrade to mse
     if (innerDegrade === 2) {
       this._degrade()
       this._toUseMse(backupURL)
     }
 
-    // h5下内部降级到video播放m3u8
+    // degrade to video + m3u8
     if (innerDegrade === 3) {
       this._degrade(backupURL)
     }
   }
 
   /**
-   * @param {string | undefined} url  降级到的地址
+   * @param {string | undefined} url
    */
   _degrade = (url) => {
     const { player } = this
@@ -156,7 +156,7 @@ class FlvPlayer extends BasePlugin {
         player.config.url = url
       }
 
-      // 替换下dom元素
+      // replace live-video to video
       let firstChild = player.root.firstChild
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
@@ -192,7 +192,6 @@ class FlvPlayer extends BasePlugin {
     }
   }
 
-  // 外部强制降级
   // flv -> h5 m3u8
   // flv -> web mse
   forceDegradeToVideo = (url) => {
@@ -206,14 +205,13 @@ class FlvPlayer extends BasePlugin {
     this._degrade()
     this._toUseMse(url)
   }
-  /** ********* 降级相关 end *********************** */
+  /** ********* livevideo degrade end *********************** */
 
   /** *********** player event handler *********************** */
 
   _onLoadCompleteHandler = () => {
     const { player, flv } = this
 
-    // 直播完成，待播放器播完缓存后发送关闭事件
     if (flv && flv._context) {
       const loader = flv._context.getInstance('FETCH_LOADER')
       loader && loader.cancel()
@@ -262,7 +260,7 @@ class FlvPlayer extends BasePlugin {
     this._switchURLHandler(to)
   }
 
-  // 软解追帧
+  // for chase frame
   _progressHandler = () => {
     if (!this.player || !this.player.video) return
     const { buffered, currentTime, config } = this.player

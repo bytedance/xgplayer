@@ -23,8 +23,8 @@ class HlsVodMobileController extends BaseController {
   _onWaiting = () => {}
 
   _onMetadataParsed = (type) => {
+    // give livevideo direct
     if (type === 'audio') {
-      // 将音频meta信息交给audioContext，不走remux封装
       const { audioTrack } = this._context.getInstance('TRACKS')
       if (audioTrack && audioTrack.meta) {
         this._setMetaToAudio(audioTrack.meta)

@@ -36,7 +36,7 @@ export default class FlvBaseController {
     const { baseDts } = this.configs
 
     if (baseDts) {
-      // abr场景需要保持原来的baseDts
+      // keep the origin baseDts for abr use
       this._compat.setBaseDts(baseDts)
     }
   }
@@ -47,12 +47,11 @@ export default class FlvBaseController {
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete)
-    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
+    this.on(DEMUX_EVENTS.SEI_PARSED, (sei) => this._player.emit('SEI_PARSED', sei))
     this.on(REMUX_EVENTS.RANDOM_ACCESS_POINT, this._handleAddRAP)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onError)
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onError)
 
-    // 单独处理，插件层initFlvBackupEvents中会有销毁操作
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
     // emit to out
@@ -94,12 +93,7 @@ export default class FlvBaseController {
     }
   }
 
-  /** *********** 对外事件 ********************/
-
-  // 兼容老用法
-  _handleSEIParsed = (sei) => {
-    this._player.emit('SEI_PARSED', sei)
-  }
+  /** *********** emit to out ********************/
 
   _handleKeyFrame = (pts) => {
     this.emitCoreEvent(CORE_EVENTS.KEYFRAME, pts)
@@ -115,7 +109,7 @@ export default class FlvBaseController {
     this._player?.emit('error', new Errors(this._player, error?.err || error))
   }
 
-  /** *********** 上层调用 ********************/
+  /** *********** call by plugin ********************/
 
   seek () {
     if (!this.state.initSegmentArrived) {
@@ -128,7 +122,6 @@ export default class FlvBaseController {
       return
     }
     const { count: times, delay: delayTime } = this._player.config.retry || {}
-    // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 

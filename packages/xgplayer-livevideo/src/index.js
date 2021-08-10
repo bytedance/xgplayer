@@ -3,12 +3,11 @@ import NoSleep from './helper/nosleep'
 import { playSlienceAudio, pauseSlienceAudio } from './helper/audio-helper'
 import './polyfills/custom-elements.min'
 import './polyfills/native-element'
-// eslint-disable-next-line standard/object-curly-even-spacing
 import { logger, common } from 'xgplayer-helper-utils'
 import TimeLine from './TimeLine'
 import Events from './events'
 
-// flv直播流硬解对应的decodeMode的值
+// for flv hw decode
 const VIDEO_DECODE_MODE_VALUE = '7'
 
 const { debounce } = common
@@ -30,7 +29,7 @@ class MVideo extends HTMLElement {
     this._onTouchEnd = this._onTouchEnd.bind(this)
   }
 
-  // 代理外部常用属性,容错处理
+  // proxy props used frequently
   _proxyProps () {
     Object.getOwnPropertyNames(MVideo.prototype).forEach((prop) => {
       if (!/^__/.test(prop)) return
@@ -118,6 +117,7 @@ class MVideo extends HTMLElement {
       this.timeline.emit(Events.TIMELINE.INNER_DEGRADE)
     }
     this.timeline.emit(Events.TIMELINE.SET_PLAY_MODE, this._isLive ? 'LIVE' : 'VOD')
+    // eslint-disable-next-line no-self-assign
     this.muted = this.muted
   }
 
@@ -139,11 +139,11 @@ class MVideo extends HTMLElement {
       if (status === 'error') {
         logger.warn(this.TAG, 'detect error:', data.message)
         this.pause()
-        // 发生错误时 禁用
+        // disabled livevideo when error
         this._disabled(true)
 
         if (this.innerDegrade) {
-          // 内部降级的话,不对外emit error,改成lowdecode,同时degrade()中控制禁用
+          // change error to lowdecode for innerDegrade
           this.degradeInfo = {
             decodeFps: this.decodeFps,
             bitrate: this.bitrate,
@@ -187,27 +187,25 @@ class MVideo extends HTMLElement {
     })
   }
 
-  // 禁用逻辑
   _disabled (force) {
     if (this.videoDecode || !this.innerDegrade) {
       return
     }
-    // 永久禁用
+    // disabled forever
     if (force || !this.decodeFps || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
       localStorage.setItem('mvideo_dis265', 1)
       return
     }
     if (localStorage.getItem('mvideo_dis265')) return
-    // 禁用24h
+    // disabled 24h
     localStorage.setItem('mvideo_dis265', 2)
     localStorage.setItem('mvideo_disTime', new Date().getTime())
   }
 
   /**
-   *  内部降级
-   *  innerDegrade==1 : 降级到video直接播放hls
-   *  innerDegrade==2 : 降级到mse
-   *  @param {string} url  强制切换到url地址并且使用video直接播放
+   *  innerDegrade==1 : for degrade to video+m3u8
+   *  innerDegrade==2 : for degrade to mse
+   *  @param {string} url
    */
   degrade (url) {
     const canvasAppended = !!this.querySelector('canvas')
@@ -221,7 +219,7 @@ class MVideo extends HTMLElement {
     // 销毁MVideo上的事件
     this._eventsBackup.forEach(([eName, eHandler, capture]) => {
       super.removeEventListener.call(this, eName, eHandler, capture)
-      // 给degradeVideo 绑定事件
+      // bind events for degrade video
       this._degradeVideo.addEventListener(eName, eHandler, capture)
     })
 

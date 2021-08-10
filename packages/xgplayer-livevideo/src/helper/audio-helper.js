@@ -21,7 +21,6 @@ function initBgSilenceAudio () {
   audio.muted = true
   audio.loop = true
   // fix ios下大部分webview存在页面进度条一直不消失问题
-  // audio.load();
   audio.play().catch(() => {})
 }
 

@@ -77,7 +77,7 @@ export default class FlvController extends FlvBaseController {
       return
     }
 
-    // 对外事件
+    // emit to out
     this.emitCoreEvent(CORE_EVENTS.BUFFER_APPENDED)
 
     const bufferEnd = video.buffered.end(length - 1)
@@ -120,14 +120,12 @@ export default class FlvController extends FlvBaseController {
     const bufferEnd = range[1]
 
     if (currentTime < bufferStart) {
-      // 跳过播放过程中的小洞
-      // 兼容Safari bufferStart时间不准确，导致seek失败
+      // skip small hole
       video.currentTime = bufferStart + 0.1
       return
     }
 
     if (time - bufferStart > 10 || buffered.length > 1) {
-      // 在直播时及时清空buffer，降低直播内存占用
       if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
         return
       }
@@ -149,8 +147,6 @@ export default class FlvController extends FlvBaseController {
       }, 5000)
     }
   }
-
-  /** *********** 对外事件 ********************/
 
   destroy () {
     super.destroy()

@@ -58,7 +58,6 @@ const COMPATIBILITY_EVENTS = {
 }
 
 /**
- * 对外抛出的非video原生事件, emit info:
  * @typedef  {name: string, data: object} CustomCoreEvent
  *
  */

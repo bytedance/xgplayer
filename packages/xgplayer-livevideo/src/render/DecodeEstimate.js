@@ -117,9 +117,7 @@ export default class DecodeEstimate {
     return Math.floor(sum / len) || 1
   }
 
-  // 低延迟检测逻辑
   _lowDecodeDetect () {
-    // 解码太低
     if (!this._decodeFps) {
       this._parent.emit(Events.VIDEO.DECODE_LOW_FPS)
       return

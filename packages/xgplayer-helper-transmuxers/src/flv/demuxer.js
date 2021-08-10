@@ -216,7 +216,7 @@ class FlvDemuxer extends EventEmitter {
     this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, this.onMetaData)
   }
 
-  // ISO中定义的AudioSpecificConfig
+  // ISO AudioSpecificConfig
   // *  audioObjectType    5bit
   // *  samplingFrquecyIndex   4bit
   // *  if(samplingFrquencyIndex === 0xf)

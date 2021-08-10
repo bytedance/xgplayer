@@ -56,6 +56,7 @@ export default class VideoDecoder extends EventEmitter {
       this._canvasList.push({ dom, ctx })
     }
   }
+
   _createCanvas () {
     let dom = document.createElement('canvas')
     let ctx = dom.getContext('2d')
@@ -74,6 +75,7 @@ export default class VideoDecoder extends EventEmitter {
     video.style.position = 'absolute'
     return video
   }
+
   _initVideo (info, time) {
     if (!info.blobUrl || typeof info.dts === 'undefined') {
       console.error(this.TAG, '_initVideo', 'input info is error, blobUrl:', info.blobUrl, 'dts:', info.dts)
@@ -93,6 +95,7 @@ export default class VideoDecoder extends EventEmitter {
       console.error(this.TAG, '_initVideo, load error', e)
     }
   }
+
   _setVideoSrc (src, time) {
     try {
       let video = this._video
@@ -103,6 +106,7 @@ export default class VideoDecoder extends EventEmitter {
       console.error(this.TAG, '_setVideoSrc', e)
     }
   }
+
   _videoPlay (from) {
     let video = this._video
     logger.log(this.TAG, '_videoPlay, video is pause:', video.paused, from)
@@ -125,6 +129,7 @@ export default class VideoDecoder extends EventEmitter {
       }
     }
   }
+
   _removeEvents () {
     let video = this._video
     video.removeEventListener('playing', this._onPlaying.bind(this))
@@ -136,6 +141,7 @@ export default class VideoDecoder extends EventEmitter {
     // console.error('seeked', this._vCurrentTime, this._basePTS)
     // })
   }
+
   _bindEvents () {
     let video = this._video
     if (!video) {
@@ -158,6 +164,7 @@ export default class VideoDecoder extends EventEmitter {
       this._adaptFrameDuration(fps)
     })
   }
+
   _onTimeUpdate () {
     // logger.log('currentTime:', this._vCurrentTime)
     this._lastCurrentTime = this._vCurrentTime
@@ -171,6 +178,7 @@ export default class VideoDecoder extends EventEmitter {
     this._width = width
     this._height = height
   }
+
   _onPlaying () {
     // 上一个video没有正确结束
     if (this._IsInDecoding) {
@@ -189,6 +197,7 @@ export default class VideoDecoder extends EventEmitter {
     }
     this._getFrame()
   }
+
   _onEnded (e, from) {
     logger.log(
       this.TAG,
@@ -238,6 +247,7 @@ export default class VideoDecoder extends EventEmitter {
     }
     this.emit(Events.DECODE_EVENTS.FRAGMENT_END, this._decodeFPS, this._video.duration)
   }
+
   _onError () {
     this._isInDecoding = false
     let video = this._video
@@ -267,6 +277,7 @@ export default class VideoDecoder extends EventEmitter {
       }
     }
   }
+
   _getFirstFrame () {
     this.firstTime = Date.now()
     let currentTime = this._vCurrentTime
@@ -275,6 +286,7 @@ export default class VideoDecoder extends EventEmitter {
     this.firstEmit = true
     this.emit(Events.DECODE_EVENTS.FIRST_FRAME, imageData, pts)
   }
+
   _getFrame () {
     let video = this._video
     let videoWidth = video.videoWidth
@@ -416,6 +428,7 @@ export default class VideoDecoder extends EventEmitter {
       this._maxFPSTime = 0
     }
   }
+
   get _vDuration () {
     return parseInt(this._video.duration * 1000)
   }
@@ -423,6 +436,7 @@ export default class VideoDecoder extends EventEmitter {
   get _vCurrentTime () {
     return parseInt(this._video.currentTime * 1000)
   }
+
   _reset () {
     this._isInDecoding = false
     this._lastPts = 0
@@ -453,28 +467,33 @@ export default class VideoDecoder extends EventEmitter {
       this._video.currentTime = seekTime
     }
   }
+
   pause () {
     if (this._isInDecoding) {
       // console.error('doPause')
       this._video.pause()
     }
   }
+
   play () {
     if (this._isInDecoding && this._video.paused) {
       logger.log('video play', this._vCurrentTime)
       return this._video.play()
     }
   }
+
   startDecode (info, metaFPS, startTime) {
     this._initVideo(info, startTime)
     this._metaFPS = metaFPS
   }
+
   stopDecode () {
     if (!this._video.paused) {
       this._video.pause()
       this._reset()
     }
   }
+
   canPlayType (codec) {
     return this._video.canPlayType(codec)
   }
@@ -485,12 +504,14 @@ export default class VideoDecoder extends EventEmitter {
     this._video.pause()
     this._removeEvents()
   }
+
   get videoWidth () {
     if (this._video) {
       return this._video.videoWidth
     }
     return 0
   }
+
   get videoHeight () {
     if (this._video) {
       return this._video.videoHeight

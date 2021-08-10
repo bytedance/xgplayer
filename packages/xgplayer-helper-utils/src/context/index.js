@@ -19,17 +19,17 @@ class Context {
     }
 
     this.mediaInfo = new MediaInfo()
-    this._instanceMap = {} // 所有的解码流程实例
-    this._clsMap = {} // 构造函数的map
+    this._instanceMap = {} // store instance of components registed
+    this._clsMap = {} // store constructor of components
     this._inited = false
     this.allowedEvents = allowedEvents
     this._configs = configs
     this._player = player
-    this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
+    this._hooks = {} // store hook before、after event，eg: before('DEMUX_COMPLETE')
   }
 
   /**
-   * 从上下文中获取解码流程实例，如果没有实例，构造一个
+   * singleton of component
    * @param {string} tag
    * @returns {*}
    */
@@ -38,13 +38,11 @@ class Context {
     if (instance) {
       return instance
     } else {
-      // throw new Error(`${tag}实例尚未初始化`)
       return null
     }
   }
 
   /**
-   * 初始化具体实例
    * @param {string} tag
    * @param {any[]}args
    */
@@ -58,12 +56,12 @@ class Context {
       }
       return newInstance
     } else {
-      throw new Error(`${tag}未在context中注册`)
+      throw new Error(`${tag} no registed`)
     }
   }
 
   /**
-   * 避免大量的initInstance调用，初始化所有的组件
+   * init all components registed in context
    * @param {*} config
    */
   init (config) {
@@ -80,7 +78,7 @@ class Context {
   }
 
   /**
-   * 注册一个上下文流程，提供安全的事件发送机制
+   * append common capacity for a component
    * @param {string} tag
    * @param {*} cls
    */
@@ -308,16 +306,12 @@ class Context {
   }
 
   /**
-   * 各个模块处理seek
    * @param {number} time
    */
   seek (time) {
     this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time)
   }
 
-  /**
-   * 对存在的实例进行
-   */
   destroyInstances () {
     Object.keys(this._instanceMap).forEach((tag) => {
       if (this._instanceMap[tag].destroy) {
@@ -327,7 +321,7 @@ class Context {
   }
 
   /**
-   * 编解码流程无需关注事件的解绑
+   * destroy all compeont registed in the context
    */
   destroy () {
     this.destroyInstances()

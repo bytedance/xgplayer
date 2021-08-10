@@ -3,9 +3,8 @@ import Events from '../events/index'
 
 const CORE_EVENTS = Events.CORE_EVENTS
 
-// 对外事件参数转换成对象形式
-// 只有一个参数且类型为对象的事件这里不用指定key
-// 存在多个参数的事件这里需要指定每个参数的可以 用于转成对象
+// convert the param for core_event to object
+// no need assign key for event with only one param ant it's type is object
 export default {
   [CORE_EVENTS.LOADER_START]: ['url', 'config'],
   [CORE_EVENTS.LOADER_RESPONSE_HEADERS]: ['headers'],
