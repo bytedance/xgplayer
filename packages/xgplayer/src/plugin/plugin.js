@@ -281,28 +281,31 @@ class Plugin extends BasePlugin {
       return
     }
 
-    Plugin.defineGetterOrSetter(this, {
-      /**
-       * @readonly
-       * @type { HTMLElement }
-       */
-      root: {
-        get: () => {
-          return _el
-        },
-        configurable: true
-      },
-      /**
-       * @readonly
-       * @type { HTMLElement }
-       */
-      parent: {
-        get: () => {
-          return _parent
-        },
-        configurable: true
-      }
-    })
+    this.root = _el
+    this.parent = _parent
+
+    // Plugin.defineGetterOrSetter(this, {
+    //   /**
+    //    * @readonly
+    //    * @type { HTMLElement }
+    //    */
+    //   root: {
+    //     get: () => {
+    //       return _el
+    //     },
+    //     configurable: true
+    //   },
+    //   /**
+    //    * @readonly
+    //    * @type { HTMLElement }
+    //    */
+    //   parent: {
+    //     get: () => {
+    //       return _parent
+    //     },
+    //     configurable: true
+    //   }
+    // })
 
     const attr = this.config.attr || {}
     const style = this.config.style || {}
@@ -312,13 +315,13 @@ class Plugin extends BasePlugin {
     if (this.config.index) {
       this.root.setAttribute('data-index', this.config.index)
     }
-    this.__registeChildren()
+    this.__registerChildren()
   }
 
   /**
    * @private
    */
-  __registeChildren () {
+  __registerChildren () {
     if (!this.root) {
       return
     }
@@ -641,12 +644,10 @@ class Plugin extends BasePlugin {
       }
     }
 
-    super.__destroy();
-
+    super.__destroy()
+    this.icons = {};
     ['root', 'parent'].map(item => {
-      Object.defineProperty(this, item, {
-        writable: true
-      })
+      this[item] = null
     })
   }
 }
