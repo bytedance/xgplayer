@@ -2,7 +2,7 @@ import EventEmitter from 'event-emitter'
 import allOff from 'event-emitter/all-off'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
-import Errors, { ERROR_TYPE_CODE } from './error'
+import Errors, { ERROR_TYPE_MAP } from './error'
 import { URL_CHANGE, DESTROY } from './events'
 
 /**
@@ -216,7 +216,7 @@ class VideoProxy {
   errorHandler (name, error = null) {
     if (this.video && (this.video.error || error)) {
       const _e = this.video.error || error
-      const type = _e.code ? ERROR_TYPE_CODE[_e.code] : 'other'
+      const type = _e.code ? ERROR_TYPE_MAP[_e.code] : 'other'
       this.emit(name, new Errors(this, {
         errorType: type,
         errorCode: _e.code,

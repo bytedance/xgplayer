@@ -1,11 +1,16 @@
 // eslint-disable-next-line no-undef
 import version from './version'
-const ERROR_TYPE_CODE = {
+/**
+ * @typedef { import ('./player').default } Player
+ */
+
+const ERROR_TYPE_MAP = {
   1: 'network',
   2: 'network',
   3: 'decoder',
   4: 'format'
 }
+
 const ErrorTypes = {
   network: {
     code: 1,
@@ -49,7 +54,45 @@ const ErrorTypes = {
   }
 }
 
+/**
+ * @typedef { {
+ *   playerVersion: string,
+ *   domain: string,
+ *   currentTime: number,
+ *   duration: number,
+ *   ended: boolean,
+ *   readyState: number,
+ *   networkState: number,
+ *   src: any,
+ *   type: string,
+ *   code: number,
+ *   message: string,
+ *   mediaError?: {
+ *     code: number,
+ *     message?: string
+ *   },
+ *   originError?: any,
+ *   url?: any,
+ *   [propName: string]: any
+ * } } IError
+ */
+
+/**
+ * @type { IError }
+ */
 class Errors {
+  /**
+   *
+   * @param { Player } player
+   * @param { {
+   * errorType: string,
+   * errorCode: number,
+   * errorMessage: string,
+   * originError: any,
+   * ext: { [propName: string]: any; }
+   * } } errorInfo
+   * @returns
+   */
   constructor (player, errorInfo = { errorType: '', errorCode: 0, errorMessage: '', originError: '', ext: {} }) {
     if (player.video) {
       const mediaError = player.video.error || {}
@@ -68,7 +111,7 @@ class Errors {
         code: errorInfo.errorCode || mediaError.code,
         message: errorInfo.errorMessage || mediaError.message,
         mediaError,
-        originError: errorInfo.originError
+        originError: errorInfo.originError ? errorInfo.originError.stack : ''
       }
       errorInfo.ext && Object.keys(errorInfo.ext).map(key => {
         r[key] = errorInfo.ext[key]
@@ -108,5 +151,5 @@ class Errors {
 export {
   Errors as default,
   ErrorTypes,
-  ERROR_TYPE_CODE
+  ERROR_TYPE_MAP
 }
