@@ -1,5 +1,13 @@
 import Util from '../utils/util'
 import EN from './en'
+/**
+ * @typedef { Array<{
+ *   LANG: string,
+ *   TEXT: {
+ *    [propName: string]: string
+ *   }
+ * }>} IXGI18nText
+ */
 
 const XGI18nLang = {}
 const XGI18nTextKeys = {}
@@ -12,6 +20,9 @@ function updateKeys () {
   })
 }
 
+/**
+ * @param { IXGI18nText } XGI18nText
+ */
 function extend (XGI18nText) {
   let ext = []
   if (Util.typeOf(XGI18nText) !== 'Array') {
@@ -35,9 +46,12 @@ function extend (XGI18nText) {
   updateKeys()
 }
 
-function use (data) {
-  const lang = data.LANG
-  const texts = data.TEXT || {}
+/**
+ * @param { IXGI18nText } langData
+ */
+function use (langData) {
+  const lang = langData.LANG
+  const texts = langData.TEXT || {}
   if (!XGI18nLang[lang]) {
     XGI18nLangKeys.push(lang)
   }
@@ -62,9 +76,20 @@ const I18N = {
   get textKeys () {
     return XGI18nTextKeys
   },
+  /**
+   * @description List of languages currently supported
+   * @type { Array<string> }
+   */
   get langKeys () {
     return XGI18nLangKeys
   },
+  /**
+   * @type {{
+   *   [propName: string]: {
+   *     [propName: string]: string
+   *   }
+   * }}
+   */
   get lang () {
     const ret = {}
     XGI18nLangKeys.map(key => {
@@ -73,7 +98,14 @@ const I18N = {
     ret.zh = XGI18nLang['zh-cn']
     return ret
   },
+  /**
+   * @type {(I18nText: IXGI18nText) => {}}
+   */
   extend: extend,
+
+  /**
+   * @type {(lang: IXGI18nText) => {}}
+   */
   use: use
 }
 

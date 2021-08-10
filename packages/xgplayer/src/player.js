@@ -11,7 +11,7 @@ import pluginsManager from './plugin/pluginsManager'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
-import hooksDescriptor, { runHooks, useHooks, usePluginHooks, hook } from './plugin/hooksDescriptor'
+import hooksDescriptor, { runHooks, useHooks, delHooksDescriptor, usePluginHooks, hook } from './plugin/hooksDescriptor'
 import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 import I18N from './lang/i18n'
@@ -31,10 +31,7 @@ class Player extends VideoProxy {
   constructor (options) {
     const config = Util.deepMerge(getDefaultConfig(), options)
     super(config)
-    hooksDescriptor(this)
-    PlAYER_HOOKS.map(item => {
-      this.__hooks[item] = null
-    })
+    hooksDescriptor(this, PlAYER_HOOKS)
 
     /**
      * @type { IPlayerOptions }
@@ -112,6 +109,7 @@ class Player extends VideoProxy {
      * @readonly
      */
     this.fullscreen = false
+
     /**
      * fullscreenElement
      * @type { HTMLElement | null }
@@ -670,12 +668,20 @@ class Player extends VideoProxy {
    *
    * @param { any } plugin
    */
-  unRegisterPlugin (plugin) {
+  deregister (plugin) {
     if (typeof plugin === 'string') {
       pluginsManager.unRegister(this, plugin)
     } else if (plugin instanceof BasePlugin) {
       pluginsManager.unRegister(this, plugin.pluginName)
     }
+  }
+
+  /**
+   *
+   * @param { any } plugin
+   */
+  unRegisterPlugin (plugin) {
+    this.deregister(plugin)
   }
 
   /**
@@ -926,47 +932,52 @@ class Player extends VideoProxy {
   }
 
   /**
-   *
-   * @param { boolean } [isDelDom=true]
+   * @description destroy the player instance
    * @returns
    */
-  destroy (isDelDom = true) {
+  destroy () {
     const { innerContainer, root, video } = this
     if (!root) {
       return
     }
     this._unbindEvents()
     this._detachSourceEvents(this.video)
-    // clearTimeout(this.waitTimer)
-    // clearTimeout(this._errorTimer)
     Util.clearAllTimers(this)
     pluginsManager.destroy(this)
-    root.removeChild(this.topBar)
-    root.removeChild(this.leftBar)
-    root.removeChild(this.rightBar)
+    delHooksDescriptor(this)
     super.destroy()
+    // 退出全屏
+    if (this.fullscreen) {
+      try {
+        this.exitFullscreen()
+      } catch (e) {}
+    }
+
     if (innerContainer) {
       const _c = innerContainer.children
       for (let i = 0; i < _c.length; i++) {
         innerContainer.removeChild(_c[i])
       }
-      root.removeChild(innerContainer)
+    }
+    root.contains(video) && root.removeChild(video);
+    ['topBar', 'leftBar', 'rightBar', 'innerContainer'].map(item => {
+      this[item] && root.removeChild(this[item])
+      this[item] = null
+    })
+    const cList = root.className.split(' ')
+    if (cList.length > 0) {
+      root.className = cList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
     } else {
-      root.contains(video) && root.removeChild(video)
+      root.className = ''
     }
-    if (isDelDom) {
-      const classNameList = this.root.className.split(' ')
-      if (classNameList.length > 0) {
-        root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
-      } else {
-        root.className = ''
-      }
-      this.removeAttribute('data-xgfill')
-    }
-    for (const k in this) {
-      delete this[k]
-    }
-    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
+    this.removeAttribute('data-xgfill');
+
+    ['isReady', 'isPlaying', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
+      this[key] = false
+    });
+    ['_fullscreenEl', '_cssfullscreenEl', '_fullScreenOffset', '_orgCss'].map(key => {
+      this[key] = null
+    })
   }
 
   replay () {
@@ -1469,20 +1480,6 @@ class Player extends VideoProxy {
 
   get poster () {
     return this.plugins.poster ? this.plugins.poster.config.poster : this.config.poster
-  }
-
-  /**
-   * @type { boolean }
-   */
-  get fullscreen () {
-    return this._isFullScreen
-  }
-
-  set fullscreen (val) {
-    /**
-     * @private
-     */
-    this._isFullScreen = val
   }
 
   /**
