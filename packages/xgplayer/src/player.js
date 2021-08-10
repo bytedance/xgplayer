@@ -26,6 +26,21 @@ const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 
 class Player extends VideoProxy {
   /**
+   * @type {number}
+   * @description set debugger level
+   *  1 - only print error logs
+   *  2 - print warn logs and error logs
+   *  3 - print all debug logs and error stack logs
+   */
+  static set debugger (value) {
+    XG_DEBUG.config.debug = value
+  }
+
+  static get debugger () {
+    return XG_DEBUG.config.debug
+  }
+
+  /**
    * @param { IPlayerOptions } options
    */
   constructor (options) {
@@ -222,7 +237,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * init control bar
+   * init control domElement
    * @private
    */
   _initDOM () {
