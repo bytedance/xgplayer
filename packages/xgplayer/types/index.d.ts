@@ -1187,7 +1187,13 @@ declare module "plugin/basePlugin" {
             pre: Function | null;
             next: Function | null;
         }, ...args: any[]): any;
-        useHooks: (hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]) => boolean;
+        /**
+         * @param { string } hookName
+         * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+         * @param  {...any} args
+         * @returns { boolean } isSuccess
+         */
+        useHooks(hookName: string, handler: (plugin: any, ...args: any[]) => boolean | Promise<any>, ...args: any[]): boolean;
         /**
          * 注册子插件
          * @param { any } plugin

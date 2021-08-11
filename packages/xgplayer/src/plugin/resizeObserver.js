@@ -53,6 +53,9 @@ class ResizeObserver {
         i = index
       }
     })
+    try {
+      this.observer && this.observer.unobserve(target)
+    } catch (e) {}
     this.observer && this.observer.unobserve(target)
     i > -1 && this.__handlers.splice(i, 1)
   }
