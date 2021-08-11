@@ -1,3 +1,5 @@
+import { addObserver, unObserver } from './resizeObserver'
+
 function typeIsObject (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Object'
 }
@@ -14,9 +16,14 @@ const pluginsManager = {
       cgid = new Date().getTime()
       player._pluginInfoId = cgid
     }
+
     if (!this.pluginGroup) {
       this.pluginGroup = {}
     }
+
+    !player.config.closeResizeObserver && addObserver(player.root, () => {
+      player.getVideoSize()
+    })
     this.pluginGroup[cgid] = {
       _player: player,
       _originalOptions: player.config || {}
@@ -323,6 +330,7 @@ const pluginsManager = {
     if (!this.pluginGroup[cgid]) {
       return
     }
+    unObserver(player.target)
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
       this.unRegister(cgid, item)

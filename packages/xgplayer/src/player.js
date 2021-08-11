@@ -355,6 +355,9 @@ class Player extends VideoProxy {
         })
       }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
+        Util.setTimeout(this, () => {
+          this.getVideoSize()
+        }, 100)
         this.video.focus()
         this.fullscreen = true
         // this.addClass(STATE_CLASS.FULLSCREEN)
@@ -364,13 +367,16 @@ class Player extends VideoProxy {
           this.exitCssFullscreen()
         }
       } else if (this.fullscreen) {
+        Util.setTimeout(this, () => {
+          this.getVideoSize()
+        }, 100)
         const { _fullScreenOffset, config } = this
         if (config.needFullscreenScroll) {
           try {
             window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
             Util.setTimeout(this, () => {
               resetFullState()
-            }, 100)
+            }, 50)
           } catch (e) {
             XG_DEBUG.logError(e)
             resetFullState()
@@ -1360,8 +1366,7 @@ class Player extends VideoProxy {
   }
 
   getVideoSize () {
-    const videoWidth = this.video.videoWidth
-    const videoHeight = this.video.videoHeight
+    const { videoWidth, videoHeight } = this.video
     const { fitVideoSize, videoFillMode } = this.config
 
     if (videoFillMode === 'fill' || videoFillMode === 'cover') {
@@ -1396,7 +1401,8 @@ class Player extends VideoProxy {
     if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
       this.setAttribute('data-xgfill', 'cover')
     }
-    this.emit(Events.VIDEO_RESIZE, { videoScale: videoFit, vWidth: rWidth, vHeight: rHeight, cWidth: rWidth, cHeight: rHeight + controlsHeight })
+    const data = { videoScale: videoFit, vWidth: rWidth, vHeight: rHeight, cWidth: rWidth, cHeight: rHeight + controlsHeight }
+    this.emit(Events.VIDEO_RESIZE, data)
   }
 
   /**
