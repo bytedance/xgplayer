@@ -277,8 +277,6 @@ class BasePlugin {
     return useHooks.call(this, ...arguments)
   }
 
-  useHooks
-
   /**
    * 注册子插件
    * @param { any } plugin
