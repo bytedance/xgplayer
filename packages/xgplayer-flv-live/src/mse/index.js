@@ -13,6 +13,7 @@ class FlvPlayer extends BasePlugin {
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
       loadTimeout: 10000,
+      seiOnDemand: false,
       preloadTime: 5,
       retryCount: 3,
       retryDelay: 0

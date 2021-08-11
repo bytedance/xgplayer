@@ -177,7 +177,7 @@ class Compatibility {
     } else {
       if (!this._isSegmentsContinuous() && ops && ops.start !== undefined) {
         logger.log(this.TAG, 'fix audio for _isSegmentsContinuous()')
-        this.nextAudioDts = ops.start || this.audioTrack.samples[0].dts
+        this.nextAudioDts = ops.start || this.audioTrack.samples[0]?.dts
         this.doFixAudio(isFirstAudioSamples, ops.start)
         this.emit(REMUX_EVENTS.DETECT_FRAG_ID_DISCONTINUE, ops.start / 1000)
       } else {
@@ -191,8 +191,8 @@ class Compatibility {
   }
 
   doFixVideo (first, streamChangeStart) {
-    let {samples: videoSamples, meta} = this.videoTrack
-    let len = videoSamples.length
+    const { samples: videoSamples, meta } = this.videoTrack
+    const len = videoSamples.length
 
     for (let i = 0; i < len; i++) {
       const sample = videoSamples[i]
@@ -255,11 +255,11 @@ class Compatibility {
     }
 
     // 分片中间时间戳跳变
-    let segLen = videoSamples.length
+    const segLen = videoSamples.length
     for (let i = 1; i < segLen; i++) {
-      let c = videoSamples[i]
-      let pre = videoSamples[i - 1]
-      let cts = c.dts - c.pts
+      const c = videoSamples[i]
+      const pre = videoSamples[i - 1]
+      const cts = c.dts - c.pts
       if (Math.abs(cts) < 2000) { // 单帧 dts、pts差距不大
         if (Math.abs(c.dts - pre.dts) > 10000) {
           c.dts = pre.dts + meta.refSampleDuration
@@ -277,15 +277,15 @@ class Compatibility {
     if (segLen < 4) {
       let sample = videoSamples[videoSamples.length - 1]
       sample = sample || curLastSample
-      let duration = sample.options && sample.options.duration
-      let refDuration = meta.refSampleDuration
+      const duration = sample.options && sample.options.duration
+      const refDuration = meta.refSampleDuration
       if (duration && refDuration && duration / refDuration > 5) {
         let pts = sample.pts
         let dts = sample.dts
         for (let i = 0; i < 3; i++) {
           dts += refDuration
           pts += refDuration
-          let sam = Object.assign({}, sample, {dts: dts, pts: pts})
+          const sam = Object.assign({}, sample, { dts: dts, pts: pts })
           if (i === 2) {
             // 最后一帧拉长duration
             sam.duration = duration
@@ -327,7 +327,7 @@ class Compatibility {
   }
 
   doFixAudio (first, streamChangeStart) {
-    let {samples: audioSamples, meta} = this.audioTrack
+    const { samples: audioSamples, meta } = this.audioTrack
 
     if (!audioSamples || !audioSamples.length) {
       return
@@ -457,15 +457,15 @@ class Compatibility {
     // 分片内采样间补帧
     let nextDts = audioSamples[0].dts + iRefSampleDuration
     for (let i = 1; i < audioSamples.length;) {
-      let sample = audioSamples[i]
-      let delta = sample.dts - nextDts
+      const sample = audioSamples[i]
+      const delta = sample.dts - nextDts
       if (delta <= -1 * iRefSampleDuration) {
         logger.warn(`drop 1 audio sample for ${delta} ms overlap`)
         audioSamples.splice(i, 1)
         continue
       }
       if (delta >= 10 * iRefSampleDuration) {
-        let missingCount = Math.round(delta / iRefSampleDuration)
+        const missingCount = Math.round(delta / iRefSampleDuration)
         if (missingCount > 1000) {
           break
         }
@@ -536,7 +536,7 @@ class Compatibility {
       return false
     }
 
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', {prevDts, curDts})
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts, curDts })
 
     const firstPartSamples = samples.slice(0, changeIdx)
     const secondPartSamples = samples.slice(changeIdx)
@@ -584,7 +584,7 @@ class Compatibility {
       }
       return false
     }
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', {prevDts, curDts})
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts, curDts })
     this._audioLargeGap = 0
     const cacheNextAudioDts = this.nextAudioDts
     this.nextAudioDts = null
@@ -615,8 +615,8 @@ class Compatibility {
 
   getFirstSample () {
     // 获取video和audio的首帧数据
-    let {samples: videoSamples} = this.videoTrack
-    let {samples: audioSamples} = this.audioTrack
+    const { samples: videoSamples } = this.videoTrack
+    const { samples: audioSamples } = this.audioTrack
 
     let isFirstVideoSamples = false
     let isFirstAudioSamples = false
@@ -742,6 +742,7 @@ class Compatibility {
   static isRefSampleDurationValid (refSampleDuration) {
     return refSampleDuration && refSampleDuration > 0 && !Number.isNaN(refSampleDuration)
   }
+
   /**
    * 寻找dts最小的sample
    * @param samples
@@ -774,7 +775,7 @@ class Compatibility {
     if (nextDts === null) {
       return
     }
-    let delta = 1000
+    const delta = 1000
     return nextDts - firstSampleDts >= delta || firstSampleDts - nextDts >= delta // fix hls流出现大量流dts间距问题
   }
 
@@ -794,7 +795,7 @@ class Compatibility {
         sample.pts += gap
       }
     }
-    let first = samples[0]
+    const first = samples[0]
     if (first && first.dts === 0) {
       first.dts = first.pts = 1
     }
@@ -810,7 +811,7 @@ class Compatibility {
    */
   static detectChangeStream (samples, isFirst) {
     let changed = false
-    let changedIdxes = []
+    const changedIdxes = []
     for (let i = 0, len = samples.length; i < len; i++) {
       const sample = samples[i]
       if (sample.options && sample.options.meta && !(isFirst && (i === 0))) {
