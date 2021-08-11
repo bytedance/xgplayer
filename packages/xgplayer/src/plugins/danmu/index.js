@@ -102,7 +102,8 @@ class Danmu extends Plugin {
       !this.config.isLive && this.danmujs && this.danmujs.stop()
     })
 
-    this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE, Events.MINI_STATE_CHANGE], () => {
+    this.on(Events.VIDEO_RESIZE, () => {
+      console.log('danmu.js resize')
       this.resize()
     })
 
