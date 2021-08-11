@@ -291,6 +291,14 @@ class Danmu extends Plugin {
     this.danmujs && this.danmujs.sendComment(comments)
   }
 
+  hideIcon () {
+    this.danmuButton && this.danmuButton.hide()
+  }
+
+  showIcon () {
+    this.danmuButton && this.danmuButton.show()
+  }
+
   destroy () {
     this.danmujs.stop()
     this.danmujs.destroy()
