@@ -137,6 +137,7 @@ class BaseCompatibility {
       // consider the expect dts for next frame
       this._baseDts -= Math.min(this._audioNextDts, this._videoNextDts)
       logger.warn(this.TAG, `stream breaked, _baseDts: ${this._baseDts}`)
+      this.emit(COMPATIBILITY_EVENTS.STREAM_BREACKED, this._baseDts)
       this._audioLastSample = null
       this._videoLastSample = null
       this._videoTimestampBreak = false

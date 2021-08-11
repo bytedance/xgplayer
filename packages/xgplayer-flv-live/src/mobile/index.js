@@ -27,7 +27,8 @@ class FlvPlayer extends BasePlugin {
       backupURL: '',
       backupConstructor: null,
       decodeMode: 0,
-      innerDegrade: 0
+      innerDegrade: 0,
+      seiOnDemand: false
     })
   }
 

@@ -37,7 +37,8 @@ class FlvPlayer extends BasePlugin {
       options: {},
       loadTimeout: 10000,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 0,
+      seiOnDemand: false
     })
   }
 

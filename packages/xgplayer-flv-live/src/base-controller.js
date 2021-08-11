@@ -1,5 +1,6 @@
 import { Errors } from 'xgplayer'
 import { EVENTS, Err } from 'xgplayer-helper-utils'
+import SEIOnDemand from './sei-ondmand'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
@@ -12,6 +13,7 @@ export default class FlvBaseController {
     this.mse = mse
     this.configs = configs || {}
     this._compat = null
+    this._seiOndemand = null
     this.state = {
       initSegmentArrived: false,
       randomAccessPoints: []
@@ -26,6 +28,8 @@ export default class FlvBaseController {
   _initComponents () {
     const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Compatibility } = this._pluginConfig
 
+    this._seiOndemand = new SEIOnDemand(this._player, this)
+
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
@@ -38,6 +42,7 @@ export default class FlvBaseController {
     if (baseDts) {
       // keep the origin baseDts for abr use
       this._compat.setBaseDts(baseDts)
+      this._seiOndemand.updateBaseDts(baseDts)
     }
   }
 
@@ -47,12 +52,17 @@ export default class FlvBaseController {
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete)
-    this.on(DEMUX_EVENTS.SEI_PARSED, (sei) => this._player.emit('SEI_PARSED', sei))
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEI)
     this.on(REMUX_EVENTS.RANDOM_ACCESS_POINT, this._handleAddRAP)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onError)
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onError)
-
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
+
+    // condition for change baseDts for sei emit
+    if (!this.configs.baseDts) {
+      this.once(DEMUX_EVENTS.ISKEYFRAME, (pts, cts) => this._seiOndemand.updateBaseDts(pts - cts))
+    }
+    this.on(COMPATIBILITY_EVENTS.STREAM_BREACKED, baseDts => this._seiOndemand.updateBaseDts(baseDts))
 
     // emit to out
     this.connectEvent(LOADER_EVENTS.LOADER_START, CORE_EVENTS.LOADER_START)
@@ -60,11 +70,14 @@ export default class FlvBaseController {
     this.connectEvent(LOADER_EVENTS.LOADER_RETRY, CORE_EVENTS.LOADER_RETRY)
     this.connectEvent(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, CORE_EVENTS.LOADER_RESPONSE_HEADERS)
     this.connectEvent(LOADER_EVENTS.LOADER_TTFB, CORE_EVENTS.TTFB)
-    this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
     this.connectEvent(DEMUX_EVENTS.DEMUX_ERROR, CORE_EVENTS.DEMUX_ERROR)
     this.connectEvent(DEMUX_EVENTS.METADATA_PARSED, CORE_EVENTS.METADATA_PARSED)
     this.connectEvent(REMUX_EVENTS.REMUX_METADATA, CORE_EVENTS.REMUX_METADATA)
     this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
+
+    if (!this._pluginConfig.seiOnDemand) {
+      this.connectEvent(DEMUX_EVENTS.SEI_PARSED, CORE_EVENTS.SEI_PARSED)
+    }
   }
 
   /** *********** context components events handler ********************/
@@ -94,6 +107,14 @@ export default class FlvBaseController {
   }
 
   /** *********** emit to out ********************/
+
+  _handleSEI = (sei) => {
+    if (this._pluginConfig.seiOnDemand) {
+      this._seiOndemand.append(sei)
+      return
+    }
+    this._player.emit('SEI_PARSED', sei)
+  }
 
   _handleKeyFrame = (pts) => {
     this.emitCoreEvent(CORE_EVENTS.KEYFRAME, pts)
@@ -141,6 +162,7 @@ export default class FlvBaseController {
   }
 
   destroy () {
+    this._seiOndemand.destroy()
     this.state.randomAccessPoints = []
   }
 

@@ -71,7 +71,7 @@ class FlvDemuxer {
       return
     }
     if (sample.isKeyframe) {
-      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.dts + sample.cts)
+      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.dts + sample.cts, sample.cts)
     }
     this.tracks.videoTrack.samples.push(sample)
   }
