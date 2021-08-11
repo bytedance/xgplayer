@@ -105,7 +105,7 @@ class Keyboard extends BasePlugin {
   checkCode (code, isBodyTarget) {
     let flag = false
     Object.keys(this.keyCodeMap).map(key => {
-      if (this.keyCodeMap[key] && code === this.keyCodeMap[key].keyCode) {
+      if (this.keyCodeMap[key] && code === this.keyCodeMap[key].keyCode && !this.keyCodeMap[key].disable) {
         flag = !isBodyTarget || (isBodyTarget && !this.keyCodeMap[key].noBodyTarget)
       }
     })

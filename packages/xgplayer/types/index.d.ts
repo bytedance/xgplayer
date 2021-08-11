@@ -291,13 +291,73 @@ declare module "version" {
     const version: string;
 }
 declare module "error" {
+    export type Player = import("player").default;
+    export type IError = {
+        [propName: string]: any;
+        playerVersion: string;
+        domain: string;
+        currentTime: number;
+        duration: number;
+        ended: boolean;
+        readyState: number;
+        networkState: number;
+        src: any;
+        type: string;
+        code: number;
+        message: string;
+        mediaError?: {
+            code: number;
+            message?: string;
+        };
+        originError?: any;
+        url?: any;
+    };
+    /**
+     * @typedef { {
+     *   playerVersion: string,
+     *   domain: string,
+     *   currentTime: number,
+     *   duration: number,
+     *   ended: boolean,
+     *   readyState: number,
+     *   networkState: number,
+     *   src: any,
+     *   type: string,
+     *   code: number,
+     *   message: string,
+     *   mediaError?: {
+     *     code: number,
+     *     message?: string
+     *   },
+     *   originError?: any,
+     *   url?: any,
+     *   [propName: string]: any
+     * } } IError
+     */
+    /**
+     * @type { IError }
+     */
     class Errors {
-        constructor(player: any, errorInfo?: {
+        /**
+         *
+         * @param { Player } player
+         * @param { {
+         * errorType: string,
+         * errorCode: number,
+         * errorMessage: string,
+         * originError: any,
+         * ext: { [propName: string]: any; }
+         * } } errorInfo
+         * @returns
+         */
+        constructor(player: Player, errorInfo?: {
             errorType: string;
             errorCode: number;
             errorMessage: string;
-            originError: string;
-            ext: {};
+            originError: any;
+            ext: {
+                [propName: string]: any;
+            };
         }, ...args: any[]);
     }
     export namespace ErrorTypes {
@@ -363,7 +423,10 @@ declare module "error" {
             export { remark_7 as remark };
         }
     }
-    export const ERROR_TYPE_CODE: {
+    /**
+     * @typedef { import ('./player').default } Player
+     */
+    export const ERROR_TYPE_MAP: {
         1: string;
         2: string;
         3: string;
@@ -743,9 +806,10 @@ declare module "constant" {
 declare module "plugin/hooksDescriptor" {
     /**
      * hook装饰器，为某个实例添加usePluginHooks/hook/useHooks的能力
-     * @param {*} instance
+     * @param { any } instance
+     * @param { Array<string> } [hookNames]
      */
-    function hooksDescriptor(instance: any): void;
+    function hooksDescriptor(instance: any, presetHooks?: any[]): void;
     /**
      * 给某个处理函数添加hook能力
      * @param { string } hookName
@@ -789,6 +853,14 @@ declare module "plugin/hooksDescriptor" {
      * @param  {...any} args
      */
     export function usePluginHooks(pluginName: string, ...args: any[]): any;
+    /**
+     * 移除hook
+     * @param { string } hookName
+     * @param { (plugin: any, ..args) => {} } handler
+     * @returns void
+     */
+    export function removeHooks(hookName: string, handler: (plugin: any, args: any) => {}): void;
+    export function delHooksDescriptor(instance: any): void;
     export function runHooks(obj: any, hookName: any, handler: any, ...args: any[]): any;
     export { hooksDescriptor as default };
 }
@@ -1061,6 +1133,7 @@ declare module "plugin/basePlugin" {
          * @param { any } args
          */
         private __init;
+        logger: any;
         /**
          * 更新语言
          * @param { string } lang
@@ -1070,7 +1143,9 @@ declare module "plugin/basePlugin" {
          * @type { string }
          */
         get lang(): string;
-        get i18n(): any;
+        get i18n(): {
+            [propName: string]: string;
+        };
         get i18nKeys(): {};
         /**
          *
@@ -1235,7 +1310,7 @@ declare module "plugin/plugin" {
         /**
          * @private
          */
-        private __registeChildren;
+        private __registerChildren;
         /**
          * @private
          */
@@ -1344,6 +1419,11 @@ declare module "plugin/plugin" {
     }
     import BasePlugin from "plugin/basePlugin";
     export { Plugin as default };
+}
+declare module "plugin/resizeObserver" {
+    export function addObserver(target: any, handler: any): any;
+    export function unObserver(target: any, handler: any): void;
+    export function destroyObserver(target: any, handler: any): void;
 }
 declare module "plugin/pluginsManager" {
     export default pluginsManager;
@@ -1598,12 +1678,24 @@ declare module "lang/en" {
 }
 declare module "lang/i18n" {
     export default I18N;
+    export type IXGI18nText = {
+        LANG: string;
+        TEXT: {
+            [propName: string]: string;
+        };
+    }[];
     namespace I18N {
         export { extend };
         export { use };
     }
-    function extend(XGI18nText: any): void;
-    function use(data: any): void;
+    /**
+     * @param { IXGI18nText } XGI18nText
+     */
+    function extend(XGI18nText: IXGI18nText): void;
+    /**
+     * @param { IXGI18nText } langData
+     */
+    function use(langData: IXGI18nText): void;
 }
 declare module "player" {
     export type IPlayerOptions = import("defaultConfig").IPlayerOptions;
@@ -1679,11 +1771,12 @@ declare module "player" {
          * @readonly
          */
         readonly isCssfullScreen: boolean;
-        set fullscreen(arg: boolean);
         /**
+         * Whether player is currently in fullscreen
          * @type { boolean }
+         * @readonly
          */
-        get fullscreen(): boolean;
+        readonly fullscreen: boolean;
         /**
          * fullscreenElement
          * @type { HTMLElement | null }
@@ -1840,6 +1933,11 @@ declare module "player" {
         }, config?: {
             [propName: string]: any;
         }): any;
+        /**
+         *
+         * @param { any } plugin
+         */
+        deregister(plugin: any): void;
         /**
          *
          * @param { any } plugin
@@ -2051,7 +2149,9 @@ declare module "player" {
          */
         set lang(arg: string);
         get lang(): string;
-        get i18n(): any;
+        get i18n(): {
+            [propName: string]: string;
+        };
         get i18nKeys(): {};
         /**
          * @type { string }
@@ -2071,10 +2171,6 @@ declare module "player" {
          */
         set poster(arg: any);
         get poster(): any;
-        /**
-         * @private
-         */
-        private _isFullScreen;
         /**
          * @type { boolean }
          */
@@ -2308,12 +2404,14 @@ declare module "index-umd" {
         static BasePlugin: typeof BasePlugin;
         static I18N: {
             readonly textKeys: {};
-            readonly langKeys: any[];
+            readonly langKeys: string[];
             readonly lang: {
-                zh: any;
+                [propName: string]: {
+                    [propName: string]: string;
+                };
             };
-            extend: (XGI18nText: any) => void;
-            use: (data: any) => void;
+            extend: (I18nText: import("lang/i18n").IXGI18nText) => {};
+            use: (lang: import("lang/i18n").IXGI18nText) => {};
         };
         static STATE_CLASS: {
             DEFAULT: string;
@@ -2357,6 +2455,8 @@ declare module "xgplayer" {
     export type IBasePluginOptions = import("plugin/basePlugin").IBasePluginOptions;
     export type IPluginOptions = import("plugin/plugin").IPluginOptions;
     export type IPlayerOptions = import("defaultConfig").IPlayerOptions;
+    export type IError = import("error").IError;
+    export type IXGI18nText = import("lang/i18n").IXGI18nText;
     import PresetPlayer from "index-umd";
     import Player from "player";
     import Plugin from "plugin/plugin";

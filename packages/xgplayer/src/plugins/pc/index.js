@@ -21,6 +21,7 @@ export default class PCPlugin extends BasePlugin {
   }
 
   afterCreate () {
+    this._clickCount = 0
     HOOKS.map(item => {
       this.__hooks[item] = null
     })
@@ -105,17 +106,22 @@ export default class PCPlugin extends BasePlugin {
       if (!playerConfig.closeVideoStopPropagation) {
         e.stopPropagation()
       }
+      this._clickCount++
       if (this.clickTimer) {
         clearTimeout(this.clickTimer)
         this.clickTimer = null
       }
       this.clickTimer = setTimeout(() => {
+        if (!this._clickCount) {
+          return
+        }
+        this._clickCount--
         runHooks(this, HOOKS[0], (plugin, data) => {
           this.switchPlayPause(data.e)
         }, { e, paused: player.paused })
         clearTimeout(this.clickTimer)
         this.clickTimer = null
-      }, 200)
+      }, 300)
     }
   }
 
@@ -124,6 +130,11 @@ export default class PCPlugin extends BasePlugin {
     if (!e.target || (e.target !== player.video && e.target !== player.video.__canvas) || playerConfig.closeVideoDblclick) {
       return
     }
+    if (this._clickCount < 2) {
+      this._clickCount = 0
+      return
+    }
+    this._clickCount = 0
     if (this.clickTimer) {
       clearTimeout(this.clickTimer)
       this.clickTimer = null

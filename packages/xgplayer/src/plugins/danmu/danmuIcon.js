@@ -60,10 +60,6 @@ class DanmuIcon extends Plugin {
     this.config.onSwitch && this.config.onSwitch(e, !isOpen)
   }
 
-  show () {
-    this.root.style.display = 'flex'
-  }
-
   destroy () {
     this.unbind(['click', 'touchend'], this.getMini)
   }
