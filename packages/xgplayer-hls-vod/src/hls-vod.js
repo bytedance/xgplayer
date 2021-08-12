@@ -150,15 +150,10 @@ class HlsVodController {
       }
     }
     if (end) {
-      const ts = this._playlist.getTs(this._player.currentTime * 1000)
-      if (!ts) {
+      const { video } = this._player
+      if (Math.abs(video.currentTime - video.duration) < 0.5) {
         this._player.emit('ended')
         this.mse.endOfStream()
-      } else {
-        if (ts.downloaded) {
-          this._player.emit('ended')
-          this.mse.endOfStream()
-        }
       }
     }
   }
