@@ -1171,7 +1171,7 @@ class Player extends VideoProxy {
    *   delay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
    * } } [data]
    */
-  focus (data = { autoHide: true, delay: 0 }) {
+  focus (data = { autoHide: true, delay: 3000 }) {
     if (this.isActive) {
       this.onFocus(data)
       return
@@ -1204,7 +1204,7 @@ class Player extends VideoProxy {
    * @param { { autoHide?: boolean, delay?: number} } [data]
    * @returns
    */
-  onFocus (data = { autoHide: true, delay: 0 }) {
+  onFocus (data = { autoHide: true, delay: 3000 }) {
     this.isActive = true
     this.removeClass(STATE_CLASS.ACTIVE)
     if (this.userTimer) {

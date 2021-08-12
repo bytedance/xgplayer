@@ -24,11 +24,11 @@
  *   closeVideoClick?: boolean, // 是否通过video的click/touchend行为切换播放暂停
  *   closeVideoDblclick?: boolean, // 是否通过双击行为触发全屏切换
  *   closePlayerBlur?: boolean, // 是否关闭鼠标移出播放器范围触发blur操作
+ *   closeDelayBlur?: boolean, // 是否关闭自动隐藏控制条
  *   leavePlayerTime?: number, // 延迟触发时间
  *   closePlayVideoFocus?: boolean, // 是否关闭play时触发focus
  *   closePauseVideoFocus?: boolean, // 是否关闭pause时触发focus
  *   closeFocusVideoFocus?: boolean, // 是否关闭播放器移动鼠标时触发focus
- *   closeDelayBlur?: boolean, // 是否关闭自动隐藏控制条
  *   closeControlsBlur?: boolean, // 鼠标移出播放器控制条范围时触发focus事件
  *   videoAttributes?: { [propName: string]: any }, // video扩展属性
  *   startTime?: number, // 自动播放起始时间点
@@ -106,11 +106,11 @@ export default function getDefaultConfig () {
     closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停
     closeVideoDblclick: false, // 是否通过双击行为触发全屏切换
     closePlayerBlur: false, // 是否关闭鼠标移出播放器范围触发blur操作
+    closeDelayBlur: false, // 是否关闭自动隐藏控制条
     leavePlayerTime: 3000, // 延迟触发时间
     closePlayVideoFocus: false, // 是否关闭play时触发focus
     closePauseVideoFocus: false, // 是否关闭pause时触发focus
     closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus
-    closeDelayBlur: false, // 是否关闭自动隐藏控制条
     closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
     videoAttributes: {}, // video扩展属性
     startTime: 0, // 自动播放起始时间点
