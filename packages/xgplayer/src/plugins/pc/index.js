@@ -57,7 +57,7 @@ export default class PCPlugin extends BasePlugin {
   onMouseMove = (e) => {
     const { player, playerConfig } = this
     if (!player.isActive) {
-      player.focus()
+      player.focus({ autoHide: playerConfig.closeDelayBlur })
       !playerConfig.closeFocusVideoFocus && player.video.focus()
     }
   }
