@@ -63,7 +63,7 @@ class FlvDemuxer {
       return
     }
     if (sample.isKeyframe) {
-      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.dts + sample.cts)
+      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.dts + sample.cts, sample.cts)
     }
     this.tracks.videoTrack.samples.push(sample)
   }
@@ -90,7 +90,7 @@ class FlvDemuxer {
 
     // Edit default meta.
     if (audioTrack && !audioTrack.hasSpecificConfig) {
-      let meta = audioTrack.meta
+      const meta = audioTrack.meta
       if (onMetaData.audiosamplerate) {
         meta.sampleRate = onMetaData.audiosamplerate
       }
@@ -112,11 +112,11 @@ class FlvDemuxer {
       }
     }
     if (videoTrack && !videoTrack.hasSpecificConfig) {
-      let meta = videoTrack.meta
+      const meta = videoTrack.meta
       if (typeof onMetaData.framerate === 'number') {
-        let fpsNum = Math.floor(onMetaData.framerate * 1000)
+        const fpsNum = Math.floor(onMetaData.framerate * 1000)
         if (fpsNum > 0) {
-          let fps = fpsNum / 1000
+          const fps = fpsNum / 1000
           if (!meta.frameRate) {
             meta.frameRate = {}
           }
@@ -147,6 +147,7 @@ class FlvDemuxer {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
   }
+
   /**
    * If the stream has audio or video.
    * @param {number} streamFlag - Data from the stream which is define whether the audio / video track is exist.
@@ -173,7 +174,7 @@ class FlvDemuxer {
    */
   initVideoTrack () {
     this._trackNum++
-    let videoTrack = new VideoTrack()
+    const videoTrack = new VideoTrack()
     videoTrack.meta = new VideoTrackMeta()
     videoTrack.id = videoTrack.meta.id = this._trackNum
 
@@ -185,7 +186,7 @@ class FlvDemuxer {
    */
   initAudioTrack () {
     this._trackNum++
-    let audioTrack = new AudioTrack()
+    const audioTrack = new AudioTrack()
     audioTrack.meta = new AudioTrackMeta()
     audioTrack.id = audioTrack.meta.id = this._trackNum
 

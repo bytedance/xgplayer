@@ -32,7 +32,7 @@ export default class FlvController {
       this.mse = new Mse({ container: this._player.video }, this._context)
       this.mse.init()
     }
-    this._seiOnDemond = new SeiOnDemand(this._player)
+    this._seiOnDemand = new SeiOnDemand(this._player)
     this.initComponents()
     this.initListeners()
   }
@@ -53,6 +53,8 @@ export default class FlvController {
       Object.keys(remuxConfig).forEach(key => {
         remuxer[key] = remuxConfig[key]
       })
+      // use origin videoDtsBase derect
+      this._seiOnDemand?.updateBaseDts(remuxConfig._videoDtsBase)
     } else {
       this._context.registry('MP4_REMUXER', Remuxer)()
     }
@@ -84,6 +86,13 @@ export default class FlvController {
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
+    if (!this.configs.remux) {
+      // keep origin baseDts when change stream use abr mode
+      this.once(DEMUX_EVENTS.ISKEYFRAME, (pts, cts) => {
+        this._seiOnDemand?.updateBaseDts(pts - cts)
+      })
+    }
+
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
 
@@ -111,7 +120,7 @@ export default class FlvController {
 
   _handleSEIParsed (sei) {
     if (this._pluginConfig.seiOnDemand) {
-      this._seiOnDemond.append(sei)
+      this._seiOnDemand.append(sei)
       return
     }
     this._player.emit('SEI_PARSED', sei)
@@ -309,7 +318,7 @@ export default class FlvController {
   destroy () {
     this._player.off('timeupdate', this._handleTimeUpdate)
     this.mse = null
-    this._seiOnDemond?.destroy()
+    this._seiOnDemand?.destroy()
     this.state.randomAccessPoints = []
     if (this._timer) clearInterval(this._timer)
   }

@@ -2,18 +2,21 @@
 export default class SEIOnDemand {
     _seiQueue = []
     _baseDts = Infinity
+    _timer = 0
 
     constructor (player) {
       this._player = player
-      this._timer = 0
+    }
+
+    updateBaseDts (dts) {
+      this._baseDts = dts
+      this._bootCheckEmitSEI()
     }
 
     append (sei) {
-      if (!isFinite(this._baseDts)) {
-        this._baseDts = sei.dts
-        this._bootCheckEmitSEI()
-      }
+      if (this._baseDts === Infinity) return
 
+      console.log('sei: time: ', this._baseDts, (sei.dts - this._baseDts) / 1000)
       this._seiQueue.push({
         time: (sei.dts - this._baseDts) / 1000,
         data: sei
@@ -25,7 +28,7 @@ export default class SEIOnDemand {
         clearInterval(this._timer)
       }
 
-      this._timer = setInterval(this._checkEmitSEI, 30)
+      this._timer = setInterval(this._checkEmitSEI, 25)
     }
 
     _checkEmitSEI = () => {
