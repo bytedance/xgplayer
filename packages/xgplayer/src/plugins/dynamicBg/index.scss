@@ -10,9 +10,9 @@
   pointer-events: none;
 }
 .xgplayer-dynamic-bg {
-  // canvas {
-  //   // filter: blur(50px);
-  // }
+  canvas {
+    transform: translateZ(0);
+  }
   xgmask {
     background: rgba(0,0,0,0.7);
   }

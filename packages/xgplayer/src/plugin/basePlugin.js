@@ -165,7 +165,7 @@ class BasePlugin {
    * @returns
    */
   on (event, callback) {
-    if (!event || !callback) {
+    if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.on(event, callback)')
       return
     }
@@ -187,7 +187,7 @@ class BasePlugin {
    * @returns
    */
   once (event, callback) {
-    if (!event || !callback) {
+    if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.once(event, callback)')
       return
     }
@@ -201,7 +201,7 @@ class BasePlugin {
    * @returns
    */
   off (event, callback) {
-    if (!event || !callback) {
+    if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.off(event, callback)')
       return
     }
@@ -231,6 +231,9 @@ class BasePlugin {
    * @returns
    */
   emit (event, res) {
+    if (!this.player) {
+      return
+    }
     this.player.emit(event, res)
   }
 
@@ -285,6 +288,9 @@ class BasePlugin {
    * @returns { any }
    */
   registerPlugin (plugin, options = {}, name = '') {
+    if (!this.player) {
+      return
+    }
     name && (options.pluginName = name)
     return this.player.registerPlugin({ plugin, options })
   }
@@ -295,7 +301,7 @@ class BasePlugin {
    * @returns { any | null }
    */
   getPlugin (name) {
-    return this.player.getPlugin(name)
+    return this.player ? this.player.getPlugin(name) : null
   }
 
   __destroy () {

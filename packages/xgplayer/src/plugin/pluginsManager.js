@@ -203,10 +203,10 @@ const pluginsManager = {
   },
 
   findPlugin (player, name) {
-    if (!this.pluginGroup) {
+    const cgid = player._pluginInfoId
+    if (!this.pluginGroup || !cgid) {
       return null
     }
-    const cgid = player._pluginInfoId
     const cName = name.toLowerCase()
     return this.pluginGroup[cgid]._plugins[cName]
   },
@@ -264,10 +264,10 @@ const pluginsManager = {
   },
 
   afterInit (player) {
-    if (!this.pluginGroup) {
+    const cgid = player._pluginInfoId
+    if (!this.pluginGroup || !cgid) {
       return
     }
-    const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
       if (plugins[item] && plugins[item].afterPlayerInit) {
@@ -277,10 +277,10 @@ const pluginsManager = {
   },
 
   setLang (lang, player) {
-    if (!this.pluginGroup) {
+    const cgid = player._pluginInfoId
+    if (!this.pluginGroup || !cgid) {
       return
     }
-    const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     Object.keys(plugins).map(item => {
       if (plugins[item].updateLang) {
@@ -298,6 +298,9 @@ const pluginsManager = {
 
   reRender (player) {
     const cgid = player._pluginInfoId
+    if (!cgid) {
+      return
+    }
     const pluginsMap = {}
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
@@ -336,6 +339,7 @@ const pluginsManager = {
       this.unRegister(cgid, item)
     }
     delete this.pluginGroup[cgid]
+    delete player._pluginInfoId
   }
 }
 
