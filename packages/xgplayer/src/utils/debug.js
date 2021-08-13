@@ -1,5 +1,5 @@
 
-const XG_DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('xgplayerdebug=1') > -1
+const XG_DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('xgplayerdebugger=1') > -1
 
 const STYLE = {
   info: 'color: #525252; background-color: #90ee90;',
@@ -7,22 +7,27 @@ const STYLE = {
   warn: 'color: #525252; background-color: yellow; '
 }
 
-const XGTAG = '%c[xgplayer]》》'
+const XGTAG = '%c[xgplayer]'
 
 const XG_DEBUG = {
   config: {
-    debug: typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('playerdebug') > -1
+    debug: XG_DEBUG_OPEN ? 3 : 1
   },
+
   logInfo: function (message, ...optionalParams) {
-    (XG_DEBUG_OPEN || this.config.debug) && console.log(XGTAG, STYLE.info, message, ...optionalParams)
+    this.config.debug >= 3 && console.log(XGTAG, STYLE.info, message, ...optionalParams)
   },
 
   logWarn: function (message, ...optionalParams) {
-    console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
+    this.config.debug >= 1 && console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
   },
 
   logError: function (message, ...optionalParams) {
-    console.error(XGTAG, STYLE.error, message, ...optionalParams)
+    if (this.config.debug < 1) {
+      return
+    }
+    const _fun = this.config.debug >= 2 ? 'trace' : 'error'
+    console[_fun](XGTAG, STYLE.error, message, ...optionalParams)
   }
 }
 

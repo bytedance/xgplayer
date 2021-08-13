@@ -1,7 +1,7 @@
 ﻿declare module "utils/debug" {
     namespace XG_DEBUG {
         namespace config {
-            const debug: boolean;
+            const debug: number;
         }
         function logInfo(message: any, ...optionalParams: any[]): void;
         function logWarn(message: any, ...optionalParams: any[]): void;
@@ -257,6 +257,8 @@ declare module "utils/util" {
             pageX: number;
             pageY: number;
         };
+        function requestAnimationFrame(callback: any): any;
+        function cancelAnimationFrame(frameId: any): void;
     }
     import XgplayerTimeRange from "utils/xgplayerTimeRange";
 }
@@ -1700,6 +1702,15 @@ declare module "lang/i18n" {
 declare module "player" {
     export type IPlayerOptions = import("defaultConfig").IPlayerOptions;
     class Player extends VideoProxy {
+        /**
+         * @type {number}
+         * @description set debugger level
+         *  1 - only print error logs
+         *  2 - print warn logs and error logs
+         *  3 - print all debug logs and error stack logs
+         */
+        static set debugger(arg: number);
+        static get debugger(): number;
         /***
          * @deprecated
          * 插件全部迁移完成再做删除
@@ -1843,7 +1854,7 @@ declare module "player" {
          */
         readonly database: any;
         /**
-         * init control bar
+         * init control domElement
          * @private
          */
         private _initDOM;
