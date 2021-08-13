@@ -3,6 +3,7 @@
 ## live@3.0.0-alpha.123 + helper@2.4.33
 >* feat: (xgplayer-live) 直播插件添加版本号信息 flvlive|hlslive|hlsvod.version
 >* feat: (xgplayer-flv-live) sei解析支持按需抛出 flvlive:{seiOnDemand:true} 开启
+>* fix: (fetch-loader) 刷新页面时 reader() throw error
 >* fix: (xgplayer-livevideo) firstframe事件不触发
 >* fix: (xgplayer-raw264) 对xgplayer-mobilevideo引用替换成xgplayer-livevideo
 

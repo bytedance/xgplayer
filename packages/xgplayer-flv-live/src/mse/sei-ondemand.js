@@ -16,7 +16,6 @@ export default class SEIOnDemand {
     append (sei) {
       if (this._baseDts === Infinity) return
 
-      console.log('sei: time: ', this._baseDts, (sei.dts - this._baseDts) / 1000)
       this._seiQueue.push({
         time: (sei.dts - this._baseDts) / 1000,
         data: sei
