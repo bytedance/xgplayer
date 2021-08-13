@@ -14,13 +14,33 @@ function nowTime () {
     return new Date().getTime()
   }
 }
-
-function checkIsSupport (video) {
+/**
+ * 检查当前的video对象是否支持video截图
+ * @param { VideoElement } video
+ * @returns
+ */
+function checkVideoIsSupport (video) {
   if (Sniffer.browser === 'safari' && (/^blob/.test(video.currentSrc) || /^blob/.test(video.src))) {
     return false
   }
 
   return true
+}
+
+/**
+ * 检查当前环境是否支持canvas
+ * @returns { Boolean }
+ */
+function checkIsSupportCanvas () {
+  try {
+    const ctx = document.createElement('canvas').getContext
+    if (ctx) {
+      return true
+    }
+    return false
+  } catch (e) {
+    return false
+  }
 }
 
 /**
@@ -35,7 +55,7 @@ function checkIsSupport (video) {
  * } } IDynamicBgConfig
  */
 
-const isSupport = null
+const isSupportCanvas = null
 class DynamicBg extends Plugin {
   static get pluginName () {
     return 'dynamicBg'
@@ -55,34 +75,22 @@ class DynamicBg extends Plugin {
     }
   }
 
-  static checkSupport () {
-    try {
-      const ctx = document.createElement('canvasobj').getContext
-      if (ctx) {
-        return true
-      }
-      return false
-    } catch (e) {
-      return false
-    }
-  }
-
   /**
    * @type {boolean}
    * @description Does the current environment support Canvas
    */
   static get isSupport () {
-    if (typeof isSupport === 'boolean') {
-      return isSupport
+    if (typeof isSupportCanvas === 'boolean') {
+      return isSupportCanvas
     }
-    return DynamicBg.checkSupport()
+    return checkIsSupportCanvas()
   }
 
   afterCreate () {
     if (this.playerConfig.dynamicBg === true) {
       this.config.disable = false
     }
-    if (DynamicBg.isSupport) {
+    if (!DynamicBg.isSupport) {
       this.config.disable = true
     }
     const { disable, mode } = this.config
@@ -146,7 +154,7 @@ class DynamicBg extends Plugin {
     if (mode === MODES.FIRST_FRAME) {
       this.once(Events.TIME_UPDATE, () => {
         const { video } = this.player
-        video && checkIsSupport(video) && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
+        video && checkVideoIsSupport(video) && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       })
     }
   }
@@ -190,7 +198,7 @@ class DynamicBg extends Plugin {
   start = () => {
     const { video } = this.player
     const _now = nowTime()
-    if (!checkIsSupport(video) || !this.canvasCtx) {
+    if (!checkVideoIsSupport(video) || !this.canvasCtx) {
       return
     }
     this.stop()
