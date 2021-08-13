@@ -55,7 +55,7 @@ function checkIsSupportCanvas () {
  * } } IDynamicBgConfig
  */
 
-const isSupportCanvas = null
+let isSupportCanvas = null
 class DynamicBg extends Plugin {
   static get pluginName () {
     return 'dynamicBg'
@@ -83,7 +83,8 @@ class DynamicBg extends Plugin {
     if (typeof isSupportCanvas === 'boolean') {
       return isSupportCanvas
     }
-    return checkIsSupportCanvas()
+    isSupportCanvas = checkIsSupportCanvas()
+    return isSupportCanvas
   }
 
   afterCreate () {

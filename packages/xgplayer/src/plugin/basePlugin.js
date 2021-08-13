@@ -84,7 +84,10 @@ class BasePlugin {
     this.__init(args)
   }
 
-  beforeCreate () {}
+  /**
+   * @param { IBasePluginOptions } args
+   */
+  beforeCreate (args) {}
   afterCreate () {}
   beforePlayerInit () {}
   onPluginsReady () {}
