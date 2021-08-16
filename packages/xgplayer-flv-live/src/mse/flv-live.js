@@ -39,8 +39,8 @@ export default class FlvController extends FlvBaseController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment)
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment)
-    this.on(REMUX_EVENTS.REMUX_ERROR, this._onError)
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd)
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onError)
     this.on(MSE_EVENTS.MSE_ERROR, this._onError)
 
     this._player.on('timeupdate', this._handleTimeUpdate)

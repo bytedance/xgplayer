@@ -99,8 +99,8 @@ class FlvPlayer extends BasePlugin {
   }
 
   _bindPlayerEvents () {
-    this.player.useHooks('play', this._playHandler)
-    this.player.useHooks('pause', this._pauseHandler)
+    this.player?.useHooks('play', this._playHandler)
+    this.player?.useHooks('pause', this._pauseHandler)
 
     this.on(Events.SEEKING, this._seekingHandler)
     this.on(Events.DESTROY, this._destroyHandler)
@@ -194,7 +194,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   _reloadStream () {
-    this.player.play()
+    this.player?.play()
   }
 
   _waitBackupStream (flv, ctx) {
@@ -225,6 +225,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   _switchURLInternal (url, abr) {
+    if (!this.player) return
     this.player.config.url = url
     if (!abr) {
       this.player.currentTime = 0

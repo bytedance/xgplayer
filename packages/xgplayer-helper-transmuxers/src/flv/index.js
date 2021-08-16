@@ -93,7 +93,7 @@ class FlvDemuxer {
     if (typeof onMetaData.hasVideo === 'boolean') {
       this._context.mediaInfo.hasVideo = onMetaData.hasVideo
     }
-    this.emit(DEMUX_EVENTS.MEDIA_INFO)
+    this.emit(DEMUX_EVENTS.MEDIA_INFO, onMetaData)
     this._hasScript = true
 
     // Edit default meta.

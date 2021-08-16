@@ -65,6 +65,14 @@ class BaseCompatibility {
     this._doFix()
   }
 
+  // for flv vod seek
+  updateNextDtsBySeekTime (time) {
+    this._videoNextDts = this._baseDts + time * 1000
+    this._audioNextDts = this._videoNextDts
+    this._audioLastSample = null
+    this._videoLastSample = null
+  }
+
   _doFix () {
     throw new Error('need override by children')
   }

@@ -1,34 +1,19 @@
 {
   "name": "xgplayer-flv-vod",
-  "version": "3.0.0-alpha.16",
+  "version": "3.0.0-alpha.122",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
+  "typings": "types/index.d.ts",
+  "sideEffects": false,
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
-    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js && cross-env NODE_ENV=production rollup -c rollup.config.mobile.js ",
-    "build:es": "babel src --out-dir es",
-    "build:lib": "babel src --presets @babel/preset-env --out-dir lib",
-    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
-    "watch:mobile": "cross-env NODE_ENV=development rollup -c rollup.config.mobile.js --watch"
-  },
-  "author": "",
-  "license": "ISC",
-  "unpkgFiles": [
-    "dist"
-  ],
-  "dependencies": {
-    "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-context": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-demux-flv": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.16",
-    "xgplayer-utils-mse": "3.0.0-alpha.16"
+    "analyze": "cross-env NODE_ENV=production ANALYZE=1 npm run build:umd && npm run build:es && npm run build:lib",
+    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build:es": "rm -rf es && babel src --out-dir es && cp types/es.d.ts es/index.d.ts",
+    "build:lib": "rm -rf lib && babel src --presets @babel/preset-env --out-dir lib",
+    "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch"
   },
   "babel": {
     "presets": [
@@ -38,6 +23,31 @@
           "modules": false
         }
       ]
+    ],
+    "plugins": [
+      [
+        "search-and-replace",
+        {
+          "rules": [
+            {
+              "search": "__VERSION__",
+              "searchTemplateStrings": true,
+              "replace": "3.0.0-alpha.122"
+            }
+          ]
+        }
+      ]
     ]
+  },
+  "author": "",
+  "license": "ISC",
+  "unpkgFiles": [
+    "dist"
+  ],
+  "dependencies": {
+    "xgplayer-helper-codec": "2.4.32",
+    "xgplayer-helper-models": "2.4.32",
+    "xgplayer-helper-transmuxers": "2.4.32",
+    "xgplayer-helper-utils": "2.4.32"
   }
 }

@@ -211,8 +211,7 @@ class FlvDemuxer extends EventEmitter {
   _parseScriptData (flvTag, buffer) {
     flvTag.data = buffer.shift(flvTag.datasize)
     const info = new AMFParser().resolve(flvTag.data, flvTag.data.length)
-
-    this.onMetaData = info ? info.onMetaData : undefined
+    this.onMetaData = info ? info.onMetaData : {}
     this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, this.onMetaData)
   }
 

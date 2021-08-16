@@ -63,14 +63,15 @@ export default class SEIOnDemand {
         }
 
         this._seiQueue.shift()
-        this._player.emit('SEI_PARSED', sei.data)
-        this._parent.emitCoreEvent('core.seiparsed', sei.data)
+        this._player?.emit('SEI_PARSED', sei.data)
+        this._parent?.emitCoreEvent('core.seiparsed', sei.data)
         sei = this._seiQueue[0]
       }
     }
 
     destroy () {
       clearInterval(this._timer)
+      this._player = null
       this._seiQueue = []
     }
 }

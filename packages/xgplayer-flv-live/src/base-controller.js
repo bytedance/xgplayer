@@ -28,7 +28,9 @@ export default class FlvBaseController {
   _initComponents () {
     const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Compatibility } = this._pluginConfig
 
-    this._seiOndemand = new SEIOnDemand(this._player, this)
+    if (this._pluginConfig.seiOnDemand) {
+      this._seiOndemand = new SEIOnDemand(this._player, this)
+    }
 
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -42,7 +44,7 @@ export default class FlvBaseController {
     if (baseDts) {
       // keep the origin baseDts for abr use
       this._compat.setBaseDts(baseDts)
-      this._seiOndemand.updateBaseDts(baseDts)
+      this._seiOndemand?.updateBaseDts(baseDts)
     }
   }
 
@@ -60,9 +62,9 @@ export default class FlvBaseController {
 
     // condition for change baseDts for sei emit
     if (!this.configs.baseDts) {
-      this.once(DEMUX_EVENTS.ISKEYFRAME, (pts, cts) => this._seiOndemand.updateBaseDts(pts - cts))
+      this.once(DEMUX_EVENTS.ISKEYFRAME, (pts, cts) => this._seiOndemand?.updateBaseDts(pts - cts))
     }
-    this.on(COMPATIBILITY_EVENTS.STREAM_BREACKED, baseDts => this._seiOndemand.updateBaseDts(baseDts))
+    this.on(COMPATIBILITY_EVENTS.STREAM_BREACKED, baseDts => this._seiOndemand?.updateBaseDts(baseDts))
 
     // emit to out
     this.connectEvent(LOADER_EVENTS.LOADER_START, CORE_EVENTS.LOADER_START)
@@ -110,10 +112,10 @@ export default class FlvBaseController {
 
   _handleSEI = (sei) => {
     if (this._pluginConfig.seiOnDemand) {
-      this._seiOndemand.append(sei)
+      this._seiOndemand?.append(sei)
       return
     }
-    this._player.emit('SEI_PARSED', sei)
+    this._player?.emit('SEI_PARSED', sei)
   }
 
   _handleKeyFrame = (pts) => {
@@ -138,11 +140,11 @@ export default class FlvBaseController {
     }
   }
 
-  loadData (url = this._player.config.url) {
+  loadData (url = this._player?.config.url) {
     if (!url) {
       return
     }
-    const { count: times, delay: delayTime } = this._player.config.retry || {}
+    const { count: times, delay: delayTime } = this._player?.config.retry || {}
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
@@ -162,7 +164,8 @@ export default class FlvBaseController {
   }
 
   destroy () {
-    this._seiOndemand.destroy()
+    this._seiOndemand?.destroy()
+    this._seiOndemand = null
     this.state.randomAccessPoints = []
   }
 

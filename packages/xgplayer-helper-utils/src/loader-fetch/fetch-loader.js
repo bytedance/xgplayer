@@ -272,7 +272,6 @@ class FetchLoader {
         })
         return
       }
-
       buffer.push(val.value)
       this._speed.addBytes(val.value.byteLength)
       Promise.resolve().then(() => {

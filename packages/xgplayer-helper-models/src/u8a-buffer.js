@@ -89,6 +89,13 @@ class XgBuffer {
     this.historyLen = 0
   }
 
+  reset () {
+    this.length = 0
+    this.historyLen = 0
+    this.array = []
+    this.offset = 0
+  }
+
   /**
    * Function to shift one unit8Array.
    */
