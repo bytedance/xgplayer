@@ -1124,7 +1124,10 @@ declare module "plugin/basePlugin" {
            * @type {string}
            */
         readonly pluginName: string;
-        beforeCreate(): void;
+        /**
+         * @param { IBasePluginOptions } args
+         */
+        beforeCreate(args: IBasePluginOptions): void;
         afterCreate(): void;
         beforePlayerInit(): void;
         onPluginsReady(): void;
