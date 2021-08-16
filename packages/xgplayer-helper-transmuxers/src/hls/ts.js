@@ -1,5 +1,5 @@
 import { EVENTS } from 'xgplayer-helper-utils'
-import {AudioTrack, VideoTrack} from 'xgplayer-helper-models'
+import { AudioTrack, VideoTrack } from 'xgplayer-helper-models'
 import Demuxer from './ts-demuxer'
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 
@@ -74,7 +74,7 @@ class TsDemuxer {
 
   onVideoSampleParsed (sample) {
     if (sample.isKeyframe) {
-      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.pts)
+      this.emit(DEMUX_EVENTS.ISKEYFRAME, sample.pts, sample.pts - sample.dts)
     }
     this._tracks.videoTrack.samples.push(sample)
   }

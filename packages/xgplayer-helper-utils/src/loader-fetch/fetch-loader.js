@@ -263,11 +263,9 @@ class FetchLoader {
         this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       })
       return this._onReader(reader, taskno)
-    }).catch((error) => {
+    }).catch(() => {
       clearTimeout(this._noDataTimer)
       this.loading = false
-      if (error && error.name === 'AbortError') return
-      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error)
     })
   }
 

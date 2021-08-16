@@ -135,8 +135,8 @@ class Compatibility {
   }
 
   doFixVideo (first, streamChangeStart) {
-    let {samples: videoSamples, meta} = this.videoTrack
-    let len = videoSamples.length
+    const { samples: videoSamples, meta } = this.videoTrack
+    const len = videoSamples.length
 
     for (let i = 0; i < len; i++) {
       const sample = videoSamples[i]
@@ -150,7 +150,7 @@ class Compatibility {
 
     const firstSample = videoSamples[0]
 
-    logger.log(this.TAG, `doFixVideo:: lastVideoDts: ${this.lastVideoDts} ,  _videoLargeGap: ${this._videoLargeGap} ,streamChangeStart:${streamChangeStart}, lastVideoSample:[dts=${this.videoLastSample && this.videoLastSample.dts} , pts=${this.videoLastSample && this.videoLastSample.pts}] ,  firstDTS:${firstSample.dts} ,firstPTS:${firstSample.pts} ,lastDTS:${videoSamples[len - 1].dts} , lastPTS: ${videoSamples[len - 1].pts}`)
+    logger.log(this.TAG, `doFixVideo:: lastVideoDts: ${this.lastVideoDts} ,  _videoLargeGap: ${this._videoLargeGap} ,streamChangeStart:${streamChangeStart}, lastVideoSample:[dts=${this.videoLastSample && this.videoLastSample.dts} , pts=${this.videoLastSample && this.videoLastSample.pts}] ,  firstDTS:${firstSample.dts} ,cts:${firstSample.cts} firstPTS:${firstSample.pts} ,lastDTS:${videoSamples[len - 1].dts} , lastPTS: ${videoSamples[len - 1].pts}`)
 
     // !first: 非首次加载的分片
     if (!first && (this.videoLastSample === null && firstSample.options && firstSample.options.start)) {
@@ -204,7 +204,7 @@ class Compatibility {
       }
     }
 
-    let curLastSample = videoSamples.pop()
+    const curLastSample = videoSamples.pop()
     if (videoSamples.length) {
       videoSamples[videoSamples.length - 1].duration = curLastSample.dts - videoSamples[videoSamples.length - 1].dts
     }
@@ -235,7 +235,7 @@ class Compatibility {
   }
 
   doFixAudio (first, streamChangeStart) {
-    let {samples: audioSamples, meta} = this.audioTrack
+    const { samples: audioSamples, meta } = this.audioTrack
 
     if (!audioSamples || !audioSamples.length) {
       return
@@ -367,15 +367,15 @@ class Compatibility {
     // 分片内采样间补帧
     let nextDts = audioSamples[0].dts + iRefSampleDuration
     for (let i = 1; i < audioSamples.length;) {
-      let sample = audioSamples[i]
-      let delta = sample.dts - nextDts
+      const sample = audioSamples[i]
+      const delta = sample.dts - nextDts
       if (delta <= -1 * iRefSampleDuration) {
         logger.warn(`drop 1 audio sample for ${delta} ms overlap`)
         audioSamples.splice(i, 1)
         continue
       }
       if (delta >= 10 * iRefSampleDuration) {
-        let missingCount = Math.round(delta / iRefSampleDuration)
+        const missingCount = Math.round(delta / iRefSampleDuration)
         if (missingCount > 1000) {
           break
         }
@@ -447,7 +447,7 @@ class Compatibility {
       return false
     }
 
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', {prevDts, curDts, duration: preDuration})
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts, curDts, duration: preDuration })
 
     const firstPartSamples = samples.slice(0, changeIdx)
     const secondPartSamples = samples.slice(changeIdx)
@@ -496,7 +496,7 @@ class Compatibility {
       }
       return false
     }
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', {prevDts, curDts, duration: meta.refSampleDuration})
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts, curDts, duration: meta.refSampleDuration })
     this._audioLargeGap = 0
     const cacheNextAudioDts = this.nextAudioDts
     this.nextAudioDts = null
@@ -527,8 +527,8 @@ class Compatibility {
 
   getFirstSample () {
     // 获取video和audio的首帧数据
-    let {samples: videoSamples} = this.videoTrack
-    let {samples: audioSamples} = this.audioTrack
+    const { samples: videoSamples } = this.videoTrack
+    const { samples: audioSamples } = this.audioTrack
 
     let isFirstVideoSamples = false
     let isFirstAudioSamples = false
@@ -654,6 +654,7 @@ class Compatibility {
   static isRefSampleDurationValid (refSampleDuration) {
     return refSampleDuration && refSampleDuration > 0 && !Number.isNaN(refSampleDuration)
   }
+
   /**
    * 寻找dts最小的sample
    * @param samples
@@ -686,7 +687,7 @@ class Compatibility {
     if (nextDts === null) {
       return
     }
-    let delta = 10000
+    const delta = 10000
     return nextDts - firstSampleDts >= delta || firstSampleDts - nextDts >= delta // fix hls流出现大量流dts间距问题
   }
 
@@ -718,7 +719,7 @@ class Compatibility {
    */
   static detectChangeStream (samples, isFirst) {
     let changed = false
-    let changedIdxes = []
+    const changedIdxes = []
     for (let i = 0, len = samples.length; i < len; i++) {
       const sample = samples[i]
       if (sample.options && sample.options.meta && !(isFirst && (i === 0))) {
