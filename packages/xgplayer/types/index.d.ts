@@ -1959,7 +1959,7 @@ declare module "player" {
         unRegisterPlugin(plugin: any): void;
         /**
          * 当前播放器挂载的插件实例列表
-         * @type { {[propName: string]: any } }
+         * @type { {[propName: string]: any | null } }
          */
         get plugins(): {
             [propName: string]: any;
@@ -1967,9 +1967,9 @@ declare module "player" {
         /**
          * get a plugin instance
          * @param { string } pluginName
-         * @return { any } plugin
+         * @return { null | any } plugin
          */
-        getPlugin(pluginName: string): any;
+        getPlugin(pluginName: string): null | any;
         /**
          *
          * @param { string } className
