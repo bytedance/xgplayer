@@ -707,7 +707,7 @@ class Player extends VideoProxy {
 
   /**
    * 当前播放器挂载的插件实例列表
-   * @type { {[propName: string]: any } }
+   * @type { {[propName: string]: any | null } }
    */
   get plugins () {
     return pluginsManager.getPlugins(this)
@@ -716,7 +716,7 @@ class Player extends VideoProxy {
   /**
    * get a plugin instance
    * @param { string } pluginName
-   * @return { any } plugin
+   * @return { null | any } plugin
    */
   getPlugin (pluginName) {
     const plugin = pluginsManager.findPlugin(this, pluginName)
