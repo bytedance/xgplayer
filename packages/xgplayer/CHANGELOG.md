@@ -1,4 +1,15 @@
 # 版本更新记录
+## 3.0.0-alpha.95
+>* feat(xgplayer): Do not delete props and api when destroy player instance or plugin 
+>* fix(xgplayer): the compatibility issue in the dynamicBg plugin
+>* fix(xgplayer): shortcut key delete e.cancelbubble
+>* fix(xgplayer): fix plugin apis call exception after destroy
+>* fix(xgplayer): fix config.closeDelayBlur failure problem
+>* feat(xgplayer): add player.root resize ResizeObserver re #17 
+>* feat(xgplayer): add showIcon and hideIcon in plugin danmu
+>* chore(xgplayer): add typedef in I18n
+>* fix(xgplayer): update danmu.js@0.5.4
+
 ## 3.0.0-alpha.94
 >* feat: (xgplayer) 重构Error类型
 >* fix:(xgplayer) types/index.d.ts 命令行生成
