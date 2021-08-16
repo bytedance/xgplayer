@@ -7,6 +7,18 @@ export default class HlsVodWrapperPlayer extends BasePlugin {
     return 'HlsVodWrapper'
   }
 
+  static get defaultConfig () {
+    return {
+      options: {},
+      loadTimeout: 10000,
+      preloadTime: 5,
+      retryCount: 3,
+      retryDelay: 1000,
+      retryTimes: 3,
+      innerDegrade: 0
+    }
+  }
+
   constructor (config) {
     super(config)
 

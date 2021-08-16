@@ -8,7 +8,8 @@
   "sideEffects": false,
   "scripts": {
     "prepare": "npm run build",
-    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib && build:types",
+    "build:types": "tsc src/index.js --allowJs --declaration --declarationDir types --emitDeclarationOnly",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "babel src --out-dir es && cp types/es.d.ts es/index.d.ts",
     "build:lib": "babel src --presets @babel/preset-env --out-dir lib",

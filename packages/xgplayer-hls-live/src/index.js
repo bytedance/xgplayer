@@ -1,7 +1,6 @@
 import { BasePlugin } from 'xgplayer'
 import HlsMobileLivePlayer from './mobile'
 import HlsMSELivePlayer from './mse'
-import defaultConfig from './mse/config'
 
 export default class HlsLivePlayer extends BasePlugin {
   static get pluginName () {
@@ -9,12 +8,15 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   static get defaultConfig () {
-    return Object.assign({}, defaultConfig, {
-      preloadTime: 5,
+    return {
+      options: {},
+      loadTimeout: 10000,
+      preloadTime: 10,
       retryTimes: 3,
       retryCount: 3,
-      retryDelay: 0
-    })
+      retryDelay: 1000,
+      innerDegrade: 0
+    }
   }
 
   constructor (options = {}) {

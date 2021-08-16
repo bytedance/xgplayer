@@ -7,6 +7,21 @@ export default class FlvLiveWrapperPlayer extends BasePlugin {
     return 'flvLiveWrapper'
   }
 
+  static get defaultConfig () {
+    return {
+      preloadTime: 5,
+      options: {},
+      loadTimeout: 10000,
+      retryCount: 3,
+      retryDelay: 0,
+      backupURL: '',
+      backupConstructor: null,
+      decodeMode: 0,
+      innerDegrade: 0,
+      seiOnDemand: false
+    }
+  }
+
   constructor (config) {
     super(config)
 

@@ -3,10 +3,6 @@ import { FetchLoader, Mse } from 'xgplayer-helper-utils'
 import { Tracks, RemuxedBufferManager, Buffer as XgBuffer } from 'xgplayer-helper-models'
 import { Compat as Compatibility } from 'xgplayer-helper-codec'
 
-class Logger {
-  warn () {}
-}
-
 export default {
   Remuxer,
   FlvDemuxer,
@@ -15,6 +11,5 @@ export default {
   RemuxedBufferManager,
   XgBuffer,
   Compatibility,
-  Mse,
-  Logger
+  Mse
 }
