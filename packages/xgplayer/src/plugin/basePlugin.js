@@ -6,7 +6,7 @@ import XG_DEBUG from '../utils/debug'
 import hooksDescriptor, { hook, useHooks, delHooksDescriptor } from '../plugin/hooksDescriptor'
 
 function showErrorMsg (pluginName, msg) {
-  console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
+  XG_DEBUG.logError(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
 }
 
 /**
