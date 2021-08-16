@@ -77,6 +77,12 @@ class HlsVodMobileController {
   }
 
   _onLoadError (mod, error) {
+    this._player.emit('error', {
+      code: error.code,
+      errorType: 'network',
+      ex: `[${mod}]: ${error.message}`,
+      errd: {}
+    })
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true)
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
   }

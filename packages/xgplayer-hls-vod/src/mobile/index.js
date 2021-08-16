@@ -129,7 +129,7 @@ class HlsVodMobilePlayer extends BasePlugin {
 
   _switch (url) {
     this.config.url = url
-    this._context.destroy()
+    this._context?.destroy()
     this._context = null
     this.hls = null
     const context = new Context(this.player, this.config, HlsAllowedEvents)

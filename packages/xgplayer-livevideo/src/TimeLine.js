@@ -233,6 +233,7 @@ export default class TimeLine extends EventEmitter {
     if (this._noAudio) {
       this.emit(Events.TIMELINE.SYNC_DTS, 0)
     }
+
     logger.log(this.TAG, 'startRender: time=', this.currentTime, 'paused:', this.paused, 'seeking:', this.seeking)
 
     // 首帧画面显示
@@ -266,28 +267,48 @@ export default class TimeLine extends EventEmitter {
     }
   }
 
-  // 对点播、分片不连续时resetDts
-  _checkResetBaseDts (vTrack, aTrack) {
-    const vSamp0 = vTrack && vTrack.samples[0]
-    const aSamp0 = aTrack && aTrack.samples[0]
+  _checkFragmentDuration (vTrack, aTrack) {
+    const vSampLen = vTrack?.samples.length || 0
+    const vSamp0 = vTrack?.samples[0]
+    const aSamp0 = aTrack?.samples[0]
+    const vLastSamp = vTrack?.samples[vSampLen - 1]
     if (!vSamp0 || !aSamp0) {
       if (!this.buffered.length) {
+        const e = new Error('lack video or audio sample')
+        e.code = 3
         // 暂不支持只有单track
-        this.emit(Events.TIMELINE.PLAY_EVENT, 'error', new Error('lack video or audio sample'))
+        this.emit(Events.TIMELINE.PLAY_EVENT, 'error', e)
       }
       return
     }
     const frag = vSamp0.options
     if (!frag) return
-    let breakedFrag
-    if (!this._lastSegment) {
-      breakedFrag = true
+
+    const realDuration = vLastSamp ? (vLastSamp.dts - vSamp0.dts) : frag.duration
+
+    if (Math.abs(realDuration - frag.duration) >= 2000) {
+      const e = new Error('decoder error')
+      e.code = 3
+      this.emit(Events.TIMELINE.PLAY_EVENT, 'error', e)
+      return
     }
+    return true
+  }
+
+  // 对点播、分片不连续时resetDts
+  _checkResetBaseDts (vTrack, aTrack) {
+    const vSamp0 = vTrack?.samples[0]
+    const aSamp0 = aTrack?.samples[0]
+    const frag = vSamp0.options
+
+    if (!frag) return
+
+    let breakedFrag
     // discontinue
     if (this._lastSegment && this._lastSegment.cc !== frag.cc) {
       breakedFrag = true
     }
-    // 考虑不存在不连续标记、但流时间戳变化了
+    // 考虑存在不连续标记、但流时间戳变化了
     const fStart = frag.start / 1000
     const fEnd = fStart + frag.duration / 1000
     const isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime
@@ -312,6 +333,9 @@ export default class TimeLine extends EventEmitter {
 
   appendBuffer (videoTrack, audioTrack) {
     if (!this._parent.live) {
+      const allowed = this._checkFragmentDuration(videoTrack, audioTrack)
+      if (!allowed) return
+
       this._checkResetBaseDts(videoTrack, audioTrack)
     }
     this.emit(Events.TIMELINE.APPEND_CHUNKS, videoTrack, audioTrack)

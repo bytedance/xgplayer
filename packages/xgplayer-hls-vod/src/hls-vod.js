@@ -151,7 +151,7 @@ class HlsVodController {
     }
     if (end) {
       const { video } = this._player
-      if (Math.abs(video.currentTime - video.duration) < 0.5) {
+      if (Math.abs(video.currentTime - video.duration) < 1) {
         this._player.emit('ended')
         this.mse.endOfStream()
       }

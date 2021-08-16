@@ -32,7 +32,9 @@ export default class FlvController {
       this.mse = new Mse({ container: this._player.video }, this._context)
       this.mse.init()
     }
-    this._seiOnDemand = new SeiOnDemand(this._player)
+    if (this._pluginConfig.seiOnDemand) {
+      this._seiOnDemand = new SeiOnDemand(this._player)
+    }
     this.initComponents()
     this.initListeners()
   }
@@ -120,7 +122,7 @@ export default class FlvController {
 
   _handleSEIParsed (sei) {
     if (this._pluginConfig.seiOnDemand) {
-      this._seiOnDemand.append(sei)
+      this._seiOnDemand?.append(sei)
       return
     }
     this._player.emit('SEI_PARSED', sei)

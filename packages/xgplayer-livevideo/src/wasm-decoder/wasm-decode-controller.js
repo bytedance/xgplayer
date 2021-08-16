@@ -27,6 +27,7 @@ export default class WasmDecodeController extends EventEmitter {
     this._avccpushed = false // 初始化解码器
     this._wasmReady = false // worker中wasm是否可用
     this._inDecoding = false
+    this._id = new Date().getMilliseconds()
     /**
      * 1: hevc decode with thread
      * 2: hevc | 264 decode
@@ -127,6 +128,8 @@ export default class WasmDecodeController extends EventEmitter {
           break
         case 'DECODED':
           this._inDecoding = true
+          if(e.data?.info?.id !== this._id) return
+
           this._workerMessageCallback({
             type: 'RECEIVE_FRAME',
             data: e.data
@@ -344,7 +347,8 @@ export default class WasmDecodeController extends EventEmitter {
         pts: sample.pts || sample.dts + sample.cts,
         key: sample.isKeyframe,
         gopId,
-        isGop: sample.isGop
+        isGop: sample.isGop,
+        id: this._id
       }
     })
   }

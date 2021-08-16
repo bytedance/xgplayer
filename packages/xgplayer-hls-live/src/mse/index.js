@@ -160,8 +160,7 @@ export default class HlsLivePlayer extends BasePlugin {
   _destroy () {
     if (!this.hls || !this.hls.mse || !this._context) return Promise.resolve()
     return this.hls.mse.destroy().then(() => {
-      if (!this._context) return
-      this._context.destroy()
+      this._context?.destroy()
       this.hls = null
       this._context = null
     }).catch(e => {})

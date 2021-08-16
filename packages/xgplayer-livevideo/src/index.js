@@ -340,12 +340,13 @@ class MVideo extends HTMLElement {
     } catch (e) {}
   }
 
-  load () {}
+  load () {
+  }
 
   /** *************** 外部数据交互主要接口 */
 
   onDemuxComplete (videoTrack, audioTrack) {
-    if (this.error || !this.timeline) return
+    if (!this.timeline) return
     if (!this._logFirstFrame) {
       const vSam0 = videoTrack && videoTrack.samples[0]
       const aSam0 = audioTrack && audioTrack.samples[0]
