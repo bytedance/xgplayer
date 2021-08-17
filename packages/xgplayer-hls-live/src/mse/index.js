@@ -14,7 +14,6 @@ export default class HlsLivePlayer extends BasePlugin {
     return Object.assign({}, defaultConfig, {
       options: {},
       loadTimeout: 10000,
-      preloadTime: 5,
       retryTimes: 3,
       retryCount: 3,
       retryDelay: 1000

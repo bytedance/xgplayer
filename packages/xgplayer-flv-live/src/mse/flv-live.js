@@ -139,7 +139,6 @@ export default class FlvController extends FlvBaseController {
         }
       }
 
-      // console.log('rap', rap, `time ${time}`, `bufferEnd ${bufferEnd}`,`clean ${Math.min(rap, time - 10, bufferEnd - 10)}`)
       this.mse.remove(Math.max(Math.min(rap, time - 10, bufferEnd - 10), 0.1), 0)
 
       this.bufferClearTimer = setTimeout(() => {

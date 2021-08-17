@@ -23,14 +23,6 @@ export default class FlvVodController {
     this.configs = configs || {}
   }
 
-  get seekable () {
-    return !!this._keyframes && this._acceptRanges
-  }
-
-  get mse () {
-    return this._mse
-  }
-
   init () {
     this._initComponents()
     this._bindEvents()
@@ -172,6 +164,14 @@ export default class FlvVodController {
     }
 
     this.emit(LOADER_EVENTS.LOADER_START, url, this._pluginConfig)
+  }
+
+  get seekable () {
+    return !!this._keyframes && this._acceptRanges
+  }
+
+  get mse () {
+    return this._mse
   }
 
   get tracks () {

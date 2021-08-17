@@ -252,7 +252,6 @@ class MVideo extends HTMLElement {
     document.addEventListener('touchend', this._onTouchEnd, true)
   }
 
-  // 监听手势交互,对防息屏video、背景audio、降级用到video来调用play
   _onTouchEnd () {
     playSlienceAudio()
     this._degradeVideoInteract()
@@ -287,8 +286,8 @@ class MVideo extends HTMLElement {
 
     this._degradeVideoInteract()
 
-    // 直播: paused后 reset timeline
-    // 点播: paused后 起播
+    // live: reset timeline when replay
+    // vod: play direct
     if ((this.timeline.ready && this.timeline.paused) || forceDestroy) {
       forceDestroy = forceDestroy || this._isLive
       this._playRequest = null
@@ -303,7 +302,7 @@ class MVideo extends HTMLElement {
       }
     }
 
-    // 正在播放中 调play()
+    // donoting when playing
     if (!this._playRequest && this.timeline.ready && !this.timeline.paused) {
       return Promise.resolve()
     }
@@ -339,7 +338,7 @@ class MVideo extends HTMLElement {
 
   load () {}
 
-  /** *************** 外部数据交互主要接口 */
+  /** *************** api  */
 
   onDemuxComplete (videoTrack, audioTrack) {
     if (this.error || !this.timeline) return
@@ -367,7 +366,6 @@ class MVideo extends HTMLElement {
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'audio', meta)
   }
 
-  // warn: 对点播,flush decoder应该放在分片被真实解码之前
   setVideoMeta (meta) {
     if (!this._isLive && this._vMeta) return
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'video', meta)
@@ -381,7 +379,7 @@ class MVideo extends HTMLElement {
   setPlayMode (v) {
     this._isLive = v === 'LIVE'
   }
-  /** *************** 外部数据交互主要接口 end */
+  /** *************** api end */
 
   handleEnded () {
     this.timeline.emit(Events.TIMELINE.PLAY_EVENT, 'ended')
@@ -411,11 +409,13 @@ class MVideo extends HTMLElement {
     this._noSleep = null
   }
 
-  // 只初始化播放器时记录一次
+  // record only once
   updateCanplayStatus (canplay) {
     if (canplay) return
     const ua = navigator.userAgent
-    // chrome下首个webaudio不能自动播放，但手势交互后后续新建的webaudio可自动播放
+
+    // the first webaudio may not autoplay in chrome,
+    // but the new webaudio create after user gesture can autoply
     if (/Chrome/.test(ua)) return
     this._audioCanAutoplay = canplay
   }
@@ -615,7 +615,7 @@ class MVideo extends HTMLElement {
     if (this.src && this.buffered.length) {
       this._vMeta = null
       this.startPlayed = false
-      // 切流，考虑重用解码worker
+      // consider reuse worker
       this.play('destroy')
     }
     this.setAttribute('src', val)

@@ -21,7 +21,7 @@ class HlsCompatibility extends Base {
     return false
   }
 
-  // 是否换流了,存在discontinue标记
+  // meet discontinue tag?
   _isSegmentContinue (segment) {
     if (!this._lastSegment) return true
     if (segment.cc === this._lastSegment.cc) return true
@@ -39,7 +39,8 @@ class HlsCompatibility extends Base {
     let firstVideoSample = vSamples[0]
     let firstAudioSample = aSamples[0]
     let segment = firstVideoSample ? firstVideoSample.options : firstAudioSample.options
-    // 考虑这个分片的音视频dts差值
+
+    // consider av delta
     let vaDelta = 0
 
     if (vSamples.length && aSamples.length) {
@@ -50,7 +51,7 @@ class HlsCompatibility extends Base {
       this._calculateBaseDts(this.tracks.audioTrack, this.tracks.videoTrack)
     }
 
-    // DISCONTINUE表示变流了，需要重新计算baseDts
+    // recalc baseDts
     if (!this._isSegmentContinue(segment)) {
       let originBaseDts = this._baseDts
       this._calculateBaseDts(this.tracks.audioTrack, this.tracks.videoTrack)
@@ -67,10 +68,10 @@ class HlsCompatibility extends Base {
       })
     }
 
-    // id不连续，重新计算nextDts, 考虑上首帧av之间的gap，点播seek场景或者直播中间漏了分片
+    // id discontinue, recalc nextDts, consider av delta of firstframe
     if (!this._isIdContinue(segment)) {
       /**
-       * start是和 a、v中的小者对齐的
+       *  segment.start = min(a, v)
        *  segment.start
        *      |
        *      a
@@ -79,17 +80,15 @@ class HlsCompatibility extends Base {
        */
       this._videoNextDts = vaDelta > 0 ? segment.start + vaDelta : segment.start
       this._audioNextDts = vaDelta > 0 ? segment.start : segment.start - vaDelta
-      logger.log(this.TAG, `id不连续: _videoNextDts=${this._videoNextDts}, _audioNextDts=${this._audioNextDts}, delta=${vaDelta}`)
+      logger.log(this.TAG, `id discontinue: _videoNextDts=${this._videoNextDts}, _audioNextDts=${this._audioNextDts}, delta=${vaDelta}`)
 
       let vDeltaToNextDts = firstVideoSample ? firstVideoSample.dts - this._baseDts - this._videoNextDts : 0
       let aDeltaToNextDts = firstAudioSample ? firstAudioSample.dts - this._baseDts - this._audioNextDts : 0
 
-      // 直播中间丢分片了
       if (Math.abs(vDeltaToNextDts || aDeltaToNextDts) > MAX_VIDEO_FRAME_DURATION) {
-        // 调整baseDts
         this._calculateBaseDts(this.tracks.audioTrack, this.tracks.videoTrack)
         this._baseDts -= segment.start
-        logger.log(this.TAG, `直播中间丢分片了: _videoNextDts:${this._videoNextDts}, _audioNextDts:${this._audioNextDts}, _baseDts =${this._baseDts}, vDeltaToNextDts:${vDeltaToNextDts} aDeltaToNextDts:${aDeltaToNextDts}`)
+        logger.log(this.TAG, `loss segment in live: _videoNextDts:${this._videoNextDts}, _audioNextDts:${this._audioNextDts}, _baseDts =${this._baseDts}, vDeltaToNextDts:${vDeltaToNextDts} aDeltaToNextDts:${aDeltaToNextDts}`)
       }
     }
 
@@ -107,7 +106,6 @@ class HlsCompatibility extends Base {
 
     if (!samples.length) return
 
-    // 先以baseDts为基准 偏移dts、pts
     samples.forEach(x => {
       x.originDts = x.dts
       x.originPts = x.pts
@@ -138,7 +136,7 @@ class HlsCompatibility extends Base {
           vDelta
         }
       })
-      logger.log(this.TAG, `首帧dts和期望值差距过大, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
+      logger.log(this.TAG, `video: large delta of firstframe.dts with excepted, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
 
       // 只处理首帧
       firstSample.dts += vDelta
@@ -170,7 +168,7 @@ class HlsCompatibility extends Base {
 
       if (sampleDuration > MAX_VIDEO_FRAME_DURATION || sampleDuration < 0) {
         // dts异常
-        logger.log(this.TAG, `视频duration异常:currentTime=${dts / 1000}, dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
+        logger.log(this.TAG, `duration exception:currentTime=${dts / 1000}, dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
         this._videoTimestampBreak = true
         sampleDuration = refSampleDurationInt
 

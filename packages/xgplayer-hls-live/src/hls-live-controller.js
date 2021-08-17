@@ -475,14 +475,14 @@ export default class HlsLiveController {
     }
   }
 
-  _onLoadError = (loader, error) => {
+  _onLoadError = (_, error) => {
     this._segmentLoading = false
 
     if (!this._player?.video?.paused) {
       this._player.pause()
     }
 
-    this._emitError(loader, error?.err)
+    this._emitError(error?.err)
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
     this.destroy()
   }

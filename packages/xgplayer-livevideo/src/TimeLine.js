@@ -444,11 +444,10 @@ export default class TimeLine extends EventEmitter {
     logger.group(this.TAG, 'start seek to:', time)
 
     /** seek process for vod:
-     *  音视频流程暂停, videoRender 销毁audioCtx并新建、videoRender timer暂停,清空_frameQueue
-     *  1. seek位置无buffer,emit waiting,等待下载,下载完后 audioRender中调整seek时间，通知videoRender解码
-     *  2. seek位置有buffer,直接切换buffer,中调整seek时间，通知videoRender解码
+     *  1. no buffer in seek position, waiting download, then ajust seek time by audioRender, message to videoRender
+     *  2. switch buffer direct if there has buffer, then ajust seek time by audioRender, message to videoRender
      *  3. audioRender emit ready、videoRender emit ready
-     *  4. timeline 监听到READY, 分发 START_RENDER
+     *  4. timeline listener READY event , dispatch START_RENDER event
      */
     this._seeking = true
     this._resetReadyStatus()

@@ -83,7 +83,7 @@ class FlvCompatibility extends Base {
         })
       }
 
-      logger.log(this.TAG, `首帧dts和期望值差距过大, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
+      logger.log(this.TAG, `video: large delta of firstframe.dts with excepted, firstSampleDts=${firstSample.dts} nextSampleDts=${nextSample ? nextSample.dts : 0},  _videoNextDts=${this._videoNextDts}, delta=${vDelta}`)
 
       // resolve first frame only
       firstSample.dts += vDelta
@@ -120,7 +120,7 @@ class FlvCompatibility extends Base {
           })
         }
 
-        logger.log(this.TAG, `视频duration异常: currentTime=${dts / 1000}s,  dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
+        logger.log(this.TAG, `duration exception: currentTime=${dts / 1000}s,  dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
 
         this._videoTimestampBreak = true
         sampleDuration = refSampleDurationInt
@@ -136,7 +136,7 @@ class FlvCompatibility extends Base {
 
     if (!samples.length) return
 
-    // 先以baseDts为基准 偏移dts、pts
+    // offset origin timestamp
     samples.forEach(x => {
       x.originDts = x.dts
       x.originPts = x.dts + x.cts

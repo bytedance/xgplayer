@@ -157,7 +157,7 @@ class FlvPlayer extends BasePlugin {
         player.config.url = url
       }
 
-      // replace live-video to video
+      // replace live-video to video element
       let firstChild = player.root.firstChild
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)

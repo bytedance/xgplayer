@@ -82,7 +82,6 @@ class BaseCompatibility {
   }
 
   _calculateBaseDts (audioTrack, videoTrack) {
-    // debugger
     let audioSamps = audioTrack.samples
     let videoSamps = videoTrack.samples
 
@@ -161,7 +160,6 @@ class BaseCompatibility {
     throw new Error('need override by children')
 
     // do something
-
     // this._doFixAuidoInternal()
   }
 
@@ -254,17 +252,16 @@ class BaseCompatibility {
                 refSampleDurationInt
               }
             })
-            logger.log(this.TAG, `音频帧dts和期望值差距过大: dts=${sample.dts}, nextDts=${nextDts}`)
+            logger.log(this.TAG, `audio: large delta of firstframe.dts with excepted, dts=${sample.dts}, nextDts=${nextDts}`)
           }
         }
 
-        // 音频duration非整数，以4410采样率为例，duration需要在21ms、22ms之间波动
-        // 一直保持duration=21在safari下会有杂音
+        // consider refSampleDuration is float
         let d = Math.floor(nextDts + refSampleDuration) - Math.floor(nextDts)
         sample.dts = Math.floor(nextDts)
         sample.pts = sample.dts
         sample.duration = d
-        this._audioNextDts += refSampleDuration // 浮点型
+        this._audioNextDts += refSampleDuration // float
       }
     }
   }
@@ -287,7 +284,7 @@ class BaseCompatibility {
     let duration = Math.floor((last.dts - first.dts) / (len - 1))
 
     track.meta.refSampleDuration = duration
-    logger.log(this.TAG, `calc videoRefDuration: ${originDuration} -> ${duration}`)
+    logger.log(this.TAG, `calc video refDuration: ${originDuration} -> ${duration}`)
   }
 
   get tracks () {
