@@ -27,6 +27,7 @@ export default class WasmDecodeController extends EventEmitter {
     this._avccpushed = false // 初始化解码器
     this._wasmReady = false // worker中wasm是否可用
     this._inDecoding = false
+    this._id = new Date().getMilliseconds()
     /**
      * 1: hevc decode with thread
      * 2: hevc | 264 decode
@@ -127,6 +128,7 @@ export default class WasmDecodeController extends EventEmitter {
           break
         case 'DECODED':
           this._inDecoding = true
+          if (e.data?.info?.id !== this._id) return
           this._workerMessageCallback({
             type: 'RECEIVE_FRAME',
             data: e.data
@@ -161,11 +163,11 @@ export default class WasmDecodeController extends EventEmitter {
 
   _initDecodeWorkerInternal (delay) {
     const { decoder } = this._selectDecodeWorkerFromCache()
+    // use origin worker direct
     if (decoder) {
       logger.warn(this.TAG, 'select decoder from cache')
       this._avccpushed = false
       this._bindWorkerEvent(decoder)
-      // 不需要重新初始化wasm
       this._wasmReady = true
       this._workerMessageCallback({
         type: 'DECODER_READY',
@@ -175,20 +177,21 @@ export default class WasmDecodeController extends EventEmitter {
         this._wasmWorkers.push(decoder)
       }
       this._initDecoderInternal(decoder, this._meta)
-    } else {
-      const { decoder, url } = this._selectDecodeWorker()
-      this._avccpushed = false
-      this._bindWorkerEvent(decoder)
-      // 初始化wasm实例
-      decoder.postMessage({
-        msg: 'init',
-        meta: this._meta,
-        batchDecodeCount: 10,
-        url
-      })
-      if (!delay) {
-        this._wasmWorkers.push(decoder)
-      }
+      return
+    }
+
+    const { decoder: newDecoder, url } = this._selectDecodeWorker()
+    this._avccpushed = false
+    this._bindWorkerEvent(newDecoder)
+    // 初始化wasm实例
+    newDecoder.postMessage({
+      msg: 'init',
+      meta: this._meta,
+      batchDecodeCount: 10,
+      url
+    })
+    if (!delay) {
+      this._wasmWorkers.push(newDecoder)
     }
   }
 
@@ -344,7 +347,8 @@ export default class WasmDecodeController extends EventEmitter {
         pts: sample.pts || sample.dts + sample.cts,
         key: sample.isKeyframe,
         gopId,
-        isGop: sample.isGop
+        isGop: sample.isGop,
+        id: this._id
       }
     })
   }

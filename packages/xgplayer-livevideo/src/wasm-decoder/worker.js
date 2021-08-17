@@ -167,10 +167,15 @@ function init (url) {
 
         return self
           .m({
-            locateFile: function (suffix) {
-              if (/\.wasm$/.test(suffix)) {
-                return `${WASM_CDN_PATH_PREFIX}/decoder.wasm`
-              }
+            instantiateWasm: function (info, receiveInstance) {
+              fetch(`${WASM_CDN_PATH_PREFIX}/decoder.wasm.js`)
+                .then(res => res.arrayBuffer())
+                .then(buffer => {
+                  return WebAssembly.instantiate(buffer, info)
+                })
+                .then(function (result) {
+                  return receiveInstance(result.instance)
+                })
             }
           })
           .then(function (Mod) {

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-transmuxers",
-  "version": "2.4.33-beta.1",
+  "version": "3.0.0-livecore.2",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -29,8 +29,8 @@
   "dependencies": {
     "eventemitter3": "^4.0.7",
     "concat-typed-array": "^1.0.2",
-    "xgplayer-helper-codec": "2.4.33-beta.1",
-    "xgplayer-helper-models": "2.4.33-beta.1",
-    "xgplayer-helper-utils": "2.4.33-beta.1"
+    "xgplayer-helper-codec": "3.0.0-livecore.2",
+    "xgplayer-helper-models": "3.0.0-livecore.2",
+    "xgplayer-helper-utils": "3.0.0-livecore.2"
   }
 }
