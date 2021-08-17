@@ -3,12 +3,31 @@ import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import XG_DEBUG from '../utils/debug'
-import hooksDescriptor, { hook, useHooks } from '../plugin/hooksDescriptor'
+import hooksDescriptor, { hook, useHooks, delHooksDescriptor } from '../plugin/hooksDescriptor'
 
 function showErrorMsg (pluginName, msg) {
-  console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
+  XG_DEBUG.logError(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
 }
 
+/**
+ * @typedef { import ('../player').default } Player
+ */
+
+/**
+ * @typedef { import ('../defaultConfig').IPlayerOptions } IPlayerOptions
+ */
+
+/**
+  * @typedef {{
+  * index?: number,
+  * player: Player,
+  * pluginName: string,
+  * config: {
+  *   [propName: string]: any
+  * },
+  * [propName: string]: any;
+  * }} IBasePluginOptions
+ */
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
     for (const key in map) {
@@ -31,8 +50,7 @@ class BasePlugin {
   }
 
   /**
-   * @constructor
-   * @param { { index?: number, player: object, pluginName: string, config: { [propName: string]: any }, [propName: string]: any;}  } args
+   * @param { IBasePluginOptions } args
    */
   constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
@@ -50,12 +68,12 @@ class BasePlugin {
     this.config = args.config || {}
     /**
      * @readonly
-     * @type {object}
+     * @type { Player }
      */
     this.player = null
     /**
        * @readonly
-       * @type {object}
+       * @type { IPlayerOptions }
        */
     this.playerConfig = {}
     /**
@@ -66,7 +84,10 @@ class BasePlugin {
     this.__init(args)
   }
 
-  beforeCreate () {}
+  /**
+   * @param { IBasePluginOptions } args
+   */
+  beforeCreate (args) {}
   afterCreate () {}
   beforePlayerInit () {}
   onPluginsReady () {}
@@ -78,37 +99,41 @@ class BasePlugin {
    * @param { any } args
    */
   __init (args) {
-    BasePlugin.defineGetterOrSetter(this, {
-      player: {
-        get: () => {
-          return args.player
-        },
-        configurable: true
-      },
-      playerConfig: {
-        get: () => {
-          return args.player && args.player.config
-        },
-        configurable: true
-      },
+    this.player = args.player
+    this.playerConfig = args.player && args.player.config
+    this.pluginName = args.pluginName ? args.pluginName.toLowerCase() : this.constructor.pluginName.toLowerCase()
+    this.logger = args.player && args.player.logger
+    // BasePlugin.defineGetterOrSetter(this, {
+    //   player: {
+    //     get: () => {
+    //       return args.player
+    //     },
+    //     configurable: true
+    //   },
+    //   playerConfig: {
+    //     get: () => {
+    //       return args.player && args.player.config
+    //     },
+    //     configurable: true
+    //   },
 
-      pluginName: {
-        get: () => {
-          if (args.pluginName) {
-            return args.pluginName.toLowerCase()
-          } else {
-            return this.constructor.pluginName.toLowerCase()
-          }
-        },
-        configurable: true
-      },
-      logger: {
-        get: () => {
-          return args.player.logger
-        },
-        configurable: true
-      }
-    })
+    //   pluginName: {
+    //     get: () => {
+    //       if (args.pluginName) {
+    //         return args.pluginName.toLowerCase()
+    //       } else {
+    //         return this.constructor.pluginName.toLowerCase()
+    //       }
+    //     },
+    //     configurable: true
+    //   },
+    //   logger: {
+    //     get: () => {
+    //       return args.player.logger
+    //     },
+    //     configurable: true
+    //   }
+    // })
   }
 
   /**
@@ -143,7 +168,7 @@ class BasePlugin {
    * @returns
    */
   on (event, callback) {
-    if (!event || !callback) {
+    if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.on(event, callback)')
       return
     }
@@ -165,7 +190,7 @@ class BasePlugin {
    * @returns
    */
   once (event, callback) {
-    if (!event || !callback) {
+    if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.once(event, callback)')
       return
     }
@@ -179,7 +204,7 @@ class BasePlugin {
    * @returns
    */
   off (event, callback) {
-    if (!event || !callback) {
+    if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.off(event, callback)')
       return
     }
@@ -205,10 +230,13 @@ class BasePlugin {
   /**
    *
    * @param { string } event
-   * @param { any } res
+   * @param { any } [res]
    * @returns
    */
   emit (event, res) {
+    if (!this.player) {
+      return
+    }
     this.player.emit(event, res)
   }
 
@@ -249,6 +277,7 @@ class BasePlugin {
    * @param { string } hookName
    * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns { boolean } isSuccess
    */
   useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)
@@ -259,9 +288,12 @@ class BasePlugin {
    * @param { any } plugin
    * @param { any } [options]
    * @param { string } [name]
-   * @returns { object }
+   * @returns { any }
    */
   registerPlugin (plugin, options = {}, name = '') {
+    if (!this.player) {
+      return
+    }
     name && (options.pluginName = name)
     return this.player.registerPlugin({ plugin, options })
   }
@@ -269,10 +301,10 @@ class BasePlugin {
   /**
    *
    * @param { string } name
-   * @returns { object | null }
+   * @returns { any | null }
    */
   getPlugin (name) {
-    return this.player.getPlugin(name)
+    return this.player ? this.player.getPlugin(name) : null
   }
 
   __destroy () {
@@ -284,25 +316,13 @@ class BasePlugin {
       this.destroy()
     }
 
-    ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
-      Object.defineProperty(this, item, {
-        writable: true
-      })
+    ['player', 'playerConfig', 'pluginName', 'logger', '__args', '__hooks'].map(item => {
+      this[item] = null
     })
-    Object.keys(this).map(key => {
-      this[key] = null
-      delete this[key]
-    })
-    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
     player.unRegisterPlugin(pluginName)
+    delHooksDescriptor(this)
   }
 }
-
-// BasePlugin.Util = Util
-// BasePlugin.Sniffer = Sniffer
-// BasePlugin.Errors = Errors
-// BasePlugin.Events = Events
-// BasePlugin.XG_DEBUG = XG_DEBUG
 export {
   BasePlugin as default,
   Util,

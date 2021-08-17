@@ -2,8 +2,9 @@ import EventEmitter from 'event-emitter'
 import allOff from 'event-emitter/all-off'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
-import Errors from './error'
+import Errors, { ERROR_TYPE_MAP } from './error'
 import { URL_CHANGE, DESTROY } from './events'
+
 /**
  * @typedef { {
  *   duration: number,
@@ -71,10 +72,8 @@ function getHandler (eventName, player) {
     }
   }
 }
-
-class Proxy {
+class VideoProxy {
   /**
-   * @constructor
    * @param {any} options
    */
   constructor (options) {
@@ -217,12 +216,12 @@ class Proxy {
   errorHandler (name, error = null) {
     if (this.video && (this.video.error || error)) {
       const _e = this.video.error || error
-      this.emit(name, new Errors('other', this.currentTime, this.duration, this.networkState, this.readyState, this.currentSrc, this.src,
-        this.ended, {
-          line: 162,
-          msg: this.error,
-          handle: 'Constructor'
-        }, _e.code, _e))
+      const type = _e.code ? ERROR_TYPE_MAP[_e.code] : 'other'
+      this.emit(name, new Errors(this, {
+        errorType: type,
+        errorCode: _e.code,
+        errorMessage: _e.message || ''
+      }))
     }
   }
 
@@ -251,6 +250,8 @@ class Proxy {
     }
     this._currentTime = 0
     this._duration = 0
+    this._hasStart = false
+    this.videoConfig = null
     for (const k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
@@ -264,6 +265,9 @@ class Proxy {
         this.off(eventKey, this[funName])
       }
     })
+    this._evHandlers = null
+    this.video = null
+    this.videoEventMiddleware = {}
     allOff(this)
   }
 
@@ -590,6 +594,40 @@ class Proxy {
   set volume (vol) {
     this.video.volume = vol
   }
+
+  /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
+
+  /**
+   *
+   * @param { string } event
+   * @param { any } [data]
+   * @returns
+   */
+  emit (event, data) {
+  }
+
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  on (event, callback) {}
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  once (event, callback) {}
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  off (event, callback) {}
+  offAll () {}
 }
 
-export default Proxy
+export default VideoProxy

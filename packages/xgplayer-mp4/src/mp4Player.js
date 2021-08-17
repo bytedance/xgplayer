@@ -32,7 +32,7 @@ export default class Mp4Player extends BasePlugin {
   }
 
   static get version () {
-    return '__XGPLAYER_MP4__'
+    return JSON.parse('__XGPLAYER_MP4__')
   }
 
   constructor (options) {

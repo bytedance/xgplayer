@@ -98,14 +98,14 @@ export default class FlvController extends FlvBaseController {
 
     const time = this._player.currentTime
     const video = this._player.video
-    let buffered = video.buffered
+    const buffered = video.buffered
 
     if (!buffered || !buffered.length) {
       return
     }
 
-    let range = [0, 0]
-    let currentTime = video.currentTime
+    const range = [0, 0]
+    const currentTime = video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         range[0] = buffered.start(i)

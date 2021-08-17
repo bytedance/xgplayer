@@ -39,9 +39,8 @@ class HlsVodMobilePlayer extends BasePlugin {
   beforePlayerInit () {
     this.player.switchURL = this.switchURL
     const { player } = this
-    if (player.video) {
-      player.video.setPlayMode('VOD')
-    }
+    player?.video?.setPlayMode('VOD')
+
     this._initHlsCtr()
     this.emit('core_inited', this.hls)
   }
@@ -81,6 +80,8 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   _handleUrlChangeInternal = (url) => {
+    if (!this.player) return
+
     this.player.config.url = url
     this._destroyInternal()
     this.player.hasStart = false
@@ -92,7 +93,7 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   _reloadStream () {
-    this.player.play()
+    this.player?.play()
   }
 
   switchURL = (url) => {

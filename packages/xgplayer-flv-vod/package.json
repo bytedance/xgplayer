@@ -16,6 +16,9 @@
     "build:lib": "rm -rf lib && babel src --presets @babel/preset-env --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch"
   },
+  "peerDependencies": {
+    "xgplayer": "3.0.0-alpha.89"
+  },
   "babel": {
     "presets": [
       [

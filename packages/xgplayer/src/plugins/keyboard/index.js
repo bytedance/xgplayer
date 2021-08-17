@@ -10,6 +10,11 @@ import { BasePlugin, Events } from '../../plugin'
  * }} IKeyboardConfig
  */
 
+function preventDefault (e) {
+  e.preventDefault()
+  e.returnValue = false
+}
+
 class Keyboard extends BasePlugin {
   static get pluginName () {
     return 'keyboard'
@@ -105,7 +110,7 @@ class Keyboard extends BasePlugin {
   checkCode (code, isBodyTarget) {
     let flag = false
     Object.keys(this.keyCodeMap).map(key => {
-      if (this.keyCodeMap[key] && code === this.keyCodeMap[key].keyCode) {
+      if (this.keyCodeMap[key] && code === this.keyCodeMap[key].keyCode && !this.keyCodeMap[key].disable) {
         flag = !isBodyTarget || (isBodyTarget && !this.keyCodeMap[key].noBodyTarget)
       }
     })
@@ -187,9 +192,7 @@ class Keyboard extends BasePlugin {
     const e = event || window.event
     const keyCode = e.keyCode
     if (e.target === document.body && this.checkCode(keyCode, true)) {
-      e.preventDefault()
-      e.cancelBubble = true
-      e.returnValue = false
+      preventDefault(e)
       this.handleKeyCode(keyCode, event)
       return false
     }
@@ -202,9 +205,7 @@ class Keyboard extends BasePlugin {
     }
     const e = event || window.event
     if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
-      e.preventDefault()
-      e.cancelBubble = true
-      e.returnValue = false
+      preventDefault(e)
     } else {
       return true
     }

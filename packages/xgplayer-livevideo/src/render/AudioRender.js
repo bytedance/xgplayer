@@ -88,7 +88,7 @@ export default class AudioRender extends BaseRender {
   }
 
   _emitTimelineEvents (e, v, d) {
-    this._parent.emit(e, v, d)
+    this._parent?.emit(e, v, d)
   }
 
   _initAudioCtx (volume) {

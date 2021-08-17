@@ -5,36 +5,48 @@ import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
 import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API } from './constant'
-import Plugin, { pluginsManager, BasePlugin } from './plugin'
+import Plugin from './plugin/plugin'
+import BasePlugin from './plugin/basePlugin'
+import pluginsManager from './plugin/pluginsManager'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
-import hooksDescriptor, { runHooks, useHooks, usePluginHooks, hook } from './plugin/hooksDescriptor'
-import Controls from './plugins/controls'
+import hooksDescriptor, { runHooks, useHooks, delHooksDescriptor, usePluginHooks, hook } from './plugin/hooksDescriptor'
+import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
-
-import I18N from './lang'
+import I18N from './lang/i18n'
 import version from './version'
+
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
 
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 
-/**
- * @constructor
- */
 class Player extends VideoProxy {
   /**
-   * @constructor
+   * @type {number}
+   * @description set debugger level
+   *  1 - only print error logs
+   *  2 - print warn logs and error logs
+   *  3 - print all debug logs and error stack logs
+   */
+  static set debugger (value) {
+    XG_DEBUG.config.debug = value
+  }
+
+  static get debugger () {
+    return XG_DEBUG.config.debug
+  }
+
+  /**
    * @param { IPlayerOptions } options
-   * @returns
    */
   constructor (options) {
     const config = Util.deepMerge(getDefaultConfig(), options)
     super(config)
-    hooksDescriptor(this)
-    PlAYER_HOOKS.map(item => {
-      this.__hooks[item] = null
-    })
+    hooksDescriptor(this, PlAYER_HOOKS)
 
     /**
      * @type { IPlayerOptions }
@@ -54,9 +66,6 @@ class Player extends VideoProxy {
     }
 
     // timer and flags
-    /**
-     * @private
-     */
     this.userTimer = null
     /**
      * @private
@@ -115,6 +124,7 @@ class Player extends VideoProxy {
      * @readonly
      */
     this.fullscreen = false
+
     /**
      * fullscreenElement
      * @type { HTMLElement | null }
@@ -192,6 +202,10 @@ class Player extends VideoProxy {
      */
     this.root = null
 
+    // android 6以下不支持自动播放
+    if (Sniffer.os.isAndroid && Sniffer.osVersion > 0 && Sniffer.osVersion < 6) {
+      this.config.autoplay = false
+    }
     /**
      * @readonly
      * @type {any}
@@ -223,7 +237,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * init control bar
+   * init control domElement
    * @private
    */
   _initDOM () {
@@ -354,6 +368,9 @@ class Player extends VideoProxy {
         })
       }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
+        Util.setTimeout(this, () => {
+          this.getVideoSize()
+        }, 100)
         this.video.focus()
         this.fullscreen = true
         // this.addClass(STATE_CLASS.FULLSCREEN)
@@ -363,13 +380,16 @@ class Player extends VideoProxy {
           this.exitCssFullscreen()
         }
       } else if (this.fullscreen) {
+        Util.setTimeout(this, () => {
+          this.getVideoSize()
+        }, 100)
         const { _fullScreenOffset, config } = this
         if (config.needFullscreenScroll) {
           try {
             window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
             Util.setTimeout(this, () => {
               resetFullState()
-            }, 100)
+            }, 50)
           } catch (e) {
             XG_DEBUG.logError(e)
             resetFullState()
@@ -612,7 +632,7 @@ class Player extends VideoProxy {
    *
    * @param { {plugin: function, options:object} | function } plugin
    * @param { {[propName: string]: any;} } [config]
-   * @returns { object }
+   * @returns { any } plugin
    */
   registerPlugin (plugin, config) {
     let PLUFGIN = null
@@ -667,9 +687,9 @@ class Player extends VideoProxy {
 
   /**
    *
-   * @param { object | string } plugin
+   * @param { any } plugin
    */
-  unRegisterPlugin (plugin) {
+  deregister (plugin) {
     if (typeof plugin === 'string') {
       pluginsManager.unRegister(this, plugin)
     } else if (plugin instanceof BasePlugin) {
@@ -678,17 +698,25 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 当前播放器挂在的插件实例代码
-   * @type { {[propName: string]: any} }
+   *
+   * @param { any } plugin
+   */
+  unRegisterPlugin (plugin) {
+    this.deregister(plugin)
+  }
+
+  /**
+   * 当前播放器挂载的插件实例列表
+   * @type { {[propName: string]: any | null } }
    */
   get plugins () {
     return pluginsManager.getPlugins(this)
   }
 
   /**
-   *
+   * get a plugin instance
    * @param { string } pluginName
-   * @returns { object | null }
+   * @return { null | any } plugin
    */
   getPlugin (pluginName) {
     const plugin = pluginsManager.findPlugin(this, pluginName)
@@ -723,7 +751,7 @@ class Player extends VideoProxy {
   /**
    *
    * @param { string } className
-   * @returns { boolean }
+   * @returns { boolean } has
    */
   hasClass (className) {
     if (!this.root) {
@@ -736,7 +764,7 @@ class Player extends VideoProxy {
    *
    * @param { string } key
    * @param { any } value
-   * @returns
+   * @returns void
    */
   setAttribute (key, value) {
     if (!this.root) {
@@ -749,7 +777,7 @@ class Player extends VideoProxy {
    *
    * @param { string } key
    * @param { any } value
-   * @returns
+   * @returns void
    */
   removeAttribute (key, value) {
     if (!this.root) {
@@ -925,47 +953,52 @@ class Player extends VideoProxy {
   }
 
   /**
-   *
-   * @param { boolean } [isDelDom=true]
+   * @description destroy the player instance
    * @returns
    */
-  destroy (isDelDom = true) {
+  destroy () {
     const { innerContainer, root, video } = this
     if (!root) {
       return
     }
     this._unbindEvents()
     this._detachSourceEvents(this.video)
-    // clearTimeout(this.waitTimer)
-    // clearTimeout(this._errorTimer)
     Util.clearAllTimers(this)
     pluginsManager.destroy(this)
-    root.removeChild(this.topBar)
-    root.removeChild(this.leftBar)
-    root.removeChild(this.rightBar)
+    delHooksDescriptor(this)
     super.destroy()
+    // 退出全屏
+    if (this.fullscreen) {
+      try {
+        this.exitFullscreen()
+      } catch (e) {}
+    }
+
     if (innerContainer) {
       const _c = innerContainer.children
       for (let i = 0; i < _c.length; i++) {
         innerContainer.removeChild(_c[i])
       }
-      root.removeChild(innerContainer)
+    }
+    root.contains(video) && root.removeChild(video);
+    ['topBar', 'leftBar', 'rightBar', 'innerContainer'].map(item => {
+      this[item] && root.removeChild(this[item])
+      this[item] = null
+    })
+    const cList = root.className.split(' ')
+    if (cList.length > 0) {
+      root.className = cList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
     } else {
-      root.contains(video) && root.removeChild(video)
+      root.className = ''
     }
-    if (isDelDom) {
-      const classNameList = this.root.className.split(' ')
-      if (classNameList.length > 0) {
-        root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
-      } else {
-        root.className = ''
-      }
-      this.removeAttribute('data-xgfill')
-    }
-    for (const k in this) {
-      delete this[k]
-    }
-    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
+    this.removeAttribute('data-xgfill');
+
+    ['isReady', 'isPlaying', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
+      this[key] = false
+    });
+    ['_fullscreenEl', '_cssfullscreenEl', '_fullScreenOffset', '_orgCss'].map(key => {
+      this[key] = null
+    })
   }
 
   replay () {
@@ -1147,11 +1180,46 @@ class Player extends VideoProxy {
   }
 
   /**
-   *
+   * @description 播放器焦点状态，控制栏显示
+   * @param { {
+   *   autoHide?: boolean, // 是否可以自动隐藏
+   *   delay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
+   * } } [data]
+   */
+  focus (data = { autoHide: true, delay: 3000 }) {
+    if (this.isActive) {
+      this.onFocus(data)
+      return
+    }
+    this.emit(Events.PLAYER_FOCUS, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @description 取消播放器当前焦点状态
+   * @param { { ignorePaused?: boolean } } [data]
+   */
+  blur (data = { ignorePaused: false }) {
+    if (!this.isActive) {
+      this.onBlur(data)
+      return
+    }
+    this.emit(Events.PLAYER_BLUR, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @protected
    * @param { { autoHide?: boolean, delay?: number} } [data]
    * @returns
    */
-  onFocus (data = { autoHide: true, delay: 0 }) {
+  onFocus (data = { autoHide: true, delay: 3000 }) {
     this.isActive = true
     this.removeClass(STATE_CLASS.ACTIVE)
     if (this.userTimer) {
@@ -1162,22 +1230,22 @@ class Player extends VideoProxy {
     }
     const time = data && data.delay ? data.delay : this.config.inactive
     this.userTimer = Util.setTimeout(this, () => {
-      this.emit(Events.PLAYER_BLUR)
+      this.blur()
     }, time)
   }
 
   /**
-   *
-   * @param {{ ignoreStatus?: boolean }} [data]
+   * @protected
+   * @param {{ ignorePaused?: boolean }} [data]
    * @returns
    */
-  onBlur (data = { ignoreStatus: false }) {
+  onBlur (data = { ignorePaused: false }) {
     if (!this.isActive) {
       return
     }
     const { closePauseVideoFocus } = this.config
     this.isActive = false
-    if (data.ignoreStatus || closePauseVideoFocus || (!this.paused && !this.ended)) {
+    if (data.ignorePaused || closePauseVideoFocus || (!this.paused && !this.ended)) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
   }
@@ -1198,7 +1266,7 @@ class Player extends VideoProxy {
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
-    !this.config.closePlayVideoFocus && this.emit(Events.PLAYER_FOCUS)
+    !this.config.closePlayVideoFocus && this.focus()
   }
 
   /**
@@ -1206,11 +1274,11 @@ class Player extends VideoProxy {
    */
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
-    if (this.config.closePauseVideoFocus) {
+    if (!this.config.closePauseVideoFocus) {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
       }
-      this.emit(Events.PLAYER_FOCUS)
+      this.focus()
     }
   }
 
@@ -1324,8 +1392,7 @@ class Player extends VideoProxy {
   }
 
   getVideoSize () {
-    const videoWidth = this.video.videoWidth
-    const videoHeight = this.video.videoHeight
+    const { videoWidth, videoHeight } = this.video
     const { fitVideoSize, videoFillMode } = this.config
 
     if (videoFillMode === 'fill' || videoFillMode === 'cover') {
@@ -1360,7 +1427,8 @@ class Player extends VideoProxy {
     if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
       this.setAttribute('data-xgfill', 'cover')
     }
-    this.emit(Events.VIDEO_RESIZE, { videoScale: videoFit, vWidth: rWidth, vHeight: rHeight, cWidth: rWidth, cHeight: rHeight + controlsHeight })
+    const data = { videoScale: videoFit, vWidth: rWidth, vHeight: rHeight, cWidth: rWidth, cHeight: rHeight + controlsHeight }
+    this.emit(Events.VIDEO_RESIZE, data)
   }
 
   /**
@@ -1436,20 +1504,6 @@ class Player extends VideoProxy {
   }
 
   /**
-   * @type { boolean }
-   */
-  get fullscreen () {
-    return this._isFullScreen
-  }
-
-  set fullscreen (val) {
-    /**
-     * @private
-     */
-    this._isFullScreen = val
-  }
-
-  /**
    * @type { string }
    */
   get readyState () {
@@ -1512,6 +1566,7 @@ class Player extends VideoProxy {
    * @param { string } hookName
    * @param { (player: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns {boolean} isSuccess
    */
   useHooks (hookName, handler) {
     return useHooks.call(this, ...arguments)
@@ -1523,6 +1578,7 @@ class Player extends VideoProxy {
    * @param { string } hookName
    * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
+   * @returns { boolean } isSuccess
    */
   usePluginHooks (pluginName, hookName, handler, ...args) {
     return usePluginHooks.call(this, ...arguments)
@@ -1562,8 +1618,8 @@ class Player extends VideoProxy {
 
 export {
   Player as default,
-  BasePlugin,
   Plugin,
+  BasePlugin,
   Events,
   Errors,
   Sniffer,

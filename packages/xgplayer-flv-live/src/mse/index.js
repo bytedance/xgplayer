@@ -137,9 +137,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   _pauseHandler = () => {
-    if (this.flv) {
-      this.flv.pause()
-    }
+    this.flv?.pause()
   }
 
   _seekingHandler = () => {
@@ -206,6 +204,7 @@ class FlvPlayer extends BasePlugin {
   _switchURLInternal (url, abr) {
     if (!this.player) return
     this.player.config.url = url
+
     if (!abr) {
       this.player.currentTime = 0
       this._reloadStream()

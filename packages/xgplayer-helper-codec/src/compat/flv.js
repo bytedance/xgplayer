@@ -73,7 +73,7 @@ class FlvCompatibility extends Base {
       if (Math.abs(firstSample.dts - this._lastVideoExceptionChunkFirstDtsDot) > VIDEO_EXCETION_LOG_EMIT_DURATION) {
         this._lastVideoExceptionChunkFirstDtsDot = firstSample.dts
         this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-          msg: FlvCompatibility.EXCEPTION.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT,
+          type: FlvCompatibility.EXCEPTION.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT,
           info: {
             videoNextDts: this._videoNextDts,
             firstSampleDts: firstSample.dts,
@@ -107,7 +107,7 @@ class FlvCompatibility extends Base {
         if (Math.abs(dts - this._lastVideoExceptionLargeGapDot) > VIDEO_EXCETION_LOG_EMIT_DURATION) {
           this._lastVideoExceptionLargeGapDot = dts
           this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-            msg: FlvCompatibility.EXCEPTION.LARGE_VIDEO_DTS_GAP_DETECT,
+            type: FlvCompatibility.EXCEPTION.LARGE_VIDEO_DTS_GAP_DETECT,
             info: {
               dts,
               originDts: samples[i].originDts,

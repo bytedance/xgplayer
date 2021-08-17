@@ -59,7 +59,7 @@ class HlsCompatibility extends Base {
       logger.log(this.TAG, `discontinue: _baseDts =${this._baseDts}`)
 
       this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-        msg: HlsCompatibility.EXCEPTION.VIDEO_DISCONTINUE_DETECT,
+        type: HlsCompatibility.EXCEPTION.VIDEO_DISCONTINUE_DETECT,
         info: {
           segmentStart: segment.start,
           originBaseDts,
@@ -128,7 +128,7 @@ class HlsCompatibility extends Base {
     if (Math.abs(vDelta) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
       // emit large delta of first sample with expect
       this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-        msg: HlsCompatibility.EXCEPTION.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT,
+        type: HlsCompatibility.EXCEPTION.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT,
         info: {
           videoNextDts: this._videoNextDts,
           firstSampleDts: firstSample.dts,
@@ -174,7 +174,7 @@ class HlsCompatibility extends Base {
 
         // emit stream breaked
         this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-          msg: HlsCompatibility.EXCEPTION.LARGE_VIDEO_DTS_GAP_DETECT,
+          type: HlsCompatibility.EXCEPTION.LARGE_VIDEO_DTS_GAP_DETECT,
           info: {
             dts,
             originDts: samples[i].originDts,
@@ -196,7 +196,6 @@ class HlsCompatibility extends Base {
 
     if (!samples.length) return
 
-    // 先以baseDts为基准 偏移dts、pts
     samples.forEach(x => {
       x.originDts = x.dts
       x.originPts = x.pts

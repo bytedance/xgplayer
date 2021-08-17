@@ -98,7 +98,7 @@ class FlvDemuxer {
 
     // Edit default meta.
     if (audioTrack && !audioTrack.hasSpecificConfig) {
-      let meta = audioTrack.meta
+      const meta = audioTrack.meta
       if (onMetaData.audiosamplerate) {
         meta.sampleRate = onMetaData.audiosamplerate
       }
@@ -120,11 +120,11 @@ class FlvDemuxer {
       }
     }
     if (videoTrack && !videoTrack.hasSpecificConfig) {
-      let meta = videoTrack.meta
+      const meta = videoTrack.meta
       if (typeof onMetaData.framerate === 'number') {
-        let fpsNum = Math.floor(onMetaData.framerate * 1000)
+        const fpsNum = Math.floor(onMetaData.framerate * 1000)
         if (fpsNum > 0) {
-          let fps = fpsNum / 1000
+          const fps = fpsNum / 1000
           if (!meta.frameRate) {
             meta.frameRate = {}
           }
@@ -183,7 +183,7 @@ class FlvDemuxer {
    */
   initVideoTrack () {
     this._trackNum++
-    let videoTrack = new VideoTrack()
+    const videoTrack = new VideoTrack()
     videoTrack.meta = new VideoTrackMeta()
     videoTrack.id = videoTrack.meta.id = this._trackNum
 
@@ -195,7 +195,7 @@ class FlvDemuxer {
    */
   initAudioTrack () {
     this._trackNum++
-    let audioTrack = new AudioTrack()
+    const audioTrack = new AudioTrack()
     audioTrack.meta = new AudioTrackMeta()
     audioTrack.id = audioTrack.meta.id = this._trackNum
 

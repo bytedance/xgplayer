@@ -17,6 +17,10 @@
  * }} ISniffer
  */
 
+const VERSION_REG = {
+  android: /(Android)\s([\d.]+)/,
+  ios: /(Version)\/([\d.]+)/
+}
 /**
  * @type ISniffer
  */
@@ -64,6 +68,24 @@ const sniffer = {
       isWindowsPhone,
       isFireFox
     }
+  },
+
+  get osVersion () {
+    const ua = navigator.userAgent
+    let reg = ''
+    // ios
+    if (/(?:iPhone)|(?:iPad|PlayBook)/.test(ua)) {
+      reg = VERSION_REG.ios
+    // android
+    } else {
+      reg = VERSION_REG.android
+    }
+    const _match = reg ? reg.exec(ua) : []
+    if (_match && _match.length >= 3) {
+      const version = _match[2].split('.')
+      return version.length > 0 ? parseInt(version[0]) : 0
+    }
+    return 0
   },
 
   get isWeixin () {

@@ -38,7 +38,7 @@ class MSE {
     this.emit = newCtx._emitter.emit.bind(newCtx._emitter)
     if (!keepBuffer) {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-        let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
+        const buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
         if (!buffer.updating) {
           MSE.clearBuffer(buffer)
         }
@@ -69,7 +69,7 @@ class MSE {
       return
     }
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER')
-    let tracks = this._context.getInstance('TRACKS')
+    const tracks = this._context.getInstance('TRACKS')
     let track
     if (!sources || !tracks) {
       return
@@ -78,7 +78,7 @@ class MSE {
     sources = sources.sources
     let add = false
     for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
-      let type = Object.keys(sources)[i]
+      const type = Object.keys(sources)[i]
       add = false
       if (type === 'audio') {
         track = tracks.audioTrack
@@ -96,16 +96,16 @@ class MSE {
         return
       }
       for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
-        let type = Object.keys(sources)[i]
+        const type = Object.keys(sources)[i]
         if (this.sourceBuffers[type]) {
           continue
         }
-        let source = sources[type]
-        let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
+        const source = sources[type]
+        const mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
 
         try {
           // console.log('add sourcebuffer', mime);
-          let sourceBuffer = this.mediaSource.addSourceBuffer(mime)
+          const sourceBuffer = this.mediaSource.addSourceBuffer(mime)
           this.sourceBuffers[type] = sourceBuffer
           sourceBuffer.addEventListener('updateend', this.onUpdateEnd)
         } catch (e) {
@@ -124,16 +124,16 @@ class MSE {
   doAppend () {
     if (!this.mediaSource || this.mediaSource.readyState === 'closed') return
     this._doCleanupSourceBuffer()
-    let sources = this._context.getInstance('PRE_SOURCE_BUFFER')
+    const sources = this._context.getInstance('PRE_SOURCE_BUFFER')
     if (!sources) return
     if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
       return
     }
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let type = Object.keys(this.sourceBuffers)[i]
-      let sourceBuffer = this.sourceBuffers[type]
+      const type = Object.keys(this.sourceBuffers)[i]
+      const sourceBuffer = this.sourceBuffers[type]
       if (sourceBuffer.updating) continue
-      let source = sources.sources[type]
+      const source = sources.sources[type]
       if (this[`no${type}`]) {
         source.data = []
         source.init.buffer = null
@@ -148,7 +148,7 @@ class MSE {
           // DO NOTHING
         }
       } else if (source) {
-        let data = source.data.shift()
+        const data = source.data.shift()
         if (data) {
           try {
             // console.log('append buffer: ', type);
@@ -173,7 +173,7 @@ class MSE {
   remove (end, start = 0) {
     try {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-        let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
+        const buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
         if (!buffer.updating) {
           if (end > start) {
             buffer.remove(start, end)
@@ -184,24 +184,24 @@ class MSE {
   }
 
   _doCleanupSourceBuffer () {
-    let currentTime = this.container.currentTime
-    let autoCleanupMinBackwardDuration = 60 * 3
-    let _pendingRemoveRanges = {
+    const currentTime = this.container.currentTime
+    const autoCleanupMinBackwardDuration = 60 * 3
+    const _pendingRemoveRanges = {
       video: [],
       audio: []
     }
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let type = Object.keys(this.sourceBuffers)[i]
-      let sourceBuffer = this.sourceBuffers[type]
-      let buffered = sourceBuffer.buffered
+      const type = Object.keys(this.sourceBuffers)[i]
+      const sourceBuffer = this.sourceBuffers[type]
+      const buffered = sourceBuffer.buffered
       let doRemove = false
       for (let j = 0; j < buffered.length; j++) {
-        let start = buffered.start(j)
-        let end = buffered.end(j)
+        const start = buffered.start(j)
+        const end = buffered.end(j)
         if (start <= currentTime && currentTime < end + 3) {
           if (currentTime - start >= autoCleanupMinBackwardDuration) {
             doRemove = true
-            let removeEnd = currentTime - autoCleanupMinBackwardDuration
+            const removeEnd = currentTime - autoCleanupMinBackwardDuration
             _pendingRemoveRanges[type].push({ start: start, end: removeEnd })
           }
         } else if (end < currentTime && (currentTime - start >= autoCleanupMinBackwardDuration)) {
@@ -216,14 +216,14 @@ class MSE {
   }
 
   _doRemoveRanges (_pendingRemoveRanges) {
-    for (let type in _pendingRemoveRanges) {
+    for (const type in _pendingRemoveRanges) {
       if (!this.sourceBuffers[type] || this.sourceBuffers[type].updating) {
         continue
       }
-      let sb = this.sourceBuffers[type]
-      let ranges = _pendingRemoveRanges[type]
+      const sb = this.sourceBuffers[type]
+      const ranges = _pendingRemoveRanges[type]
       while (ranges.length && !sb.updating) {
-        let range = ranges.shift()
+        const range = ranges.shift()
         try {
           if (range && range.end > range.start) {
             sb.remove(range.start, range.end)
@@ -236,7 +236,7 @@ class MSE {
   cleanBuffers () {
     const taskList = []
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
+      const buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
 
       let task
       if (buffer.updating) {
@@ -283,7 +283,7 @@ class MSE {
   removeBuffers () {
     const taskList = []
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
+      const buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]]
       buffer.removeEventListener('updateend', this.onUpdateEnd)
 
       let task
@@ -334,9 +334,9 @@ class MSE {
     this.container.removeEventListener('waiting', this.onWaiting)
     this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen)
     return this.removeBuffers().then(() => {
-      let sources = Object.keys(this.sourceBuffers)
+      const sources = Object.keys(this.sourceBuffers)
       for (let i = 0; i < sources.length; i++) {
-        let buffer = this.sourceBuffers[sources[i]]
+        const buffer = this.sourceBuffers[sources[i]]
         delete this.sourceBuffers[sources[i]]
 
         if (this.mediaSource.readyState === 'open') {

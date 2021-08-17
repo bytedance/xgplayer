@@ -6,7 +6,7 @@ const util = {}
  *
  * @param { string } el
  * @param { string } [tpl=]
- * @param { object } [attrs={}]
+ * @param { {[propName: string]: any }} [attrs={}]
  * @param { string } [cname='']
  * @returns { HTMLElement | null }
  */
@@ -65,15 +65,21 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
  * @returns { boolean }
  */
 util.hasClass = function (el, className) {
-  if (!el) {
+  if (!el || !className) {
     return false
   }
-  if (el.classList) {
+  try {
     return Array.prototype.some.call(el.classList, item => item === className)
-  } else {
+  } catch (e) {
     const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
     return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
   }
+  // if (el.classList) {
+  //   return Array.prototype.some.call(el.classList, item => item === className)
+  // } else {
+  //   const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
+  //   return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+  // }
 }
 
 /**
@@ -83,19 +89,20 @@ util.hasClass = function (el, className) {
  * @returns { void }
  */
 util.addClass = function (el, className) {
-  if (!el) {
+  if (!el || !className) {
     return
   }
-
-  if (el.classList) {
+  try {
     className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
       item && el.classList.add(item)
     })
-  } else if (!util.hasClass(el, className)) {
-    if (el.className && typeof el.className === 'object') {
-      el.setAttribute('class', el.getAttribute('class') + ' ' + className)
-    } else {
-      el.className += ' ' + className
+  } catch (e) {
+    if (!util.hasClass(el, className)) {
+      if (el.className && typeof el.className === 'object') {
+        el.setAttribute('class', el.getAttribute('class') + ' ' + className)
+      } else {
+        el.className += ' ' + className
+      }
     }
   }
 }
@@ -107,23 +114,24 @@ util.addClass = function (el, className) {
  * @returns { void }
  */
 util.removeClass = function (el, className) {
-  if (!el) {
+  if (!el || !className) {
     return
   }
-
-  if (el.classList) {
-    className.split(/\s+/g).forEach(item => {
-      el.classList.remove(item)
+  try {
+    className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
+      item && el.classList.remove(item)
     })
-  } else if (util.hasClass(el, className)) {
-    className.split(/\s+/g).forEach(item => {
-      const reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
-      if (el.className && typeof el.className === 'object') {
-        el.setAttribute('class', el.getAttribute('class').replace(reg, ' '))
-      } else {
-        el.className = el.className.replace(reg, ' ')
-      }
-    })
+  } catch (e) {
+    if (util.hasClass(el, className)) {
+      className.split(/\s+/g).forEach(item => {
+        const reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
+        if (el.className && typeof el.className === 'object') {
+          el.setAttribute('class', el.getAttribute('class').replace(reg, ' '))
+        } else {
+          el.className = el.className.replace(reg, ' ')
+        }
+      })
+    }
   }
 }
 
@@ -154,22 +162,24 @@ util.toggleClass = function (el, className) {
  * @returns { string }
  */
 util.classNames = function () {
-  let classname = ''
+  const classname = []
   for (let i = 0; i < arguments.length; i++) {
     if (util.typeOf(arguments[i]) === 'String') {
-      classname += `${arguments[i]}`
+      // classname += `${arguments[i]}`
+      classname.push(arguments[i])
     } else if (util.typeOf(arguments[i]) === 'Object') {
       Object.keys(arguments[i]).map(key => {
         if (arguments[i][key]) {
-          classname += key
+          // classname += key
+          classname.push(key)
         }
       })
     }
-    if (i < arguments.length - 1) {
-      classname += ' '
-    }
+    // if (i < arguments.length - 1) {
+    //   classname += ' '
+    // }
   }
-  return classname
+  return classname.join(' ')
 }
 
 /**
@@ -636,7 +646,6 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
       onload && onload(e)
     }
     img.onerror = (e) => {
-      console.log('img.onerror')
       img = null
       onerror && onerror(e)
     }
@@ -723,6 +732,29 @@ util.getEventPos = function (e, zoom = 1) {
     pageX: e.pageX / zoom,
     pageY: e.pageY / zoom
   }
+}
+
+util.requestAnimationFrame = function (callback) {
+  const _fun = window.requestAnimationFrame ||
+  // Older versions Chrome/Webkit
+  window.webkitRequestAnimationFrame ||
+
+   // Firefox < 23
+   window.mozRequestAnimationFrame ||
+
+   // opera
+   window.oRequestAnimationFrame ||
+
+   // ie
+   window.msRequestAnimationFrame
+  if (_fun) {
+    return _fun(callback)
+  }
+}
+
+util.cancelAnimationFrame = function (frameId) {
+  const _fun = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.cancelRequestAnimationFrame
+  _fun && _fun(frameId)
 }
 
 export default util

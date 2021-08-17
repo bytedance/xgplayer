@@ -344,7 +344,7 @@ export default class VideoBaseRender extends BaseRender {
   }
 
   _receiveFrame (frame, callback) {
-    if (!this._parent) {
+    if (!this._parent || !this._timeRange) {
       return
     }
     const info = frame.info || {}

@@ -107,7 +107,7 @@ class BaseCompatibility {
     // large av first dts delta
     if (Number.isFinite(delta) && Math.abs(delta) > LARGE_AV_FIRST_FRAME_GAP) {
       this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-        msg: BaseCompatibility.EXCEPTION.LARGE_AV_FIRST_FRAME_GAP_DETECT,
+        type: BaseCompatibility.EXCEPTION.LARGE_AV_FIRST_FRAME_GAP_DETECT,
         info: {
           videoBaseDts: _videoBaseDts,
           audioBaseDts: _audioBaseDts,
@@ -187,7 +187,7 @@ class BaseCompatibility {
         if (Math.abs(sample.dts - this._lastAudioExceptionGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
           this._lastAudioExceptionGapDot = sample.dts
           this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-            msg: BaseCompatibility.EXCEPTION.AUDIO_GAP_DETECT,
+            type: BaseCompatibility.EXCEPTION.AUDIO_GAP_DETECT,
             info: {
               dts: sample.dts,
               originDts: sample.originDts,
@@ -221,7 +221,7 @@ class BaseCompatibility {
         if (Math.abs(sample.dts - this._lastAudioExceptionOverlapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
           this._lastAudioExceptionOverlapDot = sample.dts
           this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-            msg: BaseCompatibility.EXCEPTION.AUDIO_OVERLAP_DETECT,
+            type: BaseCompatibility.EXCEPTION.AUDIO_OVERLAP_DETECT,
             info: {
               dts: sample.dts,
               originDts: sample.originDts,
@@ -242,7 +242,7 @@ class BaseCompatibility {
             this._lastAudioExceptionLargeGapDot = sample.dts
             // emit stream breaked
             this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {
-              msg: BaseCompatibility.EXCEPTION.LARGE_AUDIO_DTS_GAP_DETECT,
+              type: BaseCompatibility.EXCEPTION.LARGE_AUDIO_DTS_GAP_DETECT,
               info: {
                 dts: sample.dts,
                 originDts: sample.originDts,

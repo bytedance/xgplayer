@@ -147,9 +147,9 @@ class FlvPlayer extends BasePlugin {
    */
   _degrade = (url) => {
     const { player } = this
-    let mVideo = player.video
+    const mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
-      let newVideo = player.video.degradeVideo
+      const newVideo = player.video.degradeVideo
       this.destroy()
       player.video = newVideo
       mVideo.degrade(url)
@@ -158,7 +158,8 @@ class FlvPlayer extends BasePlugin {
       }
 
       // replace live-video to video element
-      let firstChild = player.root.firstChild
+      const firstChild = player.root.firstChild
+
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
@@ -197,7 +198,7 @@ class FlvPlayer extends BasePlugin {
   // flv -> web mse
   forceDegradeToVideo = (url) => {
     this.player.removeClass('xgplayer-is-error')
-    let isHls = /\.m3u8?/.test(url)
+    const isHls = /\.m3u8?/.test(url)
     // flv -> h5 hls
     if (isHls) {
       this._degrade(url)
@@ -266,9 +267,11 @@ class FlvPlayer extends BasePlugin {
     if (!this.player || !this.player.video) return
     const { buffered, currentTime, config } = this.player
     const preloadTime = config.preloadTime || this.config.preloadTime
+
     if (!buffered.length) return
-    let bufferEnd = buffered.end(0)
-    let waterLevel = bufferEnd - currentTime
+
+    const bufferEnd = buffered.end(0)
+    const waterLevel = bufferEnd - currentTime
     if (waterLevel > preloadTime * 2) {
       if (bufferEnd - preloadTime > currentTime) {
         this.player.video.currentTime = bufferEnd - preloadTime
@@ -284,9 +287,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   _reloadStream () {
-    if (this.player) {
-      this.player.play()
-    }
+    this.player?.play()
   }
 
   _destroyInternal () {

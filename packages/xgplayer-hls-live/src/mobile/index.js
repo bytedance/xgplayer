@@ -76,15 +76,14 @@ class HlsPlayer extends BasePlugin {
   }
 
   _bindPlayerEvents () {
-    const { player } = this
-    this.player.useHooks('play', this._handlePlay)
-    this.player.useHooks('pause', this._handlePause)
+    this.player?.useHooks('play', this._handlePlay)
+    this.player?.useHooks('pause', this._handlePause)
 
     this.on(Events.URL_CHANGE, this._switchURL)
     this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
 
-    player.video.addEventListener('lowdecode', this._lowdecode)
-    player.video.addEventListener('largeavgap', this._largeavgap)
+    this?.player.video?.addEventListener('lowdecode', this._lowdecode)
+    this?.player.video?.addEventListener('largeavgap', this._largeavgap)
   }
 
   _largeavgap = () => {
@@ -110,9 +109,9 @@ class HlsPlayer extends BasePlugin {
    */
   _degrade = (url) => {
     const { player } = this
-    let mVideo = player.video
+    const mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
-      let newVideo = player.video.degradeVideo
+      const newVideo = player.video.degradeVideo
       this.destroy()
       player.video = newVideo
       mVideo.degrade(url)
@@ -121,7 +120,7 @@ class HlsPlayer extends BasePlugin {
       }
 
       // 替换下dom元素
-      let firstChild = player.root.firstChild
+      const firstChild = player.root.firstChild
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
@@ -164,9 +163,7 @@ class HlsPlayer extends BasePlugin {
 
   _loadData = () => {
     const { player } = this
-    if (this.hls) {
-      this.hls.load(player.config.url)
-    }
+    this.hls?.load(player?.config.url)
   }
 
   _handleDefinitionChange = (change) => {
@@ -181,9 +178,7 @@ class HlsPlayer extends BasePlugin {
   }
 
   _reloadStream = () => {
-    if (this.player) {
-      this.player.play()
-    }
+    this.player?.play()
   }
 
   switchURL = (url) => {

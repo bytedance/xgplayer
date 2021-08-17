@@ -56,8 +56,8 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _bindPlayerEvents () {
-    this.player.useHooks('play', this._handlePlay)
-    this.player.useHooks('pause', this._handlePause)
+    this?.player.useHooks('play', this._handlePlay)
+    this?.player.useHooks('pause', this._handlePause)
 
     this.on(Events.URL_CHANGE, this._handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
@@ -85,6 +85,8 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _handleUrlChange = (url) => {
+    if (!this.player) return
+
     this.player.config.url = url
     this._reloadStream()
   }
@@ -95,7 +97,7 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _reloadStream = () => {
-    this.player.play()
+    this.player?.play()
   }
 
   switchURL = (url) => {
