@@ -49,10 +49,12 @@ declare class FlvPlayer extends BasePlugin {
     _definitionChangeHandler: (change: any) => void;
     _progressHandler: () => void;
     /** *********** player event handler end *********************** */
-    _loadStream: (time?: any) => void;
+    _loadStream: (time?: number) => void;
     _reloadStream(): void;
     _destroyInternal(): Promise<any>;
     _context: any;
-    get core(): any;
+    /** @type {FlvLiveMobileController} */
+    get core(): FlvLiveMobileController;
 }
 import { BasePlugin } from "xgplayer";
+import FlvLiveMobileController from "./flv-live-mobile";

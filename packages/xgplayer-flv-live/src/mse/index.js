@@ -1,6 +1,6 @@
 import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context } from 'xgplayer-helper-utils'
-import FLV from './flv-live'
+import FlvLiveController from './flv-live'
 import defaultConfig from '../config'
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents
@@ -59,7 +59,7 @@ class FlvPlayer extends BasePlugin {
 
   _initFlvCtr () {
     const context = new Context(this.player, this.config, flvAllowedEvents)
-    const flv = context.registry('FLV_CONTROLLER', FLV)()
+    const flv = context.registry('FLV_CONTROLLER', FlvLiveController)()
     context.init()
     this.flv = flv
     this.context = context
@@ -262,6 +262,7 @@ class FlvPlayer extends BasePlugin {
     return this._destroyInternal()
   }
 
+  /** @type {FlvLiveController} */
   get core () {
     return this.flv
   }

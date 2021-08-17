@@ -113,6 +113,7 @@ class HlsVodMobilePlayer extends BasePlugin {
     super.offAll()
   }
 
+  /** @type {HlsVodMobileController} */
   get core () {
     return this.hls
   }

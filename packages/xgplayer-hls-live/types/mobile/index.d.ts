@@ -12,7 +12,6 @@ declare class HlsPlayer extends BasePlugin {
     } & {
         options: {};
         loadTimeout: number;
-        preloadTime: number;
         retryTimes: number;
         retryCount: number;
         retryDelay: number;
@@ -40,8 +39,10 @@ declare class HlsPlayer extends BasePlugin {
     _reloadStream: () => void;
     switchURL: (url: any) => void;
     _destroyInternal: () => void;
-    get core(): any;
+    /** @type {HlsLiveController} */
+    get core(): HlsLiveController;
     get context(): Context;
 }
 import { BasePlugin } from "xgplayer";
 import { Context } from "xgplayer-helper-utils";
+import HlsLiveController from "../hls-live-controller";

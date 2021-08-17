@@ -56,8 +56,8 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _bindPlayerEvents () {
-    this?.player.useHooks('play', this._handlePlay)
-    this?.player.useHooks('pause', this._handlePause)
+    this.player?.useHooks('play', this._handlePlay)
+    this.player?.useHooks('pause', this._handlePause)
 
     this.on(Events.URL_CHANGE, this._handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
@@ -124,6 +124,7 @@ export default class HlsLivePlayer extends BasePlugin {
       })
   }
 
+  /** @type {HlsLiveController} */
   get core () {
     return this.hls
   }

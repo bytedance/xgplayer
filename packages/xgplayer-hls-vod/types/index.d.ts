@@ -10,6 +10,9 @@ export default class HlsVodWrapperPlayer extends BasePlugin {
     };
     static isSupported(mediaType: any): any;
     constructor(config: any);
-    hlsVod: any;
+    /** @type {HlsVodMsePlayer | HlsVodMobilePlayer} */
+    hlsVod: HlsVodMsePlayer | HlsVodMobilePlayer;
 }
 import { BasePlugin } from "xgplayer";
+import HlsVodMsePlayer from "./mse/index";
+import HlsVodMobilePlayer from "./mobile/index";

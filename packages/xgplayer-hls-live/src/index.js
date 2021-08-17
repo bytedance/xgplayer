@@ -18,27 +18,30 @@ export default class HlsLivePlayer extends BasePlugin {
     }
   }
 
-  constructor (options = {}) {
-    super(options)
-    const player = options.player
-    if (!player) {
-      console.error('player is', player)
-      return
-    }
-    const mediaType = options.player.config.mediaType
-    if (mediaType === 'live-video') {
-      this.hlsLive = player.registerPlugin(HlsMobileLivePlayer)
-    } else {
-      this.hlsLive = player.registerPlugin(HlsMSELivePlayer)
-    }
-    if (!this.hlsLive) return
-    this.hlsLive.wrapper = this
-  }
+    /** @type {HlsMSELivePlayer | HlsMobileLivePlayer} */
+    hlsLive = null
 
-  static isSupported (mediaType) {
-    if (mediaType === 'live-video') {
-      return HlsMobileLivePlayer.isSupported()
+    constructor (options = {}) {
+      super(options)
+      const player = options.player
+      if (!player) {
+        console.error('player is', player)
+        return
+      }
+      const mediaType = options.player.config.mediaType
+      if (mediaType === 'live-video') {
+        this.hlsLive = player.registerPlugin(HlsMobileLivePlayer)
+      } else {
+        this.hlsLive = player.registerPlugin(HlsMSELivePlayer)
+      }
+      if (!this.hlsLive) return
+      this.hlsLive.wrapper = this
     }
-    return HlsMSELivePlayer.isSupported()
-  }
+
+    static isSupported (mediaType) {
+      if (mediaType === 'live-video') {
+        return HlsMobileLivePlayer.isSupported()
+      }
+      return HlsMSELivePlayer.isSupported()
+    }
 }

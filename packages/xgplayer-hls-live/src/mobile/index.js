@@ -82,8 +82,8 @@ class HlsPlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this._switchURL)
     this.on(Events.DEFINITION_CHANGE, this._handleDefinitionChange)
 
-    this?.player.video?.addEventListener('lowdecode', this._lowdecode)
-    this?.player.video?.addEventListener('largeavgap', this._largeavgap)
+    this.player?.video?.addEventListener('lowdecode', this._lowdecode)
+    this.player?.video?.addEventListener('largeavgap', this._largeavgap)
   }
 
   _largeavgap = () => {
@@ -201,6 +201,7 @@ class HlsPlayer extends BasePlugin {
     this.player.video.removeEventListener('largeavgap', this._largeavgap)
   }
 
+  /** @type {HlsLiveController} */
   get core () {
     return this.hls
   }

@@ -25,8 +25,10 @@ declare class HlsVodMobilePlayer extends BasePlugin {
     _reloadStream(): void;
     switchURL: (url: any) => void;
     _destroyInternal: () => void;
-    get core(): any;
+    /** @type {HlsVodMobileController} */
+    get core(): HlsVodMobileController;
     get context(): Context;
 }
 import { BasePlugin } from "xgplayer";
 import { Context } from "xgplayer-helper-utils";
+import HlsVodMobileController from "./hls-vod-mobile";

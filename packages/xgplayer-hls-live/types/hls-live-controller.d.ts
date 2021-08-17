@@ -65,7 +65,7 @@ export default class HlsLiveController {
     _onMediaSegment: () => void;
     _onTimeUpdate: () => void;
     _catchUp(): void;
-    _onLoadError: (loader: any, error: any) => void;
+    _onLoadError: (_: any, error: any) => void;
     _emitError(error: any): void;
     init(): void;
 }

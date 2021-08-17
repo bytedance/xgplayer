@@ -22,6 +22,9 @@ export default class FlvLiveWrapperPlayer extends BasePlugin {
     }
   }
 
+  /** @type {FlvLiveMsePlayer | FlvLiveMobilePlayer} */
+  flvLive = null
+
   constructor (config) {
     super(config)
 

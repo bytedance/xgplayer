@@ -3,7 +3,7 @@ import { EVENTS, Err, FetchLoader, Mse } from 'xgplayer-helper-utils'
 import { FlvDemuxer, Mp4Remuxer as Remuxer } from 'xgplayer-helper-transmuxers'
 import { Tracks, RemuxedBufferManager, Buffer as XgBuffer } from 'xgplayer-helper-models'
 import { Compat as Compatibility } from 'xgplayer-helper-codec'
-import { getNearestKeyframe } from 'xgplayer-flv-vod/src/helper'
+import { getNearestKeyframe } from './helper'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
@@ -16,7 +16,7 @@ export default class FlvVodController {
   _keyframes =null
   _loader = null
   _buffer = null
-  _compat=null
+  _compat = null
   _acceptRanges = true
 
   constructor (configs) {

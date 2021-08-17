@@ -2,7 +2,6 @@ export default class HlsLivePlayer extends BasePlugin {
     static get defaultConfig(): {
         options: {};
         loadTimeout: number;
-        preloadTime: number;
         retryTimes: number;
         retryCount: number;
         retryDelay: number;
@@ -10,6 +9,9 @@ export default class HlsLivePlayer extends BasePlugin {
     };
     static isSupported(mediaType: any): any;
     constructor(options?: {});
-    hlsLive: any;
+    /** @type {HlsMSELivePlayer | HlsMobileLivePlayer} */
+    hlsLive: HlsMSELivePlayer | HlsMobileLivePlayer;
 }
 import { BasePlugin } from "xgplayer";
+import HlsMSELivePlayer from "./mse";
+import HlsMobileLivePlayer from "./mobile";

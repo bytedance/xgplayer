@@ -1,24 +1,4 @@
 export default FlvPlayer;
-/**
- *  拉流播放逻辑
- *  *指定autoplay:true
- *    xgplayer初始化后执行start()
- *      start() -> pluginsManager.beforeInit(this) -> _startInit() -> videoPlay()
- *      等插件列表初始化ready后,监听canplay事件，等canplay触发后，调用video.play()，处理video.play()是否自动播放了
- *
- * *指定autoplay:false
- *    config.videoInit 默认为true, xgplayer初始化后执行start()
- *       start() -> pluginsManager.beforeInit(this) -> _startInit()
- *
- * start插件什么时候展示
- *  autoplay:flase
- *  autoplay:true 但是浏览器不允许自动播放
- *
- *
- * *点击start插件播放
- *  点击start插件主要是为了调用videoPlay(), 通过hook实现直播插件层重新拉流逻辑
- *
- */
 declare class FlvPlayer extends BasePlugin {
     static get defaultConfig(): {
         Remuxer: typeof import("xgplayer-helper-transmuxers").Mp4Remuxer;
@@ -60,12 +40,14 @@ declare class FlvPlayer extends BasePlugin {
     _switchURLHandler: (url: any, abr: any) => void;
     _destroyHandler: () => any;
     /** *********** player event handler end *********************** */
-    _loadStream(time?: any): void;
+    _loadStream(time?: number): void;
     _reloadStream(): void;
     _waitBackupStream(flv: any, ctx: any): Promise<any>;
     _switchURLInternal(url: any, abr: any): void;
     _destroyInternal(): any;
-    get core(): any;
+    /** @type {FlvLiveController} */
+    get core(): FlvLiveController;
     _context: any;
 }
 import { BasePlugin } from "xgplayer";
+import FlvLiveController from "./flv-live";

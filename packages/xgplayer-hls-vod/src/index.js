@@ -19,6 +19,9 @@ export default class HlsVodWrapperPlayer extends BasePlugin {
     }
   }
 
+  /** @type {HlsVodMsePlayer | HlsVodMobilePlayer} */
+  hlsVod = null
+
   constructor (config) {
     super(config)
 

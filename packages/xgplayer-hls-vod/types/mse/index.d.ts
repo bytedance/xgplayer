@@ -23,7 +23,9 @@ declare class HlsVodPlayer extends BasePlugin {
     _handleUrlChangeInternal: (url: any) => void;
     _reloadStream(): void;
     _destroyInternal: () => Promise<any>;
-    get core(): any;
+    /** @type {HlsVodController} */
+    get core(): HlsVodController;
 }
 import { BasePlugin } from "xgplayer";
 import { Context } from "xgplayer-helper-utils";
+import HlsVodController from "./hls-vod";

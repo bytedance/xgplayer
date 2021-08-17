@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv-vod",
-  "version": "3.0.0-alpha.122",
+  "version": "3.0.0-alpha.123-1",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -8,11 +8,11 @@
   "sideEffects": false,
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "npm run build:umd && npm run build:es && npm run build:lib && build:types",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:types": "tsc src/index.js --allowJs --declaration --declarationDir types --emitDeclarationOnly",
     "analyze": "cross-env NODE_ENV=production ANALYZE=1 npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-    "build:es": "rm -rf es && babel src --out-dir es && cp types/es.d.ts es/index.d.ts",
+    "build:es": "rm -rf es && babel src --out-dir es",
     "build:lib": "rm -rf lib && babel src --presets @babel/preset-env --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch"
   },
@@ -36,7 +36,7 @@
             {
               "search": "__VERSION__",
               "searchTemplateStrings": true,
-              "replace": "3.0.0-alpha.122"
+              "replace": "3.0.0-alpha.123-1"
             }
           ]
         }
@@ -49,9 +49,9 @@
     "dist"
   ],
   "dependencies": {
-    "xgplayer-helper-codec": "2.4.32",
-    "xgplayer-helper-models": "2.4.32",
-    "xgplayer-helper-transmuxers": "2.4.32",
-    "xgplayer-helper-utils": "2.4.32"
+    "xgplayer-helper-codec": "2.4.33-beta.1",
+    "xgplayer-helper-models": "2.4.33-beta.1",
+    "xgplayer-helper-transmuxers": "2.4.33-beta.1",
+    "xgplayer-helper-utils": "2.4.33-beta.1"
   }
 }

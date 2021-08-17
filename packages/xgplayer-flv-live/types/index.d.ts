@@ -13,6 +13,9 @@ export default class FlvLiveWrapperPlayer extends BasePlugin {
     };
     static isSupported(mediaType: any): any;
     constructor(config: any);
-    flvLive: any;
+    /** @type {FlvLiveMsePlayer | FlvLiveMobilePlayer} */
+    flvLive: FlvLiveMsePlayer | FlvLiveMobilePlayer;
 }
 import { BasePlugin } from "xgplayer";
+import FlvLiveMsePlayer from "./mse/index";
+import FlvLiveMobilePlayer from "./mobile/index";

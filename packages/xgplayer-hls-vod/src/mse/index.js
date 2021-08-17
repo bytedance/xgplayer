@@ -147,6 +147,7 @@ class HlsVodPlayer extends BasePlugin {
     })
   }
 
+  /** @type {HlsVodController} */
   get core () {
     return this.hls
   }
