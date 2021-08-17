@@ -534,7 +534,7 @@ class VideoProxy {
 
   /**
    * @type { string }
-   * @description 回视频的就绪状态
+   * @description Return the ready state of the video
    */
   get readyState () {
     const status = [
@@ -548,7 +548,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 当前视频是否可以seek
+   * @description Return whether the current video/audio can seek
    */
   get seekable () {
     return this.video.seekable
@@ -556,7 +556,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 当前视频是否处于seeking状态下
+   * @description Returns whether the current video/audio is in the seeking state
    */
   get seeking () {
     return this.video.seeking
@@ -564,7 +564,7 @@ class VideoProxy {
 
   /**
    * @type { any }
-   * @description 设置/返回当前视频的地址
+   * @description set/return the src of the current video/audio
    */
   get src () {
     return this.video.src
@@ -585,7 +585,7 @@ class VideoProxy {
 
   /**
    * @type { number }
-   * @description 设置/返回视频的音量
+   * @description Set/return the volume of the video/audio
    */
   get volume () {
     return this.video.volume
@@ -595,7 +595,9 @@ class VideoProxy {
     this.video.volume = vol
   }
 
-  /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
+  /** *******************
+   * The following APIs are only for declaration,implementation of APIs refer EventEmitter
+   * ******************/
 
   /**
    *

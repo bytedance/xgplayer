@@ -50,7 +50,7 @@ class Player extends VideoProxy {
 
     /**
      * @type { IPlayerOptions }
-     * @description 当前播放器的配置信息
+     * @description current player configuration
      */
     this.config = config
     bindDebug(this)
@@ -263,7 +263,7 @@ class Player extends VideoProxy {
     }
     this._initBaseDoms()
 
-    // 允许自定义video对象的构造
+    // Allows to customize the structure of the video object
     const XgVideoProxy = this.constructor.XgVideoProxy
     if (XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
       const el = this.innerContainer || this.root
@@ -357,7 +357,7 @@ class Player extends VideoProxy {
       if (this._fullActionFrom) {
         this._fullActionFrom = ''
       } else {
-        // 快捷键触发
+        // esc shortcut key trigger
         this.emit(Events.USER_ACTION, {
           eventType: 'system',
           action: 'switch_fullscreen',
@@ -395,7 +395,7 @@ class Player extends VideoProxy {
             resetFullState()
           }
         } else {
-          // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
+          // Ensure the page is positioned in the player position when exitFullscreen when the page is scrolled
           this.video.focus()
           resetFullState()
         }
@@ -514,7 +514,7 @@ class Player extends VideoProxy {
     XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load();
-      // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
+      // Need to call play to trigger the event callbacks such as canplay\loadstart\loadeddata in ios system
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.videoPlay()
     }
 
@@ -528,7 +528,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 针对source列表播放方式添加错误监听
+   * add error eventListener for SourceList
    * @doc https://stackoverflow.com/questions/47557135/html5-detect-the-type-of-error-when-trying-to-load-a-video-using-a-source-elem
    * @protected
    * @param { HTMLVideoElement | HTMLAudioElement } video
@@ -560,7 +560,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 移除source列表错误事件监听
+   * remove error eventListener for SourceList
    * @protected
    * @param { HTMLVideoElement | HTMLAudioElement } video
    */
@@ -575,7 +575,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 注册组件 组件列表config.plugins
+   * @description register the plugins in config.plugins
    * @private
    */
   _registerPlugins () {
@@ -593,7 +593,7 @@ class Player extends VideoProxy {
     plugins.map(plugin => {
       try {
         const pluginName = plugin.plugin ? plugin.plugin.pluginName : plugin.pluginName
-        // 在ignores中的不做组装
+        // do not register when pluginName in config.ignores
         if (pluginName && ignoresStr.indexOf(pluginName.toLowerCase()) > -1) {
           return null
         }
@@ -648,7 +648,6 @@ class Player extends VideoProxy {
       options.config = config
     }
 
-    // 获取配置的position或者root
     const keys = Object.keys(this.config)
     for (let i = 0; i < keys.length; i++) {
       if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
@@ -706,7 +705,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 当前播放器挂载的插件实例列表
+   * Returns the list of plug-in instances mounted by the current player instance
    * @type { {[propName: string]: any | null } }
    */
   get plugins () {
@@ -714,7 +713,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * get a plugin instance
+   * @deprecated return a plugin instance witch named pluginName
    * @param { string } pluginName
    * @return { null | any } plugin
    */
@@ -790,7 +789,7 @@ class Player extends VideoProxy {
    *
    * @param { any } url
    * @returns { Promise<void> | void }
-   * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
+   * @description Start the playback process, and add video/audio to the DOM tree
    */
   start (url) {
     // 已经开始初始化播放了 则直接调用play
@@ -799,7 +798,7 @@ class Player extends VideoProxy {
     }
     this.hasStart = true
     return pluginsManager.beforeInit(this).then(() => {
-      // this.config为空即已经销毁，不再执行后面的异步流程
+      // if this.config is empty, no longer execute the following process
       if (!this.config) {
         return
       }
@@ -851,7 +850,7 @@ class Player extends VideoProxy {
           this.removeClass(STATE_CLASS.ENTER)
           return
         }
-        // 避免AUTOPLAY_PREVENTED先于playing和play触发
+        //  Avoid triggering `AUTOPLAY_PREVENTED` before `PLAYING` and `PLAY`
         if (e.name === 'NotAllowedError') {
           /**
            * @private
@@ -967,7 +966,7 @@ class Player extends VideoProxy {
     pluginsManager.destroy(this)
     delHooksDescriptor(this)
     super.destroy()
-    // 退出全屏
+    // Exit Fullscreen
     if (this.fullscreen) {
       try {
         this.exitFullscreen()

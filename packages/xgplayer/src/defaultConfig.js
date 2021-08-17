@@ -1,15 +1,15 @@
 /**
  * @typedef { {
- *   id?: string, // 播放器容器id
- *   el?: HTMLElement, // 播放器容器dom
- *   url?: any, // 播放url
- *   nullUrlStart?: boolean, // 空url起播
- *   width?: number | string, // 播放器宽度,单位px
- *   height?: number | string, // 播放器高度,单位px
+ *   id?: string, // container DOM id
+ *   el?: HTMLElement, // container domElement
+ *   url?: any, // the url need to play
+ *   nullUrlStart?: boolean, // Whether to start broadcasting with empty url
+ *   width?: number | string, // Width, unit px
+ *   height?: number | string, // height, unit px
  *   fluid?: boolean, // 是否启用流式布局
- *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
- *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover', // video画面填充模式 fillHeight/fillWidth/fill/auto
- *   volume?: number | { [propName: string]: any }, // 默认音量
+ *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed', // adaptation method of container width and height,  fixWidth/fixHeight/fixed/auto
+ *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover', // video screen fill mode, fillHeight/fillWidth/fill/auto/cover
+ *   volume?: number | { [propName: string]: any }, // default volume or config of plug-in volume
  *   autoplay?: boolean, // 是否自动播放
  *   autoplayMuted?: boolean, // 是否自动静音
  *   loop?: boolean, // 是否循环播放
@@ -82,16 +82,16 @@
  */
 export default function getDefaultConfig () {
   return {
-    id: '', // 播放器容器id
-    el: null, // 播放器容器dom
-    url: '', // 播放url
-    nullUrlStart: false, // 空url起播
-    width: 600, // 播放器宽度,单位px
-    height: 337.5, // 播放器高度,单位px
+    id: '', // container DOM id
+    el: null, // container domElement
+    url: '', // the url need to play
+    nullUrlStart: false, // Whether to start broadcasting with empty url
+    width: 600, // Width, unit px
+    height: 337.5, // height, unit px
     fluid: false, // 是否启用流式布局
-    fitVideoSize: 'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
-    videoFillMode: 'auto', // video画面填充模式 fillHeight/fillWidth/fill/auto/cover
-    volume: 0.6, // 默认音量
+    fitVideoSize: 'fixed', // adaptation method of container width and height,  fixWidth/fixHeight/fixed/auto
+    videoFillMode: 'auto', // video screen fill mode, fillHeight/fillWidth/fill/auto/cover
+    volume: 0.6, // default volume or config of plug-in volume
     autoplay: false, // 是否自动播放
     autoplayMuted: false, // 是否自动静音
     loop: false, // 是否循环播放
