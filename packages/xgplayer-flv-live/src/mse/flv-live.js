@@ -1,5 +1,5 @@
 import { EVENTS } from 'xgplayer-helper-utils'
-
+import SeiOnDemand from './sei-ondemand'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
@@ -32,7 +32,7 @@ export default class FlvController {
       this.mse = new Mse({ container: this._player.video }, this._context)
       this.mse.init()
     }
-
+    this._seiOnDemand = new SeiOnDemand(this._player)
     this.initComponents()
     this.initListeners()
   }
@@ -47,13 +47,18 @@ export default class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime).remuxer
     // 目的是abr场景下 按原来的baseDts进行新流的时间戳偏移. FIXME！
     if (remuxConfig) {
+      const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime).remuxer
       Object.keys(remuxConfig).forEach(key => {
         remuxer[key] = remuxConfig[key]
       })
+      // use origin videoDtsBase derect
+      this._seiOnDemand?.updateBaseDts(remuxConfig._videoDtsBase)
+    } else {
+      this._context.registry('MP4_REMUXER', Remuxer)()
     }
+
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
 
     this._context.registry('COMPATIBILITY', Compatibility)
@@ -81,6 +86,13 @@ export default class FlvController {
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
+    if (!this.configs.remux) {
+      // keep origin baseDts when change stream use abr mode
+      this.once(DEMUX_EVENTS.ISKEYFRAME, (pts, cts) => {
+        this._seiOnDemand?.updateBaseDts(pts - cts)
+      })
+    }
+
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
 
@@ -107,6 +119,10 @@ export default class FlvController {
   }
 
   _handleSEIParsed (sei) {
+    if (this._pluginConfig.seiOnDemand) {
+      this._seiOnDemand.append(sei)
+      return
+    }
     this._player.emit('SEI_PARSED', sei)
   }
 
@@ -153,14 +169,14 @@ export default class FlvController {
     const time = this._player.currentTime
 
     const video = this._player.video
-    let buffered = video.buffered
+    const buffered = video.buffered
 
     if (!buffered || !buffered.length) {
       return
     }
 
-    let range = [0, 0]
-    let currentTime = video.currentTime
+    const range = [0, 0]
+    const currentTime = video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         range[0] = buffered.start(i)
@@ -254,7 +270,7 @@ export default class FlvController {
   }
 
   _onError (type, mod, err, fatal) {
-    let error = {
+    const error = {
       code: err.code,
       errorType: type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
@@ -274,7 +290,7 @@ export default class FlvController {
       this._player.emit('error', {
         code: '0',
         errorType: 'network',
-        ex: `empty url`,
+        ex: 'empty url',
         errd: {}
       })
       return
@@ -284,7 +300,11 @@ export default class FlvController {
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime
 
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, {
+      retryCount,
+      retryDelay,
+      loadTimeout: this._pluginConfig.loadTimeout
+    })
   }
 
   pause () {
@@ -298,6 +318,7 @@ export default class FlvController {
   destroy () {
     this._player.off('timeupdate', this._handleTimeUpdate)
     this.mse = null
+    this._seiOnDemand?.destroy()
     this.state.randomAccessPoints = []
     if (this._timer) clearInterval(this._timer)
   }

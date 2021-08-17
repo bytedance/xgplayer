@@ -12,10 +12,16 @@ class FlvPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
+      seiOnDemand: false,
       preloadTime: 5,
       retryCount: 3,
       retryDelay: 0
     })
+  }
+
+  get version () {
+    return '__VERSION__'
   }
 
   constructor (config) {
@@ -42,7 +48,7 @@ class FlvPlayer extends BasePlugin {
     this.player.switchURL = this.switchURL
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             return this.mse.url
           },
@@ -139,16 +145,21 @@ class FlvPlayer extends BasePlugin {
   }
 
   initEvents () {
+    if (!this.player) return
+
     this.on('seeking', () => {
+      if (!this.player || !this.player.getBufferedRange) return
       const time = this.player.currentTime
       const range = this.player.getBufferedRange()
       if (time > range[1] || time < range[0]) {
         this.flv && this.flv.seek(this.player.currentTime)
       }
     })
+
     if (!this.canUseHooks) {
       this.on(Events.PLAY, this.play)
     }
+
     if (!this.canUseHooks) {
       this.on(Events.PAUSE, this.pause)
     } else if (!this.player._originPause) {
@@ -161,6 +172,7 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
     this.on(Events.DEFINITION_CHANGE, this.switchURL)
+
     if (this.playerConfig.autoplay) {
       this.on(Events.AUTOPLAY_STARTED, () => {
         this.autoPlayStarted = true
@@ -203,6 +215,7 @@ class FlvPlayer extends BasePlugin {
 
   reload () {
     return this._destroy().then(() => {
+      if (!this.initEvents) return
       this.initEvents()
       this._context = new Context(this.player, this.config, flvAllowedEvents)
       setTimeout(() => {

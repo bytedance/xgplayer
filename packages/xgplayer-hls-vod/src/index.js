@@ -15,9 +15,17 @@ class HlsVodPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return {
+      loadTimeout: 10000,
+      fetchOptions: {},
       preloadTime: 5,
-      retryTimes: 3
+      retryTimes: 3,
+      retryCount: 3,
+      retryDelay: 1000
     }
+  }
+
+  get version () {
+    return '__VERSION__'
   }
 
   constructor (options) {
@@ -40,7 +48,7 @@ class HlsVodPlayer extends BasePlugin {
     this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             return this.hls.mse.url
           }
@@ -98,7 +106,7 @@ class HlsVodPlayer extends BasePlugin {
       if (this.config && this.config.autoplay) {
         this.play()
       }
-      const {config} = this.player
+      const { config } = this.player
       if (config && config.startTime) {
         this.player.currentTime = config.startTime
       }

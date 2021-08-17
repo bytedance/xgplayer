@@ -4,7 +4,7 @@ import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import HLS from './hls-live-mobile'
 import defaultConfig from './config'
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents
-const {softSolutionProbe} = common
+const { softSolutionProbe } = common
 
 class HlsPlayer extends BasePlugin {
   static get pluginName () {
@@ -13,15 +13,20 @@ class HlsPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 10,
       retryTimes: 3,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 1000
     })
   }
 
   static isSupported () {
     return softSolutionProbe()
+  }
+
+  get version () {
+    return '__VERSION__'
   }
 
   constructor (options) {
@@ -68,7 +73,7 @@ class HlsPlayer extends BasePlugin {
   }
 
   initEvents () {
-    const {player} = this
+    const { player } = this
     this.on(Events.PLAY, this.play)
     this.on(Events.URL_CHANGE, this.switchURL)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
@@ -103,10 +108,10 @@ class HlsPlayer extends BasePlugin {
    * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
    */
   _degrade (url) {
-    const {player} = this
-    let mVideo = player.video
+    const { player } = this
+    const mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
-      let newVideo = player.video.degradeVideo
+      const newVideo = player.video.degradeVideo
       this.destroy()
       player.video = newVideo
       mVideo.degrade(url)
@@ -115,7 +120,7 @@ class HlsPlayer extends BasePlugin {
       }
 
       // 替换下dom元素
-      let firstChild = player.root.firstChild
+      const firstChild = player.root.firstChild
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
@@ -129,10 +134,10 @@ class HlsPlayer extends BasePlugin {
 
   _toUseMse () {
     const { player } = this
-    const {backupConstructor, backupURL} = player.config
+    const { backupConstructor, backupURL } = player.config
     if (backupConstructor) {
       player.config.url = backupURL
-      let hlsMsePlayer = player.registerPlugin(backupConstructor)
+      const hlsMsePlayer = player.registerPlugin(backupConstructor)
       hlsMsePlayer.beforePlayerInit()
       Promise.resolve().then(() => {
         player.video.src = player.url
@@ -172,8 +177,6 @@ class HlsPlayer extends BasePlugin {
     if (this.played) {
       this._destroy()
       this._initProcess()
-    } else {
-      this.addLiveFlag()
     }
     this.played = true
   }
@@ -195,11 +198,6 @@ class HlsPlayer extends BasePlugin {
     this._destroy()
     this.played = false
     this._initProcess()
-  }
-
-  addLiveFlag () {
-    const { player } = this
-    Player.Util.addClass(player.root, 'xgplayer-is-live')
   }
 
   destroy () {

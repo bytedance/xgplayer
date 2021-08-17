@@ -1,5 +1,16 @@
 // eslint-disable-next-line no-undef
 import version from './version'
+/**
+ * @typedef { import ('./player').default } Player
+ */
+
+const ERROR_TYPE_MAP = {
+  1: 'network',
+  2: 'network',
+  3: 'decoder',
+  4: 'format'
+}
+
 const ErrorTypes = {
   network: {
     code: 1,
@@ -43,34 +54,102 @@ const ErrorTypes = {
   }
 }
 
+/**
+ * @typedef { {
+ *   playerVersion: string,
+ *   domain: string,
+ *   currentTime: number,
+ *   duration: number,
+ *   ended: boolean,
+ *   readyState: number,
+ *   networkState: number,
+ *   src: any,
+ *   type: string,
+ *   code: number,
+ *   message: string,
+ *   mediaError?: {
+ *     code: number,
+ *     message?: string
+ *   },
+ *   originError?: any,
+ *   url?: any,
+ *   [propName: string]: any
+ * } } IError
+ */
+
+/**
+ * @type { IError }
+ */
 class Errors {
-  constructor (type, currentTime, duration, networkState, readyState, src, currentSrc,
-    ended, errd = { line: '', handle: '', msg: '', version: '' }, errorCode, mediaError) {
-    const r = {}
-    if (arguments.length > 1) {
-      r.playerVersion = version // 播放器版本
-      r.errorType = type
-      r.domain = document.domain // domain
-      r.duration = duration // 视频时长
-      r.currentTime = currentTime
-      r.networkState = networkState
-      r.readyState = readyState
-      r.currentSrc = currentSrc
-      r.src = src
-      r.ended = ended
-      r.errd = errd // 错误详情
-      r.ex = (ErrorTypes[type] || {}).msg // 补充信息
-      r.errorCode = errorCode
-      r.mediaError = mediaError
-    } else {
-      const arg = arguments[0]
-      Object.keys(arg).map(key => {
-        r[key] = arg[key]
+  /**
+   *
+   * @param { Player } player
+   * @param { {
+   * errorType: string,
+   * errorCode: number,
+   * errorMessage: string,
+   * originError: any,
+   * ext: { [propName: string]: any; }
+   * } } errorInfo
+   * @returns
+   */
+  constructor (player, errorInfo = { errorType: '', errorCode: 0, errorMessage: '', originError: '', ext: {} }) {
+    if (player.video) {
+      const mediaError = player.video.error || {}
+      const { duration, currentTime, ended, src } = player
+      const { readyState, networkState } = player.video
+      const r = {
+        playerVersion: version,
+        domain: document.domain,
+        currentTime,
+        duration,
+        ended,
+        readyState,
+        networkState,
+        src,
+        type: errorInfo.errorType,
+        code: errorInfo.errorCode || mediaError.code,
+        message: errorInfo.errorMessage || mediaError.message,
+        mediaError,
+        originError: errorInfo.originError ? errorInfo.originError.stack : ''
+      }
+      errorInfo.ext && Object.keys(errorInfo.ext).map(key => {
+        r[key] = errorInfo.ext[key]
       })
-      r.ex = ((arg.type && ErrorTypes[arg.type]) || {}).msg
+      return r
+    } else {
+      if (arguments.length > 1) {
+        const r = {
+          playerVersion: version,
+          domain: document.domain
+        }
+        const arr = ['errorType', 'currentTime', 'duration', 'networkState', 'readyState', 'src', 'currentSrc', 'ended', 'errd', 'errorCode', 'mediaError']
+        for (let i = 0; i < arguments.length; i++) {
+          r[arr[i]] = arguments[i]
+        }
+        r.ex = (ErrorTypes[arguments[0]] || {}).msg // 补充信息
+        return r
+        // r.playerVersion = version // 播放器版本
+        // r.errorType = arguments[0]
+        // r.domain = document.domain // domain
+        // r.duration = duration // 视频时长
+        // r.currentTime = currentTime
+        // r.networkState = networkState
+        // r.readyState = readyState
+        // r.currentSrc = currentSrc
+        // r.src = src
+        // r.ended = ended
+        // r.errd = errd // 错误详情
+        // r.ex = (ErrorTypes[type] || {}).msg // 补充信息
+        // r.errorCode = errorCode
+        // r.mediaError = mediaError
+      }
     }
-    return r
   }
 }
 
-export default Errors
+export {
+  Errors as default,
+  ErrorTypes,
+  ERROR_TYPE_MAP
+}

@@ -5,7 +5,6 @@ import HlsVodMobileController from './hls-vod-mobile'
 const { debounce, softSolutionProbe } = common
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
-const HLS_EVENTS = EVENTS.HLS_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 class HlsVodMobilePlayer extends BasePlugin {
@@ -15,10 +14,18 @@ class HlsVodMobilePlayer extends BasePlugin {
 
   static get defaultConfig () {
     return {
+      loadTimeout: 10000,
+      fetchOptions: {},
       preloadTime: 5,
       retryTimes: 3,
-      innerDegrade: null
+      retryCount: 3,
+      retryDelay: 1000,
+      innerDegrade: 0
     }
+  }
+
+  get version () {
+    return '__VERSION__'
   }
 
   constructor (options) {
@@ -78,11 +85,7 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   _initEvents () {
-    const {player} = this
-
-    this.hls.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
-      this.emit('error', new Player.Errors('network', this.config.url))
-    })
+    const { player } = this
 
     this.hls.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
       this._onSourceUpdateEnd()
@@ -90,10 +93,11 @@ class HlsVodMobilePlayer extends BasePlugin {
 
     this.lowdecode = () => {
       this.emit('lowdecode', player.video.degradeInfo)
-      if (player.config.innerDegrade) {
-        let currentTime = player.currentTime
-        let mVideo = player.video
-        let newVideo = player.video.degradeVideo
+      const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
+      if (innerDegrade) {
+        const currentTime = player.currentTime
+        const mVideo = player.video
+        const newVideo = player.video.degradeVideo
         this.destroy()
         this._context = null
         player.video = newVideo
@@ -138,7 +142,7 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   switchURL (url) {
-    let cTime = this.player.currentTime
+    const cTime = this.player.currentTime
     // reset MVideo timeline
     this.player.video.src = url
     this._switch(url)

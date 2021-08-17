@@ -5,19 +5,20 @@
   .xgplayer-replay {
     display: none;
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    left: 50%;
+    top: 50%;
+    width: 100px;
+    height: 100px;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     z-index: 5;
-    background: rgba(0,0,0,0.38);
+    transform: translate(-50%, -50%);
+    // background: rgba(0,0,0,0.38);
     cursor: pointer;
-    &:hover{
-      background: rgba(0, 0, 0, .58);
-    }
+    // &:hover{
+    //   background: rgba(0, 0, 0, .58);
+    // }
     .xgplayer-replay-txt{
       display: inline-block;
       font-size: 14px;

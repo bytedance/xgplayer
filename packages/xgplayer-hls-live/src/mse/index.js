@@ -12,11 +12,16 @@ export default class HlsLivePlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 5,
       retryTimes: 3,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 1000
     })
+  }
+
+  get version () {
+    return '__VERSION__'
   }
 
   constructor (options) {
@@ -25,6 +30,7 @@ export default class HlsLivePlayer extends BasePlugin {
     this.handleUrlChange = this.handleUrlChange.bind(this)
     this.destroy = this.destroy.bind(this)
     this.play = this.play.bind(this)
+    this.pause = this.pause.bind(this)
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this._context = new Context(this.player, this.config, HlsAllowedEvents)
     this.autoPlayStarted = false
@@ -39,7 +45,7 @@ export default class HlsLivePlayer extends BasePlugin {
     this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             return this.hls.mse.url
           },
@@ -59,7 +65,8 @@ export default class HlsLivePlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
-    let canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
+    this.on(Events.PAUSE, this.pause)
+    const canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
     if (this.playerConfig.autoplay) {
       this.on(Events.AUTOPLAY_STARTED, () => {
         this.autoPlayStarted = true
@@ -129,6 +136,10 @@ export default class HlsLivePlayer extends BasePlugin {
     this.played = true
   }
 
+  pause () {
+    this._destroy()
+  }
+
   reload () {
     return this._destroy().then(() => {
       this._context = new Context(this.player, this.config, HlsAllowedEvents)
@@ -147,7 +158,7 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _destroy () {
-    if (!this.hls.mse || !this._context) return Promise.resolve()
+    if (!this.hls || !this.hls.mse || !this._context) return Promise.resolve()
     return this.hls.mse.destroy().then(() => {
       if (!this._context) return
       this._context.destroy()

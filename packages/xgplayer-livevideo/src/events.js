@@ -52,7 +52,9 @@ export default {
     ENDED: 'ended',
     // 自定义
     DECODE_FPS: 'decodefps',
-    LOW_DECODE: 'lowdecode'
+    LOW_DECODE: 'lowdecode',
+    LARGE_AV_GAP: 'largeavgap',
+    FIRST_FRAME: 'firstframe'
   },
   DECODE_EVENTS: {
     INIT: 'init',
@@ -73,7 +75,5 @@ export default {
     MEDIA_SEGMENT: 'mediaSegment',
     FRAME_MAX_COUNY: 'frameMaxCount',
     FRAME_MIN_COUNY: 'frameMinCount'
-  },
-  LARGE_AV_GAP: 'largeavgap',
-  FIRST_FRAME: 'firstframe'
+  }
 }

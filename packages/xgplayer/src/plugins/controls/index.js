@@ -95,19 +95,19 @@ class Controls extends Plugin {
   onMouseLeave = () => {
     const { player, playerConfig } = this
     const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
-    player.emit(Events.PLAYER_FOCUS, { delay })
+    player.focus({ delay })
   }
 
   focus () {
-    this.player.emit(Events.PLAYER_FOCUS, { autoHide: false })
+    this.player.focus({ autoHide: false })
   }
 
   unFocus () {
-    this.player.emit(Events.PLAYER_FOCUS, { autoHide: true })
+    this.player.focus({ autoHide: true })
   }
 
   blur () {
-    this.player.emit(Events.PLAYER_BLUR, { ignoreStatus: true })
+    this.player.blur({ ignorePaused: true })
   }
 
   recoverAutoHide () {
@@ -138,7 +138,7 @@ class Controls extends Plugin {
    * @param {} plugin
    * @param { {config?: {[propName: string]: any}, position?:string, root?: HTMLElement, pluginName?: string}} options
    * @param { string } name
-   * @returns { object }
+   * @returns { any }
    */
   registerPlugin (plugin, options = {}, name) {
     if (!this.root) {
@@ -180,12 +180,13 @@ class Controls extends Plugin {
       return
     }
     const className = Util.classNames(
+      { 'xgplayer-controls': true },
       { 'flex-controls': mode === 'flex' },
       { 'bottom-controls': mode === 'bottom' },
       { control_autohide: autoHide },
       { controls_permanent: !autoHide },
       { 'xgplayer-controls-initshow': initShow || !autoHide })
-    return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
+    return `<xg-controls class="${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">
       </xg-left-grid>

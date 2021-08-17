@@ -93,6 +93,7 @@ export default class VideoBaseRender extends BaseRender {
   get interval () {
     return Math.floor(1000 / this.fps)
   }
+
   // video first frame dts
   get baseDts () {
     return this._timeRange.baseDts
@@ -132,7 +133,7 @@ export default class VideoBaseRender extends BaseRender {
   }
 
   get readyState () {
-    let len = this._frameQueue.length
+    const len = this._frameQueue.length
     if (!len) return HAVE_NOTHING
     if (len >= 8) return HAVE_ENOUGH_DATA
     if (len >= 4) return HAVE_FUTURE_DATA
@@ -175,7 +176,7 @@ export default class VideoBaseRender extends BaseRender {
   /** ************ video render 独有的需要 timeline调用的方法 end *************************/
 
   _assembleErr (msg) {
-    let err = new Error(msg)
+    const err = new Error(msg)
     err.code = MEDIA_ERR_DECODE
     return err
   }
@@ -195,7 +196,7 @@ export default class VideoBaseRender extends BaseRender {
 
     this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, { width, height }) => {
       const { width: cvsWidth, height: cvsHeight } = this._canvas
-      let isGapX = !width || width / height > cvsWidth / cvsHeight // 左右有黑边
+      const isGapX = !width || width / height > cvsWidth / cvsHeight // 左右有黑边
       logger.warn(this.TAG, 'isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height)
       if (type === 'cover') {
         if (isGapX) {
@@ -230,12 +231,12 @@ export default class VideoBaseRender extends BaseRender {
     // 容器宽高比 < 视宽高比，应该上下移动
     this._parent.on(Events.VIDEO.UPDATE_VIDEO_COVER_POSITION, ({ width, height }, left = 0, top = 0) => {
       const { width: cvsWidth, height: cvsHeight } = this._canvas
-      let scaleCvsWidth = height * cvsWidth / cvsHeight
-      let scaleCvsHeight = width * cvsHeight / cvsWidth
-      let deltaX = width - scaleCvsWidth
-      let deltaY = height - scaleCvsHeight
-      let pX = deltaX * left + 'px'
-      let pY = deltaY * top + 'px'
+      const scaleCvsWidth = height * cvsWidth / cvsHeight
+      const scaleCvsHeight = width * cvsHeight / cvsWidth
+      const deltaX = width - scaleCvsWidth
+      const deltaY = height - scaleCvsHeight
+      const pX = deltaX * left + 'px'
+      const pY = deltaY * top + 'px'
       this._canvas.style.left = pX
       this._canvas.style.top = pY
       logger.warn(`cvsWidth=${cvsWidth}, cvsHeight=${cvsHeight}, scaleCvsWidth=${scaleCvsWidth}, scaleCvsHeight=${scaleCvsHeight}`)
@@ -246,9 +247,9 @@ export default class VideoBaseRender extends BaseRender {
     // 1. 音频一小段buffer起播时
     // 2. 对noAudio的场景 1. 视频变流时,dts发生变化 2. 卡顿waiting后,_parent.timelinePosition已不准确
     this._parent.on(Events.TIMELINE.SYNC_DTS, (dts) => {
-      let nextFrame = this._frameQueue.nextFrame()
+      const nextFrame = this._frameQueue.nextFrame()
       if (this._noAudio) {
-        let nextRawFrame = this._timeRange.nextFrame()
+        const nextRawFrame = this._timeRange.nextFrame()
         dts = dts || (nextFrame && nextFrame.info.dts) || (nextRawFrame && nextRawFrame.dts) || this.preciseVideoDts
       }
 
@@ -256,7 +257,7 @@ export default class VideoBaseRender extends BaseRender {
 
       this.audioSyncDts = dts
 
-      let nextFrameDts = nextFrame && nextFrame.info && nextFrame.info.dts
+      const nextFrameDts = nextFrame && nextFrame.info && nextFrame.info.dts
 
       // 下一帧视频和音频时间差距较大,对外通知
       if (nextFrameDts && nextFrameDts - dts > 500) {
@@ -283,9 +284,9 @@ export default class VideoBaseRender extends BaseRender {
 
       // 点播考虑当前分片音频播放完成，视频解码太慢,要自动切到新buffer
       if (!this._isLive) {
-        let nextDecodeFrame = this._timeRange.nextFrame()
+        const nextDecodeFrame = this._timeRange.nextFrame()
         if (nextDecodeFrame) {
-          let position = (nextDecodeFrame.dts - nextDecodeFrame.baseDts) / 1000
+          const position = (nextDecodeFrame.dts - nextDecodeFrame.baseDts) / 1000
           if (this._parent.currentTime - position > 1) {
             // 音频播完了,视频还有> 1s没解码的话,直接切到新分片
             logger.warn(this.TAG, '视频解码太慢,丢帧!')
@@ -314,7 +315,7 @@ export default class VideoBaseRender extends BaseRender {
     if (type === 'audio') return
     logger.warn(this.TAG, 'video set metadata')
     this._meta = meta
-    let fps = meta && meta.frameRate && meta.frameRate.fps
+    const fps = meta && meta.frameRate && meta.frameRate.fps
     if (fps) {
       logger.log(this.TAG, 'detect fps:', fps)
     } else {
@@ -343,14 +344,14 @@ export default class VideoBaseRender extends BaseRender {
   }
 
   _receiveFrame (frame, callback) {
-    if (!this._parent) {
+    if (!this._parent || !this._timeRange) {
       return
     }
-    let info = frame.info || {}
+    const info = frame.info || {}
     this._decodeEstimate.addDecodeInfo(info)
 
     if (!this._isLive) {
-      let t = info && info.baseDts !== undefined && (info.dts - info.baseDts) / 1000
+      const t = info && info.baseDts !== undefined && (info.dts - info.baseDts) / 1000
       if (t !== undefined && this._parent) {
         if (Math.abs(t - this._parent.currentTime) >= 4) return
       }

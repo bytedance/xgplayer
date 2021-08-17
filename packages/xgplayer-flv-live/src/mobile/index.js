@@ -15,11 +15,16 @@ class FlvPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return Object.assign({}, defaultConfig, {
+      loadTimeout: 10000,
       preloadTime: 5,
-      innerDegrade: null,
       retryCount: 3,
-      retryDelay: 0
+      retryDelay: 0,
+      innerDegrade: null
     })
+  }
+
+  get version () {
+    return '__VERSION__'
   }
 
   constructor (options) {
@@ -140,9 +145,9 @@ class FlvPlayer extends BasePlugin {
    */
   _degrade (url) {
     const { player } = this
-    let mVideo = player.video
+    const mVideo = player.video
     if (mVideo && mVideo.TAG === 'MVideo') {
-      let newVideo = player.video.degradeVideo
+      const newVideo = player.video.degradeVideo
       this.destroy()
       player.video = newVideo
       mVideo.degrade(url)
@@ -151,7 +156,7 @@ class FlvPlayer extends BasePlugin {
       }
 
       // 替换下dom元素
-      let firstChild = player.root.firstChild
+      const firstChild = player.root.firstChild
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
@@ -169,11 +174,11 @@ class FlvPlayer extends BasePlugin {
     const { player } = this
     const backupConstructor = player.config.backupConstructor || this.config.backupConstructor
     if (!backupConstructor || !url) {
-      throw new Error(`need backupConstructor and backupURL`)
+      throw new Error('need backupConstructor and backupURL')
     }
     if (backupConstructor) {
       player.config.url = url
-      let flvMsePlayer = player.registerPlugin(backupConstructor)
+      const flvMsePlayer = player.registerPlugin(backupConstructor)
       flvMsePlayer.beforePlayerInit()
       Promise.resolve().then(() => {
         player.video.src = player.url
@@ -188,7 +193,7 @@ class FlvPlayer extends BasePlugin {
   // flv -> web mse
   forceDegradeToVideo (url) {
     this.player.removeClass('xgplayer-is-error')
-    let isHls = /\.m3u8?/.test(url)
+    const isHls = /\.m3u8?/.test(url)
     // flv -> h5 hls
     if (isHls) {
       this._degrade(url)
@@ -270,8 +275,8 @@ class FlvPlayer extends BasePlugin {
     if (!this.player || !this.player.video) return
     const { buffered, currentTime, config } = this.player
     const preloadTime = config.preloadTime || this.config.preloadTime
-    let bufferEnd = buffered.end(0)
-    let waterLevel = bufferEnd - currentTime
+    const bufferEnd = buffered.end(0)
+    const waterLevel = bufferEnd - currentTime
     if (waterLevel > preloadTime * 2) {
       if (bufferEnd - preloadTime > currentTime) {
         this.player.video.currentTime = bufferEnd - preloadTime

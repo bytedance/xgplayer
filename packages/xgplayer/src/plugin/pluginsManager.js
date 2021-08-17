@@ -1,3 +1,5 @@
+import { addObserver, unObserver } from './resizeObserver'
+
 function typeIsObject (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Object'
 }
@@ -14,9 +16,14 @@ const pluginsManager = {
       cgid = new Date().getTime()
       player._pluginInfoId = cgid
     }
+
     if (!this.pluginGroup) {
       this.pluginGroup = {}
     }
+
+    !player.config.closeResizeObserver && addObserver(player.root, () => {
+      player.getVideoSize()
+    })
     this.pluginGroup[cgid] = {
       _player: player,
       _originalOptions: player.config || {}
@@ -43,8 +50,8 @@ const pluginsManager = {
 
   /**
    * register a lazy plugin
-   * @param { object } player instance
-   * @param { object } lazyPlugin config
+   * @param { any } player instance
+   * @param { any } lazyPlugin config
    *
    */
   lazyRegister (player, lazyPlugin) {
@@ -68,10 +75,10 @@ const pluginsManager = {
   },
   /**
   * register a Plugin
-  * @param { object } player the plugins install
-  * @param { function } plugin the plugin contructor
-  * @param { object } options the plugin configuration
-  * @return { object } Plugin the plugin instance
+  * @param { any } player the plugins register
+  * @param { any } plugin the plugin contructor
+  * @param { any } options the plugin configuration
+  * @return { any } Plugin the plugin instance
   **/
   register (player, plugin, options = {}) {
     if (!player || !plugin || typeof plugin !== 'function' || plugin.prototype === undefined) {
@@ -154,8 +161,8 @@ const pluginsManager = {
 
   /**
    * Unregister a plugin from player instance
-   * @param {String} cgid
-   * @param {String} name
+   * @param { string } cgid
+   * @param { string } name
    */
   unRegister (cgid, name) {
     if (cgid._pluginInfoId) {
@@ -175,8 +182,8 @@ const pluginsManager = {
 
   /**
    * remove a plugin instance from the player plugin list
-   * @param {Object} player
-   * @param {String} name
+   * @param { any } player
+   * @param { string } name
    */
   deletePlugin (player, name) {
     const cgid = player._pluginInfoId
@@ -188,7 +195,7 @@ const pluginsManager = {
 
   /**
    * get all plugin instance of player
-   * @param {*} player
+   * @param { any } player
    */
   getPlugins (player) {
     const cgid = player._pluginInfoId
@@ -196,10 +203,10 @@ const pluginsManager = {
   },
 
   findPlugin (player, name) {
-    if (!this.pluginGroup) {
+    const cgid = player._pluginInfoId
+    if (!this.pluginGroup || !cgid) {
       return null
     }
-    const cgid = player._pluginInfoId
     const cName = name.toLowerCase()
     return this.pluginGroup[cgid]._plugins[cName]
   },
@@ -257,10 +264,10 @@ const pluginsManager = {
   },
 
   afterInit (player) {
-    if (!this.pluginGroup) {
+    const cgid = player._pluginInfoId
+    if (!this.pluginGroup || !cgid) {
       return
     }
-    const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
       if (plugins[item] && plugins[item].afterPlayerInit) {
@@ -270,10 +277,10 @@ const pluginsManager = {
   },
 
   setLang (lang, player) {
-    if (!this.pluginGroup) {
+    const cgid = player._pluginInfoId
+    if (!this.pluginGroup || !cgid) {
       return
     }
-    const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     Object.keys(plugins).map(item => {
       if (plugins[item].updateLang) {
@@ -291,6 +298,9 @@ const pluginsManager = {
 
   reRender (player) {
     const cgid = player._pluginInfoId
+    if (!cgid) {
+      return
+    }
     const pluginsMap = {}
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
@@ -323,11 +333,13 @@ const pluginsManager = {
     if (!this.pluginGroup[cgid]) {
       return
     }
+    unObserver(player.root)
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
       this.unRegister(cgid, item)
     }
     delete this.pluginGroup[cgid]
+    delete player._pluginInfoId
   }
 }
 
