@@ -4,6 +4,10 @@ function typeIsObject (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Object'
 }
 
+function typeIsBoolean (obj) {
+  return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Boolean'
+}
+
 /**
 * a plugins manager to register and search
 **/
@@ -117,6 +121,9 @@ const pluginsManager = {
         const config = originalOptions[keys[i]]
         if (typeIsObject(config)) {
           options.config = Object.assign({}, options.config, originalOptions[keys[i]])
+        }
+        if (typeIsBoolean(config)) {
+          options.config.disable = !config
         }
         break
       }

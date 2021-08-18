@@ -7,7 +7,7 @@ import Plugin, { ROOT_TYPES, POSITIONS } from './plugin'
 import pluginsManager from './pluginsManager'
 import hooksDescriptor from './hooksDescriptor'
 import STATE_CLASS from '../stateClassMap'
-import { STATES } from './state'
+import { STATES } from '../state'
 
 export {
   pluginsManager,
