@@ -89,6 +89,7 @@ export default class VideoDecoderController extends EventEmitter {
     this._isInDecoding = false
     this._parent.emit(Events.DECODE_EVENTS.PLAY_FAILED, firstEmit)
   }
+
   _onAppendVideo (video) {
     this._parent.emit(Events.DECODE_EVENTS.APPEND_VIDEO, video)
   }
@@ -97,12 +98,14 @@ export default class VideoDecoderController extends EventEmitter {
     this._isVideoOnRun = document.visibilityState === 'visible'
     // console.warn('page _onVisibilityChange', this._isVideoOnRun)
   }
+
   _onDecoded (imageData, pts) {
     this._frameLengthPerFragment++
     let frameInfo = this._buildFrameInfo(imageData, pts)
     this._parent.emit(Events.DECODE_EVENTS.DECODED, frameInfo)
     this._lastPts = pts
   }
+
   _onFirstFrame (frame, pts) {
     let frameInfo = this._buildFrameInfo(frame, pts)
     this._parent.emit(Events.DECODE_EVENTS.FIRST_FRAME, frameInfo)
@@ -130,6 +133,7 @@ export default class VideoDecoderController extends EventEmitter {
       })
     }
   }
+
   _onError (error, firstEmit) {
     this._isInDecoding = false
     this._parent.emit('error', error, firstEmit)
@@ -143,6 +147,7 @@ export default class VideoDecoderController extends EventEmitter {
       this._parent.emit(Events.DECODE_EVENTS.READY)
     }
   }
+
   /**
    * 是否有解码数据，需要initSegment和mediaSegment都有数据，才能拼装成一个fmp4
    */
@@ -154,6 +159,10 @@ export default class VideoDecoderController extends EventEmitter {
   // 判断解码速度，是否降低分辨率
   _reduceResolution (decodeFPS) {
     logger.log(this.TAG, '_reduceResolution', 'currentLevel:', this._currentLevel, 'endLevel:', this._endLevel)
+    if (this._videoHeight > 720) {
+      logger.log(this.TAG, '_reduceResolution', 'trigger DECODE_LOW_FPS')
+      this._parent.emit(Events.VIDEO.DECODE_LOW_FPS)
+    }
     if (decodeFPS && decodeFPS < DEFAULT_FPS) {
       this._minFPSTime++
       this._decoder.emit('fpsreduce', decodeFPS)
@@ -163,12 +172,12 @@ export default class VideoDecoderController extends EventEmitter {
 
     if (this._currentLevel >= this._endLevel) {
       logger.log(this.TAG, '_reduceResolution', 'trigger DECODE_LOW_FPS')
-      this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);
+      this._parent.emit(Events.VIDEO.DECODE_LOW_FPS)
       return
     }
 
-    // 连续5次fps小于DEFAULT_FPS
-    if (this._minFPSTime > 5) {
+    // 连续几次fps小于DEFAULT_FPS
+    if (this._minFPSTime > 2) {
       let videoWidth = this._videoWidth
       let videoHeight = this._videoHeight
       let levelInfo = null
@@ -622,6 +631,7 @@ export default class VideoDecoderController extends EventEmitter {
       return list.length
     }
   }
+  
   /**
    * 解码器是否空闲
    * 1、待解码的blob为0
