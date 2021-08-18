@@ -16,6 +16,7 @@ import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 import I18N from './lang/i18n'
 import version from './version'
+import { STATES, STATE_ARRAY } from './state'
 
 /**
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
@@ -78,11 +79,9 @@ class Player extends VideoProxy {
     this.isReady = false
 
     /**
-     * Whether the player is real start state
-     * @type { boolean }
-     * @readonly
+     * @private
      */
-    this.isPlaying = false
+    this._state = STATES.INITIAL
 
     /**
      * Whether the player is in the seeking state
@@ -227,10 +226,11 @@ class Player extends VideoProxy {
       this.emit(Events.READY)
       this.onReady && this.onReady()
       this.isReady = true
+      // this.state = STATES.READY
     }, 0)
 
     if (this.config.videoInit || this.config.autoplay) {
-      if (!this.hasStart) {
+      if (!this.hasStart || this.state < STATES.ATTACHED) {
         this.start()
       }
     }
@@ -521,10 +521,11 @@ class Player extends VideoProxy {
     Util.setTimeout(this, () => {
       this.emit(Events.COMPLETE)
     }, 1)
-    if (!this.hasStart) {
+    if (!this.hasStart || this.state < STATES.ATTACHED) {
       pluginsManager.afterInit(this)
     }
     this.hasStart = true
+    this.state = STATES.ATTACHED
   }
 
   /**
@@ -794,10 +795,13 @@ class Player extends VideoProxy {
    */
   start (url) {
     // 已经开始初始化播放了 则直接调用play
-    if (this.hasStart) {
-      return
+    if (this.hasStart || this.state >= STATES.ATTACHING) {
+      return new Promise((resolve) => {
+        resolve()
+      })
     }
     this.hasStart = true
+    this.state = STATES.ATTACHING
     return pluginsManager.beforeInit(this).then(() => {
       // this.config为空即已经销毁，不再执行后面的异步流程
       if (!this.config) {
@@ -821,7 +825,7 @@ class Player extends VideoProxy {
   }
 
   videoPlay () {
-    if (!this.hasStart) {
+    if (!this.hasStart || this.state < STATES.ATTACHED) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
       const ret = this.start()
@@ -830,7 +834,7 @@ class Player extends VideoProxy {
       })
       return
     }
-    if (!this.isPlaying) {
+    if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
       !this.isCanplay && this.addClass(STATE_CLASS.ENTER)
     }
@@ -839,9 +843,9 @@ class Player extends VideoProxy {
       playPromise.then(() => {
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
-        if (!this.isPlaying) {
+        if (this.state < STATES.RUNNING) {
           XG_DEBUG.logInfo('>>>>playPromise.then')
-          this.isPlaying = true
+          this.state = STATES.RUNNING
           this.emit(Events.AUTOPLAY_STARTED)
         }
       }).catch((e) => {
@@ -850,6 +854,7 @@ class Player extends VideoProxy {
           this.onError()
           // this.errorHandler('error')
           this.removeClass(STATE_CLASS.ENTER)
+          this.state = STATES.ERROR
           return
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
@@ -863,13 +868,14 @@ class Player extends VideoProxy {
             this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
             this.removeClass(STATE_CLASS.ENTER)
             this.pause()
+            this.state = STATES.NOTALLOW
           }, 0)
         }
       })
     } else {
       XG_DEBUG.logWarn('video.play not return promise')
-      if (!this.isPlaying) {
-        this.isPlaying = true
+      if (this.state < STATES.RUNNING) {
+        this.state = STATES.RUNNING
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.removeClass(STATE_CLASS.ENTER)
@@ -923,7 +929,7 @@ class Player extends VideoProxy {
           !this.paused && this.play()
       }
     })
-    if (!this.isPlaying) {
+    if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
@@ -994,7 +1000,7 @@ class Player extends VideoProxy {
     }
     this.removeAttribute('data-xgfill');
 
-    ['isReady', 'isPlaying', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
+    ['isReady', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
       this[key] = false
     })
   }
@@ -1262,6 +1268,9 @@ class Player extends VideoProxy {
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+    if (this.state === STATES.ERROR || this.state === STATES.ENDED) {
+      this.state = STATES.RUNNING
+    }
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
     !this.config.closePlayVideoFocus && this.focus()
@@ -1285,6 +1294,7 @@ class Player extends VideoProxy {
    */
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
+    this.state = STATES.ENDED
     // this.removeClass(STATE_CLASS.PLAYING)
   }
 
@@ -1292,6 +1302,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onError () {
+    this.state = STATES.ERROR
     this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.NO_START)
     this.removeClass(STATE_CLASS.ENTER)
@@ -1461,6 +1472,15 @@ class Player extends VideoProxy {
       return
     }
     this.video.style.objectPosition = `${left * 100}% ${top * 100}%`
+  }
+
+  set state (value) {
+    console.log(`state from:${STATE_ARRAY[this.state]} to:${STATE_ARRAY[value]}`)
+    this._state = value
+  }
+
+  get state () {
+    return this._state
   }
 
   /**

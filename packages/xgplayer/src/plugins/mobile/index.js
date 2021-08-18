@@ -1,4 +1,5 @@
 import Plugin, { Events, Util, Sniffer } from '../../plugin'
+import { STATES } from '../../state'
 import Touche from './touch'
 import SeekTipIcon from '../assets/seekicon.svg'
 // import BackSvg from './back.svg'
@@ -473,7 +474,7 @@ class MobilePlugin extends Plugin {
 
   onClick (e) {
     const { player, config, playerConfig } = this
-    if (!player.isPlaying) {
+    if (player.state < STATES.RUNNING) {
       if (!playerConfig.closeVideoClick) {
         this.emitUserAction('click', 'switch_play_pause')
         player.play()
@@ -494,7 +495,7 @@ class MobilePlugin extends Plugin {
 
   onDbClick (e) {
     const { config, player } = this
-    if (!config.closedbClick && player.isPlaying) {
+    if (!config.closedbClick && player.state >= STATES.RUNNING) {
       this.emitUserAction('dblclick', 'switch_play_pause')
       this.switchPlayPause()
     }
@@ -609,7 +610,7 @@ class MobilePlugin extends Plugin {
 
   switchPlayPause () {
     const { player } = this
-    if (!player.hasStart) {
+    if (!player.state < STATES.ATTACHED) {
       return false
     } else if (!player.ended) {
       if (player.paused) {
