@@ -157,8 +157,13 @@ class HlsVodController extends BaseController {
 
     this._seekToBufferStart()
 
-    if (Math.abs(this._player.video.currentTime - this._player.duration) < 0.5) {
+    const { duration, video } = this._player
+
+    if (Math.abs(video.currentTime - duration) < 1) {
       this.mse.endOfStream()
+    }
+
+    if (Math.abs(video.currentTime - duration) < 0.5) {
       this._player.emit('ended')
     }
   }

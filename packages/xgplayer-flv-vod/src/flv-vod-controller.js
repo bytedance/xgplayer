@@ -71,7 +71,7 @@ export default class FlvVodController {
   /** *********** context components events handler ********************/
 
   _handleResponseHeaders = (headers) => {
-    this._acceptRanges = !!headers.get('Accept-Ranges')
+    this._acceptRanges = !!headers.get('Accept-Ranges') || !!headers.get('Content-Range')
   }
 
   _handleLoaderDataLoaded = () => {

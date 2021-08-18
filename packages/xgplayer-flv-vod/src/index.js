@@ -116,7 +116,7 @@ class FlvPlayer extends BasePlugin {
     if (!this.player) return
 
     this.player.config.url = url
-    this.player.currentTime = 0
+    this.player.config.startTime = this.player.currentTime
     return this._destroyInternal().then(() => {
       this._bindPlayerEvents()
       this.player.hasStart = false

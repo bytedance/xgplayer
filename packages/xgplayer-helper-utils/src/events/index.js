@@ -73,7 +73,7 @@ const CORE_EVENTS = {
   REMUX_METADATA: 'core.remuxmetadata',
   KEYFRAME: 'core.keyframe',
   BUFFER_APPENDED: 'core.bufferappended',
-  SEI_PARSED: 'core.seiparsed',
+  SEI_PARSED: 'core.sei',
   LOWDECODE: 'core.lowdecode',
   LARGE_AVGAP: 'core.largeavgap',
   STREAM_EXCEPTION: 'core.streamexception'
