@@ -1391,6 +1391,26 @@ class Player extends VideoProxy {
     return false
   }
 
+  /**
+   * @description position video/audio according to height ratio and y coordinate
+   * @param { { h: number, y?: number } } pos
+   * @returns
+   */
+  position (pos = { h: 0, y: 0 }) {
+    if (!pos || pos.h) {
+      return
+    }
+    const { height } = this.root.getBoundingClientRect()
+    const rvH = height / pos.h
+    let _transform = `scale(${rvH / height})`
+    if (pos.y) {
+      const _ty = pos.y * 100 - (100 - pos.h * 100 - pos.y * 100)
+      _transform += ` translate(0px, ${_ty}%)`
+    }
+    this.video.style.transform = _transform
+    this.video.style.webkitTransform = _transform
+  }
+
   getVideoSize () {
     const { videoWidth, videoHeight } = this.video
     const { fitVideoSize, videoFillMode } = this.config
