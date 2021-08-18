@@ -94,8 +94,8 @@ class Controls extends Plugin {
 
   onMouseLeave = () => {
     const { player, playerConfig } = this
-    const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
-    player.focus({ delay })
+    const hideDelay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
+    player.focus({ hideDelay })
   }
 
   focus () {

@@ -95,7 +95,7 @@ class Start extends Plugin {
       this.onPlayPause('pause')
     })
 
-    this.clickHandler = this.hook('click', this.switchPausePlay, {
+    this.clickHandler = this.hook('startClick', this.switchPausePlay, {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()

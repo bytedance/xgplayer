@@ -55,7 +55,7 @@ export default class Fullscreen extends Plugin {
     }
     this.initIcons()
 
-    this.handleFullscreen = this.hook('fullscreen_change', this.changeFullScreen, {
+    this.handleFullscreen = this.hook('fullscreenChange', this.changeFullScreen, {
       pre: (e) => {
         this.emitUserAction(e, 'switch_fullscreen', { fullscreen: this.player.fullscreen })
       }

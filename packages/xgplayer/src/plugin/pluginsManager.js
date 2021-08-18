@@ -22,7 +22,7 @@ const pluginsManager = {
     }
 
     !player.config.closeResizeObserver && addObserver(player.root, () => {
-      player.getVideoSize()
+      player.resize()
     })
     this.pluginGroup[cgid] = {
       _player: player,

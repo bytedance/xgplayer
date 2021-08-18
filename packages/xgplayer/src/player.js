@@ -369,7 +369,7 @@ class Player extends VideoProxy {
       }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         Util.setTimeout(this, () => {
-          this.getVideoSize()
+          this.resize()
         }, 100)
         this.video.focus()
         this.fullscreen = true
@@ -381,7 +381,7 @@ class Player extends VideoProxy {
         }
       } else if (this.fullscreen) {
         Util.setTimeout(this, () => {
-          this.getVideoSize()
+          this.resize()
         }, 100)
         const { _fullScreenOffset, config } = this
         if (config.needFullscreenScroll) {
@@ -430,7 +430,7 @@ class Player extends VideoProxy {
       this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
       this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
     }
-    this.once('loadeddata', this.getVideoSize)
+    this.once('loadeddata', this.resize)
 
     this.playFunc = () => {
       if (!this.config.closeFocusVideoFocus) {
@@ -1182,10 +1182,10 @@ class Player extends VideoProxy {
    * @description 播放器焦点状态，控制栏显示
    * @param { {
    *   autoHide?: boolean, // 是否可以自动隐藏
-   *   delay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
+   *   hideDelay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
    * } } [data]
    */
-  focus (data = { autoHide: true, delay: 3000 }) {
+  focus (data = { autoHide: true, hideDelay: 3000 }) {
     if (this.isActive) {
       this.onFocus(data)
       return
@@ -1215,10 +1215,10 @@ class Player extends VideoProxy {
 
   /**
    * @protected
-   * @param { { autoHide?: boolean, delay?: number} } [data]
+   * @param { { autoHide?: boolean, hideDelay?: number} } [data]
    * @returns
    */
-  onFocus (data = { autoHide: true, delay: 3000 }) {
+  onFocus (data = { autoHide: true, hideDelay: 3000 }) {
     this.isActive = true
     this.removeClass(STATE_CLASS.ACTIVE)
     if (this.userTimer) {
@@ -1227,7 +1227,7 @@ class Player extends VideoProxy {
     if (data.autoHide === false) {
       return
     }
-    const time = data && data.delay ? data.delay : this.config.inactive
+    const time = data && data.hideDelay ? data.hideDelay : this.config.inactive
     this.userTimer = Util.setTimeout(this, () => {
       this.blur()
     }, time)
@@ -1265,7 +1265,7 @@ class Player extends VideoProxy {
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
-    !this.config.closePlayVideoFocus && this.focus()
+    !this.config.closePlayVideoFocus && this.focus({ autoHide: !this.config.closeDelayBlur })
   }
 
   /**
@@ -1277,7 +1277,7 @@ class Player extends VideoProxy {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
       }
-      this.focus()
+      this.focus({ autoHide: !this.config.closeDelayBlur })
     }
   }
 
@@ -1355,7 +1355,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onTimeupdate () {
-    !this._videoHeight && this.getVideoSize()
+    !this._videoHeight && this.resize()
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
       if (this.checkBuffer()) {
         this.removeClass(STATE_CLASS.LOADING)
@@ -1390,7 +1390,7 @@ class Player extends VideoProxy {
     return false
   }
 
-  getVideoSize () {
+  resize () {
     const { videoWidth, videoHeight } = this.video
     const { fitVideoSize, videoFillMode } = this.config
 
