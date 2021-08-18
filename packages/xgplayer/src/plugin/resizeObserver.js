@@ -1,6 +1,3 @@
-/**
- * 添加
- */
 class ResizeObserver {
   constructor () {
     this.__handlers = []

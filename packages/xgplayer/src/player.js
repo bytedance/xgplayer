@@ -1179,10 +1179,10 @@ class Player extends VideoProxy {
   }
 
   /**
-   * @description 播放器焦点状态，控制栏显示
+   * @description change player focus state, the control bar will be called out
    * @param { {
-   *   autoHide?: boolean, // 是否可以自动隐藏
-   *   hideDelay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
+   *   autoHide?: boolean, // whether it needs to be automatically hidden
+   *   hideDelay?: number // Auto-hidden delay, unit:ms, default is 3000ms
    * } } [data]
    */
   focus (data = { autoHide: true, hideDelay: 3000 }) {
@@ -1198,7 +1198,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * @description 取消播放器当前焦点状态
+   * @description cancel player focus state
    * @param { { ignorePaused?: boolean } } [data]
    */
   blur (data = { ignorePaused: false }) {
@@ -1528,7 +1528,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 累计观看时长
+   * @description return cumulative watch time
    * @type number
    */
   get cumulateTime () {
@@ -1583,34 +1583,10 @@ class Player extends VideoProxy {
     return usePluginHooks.call(this, ...arguments)
   }
 
-  /***
-   * @deprecated
-   * 插件全部迁移完成再做删除
-   */
-  static install (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    if (!Player.plugins[name]) {
-      Player.plugins[name] = descriptor
-    }
-  }
-
-  /***
-   * @deprecated
-   * 插件全部迁移完成再做删除
-   */
-  static use (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    Player.plugins[name] = descriptor
-  }
-
   static defaultPreset = null
 
   /**
-   * @description 自定义media构造函数
+   * @description Custom media constructor
    */
   static XgVideoProxy = null
 }
