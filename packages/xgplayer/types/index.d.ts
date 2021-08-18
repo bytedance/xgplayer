@@ -2150,6 +2150,15 @@ declare module "player" {
          * @returns { boolean }
          */
         checkBuffer(time: number): boolean;
+        /**
+         * @description position video/audio according to height ratio and y coordinate
+         * @param { { h: number, y?: number } } pos
+         * @returns
+         */
+        position(pos?: {
+            h: number;
+            y?: number;
+        }): void;
         getVideoSize(): void;
         /**
          *
