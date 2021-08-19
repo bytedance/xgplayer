@@ -824,7 +824,8 @@ class Player extends VideoProxy {
     if (!this.hasStart) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
-      this.start().then(resolve => {
+      const ret = this.start()
+      ret && ret.then(resolve => {
         !this.config.autoplay && this.videoPlay()
       })
       return
@@ -1381,7 +1382,7 @@ class Player extends VideoProxy {
     if (!buffered || buffered.length === 0) {
       return true
     }
-    const currentTime = time || (this.video.currentTime + 0.2)
+    const currentTime = time || this.video.currentTime || 0.2
     const len = buffered.length
     for (let i = 0; i < len; i++) {
       if (buffered.start(i) <= currentTime && buffered.end(i) > currentTime) {
