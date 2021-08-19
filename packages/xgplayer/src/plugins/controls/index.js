@@ -21,9 +21,9 @@ class Controls extends Plugin {
   static get defaultConfig () {
     return {
       disable: false,
-      autoHide: true, // 是否自动隐藏
-      mode: '', // 显示模式， flex/normal/bottom
-      initShow: false // 是否初始化的时候就显示
+      autoHide: true, // Whether to hide automatically
+      mode: '', // Display mode， flex/normal/bottom
+      initShow: false // Display when player is initialized
     }
   }
 
@@ -74,7 +74,7 @@ class Controls extends Plugin {
      */
     this.innerRoot = this.find('xg-inner-controls')
 
-    // 切换为小窗状态的时候进度条同步切换
+    // The progress bar is switched synchronously when switching to the small window state
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
       isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })

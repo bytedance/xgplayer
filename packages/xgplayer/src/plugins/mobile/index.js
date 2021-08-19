@@ -6,29 +6,25 @@ import SeekTipIcon from '../assets/seekicon.svg'
 /**
  * @typedef {{
  *   index?: number,
- *   stopPropagation?: boolean, // 是否阻止冒泡
- *   disableGesture?: boolean, // 是否禁用手势
- *   gestureX?: boolean, // 是否启用水平手势
- *   gestureY?: boolean, // 是否启用垂直手势
- *   updateGesture?: () => any, // 手势处理回调
- *   onTouchStart?: () => any, // 手势开始移动回调
- *   onTouchEnd?: () => any, // 手势移动结束回调
- *   gradient?: 'normal' | 'none' | 'top' | 'bottom', // 是否启用阴影
- *   isTouchingSeek?: boolean, // 是否在touchMove的同时更新currentTime
- *   miniMoveStep?: number, // 最小差异，用于move节流
- *   miniYPer?: number, // y方向最小位移百分比
- *   scopeL?: number, // 左侧手势范围比例
- *   scopeR?: number, // 右侧手势范围比例scopeM: 0.9, // 中间手势范围比例
- *   pressRate?: number, // 长按快进倍速
- *   darkness?: boolean, // 是否启用右侧调暗功能
- *   maxDarkness?: number, // 调暗最大暗度，即蒙层最大透明度
- *   disableActive?: boolean, // 是否禁用时间面板
- *   disableTimeProgress?: boolean, // 是否禁用时间进度条
- *   hideControlsActive?: boolean, // 手势拖动的时候是否隐控制栏
- *   hideControlsEnd?: boolean, // 手势结束的时候隐控制栏
- *   moveDuration?: number, // 视频区对应的时长
- *   closedbClick?: boolean, // 是否关闭双击手势
- *   disablePress?: boolean, // 是否关闭长按手势
+ *   disableGesture?: boolean,
+ *   gestureX?: boolean,
+ *   gestureY?: boolean,
+ *   gradient?: 'normal' | 'none' | 'top' | 'bottom',
+ *   isTouchingSeek?: boolean,
+ *   miniMoveStep?: number,
+ *   miniYPer?: number,
+ *   scopeL?: number,
+ *   scopeR?: number,
+ *   pressRate?: number,
+ *   darkness?: boolean,
+ *   maxDarkness?: number,
+ *   disableActive?: boolean,
+ *   disableTimeProgress?: boolean,
+ *   hideControlsActive?: boolean,
+ *   hideControlsEnd?: boolean,
+ *   moveDuration?: number,
+ *   closedbClick?: boolean,
+ *   disablePress?: boolean,
  *   disableSeekIcon?: boolean,
  *   [propName: string]: any
  * }} IMobileConfig
@@ -51,32 +47,28 @@ class MobilePlugin extends Plugin {
    */
   static get defaultConfig () {
     return {
-      stopPropagation: true, // 是否阻止冒泡
       index: 0,
-      disableGesture: false, // 是否禁用手势
-      gestureX: true, // 是否启用水平手势
-      gestureY: true, // 是否启用垂直手势
-      updateGesture: () => {}, // 手势处理回调
-      onTouchStart: () => {}, // 手势开始移动回调
-      onTouchEnd: () => {}, // 手势移动结束回调
-      gradient: 'normal', // 是否启用阴影
-      isTouchingSeek: false, // 是否在touchMove的同时更新currentTime
-      miniMoveStep: 5, // 最小差异，用于move节流
-      miniYPer: 5, // y方向最小位移百分比
-      scopeL: 0.25, // 左侧手势范围比例
-      scopeR: 0.25, // 右侧手势范围比例
-      scopeM: 0.9, // 中间手势范围比例
-      pressRate: 2, // 长按快进倍速
-      darkness: true, // 是否启用右侧调暗功能
-      maxDarkness: 0.8, // 调暗最大暗度，即蒙层最大透明度
-      disableActive: false, // 是否禁用时间面板
-      disableTimeProgress: false, // 是否禁用时间进度条
-      hideControlsActive: false, // 手势拖动的时候是否隐控制栏
-      hideControlsEnd: false, // 手势结束的时候隐控制栏
-      moveDuration: 60 * 6 * 1000, // 视频区对应的时长
-      closedbClick: false, // 是否关闭双击手势
-      disablePress: true, // 是否关闭长按手势
-      disableSeekIcon: false // 禁用seek按钮
+      disableGesture: false, // Whether to disable gestures
+      gestureX: true, // Whether to enable horizontal gestures
+      gestureY: true, // Whether to enable vertical gestures
+      gradient: 'normal', // Gradient shadow, 'none'/'top'/'bottom'
+      isTouchingSeek: false, // Whether to update currentTime at the same time as touchMove
+      miniMoveStep: 5, // Minimum moving distance, used for move throttling
+      miniYPer: 5, // Percentage of minimum displacement in y direction
+      scopeL: 0.25, // Gesture range on the left
+      scopeR: 0.25, // Gesture range on the right
+      scopeM: 0.9, // Middle gesture range
+      pressRate: 2, // playbackRate when long press
+      darkness: true, // Whether to enable the dimming function on the right
+      maxDarkness: 0.8, // Maximum darkness，maximum transparency of the mask
+      disableActive: false, // Whether to disable the time prompt
+      disableTimeProgress: false, // Whether to disable the time progress bar
+      hideControlsActive: false, // Whether to hide the control bar when dragging by gesture
+      hideControlsEnd: false, // Whether to hide the control bar when the gesture ended
+      moveDuration: 60 * 6 * 1000, // The duration corresponding to the dragging width of the player
+      closedbClick: false, // Whether to turn off the double tap gesture
+      disablePress: true, // Whether to turn off the long press gesture
+      disableSeekIcon: false // Disable seek prompt
     }
   }
 
@@ -184,7 +176,7 @@ class MobilePlugin extends Plugin {
     })
 
     if (!config.disableActive) {
-      // 添加进度条拖拽事件回调
+      // Add progress bar drag event callback
       const progressPlugin = player.plugins.progress
       if (progressPlugin) {
         progressPlugin.addCallBack('dragmove', (data) => {

@@ -32,7 +32,7 @@ export default class DefinitionIcon extends OptionsIcon {
       index: 3,
       list: [],
       disable: false,
-      hidePortrait: false, // 是否在移动端竖屏状态下隐藏
+      hidePortrait: false, // Whether to hide in the vertical screen state of the mobile terminal
       className: 'xgplayer-definition'
     }
   }
