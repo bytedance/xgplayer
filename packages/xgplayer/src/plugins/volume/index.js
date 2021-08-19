@@ -167,7 +167,7 @@ class Volume extends Plugin {
     // e.preventDefault()
     e && e.stopPropagation()
     const { player } = this
-    if (player.volume < 0.1) {
+    if (player.volume < 0.01) {
       player.volume = this.config.default
     } else {
       player.muted = !player.muted
