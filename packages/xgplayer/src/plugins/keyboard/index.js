@@ -120,7 +120,11 @@ class Keyboard extends BasePlugin {
   downVolume (event) {
     const { player } = this
     const val = parseFloat((player.volume - 0.1).toFixed(1))
-    this.emitUserAction(event, 'change_volume', { from: player.volume, to: val })
+    this.emitUserAction(event, 'change_volume', {
+      prop: 'volume',
+      from: player.volume,
+      to: val
+    })
     if (val >= 0) {
       player.volume = val
     } else {
@@ -131,7 +135,11 @@ class Keyboard extends BasePlugin {
   upVolume (event) {
     const { player } = this
     const val = parseFloat((player.volume + 0.1).toFixed(1))
-    this.emitUserAction(event, 'change_volume', { from: player.volume, to: val })
+    this.emitUserAction(event, 'change_volume', {
+      prop: 'volume',
+      from: player.volume,
+      to: val
+    })
     if (val <= 1) {
       player.volume = val
     } else {
@@ -147,7 +155,11 @@ class Keyboard extends BasePlugin {
     } else {
       _time = duration - 1
     }
-    this.emitUserAction(event, 'seek', { from: currentTime, to: _time })
+    this.emitUserAction(event, 'seek', {
+      prop: 'currentTime',
+      from: currentTime,
+      to: _time
+    })
     this.player.currentTime = _time
   }
 
@@ -157,13 +169,13 @@ class Keyboard extends BasePlugin {
     if (currentTime - this.seekStep >= 0) {
       _time = currentTime - this.seekStep
     }
-    this.emitUserAction(event, 'seek', { from: currentTime, to: _time })
+    this.emitUserAction(event, 'seek', { prop: 'currentTime', from: currentTime, to: _time })
     this.player.currentTime = _time
   }
 
   playPause (event) {
     const { player } = this
-    this.emitUserAction(event, 'switch_play_pause')
+    this.emitUserAction(event, 'switch_play_pause', { prop: 'paused', from: player.paused, to: !player.paused })
     if (player.paused) {
       // eslint-disable-next-line handle-callback-err
       player.play()
@@ -173,15 +185,24 @@ class Keyboard extends BasePlugin {
   }
 
   exitFullscreen (event) {
+    console.log('exitFullscreen', event)
     const { player } = this
     const { isCssfullScreen, fullscreen } = player
     if (fullscreen) {
+      this.emitUserAction('keyup', 'switch_fullscreen', {
+        prop: 'fullscreen',
+        from: fullscreen,
+        to: !fullscreen
+      })
       player.exitFullscreen()
-      this.emitUserAction('keyup', 'switch_fullscreen', { fullscreen })
     }
     if (isCssfullScreen) {
+      this.emitUserAction('keyup', 'switch_css_fullscreen', {
+        prop: 'cssfullscreen',
+        from: isCssfullScreen,
+        to: !isCssfullScreen
+      })
       player.exitCssFullscreen()
-      this.emitUserAction('keyup', 'switch_css_fullscreen', { cssfullscreen: isCssfullScreen })
     }
   }
 

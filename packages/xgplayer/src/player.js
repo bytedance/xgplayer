@@ -364,7 +364,11 @@ class Player extends VideoProxy {
           pluginName: 'player',
           currentTime: this.currentTime,
           duration: this.duration,
-          fullscreen: this.fullscreen
+          props: [{
+            prop: 'fullscreen',
+            from: true,
+            to: false
+          }]
         })
       }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {

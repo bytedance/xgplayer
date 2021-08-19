@@ -197,7 +197,11 @@ class Danmu extends Plugin {
   }
 
   onSwitch (event, defaultOpen) {
-    this.emitUserAction(event, 'switch_danmu', { isOpen: defaultOpen })
+    this.emitUserAction(event, 'switch_danmu', {
+      prop: 'isOpen',
+      from: !defaultOpen,
+      to: defaultOpen
+    })
     if (defaultOpen) {
       this.start()
     } else {

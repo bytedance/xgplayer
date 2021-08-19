@@ -57,7 +57,7 @@ class Volume extends Plugin {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
-        this.emitUserAction(e, 'change_muted', { muted: this.player.muted })
+        this.emitUserAction(e, 'change_muted', { prop: 'muted', from: this.player.muted, to: !this.player.muted })
       }
     })
     this.onBarMousedown = this.onBarMousedown.bind(this)
@@ -133,8 +133,17 @@ class Volume extends Plugin {
     const bar = this.find('.xgplayer-bar')
     const now = height / bar.getBoundingClientRect().height
     drag.style.height = `${height}px`
-    this.emitUserAction(event, 'change_volume', { muted: player.muted, volume: player.volume })
-    player.volume = Math.max(Math.min(now, 1), 0)
+    const _volume = Math.max(Math.min(now, 1), 0)
+    this.emitUserAction(event, 'change_volume', [{
+      prop: 'muted',
+      from: true,
+      to: false
+    }, {
+      prop: 'volume',
+      from: player.volume,
+      to: _volume
+    }])
+    player.volume = _volume
     player.muted = false
 
     if (this.config.showValueLabel) {
