@@ -129,20 +129,6 @@ class Errors {
         }
         r.ex = (ErrorTypes[arguments[0]] || {}).msg // 补充信息
         return r
-        // r.playerVersion = version // 播放器版本
-        // r.errorType = arguments[0]
-        // r.domain = document.domain // domain
-        // r.duration = duration // 视频时长
-        // r.currentTime = currentTime
-        // r.networkState = networkState
-        // r.readyState = readyState
-        // r.currentSrc = currentSrc
-        // r.src = src
-        // r.ended = ended
-        // r.errd = errd // 错误详情
-        // r.ex = (ErrorTypes[type] || {}).msg // 补充信息
-        // r.errorCode = errorCode
-        // r.mediaError = mediaError
       }
     }
   }

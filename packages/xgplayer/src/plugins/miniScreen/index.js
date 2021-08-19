@@ -33,12 +33,12 @@ class MiniScreen extends Plugin {
       disable: false,
       width: 320,
       height: 180,
-      left: -1, // 默认左下角
-      top: -1, // 默认左下角
-      isShowIcon: false, // 是否显示icon
-      isScrollSwitch: false, // 滚动自动切换自动切换
-      scrollTop: 0, // 触发滚动的高度
-      disableDrag: false // 禁用拖拽
+      left: -1, // Default bottom left corner
+      top: -1, // Default bottom left corner
+      isShowIcon: false, // Whether to show icon
+      isScrollSwitch: false,
+      scrollTop: 0, // Height to trigger scroll
+      disableDrag: false // Disable drag and drop
     }
   }
 

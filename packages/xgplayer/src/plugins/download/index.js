@@ -31,13 +31,6 @@ export default class Download extends Plugin {
     this.isLock = false
   }
 
-  beforeCreate (args) {
-    console.log('args', args.config)
-    // if (typeof args.player.config.download === 'boolean') {
-    //   args.config.disable = !args.player.config.download
-    // }
-  }
-
   afterCreate () {
     if (this.config.disable) {
       return

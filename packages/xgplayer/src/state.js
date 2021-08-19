@@ -1,16 +1,17 @@
 export const STATES = {
-  INITIAL: 0,
-  READY: 1,
-  ATTACHING: 2,
-  ATTACHED: 3,
-  NOTALLOW: 4,
-  RUNNING: 5,
-  ENDED: 6,
-  DESTROYED: 7,
-  ERROR: 8
+  ERROR: 0,
+  INITIAL: 1,
+  READY: 2,
+  ATTACHING: 3,
+  ATTACHED: 4,
+  NOTALLOW: 5,
+  RUNNING: 6,
+  ENDED: 7,
+  DESTROYED: 8
 }
 
 export const STATE_ARRAY = [
+  'ERROR',
   'INITIAL',
   'READY',
   'ATTACHING',
@@ -18,6 +19,5 @@ export const STATE_ARRAY = [
   'NOTALLOW',
   'RUNNING',
   'ENDED',
-  'DESTROYED',
-  'ERROR'
+  'DESTROYED'
 ]

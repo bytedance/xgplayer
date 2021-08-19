@@ -29,12 +29,6 @@ export default class CssFullScreen extends Plugin {
     }
   }
 
-  beforeCreate (args) {
-    if (typeof args.player.config.cssFullscreen === 'boolean') {
-      args.config.disable = !args.player.config.cssFullscreen
-    }
-  }
-
   afterCreate () {
     if (this.config.disable) {
       return

@@ -40,15 +40,6 @@ export default class Fullscreen extends Plugin {
   /**
    * @private
    */
-  beforeCreate (args) {
-    if (typeof args.player.config.fullscreen === 'boolean') {
-      args.config.disable = !args.player.config.fullscreen
-    }
-  }
-
-  /**
-   * @private
-   */
   afterCreate () {
     if (this.config.disable) {
       return
