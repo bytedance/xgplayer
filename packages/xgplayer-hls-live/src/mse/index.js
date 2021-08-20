@@ -32,7 +32,7 @@ export default class HlsLivePlayer extends BasePlugin {
       BasePlugin.defineGetterOrSetter(this.player, {
         __url: {
           get: () => {
-            return this.hls.mse?.url
+            return this.hls?.mse?.url
           },
           configurable: true
         }

@@ -157,8 +157,6 @@ export default class FlvVodController {
   _partialRequest (start = 0, end = '') {
     let url = this._player?.config.url
 
-    if (!url) return
-
     this._pluginConfig.options.headers = {
       Range: `bytes=${start}-${end}`
     }

@@ -141,9 +141,6 @@ export default class FlvBaseController {
   }
 
   loadData (url = this._player?.config.url) {
-    if (!url) {
-      return
-    }
     this.emit(LOADER_EVENTS.LOADER_START, url, this._pluginConfig)
   }
 
