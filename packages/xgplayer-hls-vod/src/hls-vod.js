@@ -10,6 +10,7 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const HLS_EVENTS = EVENTS.HLS_EVENTS
 const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
+const MSE_EVENTS = EVENTS.MSE_EVENTS
 const HLS_ERROR = 'HLS_ERROR'
 class HlsVodController {
   constructor (mse) {
@@ -66,8 +67,8 @@ class HlsVodController {
     this._onDemuxError = this._onDemuxError.bind(this)
     this._onRemuxError = this._onRemuxError.bind(this)
     this._onTimeUpdate = this._onTimeUpdate.bind(this)
-    this._onWaiting = this._onWaiting.bind(this)
     this._handleKeyFrame = this._handleKeyFrame.bind(this)
+    this._onSourceUpdateEnd = this._onSourceUpdateEnd.bind(this)
 
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete)
 
@@ -83,6 +84,8 @@ class HlsVodController {
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
 
+    this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._onSourceUpdateEnd)
+
     this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError)
@@ -90,8 +93,6 @@ class HlsVodController {
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
 
     this._player.on('timeupdate', this._onTimeUpdate)
-
-    this._player.on('waiting', this._onWaiting)
   }
 
   _onError (type, mod, err, fatal) {
@@ -134,59 +135,8 @@ class HlsVodController {
     this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
   }
 
-  _onWaiting () {
-    let end = true
-
-    this._seekToBufferStart()
-    const playList = Object.keys(this._playlist.list)
-    const playListLen = playList.length
-    if (!playListLen) {
-      return
-    }
-
-    for (let i = 0; i < playListLen; i++) {
-      if (this._player.currentTime * 1000 < parseInt(playList[i])) {
-        end = false
-      }
-    }
-    if (end) {
-      const { video } = this._player
-      if (Math.abs(video.currentTime - video.duration) < 1) {
-        this._player.emit('ended')
-        this.mse.endOfStream()
-      }
-    }
-  }
-
-  _seekToBufferStart () {
-    const video = this._player.video
-    const buffered = video.buffered
-    const range = [0, 0]
-    const currentTime = video.currentTime
-    if (buffered) {
-      for (let i = 0, len = buffered.length; i < len; i++) {
-        range[0] = buffered.start(i)
-        range[1] = buffered.end(i)
-        if (range[0] <= currentTime && currentTime <= range[1]) {
-          return
-        }
-      }
-    }
-
-    const bufferStart = range[0]
-
-    if (currentTime === 0 && currentTime < bufferStart && Math.abs(currentTime - bufferStart) < 3) {
-      video.currentTime = bufferStart
-    }
-  }
-
   _onTimeUpdate () {
-    this._seekToBufferStart()
     this._preload(this._player.currentTime)
-  }
-
-  _onDemuxComplete () {
-    this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
   }
 
   _handleKeyFrame (pts) {
@@ -195,28 +145,6 @@ class HlsVodController {
 
   _handleSEIParsed (sei) {
     this._player.emit('SEI_PARSED', sei)
-  }
-
-  _onMetadataParsed (type) {
-    const duration = parseInt(this._playlist.duration)
-    if (type === 'video') {
-      this._tracks.videoTrack.meta.duration = duration
-    } else if (type === 'audio') {
-      this._tracks.audioTrack.meta.duration = duration
-    }
-    this.emit(REMUX_EVENTS.REMUX_METADATA, type)
-  }
-
-  _onMediaSegment () {
-    if (Object.keys(this.mse.sourceBuffers).length < 1) {
-      this.mse.addSourceBuffers()
-    }
-
-    this.mse.doAppend()
-  }
-
-  _onInitSegment () {
-    this.mse.addSourceBuffers()
   }
 
   _onLoaderCompete (buffer) {
@@ -290,6 +218,46 @@ class HlsVodController {
           this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, this._pluginConfig)
         }
       }
+    }
+  }
+
+  _onMetadataParsed (type) {
+    const duration = parseInt(this._playlist.duration)
+    if (type === 'video') {
+      this._tracks.videoTrack.meta.duration = duration
+    } else if (type === 'audio') {
+      this._tracks.audioTrack.meta.duration = duration
+    }
+    this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+
+  _onDemuxComplete () {
+    this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+  }
+
+  _onInitSegment () {
+    this.mse.addSourceBuffers()
+  }
+
+  _onMediaSegment () {
+    if (Object.keys(this.mse.sourceBuffers).length < 1) {
+      this.mse.addSourceBuffers()
+    }
+
+    this.mse.doAppend()
+  }
+
+  _onSourceUpdateEnd () {
+    if (!this._player || !this._player.video) return
+
+    const { buffered, duration } = this._player.video
+
+    const len = buffered.length
+
+    if (!len) return
+
+    if (duration - buffered.end(len - 1) < 1) {
+      this.mse.endOfStream()
     }
   }
 
