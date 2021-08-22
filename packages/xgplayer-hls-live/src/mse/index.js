@@ -1,9 +1,8 @@
-import { BasePlugin, Events, Util } from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-helper-utils'
 import HlsLiveController from './hls-live'
 import defaultConfig from './config'
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 
 export default class HlsLivePlayer extends BasePlugin {
   static get pluginName () {
@@ -28,6 +27,7 @@ export default class HlsLivePlayer extends BasePlugin {
     super(options)
     this.played = false
     this.handleUrlChange = this.handleUrlChange.bind(this)
+    this.switchURL = this.switchURL.bind(this)
     this.destroy = this.destroy.bind(this)
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
@@ -37,6 +37,7 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   beforePlayerInit () {
+    this.player.switchURL = this.switchURL
     const { url } = this.player.config
     this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)()
     this._context.init()
@@ -47,7 +48,7 @@ export default class HlsLivePlayer extends BasePlugin {
       BasePlugin.defineGetterOrSetter(this.player, {
         __url: {
           get: () => {
-            return this.hls.mse.url
+            return this.hls?.mse?.url
           },
           configurable: true
         }
@@ -58,10 +59,6 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   _initEvents () {
-    this.hls.once(REMUX_EVENTS.INIT_SEGMENT, () => {
-      Util.addClass(this.root, 'xgplayer-is-live')
-    })
-
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)

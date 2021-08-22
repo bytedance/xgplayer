@@ -71,7 +71,7 @@ export default class FlvController {
   }
 
   _handleDemuxComplete () {
-    let v = this._player.video
+    const v = this._player.video
     if (v && v.onDemuxComplete) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
       v.onDemuxComplete(videoTrack, audioTrack)
@@ -120,6 +120,7 @@ export default class FlvController {
       code: err.code,
       codeName: err.name,
       errorType: 'network',
+      type: 'network',
       ex: `[${tag}]: ${err.message}`,
       errd: {}
     })
@@ -133,6 +134,7 @@ export default class FlvController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
+      type: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
       errd: {}
     })
@@ -145,8 +147,9 @@ export default class FlvController {
   }
 
   _onError (type, mod, err, fatal) {
-    let error = {
+    const error = {
       errorType: type,
+      type,
       errorDetails: `[${mod}]: ${err.message}`,
       errorFatal: fatal || false
     }
@@ -160,16 +163,6 @@ export default class FlvController {
   }
 
   loadData (url = this._player.config.url) {
-    if (!url) {
-      this._player.emit('error', {
-        code: '0',
-        errorType: 'network',
-        ex: 'empty url',
-        errd: {}
-      })
-      return
-    }
-
     const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times

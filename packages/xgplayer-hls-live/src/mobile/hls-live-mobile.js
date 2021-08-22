@@ -84,8 +84,9 @@ class HlsLiveController {
   }
 
   _onError (type, mod, err, fatal) {
-    let error = {
+    const error = {
       errorType: type,
+      type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
     }
@@ -101,7 +102,7 @@ class HlsLiveController {
           return
         }
         sample.analyzed = true
-        let nals = sample.nals
+        const nals = sample.nals
         const nalsLength = nals.reduce((len, current) => {
           return len + 4 + current.body.byteLength
         }, 0)
@@ -157,6 +158,7 @@ class HlsLiveController {
     const err = {
       code: error.code,
       errorType: 'network',
+      type: 'network',
       ex: `[${loader}]: ${error.message}`,
       errd: {}
     }
@@ -174,6 +176,7 @@ class HlsLiveController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
+      type: 'parse',
       ex: `[${mod}]: ${error ? error.message : ''}`,
       errd: {}
     })
@@ -190,7 +193,7 @@ class HlsLiveController {
       let mdata
       try {
         this.m3u8Text = buffer.shift()
-        let result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
+        const result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
         if (result && result[2]) {
           // redirect
           this.load(result[2])
@@ -264,7 +267,7 @@ class HlsLiveController {
   // 触发waiting时候,攒两个分片再播放
   _consumeFragment (force) {
     if (!force && this.inWaiting && this._downloadedFragmentQueue.length < 2) return
-    let ts = this._downloadedFragmentQueue.shift()
+    const ts = this._downloadedFragmentQueue.shift()
     if (ts) {
       this.emit(DEMUX_EVENTS.DEMUX_START, ts, this._playlist.end)
       this.inWaiting = false
@@ -301,11 +304,11 @@ class HlsLiveController {
       this._preload()
     } else {
       // Check for load.
-      let currentTime = this._player.currentTime
+      const currentTime = this._player.currentTime
       if (this._player.readyState <= 2) {
         this._preload()
       }
-      let bufferend = this._player.buffered.end(this._player.buffered.length - 1)
+      const bufferend = this._player.buffered.end(this._player.buffered.length - 1)
       if (currentTime > bufferend - this.preloadTime) {
         this._preload()
       }
@@ -316,7 +319,7 @@ class HlsLiveController {
     if (this.retryTimes < 1 || this._tsloader.loading || this._m3u8loader.loading) {
       return
     }
-    let frag = this._playlist.getTs()
+    const frag = this._playlist.getTs()
     const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
@@ -332,7 +335,7 @@ class HlsLiveController {
       })
     } else {
       this._consumeFragment(true)
-      let current = new Date().getTime()
+      const current = new Date().getTime()
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current

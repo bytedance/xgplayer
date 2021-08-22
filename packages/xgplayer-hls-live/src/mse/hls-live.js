@@ -92,6 +92,7 @@ class HlsLiveController {
     const error = {
       code: err.code,
       errorType: type,
+      type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
     }
@@ -133,6 +134,7 @@ class HlsLiveController {
     this._player.emit('error', {
       code: 3,
       errorType: 'parse',
+      type: 'parse',
       ex: 'decode error',
       errd: {}
     })
@@ -160,12 +162,12 @@ class HlsLiveController {
     this._player.emit('error', {
       code: error.code,
       errorType: 'network',
+      type: 'network',
       ex: `[${loader}]: ${error.message}`,
       errd: {}
     })
     this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true)
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
-    this.destroy()
   }
 
   _onDemuxError (mod, error, fatal) {
@@ -175,6 +177,7 @@ class HlsLiveController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
+      type: 'parse',
       ex: `[${mod}]: ${error ? error.message : ''}`,
       errd: {}
     })

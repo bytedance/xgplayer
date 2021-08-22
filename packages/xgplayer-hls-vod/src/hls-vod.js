@@ -98,6 +98,7 @@ class HlsVodController {
   _onError (type, mod, err, fatal) {
     const error = {
       errorType: type,
+      type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
     }
@@ -108,6 +109,7 @@ class HlsVodController {
     this._player.emit('error', {
       code: error.code,
       errorType: 'network',
+      type: 'network',
       ex: `[${mod}]: ${error.message}`,
       errd: {}
     })
@@ -122,6 +124,7 @@ class HlsVodController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
+      type: 'parse',
       ex: `[${mod}]: ${error ? error.message : ''}`,
       errd: {}
     })
@@ -407,8 +410,6 @@ class HlsVodController {
     this.off(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError)
 
     this._player.off('timeupdate', this._onTimeUpdate)
-
-    this._player.off('waiting', this._onWaiting)
   }
 }
 export default HlsVodController

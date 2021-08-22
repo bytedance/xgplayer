@@ -5,7 +5,6 @@ import HlsVodMobileController from './hls-vod-mobile'
 const { debounce, softSolutionProbe } = common
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
-const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 class HlsVodMobilePlayer extends BasePlugin {
   static get pluginName () {
@@ -34,6 +33,7 @@ class HlsVodMobilePlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this)
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
+    this.switchURL = this.switchURL.bind(this)
   }
 
   static isSupported () {
@@ -41,6 +41,7 @@ class HlsVodMobilePlayer extends BasePlugin {
   }
 
   beforePlayerInit () {
+    this.player.switchURL = this.switchURL
     const { player } = this
     const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
     if (player.video) {
@@ -87,10 +88,6 @@ class HlsVodMobilePlayer extends BasePlugin {
   _initEvents () {
     const { player } = this
 
-    this.hls.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
-      this._onSourceUpdateEnd()
-    })
-
     this.lowdecode = () => {
       this.emit('lowdecode', player.video.degradeInfo)
       const innerDegrade = player.config.innerDegrade || this.config.innerDegrade
@@ -112,19 +109,6 @@ class HlsVodMobilePlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DESTROY, this.destroy)
     player.video.addEventListener('lowdecode', this.lowdecode)
-  }
-
-  _onSourceUpdateEnd () {
-    if (this.player.video.readyState === 1 || this.player.video.readyState === 2) {
-      const { gap, start, method } = this.detectBufferGap()
-      if (gap) {
-        if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
-          this.player.currentTime = Math[method](start)
-        } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
-          this.player.currentTime = Math[method](start)
-        }
-      }
-    }
   }
 
   _switch (url) {
@@ -155,44 +139,6 @@ class HlsVodMobilePlayer extends BasePlugin {
     if (this._context) {
       this._context.destroy()
     }
-  }
-
-  detectBufferGap () {
-    const { video } = this.player
-    let result = {
-      gap: false,
-      start: -1
-    }
-    for (let i = 0; i < video.buffered.length; i++) {
-      const bufferStart = video.buffered.start(i)
-      const bufferEnd = video.buffered.end(i)
-      if (!video.played.length || (bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5)) {
-        break
-      }
-      const startGap = bufferStart - this.currentTime
-      const endGap = this.currentTime - bufferEnd
-      if (startGap > 0.01 && startGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferStart,
-          method: 'ceil'
-        }
-        break
-      } else if (endGap > 0.1 && endGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferEnd,
-          method: 'floor'
-        }
-      } else {
-        result = {
-          gap: false,
-          start: -1
-        }
-      }
-    }
-
-    return result
   }
 
   get core () {

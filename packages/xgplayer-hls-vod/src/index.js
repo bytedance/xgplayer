@@ -5,8 +5,6 @@ import HlsVodController from './hls-vod'
 const { debounce } = common
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents
-const HLS_EVENTS = EVENTS.HLS_EVENTS
-const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 class HlsVodPlayer extends BasePlugin {
   static get pluginName () {
@@ -35,9 +33,11 @@ class HlsVodPlayer extends BasePlugin {
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
     this.replay = this.replay.bind(this)
+    this.switchURL = this.switchURL.bind(this)
   }
 
   beforePlayerInit () {
+    this.player.switchURL = this.switchURL
     if (!this._context) {
       this._context = new Context(this.player, this.config, HlsAllowedEvents)
     }
@@ -50,7 +50,7 @@ class HlsVodPlayer extends BasePlugin {
       BasePlugin.defineGetterOrSetter(this.player, {
         __url: {
           get: () => {
-            return this.hls.mse.url
+            return this.hls?.mse?.url
           }
         }
       })
@@ -60,9 +60,10 @@ class HlsVodPlayer extends BasePlugin {
   }
 
   handleUrlChange (url) {
-    this.hls.mse.destroy().then(() => {
+    this.hls?.mse?.destroy().then(() => {
+      super.offAll()
       this.player.config.url = url
-      this._context.destroy()
+      this._context?.destroy()
       this._context = null
       this.player.video.src = ''
       this.player.video.load()
@@ -94,14 +95,6 @@ class HlsVodPlayer extends BasePlugin {
   }
 
   __initEvents () {
-    this.hls.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
-      this.emit('error', new Player.Errors('network', this.config.url))
-    })
-
-    this.hls.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
-      this._onSourceUpdateEnd()
-    })
-
     this.once('canplay', () => {
       if (this.config && this.config.autoplay) {
         this.play()
@@ -151,28 +144,8 @@ class HlsVodPlayer extends BasePlugin {
     })
   }
 
-  _onSourceUpdateEnd () {
-    if (this.player.video.readyState === 1 || this.player.video.readyState === 2) {
-      const { gap, start, method } = this.detectBufferGap()
-      if (gap) {
-        if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
-          this.player.currentTime = Math[method](start)
-        } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
-          this.player.currentTime = Math[method](start)
-        }
-      }
-    }
-  }
-
   switchURL (url) {
-    this.config.url = url
-    const context = new Context(HlsAllowedEvents)
-    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)()
-    context.init()
-    this.initHlsBackupEvents(hls, context)
-    this.hls.mse.cleanBuffers().then(() => {
-      hls.load(url)
-    })
+    this.handleUrlChange(url)
   }
 
   destroy () {
@@ -194,44 +167,6 @@ class HlsVodPlayer extends BasePlugin {
         }, 50)
       }
     })
-  }
-
-  detectBufferGap () {
-    const { video } = this.player
-    let result = {
-      gap: false,
-      start: -1
-    }
-    for (let i = 0; i < video.buffered.length; i++) {
-      const bufferStart = video.buffered.start(i)
-      const bufferEnd = video.buffered.end(i)
-      if (!video.played.length || (bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5)) {
-        break
-      }
-      const startGap = bufferStart - this.currentTime
-      const endGap = this.currentTime - bufferEnd
-      if (startGap > 0.01 && startGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferStart,
-          method: 'ceil'
-        }
-        break
-      } else if (endGap > 0.1 && endGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferEnd,
-          method: 'floor'
-        }
-      } else {
-        result = {
-          gap: false,
-          start: -1
-        }
-      }
-    }
-
-    return result
   }
 
   get core () {

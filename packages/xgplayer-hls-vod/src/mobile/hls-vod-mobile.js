@@ -70,6 +70,7 @@ class HlsVodMobileController {
   _onError (type, mod, err, fatal) {
     const error = {
       errorType: type,
+      type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
     }
@@ -80,6 +81,7 @@ class HlsVodMobileController {
     this._player.emit('error', {
       code: error.code,
       errorType: 'network',
+      type: 'network',
       ex: `[${mod}]: ${error.message}`,
       errd: {}
     })

@@ -55,6 +55,7 @@ class HlsPlayer extends BasePlugin {
   }
 
   _initProcess () {
+    this.player.switchURL = this.switchURL
     const { player } = this
     this._context = new Context(this.player, this.config, hlsAllowedEvents)
     this.initHls()

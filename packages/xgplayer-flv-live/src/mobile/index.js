@@ -39,6 +39,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   beforePlayerInit () {
+    this.player.switchURL = this.switchURL
     const { player } = this
     const preloadTime = player.config.preloadTime || this.config.preloadTime
     const innerDegrade = this.config.innerDegrade || player.config.innerDegrade

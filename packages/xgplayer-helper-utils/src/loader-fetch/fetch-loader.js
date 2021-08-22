@@ -150,6 +150,14 @@ class FetchLoader {
    * @return {Promise<{ok} | minimist.Opts.unknown>}
    */
   load (url, opts = {}, { retryCount, retryDelay, loadTimeout } = {}) {
+    if (!url) {
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
+        code: 0,
+        message: 'empty url'
+      })
+      return
+    }
+
     retryCount = retryCount === undefined ? 3 : retryCount
     this.url = url
     this._canceled = false

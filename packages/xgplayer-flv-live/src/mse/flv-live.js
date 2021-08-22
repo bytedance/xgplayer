@@ -227,6 +227,7 @@ export default class FlvController {
     this._player.emit('error', {
       code: err.code,
       errorType: 'network',
+      type: 'network',
       ex: `[${tag}]: ${err.message}`,
       errd: {}
     })
@@ -246,6 +247,7 @@ export default class FlvController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
+      type: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
       errd: {}
     })
@@ -259,6 +261,7 @@ export default class FlvController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
+      type: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
       errd: {}
     })
@@ -275,6 +278,7 @@ export default class FlvController {
     const error = {
       code: err.code,
       errorType: type,
+      type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal || false
     }
@@ -288,15 +292,6 @@ export default class FlvController {
   }
 
   loadData (url = this._player.config.url) {
-    if (!url) {
-      this._player.emit('error', {
-        code: '0',
-        errorType: 'network',
-        ex: 'empty url',
-        errd: {}
-      })
-      return
-    }
     const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times
