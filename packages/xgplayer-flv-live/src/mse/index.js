@@ -216,12 +216,12 @@ class FlvPlayer extends BasePlugin {
 
     if (abr) {
       const compat = this.context.getInstance('COMPATIBILITY')
-      flv = context.registry('FLV_CONTROLLER', FLV)(this.mse,
+      flv = context.registry('FLV_CONTROLLER', FlvLiveController)(this.mse,
         {
           baseDts: compat.getBaseDts()
         })
     } else {
-      flv = context.registry('FLV_CONTROLLER', FLV)(this.mse)
+      flv = context.registry('FLV_CONTROLLER', FlvLiveController)(this.mse)
     }
 
     context.init()

@@ -55,13 +55,12 @@ export default class HlsLiveController {
     this._isMobile = isMobile
 
     this._opts = Object.assign({
-      lowLatencyMode: true, // 是否启用低延迟模式
-      maxCatchUpRate: 1.5, // 低延迟模式，最大追赶速率
-      targetLatency: 0, // 播放延迟，超过该延迟将会快放追帧，默认等于单次 playlist 总时长, 毫秒
-      skipSegmentLatency: 0, // 跳过未加载分片的最大延迟，超过该延迟将会跳片，默认两倍的 targetLatency
-      skipSegment: true, // 当延迟过高时，是否允许跳过未下载的分片
-
-      gapDistance: 0.1 // 当因播放问题停滞时，向前跳跃的间距
+      lowLatencyMode: true, // Whether or not use lowLatencyMode
+      maxCatchUpRate: 1.5, //  Maximum rate of catch-up in lowLatencyMode
+      targetLatency: 0, // Target latency of play, beyond which the chase frame will used， once of  playlist'duration  as default (ms)
+      skipSegmentLatency: 0, // Max latency for skip segment no download , 2 * targetLatency used as default
+      skipSegment: true, // can skip segment?
+      gapDistance: 0.1 // step for skip small hole
     }, rest)
 
     log('new instance: ', this._opts, isMobile)
@@ -129,7 +128,6 @@ export default class HlsLiveController {
     return this._pluginConfig.retryDelay || this._player.config.retry?.delay
   }
 
-  // 恢复播放时，外部插件会销毁重建。这里只管暂停，不管恢复播放
   get _videoPaused () {
     const video = this._player?.video
     return video && video.played?.length && video.paused
@@ -146,6 +144,8 @@ export default class HlsLiveController {
     this._stopTick()
     if (this._videoPaused) return
     this._tickTimer = setTimeout(this._tick, this._tickInterval)
+
+    if (this._isMobile) return
 
     const lastSegment = this._playlist?.lastSegment
     if (lastSegment) {
@@ -239,7 +239,7 @@ export default class HlsLiveController {
 
       if (level.live) {
         const interval = level.segmentDuration
-        if (interval) this._m3u8RefreshInterval = Math.max(interval / 2, 2000) // TODO: Loader 支持传入加载耗时
+        if (interval) this._m3u8RefreshInterval = Math.max(interval / 2, 2000) // TODO: Loader support load elapse
         clearTimeout(this._m3u8RefreshTimer)
         log('M3U8 refresh interval: ', this._m3u8RefreshInterval)
         this._m3u8RefreshTimer = setTimeout(this._loadM3U8, this._m3u8RefreshInterval)
@@ -262,7 +262,7 @@ export default class HlsLiveController {
   }
 
   _loadSegment () {
-    // 目前不好控制 buffer 顺序，解密的时候不让下载新片段
+    // no better way to control the buffer order, not allowed to download new segment when decrypt
     if (
       this._segmentLoading ||
       this._currentLoadingKeyUrl ||
@@ -386,7 +386,6 @@ export default class HlsLiveController {
     warn('meta detect or changed , ', type)
     if (this._isMobile) {
       if (type === 'audio') {
-        // 将音频meta信息交给audioContext，不走remux封装
         const { audioTrack } = this._context.getInstance('TRACKS')
         if (audioTrack && audioTrack.meta) {
           this._setMetaToAudio(audioTrack.meta)

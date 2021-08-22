@@ -20,8 +20,6 @@ class HlsVodMobileController extends BaseController {
     this._preload(this._player.currentTime)
   }
 
-  _onWaiting = () => {}
-
   _onMetadataParsed = (type) => {
     // give livevideo direct
     if (type === 'audio') {

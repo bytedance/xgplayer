@@ -80,7 +80,7 @@ class HlsCompatibility extends Base {
        */
       this._videoNextDts = vaDelta > 0 ? segment.start + vaDelta : segment.start
       this._audioNextDts = vaDelta > 0 ? segment.start : segment.start - vaDelta
-      logger.log(this.TAG, `id discontinue: _videoNextDts=${this._videoNextDts}, _audioNextDts=${this._audioNextDts}, delta=${vaDelta}`)
+      logger.log(this.TAG, `id discontinue: _videoNextDts=${this._videoNextDts}, _audioNextDts=${this._audioNextDts}, vaDelta=${vaDelta}`)
 
       let vDeltaToNextDts = firstVideoSample ? firstVideoSample.dts - this._baseDts - this._videoNextDts : 0
       let aDeltaToNextDts = firstAudioSample ? firstAudioSample.dts - this._baseDts - this._audioNextDts : 0
@@ -94,9 +94,10 @@ class HlsCompatibility extends Base {
 
     this._resetBaseDtsWhenStreamBreaked()
 
-    this._doFixVideo(this.videoTrack)
-
+    // fix audio first
     this._doFixAudio(this.audioTrack)
+
+    this._doFixVideo(this.videoTrack)
 
     this._lastSegment = segment
   }
@@ -145,6 +146,7 @@ class HlsCompatibility extends Base {
       // 是否需要整个分片调整时间戳
       if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_VIDEO_FRAME_DURATION) {
         this._videoTimestampBreak = true
+        logger.log(this.TAG, 'video: offset whole frames!')
         samples.forEach((x, i) => {
           if (i === 0) return
           x.dts += vDelta
@@ -167,10 +169,12 @@ class HlsCompatibility extends Base {
       }
 
       if (sampleDuration > MAX_VIDEO_FRAME_DURATION || sampleDuration < 0) {
-        // dts异常
-        logger.log(this.TAG, `duration exception:currentTime=${dts / 1000}, dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
+        // dts exception of adjacent frame
+        logger.log(this.TAG, `video: duration exception:currentTime=${dts / 1000}, dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration} _audioTimestampBreak=${this._audioTimestampBreak}`)
         this._videoTimestampBreak = true
-        sampleDuration = refSampleDurationInt
+
+        // check if only video breaked
+        sampleDuration = this._audioTimestampBreak ? refSampleDurationInt : sampleDuration
 
         // emit stream breaked
         this.emit(COMPATIBILITY_EVENTS.EXCEPTION, {

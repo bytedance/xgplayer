@@ -53,83 +53,28 @@ class HlsVodController extends BaseController {
 
   _onSourceUpdateEnd = () => {
     if (!this._player || !this._player.video) return
-    const player = this._player
 
-    if (player.video.readyState === 1 || player.video.readyState === 2) {
-      const { gap, start, method } = this._detectBufferGap()
-      if (gap) {
-        if (method === 'ceil' && player.currentTime < Math[method](start)) {
-          player.currentTime = Math[method](start)
-        } else if (method === 'floor' && player.currentTime > Math[method](start)) {
-          player.currentTime = Math[method](start)
-        }
-      }
-    }
+    const video = this._player.video
 
-    const video = player.video
     if (!video.buffered.length) return
-    // 对外事件
+
+    this._checkEndOfStream()
+
+    // eimt to out
     this.emitCoreEvent(CORE_EVENTS.BUFFER_APPENDED)
   }
 
-  _seekToBufferStart = () => {
-    if (!this._player) return
-    const video = this._player.video
-    const buffered = video.buffered
-    const range = [0, 0]
-    const currentTime = video.currentTime
-    if (buffered) {
-      for (let i = 0, len = buffered.length; i < len; i++) {
-        range[0] = buffered.start(i)
-        range[1] = buffered.end(i)
-        if (range[0] <= currentTime && currentTime <= range[1]) {
-          return
-        }
-      }
-    }
+  // condition for close mediasource
+  _checkEndOfStream = () => {
+    const { buffered, duration } = this._player.video
 
-    const bufferStart = range[0]
+    const len = buffered.length
 
-    if (currentTime === 0 && currentTime < bufferStart && Math.abs(currentTime - bufferStart) < 3) {
-      video.currentTime = bufferStart
-    }
-  }
+    if (!len) return
 
-  _detectBufferGap = () => {
-    const { video } = this._player
-    let result = {
-      gap: false,
-      start: -1
+    if (duration - buffered.end(len - 1) < 0.5) {
+      this.mse.endOfStream()
     }
-    for (let i = 0; i < video.buffered.length; i++) {
-      const bufferStart = video.buffered.start(i)
-      const bufferEnd = video.buffered.end(i)
-      if (!video.played.length || (bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5)) {
-        break
-      }
-      const startGap = bufferStart - this.currentTime
-      const endGap = this.currentTime - bufferEnd
-      if (startGap > 0.01 && startGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferStart,
-          method: 'ceil'
-        }
-        break
-      } else if (endGap > 0.1 && endGap <= 2) {
-        result = {
-          gap: true,
-          start: bufferEnd,
-          method: 'floor'
-        }
-      } else {
-        result = {
-          gap: false,
-          start: -1
-        }
-      }
-    }
-    return result
   }
 
   _onMetadataParsed = (type) => {
@@ -148,31 +93,7 @@ class HlsVodController extends BaseController {
 
   _onTimeUpdate = () => {
     if (!this._player) return
-    this._seekToBufferStart()
     this._preload(this._player.currentTime)
-  }
-
-  _onWaiting = () => {
-    if (!this._player) return
-
-    this._seekToBufferStart()
-
-    const { duration, video } = this._player
-
-    if (Math.abs(video.currentTime - duration) < 1) {
-      this.mse.endOfStream()
-    }
-
-    if (Math.abs(video.currentTime - duration) < 0.5) {
-      this._player.emit('ended')
-    }
-  }
-
-  _onRemuxError (mod, error, fatal) {
-    if (fatal === undefined) {
-      fatal = true
-    }
-    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal)
   }
 
   destroy () {

@@ -43,9 +43,9 @@ class HlsVodController {
 
   _bindEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete)
-    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onError)
     this.on(DEMUX_EVENTS.SEI_PARSED, sei => this._player.emit('SEI_PARSED', sei))
 
@@ -64,14 +64,9 @@ class HlsVodController {
     this.connectEvent(COMPATIBILITY_EVENTS.EXCEPTION, CORE_EVENTS.STREAM_EXCEPTION)
 
     this._player.on('timeupdate', this._onTimeUpdate)
-    this._player.on('waiting', this._onWaiting)
   }
 
   _onTimeUpdate = () => {
-    throw new Error('need override by children')
-  }
-
-  _onWaiting = () => {
     throw new Error('need override by children')
   }
 
@@ -278,6 +273,7 @@ class HlsVodController {
   }
 
   _onError = (_, error) => {
+    this.destroy()
     this._player?.emit('error', new Errors(this._player, error))
   }
 
@@ -294,7 +290,6 @@ class HlsVodController {
     this.mse = null
 
     this._player.off('timeupdate', this._onTimeUpdate)
-    this._player.off('waiting', this._onWaiting)
   }
 }
 export default HlsVodController

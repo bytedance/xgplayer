@@ -26,9 +26,9 @@ class FlvCompatibility extends Base {
 
     this._resetBaseDtsWhenStreamBreaked()
 
-    this._doFixVideo(this.videoTrack)
-
     this._doFixAudio(this.audioTrack)
+
+    this._doFixVideo(this.videoTrack)
   }
 
   _doFixVideo (videoTrack) {
@@ -120,10 +120,12 @@ class FlvCompatibility extends Base {
           })
         }
 
-        logger.log(this.TAG, `duration exception: currentTime=${dts / 1000}s,  dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}`)
+        logger.log(this.TAG, `video: duration exception: currentTime=${dts / 1000}s,  dts=${dts}, nextSampleDts=${nextSample ? nextSample.dts : 0} duration=${sampleDuration}, _audioTimestampBreak=${this._audioTimestampBreak}`)
 
         this._videoTimestampBreak = true
-        sampleDuration = refSampleDurationInt
+
+        // check if only video breaked
+        sampleDuration = this._audioTimestampBreak ? refSampleDurationInt : sampleDuration
       }
 
       samples[i].duration = sampleDuration
