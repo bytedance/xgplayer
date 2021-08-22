@@ -199,8 +199,11 @@ self.onmessage = function (e) {
       msg: 'ERROR:invalid message'
     })
   } else {
-    if (data.msg !== 'init' && !decoder) return
+    if ((data.msg !== 'init' && data.msg !=='preload') && !decoder) return
     switch (data.msg) {
+      case 'preload':
+        init(data.url)
+        break
       case 'init':
         self.meta = data.meta
         self.postMessage({

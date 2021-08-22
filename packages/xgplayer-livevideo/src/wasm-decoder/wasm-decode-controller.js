@@ -41,6 +41,8 @@ export default class WasmDecodeController extends EventEmitter {
     this._meta = null
     this._workerErrorCallback = null
     this._workerMessageCallback = null
+    this._preload = customElements.get('live-video')?.preloadWorker || false
+    this._preloadWorker()
   }
 
   get inDecoding () {
@@ -74,6 +76,7 @@ export default class WasmDecodeController extends EventEmitter {
   }
 
   get isHevc () {
+    if(this._preload) return this._preload === 'h265'
     return (this._meta || {}).codec === 'hev1.1.6.L93.B0'
   }
 
@@ -115,8 +118,13 @@ export default class WasmDecodeController extends EventEmitter {
         case 'DECODER_READY':
           logger.log(this.TAG, 'wasm worker ready ', performance.now(), 'cost:', e.data.cost)
           this._wasmReady = true
-          // 加到decoder上面
+
+          // record  decoder init cost
           decoder._wasmInitCost = parseInt(e.data.cost)
+
+          // preload worker may ready before stream ready!
+          if (!this._meta) return
+
           if (!this._avccpushed) {
             this._initDecoderInternal(decoder, this._meta)
           }
@@ -128,7 +136,7 @@ export default class WasmDecodeController extends EventEmitter {
           break
         case 'DECODED':
           this._inDecoding = true
-          if(e.data?.info?.id !== this._id) return
+          if (e.data?.info?.id !== this._id) return
 
           this._workerMessageCallback({
             type: 'RECEIVE_FRAME',
@@ -138,18 +146,15 @@ export default class WasmDecodeController extends EventEmitter {
         case 'BATCH_FINISH_FLAG':
           decoder.using = 0
           this._inDecoding = false
+          if (!this._workerMessageCallback) return
           this._workerMessageCallback({
             type: 'BATCH_FINISH'
           })
-          break
-        case 'LOG':
-          // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
           break
         case 'INIT_FAILED':
           _whenFail(e.data.log, 1)
           break
         default:
-          console.error('invalid messaeg', e)
       }
     }
 
@@ -162,36 +167,57 @@ export default class WasmDecodeController extends EventEmitter {
     decoder.addEventListener('error', decoder.onError)
   }
 
+  // preload worker once controller instantiate
+  _preloadWorker () {
+    if (!this._preload) return
+    if (this._wasmWorkers.length) return
+
+    logger.log(this.TAG, 'preload worker')
+    const { decoder, url } = this._selectDecodeWorker()
+    this._avccpushed = false
+    this._bindWorkerEvent(decoder)
+    // 初始化wasm实例
+    decoder.postMessage({
+      msg: 'preload',
+      batchDecodeCount: 10,
+      url
+    })
+    this._wasmWorkers.push(decoder)
+  }
+
+  // select worker from cache
+  // or create new worker when stream ready with metadata
   _initDecodeWorkerInternal (delay) {
-    let { decoder } = this._selectDecodeWorkerFromCache()
+    const { decoder } = this._selectDecodeWorkerFromCache()
     if (decoder) {
       logger.warn(this.TAG, 'select decoder from cache')
       this._avccpushed = false
       this._bindWorkerEvent(decoder)
       // 不需要重新初始化wasm
       this._wasmReady = true
-      this._workerMessageCallback({
-        type: 'DECODER_READY',
-        data: decoder
-      })
       if (!delay) {
         this._wasmWorkers.push(decoder)
       }
       this._initDecoderInternal(decoder, this._meta)
-    } else {
-      let { decoder, url } = this._selectDecodeWorker()
-      this._avccpushed = false
-      this._bindWorkerEvent(decoder)
-      // 初始化wasm实例
-      decoder.postMessage({
-        msg: 'init',
-        meta: this._meta,
-        batchDecodeCount: 10,
-        url
+      this._workerMessageCallback({
+        type: 'DECODER_READY',
+        data: decoder
       })
-      if (!delay) {
-        this._wasmWorkers.push(decoder)
-      }
+      return
+    }
+
+    const { decoder: newDecoder, url } = this._selectDecodeWorker()
+    this._avccpushed = false
+    this._bindWorkerEvent(newDecoder)
+    // 初始化wasm实例
+    newDecoder.postMessage({
+      msg: 'init',
+      meta: this._meta,
+      batchDecodeCount: 10,
+      url
+    })
+    if (!delay) {
+      this._wasmWorkers.push(newDecoder)
     }
   }
 
@@ -205,7 +231,7 @@ export default class WasmDecodeController extends EventEmitter {
     this._workerMessageCallback = messaegCb
     this._workerErrorCallback = errCb
 
-    //  针对低延迟265 横竖屏切换
+    //  for 265 lowlatency, change resolution of same stream
     if (this._parent.lowlatency && this._meta && meta) {
       if (meta.presentWidth !== this._meta.presentWidth) {
         console.log('重建worker')
@@ -215,6 +241,13 @@ export default class WasmDecodeController extends EventEmitter {
         this._meta = meta
         return
       }
+    }
+
+    // worker ready before stream ready with metadata
+    if (this._wasmReady && !this._meta) {
+      this._workerMessageCallback({
+        type: 'DECODER_READY'
+      })
     }
 
     this._meta = meta
@@ -244,12 +277,12 @@ export default class WasmDecodeController extends EventEmitter {
         // ready 之后才可用
         if (this._wasmWorkers.length >= 2) return
 
-        let nextFrame = _timeRange.nextFrame()
+        const nextFrame = _timeRange.nextFrame()
 
-        let currentGopId = nextFrame ? nextFrame.gopId : 0
+        const currentGopId = nextFrame ? nextFrame.gopId : 0
 
         // 当前正在解码的gop沿用老worker
-        let odd = (currentGopId - 1) % 2
+        const odd = (currentGopId - 1) % 2
 
         if (odd) {
           this._wasmWorkers.unshift(decoder)
@@ -258,7 +291,7 @@ export default class WasmDecodeController extends EventEmitter {
         }
 
         // 大约 [80,120] 帧
-        let maxDecodeOnce = Math.max(
+        const maxDecodeOnce = Math.max(
           Math.min(
             // 防止gop过大、preloadTime过大
             gopLength * 2,
@@ -278,6 +311,7 @@ export default class WasmDecodeController extends EventEmitter {
     })
   }
 
+  // init decoder with sps、pps
   _initDecoderInternal (worker, meta) {
     logger.log(this.TAG, 'init decoder')
     this._avccpushed = true
@@ -289,7 +323,7 @@ export default class WasmDecodeController extends EventEmitter {
     const sps = meta.rawSps || meta.sps
     const pps = meta.rawPps || meta.pps
     if (vps) {
-      let data = new Uint8Array(vps.byteLength + 4)
+      const data = new Uint8Array(vps.byteLength + 4)
       data.set([0, 0, 0, 1])
       data.set(vps, 4)
       worker.postMessage({
@@ -321,7 +355,7 @@ export default class WasmDecodeController extends EventEmitter {
   }
 
   _doDecodeInternal (sample) {
-    let len = this._wasmWorkers.length
+    const len = this._wasmWorkers.length
     let gopId = 0
     if (sample.gopId) {
       gopId = sample.gopId - 1
@@ -358,7 +392,7 @@ export default class WasmDecodeController extends EventEmitter {
 
     if (!this.wasmReady || !_timeRange) return
 
-    let rest = _timeRange.frameLength
+    const rest = _timeRange.frameLength
 
     if (!rest) return
 
@@ -368,10 +402,10 @@ export default class WasmDecodeController extends EventEmitter {
       _decodeEstimate.resetDecodeDot(performance.now())
     }
 
-    let frameList = []
+    const frameList = []
 
     while (len >= 0) {
-      let sample = _timeRange && _timeRange.getFrame()
+      const sample = _timeRange && _timeRange.getFrame()
       if (!sample) break
       frameList.push(sample)
       if (sample.gopId && sample.gopId - 1 === 0) {
@@ -385,7 +419,7 @@ export default class WasmDecodeController extends EventEmitter {
   doDecode () {
     const frameList = this._getFramesToDecode()
 
-    if (!frameList) return
+    if (!frameList || !this._meta) return
 
     frameList.forEach((f) => {
       this._doDecodeInternal(f)
@@ -434,7 +468,7 @@ export default class WasmDecodeController extends EventEmitter {
     if (reuseWorker) {
       // 只在单worker时使用
       if (!workerCached.length && !this.isHevc && this._wasmWorkers.length === 1) {
-        let worker = this._wasmWorkers.pop()
+        const worker = this._wasmWorkers.pop()
         worker.removeEventListener('message', worker.onMessage)
         worker.removeEventListener('error', worker.onError)
         workerCached.push(worker)

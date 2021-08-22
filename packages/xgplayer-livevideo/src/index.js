@@ -71,6 +71,25 @@ class MVideo extends HTMLElement {
     return true
   }
 
+
+  static set nobgAudio(v){
+    MVideo._nobgAudio = v
+  }
+
+  static get nobgAudio(){
+    return MVideo._nobgAudio || false
+  }
+
+  // preload worker before stream ready?
+  // h264 | h265
+  static set preloadWorker(v){
+    MVideo._preloadWorker = v
+  }
+
+  static get preloadWorker(){
+    return MVideo._preloadWorker || ''
+  }
+
   addEventListener (eventName, handler, capture) {
     super.addEventListener(eventName, handler, capture)
     this._eventsBackup.push([eventName, handler, capture])
