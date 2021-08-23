@@ -439,10 +439,28 @@ class VideoProxy {
 
   /**
    * @type { MediaError }
-   * @description  频错误信息，该错误会返回当前语言的文本
+   * @description the player current error
    */
   get error () {
     return this.video.error
+  }
+
+  /**
+   * @type { string }
+   * @description return error description text
+   */
+  get errorNote () {
+    const err = this.video.error
+    if (!err) {
+      return ''
+    }
+    const status = [
+      'MEDIA_ERR_ABORTED',
+      'MEDIA_ERR_NETWORK',
+      'MEDIA_ERR_DECODE',
+      'MEDIA_ERR_SRC_NOT_SUPPORTED'
+    ]
+    return status[err.code - 1]
   }
 
   /**
