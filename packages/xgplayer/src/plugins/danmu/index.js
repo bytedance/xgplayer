@@ -302,6 +302,8 @@ class Danmu extends Plugin {
   destroy () {
     this.danmujs.stop()
     this.danmujs.destroy()
+    this.danmujs = null
+    this.player.danmu = null
     const { danmuButton, danmuPanel } = this
     this.danmuButton && danmuButton.__destroy && danmuButton.__destroy()
     this.danmuPanel && danmuPanel.__destroy && danmuPanel.__destroy()

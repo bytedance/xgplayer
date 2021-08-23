@@ -64,8 +64,8 @@ const ErrorTypes = {
  *   readyState: number,
  *   networkState: number,
  *   src: any,
- *   type: string,
- *   code: number,
+ *   errorType: string,
+ *   errorCode: number,
  *   message: string,
  *   mediaError?: {
  *     code: number,
@@ -107,8 +107,8 @@ class Errors {
         readyState,
         networkState,
         src,
-        type: errorInfo.errorType,
-        code: errorInfo.errorCode || mediaError.code,
+        errorType: errorInfo.errorType,
+        errorCode: errorInfo.errorCode || mediaError.code,
         message: errorInfo.errorMessage || mediaError.message,
         mediaError,
         originError: errorInfo.originError ? errorInfo.originError.stack : ''

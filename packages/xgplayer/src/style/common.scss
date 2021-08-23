@@ -350,7 +350,7 @@
 // 竖屏兼容
 @media screen and (orientation:portrait) {
   .xgplayer-mobile {
-    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen {
+    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen, &.xgplayer-inner-fullscreen{
       //.flex-controls {
       .xgplayer-controls {
         /* bottom: 34px; */
