@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "3.0.0-alpha.123-1",
+  "version": "3.0.0-alpha.123-4",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -21,10 +21,10 @@
     "dist"
   ],
   "dependencies": {
-    "xgplayer-helper-codec": "2.4.33-beta.1",
-    "xgplayer-helper-models": "2.4.33-beta.1",
-    "xgplayer-helper-transmuxers": "2.4.33-beta.1",
-    "xgplayer-helper-utils": "2.4.33-beta.1"
+    "xgplayer-helper-codec": "2.4.33-beta.4",
+    "xgplayer-helper-models": "2.4.33-beta.4",
+    "xgplayer-helper-transmuxers": "2.4.33-beta.4",
+    "xgplayer-helper-utils": "2.4.33-beta.4"
   },
   "peerDependencies": {
     "xgplayer": "3.0.0-alpha.89"
@@ -46,7 +46,7 @@
             {
               "search": "__VERSION__",
               "searchTemplateStrings": true,
-              "replace": "3.0.0-alpha.123-1"
+              "replace": "3.0.0-alpha.123-4"
             }
           ]
         }

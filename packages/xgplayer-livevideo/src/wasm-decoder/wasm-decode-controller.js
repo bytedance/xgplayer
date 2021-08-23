@@ -76,7 +76,7 @@ export default class WasmDecodeController extends EventEmitter {
   }
 
   get isHevc () {
-    if(this._preload) return this._preload === 'h265'
+    if (this._preload) return this._preload === 'h265'
     return (this._meta || {}).codec === 'hev1.1.6.L93.B0'
   }
 
