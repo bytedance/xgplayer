@@ -57,7 +57,6 @@ const ErrorTypes = {
 /**
  * @typedef { {
  *   playerVersion: string,
- *   domain: string,
  *   currentTime: number,
  *   duration: number,
  *   ended: boolean,
@@ -100,7 +99,6 @@ class Errors {
       const { readyState, networkState } = player.video
       const r = {
         playerVersion: version,
-        domain: document.domain,
         currentTime,
         duration,
         ended,
