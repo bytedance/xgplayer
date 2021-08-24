@@ -273,7 +273,9 @@ class HlsVodController {
   }
 
   _onError = (_, error) => {
-    this.destroy()
+    if (_ === 'MSE') {
+      this.destroy()
+    }
     this._player?.emit('error', new Errors(this._player, error))
   }
 

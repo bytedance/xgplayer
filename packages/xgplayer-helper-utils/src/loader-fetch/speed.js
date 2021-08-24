@@ -13,8 +13,11 @@ export default class Speed {
      */
     recordLoading (header) {
       const contentLength = header.get('content-length') || 0
+      const acceptRanges = header.get('Accept-Ranges')
+      const contentRange = header.get('Content-Range')
+      const partialRequest = !!acceptRanges || !!contentRange
 
-      if (!contentLength) return
+      if (!contentLength || partialRequest) return
 
       this._contentLength = contentLength
 
@@ -99,12 +102,11 @@ export default class Speed {
       }, 0) / len
 
       this._speed = Math.floor(avg) * 1000 // B/s
-
-      console.log('speed: ', this._speed)
     }
 
     _cleanTimer () {
       clearTimeout(this._timer)
+      this._timer = 0
     }
 
     clean () {
