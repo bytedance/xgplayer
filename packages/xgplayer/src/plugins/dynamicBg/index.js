@@ -134,8 +134,10 @@ class DynamicBg extends Plugin {
      * @readonly
      */
     this.canvasCtx = null
+
     this.once(Events.COMPLETE, () => {
       this.init()
+      !this.player.paused && this.start()
     })
 
     this.once(Events.LOADED_DATA, this.onLoadedData)

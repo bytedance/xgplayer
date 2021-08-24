@@ -969,7 +969,7 @@ class Player extends VideoProxy {
     delHooksDescriptor(this)
     super.destroy()
     // 退出全屏
-    if (this.fullscreen) {
+    if (this.fullscreen && this._fullscreenEl === this.root) {
       try {
         this.exitFullscreen()
       } catch (e) {}
@@ -996,9 +996,6 @@ class Player extends VideoProxy {
 
     ['isReady', 'isPlaying', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
       this[key] = false
-    });
-    ['_fullscreenEl', '_cssfullscreenEl', '_fullScreenOffset', '_orgCss'].map(key => {
-      this[key] = null
     })
   }
 
