@@ -1,9 +1,9 @@
 import { BasePlugin, Events } from '../../plugin'
 /**
  * @typedef {{
- *   seekStep?: number, // 左/右快进每次操作时长
- *   checkVisible?: boolean, // 快捷键生效的时候是否检测可见性
- *   disableBodyTrigger?: boolean, // 是否在body上做快捷键监听
+ *   seekStep?: number,
+ *   checkVisible?: boolean,
+ *   disableBodyTrigger?: boolean,
  *   keyCodeMap?: { [propName: string]: any },
  *   disable: boolean,
  *   [propName: string]: any
@@ -25,9 +25,9 @@ class Keyboard extends BasePlugin {
    */
   static get defaultConfig () {
     return {
-      seekStep: 10,
-      checkVisible: true,
-      disableBodyTrigger: false,
+      seekStep: 10, // Left/right fast forward each operation time
+      checkVisible: true, // Whether to check the visibility when the shortcut key takes effect
+      disableBodyTrigger: false, // Whether to monitor the shortcut keys on the body
       keyCodeMap: {},
       disable: false
     }
@@ -59,13 +59,13 @@ class Keyboard extends BasePlugin {
         keyCode: 32,
         action: 'playPause',
         disable: false,
-        noBodyTarget: false // 默认在body上触发
+        noBodyTarget: false
       },
       up: {
         keyCode: 38,
         action: 'upVolume',
         disable: false,
-        noBodyTarget: true // 默认不在body上触发
+        noBodyTarget: true
       },
       down: {
         keyCode: 40,

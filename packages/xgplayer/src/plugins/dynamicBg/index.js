@@ -15,7 +15,7 @@ function nowTime () {
   }
 }
 /**
- * 检查当前的video对象是否支持video截图
+ * Check whether the current video object supports screenshots
  * @param { VideoElement } video
  * @returns
  */
@@ -28,7 +28,7 @@ function checkVideoIsSupport (video) {
 }
 
 /**
- * 检查当前环境是否支持canvas
+ * Check whether the current environment supports canvas
  * @returns { Boolean }
  */
 function checkIsSupportCanvas () {
@@ -46,11 +46,11 @@ function checkIsSupportCanvas () {
 /**
  * @typedef { {
  *   disable?: boolean,
- *   mode?: "realtime" | "firstframe" | "framerate", //渲染方式
- *   frameRate?: number, // 按帧的时候渲染帧率
- *   filter?: string,  // 滤镜设置
- *   addMask?: boolean, // 是否需要蒙层
- *   maskBg?: string, // 蒙层颜色
+ *   mode?: "realtime" | "firstframe" | "framerate",
+ *   frameRate?: number
+ *   filter?: string,
+ *   addMask?: boolean,
+ *   maskBg?: string,
  *   [propName: string]: any
  * } } IDynamicBgConfig
  */
@@ -67,11 +67,17 @@ class DynamicBg extends Plugin {
   static get defaultConfig () {
     return {
       disable: true,
-      mode: 'framerate', // realtime-实时渲染 firstframe - 仅仅渲染首帧 framerate-按帧渲染
-      frameRate: 10, // 按帧的时候渲染帧率
-      filter: 'blur(50px)', // 滤镜设置
-      addMask: true, // 是否需要蒙层
-      maskBg: 'rgba(0,0,0,0.7)' // 蒙层颜色
+      /**
+       * Rendering method
+       * realtime - Realtime rendering
+       * firstframe - Render only the first frame
+       * framerate - Render by frame
+       */
+      mode: 'framerate',
+      frameRate: 10, // Frame rate when mode=framerate
+      filter: 'blur(50px)', // Filter settings
+      addMask: true, // Whether need a mask
+      maskBg: 'rgba(0,0,0,0.7)' // Mask background color
     }
   }
 
@@ -153,7 +159,7 @@ class DynamicBg extends Plugin {
       })
     }
 
-    // 首帧渲染
+    // First frame rendering
     if (mode === MODES.FIRST_FRAME) {
       this.once(Events.TIME_UPDATE, () => {
         const { video } = this.player
@@ -173,14 +179,14 @@ class DynamicBg extends Plugin {
   init () {
     const { player, config } = this
     try {
-      // 保证节点插入到video之前
+      // Ensure that the node is inserted before player.video
       const parent = player.innerContainer || player.root
       parent.insertAdjacentHTML('afterbegin',
         `<div class="xgplayer-dynamic-bg"><canvas>
         </canvas><xgmask></xgmask></div>`)
       this.root = parent.children[0]
       this.canvas = this.find('canvas')
-      // safari中canvas filter不生效
+      // Canvas filter does not take effect in safari
       if (Sniffer.browser === 'safari') {
         this.canvas.style.filter = config.filter
         this.canvas.style.webkitFilter = config.filter
@@ -226,7 +232,7 @@ class DynamicBg extends Plugin {
     if (!url) {
       return
     }
-    // 使用首帧预览图渲染
+    // Render using the image
     const { width, height } = this.canvas.getBoundingClientRect()
     let image = new window.Image()
     image.onload = () => {

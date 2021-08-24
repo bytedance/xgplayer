@@ -56,23 +56,23 @@ class Danmu extends Plugin {
    */
   static get defaultConfig () {
     return {
-      comments: [], // 弹幕数组,
-      area: { // 弹幕显示区域
-        start: 0, // 区域顶部到播放器顶部所占播放器高度的比例
-        end: 1 // 区域底部到播放器顶部所占播放器高度的比例
+      comments: [], // initial barrage list组,
+      area: { // Barrage display area
+        start: 0,
+        end: 1
       },
       closeDefaultBtn: false, // TODO: 开启此项后不使用默认提供的弹幕开关，默认使用西瓜播放器提供的开关
       defaultOff: false, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
-      panel: false, // 是否安装配置面板
-      panelConfig: {}, // 配置面板促使配置
-      switchConfig: {}, // 开关按钮配置信息
-      defaultOpen: true, // 是否默认开启弹幕
-      isLive: false, // 是否是直播
-      channelSize: 24, // 默认24px
-      fontSize: 14, // 默认12
-      opacity: 1, // 透明度
-      mouseControl: false, // 打开鼠标控制, 打开后可监听到 bullet_hover 事件。danmu.on('bullet_hover', function (data) {})
-      mouseControlPause: false, // 鼠标触摸暂停。mouseControl: true 生效
+      panel: false, // Whether to install the configuration panel
+      panelConfig: {}, // Initial configuration of the configuration panel
+      switchConfig: {}, // Switch button configuration information
+      defaultOpen: true, // Whether to open the barrage by default
+      isLive: false, // Is it live
+      channelSize: 24, // default 24px
+      fontSize: 14, // default 12
+      opacity: 1,
+      mouseControl: false,
+      mouseControlPause: false,
       ext: {},
       style: {}
     }
@@ -129,7 +129,7 @@ class Danmu extends Plugin {
   }
 
   onPluginsReady () {
-    // 添加点击触发事件触发 依赖pc插件
+    // Add click trigger event trigger, rely on pc plug-in
     const pcPlugin = this.player.plugins.pc
     if (pcPlugin) {
       pcPlugin.onVideoDblClick && this.bind('dblclick', pcPlugin.onVideoDblClick)

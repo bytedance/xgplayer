@@ -13,7 +13,7 @@ export default class ErrorPlugin extends Plugin {
       }
     })
 
-    this.onError = this.hook('errorHandler', this.handleError)
+    this.onError = this.hook('showError', this.handleError)
 
     this.bind('.xgplayer-error-refresh', 'click', this.clickHandler)
     this.on(Events.CANPLAY, () => {

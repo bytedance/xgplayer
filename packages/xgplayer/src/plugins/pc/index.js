@@ -76,7 +76,7 @@ export default class PCPlugin extends BasePlugin {
     const { closePlayerBlur, leavePlayerTime } = this.playerConfig
     if (!closePlayerBlur) {
       if (leavePlayerTime) {
-        this.player.focus({ autoHide: true, delay: leavePlayerTime })
+        this.player.focus({ autoHide: true, hideDelay: leavePlayerTime })
       } else {
         this.player.blur()
       }

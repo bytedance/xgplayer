@@ -227,7 +227,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 是否开始播放
+   * @description
    */
   get hasStart () {
     return this._hasStart
@@ -324,7 +324,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 设置/返回 自动播放属性
+   * @description set/get autoplay
    */
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
@@ -336,7 +336,7 @@ class VideoProxy {
 
   /**
    * @type { TimeRanges }
-   * @description  返回当前缓冲的TimeRange对象集合
+   * @description  returns the current buffered TimeRange
    */
   get buffered () {
     return this.video.buffered
@@ -344,7 +344,7 @@ class VideoProxy {
 
   /**
    * @type { Array<{start: number, end: number}> }
-   * @description  返回当前自定义的缓存列表
+   * @description  Return the current customized TimeRange list
    */
   get buffered2 () {
     return Util.getBuffered2(this.video.buffered)
@@ -375,7 +375,7 @@ class VideoProxy {
 
   /**
    * @type { string}
-   * @description 设置/返回是否跨域
+   * @description set/get whether to allow cross-domain
    * */
   get crossOrigin () {
     return this.video.crossOrigin
@@ -387,7 +387,7 @@ class VideoProxy {
 
   /**
    * @type { string }
-   * @description 设置/返回视频播放地址
+   * @description set/get player.vide.currentSrc
    * */
   get currentSrc () {
     return this.video.currentSrc
@@ -399,7 +399,7 @@ class VideoProxy {
 
   /**
    * @type { number }
-   * @description 设置/返回视频当前播放时间
+   * @description set/get player.vide.currentTime
    * */
   get currentTime () {
     return this.video.currentTime !== undefined ? this.video.currentTime : this._currentTime
@@ -411,7 +411,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * 设置/返回视频默认静音
+   * @description set/get player.vide.defaultMuted
    * */
   get defaultMuted () {
     return this.video.defaultMuted
@@ -423,7 +423,7 @@ class VideoProxy {
 
   /**
    * @type { number }
-   * @description 返回视频时长，单位：s
+   * @description return video duration, unit:s
    * */
   get duration () {
     return this._duration
@@ -431,7 +431,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description  回视频是否播放结束
+   * @description  return video.ended
    * */
   get ended () {
     return this.video.ended
@@ -465,7 +465,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 否开启了循环播放
+   * @description get/set video.loop
    */
   get loop () {
     return this.video.loop
@@ -477,7 +477,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 静音
+   * @description get/set video.muted
    */
   get muted () {
     return this.video.muted
@@ -489,7 +489,7 @@ class VideoProxy {
 
   /**
    * @type { number }
-   * @description  返回视频的当前网络状态
+   * @description  get/set video.networkState
    */
   get networkState () {
     return this.video.networkState
@@ -497,7 +497,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description  回当前视频是否是暂停状态
+   * @description  return the player is paused
    */
   get paused () {
     return this.video.paused
@@ -505,7 +505,7 @@ class VideoProxy {
 
   /**
    * @type { number }
-   * @description 返回/设置倍速
+   * @description
    */
   get playbackRate () {
     return this.video.playbackRate
@@ -536,7 +536,7 @@ class VideoProxy {
 
   /**
    * @type { string }
-   * @description 回视频的就绪状态
+   * @description Return the ready state of the video
    */
   get readyState () {
     return this.video.readyState
@@ -544,7 +544,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 当前视频是否可以seek
+   * @description Return whether the current video/audio can seek
    */
   get seekable () {
     return this.video.seekable
@@ -552,7 +552,7 @@ class VideoProxy {
 
   /**
    * @type { boolean }
-   * @description 当前视频是否处于seeking状态下
+   * @description Returns whether the current video/audio is in the seeking state
    */
   get seeking () {
     return this.video.seeking
@@ -560,7 +560,7 @@ class VideoProxy {
 
   /**
    * @type { any }
-   * @description 设置/返回当前视频的地址
+   * @description set/return the src of the current video/audio
    */
   get src () {
     return this.video.src
@@ -581,7 +581,7 @@ class VideoProxy {
 
   /**
    * @type { number }
-   * @description 设置/返回视频的音量
+   * @description Set/return the volume of the video/audio
    */
   get volume () {
     return this.video.volume
@@ -591,7 +591,9 @@ class VideoProxy {
     this.video.volume = vol
   }
 
-  /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
+  /** *******************
+   * The following APIs are only for declaration,implementation of APIs refer EventEmitter
+   * ******************/
 
   /**
    *
