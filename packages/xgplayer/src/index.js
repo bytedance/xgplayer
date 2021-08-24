@@ -8,6 +8,7 @@ import Errors from './error'
 import Sniffer from './utils/sniffer'
 import Util from './utils/util'
 import PresetPlayer from './index-umd'
+import { STATES } from './state'
 
 export {
   PresetPlayer as default,
@@ -19,5 +20,6 @@ export {
   Sniffer,
   Util,
   STATE_CLASS,
-  I18N
+  I18N,
+  STATES
 }

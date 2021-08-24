@@ -32,7 +32,7 @@ export default class DefinitionIcon extends OptionsIcon {
       index: 3,
       list: [],
       disable: false,
-      hidePortrait: false, // 是否在移动端竖屏状态下隐藏
+      hidePortrait: false, // Whether to hide in the vertical screen state of the mobile terminal
       className: 'xgplayer-definition'
     }
   }
@@ -197,7 +197,7 @@ export default class DefinitionIcon extends OptionsIcon {
     const { player } = this
     const target = e.delegateTarget
     const url = target.getAttribute('url')
-    this.emitUserAction(e, 'change_definition', { from: data.from, to: data.to })
+    this.emitUserAction(e, 'change_definition', { prop: 'definition', from: data.from, to: data.to })
     player.emit(Events.BEFORE_DEFINITION_CHANGE, url)
     this.changeDefinition(data.to)
     player.emit(Events.DEFINITION_CHANGE, { from: data.from, to: data.to })

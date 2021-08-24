@@ -64,7 +64,7 @@ class BasePlugin {
     /**
      * @private
      */
-    this.__events = {} // 对player的事件监听缓存
+    this.__events = {}
     this.config = args.config || {}
     /**
      * @readonly
@@ -103,37 +103,6 @@ class BasePlugin {
     this.playerConfig = args.player && args.player.config
     this.pluginName = args.pluginName ? args.pluginName.toLowerCase() : this.constructor.pluginName.toLowerCase()
     this.logger = args.player && args.player.logger
-    // BasePlugin.defineGetterOrSetter(this, {
-    //   player: {
-    //     get: () => {
-    //       return args.player
-    //     },
-    //     configurable: true
-    //   },
-    //   playerConfig: {
-    //     get: () => {
-    //       return args.player && args.player.config
-    //     },
-    //     configurable: true
-    //   },
-
-    //   pluginName: {
-    //     get: () => {
-    //       if (args.pluginName) {
-    //         return args.pluginName.toLowerCase()
-    //       } else {
-    //         return this.constructor.pluginName.toLowerCase()
-    //       }
-    //     },
-    //     configurable: true
-    //   },
-    //   logger: {
-    //     get: () => {
-    //       return args.player.logger
-    //     },
-    //     configurable: true
-    //   }
-    // })
   }
 
   /**
@@ -240,25 +209,24 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
-  emitUserAction (event, action, params = {}) {
+  emitUserAction (event, action, props = [], ext = {}) {
     if (!action || !event) {
       return
     }
     const eventType = Util.typeOf(event) === 'String' ? event : (event.type || '')
-
-    if (action === 'switch_play_pause') {
-      Util.typeOf(params.paused) === 'Undefined' && (params.paused = this.player.paused)
-      params.isFirstStart = !this.player.playing
+    event = new Event(eventType)
+    if (Util.typeOf(props) !== 'Array') {
+      props = [props]
     }
     this.emit(Events.USER_ACTION, {
-      eventType,
       action,
       pluginName: this.pluginName,
       currentTime: this.player.currentTime,
       duration: this.player.duration,
       ended: this.player.ended,
-      target: event.target || null,
-      ...params
+      event,
+      props,
+      ...ext
     })
   }
 

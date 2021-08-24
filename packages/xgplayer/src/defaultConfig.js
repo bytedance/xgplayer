@@ -1,78 +1,78 @@
 /**
  * @typedef { {
- *   id?: string, // 播放器容器id
- *   el?: HTMLElement, // 播放器容器dom
- *   url?: any, // 播放url
- *   nullUrlStart?: boolean, // 空url起播
- *   width?: number | string, // 播放器宽度,单位px
- *   height?: number | string, // 播放器高度,单位px
- *   fluid?: boolean, // 是否启用流式布局
- *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
- *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover', // video画面填充模式 fillHeight/fillWidth/fill/auto
- *   volume?: number | { [propName: string]: any }, // 默认音量
- *   autoplay?: boolean, // 是否自动播放
- *   autoplayMuted?: boolean, // 是否自动静音
- *   loop?: boolean, // 是否循环播放
- *   zoom?: number, // 缩放比例
- *   videoInit?: boolean, // 是否优先显示视频首帧
- *   poster?: string | { [propName: string]: any }, // 封面图地址
- *   isMobileSimulateMode?: 'mobile' | 'pc', // 模拟状态,取值mobile/pc
- *   defaultPlaybackRate?: number, // 默认播放倍数
- *   execBeforePluginsCall?: () => any, // 默认插件组装前回调
- *   allowSeekAfterEnded?: boolean, // 播放结束之后是否允许seek
- *   enableContextmenu?: boolean, // 启用右键菜单
- *   closeVideoClick?: boolean, // 是否通过video的click/touchend行为切换播放暂停
- *   closeVideoDblclick?: boolean, // 是否通过双击行为触发全屏切换
- *   closePlayerBlur?: boolean, // 是否关闭鼠标移出播放器范围触发blur操作
- *   closeDelayBlur?: boolean, // 是否关闭自动隐藏控制条
- *   leavePlayerTime?: number, // 延迟触发时间
- *   closePlayVideoFocus?: boolean, // 是否关闭play时触发focus
- *   closePauseVideoFocus?: boolean, // 是否关闭pause时触发focus
- *   closeFocusVideoFocus?: boolean, // 是否关闭播放器移动鼠标时触发focus
- *   closeControlsBlur?: boolean, // 鼠标移出播放器控制条范围时触发focus事件
- *   videoAttributes?: { [propName: string]: any }, // video扩展属性
- *   startTime?: number, // 自动播放起始时间点
- *   seekedStatus?: 'play' | 'pause' | 'auto', // seek结束之后播放状态 play/pause/auto
- *   miniprogress?: boolean, // 是否启用迷你控制栏
+ *   id?: string,
+ *   el?: HTMLElement,
+ *   url?: any,
+ *   nullUrlStart?: boolean,
+ *   width?: number | string,
+ *   height?: number | string,
+ *   fluid?: boolean,
+ *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed',
+ *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover',
+ *   volume?: number | { [propName: string]: any },
+ *   autoplay?: boolean,
+ *   autoplayMuted?: boolean,
+ *   loop?: boolean,
+ *   zoom?: number,
+ *   videoInit?: boolean,
+ *   poster?: string | { [propName: string]: any },
+ *   isMobileSimulateMode?: 'mobile' | 'pc',
+ *   defaultPlaybackRate?: number,
+ *   execBeforePluginsCall?: () => any,
+ *   allowSeekAfterEnded?: boolean,
+ *   enableContextmenu?: boolean,
+ *   closeVideoClick?: boolean,
+ *   closeVideoDblclick?: boolean,
+ *   closePlayerBlur?: boolean,
+ *   closeDelayBlur?: boolean,
+ *   leavePlayerTime?: number,
+ *   closePlayVideoFocus?: boolean,
+ *   closePauseVideoFocus?: boolean,
+ *   closeFocusVideoFocus?: boolean,
+ *   closeControlsBlur?: boolean,
+ *   videoAttributes?: { [propName: string]: any },
+ *   startTime?: number,
+ *   seekedStatus?: 'play' | 'pause' | 'auto',
+ *   miniprogress?: boolean,
  *   disableSwipeHandler?: () => any,
  *   enableSwipeHandler?: () => any,
- *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>, // 禁用插件列表
- *   inactive?: number, // 进度条自动消失延时
+ *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>,
+ *   inactive?: number,
  *   lang?: string,
  *   controls?: boolean | { [propName: string]: any },
- *   marginControls?: boolean, // 控制栏是否位于画面底部，不与画面重合
- *   screenShot?: boolean | { [propName: string]: any }, // 截图插件
- *   rotate?: boolean | { [propName: string]: any }, // 旋转插件
- *   pip?: boolean | { [propName: string]: any }, // pip插件
- *   download?: boolean | { [propName: string]: any }, // 是否启用下载插件
- *   mini?: boolean | { [propName: string]: any }, // 迷你小窗插件
- *   cssFullscreen?: boolean | { [propName: string]: any }, // 页面全屏
- *   keyShortcut?: boolean, // 是否开启快捷键
+ *   marginControls?: boolean,
+ *   screenShot?: boolean | { [propName: string]: any },
+ *   rotate?: boolean | { [propName: string]: any },
+ *   pip?: boolean | { [propName: string]: any },
+ *   download?: boolean | { [propName: string]: any },
+ *   mini?: boolean | { [propName: string]: any },
+ *   cssFullscreen?: boolean | { [propName: string]: any },
+ *   keyShortcut?: boolean,
  *   presets?: any[],
  *   plugins?: any[]
  *   playbackRate?: number | Array<number> | { [propName: string]: any },
  *   playsinline?: boolean,
- *   customDuration?: number, // 用户自定义时长
- *   timeOffset?: number, // 当前时长偏移
- *   icons?: { [propName: string]: string | HTMLElement | () => HTMLElement | string }, // 按钮配置
+ *   customDuration?: number,
+ *   timeOffset?: number,
+ *   icons?: { [propName: string]: string | HTMLElement | () => HTMLElement | string },
  *   i18n?: Array<any>,
  *   thumbnail?: {
- *     urls: Array<string>, // 有多张大图就多个url就好
- *     pic_num: number, // 每张图含有几个雪碧图
- *     col: number, // 截图列数
- *     row: number, // 截图行数
- *     height?: number, // 缩略图高度, 默认90
- *     width?: number, // 缩略图宽度， 默认160
+ *     urls: Array<string>,
+ *     pic_num: number,
+ *     col: number,
+ *     row: number,
+ *     height?: number,
+ *     width?: number,
  *   },
  *   videoConfig?: { [propName: string]: any },
  *   commonStyle?: {
- *     progressColor?: string, // 进度条底色
- *     playedColor?: string, // 播放完成部分进度条底色
- *     cachedColor?: string, // 缓存部分进度条底色
- *     sliderBtnStyle?: { [propName: string]: any }, // 进度条滑块样式
+ *     progressColor?: string,
+ *     playedColor?: string,
+ *     cachedColor?: string,
+ *     sliderBtnStyle?: { [propName: string]: any },
  *     volumeColor?: string
  *   },
- *   [propName: string]: any; // 扩展定义
+ *   [propName: string]: any;
  * } } IPlayerOptions
  */
 
@@ -82,76 +82,72 @@
  */
 export default function getDefaultConfig () {
   return {
-    id: '', // 播放器容器id
-    el: null, // 播放器容器dom
-    url: '', // 播放url
-    nullUrlStart: false, // 空url起播
-    width: 600, // 播放器宽度,单位px
-    height: 337.5, // 播放器高度,单位px
-    fluid: false, // 是否启用流式布局
-    fitVideoSize: 'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
-    videoFillMode: 'auto', // video画面填充模式 fillHeight/fillWidth/fill/auto/cover
-    volume: 0.6, // 默认音量
-    autoplay: false, // 是否自动播放
-    autoplayMuted: false, // 是否自动静音
-    loop: false, // 是否循环播放
-    zoom: 1, // 缩放比例
-    videoInit: true, // 是否优先显示视频首帧
-    poster: '', // 封面图地址
-    isMobileSimulateMode: false, // 模拟状态,取值mobile/pc
-    defaultPlaybackRate: 1, // 默认播放倍数
-    execBeforePluginsCall: null, // 默认插件组装前回调
-    allowSeekAfterEnded: true, // 播放结束之后是否允许seek
-    enableContextmenu: false, // 启用右键菜单
-    closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停
-    closeVideoDblclick: false, // 是否通过双击行为触发全屏切换
-    closePlayerBlur: false, // 是否关闭鼠标移出播放器范围触发blur操作
-    closeDelayBlur: false, // 是否关闭自动隐藏控制条
-    leavePlayerTime: 3000, // 延迟触发时间
-    closePlayVideoFocus: false, // 是否关闭play时触发focus
-    closePauseVideoFocus: false, // 是否关闭pause时触发focus
-    closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus
-    closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
-    videoAttributes: {}, // video扩展属性
-    startTime: 0, // 自动播放起始时间点
-    // isSeekedPlay: true, // seek结束之后是否默认播放
-    seekedStatus: 'play', // seek结束之后播放状态 play/pause/auto
-    miniprogress: false, // 是否启用迷你控制栏
+    id: '', // container DOM id
+    el: null, // container domElement
+    url: '', // the url need to play
+    nullUrlStart: false, // Whether to start broadcasting with empty url
+    width: 600, // Width, unit px
+    height: 337.5, // height, unit px
+    fluid: false,
+    fitVideoSize: 'fixed', // adaptation method of container width and height,  fixWidth/fixHeight/fixed/auto
+    videoFillMode: 'auto', // video screen fill mode, fillHeight/fillWidth/fill/auto/cover
+    volume: 0.6, // default volume or config of plug-in volume
+    autoplay: false,
+    autoplayMuted: false, // whether to mute the start
+    loop: false, // whether to loop
+    zoom: 1,
+    videoInit: true, // whether to load the video/audio when initializing
+    poster: '', // cover poster url or the configuration object for poster plugin
+    isMobileSimulateMode: false, // simulation state, mobile/pc
+    defaultPlaybackRate: 1, // default playback rate
+    execBeforePluginsCall: null,
+    allowSeekAfterEnded: true, // whether to allow seek after the playback ended
+    enableContextmenu: false, // whether to allow the right-click function to be enabled
+    closeVideoClick: false, // is to close the video’s click/touchend behavior to switch playback and pause
+    closeVideoDblclick: false, // is to close the video`s double-click behavior to switch through full screen
+    closePlayerBlur: false, // whether to close the behavior of calling player.blur() when the mouse moves out of the player area
+    closeDelayBlur: false, // whether to close the automatic hide control bar behavior
+    leavePlayerTime: 3000, // auto hide delay time when the mouse moves out of the player area
+    closePlayVideoFocus: false, //  whether to close the behavior of calling player.focus() in the play event callback
+    closePauseVideoFocus: false, //  whether to close the behavior of calling player.focus() in the pause event callback
+    closeFocusVideoFocus: false, // whether to close the behavior of calling player.video.focus() when start play
+    closeControlsBlur: false, // whether to close the behavior of calling player.focus() when the mouse moves out of the control bar area
+    videoAttributes: {}, // video extended attributes
+    startTime: 0, // auto play start time
+    seekedStatus: 'play', // play state after seek ends play/pause/auto
+    miniprogress: false, // whether to enable the mini progress bar
     disableSwipeHandler: () => {
     },
     enableSwipeHandler: () => {
     },
-    // 是否删除
-    ignores: [],
+    ignores: [], // list of plug-in names to be disabled
     whitelist: [],
-    inactive: 3000, // 进度条自动消失延时
+    inactive: 3000, // delay time for the control bar to disappear automatically
     lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
     controls: true,
-    marginControls: false, // 控制栏是否位于画面底部，不与画面重合
+    marginControls: false, // Whether the control bar is located at the bottom of the video and does not overlap with the video
     controlsList: [],
-    // 内置插件相关配置
-    screenShot: false, // 截图插件
-    rotate: false, // 旋转插件
-    pip: false, // pip插件
-    download: false,
-    mini: false, // 迷你小窗插件
-    cssFullscreen: true, // 页面全屏
-    keyShortcut: true, // 是否开启快捷键
+    screenShot: false, // whether to enable the screenshot plug-in
+    rotate: false, // whether to enable the rotate plug-in
+    pip: false, //  whether to enable the picture-in-picture plug-in
+    download: false, //  whether to enable the download plug-in
+    mini: false, // whether to enable the mini-screen plug-in
+    cssFullscreen: true, // whether to enable the web page full-screen plug-in
+    keyShortcut: true, // whether to open the shortcut key
     presets: [],
     plugins: [],
     playbackRate: 1,
     playsinline: true,
-    customDuration: 0, // 用户自定义时长
-    timeOffset: 0, // 当前时长偏移
+    customDuration: 0, // User-defined duration
+    timeOffset: 0, // currentTime offset
     icons: {},
     i18n: [],
-    thumbnail: null, // 预览图配置
-    videoConfig: {}, // video属性配置
-    commonStyle: { // 用于配置一些通用样式结构
-      progressColor: '', // 进度条底色
-      playedColor: '', // 播放完成部分进度条底色
-      cachedColor: '', // 缓存部分进度条底色
-      sliderBtnStyle: {}, // 进度条滑块样式
+    thumbnail: null, // Preview image configuration
+    commonStyle: { // General style configuration
+      progressColor: '', // Background color of progress bar
+      playedColor: '', // The background color of played part in the progress bar
+      cachedColor: '', // The background color of cached part in the progress bar
+      sliderBtnStyle: {}, // progress bar slider style
       volumeColor: ''
     }
   }

@@ -13,7 +13,7 @@ export default class ErrorPlugin extends Plugin {
       }
     })
 
-    this.onError = this.hook('errorHandler', this.handleError)
+    this.onError = this.hook('showError', this.handleError)
 
     this.bind('.xgplayer-error-refresh', 'click', this.clickHandler)
     this.on(Events.CANPLAY, () => {
@@ -36,7 +36,7 @@ export default class ErrorPlugin extends Plugin {
   handleError (error = {}) {
     const { player } = this
     const type = error.type
-    let errorNote = player.error
+    let errorNote = player.errorNote ? this.i18n[player.errorNote] : ''
     if (!errorNote) {
       switch (type) {
         case 'decoder':

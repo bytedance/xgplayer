@@ -38,7 +38,7 @@ export default class PlayNextIcon extends Plugin {
   }
 
   initEvents () {
-    this.nextHandler = this.hook('playNext', this.changeSrc)
+    this.nextHandler = this.hook('nextClick', this.changeSrc)
     const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
     this.bind(event, this.playNext)
     this.show()

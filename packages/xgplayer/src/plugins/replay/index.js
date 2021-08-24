@@ -20,7 +20,7 @@ class Replay extends Plugin {
 
   afterCreate () {
     Plugin.insert(this.icons.replay, this.root, 0)
-    this.__handleReplay = this.hook('replayHandler', () => {
+    this.__handleReplay = this.hook('replayClick', () => {
       this.player.replay()
     }, {
       pre: (e) => {

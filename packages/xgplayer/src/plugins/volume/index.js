@@ -51,13 +51,13 @@ class Volume extends Plugin {
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
-    this.changeMutedHandler = this.hook('muted_change', (e) => {
+    this.changeMutedHandler = this.hook('mutedChange', (e) => {
       this.changeMuted(e)
     }, {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
-        this.emitUserAction(e, 'change_muted', { muted: this.player.muted })
+        this.emitUserAction(e, 'change_muted', { prop: 'muted', from: this.player.muted, to: !this.player.muted })
       }
     })
     this.onBarMousedown = this.onBarMousedown.bind(this)
@@ -133,8 +133,17 @@ class Volume extends Plugin {
     const bar = this.find('.xgplayer-bar')
     const now = height / bar.getBoundingClientRect().height
     drag.style.height = `${height}px`
-    this.emitUserAction(event, 'change_volume', { muted: player.muted, volume: player.volume })
-    player.volume = Math.max(Math.min(now, 1), 0)
+    const _volume = Math.max(Math.min(now, 1), 0)
+    this.emitUserAction(event, 'change_volume', [{
+      prop: 'muted',
+      from: true,
+      to: false
+    }, {
+      prop: 'volume',
+      from: player.volume,
+      to: _volume
+    }])
+    player.volume = _volume
     player.muted = false
 
     if (this.config.showValueLabel) {
@@ -167,7 +176,7 @@ class Volume extends Plugin {
     // e.preventDefault()
     e && e.stopPropagation()
     const { player } = this
-    if (player.volume < 0.1) {
+    if (player.volume < 0.01) {
       player.volume = this.config.default
     } else {
       player.muted = !player.muted

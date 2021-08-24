@@ -46,7 +46,7 @@ export default class PCPlugin extends BasePlugin {
 
   switchPlayPause (e) {
     const { player } = this
-    this.emitUserAction(e, 'switch_play_pause')
+    this.emitUserAction(e, 'switch_play_pause', { props: 'paused', from: player.paused, to: !player.paused })
     if (!player.ended) {
       player.paused ? player.play() : player.pause()
     } else {
@@ -76,7 +76,7 @@ export default class PCPlugin extends BasePlugin {
     const { closePlayerBlur, leavePlayerTime } = this.playerConfig
     if (!closePlayerBlur) {
       if (leavePlayerTime) {
-        this.player.focus({ autoHide: true, delay: leavePlayerTime })
+        this.player.focus({ autoHide: true, hideDelay: leavePlayerTime })
       } else {
         this.player.blur()
       }
@@ -142,7 +142,7 @@ export default class PCPlugin extends BasePlugin {
     e.preventDefault()
     e.stopPropagation()
     runHooks(this, HOOKS[1], (plugin, data) => {
-      this.emitUserAction(data.e, 'switch_fullscreen', { fullscreen: player.fullscreen })
+      this.emitUserAction(data.e, 'switch_fullscreen', { props: 'fullscreen', from: player.fullscreen, to: !player.fullscreen })
       player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
     }, { e, fullscreen: player.fullscreen })
   }

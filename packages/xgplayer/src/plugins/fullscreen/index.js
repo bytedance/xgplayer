@@ -7,12 +7,12 @@ import ExitFullScreenSvg from '../assets/exitFull.svg'
  * @typedef { {
  *   position?: string,
  *   index?: number,
- *   useCssFullscreen?: boolean, //是否启用页面全屏实现
- *   rotateFullscreen?: boolean, ////是否启用旋转全屏
- *   switchCallback?: () => any, // 自定义切换函数
- *   target?: null | HTMLElement, // 触发元素
+ *   useCssFullscreen?: boolean,
+ *   rotateFullscreen?: boolean,
+ *   switchCallback?: () => any,
+ *   target?: null | HTMLElement,
  *   disable?: boolean,
- *   needBackIcon?: boolean, // 全屏退出是否启用左上角返回按钮
+ *   needBackIcon?: boolean,
  *   [propName: string]: any
  * } } IFullscreenConfig
  */
@@ -28,21 +28,12 @@ export default class Fullscreen extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 0,
-      useCssFullscreen: false,
-      rotateFullscreen: false,
-      switchCallback: null,
-      target: null,
+      useCssFullscreen: false, // Whether to use the page full screen
+      rotateFullscreen: false, // Whether to enable rotating full screen
+      switchCallback: null, // Custom switch function
+      target: null, // Trigger Dom element
       disable: false,
-      needBackIcon: false
-    }
-  }
-
-  /**
-   * @private
-   */
-  beforeCreate (args) {
-    if (typeof args.player.config.fullscreen === 'boolean') {
-      args.config.disable = !args.player.config.fullscreen
+      needBackIcon: false // Whether to enable the return button in the upper left corner of the full screen exit
     }
   }
 
@@ -55,9 +46,14 @@ export default class Fullscreen extends Plugin {
     }
     this.initIcons()
 
-    this.handleFullscreen = this.hook('fullscreen_change', this.changeFullScreen, {
+    this.handleFullscreen = this.hook('fullscreenChange', this.changeFullScreen, {
       pre: (e) => {
-        this.emitUserAction(e, 'switch_fullscreen', { fullscreen: this.player.fullscreen })
+        const { fullscreen } = this.player
+        this.emitUserAction(e, 'switch_fullscreen', {
+          prop: 'fullscreen',
+          from: fullscreen,
+          to: !fullscreen
+        })
       }
     })
 

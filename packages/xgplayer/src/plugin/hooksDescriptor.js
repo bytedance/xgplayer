@@ -67,9 +67,9 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
 }
 
 /**
- * 添加hooks
- * @param { string } 支持的hook名称
- * @param { Function } 具体的处理函数
+ * add hooks
+ * @param { string } hookName
+ * @param { Function } handler
  */
 function useHooks (hookName, handler) {
   const { __hooks } = this
@@ -86,7 +86,7 @@ function useHooks (hookName, handler) {
 }
 
 /**
- * 移除hook
+ * remove hook
  * @param { string } hookName
  * @param { (plugin: any, ..args) => {} } handler
  * @returns void
@@ -100,7 +100,7 @@ function removeHooks (hookName, handler) {
 }
 
 /**
- * 给某个插件添加hooks
+ * Add hooks to a plugin
  * @param { string } pluginName
  * @param  {...any} args
  */
@@ -113,7 +113,7 @@ function usePluginHooks (pluginName, ...args) {
 }
 
 /**
- * hook装饰器，为某个实例添加usePluginHooks/hook/useHooks的能力
+ * hook decorator, add hooks props for for an instance
  * @param { any } instance
  * @param { Array<string> } [hookNames]
  */

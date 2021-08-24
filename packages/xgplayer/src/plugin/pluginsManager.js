@@ -4,13 +4,17 @@ function typeIsObject (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Object'
 }
 
+function typeIsBoolean (obj) {
+  return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Boolean'
+}
+
 /**
 * a plugins manager to register and search
 **/
 
 const pluginsManager = {
   init (player) {
-    // 标记每一个播放器实例
+    // mark every player instance by _pluginInfoId
     let cgid = player._pluginInfoId
     if (!cgid) {
       cgid = new Date().getTime()
@@ -22,7 +26,7 @@ const pluginsManager = {
     }
 
     !player.config.closeResizeObserver && addObserver(player.root, () => {
-      player.getVideoSize()
+      player.resize()
     })
     this.pluginGroup[cgid] = {
       _player: player,
@@ -31,9 +35,9 @@ const pluginsManager = {
   },
 
   /**
-     * 检测当前dom中是否已经有初始化播放器
-     * @param {Element} root
-     */
+   * Check whether there is a player instance in the current dom
+   * @param {Element} root
+   */
   checkPlayerRoot (root) {
     if (this.pluginGroup) {
       const _keys = Object.keys(this.pluginGroup)
@@ -110,7 +114,7 @@ const pluginsManager = {
       options.config = {}
     }
 
-    // 读取播放器整体配置上的配置数据
+    // get config items from player.config
     const keys = Object.keys(originalOptions)
     for (let i = 0; i < keys.length; i++) {
       if (pluginName.toLowerCase() === keys[i].toLowerCase()) {
@@ -118,11 +122,14 @@ const pluginsManager = {
         if (typeIsObject(config)) {
           options.config = Object.assign({}, options.config, originalOptions[keys[i]])
         }
+        if (typeIsBoolean(config)) {
+          options.config.disable = !config
+        }
         break
       }
     }
 
-    // 复制插件的默认配置项
+    // copy the default configuration items of the plugin
     if (plugin.defaultConfig) {
       Object.keys(plugin.defaultConfig).map(key => {
         if (typeof options.config[key] === 'undefined') {
@@ -131,7 +138,7 @@ const pluginsManager = {
       })
     }
 
-    // 获取插件添加的父节点
+    // get the parent dom which added the plugin will be mounted
     if (!options.root) {
       options.root = player.root
     } else if (typeof options.root === 'string') {
@@ -140,7 +147,7 @@ const pluginsManager = {
 
     options.index = options.config.index || 0
     try {
-      // 如果已经存在 则将其销毁
+      // if there is already a plugin instance with the same pluginName, destroy it
       if (plugins[pluginName.toLowerCase()]) {
         this.unRegister(cgid, pluginName.toLowerCase())
         console.warn(`the is one plugin with same pluginName [${pluginName}] exist, destroy the old instance`)

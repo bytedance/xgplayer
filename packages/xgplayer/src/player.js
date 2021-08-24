@@ -16,6 +16,7 @@ import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 import I18N from './lang/i18n'
 import version from './version'
+import { STATES, STATE_ARRAY } from './state'
 
 /**
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
@@ -50,7 +51,7 @@ class Player extends VideoProxy {
 
     /**
      * @type { IPlayerOptions }
-     * @description 当前播放器的配置信息
+     * @description current player configuration
      */
     this.config = config
     bindDebug(this)
@@ -78,11 +79,9 @@ class Player extends VideoProxy {
     this.isReady = false
 
     /**
-     * Whether the player is real start state
-     * @type { boolean }
-     * @readonly
+     * @private
      */
-    this.isPlaying = false
+    this._state = STATES.INITIAL
 
     /**
      * Whether the player is in the seeking state
@@ -227,10 +226,11 @@ class Player extends VideoProxy {
       this.emit(Events.READY)
       this.onReady && this.onReady()
       this.isReady = true
+      // this.state = STATES.READY
     }, 0)
 
     if (this.config.videoInit || this.config.autoplay) {
-      if (!this.hasStart) {
+      if (!this.hasStart || this.state < STATES.ATTACHED) {
         this.start()
       }
     }
@@ -263,7 +263,7 @@ class Player extends VideoProxy {
     }
     this._initBaseDoms()
 
-    // 允许自定义video对象的构造
+    // Allows to customize the structure of the video object
     const XgVideoProxy = this.constructor.XgVideoProxy
     if (XgVideoProxy && this.videoConfig.mediaType === XgVideoProxy.mediaType) {
       const el = this.innerContainer || this.root
@@ -357,19 +357,23 @@ class Player extends VideoProxy {
       if (this._fullActionFrom) {
         this._fullActionFrom = ''
       } else {
-        // 快捷键触发
+        // esc shortcut key trigger
         this.emit(Events.USER_ACTION, {
           eventType: 'system',
           action: 'switch_fullscreen',
           pluginName: 'player',
           currentTime: this.currentTime,
           duration: this.duration,
-          fullscreen: this.fullscreen
+          props: [{
+            prop: 'fullscreen',
+            from: true,
+            to: false
+          }]
         })
       }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         Util.setTimeout(this, () => {
-          this.getVideoSize()
+          this.resize()
         }, 100)
         this.video.focus()
         this.fullscreen = true
@@ -381,7 +385,7 @@ class Player extends VideoProxy {
         }
       } else if (this.fullscreen) {
         Util.setTimeout(this, () => {
-          this.getVideoSize()
+          this.resize()
         }, 100)
         const { _fullScreenOffset, config } = this
         if (config.needFullscreenScroll) {
@@ -395,7 +399,7 @@ class Player extends VideoProxy {
             resetFullState()
           }
         } else {
-          // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
+          // Ensure the page is positioned in the player position when exitFullscreen when the page is scrolled
           this.video.focus()
           resetFullState()
         }
@@ -430,7 +434,7 @@ class Player extends VideoProxy {
       this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
       this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
     }
-    this.once('loadeddata', this.getVideoSize)
+    this.once('loadeddata', this.resize)
 
     this.playFunc = () => {
       if (!this.config.closeFocusVideoFocus) {
@@ -514,21 +518,22 @@ class Player extends VideoProxy {
     XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load();
-      // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
+      // Need to call play to trigger the event callbacks such as canplay\loadstart\loadeddata in ios system
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.videoPlay()
     }
 
     Util.setTimeout(this, () => {
       this.emit(Events.COMPLETE)
     }, 1)
-    if (!this.hasStart) {
+    if (!this.hasStart || this.state < STATES.ATTACHED) {
       pluginsManager.afterInit(this)
     }
     this.hasStart = true
+    this.setState(STATES.ATTACHED)
   }
 
   /**
-   * 针对source列表播放方式添加错误监听
+   * add error eventListener for SourceList
    * @doc https://stackoverflow.com/questions/47557135/html5-detect-the-type-of-error-when-trying-to-load-a-video-using-a-source-elem
    * @protected
    * @param { HTMLVideoElement | HTMLAudioElement } video
@@ -560,7 +565,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 移除source列表错误事件监听
+   * remove error eventListener for SourceList
    * @protected
    * @param { HTMLVideoElement | HTMLAudioElement } video
    */
@@ -575,7 +580,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 注册组件 组件列表config.plugins
+   * @description register the plugins in config.plugins
    * @private
    */
   _registerPlugins () {
@@ -593,7 +598,7 @@ class Player extends VideoProxy {
     plugins.map(plugin => {
       try {
         const pluginName = plugin.plugin ? plugin.plugin.pluginName : plugin.pluginName
-        // 在ignores中的不做组装
+        // do not register when pluginName in config.ignores
         if (pluginName && ignoresStr.indexOf(pluginName.toLowerCase()) > -1) {
           return null
         }
@@ -648,7 +653,6 @@ class Player extends VideoProxy {
       options.config = config
     }
 
-    // 获取配置的position或者root
     const keys = Object.keys(this.config)
     for (let i = 0; i < keys.length; i++) {
       if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
@@ -706,7 +710,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 当前播放器挂载的插件实例列表
+   * Returns the list of plug-in instances mounted by the current player instance
    * @type { {[propName: string]: any | null } }
    */
   get plugins () {
@@ -714,7 +718,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * get a plugin instance
+   * @deprecated return a plugin instance witch named pluginName
    * @param { string } pluginName
    * @return { null | any } plugin
    */
@@ -790,16 +794,18 @@ class Player extends VideoProxy {
    *
    * @param { any } url
    * @returns { Promise<void> | void }
-   * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
+   * @description Start the playback process, and add video/audio to the DOM tree
    */
   start (url) {
     // 已经开始初始化播放了 则直接调用play
-    if (this.hasStart) {
-      return
+    if (this.hasStart || this.state >= STATES.ATTACHING) {
+      return Promise.reject(new Error('rejected'))
     }
     this.hasStart = true
+    this.setState(STATES.ATTACHING)
+
     return pluginsManager.beforeInit(this).then(() => {
-      // this.config为空即已经销毁，不再执行后面的异步流程
+      // if this.config is empty, no longer execute the following process
       if (!this.config) {
         return
       }
@@ -821,15 +827,16 @@ class Player extends VideoProxy {
   }
 
   videoPlay () {
-    if (!this.hasStart) {
+    if (!this.hasStart || this.state < STATES.ATTACHED) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
-      this.start().then(resolve => {
+      const ret = this.start()
+      ret && ret.then(resolve => {
         !this.config.autoplay && this.videoPlay()
       })
       return
     }
-    if (!this.isPlaying) {
+    if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
       !this.isCanplay && this.addClass(STATE_CLASS.ENTER)
     }
@@ -838,9 +845,9 @@ class Player extends VideoProxy {
       playPromise.then(() => {
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
-        if (!this.isPlaying) {
+        if (this.state < STATES.RUNNING) {
           XG_DEBUG.logInfo('>>>>playPromise.then')
-          this.isPlaying = true
+          this.setState(STATES.RUNNING)
           this.emit(Events.AUTOPLAY_STARTED)
         }
       }).catch((e) => {
@@ -849,9 +856,10 @@ class Player extends VideoProxy {
           this.onError()
           // this.errorHandler('error')
           this.removeClass(STATE_CLASS.ENTER)
+          this.setState(STATES.ERROR)
           return
         }
-        // 避免AUTOPLAY_PREVENTED先于playing和play触发
+        //  Avoid triggering `AUTOPLAY_PREVENTED` before `PLAYING` and `PLAY`
         if (e.name === 'NotAllowedError') {
           /**
            * @private
@@ -862,13 +870,14 @@ class Player extends VideoProxy {
             this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
             this.removeClass(STATE_CLASS.ENTER)
             this.pause()
+            this.setState(STATES.NOTALLOW)
           }, 0)
         }
       })
     } else {
       XG_DEBUG.logWarn('video.play not return promise')
-      if (!this.isPlaying) {
-        this.isPlaying = true
+      if (this.state < STATES.RUNNING) {
+        this.setState(STATES.RUNNING)
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.removeClass(STATE_CLASS.ENTER)
@@ -922,7 +931,7 @@ class Player extends VideoProxy {
           !this.paused && this.play()
       }
     })
-    if (!this.isPlaying) {
+    if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
@@ -967,8 +976,8 @@ class Player extends VideoProxy {
     pluginsManager.destroy(this)
     delHooksDescriptor(this)
     super.destroy()
-    // 退出全屏
-    if (this.fullscreen) {
+    // Exit Fullscreen
+    if (this.fullscreen && this._fullscreenEl === this.root) {
       try {
         this.exitFullscreen()
       } catch (e) {}
@@ -993,11 +1002,8 @@ class Player extends VideoProxy {
     }
     this.removeAttribute('data-xgfill');
 
-    ['isReady', 'isPlaying', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
+    ['isReady', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
       this[key] = false
-    });
-    ['_fullscreenEl', '_cssfullscreenEl', '_fullScreenOffset', '_orgCss'].map(key => {
-      this[key] = null
     })
   }
 
@@ -1180,13 +1186,13 @@ class Player extends VideoProxy {
   }
 
   /**
-   * @description 播放器焦点状态，控制栏显示
+   * @description change player focus state, the control bar will be called out
    * @param { {
-   *   autoHide?: boolean, // 是否可以自动隐藏
-   *   delay?: number // 自动隐藏的延迟时间，ms, 不传默认使用3000ms
+   *   autoHide?: boolean, // whether it needs to be automatically hidden
+   *   hideDelay?: number // Auto-hidden delay, unit:ms, default is 3000ms
    * } } [data]
    */
-  focus (data = { autoHide: true, delay: 3000 }) {
+  focus (data = { autoHide: true, hideDelay: 3000 }) {
     if (this.isActive) {
       this.onFocus(data)
       return
@@ -1199,7 +1205,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * @description 取消播放器当前焦点状态
+   * @description cancel player focus state
    * @param { { ignorePaused?: boolean } } [data]
    */
   blur (data = { ignorePaused: false }) {
@@ -1216,10 +1222,10 @@ class Player extends VideoProxy {
 
   /**
    * @protected
-   * @param { { autoHide?: boolean, delay?: number} } [data]
+   * @param { { autoHide?: boolean, hideDelay?: number} } [data]
    * @returns
    */
-  onFocus (data = { autoHide: true, delay: 3000 }) {
+  onFocus (data = { autoHide: true, hideDelay: 3000 }) {
     this.isActive = true
     this.removeClass(STATE_CLASS.ACTIVE)
     if (this.userTimer) {
@@ -1228,7 +1234,7 @@ class Player extends VideoProxy {
     if (data.autoHide === false) {
       return
     }
-    const time = data && data.delay ? data.delay : this.config.inactive
+    const time = data && data.hideDelay ? data.hideDelay : this.config.inactive
     this.userTimer = Util.setTimeout(this, () => {
       this.blur()
     }, time)
@@ -1264,9 +1270,12 @@ class Player extends VideoProxy {
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+    if (this.state === STATES.ENDED) {
+      this.setState(STATES.RUNNING)
+    }
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
-    !this.config.closePlayVideoFocus && this.focus()
+    !this.config.closePlayVideoFocus && this.focus({ autoHide: !this.config.closeDelayBlur })
   }
 
   /**
@@ -1278,7 +1287,7 @@ class Player extends VideoProxy {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
       }
-      this.focus()
+      this.focus({ autoHide: !this.config.closeDelayBlur })
     }
   }
 
@@ -1287,6 +1296,7 @@ class Player extends VideoProxy {
    */
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
+    this.setState(STATES.ENDED)
     // this.removeClass(STATE_CLASS.PLAYING)
   }
 
@@ -1294,6 +1304,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onError () {
+    this.setState(STATES.ERROR)
     this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.NO_START)
     this.removeClass(STATE_CLASS.ENTER)
@@ -1356,7 +1367,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onTimeupdate () {
-    !this._videoHeight && this.getVideoSize()
+    !this._videoHeight && this.resize()
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
       if (this.checkBuffer()) {
         this.removeClass(STATE_CLASS.LOADING)
@@ -1381,7 +1392,7 @@ class Player extends VideoProxy {
     if (!buffered || buffered.length === 0) {
       return true
     }
-    const currentTime = time || (this.video.currentTime + 0.2)
+    const currentTime = time || this.video.currentTime || 0.2
     const len = buffered.length
     for (let i = 0; i < len; i++) {
       if (buffered.start(i) <= currentTime && buffered.end(i) > currentTime) {
@@ -1391,7 +1402,27 @@ class Player extends VideoProxy {
     return false
   }
 
-  getVideoSize () {
+  /**
+   * @description position video/audio according to height ratio and y coordinate
+   * @param { { h: number, y?: number } } pos
+   * @returns
+   */
+  position (pos = { h: 0, y: 0 }) {
+    if (!pos || pos.h) {
+      return
+    }
+    const { height } = this.root.getBoundingClientRect()
+    const rvH = height / pos.h
+    let _transform = `scale(${rvH / height})`
+    if (pos.y) {
+      const _ty = pos.y * 100 - (100 - pos.h * 100 - pos.y * 100)
+      _transform += ` translate(0px, ${_ty}%)`
+    }
+    this.video.style.transform = _transform
+    this.video.style.webkitTransform = _transform
+  }
+
+  resize () {
     const { videoWidth, videoHeight } = this.video
     const { fitVideoSize, videoFillMode } = this.config
 
@@ -1443,6 +1474,23 @@ class Player extends VideoProxy {
       return
     }
     this.video.style.objectPosition = `${left * 100}% ${top * 100}%`
+  }
+
+  /**
+   * @protected
+   * @param { number } newState
+   */
+  setState (newState) {
+    XG_DEBUG.logInfo('setState', `state from:${STATE_ARRAY[this.state]} to:${STATE_ARRAY[newState]}`)
+    this._state = newState
+  }
+
+  /**
+   * @readonly
+   * @type { number }
+   */
+  get state () {
+    return this._state
   }
 
   /**
@@ -1529,7 +1577,7 @@ class Player extends VideoProxy {
   }
 
   /**
-   * 累计观看时长
+   * @description return cumulative watch time
    * @type number
    */
   get cumulateTime () {
@@ -1584,34 +1632,10 @@ class Player extends VideoProxy {
     return usePluginHooks.call(this, ...arguments)
   }
 
-  /***
-   * @deprecated
-   * 插件全部迁移完成再做删除
-   */
-  static install (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    if (!Player.plugins[name]) {
-      Player.plugins[name] = descriptor
-    }
-  }
-
-  /***
-   * @deprecated
-   * 插件全部迁移完成再做删除
-   */
-  static use (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    Player.plugins[name] = descriptor
-  }
-
   static defaultPreset = null
 
   /**
-   * @description 自定义media构造函数
+   * @description Custom media constructor
    */
   static XgVideoProxy = null
 }

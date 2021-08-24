@@ -29,12 +29,6 @@ export default class CssFullScreen extends Plugin {
     }
   }
 
-  beforeCreate (args) {
-    if (typeof args.player.config.cssFullscreen === 'boolean') {
-      args.config.disable = !args.player.config.cssFullscreen
-    }
-  }
-
   afterCreate () {
     if (this.config.disable) {
       return
@@ -58,7 +52,11 @@ export default class CssFullScreen extends Plugin {
     e.preventDefault()
     e.stopPropagation()
     const { isCssfullScreen } = this.player
-    this.emitUserAction(e, 'switch_css_fullscreen', { cssfullscreen: isCssfullScreen })
+    this.emitUserAction(e, 'switch_css_fullscreen', {
+      prop: 'cssfullscreen',
+      from: isCssfullScreen,
+      to: !isCssfullScreen
+    })
     if (!isCssfullScreen) {
       this.player.getCssFullscreen(this.config.target)
     } else {

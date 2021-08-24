@@ -1,6 +1,7 @@
 import Plugin, { Util, Events } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
+import { STATES } from '../../state'
 
 /**
  * @typedef {{
@@ -95,11 +96,12 @@ class Start extends Plugin {
       this.onPlayPause('pause')
     })
 
-    this.clickHandler = this.hook('click', this.switchPausePlay, {
+    this.clickHandler = this.hook('startClick', this.switchPausePlay, {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
-        this.emitUserAction(e, 'switch_play_pause')
+        const { paused } = this.player
+        this.emitUserAction(e, 'switch_play_pause', { props: 'paused', from: paused, to: !paused })
       }
     })
 
@@ -169,7 +171,7 @@ class Start extends Plugin {
       return
     }
     const paused = this.player.paused
-    if (!paused && player.isPlaying) {
+    if (!paused && player.state === STATES.RUNNING) {
       player.pause()
     } else {
       player.play()
@@ -178,7 +180,7 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const { config, player } = this
-    if (!player.isPlaying || !this.autoPlayStart) {
+    if (player.state < STATES.RUNNING || !this.autoPlayStart) {
       return
     }
     // 一直显示
