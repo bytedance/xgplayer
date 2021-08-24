@@ -30,6 +30,7 @@ class Mp4 extends Fmp4 {
       height: data.presentHeight,
       type: 'video'
     })
+    // let mdia = Mp4.mdia(data);
     let mdia = Mp4.mdia({
       type: 'video',
       timescale: data.timescale || 1000,
@@ -44,7 +45,15 @@ class Mp4 extends Fmp4 {
       sampleCtss: data.sampleCtss,
       chunks: data.chunks,
       sampleSizes: data.sampleSizes,
-      chunksOffset: data.chunksOffset
+      chunksOffset: data.chunksOffset,
+      vps: data.vps,
+      pps: data.pps,
+      sps: data.sps,
+      general_level_idc: data.general_level_idc,
+      general_profile_idc: data.general_profile_idc,
+      general_profile_space: data.general_profile_space,
+      general_tier_flag: data.general_tier_flag,
+      chromaFormatIdc: data.chromaFormatIdc
     });
     [tkhd, mdia].forEach(item => {
       size += item.byteLength

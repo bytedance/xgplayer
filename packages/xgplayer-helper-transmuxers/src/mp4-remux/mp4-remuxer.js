@@ -106,7 +106,7 @@ export default class Mp4Box extends EventEmitter {
     let mdat = null
     let moov = null
     // 1 构造ftyp
-    const ftyp = Mp4.ftyp()
+    const ftyp = this.buildFtyp(videoMeta, 'video')
     const mdatBox = {
       samples: []
     }
@@ -259,8 +259,9 @@ export default class Mp4Box extends EventEmitter {
     let mdat = null
     let moov = null
     // 1 构造ftyp
-    const ftyp = Mp4.ftyp()
-    const keyFrames = []
+    // const ftyp = Mp4.ftyp()
+    const ftyp = this.buildFtyp(meta, type)
+    let keyFrames = []
     const mdatBox = {
       samples: []
     }
@@ -347,6 +348,12 @@ export default class Mp4Box extends EventEmitter {
     const mp4 = new Buffer()
     mp4.write(ftyp, mdat, moov)
     this.emit(Mp4Box.EVENTS.TRACK_REMUXED, type, mp4)
+    meta.sampleDeltas = null
+    meta.chunks = null
+    meta.sampleSizes = null
+    meta.chunksOffset = null
+    meta.keyFrames = null
+    meta.sampleCtss = null
     this.ctsNum = 0
     // 下载mp4文件到本地，测试用
     // this.downLoadMp4(mp4)
@@ -501,6 +508,13 @@ export default class Mp4Box extends EventEmitter {
 
   getDuration (currentDuration, duration) {
     return currentDuration + duration
+  }
+
+  buildFtyp (meta = {}, type) {
+    if (type === 'video' && meta.streamType == 36) {
+      return Mp4.ftypHEVC()
+    }
+    return Mp4.ftyp()
   }
 
   downLoadMp4 (mp4) {

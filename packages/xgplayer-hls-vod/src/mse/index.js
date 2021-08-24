@@ -152,6 +152,10 @@ class HlsVodPlayer extends BasePlugin {
     return this.hls
   }
 
+  get loader () {
+    return this._context?.getInstance('TS_LOADER')
+  }
+
   static isSupported () {
     return window.MediaSource &&
       window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"')

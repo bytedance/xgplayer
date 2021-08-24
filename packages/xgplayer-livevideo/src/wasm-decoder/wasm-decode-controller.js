@@ -41,6 +41,8 @@ export default class WasmDecodeController extends EventEmitter {
     this._meta = null
     this._workerErrorCallback = null
     this._workerMessageCallback = null
+    this._preload = customElements.get('live-video')?.preloadWorker || false
+    this._preloadWorker()
   }
 
   get inDecoding () {
@@ -74,6 +76,7 @@ export default class WasmDecodeController extends EventEmitter {
   }
 
   get isHevc () {
+    if (this._preload) return this._preload === 'h265'
     return (this._meta || {}).codec === 'hev1.1.6.L93.B0'
   }
 
@@ -115,8 +118,13 @@ export default class WasmDecodeController extends EventEmitter {
         case 'DECODER_READY':
           logger.log(this.TAG, 'wasm worker ready ', performance.now(), 'cost:', e.data.cost)
           this._wasmReady = true
-          // 加到decoder上面
+
+          // record  decoder init cost
           decoder._wasmInitCost = parseInt(e.data.cost)
+
+          // preload worker may ready before stream ready!
+          if (!this._meta) return
+
           if (!this._avccpushed) {
             this._initDecoderInternal(decoder, this._meta)
           }
@@ -129,6 +137,7 @@ export default class WasmDecodeController extends EventEmitter {
         case 'DECODED':
           this._inDecoding = true
           if (e.data?.info?.id !== this._id) return
+
           this._workerMessageCallback({
             type: 'RECEIVE_FRAME',
             data: e.data
@@ -137,18 +146,15 @@ export default class WasmDecodeController extends EventEmitter {
         case 'BATCH_FINISH_FLAG':
           decoder.using = 0
           this._inDecoding = false
+          if (!this._workerMessageCallback) return
           this._workerMessageCallback({
             type: 'BATCH_FINISH'
           })
-          break
-        case 'LOG':
-          // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
           break
         case 'INIT_FAILED':
           _whenFail(e.data.log, 1)
           break
         default:
-          console.error('invalid messaeg', e)
       }
     }
 
@@ -161,22 +167,43 @@ export default class WasmDecodeController extends EventEmitter {
     decoder.addEventListener('error', decoder.onError)
   }
 
+  // preload worker once controller instantiate
+  _preloadWorker () {
+    if (!this._preload) return
+    if (this._wasmWorkers.length) return
+
+    logger.log(this.TAG, 'preload worker')
+    const { decoder, url } = this._selectDecodeWorker()
+    this._avccpushed = false
+    this._bindWorkerEvent(decoder)
+    // 初始化wasm实例
+    decoder.postMessage({
+      msg: 'preload',
+      batchDecodeCount: 10,
+      url
+    })
+    this._wasmWorkers.push(decoder)
+  }
+
+  // select worker from cache
+  // or create new worker when stream ready with metadata
   _initDecodeWorkerInternal (delay) {
     const { decoder } = this._selectDecodeWorkerFromCache()
+
     // use origin worker direct
     if (decoder) {
       logger.warn(this.TAG, 'select decoder from cache')
       this._avccpushed = false
       this._bindWorkerEvent(decoder)
       this._wasmReady = true
-      this._workerMessageCallback({
-        type: 'DECODER_READY',
-        data: decoder
-      })
       if (!delay) {
         this._wasmWorkers.push(decoder)
       }
       this._initDecoderInternal(decoder, this._meta)
+      this._workerMessageCallback({
+        type: 'DECODER_READY',
+        data: decoder
+      })
       return
     }
 
@@ -205,7 +232,7 @@ export default class WasmDecodeController extends EventEmitter {
     this._workerMessageCallback = messaegCb
     this._workerErrorCallback = errCb
 
-    //  针对低延迟265 横竖屏切换
+    //  for 265 lowlatency, change resolution of same stream
     if (this._parent.lowlatency && this._meta && meta) {
       if (meta.presentWidth !== this._meta.presentWidth) {
         console.log('重建worker')
@@ -215,6 +242,13 @@ export default class WasmDecodeController extends EventEmitter {
         this._meta = meta
         return
       }
+    }
+
+    // worker ready before stream ready with metadata
+    if (this._wasmReady && !this._meta) {
+      this._workerMessageCallback({
+        type: 'DECODER_READY'
+      })
     }
 
     this._meta = meta
@@ -278,6 +312,7 @@ export default class WasmDecodeController extends EventEmitter {
     })
   }
 
+  // init decoder with sps、pps
   _initDecoderInternal (worker, meta) {
     logger.log(this.TAG, 'init decoder')
     this._avccpushed = true
@@ -385,7 +420,7 @@ export default class WasmDecodeController extends EventEmitter {
   doDecode () {
     const frameList = this._getFramesToDecode()
 
-    if (!frameList) return
+    if (!frameList || !this._meta) return
 
     frameList.forEach((f) => {
       this._doDecodeInternal(f)

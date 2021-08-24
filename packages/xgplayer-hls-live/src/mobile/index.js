@@ -206,6 +206,10 @@ class HlsPlayer extends BasePlugin {
     return this.hls
   }
 
+  get loader () {
+    return this._context?.getInstance('TS_LOADER')
+  }
+
   get context () {
     return this._context
   }

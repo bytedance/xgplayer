@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import Buffer from './buffer'
 
 // const UINT32_MAX = Math.pow(2, 32) - 1;
@@ -35,7 +36,7 @@ class Fmp4 {
       0x69, 0x73, 0x6F, 0x6D, // isom,
       0x0, 0x0, 0x00, 0x01, // minor_version: 0x01
       0x69, 0x73, 0x6F, 0x6D, // isom
-      0x64, 0x61, 0x73, 0x68 // hev1
+      0x64, 0x61, 0x73, 0x68 // dash
     ]))
   }
 
@@ -479,9 +480,9 @@ class Fmp4 {
       0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, // pre_defined
-      (track.width >> 8) & 0xFF,
+      (track.width >> 8) & 0xff,
       track.width & 0xff, // width
-      (track.height >> 8) & 0xFF,
+      (track.height >> 8) & 0xff,
       track.height & 0xff, // height
       0x00, 0x48, 0x00, 0x00, // horizresolution
       0x00, 0x48, 0x00, 0x00, // vertresolution
@@ -497,41 +498,68 @@ class Fmp4 {
       0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, // compressorname
       0x00, 0x18, // depth = 24
-      0xFF, 0xFF,
-      0x00, 0x00, 0x00, 0x7A, 0x68, 0x76, 0x63, 0x43,
+      0xFF, 0xFF
+    ])
+
+    let vpsBuffer = new Buffer()
+    let spsBuffer = new Buffer()
+    let ppsBuffer = new Buffer()
+    let vpsBody = track.vps
+    let vpsBodyLength = vpsBody.length
+    let ppsBody = track.pps
+    let ppsBodyLength = ppsBody.length
+    let spsBody = track.sps
+    let spsBodyLength = spsBody.length
+    let general_level_idc = track.general_level_idc || 90
+    let general_profile_space = track.general_profile_space
+    let general_tier_flag = track.general_tier_flag
+    let general_profile_idc = track.general_profile_idc
+    let chromaFormatIdc = track.chromaFormatIdc
+
+    vpsBuffer.write(new Uint8Array([0x20, 0x00, 0x01, (vpsBodyLength >> 8) & 0xFF, vpsBodyLength & 0xff]), vpsBody)
+    spsBuffer.write(new Uint8Array([0x21, 0x00, 0x01, (spsBodyLength >> 8) & 0xFF, spsBodyLength & 0xff]), spsBody)
+    ppsBuffer.write(new Uint8Array([0x22, 0x00, 0x01, (ppsBodyLength >> 8) & 0xFF, ppsBodyLength & 0xff]), ppsBody)
+    let hvccContent = new Uint8Array([
       0x01, // configurationVersion
-      0x01, // profile_space + tier_flag + profile_idc
+      (general_profile_space << 6) + (general_tier_flag << 5) + (general_profile_idc & 0xff), // profile_space(2b) + tier_flag(1b) + profile_idc(5b)
       0x60, 0x00, 0x00, 0x00, // general_profile_compatibility
       0x90, 0x00, 0x00, 0x00, 0x00, 0x00, // constraint_indicator_flags
-      0x5D, // level_idc=90
-      0xF0, 0x00, 0xFC, 0xFD, // profile_compatibility_indications
-      0xF8, // ‘11111’b + bitDepthLumaMinus8
-      0xF8, // ‘11111’b + bitDepthChromaMinus8
+      general_level_idc & 0xFF, // general_level_idc
+      0xF0, 0x00, // '1111'b + min_spatial_segmentation_idc(12b)
+      0xFC, // ‘111111’b + parallelismType(2b)
+      ((0b111111 << 2) + chromaFormatIdc), // ‘111111’b + chroma_format_idc(2b)
+      0xF8, // ‘11111’b + bitDepthLumaMinus8(3b)
+      0xF8, // ‘11111’b + bitDepthChromaMinus8(3b)
       0x00, 0x00, // avgFrameRate
-      0x0F, // constantFrameRate + numTemporalLayers + ‘1’b + lengthSizeMinusOne
-      0x03, // numOfArrays
-
-      // vps
-      0xA0, 0x00, 0x01, // array_completeness + ‘0’b + NAL_unit_type + numNalus
-      0x00, 0x18, // nalUnitLength
-      0x40, 0x01, 0x0C, 0x01, 0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x5D, 0x99, 0x98, 0x09,
-
-      // sps
-      0xA1, 0x00, 0x01, // array_completeness + ‘0’b + NAL_unit_type + numNalus
-      0x00, 0x2D, // nalUnitLength
-      0x42, 0x01, 0x01, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x5D, 0xA0, 0x02,
-      0x80, 0x80, 0x2D, 0x16, 0x59, 0x99, 0xA4, 0x93, 0x2B, 0x9A, 0x80, 0x80, 0x80, 0x82, 0x00, 0x00, 0x03, 0x00, 0x02, 0x00,
-      0x00, 0x03, 0x00, 0x32, 0x10,
-
-      // pps
-      0xA2, 0x00, 0x01, // array_completeness + ‘0’b + NAL_unit_type + numNalus
-      0x00, 0x07, // nalUnitLength
-      0x44, 0x01, 0xC1, 0x72, 0xB4, 0x62, 0x40
+      0x0F, // constantFrameRate(2b) + numTemporalLayers(3b) + ‘1’b + lengthSizeMinusOne(2b)
+      0x03// numOfArrays
     ])
+    let hvccSize = 8 + hvccContent.length + 15 + vpsBodyLength + ppsBodyLength + spsBodyLength
+    let hvcc = Fmp4.initBox(hvccSize, 'hvcC', hvccContent, vpsBuffer.buffer, spsBuffer.buffer, ppsBuffer.buffer)
+
+    let btrt = new Uint8Array([
+      0x00, 0x1c, 0x9c, 0x80, // bufferSizeDB
+      0x00, 0x2d, 0xc6, 0xc0, // maxBitrate
+      0x00, 0x2d, 0xc6, 0xc0 // avgBitrate
+    ])
+    let hSpacing = 4096
+    let vSpacing = 4095
+    let pasp = new Uint8Array([
+      (hSpacing >> 24), // hSpacing
+      (hSpacing >> 16) & 0xff,
+      (hSpacing >> 8) & 0xff,
+      hSpacing & 0xff,
+      (vSpacing >> 24), // vSpacing
+      (vSpacing >> 16) & 0xff,
+      (vSpacing >> 8) & 0xff,
+      vSpacing & 0xff
+    ])
+
     buffer.write(
-      Fmp4.size(8 + content.byteLength + 10), Fmp4.type('hvc1'), content,
-      Fmp4.size(10), Fmp4.type('fiel'), new Uint8Array([0x01, 0x00])
-    )
+      Fmp4.size(8 + content.byteLength + hvccSize),
+      Fmp4.type('hvc1'), content, hvcc)
+    // Fmp4.size(20), Fmp4.type('btrt'), btrt,
+    // Fmp4.size(16), Fmp4.type('pasp'), pasp)
     return buffer.buffer
   }
 

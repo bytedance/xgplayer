@@ -7,9 +7,9 @@ import Events from '../events'
 
 const DEFAULT_PLAYBACKRATE = 2
 const CANVAS_COUNT = 45
-const FRAME_DURATION = 35
+const FRAME_DURATION = 25
 const MAX_VIDEO_HEIGHT = 720
-const MAX_FPS = 17
+const MAX_FPS = 30
 const MIN_FPS = 15
 
 export default class VideoDecoder extends EventEmitter {

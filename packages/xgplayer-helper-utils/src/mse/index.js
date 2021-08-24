@@ -164,7 +164,7 @@ class MSE {
   endOfStream () {
     try {
       const { readyState } = this.mediaSource
-      if (readyState === 'open') {
+      if (readyState === 'open' && this.container?.readyState) {
         this.mediaSource.endOfStream()
       }
     } catch (e) {}
@@ -343,7 +343,6 @@ class MSE {
           this.mediaSource.removeSourceBuffer(buffer)
         }
       }
-
       this.endOfStream()
       try {
         window.URL.revokeObjectURL(this.url)

@@ -315,6 +315,10 @@ class FlvPlayer extends BasePlugin {
     return this.flv
   }
 
+  get loader () {
+    return this._context?.getInstance('FETCH_LOADER')
+  }
+
   get context () {
     return this._context
   }
