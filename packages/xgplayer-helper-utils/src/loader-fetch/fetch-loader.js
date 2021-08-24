@@ -1,5 +1,6 @@
+/* eslint-disable no-prototype-builtins */
 import EVENTS from '../events'
-import Speed from './speed1'
+import Speed from './speed'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const READ_STREAM = 0
@@ -313,9 +314,14 @@ class FetchLoader {
     return params
   }
 
-  // in KB/s
-  get currentSpeed () {
-    return this._speed?.downloadSpeed || 0
+  // bps
+  get avgSpeed () {
+    return this._speed?.avgSpeed || 0
+  }
+
+  // bps
+  get recentSpeed () {
+    return this._speed?.recentSpeed || 0
   }
 
   cancel () {
