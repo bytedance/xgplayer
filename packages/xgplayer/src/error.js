@@ -57,15 +57,14 @@ const ErrorTypes = {
 /**
  * @typedef { {
  *   playerVersion: string,
- *   domain: string,
  *   currentTime: number,
  *   duration: number,
  *   ended: boolean,
  *   readyState: number,
  *   networkState: number,
  *   src: any,
- *   type: string,
- *   code: number,
+ *   errorType: string,
+ *   errorCode: number,
  *   message: string,
  *   mediaError?: {
  *     code: number,
@@ -100,15 +99,14 @@ class Errors {
       const { readyState, networkState } = player.video
       const r = {
         playerVersion: version,
-        domain: document.domain,
         currentTime,
         duration,
         ended,
         readyState,
         networkState,
         src,
-        type: errorInfo.errorType,
-        code: errorInfo.errorCode || mediaError.code,
+        errorType: errorInfo.errorType,
+        errorCode: errorInfo.errorCode || mediaError.code,
         message: errorInfo.errorMessage || mediaError.message,
         mediaError,
         originError: errorInfo.originError ? errorInfo.originError.stack : ''
@@ -129,20 +127,6 @@ class Errors {
         }
         r.ex = (ErrorTypes[arguments[0]] || {}).msg // 补充信息
         return r
-        // r.playerVersion = version // 播放器版本
-        // r.errorType = arguments[0]
-        // r.domain = document.domain // domain
-        // r.duration = duration // 视频时长
-        // r.currentTime = currentTime
-        // r.networkState = networkState
-        // r.readyState = readyState
-        // r.currentSrc = currentSrc
-        // r.src = src
-        // r.ended = ended
-        // r.errd = errd // 错误详情
-        // r.ex = (ErrorTypes[type] || {}).msg // 补充信息
-        // r.errorCode = errorCode
-        // r.mediaError = mediaError
       }
     }
   }

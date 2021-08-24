@@ -23,12 +23,6 @@ export default class Rotate extends Plugin {
     this.rotateDeg = this.config.rotateDeg || 0
   }
 
-  beforeCreate (args) {
-    if (typeof args.player.config.rotate === 'boolean') {
-      args.config.disable = !args.player.config.rotate
-    }
-  }
-
   afterCreate () {
     if (this.config.disable) {
       return

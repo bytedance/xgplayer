@@ -197,7 +197,11 @@ class Danmu extends Plugin {
   }
 
   onSwitch (event, defaultOpen) {
-    this.emitUserAction(event, 'switch_danmu', { isOpen: defaultOpen })
+    this.emitUserAction(event, 'switch_danmu', {
+      prop: 'isOpen',
+      from: !defaultOpen,
+      to: defaultOpen
+    })
     if (defaultOpen) {
       this.start()
     } else {
@@ -302,9 +306,11 @@ class Danmu extends Plugin {
   destroy () {
     this.danmujs.stop()
     this.danmujs.destroy()
+    this.danmujs = null
+    this.player.danmu = null
     const { danmuButton, danmuPanel } = this
-    this.danmuButton && danmuButton.__destroy && danmuButton.__destroy()
-    this.danmuPanel && danmuPanel.__destroy && danmuPanel.__destroy()
+    this.danmuButton && this.danmuButton.root && danmuButton.__destroy && danmuButton.__destroy()
+    this.danmuButton && this.danmuPanel.root && danmuPanel.__destroy && danmuPanel.__destroy()
     this.danmuButton = null
     this.danmuPanel = null
   }
