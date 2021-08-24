@@ -1,6 +1,6 @@
 {
   "name": "xgplayer",
-  "version": "3.0.0-alpha.95-3",
+  "version": "3.0.0-alpha.95-4",
   "description": "video player",
   "main": "./lib/index.js",
   "module": "./es/index.js",
