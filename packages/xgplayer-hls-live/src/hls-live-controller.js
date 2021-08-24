@@ -433,6 +433,24 @@ export default class HlsLiveController {
     }
   }
 
+  _onBufferAppended = () => {
+    const video = this._player?.video
+
+    if (!video?.buffered.length) return
+
+    // emit to out
+    this.emitCoreEvent(CORE_EVENTS.BUFFER_APPENDED)
+
+    if (video.currentTime) return
+
+    const bufferStart = video.buffered.start(0)
+
+    // skip start buffer hole
+    if (bufferStart) {
+      video.currentTime = bufferStart + 0.1
+    }
+  }
+
   _onTimeUpdate = () => {
     if (this._isMobile) return
     this._catchUp()
@@ -531,6 +549,7 @@ export default class HlsLiveController {
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed)
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
+    this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._onBufferAppended)
     this.on(DEMUX_EVENTS.DEMUX_ERROR, _onError)
     this.on(REMUX_EVENTS.REMUX_ERROR, _onError)
     this.on(MSE_EVENTS.MSE_ERROR, _onError)
