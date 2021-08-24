@@ -1,5 +1,5 @@
 import EVENTS from '../events'
-import Speed from './speed'
+import Speed from './speed1'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const READ_STREAM = 0
@@ -69,6 +69,7 @@ class FetchLoader {
         clearTimeout(timer)
         timer = null
       }
+      this._speed?.recordLoading(response.headers)
       const end = new Date().getTime()
       this.emit(LOADER_EVENTS.LOADER_TTFB, {
         start,
@@ -174,52 +175,36 @@ class FetchLoader {
     this._loaderTaskNo++
     const taskno = this._loaderTaskNo
     if (response.ok === true) {
+      let req
       switch (this.readtype) {
         case READ_JSON:
-          response.json().then((data) => {
-            _this.loading = false
-            if (!_this._canceled && !_this._destroyed) {
-              if (buffer) {
-                buffer.push(data)
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
-              } else {
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
-              }
-            }
-          })
+          req = response.json()
           break
         case READ_TEXT:
-          response.text().then((data) => {
-            _this.loading = false
-            if (!_this._canceled && !_this._destroyed) {
-              if (buffer) {
-                buffer.push(data)
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
-              } else {
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
-              }
-            }
-          })
+          req = response.text()
           break
         case READ_BUFFER:
-          response.arrayBuffer().then((data) => {
-            _this.loading = false
-            if (!_this._canceled && !_this._destroyed) {
-              if (buffer) {
-                buffer.push(new Uint8Array(data))
-                this._speed.addBytes(data.byteLength)
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
-              } else {
-                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
-              }
-            }
-          })
-            .catch(() => {})
+          req = response.arrayBuffer()
           break
         case READ_STREAM:
         default:
           return this._onReader(response.body.getReader(), taskno)
       }
+      if (!req) return
+
+      req.then((data) => {
+        this._speed?.recordLoaded()
+        _this.loading = false
+        if (!_this._canceled && !_this._destroyed) {
+          if (buffer) {
+            buffer.push(data instanceof ArrayBuffer ? new Uint8Array(data) : data)
+            _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
+          } else {
+            _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data)
+          }
+        }
+      })
+        .catch(() => {})
     }
   }
 
@@ -259,6 +244,7 @@ class FetchLoader {
       if (val.done) {
         this.loading = false
         this.status = 0
+        this._speed?.destroy()
         Promise.resolve().then(() => {
           this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
         })
@@ -266,7 +252,7 @@ class FetchLoader {
       }
 
       buffer.push(val.value)
-      this._speed.addBytes(val.value.byteLength)
+      this._speed?.recordChunk(val.value.byteLength)
       Promise.resolve().then(() => {
         this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       })
@@ -329,7 +315,7 @@ class FetchLoader {
 
   // in KB/s
   get currentSpeed () {
-    return this._speed.lastSamplingKBps
+    return this._speed?.downloadSpeed || 0
   }
 
   cancel () {
@@ -347,6 +333,7 @@ class FetchLoader {
     if (this.abortController) {
       this.abortController.abort()
     }
+    this._speed?.clean()
   }
 
   destroy () {
@@ -354,7 +341,8 @@ class FetchLoader {
     clearTimeout(this._retryTimer)
     clearTimeout(this._noDataTimer)
     this.cancel()
-    this._speed.reset()
+    this._speed?.destroy()
+    this._speed = null
   }
 }
 
