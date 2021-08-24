@@ -78,7 +78,7 @@ export default class PlaybackRate extends OptionsIcon {
     if (!rate || rate === this.curValue) {
       return false
     }
-    this.emitUserAction(e, 'change_rate', { from: this.player.playbackRate, to: rate })
+    this.emitUserAction(e, 'change_rate', { props: 'playbackRate', from: this.player.playbackRate, to: rate })
     this.curValue = rate
     this.player.playbackRate = rate
   }

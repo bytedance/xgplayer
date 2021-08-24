@@ -438,13 +438,21 @@ class VideoProxy {
   }
 
   /**
-   * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
-   * @description  频错误信息，该错误会返回当前语言的文本
+   * @type { MediaError }
+   * @description the player current error
    */
   get error () {
+    return this.video.error
+  }
+
+  /**
+   * @type { string }
+   * @description return error description text
+   */
+  get errorNote () {
     const err = this.video.error
     if (!err) {
-      return null
+      return ''
     }
     const status = [
       'MEDIA_ERR_ABORTED',
@@ -480,17 +488,11 @@ class VideoProxy {
   }
 
   /**
-   * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
+   * @type { number }
    * @description  返回视频的当前网络状态
    */
   get networkState () {
-    const status = [
-      'NETWORK_EMPTY',
-      'NETWORK_IDLE',
-      'NETWORK_LOADING',
-      'NETWORK_NO_SOURCE'
-    ]
-    return status[this.video.networkState]
+    return this.video.networkState
   }
 
   /**
@@ -537,13 +539,7 @@ class VideoProxy {
    * @description 回视频的就绪状态
    */
   get readyState () {
-    const status = [
-      'HAVE_NOTHING',
-      'HAVE_METADATA',
-      'HAVE_CURRENT_DATA',
-      'HAVE_FUTURE_DATA',
-      'HAVE_ENOUGH_DATA']
-    return status[this.video.readyState]
+    return this.video.readyState
   }
 
   /**

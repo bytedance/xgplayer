@@ -11,7 +11,7 @@ import DownloadSvg from '../assets/download.svg'
  */
 export default class Download extends Plugin {
   static get pluginName () {
-    return 'downloadIcon'
+    return 'download'
   }
 
   /**
@@ -29,12 +29,6 @@ export default class Download extends Plugin {
     super(args)
     this.timer = null
     this.isLock = false
-  }
-
-  beforeCreate (args) {
-    if (typeof args.player.config.download === 'boolean') {
-      args.config.disable = !args.player.config.download
-    }
   }
 
   afterCreate () {

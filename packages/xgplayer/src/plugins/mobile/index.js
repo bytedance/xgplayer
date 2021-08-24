@@ -1,4 +1,5 @@
 import Plugin, { Events, Util, Sniffer } from '../../plugin'
+import { STATES } from '../../state'
 import Touche from './touch'
 import SeekTipIcon from '../assets/seekicon.svg'
 // import BackSvg from './back.svg'
@@ -471,11 +472,20 @@ class MobilePlugin extends Plugin {
     }
   }
 
+  sendUseAction (event) {
+    const { paused } = this.player
+    this.emitUserAction(event, 'switch_play_pause', {
+      prop: 'paused',
+      from: paused,
+      to: !paused
+    })
+  }
+
   onClick (e) {
     const { player, config, playerConfig } = this
-    if (!player.isPlaying) {
+    if (player.state < STATES.RUNNING) {
       if (!playerConfig.closeVideoClick) {
-        this.emitUserAction('click', 'switch_play_pause')
+        this.sendUseAction(new Event('click'))
         player.play()
       }
       return
@@ -485,7 +495,7 @@ class MobilePlugin extends Plugin {
       player.isActive ? player.blur() : player.focus()
     } else if (!playerConfig.closeVideoClick) {
       if (player.isActive) {
-        this.emitUserAction('click', 'switch_play_pause')
+        this.sendUseAction(new Event('click'))
         this.switchPlayPause()
       }
       player.focus()
@@ -494,8 +504,8 @@ class MobilePlugin extends Plugin {
 
   onDbClick (e) {
     const { config, player } = this
-    if (!config.closedbClick && player.isPlaying) {
-      this.emitUserAction('dblclick', 'switch_play_pause')
+    if (!config.closedbClick && player.state >= STATES.RUNNING) {
+      this.sendUseAction(new Event('dblclick'))
       this.switchPlayPause()
     }
   }
@@ -506,7 +516,11 @@ class MobilePlugin extends Plugin {
       return
     }
     pos.rate = this.player.playbackRate
-    this.emitUserAction('press', 'change_rate', { from: player.playbackRate, to: config.pressRate })
+    this.emitUserAction('press', 'change_rate', {
+      prop: 'playbackRate',
+      from: player.playbackRate,
+      to: config.pressRate
+    })
     player.playbackRate = config.pressRate
     this.changeAction(ACTIONS.PLAYBACK)
   }
@@ -516,7 +530,7 @@ class MobilePlugin extends Plugin {
     if (config.disablePress) {
       return
     }
-    this.emitUserAction('pressend', 'change_rate', { from: player.playbackRate, to: pos.rate })
+    this.emitUserAction('pressend', 'change_rate', { prop: 'playbackRate', from: player.playbackRate, to: pos.rate })
     player.playbackRate = pos.rate
     pos.rate = 1
     this.changeAction(ACTIONS.AUTO)
@@ -609,7 +623,7 @@ class MobilePlugin extends Plugin {
 
   switchPlayPause () {
     const { player } = this
-    if (!player.hasStart) {
+    if (!player.state < STATES.ATTACHED) {
       return false
     } else if (!player.ended) {
       if (player.paused) {

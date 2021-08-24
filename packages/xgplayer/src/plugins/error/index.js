@@ -36,7 +36,7 @@ export default class ErrorPlugin extends Plugin {
   handleError (error = {}) {
     const { player } = this
     const type = error.type
-    let errorNote = player.error
+    let errorNote = player.errorNote ? this.i18n[player.errorNote] : ''
     if (!errorNote) {
       switch (type) {
         case 'decoder':
