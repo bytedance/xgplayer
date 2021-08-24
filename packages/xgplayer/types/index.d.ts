@@ -304,8 +304,8 @@ declare module "error" {
         readyState: number;
         networkState: number;
         src: any;
-        type: string;
-        code: number;
+        errorType: string;
+        errorCode: number;
         message: string;
         mediaError?: {
             code: number;
@@ -324,8 +324,8 @@ declare module "error" {
      *   readyState: number,
      *   networkState: number,
      *   src: any,
-     *   type: string,
-     *   code: number,
+     *   errorType: string,
+     *   errorCode: number,
      *   message: string,
      *   mediaError?: {
      *     code: number,
