@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-livevideo",
-  "version": "3.0.0-livecore.2",
+  "version": "3.0.0-rc.1",
   "description": "",
   "browser":"dist/index.min.js",
   "main": "dist/index.min.js",
@@ -21,8 +21,8 @@
   "license": "ISC",
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-helper-utils": "3.0.0-livecore.2",
-    "xgplayer-helper-transmuxers": "3.0.0-livecore.2"
+    "xgplayer-helper-utils": "3.0.0-rc.1",
+    "xgplayer-helper-transmuxers": "3.0.0-rc.1"
   },
   "babel": {
     "presets": [

@@ -130,6 +130,7 @@
     "rollup-plugin-url": "^3.0.0",
     "rollup-plugin-visualizer": "^5.5.0",
     "rollup-plugin-web-worker-loader": "^1.6.1",
+    "rollup-plugin-node-builtins": "^2.1.2",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.21.0",
     "sugarss": "^1.0.1",

@@ -36,6 +36,6 @@
     "shaka-player": "^2.4.0"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.0-alpha.89"
+    "xgplayer": "3.0.0-rc.1"
   }
 }

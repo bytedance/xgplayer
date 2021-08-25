@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-utils",
-  "version": "3.0.0-livecore.2",
+  "version": "3.0.0-rc.1",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -28,6 +28,6 @@
   "license": "ISC",
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-helper-models": "3.0.0-livecore.2"
+    "xgplayer-helper-models": "3.0.0-rc.1"
   }
 }

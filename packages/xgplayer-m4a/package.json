@@ -46,6 +46,6 @@
     "event-emitter": "^0.3.5"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.0-alpha.89"
+    "xgplayer": "3.0.0-rc.1"
   }
 }
