@@ -1,10 +1,8 @@
-import EventEmitter from 'event-emitter'
-import allOff from 'event-emitter/all-off'
+import EventEmitter from 'eventemitter3'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors, { ERROR_TYPE_MAP } from './error'
 import { URL_CHANGE, DESTROY } from './events'
-
 /**
  * @typedef { {
  *   duration: number,
@@ -72,11 +70,12 @@ function getHandler (eventName, player) {
     }
   }
 }
-class VideoProxy {
+class VideoProxy extends EventEmitter {
   /**
    * @param {any} options
    */
   constructor (options) {
+    super(options)
     /**
      * @private
      */
@@ -135,7 +134,6 @@ class VideoProxy {
       this.video.autoplay = true
     }
 
-    EventEmitter(this)
     /**
      * @private
      */
@@ -248,7 +246,7 @@ class VideoProxy {
     this._evHandlers = null
     this.video = null
     this.videoEventMiddleware = {}
-    allOff(this)
+    this.removeAllListeners()
   }
 
   /**
@@ -579,8 +577,9 @@ class VideoProxy {
    * @param { any } [data]
    * @returns
    */
-  emit (event, data) {
-  }
+   emit (event, data, ...args) {
+     super.emit(event, data, ...args)
+   }
 
   /**
    *
@@ -588,22 +587,31 @@ class VideoProxy {
    * @param { (data?: any) => any } callback
    * @returns
    */
-  on (event, callback) {}
+  on (event, callback, ...args) {
+    super.on(event, callback, ...args)
+  }
   /**
    *
    * @param { string } event
    * @param { (data?: any) => any } callback
    * @returns
    */
-  once (event, callback) {}
+  once (event, callback, ...args) {
+    super.on(event, callback, ...args)
+  }
   /**
    *
    * @param { string } event
    * @param { (data?: any) => any } callback
    * @returns
    */
-  off (event, callback) {}
-  offAll () {}
+  off (event, callback, ...args) {
+    super.on(event, callback, ...args)
+  }
+
+  removeListener(){
+    super.removeListener()
+  }
 }
 
 export default VideoProxy
