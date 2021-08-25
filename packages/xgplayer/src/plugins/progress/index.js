@@ -106,7 +106,7 @@ class Progress extends Plugin {
   }
 
   afterCreate () {
-    if (this.config.disable) {
+    if (this.config.disable || this.playerConfig.isLive) {
       return
     }
     this.pos = {
@@ -561,7 +561,7 @@ class Progress extends Plugin {
   }
 
   render () {
-    if (this.config.disable) {
+    if (this.config.disable || this.playerConfig.isLive) {
       return
     }
     const controlsMode = this.player.controls ? this.player.controls.config.mode : ''

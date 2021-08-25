@@ -237,6 +237,9 @@ class Plugin extends BasePlugin {
    */
   __init (args) {
     super.__init(args)
+    if (!args.root) {
+      return
+    }
     const _parent = args.root
     let _el = null
     /**

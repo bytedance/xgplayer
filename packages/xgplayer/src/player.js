@@ -1398,7 +1398,7 @@ class Player extends VideoProxy {
    * @returns
    */
   position (pos = { h: 0, y: 0 }) {
-    if (!pos || pos.h) {
+    if (!pos || !pos.h) {
       return
     }
     const { height } = this.root.getBoundingClientRect()
