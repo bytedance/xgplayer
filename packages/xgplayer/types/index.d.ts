@@ -2026,7 +2026,7 @@ declare module "player" {
          * @private
          */
         private reloadFunc;
-        resetClasses(): void;
+        resetState(): void;
         replay(): void;
         retry(): void;
         /**

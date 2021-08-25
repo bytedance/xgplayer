@@ -957,13 +957,16 @@ class Player extends VideoProxy {
     this.once('loadeddata', this.reloadFunc)
   }
 
-  resetClasses () {
+  resetState () {
     const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR, LOADING } = STATE_CLASS
     const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR, LOADING]
+    this.hasStart = false
+    this.videoPause()
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
     this.addClass(STATE_CLASS.ENTER)
+    this.emit(Events.EMPTIED)
   }
 
   /**
@@ -1266,7 +1269,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onCanplay () {
-    this.removeClass(STATE_CLASS.ENTER)
+    this.hasStart && this.removeClass(STATE_CLASS.ENTER)
     this.isCanplay = true
   }
 

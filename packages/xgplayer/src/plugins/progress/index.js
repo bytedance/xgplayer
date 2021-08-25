@@ -137,6 +137,10 @@ class Progress extends Plugin {
       this._state.now = 0
     })
 
+    this.on(Events.EMPTIED, () => {
+      this.onReset()
+    })
+
     this.bindDomEvents()
     this.initCustomStyle()
   }
@@ -491,7 +495,7 @@ class Progress extends Plugin {
    */
   onTimeupdate () {
     const { player, _state, duration } = this
-    if (player.isSeeking || this.isProgressMoving) {
+    if (player.isSeeking || this.isProgressMoving || !player.hasStart) {
       return
     }
     if (_state.now > -1) {
@@ -518,6 +522,12 @@ class Progress extends Plugin {
     this.innerList.update({ cached: point.end }, duration)
     const { miniprogress } = this.player.plugins
     miniprogress && miniprogress.update({ cached: point.end }, duration)
+  }
+
+  onReset () {
+    this.innerList.update({ played: 0, cached: 0 }, 0)
+    const { miniprogress } = this.player.plugins
+    miniprogress && miniprogress.update({ cached: 0, played: 0 }, 0)
   }
 
   destroy () {

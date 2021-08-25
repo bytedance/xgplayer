@@ -44,13 +44,16 @@ export default class DefaultPreset {
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen, DynamicBg)
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
         break
       case 'mobile':
         this.plugins.push(...[Mobile, ...barIcons], Miniscreen)
         break
       default:
         this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
+    }
+    if (sniffer.os.isIpad || mode === 'pc') {
+      this.plugins.push(DynamicBg)
     }
     this.ignores = []
     this.i18n = []

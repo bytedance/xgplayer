@@ -197,16 +197,25 @@
         }
       }
     }
+  }
+  // 进度条位于底部的时候
+  .xgplayer-progress-bottom {
+    .xgplayer-progress-outer {
+      top: 9px;
+    }
+    .xgplayer-progress-btn {
+      &:before {
+        height: 6px;
+        width: 6px;
+      }
+    }
+  }
+
+  &.xgplayer-mobile  {
     // 进度条位于底部的时候
     .xgplayer-progress-bottom {
       .xgplayer-progress-outer {
-        top: 9px;
-      }
-      .xgplayer-progress-btn {
-        &:before {
-          height: 6px;
-          width: 6px;
-        }
+        height: 4px;
       }
     }
   }
