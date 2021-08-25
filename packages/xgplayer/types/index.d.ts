@@ -297,7 +297,6 @@ declare module "error" {
     export type IError = {
         [propName: string]: any;
         playerVersion: string;
-        domain: string;
         currentTime: number;
         duration: number;
         ended: boolean;
@@ -317,7 +316,6 @@ declare module "error" {
     /**
      * @typedef { {
      *   playerVersion: string,
-     *   domain: string,
      *   currentTime: number,
      *   duration: number,
      *   ended: boolean,
@@ -514,10 +512,6 @@ declare module "proxy" {
         /**
          * @private
          */
-        private _hasStart;
-        /**
-         * @private
-         */
         private _currentTime;
         /**
          * @private
@@ -581,12 +575,6 @@ declare module "proxy" {
          * @param { string } eventName
          */
         errorHandler(name: any, error?: any): void;
-        set hasStart(arg: boolean);
-        /**
-         * @type { boolean }
-         * @description 是否开始播放
-         */
-        get hasStart(): boolean;
         destroy(): void;
         /**
          *
@@ -667,10 +655,15 @@ declare module "proxy" {
          * */
         get ended(): boolean;
         /**
-         * @type { MEDIA_ERR_ABORTED | MEDIA_ERR_NETWORK | MEDIA_ERR_DECODE | MEDIA_ERR_SRC_NOT_SUPPORTED }
-         * @description  频错误信息，该错误会返回当前语言的文本
+         * @type { MediaError }
+         * @description the player current error
          */
-        get error(): any;
+        get error(): MediaError;
+        /**
+         * @type { string }
+         * @description return error description text
+         */
+        get errorNote(): string;
         set loop(arg: boolean);
         /**
          * @type { boolean }
@@ -684,10 +677,10 @@ declare module "proxy" {
          */
         get muted(): boolean;
         /**
-         * @type { NETWORK_EMPTY | NETWORK_IDLE | NETWORK_LOADING | NETWORK_NO_SOURCE}
+         * @type { number }
          * @description  返回视频的当前网络状态
          */
-        get networkState(): any;
+        get networkState(): number;
         /**
          * @type { boolean }
          * @description  回当前视频是否是暂停状态
@@ -807,7 +800,7 @@ declare module "constant" {
 }
 declare module "plugin/hooksDescriptor" {
     /**
-     * hook装饰器，为某个实例添加usePluginHooks/hook/useHooks的能力
+     * hook decorator, add hooks props for for an instance
      * @param { any } instance
      * @param { Array<string> } [hookNames]
      */
@@ -844,19 +837,19 @@ declare module "plugin/hooksDescriptor" {
         __hooks: {};
     }
     /**
-     * 添加hooks
-     * @param { string } 支持的hook名称
-     * @param { Function } 具体的处理函数
+     * add hooks
+     * @param { string } hookName
+     * @param { Function } handler
      */
-    export function useHooks(hookName: any, handler: any): boolean;
+    export function useHooks(hookName: string, handler: Function): boolean;
     /**
-     * 给某个插件添加hooks
+     * Add hooks to a plugin
      * @param { string } pluginName
      * @param  {...any} args
      */
     export function usePluginHooks(pluginName: string, ...args: any[]): any;
     /**
-     * 移除hook
+     * remove hook
      * @param { string } hookName
      * @param { (plugin: any, ..args) => {} } handler
      * @returns void
@@ -869,79 +862,80 @@ declare module "plugin/hooksDescriptor" {
 declare module "defaultConfig" {
     /**
      * @typedef { {
-     *   id?: string, // 播放器容器id
-     *   el?: HTMLElement, // 播放器容器dom
-     *   url?: any, // 播放url
-     *   nullUrlStart?: boolean, // 空url起播
-     *   width?: number | string, // 播放器宽度,单位px
-     *   height?: number | string, // 播放器高度,单位px
-     *   fluid?: boolean, // 是否启用流式布局
-     *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
-     *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover', // video画面填充模式 fillHeight/fillWidth/fill/auto
-     *   volume?: number | { [propName: string]: any }, // 默认音量
-     *   autoplay?: boolean, // 是否自动播放
-     *   autoplayMuted?: boolean, // 是否自动静音
-     *   loop?: boolean, // 是否循环播放
-     *   zoom?: number, // 缩放比例
-     *   videoInit?: boolean, // 是否优先显示视频首帧
-     *   poster?: string | { [propName: string]: any }, // 封面图地址
-     *   isMobileSimulateMode?: 'mobile' | 'pc', // 模拟状态,取值mobile/pc
-     *   defaultPlaybackRate?: number, // 默认播放倍数
-     *   execBeforePluginsCall?: () => any, // 默认插件组装前回调
-     *   allowSeekAfterEnded?: boolean, // 播放结束之后是否允许seek
-     *   enableContextmenu?: boolean, // 启用右键菜单
-     *   closeVideoClick?: boolean, // 是否通过video的click/touchend行为切换播放暂停
-     *   closeVideoDblclick?: boolean, // 是否通过双击行为触发全屏切换
-     *   closePlayerBlur?: boolean, // 是否关闭鼠标移出播放器范围触发blur操作
-     *   closeDelayBlur?: boolean, // 是否关闭自动隐藏控制条
-     *   leavePlayerTime?: number, // 延迟触发时间
-     *   closePlayVideoFocus?: boolean, // 是否关闭play时触发focus
-     *   closePauseVideoFocus?: boolean, // 是否关闭pause时触发focus
-     *   closeFocusVideoFocus?: boolean, // 是否关闭播放器移动鼠标时触发focus
-     *   closeControlsBlur?: boolean, // 鼠标移出播放器控制条范围时触发focus事件
-     *   videoAttributes?: { [propName: string]: any }, // video扩展属性
-     *   startTime?: number, // 自动播放起始时间点
-     *   seekedStatus?: 'play' | 'pause' | 'auto', // seek结束之后播放状态 play/pause/auto
-     *   miniprogress?: boolean, // 是否启用迷你控制栏
+     *   id?: string,
+     *   el?: HTMLElement,
+     *   url?: any,
+     *   nullUrlStart?: boolean,
+     *   width?: number | string,
+     *   height?: number | string,
+     *   fluid?: boolean,
+     *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed',
+     *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover',
+     *   volume?: number | { [propName: string]: any },
+     *   autoplay?: boolean,
+     *   autoplayMuted?: boolean,
+     *   loop?: boolean,
+     *   isLive?: boolean,
+     *   zoom?: number,
+     *   videoInit?: boolean,
+     *   poster?: string | { [propName: string]: any },
+     *   isMobileSimulateMode?: 'mobile' | 'pc',
+     *   defaultPlaybackRate?: number,
+     *   execBeforePluginsCall?: () => any,
+     *   allowSeekAfterEnded?: boolean,
+     *   enableContextmenu?: boolean,
+     *   closeVideoClick?: boolean,
+     *   closeVideoDblclick?: boolean,
+     *   closePlayerBlur?: boolean,
+     *   closeDelayBlur?: boolean,
+     *   leavePlayerTime?: number,
+     *   closePlayVideoFocus?: boolean,
+     *   closePauseVideoFocus?: boolean,
+     *   closeFocusVideoFocus?: boolean,
+     *   closeControlsBlur?: boolean,
+     *   videoAttributes?: { [propName: string]: any },
+     *   startTime?: number,
+     *   seekedStatus?: 'play' | 'pause' | 'auto',
+     *   miniprogress?: boolean,
      *   disableSwipeHandler?: () => any,
      *   enableSwipeHandler?: () => any,
-     *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>, // 禁用插件列表
-     *   inactive?: number, // 进度条自动消失延时
+     *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>,
+     *   inactive?: number,
      *   lang?: string,
      *   controls?: boolean | { [propName: string]: any },
-     *   marginControls?: boolean, // 控制栏是否位于画面底部，不与画面重合
-     *   screenShot?: boolean | { [propName: string]: any }, // 截图插件
-     *   rotate?: boolean | { [propName: string]: any }, // 旋转插件
-     *   pip?: boolean | { [propName: string]: any }, // pip插件
-     *   download?: boolean | { [propName: string]: any }, // 是否启用下载插件
-     *   mini?: boolean | { [propName: string]: any }, // 迷你小窗插件
-     *   cssFullscreen?: boolean | { [propName: string]: any }, // 页面全屏
-     *   keyShortcut?: boolean, // 是否开启快捷键
+     *   marginControls?: boolean,
+     *   screenShot?: boolean | { [propName: string]: any },
+     *   rotate?: boolean | { [propName: string]: any },
+     *   pip?: boolean | { [propName: string]: any },
+     *   download?: boolean | { [propName: string]: any },
+     *   mini?: boolean | { [propName: string]: any },
+     *   cssFullscreen?: boolean | { [propName: string]: any },
+     *   keyShortcut?: boolean,
      *   presets?: any[],
      *   plugins?: any[]
      *   playbackRate?: number | Array<number> | { [propName: string]: any },
      *   playsinline?: boolean,
-     *   customDuration?: number, // 用户自定义时长
-     *   timeOffset?: number, // 当前时长偏移
-     *   icons?: { [propName: string]: string | HTMLElement | () => HTMLElement | string }, // 按钮配置
+     *   customDuration?: number,
+     *   timeOffset?: number,
+     *   icons?: { [propName: string]: string | HTMLElement | () => HTMLElement | string },
      *   i18n?: Array<any>,
      *   thumbnail?: {
-     *     urls: Array<string>, // 有多张大图就多个url就好
-     *     pic_num: number, // 每张图含有几个雪碧图
-     *     col: number, // 截图列数
-     *     row: number, // 截图行数
-     *     height?: number, // 缩略图高度, 默认90
-     *     width?: number, // 缩略图宽度， 默认160
+     *     urls: Array<string>,
+     *     pic_num: number,
+     *     col: number,
+     *     row: number,
+     *     height?: number,
+     *     width?: number,
      *   },
      *   videoConfig?: { [propName: string]: any },
      *   commonStyle?: {
-     *     progressColor?: string, // 进度条底色
-     *     playedColor?: string, // 播放完成部分进度条底色
-     *     cachedColor?: string, // 缓存部分进度条底色
-     *     sliderBtnStyle?: { [propName: string]: any }, // 进度条滑块样式
+     *     progressColor?: string,
+     *     playedColor?: string,
+     *     cachedColor?: string,
+     *     sliderBtnStyle?: { [propName: string]: any },
      *     volumeColor?: string
      *   },
-     *   [propName: string]: any; // 扩展定义
+     *   [propName: string]: any;
      * } } IPlayerOptions
      */
     /**
@@ -966,6 +960,7 @@ declare module "defaultConfig" {
         autoplay?: boolean;
         autoplayMuted?: boolean;
         loop?: boolean;
+        isLive?: boolean;
         zoom?: number;
         videoInit?: boolean;
         poster?: string | {
@@ -1181,7 +1176,7 @@ declare module "plugin/basePlugin" {
          * @returns
          */
         emit(event: string, res?: any): void;
-        emitUserAction(event: any, action: any, params?: {}): void;
+        emitUserAction(event: any, action: any, props?: any[], ext?: {}): void;
         /**
          * @param { string } hookName
          * @param { Function } handler
@@ -1436,14 +1431,14 @@ declare module "plugin/pluginsManager" {
         function init(player: any): void;
         function init(player: any): void;
         /**
-           * 检测当前dom中是否已经有初始化播放器
-           * @param {Element} root
-           */
+         * Check whether there is a player instance in the current dom
+         * @param {Element} root
+         */
         function checkPlayerRoot(root: Element): any;
         /**
-           * 检测当前dom中是否已经有初始化播放器
-           * @param {Element} root
-           */
+         * Check whether there is a player instance in the current dom
+         * @param {Element} root
+         */
         function checkPlayerRoot(root: Element): any;
         /**
          * register a lazy plugin
@@ -1702,6 +1697,20 @@ declare module "lang/i18n" {
      */
     function use(langData: IXGI18nText): void;
 }
+declare module "state" {
+    export namespace STATES {
+        const ERROR: number;
+        const INITIAL: number;
+        const READY: number;
+        const ATTACHING: number;
+        const ATTACHED: number;
+        const NOTALLOW: number;
+        const RUNNING: number;
+        const ENDED: number;
+        const DESTROYED: number;
+    }
+    export const STATE_ARRAY: string[];
+}
 declare module "player" {
     export type IPlayerOptions = import("defaultConfig").IPlayerOptions;
     class Player extends VideoProxy {
@@ -1744,16 +1753,13 @@ declare module "player" {
          */
         private waitTimer;
         /**
-         * @type { boolean }
-         * @readonly
+         * @private
          */
-        readonly isReady: boolean;
+        private _state;
         /**
-         * Whether the player is real start state
-         * @type { boolean }
-         * @readonly
+         * @private
          */
-        readonly isPlaying: boolean;
+        private _hasStart;
         /**
          * Whether the player is in the seeking state
          * @type { boolean }
@@ -1904,6 +1910,12 @@ declare module "player" {
          */
         _startInit(url: any): void;
         canPlayFunc: any;
+        set hasStart(arg: boolean);
+        /**
+         * @type { boolean }
+         * @description 是否开始播放
+         */
+        get hasStart(): boolean;
         /**
          * 针对source列表播放方式添加错误监听
          * @doc https://stackoverflow.com/questions/47557135/html5-detect-the-type-of-error-when-trying-to-load-a-video-using-a-source-elem
@@ -2159,7 +2171,7 @@ declare module "player" {
             h: number;
             y?: number;
         }): void;
-        getVideoSize(): void;
+        resize(): void;
         /**
          *
          * @param { number } left
@@ -2167,6 +2179,16 @@ declare module "player" {
          * @returns
          */
         updateObjectPosition(left?: number, top?: number): void;
+        /**
+         * @protected
+         * @param { number } newState
+         */
+        protected setState(newState: number): void;
+        /**
+         * @readonly
+         * @type { number }
+         */
+        readonly get state(): number;
         /**
          * @type { string }
          */
