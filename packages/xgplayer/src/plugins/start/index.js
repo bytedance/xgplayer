@@ -1,7 +1,6 @@
-import Plugin, { Util, Events } from '../../plugin'
+import Plugin, { Util, Events, STATES } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
-import { STATES } from '../../state'
 
 /**
  * @typedef {{
@@ -167,7 +166,7 @@ class Start extends Plugin {
     const { player } = this
     e.preventDefault()
     e.stopPropagation()
-    if (!player.isReady) {
+    if (player.state < STATES.READY) {
       return
     }
     const paused = this.player.paused

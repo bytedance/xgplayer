@@ -237,6 +237,9 @@ class Plugin extends BasePlugin {
    */
   __init (args) {
     super.__init(args)
+    if (!args.root) {
+      return
+    }
     const _parent = args.root
     let _el = null
     /**
@@ -269,7 +272,6 @@ class Plugin extends BasePlugin {
       XG_DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
       throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
-
     if (renderStr) {
       _el = Plugin.insert(renderStr, _parent, args.index)
       _el.setAttribute('data-index', args.index)

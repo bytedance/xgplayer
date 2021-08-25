@@ -13,6 +13,7 @@
  *   autoplay?: boolean,
  *   autoplayMuted?: boolean,
  *   loop?: boolean,
+ *   isLive?: boolean,
  *   zoom?: number,
  *   videoInit?: boolean,
  *   poster?: string | { [propName: string]: any },
@@ -95,6 +96,7 @@ export default function getDefaultConfig () {
     autoplay: false,
     autoplayMuted: false, // whether to mute the start
     loop: false, // whether to loop
+    isLive: false, // whether is live
     zoom: 1,
     videoInit: true, // whether to load the video/audio when initializing
     poster: '', // cover poster url or the configuration object for poster plugin

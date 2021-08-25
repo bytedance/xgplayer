@@ -72,11 +72,6 @@ class Player extends VideoProxy {
      * @private
      */
     this.waitTimer = null
-    /**
-     * @type { boolean }
-     * @readonly
-     */
-    this.isReady = false
 
     /**
      * @private
@@ -226,12 +221,9 @@ class Player extends VideoProxy {
     this._registerPlugins()
     pluginsManager.onPluginsReady(this)
 
-    Util.setTimeout(this, () => {
-      this.emit(Events.READY)
-      this.onReady && this.onReady()
-      this.isReady = true
-      // this.state = STATES.READY
-    }, 0)
+    this.setState(STATES.READY)
+    this.emit(Events.READY)
+    this.onReady && this.onReady()
 
     if (this.config.videoInit || this.config.autoplay) {
       if (!this.hasStart || this.state < STATES.ATTACHED) {
@@ -377,7 +369,7 @@ class Player extends VideoProxy {
       }
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         Util.setTimeout(this, () => {
-          this.getVideoSize()
+          this.resize()
         }, 100)
         this.video.focus()
         this.fullscreen = true
@@ -389,7 +381,7 @@ class Player extends VideoProxy {
         }
       } else if (this.fullscreen) {
         Util.setTimeout(this, () => {
-          this.getVideoSize()
+          this.resize()
         }, 100)
         const { _fullScreenOffset, config } = this
         if (config.needFullscreenScroll) {
@@ -438,7 +430,7 @@ class Player extends VideoProxy {
       this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
       this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
     }
-    this.once('loadeddata', this.getVideoSize)
+    this.once('loadeddata', this.resize)
 
     this.playFunc = () => {
       if (!this.config.closeFocusVideoFocus) {
@@ -1011,7 +1003,7 @@ class Player extends VideoProxy {
     }
     this.removeAttribute('data-xgfill');
 
-    ['isReady', 'isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
+    ['isSeeking', 'isCanplay', 'isActive', 'isCssfullScreen', 'fullscreen'].map(key => {
       this[key] = false
     })
   }
@@ -1269,7 +1261,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onCanplay () {
-    this.hasStart && this.removeClass(STATE_CLASS.ENTER)
+    this.state >= STATES.RUNNING && this.removeClass(STATE_CLASS.ENTER)
     this.isCanplay = true
   }
 
@@ -1376,7 +1368,7 @@ class Player extends VideoProxy {
    * @protected
    */
   onTimeupdate () {
-    !this._videoHeight && this.getVideoSize()
+    !this._videoHeight && this.resize()
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
       if (this.checkBuffer()) {
         this.removeClass(STATE_CLASS.LOADING)
@@ -1417,7 +1409,7 @@ class Player extends VideoProxy {
    * @returns
    */
   position (pos = { h: 0, y: 0 }) {
-    if (!pos || pos.h) {
+    if (!pos || !pos.h) {
       return
     }
     const { height } = this.root.getBoundingClientRect()
@@ -1431,7 +1423,7 @@ class Player extends VideoProxy {
     this.video.style.webkitTransform = _transform
   }
 
-  getVideoSize () {
+  resize () {
     const { videoWidth, videoHeight } = this.video
     const { fitVideoSize, videoFillMode } = this.config
 
@@ -1514,7 +1506,7 @@ class Player extends VideoProxy {
     if (typeof bool === 'boolean') {
       this._hasStart = bool
       if (bool === false) {
-        this._state = STATES.INITIAL
+        this._state = STATES.READY
       }
       this.emit('hasstart')
     }

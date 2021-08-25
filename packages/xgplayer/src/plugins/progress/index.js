@@ -1,4 +1,4 @@
-import Plugin, { Events, Util, POSITIONS, Sniffer } from '../../plugin'
+import Plugin, { Events, Util, POSITIONS, Sniffer, STATES } from '../../plugin'
 import InnerList from './innerList'
 
 /**
@@ -100,7 +100,7 @@ class Progress extends Plugin {
   }
 
   afterCreate () {
-    if (this.config.disable) {
+    if (this.config.disable || this.playerConfig.isLive) {
       return
     }
     this.pos = {
@@ -495,7 +495,7 @@ class Progress extends Plugin {
    */
   onTimeupdate () {
     const { player, _state, duration } = this
-    if (player.isSeeking || this.isProgressMoving || !player.hasStart) {
+    if (player.isSeeking || this.isProgressMoving || player.state < STATES.RUNNING) {
       return
     }
     if (_state.now > -1) {
@@ -555,7 +555,7 @@ class Progress extends Plugin {
   }
 
   render () {
-    if (this.config.disable) {
+    if (this.config.disable || this.playerConfig.isLive) {
       return
     }
     const controlsMode = this.player.controls ? this.player.controls.config.mode : ''

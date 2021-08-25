@@ -1,4 +1,4 @@
-import Plugin, { Util, Events, POSITIONS } from '../../plugin'
+import Plugin, { Util, Events, POSITIONS, STATES } from '../../plugin'
 
 class Time extends Plugin {
   static get pluginName () {
@@ -59,7 +59,7 @@ class Time extends Plugin {
 
   onTimeUpdate () {
     const { player, config } = this
-    if (config.disable || this.isActiving || !player.hasStart) {
+    if (config.disable || this.isActiving || player.state < STATES.RUNNING) {
       return
     }
     const current = player.currentTime + this.timeOffset

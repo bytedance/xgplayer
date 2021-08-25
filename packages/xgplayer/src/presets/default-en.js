@@ -33,24 +33,25 @@ import DynamicBg from '../plugins/dynamicBg'
 export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode
-    const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, MiniProgress]
+    const { isLive } = playerConfig
+    const vodPlugins = isLive ? [] : [Progress, MiniProgress, ProgressPreview, TimeIcon]
 
-    const barIcons = [PIPIcon]
+    const contolsIcons = [...vodPlugins, PlayIcon, FullScreen,
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
 
-    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview]
+    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, Miniscreen]
 
     this.plugins = [Xglogger, ...contolsIcons, ...layers]
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
+        this.plugins.push(...[Keyboard, PC, CssFullScreen])
         break
       case 'mobile':
-        this.plugins.push(...[Mobile, ...barIcons], Miniscreen)
+        this.plugins.push(...[Mobile])
         break
       default:
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
+        this.plugins.push(...[Keyboard, PC, CssFullScreen])
     }
     if (sniffer.os.isIpad || mode === 'pc') {
       this.plugins.push(DynamicBg)

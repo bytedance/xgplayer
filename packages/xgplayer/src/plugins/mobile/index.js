@@ -1,5 +1,4 @@
-import Plugin, { Events, Util, Sniffer } from '../../plugin'
-import { STATES } from '../../state'
+import Plugin, { Events, Util, Sniffer, STATES } from '../../plugin'
 import Touche from './touch'
 import SeekTipIcon from '../assets/seekicon.svg'
 // import BackSvg from './back.svg'
