@@ -1,6 +1,6 @@
 {
   "name": "xgplayer",
-  "version": "3.0.0-alpha.95-8",
+  "version": "3.0.0",
   "description": "video player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -15,7 +15,7 @@
     "postpublish": "git push --tags",
     "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
     "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org",
-    "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org",
+    "release:rc": "npm version prerelease --preid=rc && npm publish --tag rc --registry=http://registry.npmjs.org",
     "prepare": "npm run build",
     "tsc:umd": "tsc --project ./tsconfig.umd.json",
     "tsc:es": "tsc --outDir es",
