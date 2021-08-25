@@ -28,6 +28,7 @@ declare class FlvPlayer extends BasePlugin {
     _destroyInternal(): any;
     /** @type {FlvVodController} */
     get core(): FlvVodController;
+    get loader(): any;
     _context: any;
 }
 import { BasePlugin } from "xgplayer";

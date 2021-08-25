@@ -11,7 +11,7 @@ export default class HlsLivePlayer extends BasePlugin {
         Crypto: typeof import("xgplayer-helper-utils/lib/crypto").default;
         TsDemuxer: typeof import("xgplayer-helper-transmuxers/lib/hls/ts").default;
         Playlist: typeof import("xgplayer-helper-models").PlaylistNew;
-        M3U8Parser: any;
+        M3U8Parser: typeof import("xgplayer-helper-transmuxers").M3U8ParserNew;
     } & {
         options: {};
         loadTimeout: number;
@@ -34,6 +34,7 @@ export default class HlsLivePlayer extends BasePlugin {
     _destroyInternal: () => any;
     /** @type {HlsLiveController} */
     get core(): HlsLiveController;
+    get loader(): any;
     get context(): Context;
 }
 import { BasePlugin } from "xgplayer";

@@ -24,3 +24,4 @@ import { Mp4Remuxer } from "xgplayer-helper-transmuxers";
 import { Crypto } from "xgplayer-helper-utils";
 import { TsDemuxer } from "xgplayer-helper-transmuxers";
 import { PlaylistNew } from "xgplayer-helper-models";
+import { M3U8ParserNew } from "xgplayer-helper-transmuxers";

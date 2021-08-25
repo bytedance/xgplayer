@@ -4,7 +4,7 @@ declare class HlsPlayer extends BasePlugin {
         FetchLoader: typeof import("xgplayer-helper-utils/lib/loader-fetch/fetch-loader").default;
         Crypto: typeof import("xgplayer-helper-utils/lib/crypto").default;
         TsDemuxer: typeof import("xgplayer-helper-transmuxers/lib/hls/ts").default;
-        M3U8Parser: any;
+        M3U8Parser: typeof import("xgplayer-helper-transmuxers").M3U8ParserNew;
         Playlist: typeof import("xgplayer-helper-models").PlaylistNew;
         XgBuffer: typeof import("xgplayer-helper-models/lib/u8a-buffer").default;
         Tracks: typeof import("xgplayer-helper-models").Tracks;
@@ -41,6 +41,7 @@ declare class HlsPlayer extends BasePlugin {
     _destroyInternal: () => void;
     /** @type {HlsLiveController} */
     get core(): HlsLiveController;
+    get loader(): any;
     get context(): Context;
 }
 import { BasePlugin } from "xgplayer";

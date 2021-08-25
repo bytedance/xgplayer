@@ -12,6 +12,7 @@ export default _default;
 import { FetchLoader } from "xgplayer-helper-utils";
 import { Crypto } from "xgplayer-helper-utils";
 import { TsDemuxer } from "xgplayer-helper-transmuxers";
+import { M3U8ParserNew } from "xgplayer-helper-transmuxers";
 import { PlaylistNew } from "xgplayer-helper-models";
 import { Buffer as XgBuffer } from "xgplayer-helper-models";
 import { Tracks } from "xgplayer-helper-models";

@@ -63,6 +63,7 @@ export default class HlsLiveController {
     _setMetaToAudio(audioMeta: any): void;
     _setMetaToVideo(videoMeta: any): void;
     _onMediaSegment: () => void;
+    _onBufferAppended: () => void;
     _onTimeUpdate: () => void;
     _catchUp(): void;
     _onLoadError: (_: any, error: any) => void;

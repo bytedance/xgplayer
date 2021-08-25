@@ -55,6 +55,7 @@ declare class FlvPlayer extends BasePlugin {
     _context: any;
     /** @type {FlvLiveMobileController} */
     get core(): FlvLiveMobileController;
+    get loader(): any;
 }
 import { BasePlugin } from "xgplayer";
 import FlvLiveMobileController from "./flv-live-mobile";

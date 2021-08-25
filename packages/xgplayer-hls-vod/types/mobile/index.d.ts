@@ -27,6 +27,7 @@ declare class HlsVodMobilePlayer extends BasePlugin {
     _destroyInternal: () => void;
     /** @type {HlsVodMobileController} */
     get core(): HlsVodMobileController;
+    get loader(): any;
     get context(): Context;
 }
 import { BasePlugin } from "xgplayer";

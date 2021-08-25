@@ -25,6 +25,7 @@ declare class HlsVodPlayer extends BasePlugin {
     _destroyInternal: () => Promise<any>;
     /** @type {HlsVodController} */
     get core(): HlsVodController;
+    get loader(): any;
 }
 import { BasePlugin } from "xgplayer";
 import { Context } from "xgplayer-helper-utils";

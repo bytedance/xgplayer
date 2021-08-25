@@ -16,7 +16,6 @@ declare class HlsVodController {
     preloadTime: any;
     _bindEvents(): void;
     _onTimeUpdate: () => never;
-    _onWaiting: () => never;
     _onMetadataParsed: () => never;
     _onDemuxComplete: () => never;
     _onLoaderCompete: (buffer: any) => void;
