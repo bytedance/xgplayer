@@ -7,12 +7,9 @@
     "labels": {
       "player": "xgplayer",
       "mp4": "xgplayer-mp4",
-      "hls": "xgplayer-hls",
       "hls.js": "xgplayer-hls.js",
-      "flv": "xgplayer-flv",
       "flv.js": "xgplayer-flv.js",
       "dash": "xgplayer-shaka",
-      "logger": "xgplayer-logger",
       "music": "xgplayer-music"
     },
     "cacheDir": ".changelog"
