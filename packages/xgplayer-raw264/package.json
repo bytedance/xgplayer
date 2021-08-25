@@ -3,9 +3,9 @@
   "version": "3.0.0-livecore.2",
   "description": "",
   "browser":"dist/index.min.js",
-  "main": "lib/index.js",
+  "main": "dist/index.min.js",
   "module": "es/index.js",
-  "typings": "./types/index.d.ts",
+  "typings": "types/index.d.ts",
   "scripts": {
     "prepare": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",

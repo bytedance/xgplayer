@@ -2,11 +2,11 @@
   "name": "xgplayer-render",
   "version": "3.0.0-alpha.16",
   "description": "",
-  "main": "lib/index.js",
+  "main": "dist/index.min.js",
   "module": "es/index.js",
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build": "npm run build:umd && npm run build:es",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "babel src --out-dir es",
     "build:lib": "babel src --out-dir lib",
