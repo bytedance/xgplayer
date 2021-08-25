@@ -135,10 +135,6 @@ class Touche {
     }
   }
 
-  offAll () {
-
-  }
-
   trigger (event, e) {
     if (!this.__handlers[event]) {
       return

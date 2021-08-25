@@ -1,4 +1,4 @@
-import EventEmitter from 'event-emitter'
+import EventEmitter from 'eventemitter3'
 
 function getStyleSize (value) {
   const num = parseFloat(value)
@@ -137,9 +137,9 @@ const POST_START_EVENTS = {
   pointerdown: ['pointermove', 'pointerup', 'pointercancel']
 }
 
-export default class Draggabilly {
+export default class Draggabilly extends EventEmitter {
   constructor (root, options = {}) {
-    EventEmitter(this)
+    super()
     this.isEnabled = true
     this.isDragging = false
     this.isDown = false
@@ -391,6 +391,7 @@ export default class Draggabilly {
     if (this.isDragging) {
       this.dragEnd()
     }
+    this.removeAllListeners()
     this._handlerDom = null
   }
 
