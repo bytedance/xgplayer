@@ -21,7 +21,7 @@ const umd = commonRollup({
       stringify: false
     }),
     replace({
-      __XGPLAYER_VERSION__: JSON.stringify(version),
+      __VERSION__: JSON.stringify(version),
       preventAssignment: true
     })
   ]

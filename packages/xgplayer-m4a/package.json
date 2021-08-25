@@ -2,8 +2,8 @@
   "name": "xgplayer-m4a",
   "version": "1.1.5",
   "description": "xgplayer plugin for m4a transform to fmp4",
-  "main": "./lib/index.js",
-  "module": "./es/index.js",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
   "sideEffects": [
     "*.css"
   ],
@@ -22,7 +22,7 @@
     "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
     "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org",
     "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org",
-    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build": "npm run build:umd && npm run build:es",
     "build:umd": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
     "build:lib": "rm -rf ./lib && npx cross-env BABEL_TARGET=commonjs ../../node_modules/.bin/babel ./src --out-dir lib",
