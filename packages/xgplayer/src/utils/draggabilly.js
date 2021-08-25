@@ -391,7 +391,7 @@ export default class Draggabilly extends EventEmitter {
     if (this.isDragging) {
       this.dragEnd()
     }
-    this.removeEventListener()
+    this.removeAllListeners()
     this._handlerDom = null
   }
 

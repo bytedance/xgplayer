@@ -4,9 +4,6 @@ import Sniffer from './utils/sniffer'
 import Errors, { ERROR_TYPE_MAP } from './error'
 import { URL_CHANGE, DESTROY } from './events'
 /**
- * @typedef { import ('eventemitter3') } EventEmitter
- */
-/**
  * @typedef { {
  *   duration: number,
  *   currentTime: number,
@@ -73,9 +70,6 @@ function getHandler (eventName, player) {
     }
   }
 }
-/**
- * @extends { EventEmitter }
- */
 class VideoProxy extends EventEmitter {
   /**
    * @param {any} options
@@ -573,6 +567,50 @@ class VideoProxy extends EventEmitter {
 
   set volume (vol) {
     this.video.volume = vol
+  }
+
+  /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
+
+  /**
+   *
+   * @param { string } event
+   * @param { any } [data]
+   * @returns
+   */
+   emit (event, data, ...args) {
+     super.emit(event, data, ...args)
+   }
+
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  on (event, callback, ...args) {
+    super.on(event, callback, ...args)
+  }
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  once (event, callback, ...args) {
+    super.on(event, callback, ...args)
+  }
+  /**
+   *
+   * @param { string } event
+   * @param { (data?: any) => any } callback
+   * @returns
+   */
+  off (event, callback, ...args) {
+    super.on(event, callback, ...args)
+  }
+
+  removeListener(){
+    super.removeListener()
   }
 }
 
