@@ -45,13 +45,13 @@ export default class InnerList {
       })
     }
     const curPFrag = fragments[newIndex]
-    const per = (millisecond - curPFrag.start) / curPFrag.duration
+    const per = millisecond === 0 ? 0 : (millisecond - curPFrag.start) / curPFrag.duration
     progressList[newIndex][type].style.width = per < 0 ? 0 : `${per * 100}%`
   }
 
   update (data = { cached: 0, played: 0 }, duration) {
     if (!this.duration || parseInt(duration * 1000, 10) !== this.duration) {
-      if (!duration) {
+      if (!duration && duration !== 0) {
         return
       }
       this.updateDuration(duration)
