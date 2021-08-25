@@ -14,24 +14,7 @@ export default class Xglogger extends BasePlugin {
   }
 
   afterCreate () {
-    this.vt = 0
-    this.pt = 0
-    this.fvt = 0
-    this.stall = {
-      costTime: 0,
-      currentTime: 0
-    }
-
-    this.seekData = {
-      costTime: 0,
-      currentTime: 0
-    }
-    this._isSeeking = false
-    this.seekingStart = 0
-    this.waitingStart = 0
-    this._isWaiting = false
-    this._waitTimer = null
-    this._waittTimer = null
+    this._onReset()
     this.on(Events.LOAD_START, () => {
       // console.log('Events.LOAD_START')
       this.vt = this.pt = now()
@@ -48,6 +31,29 @@ export default class Xglogger extends BasePlugin {
     this.on(Events.SEEKED, this._onSeeked)
     this.on(Events.PLAYING, this._onPlaying)
     this.on(Events.ERROR, this._onError)
+    this.on(Events.EMPTIED, this._onReset)
+  }
+
+  _onReset = () => {
+    this.vt = 0
+    this.pt = 0
+    this.fvt = 0
+    this._isSeeking = false
+    this.seekingStart = 0
+    this.waitingStart = 0
+    this._isWaiting = false
+    this._waitTimer && Util.clearTimeout(this, this._waitTimer)
+    this._waittTimer && Util.clearTimeout(this, this._waittTimer)
+    this._waitTimer = null
+    this._waittTimer = null
+    this.stall = {
+      costTime: 0,
+      currentTime: 0
+    }
+    this.seekData = {
+      costTime: 0,
+      currentTime: 0
+    }
   }
 
   _onSeeking = () => {
@@ -108,7 +114,7 @@ export default class Xglogger extends BasePlugin {
 
   suspendWaitingStatus (endType) {
     if (this._waitTimer) {
-      Util.clearTimeout(this._waitTimer)
+      Util.clearTimeout(this, this._waitTimer)
       this._waitTimer = null
     }
     if (!this.waitingStart) {
