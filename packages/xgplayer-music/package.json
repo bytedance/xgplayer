@@ -2,9 +2,9 @@
   "name": "xgplayer-music",
   "version": "3.0.0-alpha.0",
   "description": "xgplayer plugin for music",
-  "main": "./dist/index.min.js",
-  "module": "./es/index.js",
-  "typings": "./types/index.d.ts",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "types/index.d.ts",
   "sideEffects": [
     "*.css"
   ],
