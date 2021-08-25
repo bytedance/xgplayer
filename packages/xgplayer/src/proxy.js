@@ -577,9 +577,9 @@ class VideoProxy extends EventEmitter {
    * @param { any } [data]
    * @returns
    */
-   emit (event, data, ...args) {
-     super.emit(event, data, ...args)
-   }
+  emit (event, data, ...args) {
+    super.emit(event, data, ...args)
+  }
 
   /**
    *
