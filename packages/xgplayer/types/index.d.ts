@@ -488,6 +488,7 @@ declare module "events" {
 }
 declare module "proxy" {
     export default VideoProxy;
+    export type EventEmitter = any;
     export type IVideoProxy = {
         duration: number;
         currentTime: number;
@@ -506,6 +507,9 @@ declare module "proxy" {
         play: Function;
         pause: Function;
     };
+    /**
+     * @extends { EventEmitter }
+     */
     class VideoProxy {
         /**
          * @param {any} options
@@ -735,36 +739,6 @@ declare module "proxy" {
          * @description 设置/返回视频的音量
          */
         get volume(): number;
-        /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
-        /**
-         *
-         * @param { string } event
-         * @param { any } [data]
-         * @returns
-         */
-        emit(event: string, data?: any): void;
-        /**
-         *
-         * @param { string } event
-         * @param { (data?: any) => any } callback
-         * @returns
-         */
-        on(event: string, callback: (data?: any) => any): void;
-        /**
-         *
-         * @param { string } event
-         * @param { (data?: any) => any } callback
-         * @returns
-         */
-        once(event: string, callback: (data?: any) => any): void;
-        /**
-         *
-         * @param { string } event
-         * @param { (data?: any) => any } callback
-         * @returns
-         */
-        off(event: string, callback: (data?: any) => any): void;
-        offAll(): void;
     }
 }
 declare module "utils/database" {

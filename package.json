@@ -68,7 +68,7 @@
     "@babel/runtime": "^7.14.0",
     "@babel/runtime-corejs3": "^7.14.0",
     "@babel/traverse": "^7.14.2",
-    "@babel/types": "^7.14.4",
+    "@babel/types": "^7.15.0",
     "@koa/cors": "^2.2.1",
     "@rollup/plugin-alias": "^3.1.2",
     "@rollup/plugin-babel": "^5.3.0",
