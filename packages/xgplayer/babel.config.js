@@ -27,7 +27,7 @@ module.exports = {
       'search-and-replace',
       {
         rules: [{
-          search: /__XGPLAYER_VERSION__/,
+          search: /__VERSION__/,
           replace: JSON.stringify(version)
         }]
       }

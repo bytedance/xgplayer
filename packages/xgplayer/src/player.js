@@ -1309,6 +1309,7 @@ class Player extends VideoProxy {
     this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.NO_START)
     this.removeClass(STATE_CLASS.ENTER)
+    this.removeClass(STATE_CLASS.LOADING)
     this.addClass(STATE_CLASS.ERROR)
   }
 
@@ -1416,7 +1417,7 @@ class Player extends VideoProxy {
     const rvH = height / pos.h
     let _transform = `scale(${rvH / height})`
     if (pos.y) {
-      const _ty = pos.y * 100 - (100 - pos.h * 100 - pos.y * 100)
+      const _ty = (100 - pos.h * 100) / 2 - pos.y * 100
       _transform += ` translate(0px, ${_ty}%)`
     }
     this.video.style.transform = _transform
