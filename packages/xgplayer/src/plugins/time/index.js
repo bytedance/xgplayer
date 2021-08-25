@@ -1,4 +1,4 @@
-import Plugin, { Util, Events, POSITIONS } from '../../plugin'
+import Plugin, { Util, Events, POSITIONS, STATES } from '../../plugin'
 
 class Time extends Plugin {
   static get pluginName () {
@@ -44,6 +44,10 @@ class Time extends Plugin {
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeUpdate()
     })
+
+    this.on(Events.EMPTIED, () => {
+      this.onReset()
+    })
   }
 
   show () {
@@ -55,7 +59,7 @@ class Time extends Plugin {
 
   onTimeUpdate () {
     const { player, config } = this
-    if (config.disable || this.isActiving) {
+    if (config.disable || this.isActiving || player.state < STATES.RUNNING) {
       return
     }
     const current = player.currentTime + this.timeOffset
@@ -69,6 +73,16 @@ class Time extends Plugin {
       if (this.duration !== Infinity && this.duration > 0) {
         this.durationDom.innerHTML = Util.format(this.duration)
       }
+    }
+  }
+
+  onReset () {
+    if (this.mode === 'flex') {
+      this.centerCurDom.innerHTML = Util.format(0)
+      this.centerDurDom.innerHTML = Util.format(0)
+    } else {
+      this.timeDom.innerHTML = Util.format(0)
+      this.durationDom.innerHTML = Util.format(0)
     }
   }
 

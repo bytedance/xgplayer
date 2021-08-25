@@ -1,4 +1,4 @@
-import Plugin, { Events, Util, POSITIONS, Sniffer } from '../../plugin'
+import Plugin, { Events, Util, POSITIONS, Sniffer, STATES } from '../../plugin'
 import InnerList from './innerList'
 
 /**
@@ -100,7 +100,7 @@ class Progress extends Plugin {
   }
 
   afterCreate () {
-    if (this.config.disable) {
+    if (this.config.disable || this.playerConfig.isLive) {
       return
     }
     this.pos = {
@@ -135,6 +135,10 @@ class Progress extends Plugin {
     this.on(Events.ENDED, () => {
       this.onCacheUpdate()
       this._state.now = 0
+    })
+
+    this.on(Events.EMPTIED, () => {
+      this.onReset()
     })
 
     this.bindDomEvents()
@@ -491,7 +495,7 @@ class Progress extends Plugin {
    */
   onTimeupdate () {
     const { player, _state, duration } = this
-    if (player.isSeeking || this.isProgressMoving) {
+    if (player.isSeeking || this.isProgressMoving || player.state < STATES.RUNNING) {
       return
     }
     if (_state.now > -1) {
@@ -520,6 +524,12 @@ class Progress extends Plugin {
     miniprogress && miniprogress.update({ cached: point.end }, duration)
   }
 
+  onReset () {
+    this.innerList.update({ played: 0, cached: 0 }, 0)
+    const { miniprogress } = this.player.plugins
+    miniprogress && miniprogress.update({ cached: 0, played: 0 }, 0)
+  }
+
   destroy () {
     const { player } = this
     const { controls } = player
@@ -545,7 +555,7 @@ class Progress extends Plugin {
   }
 
   render () {
-    if (this.config.disable) {
+    if (this.config.disable || this.playerConfig.isLive) {
       return
     }
     const controlsMode = this.player.controls ? this.player.controls.config.mode : ''

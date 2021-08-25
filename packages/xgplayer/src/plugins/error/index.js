@@ -35,7 +35,7 @@ export default class ErrorPlugin extends Plugin {
 
   handleError (error = {}) {
     const { player } = this
-    const type = error.type
+    const type = error.errorType
     let errorNote = player.errorNote ? this.i18n[player.errorNote] : ''
     if (!errorNote) {
       switch (type) {
