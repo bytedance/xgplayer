@@ -1,12 +1,12 @@
 import Util from '../utils/util'
 import EN from './en'
 /**
- * @typedef { Array<{
+ * @typedef { {
  *   LANG: string,
  *   TEXT: {
  *    [propName: string]: string
  *   }
- * }>} IXGI18nText
+ * } } IXGI18nText
  */
 
 const XGI18nLang = {}
@@ -21,7 +21,7 @@ function updateKeys () {
 }
 
 /**
- * @param { IXGI18nText } XGI18nText
+ * @param { Array<IXGI18nText> } XGI18nTexts
  */
 function extend (XGI18nText) {
   let ext = []
