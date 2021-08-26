@@ -46,7 +46,7 @@ const buildESStyles = async () => {
         })
         return result.css
       })
-      const distTypes = ['es', 'lib']
+      const distTypes = ['es']
       for (let i = 0; i < distTypes.length; i++) {
         const distType = distTypes[i]
         const distPath = file.replace('src', distType).replace(/.scss$/, '.css')
@@ -114,7 +114,7 @@ const copyAssets = async () => {
   try {
     const files = await readdir(path.resolve(__dirname, '../src'), [ignoreFunc])
     for (let i = 0; i < files.length; i++) {
-      ['es', 'lib'].forEach((dir) => {
+      ['es'].forEach((dir) => {
         const walk = async () => {
           const distFile = files[i].replace('src', dir)
           const distDir = path.dirname(distFile)

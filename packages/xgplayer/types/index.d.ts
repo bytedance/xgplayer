@@ -757,7 +757,7 @@ declare module "proxy" {
          * @returns
          */
         off(event: string, callback: (data?: any) => any, ...args: any[]): void;
-        removeListener(): void;
+        offAll(): void;
     }
 }
 declare module "utils/database" {
