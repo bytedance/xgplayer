@@ -598,7 +598,7 @@ class VideoProxy extends EventEmitter {
    * @returns
    */
   once (event, callback, ...args) {
-    super.on(event, callback, ...args)
+    super.once(event, callback, ...args)
   }
 
   /**
@@ -608,11 +608,11 @@ class VideoProxy extends EventEmitter {
    * @returns
    */
   off (event, callback, ...args) {
-    super.on(event, callback, ...args)
+    super.off(event, callback, ...args)
   }
 
-  removeListener () {
-    super.removeListener()
+  offAll () {
+    super.removeAllListeners()
   }
 }
 
