@@ -1688,15 +1688,15 @@ declare module "lang/i18n" {
         TEXT: {
             [propName: string]: string;
         };
-    }[];
+    };
     namespace I18N {
         export { extend };
         export { use };
     }
     /**
-     * @param { IXGI18nText } XGI18nText
+     * @param { Array<IXGI18nText> } XGI18nTexts
      */
-    function extend(XGI18nText: IXGI18nText): void;
+    function extend(XGI18nText: any): void;
     /**
      * @param { IXGI18nText } langData
      */
