@@ -1358,8 +1358,8 @@ class Player extends VideoProxy {
    * @protected
    */
   onPlaying () {
-    const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
-    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY]
+    const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
+    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING]
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
