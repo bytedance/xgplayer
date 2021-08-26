@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-shaka",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.2",
   "description": "xgplayer plugin for shaka-player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -36,6 +36,6 @@
     "shaka-player": "^2.4.0"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.0-rc.1"
+    "xgplayer": "3.0.0-rc.2"
   }
 }

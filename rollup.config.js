@@ -91,7 +91,7 @@ const commonRollup = function (config = {}) {
                 {
                   search: '__VERSION__',
                   searchTemplateStrings: true,
-                  replace: '3.0.0-rc.0'
+                  replace: '3.0.0-rc.2'
                 }
               ]
             }

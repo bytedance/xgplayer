@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls.js",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.2",
   "description": "xgplayer plugin for hls",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -37,6 +37,6 @@
     "hls.js": "^1.0.7"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.0-rc.1"
+    "xgplayer": "3.0.0-rc.2"
   }
 }
