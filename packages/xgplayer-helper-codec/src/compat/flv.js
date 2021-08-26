@@ -32,6 +32,8 @@ class FlvCompatibility extends Base {
   }
 
   _doFixVideo (videoTrack) {
+    if (!videoTrack.meta) return
+
     let samples = videoTrack.samples
 
     if (!samples.length) return
@@ -134,6 +136,8 @@ class FlvCompatibility extends Base {
   }
 
   _doFixAudio (audioTrack) {
+    if (!audioTrack.meta) return
+
     let samples = audioTrack.samples
 
     if (!samples.length) return
