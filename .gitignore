@@ -83,6 +83,11 @@ dist/
 types/
 examples/
 .DS_Store
+xgplayer-livevideo
+xgplayer-raw264
+xgplayer-render
+live.history.md
+packages/xgplayer/CHANGELOG.md
 
 #http-server cert
 *.pem
