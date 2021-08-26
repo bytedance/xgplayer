@@ -103,6 +103,8 @@ class HlsCompatibility extends Base {
   }
 
   _doFixVideo (videoTrack) {
+    if (!videoTrack.meta) return
+
     let samples = videoTrack.samples
 
     if (!samples.length) return
@@ -197,6 +199,8 @@ class HlsCompatibility extends Base {
 
   _doFixAudio (audioTrack) {
     let samples = audioTrack.samples
+
+    if (!audioTrack.meta) return
 
     if (!samples.length) return
 
