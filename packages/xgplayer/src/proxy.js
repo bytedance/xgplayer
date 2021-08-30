@@ -450,6 +450,7 @@ class Proxy {
     if (!hasClass(this.root, 'xgplayer-ended')) {
       this.emit('urlchange', this.video.src)
     }
+    removeClass(this.root, 'xgplayer-ended xgplayer-is-replay xgplayer-is-error')
     this.video.pause()
     this.emit('pause')
     this.video.src = url
