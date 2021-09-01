@@ -36,7 +36,7 @@
         "fs-extra": "^5.0.0"
     },
     "peerDependencies": {
-        "xgplayer-subtitles": "^1.0.11"
+        "xgplayer-subtitles": "^1.0.12"
     },
     "browserslist": [
         "> 5%",
