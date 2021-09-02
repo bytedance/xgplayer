@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.29.0",
+    "version": "2.29.1",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
@@ -33,10 +33,8 @@
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",
         "event-emitter": "^0.3.5",
-        "fs-extra": "^5.0.0"
-    },
-    "peerDependencies": {
-        "xgplayer-subtitles": "^1.0.12"
+        "fs-extra": "^5.0.0",
+        "xgplayer-subtitles": "^1.0.13"
     },
     "browserslist": [
         "> 5%",
