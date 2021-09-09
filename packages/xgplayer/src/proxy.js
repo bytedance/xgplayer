@@ -369,11 +369,12 @@ class Proxy {
     return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
   }
   get paused () {
-    if(this.video) {
-      return this.video.paused
-    } else {
-      return false
-    }
+    // if(this.video) {
+    //   return this.video.paused
+    // } else {
+    //   return false
+    // }
+    return hasClass(this.root, 'xgplayer-pause')
   }
   get playbackRate () {
     if(this.video) {
