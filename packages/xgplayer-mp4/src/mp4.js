@@ -135,7 +135,7 @@ class MP4 {
     if(!this.videoOnly) {
       audioDuration = util.seekTrakDuration(audioTrak, audioTimeScale)
     }
-    this.mdatStart = mdat.start
+    this.mdatStart = mdat?mdat.start:0
     let vf = this.videoKeyFrames
     let videoKeyFramesLength = vf.length - 1
     vf.forEach((item, idx) => {
