@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.30.0",
+    "version": "2.30.1",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
@@ -29,7 +29,7 @@
     "dependencies": {
         "chalk": "^2.3.2",
         "commander": "^2.15.1",
-        "danmu.js": "^0.5.1",
+        "danmu.js": "^0.5.9",
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",
         "event-emitter": "^0.3.5",
