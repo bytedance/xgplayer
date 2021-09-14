@@ -65,7 +65,7 @@ let mp4player = function () {
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('moovReady', () => {
-        mse = new MSE(player.config.videoOnly ? 'video/mp4; codecs="avc1.64001E"' : 'video/mp4; codecs="avc1.64001E, mp4a.40.5"')
+        mse = new MSE(mp4.videoOnly ? 'video/mp4; codecs="avc1.64001E"' : 'video/mp4; codecs="avc1.64001E, mp4a.40.5"')
         mse.on('sourceopen', function () {
           mse.appendBuffer(mp4.packMeta())
           mse.once('updateend', loadData.bind(player))
