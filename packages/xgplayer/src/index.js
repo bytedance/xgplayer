@@ -23,6 +23,7 @@ import ScreenShot from './controls/screenShot.js'
 import StallCheck from './controls/stallCheck.js'
 import Start from './controls/start.js'
 import Volume from './controls/volume.js'
+import TextTrack from './controls/textTrack.js'
 
 Player.installAll([
     Airplay,
@@ -47,7 +48,8 @@ Player.installAll([
     ScreenShot,
     StallCheck,
     Start,
-    Volume,    
+    Volume,
+    TextTrack  
 ])
 
 import './skin/index.js';
