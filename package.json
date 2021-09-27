@@ -78,6 +78,7 @@
   "dependencies": {
     "babel-eslint": "^10.0.3",
     "http-server": "^0.11.1",
-    "koa-sslify": "^4.0.3"
+    "koa-sslify": "^4.0.3",
+    "xgplayer-subtitles": "^1.0.15"
   }
 }
