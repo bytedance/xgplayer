@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.30.2-alpha.1",
+    "version": "2.30.2-alpha.2",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
