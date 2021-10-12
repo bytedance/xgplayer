@@ -2,6 +2,10 @@ import { createDom, addClass, removeClass, hasClass } from '../../utils/util'
 import '../style/controls/textTrack.scss'
 
 function renderList (root, textTrack, offText, isDefaultShow) {
+  if (textTrack.length === 0) {
+    root.innerHTML = ''
+    return
+  }
   let tmp = []
   tmp.push(`<li data-type="off" class="${isDefaultShow ? '' : 'selected'}">${offText}</li>`)
   textTrack.forEach(item => {
@@ -16,7 +20,7 @@ let s_textTrack = function () {
   if (!this.config.textTrack) {
     return
   }
-  const { textTrack } = this.config
+  let textTrack = this.config.textTrack
   let controlText = player.lang.TEXTTRACK
   const container = createDom('xg-texttrack', `<ul></ul><p class="name">${controlText}</p>`, {tabindex: 7}, 'xgplayer-texttrack')
 
@@ -76,12 +80,19 @@ let s_textTrack = function () {
 
     const ul = container.getElementsByTagName('ul')[0]
     renderList(ul, textTrack, player.lang.OFF, player.textTrackShowDefault)
+    if (textTrack.length === 0) {
+      addClass(container, 'xgplayer-texttrack-hide')
+    } else {
+      removeClass(container, 'xgplayer-texttrack-hide')
+    }
   }
 
   const onListUpdate = function (data) {
     if (!data.isListUpdate) return
     const ul = container.getElementsByTagName('ul')[0]
+    textTrack = data.list
     renderList(ul, data.list, player.lang.OFF, player.textTrackShowDefault)
+    data.list.length > 0 ? addClass(player.root, 'xgplayer-is-texttrack') : removeClass(player.root, 'xgplayer-is-texttrack')
     if (data.list.length === 0) {
       addClass(container, 'xgplayer-texttrack-hide')
     } else {
@@ -89,8 +100,8 @@ let s_textTrack = function () {
     }
   }
 
-  if (textTrack && Array.isArray(textTrack) && textTrack.length > 0) {
-    addClass(player.root, 'xgplayer-is-texttrack')
+  if (textTrack && Array.isArray(textTrack)) {
+    textTrack.length > 0 && addClass(player.root, 'xgplayer-is-texttrack')
     player.once('canplay', onCanPlay)
     player.on('subtitle_change', onListUpdate)
   }

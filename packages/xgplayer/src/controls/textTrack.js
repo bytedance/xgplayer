@@ -67,8 +67,8 @@ class XgSubtitles {
     return this.subtitle.switchOff()
   }
 
-  setSubTitles (subtitles) {
-    return this.subtitle.setSubTitles(subtitles)
+  setSubTitles (subtitles, showDefault, isNeedMove) {
+    return this.subtitle.setSubTitles(subtitles, showDefault, isNeedMove)
   }
 
   onFocus () {
@@ -129,7 +129,8 @@ let textTrack = function () {
 
   this.subTitles = new XgSubtitles(player, player.config.textTrack, textTrackStyle)
 
-  player.setSubTitles = (textTrack) => {
+  player.setSubTitles = (textTrack, needRemove = true) => {
+    let showDefault = false
     textTrack.map((item, index) => {
       if (!item.id && !item.language) {
         item.id = index
@@ -137,8 +138,10 @@ let textTrack = function () {
       !item.url && (item.url = item.src)
       !item.language && (item.language = item.srclang)
       item.isDefault === undefined && (item.isDefault = item.default)
+      item.isDefault && (showDefault = true)
     })
-    this.subTitles.setSubTitles(textTrack)
+    player.textTrackShowDefault = showDefault
+    this.subTitles.setSubTitles(textTrack, showDefault, needRemove)
     player.emit('subtitle_change', {
       off: false,
       isListUpdate: true,
