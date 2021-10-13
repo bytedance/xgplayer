@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.30.1",
+    "version": "2.30.2-alpha.3",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
@@ -12,9 +12,9 @@
         "postpublish": "git push --tags",
         "build": "node ./src/version.js && webpack --progress --display-chunks -p",
         "watch": "webpack --progress --display-chunks -p --watch --mode development",
-        "release:stable": "npm version patch && npm publish --registry=http://registry.npmjs.org",
-        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha2x --registry=http://registry.npmjs.org",
-        "release:alpha-test": "npm publish --tag alpha-test-2x --registry=http://registry.npmjs.org"
+        "release:stable": "npm version patch && npm publish --registry=https://registry.npmjs.org",
+        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag xgplayer-2-alpha --registry=https://registry.npmjs.org",
+        "release:alpha-test": "npm publish --tag alpha-test-2x --registry=https://registry.npmjs.org"
     },
     "keywords": [
         "video",
@@ -34,7 +34,7 @@
         "draggabilly": "^2.2.0",
         "event-emitter": "^0.3.5",
         "fs-extra": "^5.0.0",
-        "xgplayer-subtitles": "^1.0.13"
+        "xgplayer-subtitles": "^1.0.19"
     },
     "browserslist": [
         "> 5%",
