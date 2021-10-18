@@ -1,9 +1,14 @@
+import { hasClass } from '../utils/util'
+
 let play = function () {
   let player = this
 
   function onPlayBtnClick () {
     if (!player.config.allowPlayAfterEnded && player.ended) {
       return
+    }
+    if(hasClass(player.root, 'xgplayer-nostart')) {
+      player.start()
     }
     if (player.paused) {
       let playPromise = player.play()
