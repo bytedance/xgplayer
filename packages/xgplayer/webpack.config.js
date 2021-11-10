@@ -160,4 +160,4 @@ const client_controls = controls.map(key => {
   }
 })
 
-module.exports = [umd, umd_es6, client].concat(umd_controls, umd_es6_controls, client_controls)
+module.exports = [umd, umd_es6, client].concat(umd_es6_controls)

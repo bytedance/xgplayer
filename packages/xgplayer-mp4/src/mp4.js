@@ -126,6 +126,9 @@ class MP4 {
       }
     })
     this.videoTrak = Merge({}, videoTrak)
+    if(!audioTrak){
+       FMP4.videoOnly = this.videoOnly = true
+    }
     if(!this.videoOnly) {
       this.audioTrak = Merge({}, audioTrak)
     }

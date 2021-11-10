@@ -369,11 +369,12 @@ class Proxy {
     return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
   }
   get paused () {
-    if(this.video) {
-      return this.video.paused
-    } else {
-      return false
-    }
+    // if(this.video) {
+    //   return this.video.paused
+    // } else {
+    //   return false
+    // }
+    return hasClass(this.root, 'xgplayer-pause')
   }
   get playbackRate () {
     if(this.video) {
@@ -450,8 +451,9 @@ class Proxy {
     if (!hasClass(this.root, 'xgplayer-ended')) {
       this.emit('urlchange', this.video.src)
     }
-    this.autoplay = true
+    removeClass(this.root, 'xgplayer-ended xgplayer-is-replay xgplayer-is-error')
     this.video.pause()
+    this.emit('pause')
     this.video.src = url
     this.emit('srcChange')
   }
