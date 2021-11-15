@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls.js",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
   "scripts": {
@@ -31,7 +31,8 @@
   "dependencies": {
     "deepmerge": "2.0.1",
     "event-emitter": "^0.3.5",
-    "eventemitter3": "^4.0.7"
+    "eventemitter3": "^4.0.7",
+    "hls.js": "^1.1.1"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
