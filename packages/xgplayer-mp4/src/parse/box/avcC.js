@@ -1,5 +1,7 @@
 import Box from '../box'
 import Stream from '../stream'
+import SpsParser from './sps'
+
 Box.avcC = function () {
   let stream = new Stream(this.data)
   this.configVersion = stream.readUint8()
@@ -12,8 +14,9 @@ Box.avcC = function () {
   this.sequenceLength = sequenceLength
   let sequence = []
   for (let i = 0; i < sequenceLength; i++) {
-    sequence.push(Number(stream.readUint8()).toString(16))
+    sequence.push(stream.readUint8())
   }
+  this.spsInfo = SpsParser.parseSPS(new Uint8Array(sequence))
   this.ppsCount = stream.readUint8()
   let ppsLength = stream.readUint16()
   this.ppsLength = ppsLength

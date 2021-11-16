@@ -1,53 +1,67 @@
 import EventEmitter from 'event-emitter'
-import Merge from 'deepmerge'
 import Parser from './parse'
 import Buffer from './fmp4/buffer'
 import FMP4 from './fmp4/mp4'
 import Task from './media/task'
 import util from './util'
 import Errors from './error'
+import {CUSTOM_EVENTS, TASK_ERROR} from './constants'
+import Player from 'xgplayer'
 
 class MP4 {
   /**
-     * [constructor 构造函数]
-     * @param {String} url                      [视频地址]
-     * @param {Number} [chunk_size=Math.pow(25, 4)]           [请求的数据块大小，对于长视频设置的较大些可以避免二次请求]
-     */
-  constructor (url, options, chunkSize = Math.pow(25, 4)) {
+   * [constructor 构造函数]
+   * @param {String} url                      [视频地址]
+   * @param {Number} [chunk_size=Math.pow(25, 4)]           [请求的数据块大小，对于长视频设置的较大些可以避免二次请求]
+   */
+  constructor (url, xhrSetup, player, chunkSize = Math.pow(25, 4), ext = {}) {
     EventEmitter(this)
     this.url = url
-    this.withCredentials = options.withCredentials
-    FMP4.videoOnly = this.videoOnly = options.videoOnly || false
+    this.xhrSetup = xhrSetup
     this.CHUNK_SIZE = chunkSize
-    this.init(url)
-    this.once('moovReady', this.moovParse.bind(this))
-    this.cache = new Buffer()
-    this.bufferCache = new Set()
+    this.player = player
+    this.ext = ext
     this.timeRage = []
     this.canDownload = true
+    this.init()
+    Player.util.once(this, 'moovReady', this.moovParse.bind(this))
   }
 
   /**
-     * [getData 根据字节区间下载二进制数据]
-     * @param  {Number} [start=0]  [起始字节]
-     * @param  {Number} [end=start + this.CHUNK_SIZE] [截止字节]
-     */
-  getData (start = 0, end = start + this.CHUNK_SIZE) {
+   * [getData 根据字节区间下载二进制数据]
+   * @param  {Number} [start=0]  [起始字节]
+   * @param  {Number} [end=start + this.CHUNK_SIZE] [截止字节]
+   */
+  getData (start = 0, end = start + this.CHUNK_SIZE - 1) {
     let self = this
     return new Promise((resolve, reject) => {
       let task = new Task(this.url, [
         start, end
-      ], this.withCredentials, resolve)
-      task.once('error', err => {
-        self.emit('error', err)
+      ], this.xhrSetup, (data)=>{
+        if(self.hasDestroyed){
+          return;
+        }
+        resolve(data)
+      }, self.ext)
+      // Player.util.once(task, 'error', err => {
+      //   self.emit('error', err)
+      // })
+
+      Player.util.once(task, CUSTOM_EVENTS.MEDIA_EXPIRED, ()=>{
+        self.player && self.player.onMediaExpired();
+      });
+
+      Player.util.once(task, TASK_ERROR, params => {
+        //非403状态或者非200，206状态逻辑
+        reject({code: params.code, status: params.status})
       })
     })
   }
 
   /**
-     * [moovParse 解析视频信息]
-     * @return {[type]} [description]
-     */
+   * [moovParse 解析视频信息]
+   * @return {[type]} [description]
+   */
   moovParse () {
     let self = this
     let moov = this.moovBox
@@ -61,46 +75,69 @@ class MP4 {
       audioTimeScale
     let sps,
       pps,
+      vps,
       profile,
       width,
       height
     let channelCount,
       sampleRate,
       decoderConfig
-    traks = [].concat(traks)
+    let hvc1Data, hvcCData
+    let pixelRatio = [1, 1]
+    if (!Array.isArray(traks)) {
+      traks = [traks]
+    }
     traks.forEach(trak => {
       let hdlr = util.findBox(trak, 'hdlr')
       let mdhd = util.findBox(trak, 'mdhd')
       if (!hdlr || !mdhd) {
-        self.emit('error', new Errors('parse', '', {line: 72, handle: '[MP4] moovParse', url: self.url}))
+        self.emit('error', new Errors('parse', '', {line: 101, handle: '[MP4] moovParse', url: self.url}))
         return
       }
-      if(hdlr.handleType === 'vide' && self.videoOnly) {
-        let elst = util.findBox(trak, 'elst')
-        trak.empty_duration = 0
-        if (elst.empty_duration) {
-          trak.empty_duration = elst.empty_duration * mdhd.timescale / mvhd.timeScale;
-        }
-                  
-        trak.time_offset = elst.start_time - trak.empty_duration;
-      }
-
       let stsd = util.findBox(trak, 'stsd')
       let codecBox = stsd.subBox[0]
       if (hdlr.handleType === 'vide') {
         let avcC = util.findBox(trak, 'avcC')
+        let hvcC
+        if(!avcC) {
+          hvcC = util.findBox(trak, 'hvcC')
+        }
+        
         let tkhd = util.findBox(trak, 'tkhd')
         videoTrak = trak
         videoTimeScale = mdhd.timescale
         if (avcC) {
           videoCodec = `${codecBox.type}.` + util.toHex(avcC.profile, avcC.profileCompatibility, avcC.AVCLevelIndication).join('')
-          sps = avcC.sequence && avcC.sequence.map((item) => Number(`0x${item}`))
+          sps = avcC.sequence
+          pixelRatio = [avcC.spsInfo.par_ratio.width, avcC.spsInfo.par_ratio.height]
+          if (avcC.spsInfo.codec_size) {
+            width = avcC.spsInfo.codec_size.width
+            height = avcC.spsInfo.codec_size.height
+          }
           pps = avcC.pps && avcC.pps.map((item) => Number(`0x${item}`))
           profile = avcC.profile
+        } else if(hvcC) {
+          hvcCData = hvcC.data
+          let hvc1 = util.findBox(trak, 'hvc1')
+          if(hvc1) {
+            hvc1Data = hvc1.data
+            width = hvc1.width
+            height = hvc1.height
+          }
+          videoCodec = `${codecBox.type}.` + util.toHex(hvcC.profile, hvcC.profileCompatibility, hvcC.profileCompatibilityIndications).join('')
+          vps = hvcC.vps && hvcC.vps.map((item) => Number(`0x${item}`))
+          sps = hvcC.sequence
+          // pixelRatio = [hvcC.spsInfo.par_ratio.width, hvcC.spsInfo.par_ratio.height]
+          // if (hvcC.spsInfo.codec_size) {
+          //   width = hvcC.spsInfo.codec_size.width
+          //   height = hvcC.spsInfo.codec_size.height
+          // }
+          pps = hvcC.pps && hvcC.pps.map((item) => Number(`0x${item}`))
+          profile = hvcC.profile
         } else {
           videoCodec = `${codecBox.type}`
         }
-        if (tkhd) {
+        if (tkhd && !width) {
           width = tkhd.width
           height = tkhd.height
         }
@@ -125,19 +162,14 @@ class MP4 {
         }
       }
     })
-    this.videoTrak = Merge({}, videoTrak)
-    if(!audioTrak){
-       FMP4.videoOnly = this.videoOnly = true
-    }
-    if(!this.videoOnly) {
-      this.audioTrak = Merge({}, audioTrak)
-    }
+    if (!sps) return
+    // this.videoTrak = Merge({}, videoTrak)
+    // this.audioTrak = audioTrak ? Merge({}, audioTrak) : null
+    this.videoTrak = videoTrak;
+    this.audioTrak = audioTrak ? audioTrak : null
     let mdat = this._boxes.find(item => item.type === 'mdat')
     let videoDuration = util.seekTrakDuration(videoTrak, videoTimeScale)
-    let audioDuration
-    if(!this.videoOnly) {
-      audioDuration = util.seekTrakDuration(audioTrak, audioTimeScale)
-    }
+    let audioDuration = audioTrak ? util.seekTrakDuration(audioTrak, audioTimeScale) : videoDuration
     this.mdatStart = mdat.start
     let vf = this.videoKeyFrames
     let videoKeyFramesLength = vf.length - 1
@@ -150,52 +182,54 @@ class MP4 {
       } else {
         this.timeRage.push([
           item.time.time / videoTimeScale,
-          -1
+          mvhd.duration / mvhd.timeScale
         ])
       }
     })
     this.meta = {
       videoCodec,
+      audioCodec,
       createTime: mvhd.createTime,
       modifyTime: mvhd.modifyTime,
-      duration: videoDuration,
+      duration: mvhd.duration / mvhd.timeScale,
       timeScale: mvhd.timeScale,
       videoDuration,
       videoTimeScale,
-      endTime: videoDuration,
+      audioDuration,
+      audioTimeScale,
+      endTime: Math.min(videoDuration, audioDuration),
+      vps,
       sps,
       pps,
       width,
       height,
       profile,
-      pixelRatio: [
-        1, 1
-      ],
+      pixelRatio,
       channelCount,
       sampleRate,
-      audioConfig: decoderConfig
+      audioConfig: decoderConfig,
+      hvc1Data,
+      hvcCData,
+      ext: {
+        videoTrak: this.videoTrak,
+        audioTrak: this.audioTrak,
+        mdatStart: this.mdatStart,
+        timeRage: this.timeRage,
+      },
+      stss: this._stssObj
     }
-    if(!this.videoOnly) {
-      this.meta.audioCodec = audioCodec
-      this.meta.audioDuration = audioDuration
-      this.meta.audioTimeScale = audioTimeScale
-      this.meta.duration = mvhd.duration / mvhd.timeScale
-      this.meta.endTime = Math.min(videoDuration, audioDuration)
-    }
+    this.emit('metaReady', this.meta)
   }
 
   /**
-     * [init 实例的初始化，主要是获取视频的MOOV元信息]
-     */
+   * [init 实例的初始化，主要是获取视频的MOOV元信息]
+   */
   init () {
     let self = this
-    self.getData().then((res) => {
+    self.getData().then(res => {
       let parsed
-
       let moovStart = 0
-
       let moov
-
       let boxes
       try {
         parsed = new Parser(res)
@@ -267,7 +301,9 @@ class MP4 {
     let stsz = util.findBox(trak, 'stsz') // sample-size
     let stts = util.findBox(trak, 'stts') // sample-time
     let stco = util.findBox(trak, 'stco') // chunk-offset
-    let ctts = util.findBox(trak, 'ctts') // offset-compositime
+
+    let cttsObj = type === 'video' ? this._cttsObj : null;
+    let stscObj = type === 'video' ? this._stscVideoObj : this._stscAudioObj;
     let mdatStart = this.mdatStart
     let samples = []
     end = end !== undefined
@@ -278,8 +314,8 @@ class MP4 {
         samples.push({
           idx: item,
           size: stsz.entries[item],
-          time: util.seekSampleTime(stts, ctts, item, trak.time_offset),
-          offset: util.seekSampleOffset(stsc, stco, stsz, item, mdatStart)
+          time: util.seekSampleTime(stts, cttsObj, item),
+          offset: util.seekSampleOffset(stsc, stco, stsz, item, mdatStart, stscObj)
         })
       })
     } else if (end !== 0) {
@@ -287,16 +323,16 @@ class MP4 {
         samples.push({
           idx: i,
           size: stsz.entries[i],
-          time: util.seekSampleTime(stts, ctts, i, trak.time_offset),
-          offset: util.seekSampleOffset(stsc, stco, stsz, i, mdatStart)
+          time: util.seekSampleTime(stts, cttsObj, i),
+          offset: util.seekSampleOffset(stsc, stco, stsz, i, mdatStart, stscObj)
         })
       }
     } else {
       samples = {
         idx: start,
         size: stsz.entries[start],
-        time: util.seekSampleTime(stts, ctts, start, trak.time_offset),
-        offset: util.seekSampleOffset(stsc, stco, stsz, start, mdatStart)
+        time: util.seekSampleTime(stts, cttsObj, start),
+        offset: util.seekSampleOffset(stsc, stco, stsz, start, mdatStart, stscObj)
       }
     }
     return samples
@@ -308,7 +344,33 @@ class MP4 {
     }
     let videoTrak = this.videoTrak
     let stss = util.findBox(videoTrak, 'stss')
+    let stsc = util.findBox(videoTrak, 'stsc') // chunk~samples
+    let ctts = util.findBox(videoTrak, 'ctts') // offset-compositime
+    this._cttsObj = null;
+    if(ctts){
+      this._cttsObj = {};
+      let count = 0;
+      for(let i = 0; i < ctts.entry.length; i++){
+        let entry = ctts.entry[i];
+        for(let j = 0; j < entry.count; j++){
+          this._cttsObj[count] = entry.offset;
+          count += 1;
+        }
+      }
+    }
+
+    this._stscVideoObj = {};
+    let sampleCount = 0;
+    for(let i = 0; i < stsc.count - 1; i++){
+      let entry = stsc.entries[i];
+      for(let j = 0; j < entry.chunk_count *  entry.samples_per_chunk; j++){
+          sampleCount ++;
+          this._stscVideoObj[sampleCount] = entry;
+      }
+    }
+
     let frames = this.getSamplesByOrders('video', stss.entries.map(item => item - 1))
+    this._stssObj = stss;
     this._videoFrames = frames
     return frames
   }
@@ -320,6 +382,16 @@ class MP4 {
     let videoScale = util.findBox(this.videoTrak, 'mdhd').timescale
     let audioScale = util.findBox(this.audioTrak, 'mdhd').timescale
     let audioStts = util.findBox(this.audioTrak, 'stts').entry
+    let stsc = util.findBox(this.audioTrak, 'stsc') // chunk~samples
+    this._stscAudioObj = {};
+    let sampleCount = 0;
+    for(let i = 0; i < stsc.count - 1; i++){
+      let entry = stsc.entries[i];
+      for(let j = 0; j < entry.chunk_count *  entry.samples_per_chunk; j++){
+          sampleCount ++;
+          this._stscAudioObj[sampleCount] = entry;
+      }
+    }
     let videoFrames = this.videoKeyFrames
     let audioIndex = []
     audioIndex = videoFrames.map(item => {
@@ -329,29 +401,33 @@ class MP4 {
     return this._audioFrames
   }
 
-  packMeta () {
+  packMeta() {
     if (!this.meta) {
       return
     }
     let buffer = new Buffer()
     buffer.write(FMP4.ftyp())
     buffer.write(FMP4.moov(this.meta))
-    this.cache.write(buffer.buffer)
+    // this.cache.write(buffer.buffer)
     return buffer.buffer
   }
 
-  seek (time) {
-    let timeStart = time * this.meta.videoTimeScale
-    let fragIndex
-
-    let videoFrames = this.videoKeyFrames
-    let audioFrames
-    if(!this.videoOnly) {
-      audioFrames = this.audioKeyFrames
+  getRangeFromTime(time){
+    let fragIndex = this.getFragmentIdx(time);
+    let range = this.getFragRange(fragIndex)
+    if(range === [0, 0]) return null;
+    return {
+      range,
+      fragIndex,
     }
+  }
+
+  getFragmentIdx(time){
+    let timeStart = Math.round(time * this.meta.videoTimeScale)
+    let fragIndex
+    let videoFrames = this.videoKeyFrames
     videoFrames.every((item, idx) => {
       let nowTime = item.time.time
-
       let nextTime = videoFrames[idx + 1]
         ? videoFrames[idx + 1].time.time
         : Number.MAX_SAFE_INTEGER
@@ -362,10 +438,10 @@ class MP4 {
         return true
       }
     })
-    if(!this.videoOnly) {
+    if (this.audioTrak) {
+      let audioFrames = this.audioKeyFrames
       audioFrames.every((item, idx) => {
         let nowTime = item.startTime
-
         let nextTime = audioFrames[idx + 1]
           ? audioFrames[idx + 1].startTime
           : Number.MAX_SAFE_INTEGER
@@ -377,197 +453,90 @@ class MP4 {
         }
       })
     }
-    if (this.bufferCache.has(fragIndex)) {
-      return Promise.resolve(null)
-    } else {
-      return this.loadFragment(fragIndex)
-    }
+    return fragIndex;
   }
-  loadFragment (fragIndex) {
-    let start,
-      end
+
+  seek (time) {
+    let fragIndex = this.getFragmentIdx(time);
+    this.timeRage[fragIndex].downloaded = true;
+    return this.loadFragment(fragIndex)
+  }
+
+  getFragRange (fragIndex) {
     let videoFrame = this.videoKeyFrames[fragIndex]
-    let audioFrame
-    start = videoFrame.offset
-    if(!this.videoOnly) {
-      audioFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndex].order, 0)
-      start = Math.min(videoFrame.offset, audioFrame.offset)
+    let start = videoFrame.offset
+    let end
+    if (this.audioTrak) {
+      let audioFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndex].order, 0)
+      start = Math.min(start, audioFrame.offset)
     }
     if (fragIndex < this.videoKeyFrames.length - 1) {
       let videoNextFrame = this.videoKeyFrames[fragIndex + 1]
-      let audioNextFrame
       end = videoNextFrame.offset
-      if(!this.videoOnly) {
-        audioNextFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndex + 1].order, 0)
-        end = Math.max(videoNextFrame.offset, audioNextFrame.offset)
+      if (this.audioTrak) {
+        let audioNextFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndex + 1].order, 0)
+        end = Math.max(end, audioNextFrame.offset)
       }
     }
-    let self = this
     if (window.isNaN(start) || (end !== undefined && window.isNaN(end))) {
-      self.emit('error', new Errors('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }))
-      return false
+      this.emit('error', new Errors('parse', '', { line: 366, handle: '[MP4] loadFragment', url: this.url }))
+      return [0, 0]
     }
-    if (this.bufferCache.has(fragIndex)) {
-      return Promise.resolve(null)
-    } else {
-      return this.getData(
-        start + self.mdatStart, end
-          ? self.mdatStart + end
-          : '').then((dat) => {
-        return self.createFragment(new Uint8Array(dat), start, fragIndex)
-      })
-    }
+    return [start + this.mdatStart, end ? this.mdatStart + end : '']
+  }
+  loadFragment (fragIndex) {
+    let self = this
+    let range = this.getFragRange(fragIndex)
+    if(range === [0, 0]) return false;
+    return this.getData(range[0], range[1]).then((dat) => {
+      return self.createFragment(new Uint8Array(dat), range[0] - this.mdatStart, fragIndex)
+    })
+    .then(buf => {
+      return buf
+    })
   }
   addFragment (data) {
     let buffer = new Buffer()
-    buffer.write(FMP4.moof(data))
-    buffer.write(FMP4.mdat(data))
-    this.cache.write(buffer.buffer)
-    return buffer.buffer
-  }
-  createFragment (mdatData, start, fragIndex) {
-    let self = this
-    let resBuffers = []
-    this.bufferCache.add(fragIndex)
-    {
-      let framesIndex = self.videoKeyFrames.map((item) => item.idx)
-      let _samples = self.getSamplesByOrders('video', framesIndex[fragIndex], framesIndex[fragIndex + 1])
-      let samples = _samples.map((item, idx) => {
-        return {
-          size: item.size,
-          duration: item.time.duration,
-          offset: item.time.offset,
-          buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
-          key: idx === 0
-        }
-      })
-      resBuffers.push(this.addFragment({id: 1, time: _samples[0].time.time, firstFlags: 0x2000000, flags: 0xf01, samples}))
-    }
-    if(!this.videoOnly) {
-      let _samples = this.getSamplesByOrders(
-        'audio', this.audioKeyFrames[fragIndex].order, this.audioKeyFrames[fragIndex + 1]
-          ? this.audioKeyFrames[fragIndex + 1].order
-          : undefined)
-      let samples = _samples.map((item, idx) => {
-        return {
-          size: item.size,
-          duration: item.time.duration,
-          offset: item.time.offset,
-          buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
-          key: idx === 0
-        }
-      })
-      resBuffers.push(this.addFragment({id: 2, time: _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples}))  
-    }
-    
-    let bufferSize = 0
-    resBuffers.every(item => {
-      bufferSize += item.byteLength
-      return true
+    return new Promise(resolve => {
+      buffer.write(FMP4.moof(data))
+      buffer.write(FMP4.mdat(data))
+      // this.cache.write(buffer.buffer)
+      resolve(buffer.buffer)
     })
-    let buffer = new Uint8Array(bufferSize)
-
-    let offset = 0
-    resBuffers.every(item => {
-      buffer.set(item, offset)
-      offset += item.byteLength
-      return true
-    })
-    return Promise.resolve(buffer)
   }
-
-  download () {
-    // new Download('fmp4.mp4', this.cache.buffer)
-  }
-
-  cut (start, end) {
+  getVideoBuffer(mdatData, start, fragIndex) {
     let self = this
-    this.bufferCache.clear()
-    let timeStart = start * this.meta.videoTimeScale
-    let timeEnd = end * this.meta.videoTimeScale
-    let fragIndexStart
-    let fragIndexEnd
-
-    let videoFrames = this.videoKeyFrames
-    let audioFrames = this.audioKeyFrames
-    videoFrames.every((item, idx) => {
-      let nowTime = item.time.time
-
-      let nextTime = videoFrames[idx + 1]
-        ? videoFrames[idx + 1].time.time
-        : Number.MAX_SAFE_INTEGER
-      if (nowTime <= timeStart && timeStart < nextTime) {
-        fragIndexStart = idx
-        return true
-      } else if (nowTime <= timeEnd && timeEnd < nextTime) {
-        fragIndexEnd = idx
-        return false
-      } else {
-        return true
+    let videoFlags = 0xf01
+    let framesIndex = self.videoKeyFrames.map((item) => item.idx)
+    let _samples = self.getSamplesByOrders('video', framesIndex[fragIndex], framesIndex[fragIndex + 1])
+    let samples = _samples.map((item, idx) => {
+      return {
+        size: item.size,
+        duration: item.time.duration,
+        offset: item.time.offset,
+        buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
+        key: idx === 0,
+        idx: item.idx
       }
     })
-    audioFrames.every((item, idx) => {
-      let nowTime = item.startTime
+    return this.addFragment({
+      id: 1,
+      time: _samples[0].time.time,
+      firstFlags: 0x2000000,
+      flags: videoFlags,
+      samples,
+      sampleOffset: _samples[0].idx,
+      fragIndex
+    })
+  }
+  getAudioBuffer(mdatData, start, fragIndex) {
 
-      let nextTime = audioFrames[idx + 1]
-        ? audioFrames[idx + 1].startTime
-        : Number.MAX_SAFE_INTEGER
-      if (nowTime <= timeStart && timeStart < nextTime) {
-        fragIndexStart = Math.min(idx, fragIndexStart)
-        return true
-      } else if (nowTime <= timeEnd && timeEnd < nextTime) {
-        fragIndexEnd = Math.min(idx, fragIndexEnd)
-        return false
-      } else {
-        return true
-      }
-    })
-    if (!fragIndexEnd) {
-      fragIndexEnd = videoFrames.length
-    }
-    return self.loadFragmentForCut(fragIndexStart, fragIndexEnd)
-  }
-  loadFragmentForCut (fragIndexStart, fragIndexEnd) {
-    let start,
-      end
-    let videoStartFrame = this.videoKeyFrames[fragIndexStart]
-    let audioStartFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndexStart].order, 0)
-    start = Math.min(videoStartFrame.offset, audioStartFrame.offset)
-    let videoEndFrame = this.videoKeyFrames[fragIndexEnd]
-    let audioEndFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndexEnd].order, 0)
-    end = Math.max(videoEndFrame.offset, audioEndFrame.offset)
     let self = this
-    if (window.isNaN(start) || (end !== undefined && window.isNaN(end))) {
-      self.emit('error', new Errors('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }))
-      return false
-    }
-    return this.getData(
-      start + self.mdatStart, end
-        ? self.mdatStart + end
-        : '').then((dat) => {
-      return self.createFragmentForCut(new Uint8Array(dat), start, fragIndexStart, end, fragIndexEnd)
-    })
-  }
-  createFragmentForCut (mdatData, start, fragIndexStart, end, fragIndexEnd) {
-    let self = this
-    let resBuffers = []
-    {
-      let framesIndex = self.videoKeyFrames.map((item) => item.idx)
-      let _samples = self.getSamplesByOrders('video', framesIndex[fragIndexStart], framesIndex[fragIndexEnd])
-      let samples = _samples.map((item, idx) => {
-        return {
-          size: item.size,
-          duration: item.time.duration,
-          offset: item.time.offset,
-          buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
-          key: idx === 0
-        }
-      })
-      resBuffers.push(this.addFragment({id: 1, time: 0, firstFlags: 0x2000000, flags: 0xf01, samples}))
-    }
+    let audioFlags = 0x701
+
     let _samples = this.getSamplesByOrders(
-      'audio', this.audioKeyFrames[fragIndexStart].order, this.audioKeyFrames[fragIndexEnd]
-        ? this.audioKeyFrames[fragIndexEnd].order
+      'audio', this.audioKeyFrames[fragIndex].order, this.audioKeyFrames[fragIndex + 1]
+        ? this.audioKeyFrames[fragIndex + 1].order
         : undefined)
     let samples = _samples.map((item, idx) => {
       return {
@@ -578,22 +547,60 @@ class MP4 {
         key: idx === 0
       }
     })
-    resBuffers.push(this.addFragment({id: 2, time: 0, firstFlags: 0x00, flags: 0x701, samples: samples}))
-
-    let bufferSize = 0
-    resBuffers.every(item => {
-      bufferSize += item.byteLength
-      return true
+    return this.addFragment({
+      id: 2,
+      time: _samples[0].time.time,
+      firstFlags: 0x00,
+      flags: audioFlags,
+      samples,
+      sampleOffset: _samples[0].idx,
+      fragIndex
     })
-    let buffer = new Uint8Array(bufferSize)
+  }
+  createFragment (mdatData, start, fragIndex) {
+    let self = this
 
-    let offset = 0
-    resBuffers.every(item => {
-      buffer.set(item, offset)
-      offset += item.byteLength
-      return true
+    let resBuffers = []
+    let promises = [
+      self.getVideoBuffer(mdatData, start, fragIndex)
+    ]
+    if (this.audioTrak) {
+      promises.push(self.getAudioBuffer(mdatData, start, fragIndex))
+    }
+    return Promise.all(promises)
+    .then(buffers => {
+      resBuffers.push(buffers[0])
+      if (buffers && buffers[1]) {
+        resBuffers.push(buffers[1])
+      }
+      let bufferSize = 0
+      resBuffers.every(item => {
+        bufferSize += item.byteLength
+        return true
+      })
+      let buffer = new Uint8Array(bufferSize)
+      let offset = 0
+      resBuffers.every(item => {
+        buffer.set(item, offset)
+        offset += item.byteLength
+        return true
+      })
+      return buffer
     })
-    return Promise.resolve(buffer)
+  }
+
+  update(url){
+    this.url = url;
+  }
+
+  destroy(){
+    if(this.hasDestroyed){
+      return;
+    }
+    for (let k in this) {
+      delete this[k]
+    }
+    this.hasDestroyed = true;
   }
 }
 
