@@ -33,8 +33,8 @@
     "event-emitter": "^0.3.5",
     "eventemitter3": "^4.0.7"
   },
-  "peerDependency": {
-    "xgplayer": "^0.1.0"
+  "peerDependencies": {
+    "xgplayer": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

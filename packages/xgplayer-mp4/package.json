@@ -36,8 +36,8 @@
     "deepmerge": "^2.0.1",
     "event-emitter": "^0.3.5"
   },
-  "peerDependency": {
-    "xgplayer": "^0.1.0"
+  "peerDependencies": {
+    "xgplayer": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
