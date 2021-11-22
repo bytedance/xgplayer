@@ -10,7 +10,12 @@ Box.stsz = function () {
   let entries = []
   this.entries = entries
   for (let i = 0, count = this.count; i < count; i++) {
-    entries.push(stream.readUint32())
+    if (this.sampleSize) {
+      entries.push(this.sampleSize)
+    }
+    else {
+      entries.push(stream.readUint32())
+    }
   }
   delete this.subBox
   delete this.data

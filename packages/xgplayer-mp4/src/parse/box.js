@@ -25,6 +25,10 @@ class Box {
         uuid.push(stream.readUint8())
       }
     }
+    if (this.type === 'pssh') {
+      this.version = stream.readUint8();
+      this.flags = stream.readUint8();
+    }
   }
   readBody (stream) {
     let end = this.size - stream.position + this.start
@@ -61,6 +65,6 @@ class Box {
   }
 }
 
-Box.containerBox = ['moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex', 'moof', 'traf', 'mfra']
+Box.containerBox = ['moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex', 'moof', 'traf', 'mfra', 'sinf', 'schi']
 
 export default Box

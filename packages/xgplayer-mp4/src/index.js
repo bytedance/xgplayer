@@ -1,380 +1,615 @@
-import 'core-js/modules/es6.promise.js'
-import 'core-js/modules/es7.string.pad-start'
 import Player from 'xgplayer'
 import MP4 from './mp4'
 import MSE from './media/mse'
 import Task from './media/task'
-import Buffer from './fmp4/buffer'
+import { isSupported, isSupportedWithXgmse, isMediaSourceSupported } from './util/isSupport';
+import ProxyPromise from './util/proxyPromise'
+import Timer from './util/timer'
+import { CUSTOM_EVENTS } from './constants'
+import GapJump from './gap_jump';
+
+const DESTROYED = 'DESTROYED';
+
+const sniffer = Player.sniffer;
 
 let isEnded = (player, mp4) => {
-  if (mp4.meta.endTime - player.currentTime < 2) {
-    let range = player.getBufferedRange()
-    if (player.currentTime - range[1] < 0.1) {
+  if (mp4.meta.endTime - player.currentTime < 0.5) {
+    // let range = player.getBufferedRange(player.buffered2)
+    let offsetTime =  player.duration - player.currentTime
+    if (offsetTime < 0.5) {
       player.mse.endOfStream()
+      player._stopProgress()
     }
   }
 }
 
-let mp4player = function () {
-  let player = this; let sniffer = Player.sniffer; let util = Player.util
-  let Errors = Player.Errors; let mainURL; let backupURL
-  let preloadTime = player.config.preloadTime || 15
-  let waiterTimer
-  let url = player.config.url
-  let rule = player.config.pluginRule || function () { return true }
-  if (!url) {
-    player.emit('error', new Errors('other', player.config.vid))
-    return
-  }
-  if (util.typeOf(url) === 'String') {
-    mainURL = url
-  } else if (util.typeOf(url) === 'Array' && url.length) {
-    mainURL = url[0].src
-    if(url.length > 1) {
-      backupURL = url[1].src
+class Mp4Player extends Player {
+  constructor (options) {
+    let hasStartProgress = true;
+    if(options.onlyInit || options.videoInit){
+      options.onlyInit = true;
+      options.autoplay = false;
+      options.videoInit = false;
+      hasStartProgress = false;
     }
-  }
-  player.config._mainURL = mainURL
-  player.config._backupURL = backupURL
-  let loadData = (i = 0, time = player.currentTime) => {
-    if (player.timer) {
-      clearTimeout(player.timer)
-    }
-    time = Math.max(time, player.currentTime)
-    player.timer = setTimeout(function () {
-      player.mp4.seek(time + i * 0.1).then(buffer => {
-        if (buffer) {
-          let mse = player.mse
-          mse.updating = true
-          mse.appendBuffer(buffer)
-          mse.once('updateend', () => {
-            mse.updating = false
-          })
-        }
-      }, () => {
-        if (i < 10) {
-          setTimeout(function () {
-            loadData(i + 1)
-          }, 2000)
-        }
-      })
-    }, 50)
-  }
-  let init = (url) => {
-    let mp4 = new MP4(url, player.config)
-    let mse
-    return new Promise((resolve, reject) => {
-      mp4.once('moovReady', () => {
-        mse = new MSE(mp4.videoOnly ? 'video/mp4; codecs="avc1.64001E"' : 'video/mp4; codecs="avc1.64001E, mp4a.40.5"')
-        mse.on('sourceopen', function () {
-          mse.appendBuffer(mp4.packMeta())
-          mse.once('updateend', loadData.bind(player))
-        })
-        resolve([mp4, mse])
-      })
-      mp4.on('error', (e) => {
-        reject(e)
-      })
+    super(options);
+
+    this._pendingPromises = [];
+    this._allInitPromise = new ProxyPromise();
+    this._maxBufferLength = options.maxBufferLength || 5
+    this._playerId = Mp4Player.uniqueId ++;
+    this._onBufferedResetFunc = this._onBufferedReset.bind(this);
+    this._onSeekingFunc = this._onSeeking.bind(this);
+    this._onMp4InitFunc = this._onMp4Init.bind(this);
+    this._onWaitingFunc = this._onWaiting.bind(this);
+    this._onEndedFunc = this._onEnded.bind(this);
+    this._onDestroyFunc = this._onDestroy.bind(this);
+    this._replay = this._onReplay.bind(this);
+    this._onOnlineHandlerFunc = this._onOnlineHandler.bind(this);
+    this._onOfflineHandlerFunc = this._onOfflineHandler.bind(this);
+    this._tickInSeconds = options.tickInSeconds || 0.2;
+    this._hasStartProgress = hasStartProgress;
+    this._hasStartProgressBack = hasStartProgress;
+    this.video.addEventListener(CUSTOM_EVENTS.BUFFERED_RESET, this._onBufferedResetFunc);
+    this._bindNetworkStateChange();
+    this._initMp4Kernal();
+
+    this.once('ready', () => {
+      this.gapJumpInst = new GapJump(this, this.config);
+      Player.util.on(this, 'addVideoBufferEnd', () => {
+        this.gapJumpInst.onSegmentAppend();
+      });
     })
   }
-  if (['chrome', 'firfox', 'safari'].some(item => item === sniffer.browser) && MSE.isSupported('video/mp4; codecs="avc1.64001E, mp4a.40.5"')) {
-    player._start = player.start
-    if (!rule.call(player)) {
-      return false
-    }
 
-    let errorHandle = (player, err) => {
-      err.vid = player.config.vid
-      err.url = player.src
-      if (err.errd && typeof err.errd === 'object') {
-        if (player.mp4) {
-          err.errd.url = player.mp4.url
-          err.url = player.mp4.url
-          player.mp4.canDownload = false
-        }
+  _initMp4Kernal(){
+    let player = this;
+    let rule = player.config.pluginRule || function () { return true }
+    if (MSE.isSupported('video/mp4; codecs="avc1.64001E, mp4a.40.5"')) {
+      if (!rule.call(player)) {
+        return false
       }
-      player.emit('DATA_REPORT', err)
-      Task.clear()
-      if (player.mp4 && player.mp4.bufferCache) {
-        player.mp4.bufferCache.clear()
-      }
-      if (player.currentTime) {
-        player._currentTime = player.currentTime
-      }
-      if (player._start) {
-        player.start = player._start
-        player._start = null
-      }
-      player.switchURL = null
-      player._replay = null
+      Object.defineProperty(player, 'src', {
+        get () {
+          return player.currentSrc
+        },
+        set (url) {
+          player.mse.endOfStream()
+          player._onDestroy();
+          player.config.autoplay = player.autoplay = true
+          player.config.url = url
 
-      // player.off('timeupdate', timeupdateFunc)
-      clearInterval(player.mp4ProgressTimer)
-      player.off('seeking', seekingFunc)
-      player.off('pause', pauseFunc)
-      player.off('playing', playingFunc)
-      player.off('waiting', waitingFunc)
-      player.off('ended', endedFunc)
-      player.off('destroy', destroyFunc)
-
-      if (err.errt === 'network' && player.config._backupURL) {
-        player.src = player.config._backupURL
-      } else {
-        player.src = player.config._mainURL
-      }
-      player.once('canplay', () => {
-        if (player._currentTime) {
-          player.currentTime = player._currentTime
-        }
-        player.play()
+          player._init(url).then((result) => {
+            let mp4 = result[0]; 
+            let mse = result[1]
+            player.proxyOnce('canplay', () => {
+              player.play()
+              player.proxyOn('waiting', player._onWaitingFunc)
+            })
+            player._startProgress();
+            player._onSuperStart(mse.url)
+            player.mp4 = mp4
+            player.mse = mse
+            // player.currentTime = 0
+          }, err => {
+            player._errorHandle(err)
+          })
+        },
+        configurable: true
       })
+  
+      player.proxyOn('ended', player._onEndedFunc)
+  
+      player.proxyOnce('destroy', player._onDestroyFunc)
+  
+      if (player.config.videoInit || player.config.onlyInit){
+        player.start(player.config.url)
+      }
     }
+  }
 
-    player.start = function (url = mainURL) {
-      init(url).then((result) => {
-        player.once('canplay', () => {
+  start(url) {
+    let player = this;
+    url = url ? url : player.config.url;
+    if (player.config.autoplay && Player.sniffer.browser == 'chrome' && !Player.util.hasClass(player.root, 'xgplayer-is-enter')) {
+      Player.util.addClass(player.root, 'xgplayer-is-enter')
+    }
+    player.proxyOnce('error', () => {
+      if (Player.util.hasClass(player.root, 'xgplayer-is-enter')) {
+        Player.util.removeClass(player.root, 'xgplayer-is-enter')
+      }
+    })
+    player.proxyOn('timeupdate', function () {
+      if (Player.util.hasClass(player.root, 'xgplayer-isloading')) {
+        Player.util.removeClass(player.root, 'xgplayer-isloading')
+      }
+    })
+    player.proxyOnce('canplay', () => {
+      if (Player.util.hasClass(player.root, 'xgplayer-is-enter')) {
+        Player.util.removeClass(player.root, 'xgplayer-is-enter')
+      }
+      // safari decoder time offset
+      if (sniffer.browser === 'safari' && player.buffered && player.config.autoplay) {
+        let start = player.buffered.start(0)
+        player.currentTime = start + 0.1
+      }
+    })
+
+    let initPromise = player._init(url)
+    initPromise.id = 'init'
+    player._addPendingPromise(initPromise)
+    initPromise.then(result => {
+    
+      player._allInitPromise.resolve();
+      player._hasInited = true;
+      player._removePendingPromise(initPromise);
+      let mp4 = result[0]; let mse = result[1]
+      if(player.config.autoplay) {
+        player.proxyOnce('canplay', () => {
           player.play()
         })
-        let mp4 = result[0]; let mse = result[1]
-        player._start(mse.url)
-        player.mp4 = mp4
-        player.mse = mse
-        mp4.on('error', err => {
-          errorHandle(player, err)
-        })
-      }, err => {
-        player._start(url)
-        errorHandle(player, err)
-      })
-      player.once('canplay', () => {
-        // safari decoder time offset
-        if (sniffer.browser === 'safari' && player.buffered) {
-          let start = player.buffered.start(0)
-          player.currentTime = start + 0.1
-        }
-      })
-    }
-
-    player.cut = function (start = 0, end) {
-      let segment = new Buffer()
-      let mp4 = new MP4(url, player.config)
-      return new Promise((resolve, reject) => {
-        mp4.once('moovReady', () => {
-          if (!end || end <= start) {
-            end = start + 15
-          }
-          if (end > mp4.meta.duration) {
-            start = mp4.meta.duration - (end - start)
-            end = mp4.meta.duration
-          }
-          mp4.cut(start, end).then(buffer => {
-            if (buffer) {
-              let meta = Player.util.deepCopy({
-                duration: end - start,
-                audioDuration: end - start,
-                endTime: end - start
-              }, mp4.meta)
-              meta.duration = end - start
-              meta.videoDuration = end - start
-              meta.audioDuration = end - start
-              meta.endTime = end - start
-              segment.write(mp4.packMeta(meta), buffer)
-              resolve(new Blob([segment.buffer], {type: 'video/mp4; codecs="avc1.64001E, mp4a.40.5"'}))
-            }
-          })
-        })
-        mp4.on('error', (e) => {
-          reject(e)
-        })
-      })
-    }
-
-    player.switchURL = (url) => {
-      let mp5 = new MP4(url, player.config)
-      let mp4 = player.mp4
-      mp5.on('moovReady', () => {
-        let timeRange = mp4.timeRage; let curTime = player.currentTime
-        timeRange = mp4.timeRage
-        let start = timeRange.find(item => item[0] - curTime > 2)[0]
-        let end = player.getBufferedRange()[1]
-        if (end - start > 0 && sniffer.browser !== 'safari') {
-          player.mse.removeBuffer(start, end)
-        }
-        if (!Player.util.hasClass(player.root, 'xgplayer-ended')) {
-          player.emit('urlchange')
-        }
-        player.mp4 = mp5
-        player.mse.appendBuffer(mp5.packMeta())
-      })
-      mp5.on('error', err => {
-        errorHandle(player, err)
-      })
-    }
-
-    player.playNext = (url) => {
-      let mp5 = new MP4(url, player.config)
-      let mp4 = player.mp4
-      mp5.on('moovReady', () => {
-        let range = [0, 0]
-        let buffered = player.video.buffered
-        let currentTime = player.video.currentTime
-        let max = 0
-        if (buffered) {
-          for (let i = 0, len = buffered.length; i < len; i++) {
-            range[0] = buffered.start(i)
-            range[1] = buffered.end(i)
-            if (range[0] <= currentTime && range[1] <= currentTime) {
-              max = range[1] > max ? range[1] : max
-              player.mse.removeBuffer(range[0], range[1])
-            }
-          }
-        }
-        player.mp4 = mp5
-        player.mse.appendBuffer(mp5.packMeta())
-        let flag = true
-        player.on('timeupdate', function () {
-          if (flag && mp4.meta.endTime - player.currentTime < 2) {
-            let range = player.getBufferedRange()
-            if (player.currentTime - range[1] < 0.1) {
-              flag = false
-              player.currentTime = 0
-              buffered = player.video.buffered
-              if (buffered) {
-                for (let i = 0, len = buffered.length; i < len; i++) {
-                  range[0] = buffered.start(i)
-                  range[1] = buffered.end(i)
-                  if (range[0] >= max) {
-                    player.mse.removeBuffer(range[0], range[1])
-                  }
-                }
-              }
-            }
-          }
-        })
-      })
-      mp5.on('error', err => {
-        errorHandle(player, err)
-      })
-    }
-
-    let timeupdateFunc = function () {
-      let mse = player.mse; let mp4 = player.mp4
-      if (mse && !mse.updating && mp4.canDownload) {
-        let timeRage = mp4.timeRage
-        let range = player.getBufferedRange(); let cacheMaxTime = player.currentTime + preloadTime
-        if (range[1] - cacheMaxTime > 0) {
-          return
-        }
-        timeRage.every((item, idx) => {
-          let start = item[0]; let end = item[1]; let center = (start + end) / 2
-          if (range[1] === 0) {
-            return false
-          } else {
-            if (center > range[1] && !mp4.bufferCache.has(idx)) {
-              loadData(0, center)
-            } else {
-              return true
-            }
-          }
-        })
-        isEnded(player, mp4)// hack for older webkit
       }
-    }
-
-    // player.on('timeupdate', timeupdateFunc)
-    player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
-
-    let seekingFunc = function () {
-      let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
-      Task.clear()
-      if (buffered.length) {
-        for (let i = 0, len = buffered.length; i < len; i++) {
-          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
-            hasBuffered = true
-            break
-          }
-        }
-        if (!hasBuffered) {
-          loadData(0, curTime)
-        }
-      } else {
-        loadData(0, player.currentTime)
+      player._onSuperStart(mse.url)
+      player.mp4 = mp4
+      player.mse = mse
+      Player.util.on(mp4, 'error', err => {
+        player._errorHandle(err)
+      })
+      player.proxyOn('seeking', player._onSeekingFunc)
+      player.proxyOnce('playing', player._onMp4InitFunc)
+      player.proxyOn('waiting', player._onWaitingFunc)
+      // if(!player.config.onlyInit || player._hasStartProgressBack){
+      player._startProgress();
+      // }
+    }, err => {
+      if(err !== DESTROYED){
+        player._onSuperStart(url)
+        player._errorHandle(err)
       }
-    }
-    player.on('seeking', seekingFunc)
+    })
+  }
 
-    let pauseFunc = function () {
-      Task.clear()
-    }
-    player.on('pause', pauseFunc)
-
-    let playingFunc = function () {
-      if (waiterTimer) {
-        clearTimeout(waiterTimer)
+  switchURL(url){
+    let player = this;
+    let mp5 = new MP4(url, player.config.xhrSetup, player, player.config.preloadSize, {
+      playerId: player._playerId
+    })
+    let mp4 = player.mp4
+    Player.util.on(mp5, 'moovReady', () => {
+      let timeRange = mp4.timeRage; 
+      let curTime = player.currentTime
+      timeRange = mp4.timeRage
+      let start = timeRange.find(item => item[0] - curTime > 2)[0]
+      let end = player.getBufferedRange(player.buffered2)[1]
+      if (end - start > 0 && sniffer.browser !== 'safari') {
+        player.mse.removeBuffer(start, end)
       }
-    }
-    player.on('playing', playingFunc)
+      if (!Player.util.hasClass(player.root, 'xgplayer-ended')) {
+        player.emit('urlchange')
+      }
+      player.mp4 = mp5
+      player.mse.appendBuffer(mp5.packMeta(mp4.meta))
+    })
+    Player.util.on(mp5, 'error', err => {
+      player._errorHandle(err)
+    })
+  }
 
-    let waitingFunc = function () {
-      let mp4 = player.mp4
-      if (!mp4 || !mp4.meta) {
+  _onBufferedReset(){
+    if(this.mp4 && this.mp4.timeRage) {
+      this.mp4.timeRage.forEach(item => {
+        // if(item[0] <= time) item.downloaded = false;
+        item.downloaded = false;
+      });
+    }
+  };
+
+  _onOnlineHandler(){
+    if(!this._hasInited){
+      this.src = this.config.url;
+    }else{
+      if(this._hasStartProgressBack){
+        this._startProgress();
+      }
+      this._hasStartProgressBack = false;
+    }
+  }
+
+  _onOfflineHandler(){
+    if(this._hasStartProgress){
+      this._stopProgress();
+      this._hasStartProgressBack = true;
+    }
+  }
+
+  _bindNetworkStateChange(){
+    window.addEventListener('online', this._onOnlineHandlerFunc)
+    window.addEventListener('offline', this._onOfflineHandlerFunc)
+  }
+
+  _unbindNetworkStateChange(){
+    window.removeEventListener('online', this._onOnlineHandlerFunc)
+    window.removeEventListener('offline', this._onOfflineHandlerFunc)
+  }
+
+  _onSuperStart(url){
+    super.start(url)
+  }
+
+  _init(url){
+    let player = this;
+    let promise = new ProxyPromise();
+
+    player._initMp4(url, promise);
+    return promise;
+  }
+
+  _initMse(mp4, meta, promise){
+    let player = this;
+    const isHvc = meta.videoCodec.indexOf('hvc1') > -1 || (meta.encv && meta.encv.data_format.indexOf('hvc1') > -1)
+
+    let hasVideo = !!meta.videoCodec
+    let hasAudio = !!meta.audioCodec
+    let codec
+    if(hasVideo && hasAudio){
+      codec = isHvc ? 'video/mp4; codecs="hev1.1.6.L93.B0, mp4a.40.5"':'video/mp4; codecs="avc1.64001E, mp4a.40.5"'
+    }else if(hasVideo){
+      codec = isHvc ? 'video/mp4; codecs="hev1.1.6.L93.B0"':'video/mp4; codecs="avc1.64001E"'
+    }else{
+      codec = 'video/mp4; codecs="mp4a.40.5"'
+    }
+    
+    let mse = new MSE(codec, player.config.mediaType)
+    Player.util.on(mse, 'sourceopen', function () {
+      const initSeg = mp4.packMeta(mp4.meta);
+      mse.appendBuffer(initSeg)
+      Player.util.once(mse, 'updateend', function () {
+        player._loadData();
+      })
+    })
+    Player.util.on(mse, 'error', function (e) {
+      promise.reject(e)
+    })
+    promise.resolve([mp4, mse])
+  }
+
+  _initMp4(url, promise){
+    let player = this;
+    let mp4 = new MP4(url, player.config.xhrSetup, player, player.config.preloadSize, {
+      playerId: player._playerId
+    })
+
+    Player.util.once(mp4, 'metaReady', meta => {
+      this._initMse(mp4, meta, promise)
+    })
+    
+    Player.util.on(mp4, 'error', (e) => {
+      promise.reject(e)
+    })
+  }
+
+  _loadData(i = 0, time = null){
+    if(!navigator.onLine){
+      return;
+    }
+    let player = this;
+    if(!player.mp4){
+      return;
+    }
+    time = time ? time : player.currentTime;
+    player.mp4.seek(time + i * 0.1).then(buffer => {
+      if (buffer && player.mse) {
+        let mse = player.mse
+        mse.updating = true
+        Player.util.once(mse, 'updateend', () => {
+          // if (player.currentTime === 0 && player.video.buffered.length && player.video.buffered.end(player.video.buffered.length - 1) > 0) {
+          //   player.emit('canplay')
+          // }
+          mse.updating = false
+          player.emit('addVideoBufferEnd');
+        })
+        mse.appendBuffer(buffer)
+      }
+    }, () => {
+      if (i < 10) {
+        setTimeout(function () {
+          player._loadData(i + 1)
+        }, 2000)
+      }
+    })
+  }
+
+  _onTimeUpdate(){
+    let player = this;
+    let mse = player.mse;
+    let mp4 = player.mp4
+    if (mse && !mse.updating && mp4 && mp4.canDownload) {
+      let timeRage = mp4.timeRage
+      let range = player.getBufferedRange(player.buffered2); 
+      let cacheMaxTime = player.currentTime + player._maxBufferLength
+      if (range[1] - cacheMaxTime > 0) {
         return
       }
-      let range = player.getBufferedRange()
-      let duration = mp4.meta.videoDuration
-      if (duration - player.currentTime < 0.5 && duration - range[1] < 0.5) {
-        player.mse.endOfStream()
-      } else {
-        loadData(0, range[1] + 1)
-        waiterTimer = setTimeout(function () {
-          let buffered = player.buffered; let start
-          for (let i = 0, len = buffered.length; i < len; i++) {
-            start = buffered.start(i)
-            if (start >= player.currentTime) {
-              player.currentTime = start
-              break
-            }
+      timeRage.every((item, idx) => {
+        if(item.downloaded) {
+          return true;
+        } else if (range[1] === 0) { //当前播放时刻无缓存
+          if(item[0] <= player.currentTime && (player.currentTime < item[1] || player.duration - item[1] < 0.5)) {
+            player._loadData(0, item[0])
+            return false
+          } else {
+            return true
           }
-        }, 1500)
-      }
+        } else { //当前播放时刻有缓存
+          if (item[0] >= range[1] || item[1] - 1 >= range[1] || (range[1] >= item[0] && range[1] <= item[0] + 1)) {
+            player._loadData(0, item[0])
+            return false
+          } else {
+            return true
+          }
+        }
+      })
+      isEnded(player, mp4)// hack for older webkit
     }
-    player.on('waiting', waitingFunc)
+  }
 
-    let endedFunc = function () {
-      player.off('waiting', waitingFunc)
-      // player.off('timeupdate', timeupdateFunc)
-      clearInterval(player.mp4ProgressTimer)
-    }
-    player.on('ended', endedFunc)
 
-    let destroyFunc = function () {
-      Task.clear()
-      if (player.timer) {
-        clearTimeout(player.timer)
-      }
-    }
-    player.once('destroy', destroyFunc)
+  _onWaiting(){
+    let player = this;
+    let curTime = player.currentTime
+    player._onInnerWait(curTime)
+    if(curTime + 2 < player.duration) player._onInnerWait(curTime + 2)
+    if(curTime - 2 > 0) player._onInnerWait(curTime - 2)
+  }
 
-    player._replay = function () {
-      Task.clear()
-      player.mp4.bufferCache.clear()
-      init(player.mp4.url).then((result) => {
-        let mp4 = result[0]; let mse = result[1]
-        player._start(mse.url)
-        player.mp4 = mp4
-        player.mse = mse
-        player.currentTime = 0
+  _onEnded(){
+    this.off('waiting', this._onWaitingFunc)
+    this._stopProgress();
+  }
+
+  _onReplay() {
+    let player = this;
+    player._onDestroy();
+    player._init(player.config.url).then((result) => {
+      let mp4 = result[0]; 
+      let mse = result[1]
+      player._startProgress();
+      player._onSuperStart(mse.url)
+      player.mp4 = mp4
+      player.mse = mse
+      // player.currentTime = 0
+      player.proxyOnce('canplay', () => {
         player.play()
-        player.once('canplay', () => {
-          player.on('waiting', waitingFunc)
-          // player.on('timeupdate', timeupdateFunc)
-          player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
+        player.proxyOn('waiting', player._onWaitingFunc)
+      })
+    }, err => {
+      player._errorHandle(err)
+    })
+  }
+
+  _onDestroy(){
+    let player = this;
+    player._hasInited = false;
+    player._unbindNetworkStateChange();
+    Task.clear(player._playerId)
+    if (player.mp4) {
+      player.mp4.destroy();
+      player.mp4 = null;
+    }
+    if(player.mse){
+      player.mse.destroy();
+    }
+    player.unloadVideo();
+    player._stopProgress();
+    player.cancelPendingPromises();
+  }
+
+  _errorHandle(err){
+    if(err.errt === 'network' || err.errorType === 'network'){
+      return;
+    }
+    if(err.errt === 'parse' ||  err.errorType === 'parse'){
+
+      return;
+    }
+    let player = this;
+    err.url = player.src
+    if (err.errd && typeof err.errd === 'object') {
+      if (player.mp4) {
+        err.errd.url = player.mp4.url
+        err.url = player.mp4.url
+        player.mp4.canDownload = false
+      }
+    }
+    player.emit('DATA_REPORT', err)
+    Task.clear(player._playerId)
+    if (player.mp4 && player.mp4.bufferCache) {
+      player.mp4.bufferCache.clear()
+    }
+    if (player.currentTime) {
+      player._currentTime = player.currentTime
+    }
+    if (player._start) {
+      player.start = player._start
+      player._start = null
+    }
+    player.switchURL = null
+    player._replay = null
+
+    player.off('seeking', player._onSeekingFunc)
+    player.off('playing', player._onMp4InitFunc)
+    player.off('waiting', player._onWaitingFunc)
+    player.off('ended', player._onEndedFunc)
+    player.off('destroy', player._onDestroyFunc)
+
+    iplayer.emit('error', err)
+    player.src = player.config.url
+    player.proxyOnce('canplay', () => {
+      if (player._currentTime) {
+        player.currentTime = player._currentTime
+      }
+      player.play()
+    })
+    
+  }
+
+  _onSeeking() {
+    let curTime = this.currentTime
+    this._onCheckLoad(curTime);
+    isEnded(this, this.mp4)
+  }
+
+  _onInnerWait(curTime) {
+   this._onCheckLoad(curTime);
+  }
+
+  _onCheckLoad(curTime){
+    let player = this;
+    let buffered = player.buffered2 || player.buffered; 
+    let hasBuffered = false; 
+    let timeRage = player.mp4.timeRage
+    if (buffered.length) {
+      for (let i = 0, len = buffered.length; i < len; i++) {
+        if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
+          hasBuffered = true
+          break
+        }
+      }
+      if (!hasBuffered) {
+        timeRage.every((item, idx) => {
+          if (item[0] <= curTime && (item[1] > curTime || player.duration - item[1] < 0.5)) {
+            player._loadData(0, item[0])
+            return false
+          } else {
+            return true
+          }
         })
-      }, err => {
-        errorHandle(player, err)
+      }
+    } else {
+      timeRage.every((item, idx) => {
+        if (item[0] <= curTime && item[1] > curTime) {
+          player._loadData(0, item[0])
+          return false
+        } else {
+          return true
+        }
       })
     }
   }
-}
 
-Player.install('mp4player', mp4player)
+  _onMp4Init(){
+    let player = this;
+    if(player.config.mp4Init) {
+      player.pause()
+    }
+    // if(player.config.onlyInit){
+    //   player._startProgress();
+    // }
+  }
+
+  _stopProgress(){
+    let player = this;
+    this._hasStartProgress = false;
+    if(player._requestTimer){
+      player._requestTimer.stop();
+      player._requestTimer = null;
+    }
+  }
+
+  _startProgress(){
+    let player = this;
+    player._stopProgress();
+    player._requestTimer = new Timer(()=>{
+      if(player._requestTimer) {
+        player._onTimeUpdate()
+      }
+    });
+    player._requestTimer.tickEvery(player._tickInSeconds);//200ms
+    this._hasStartProgress = true;
+  }
+
+  unloadVideo() {
+    let player = this;
+    try {
+      if (player.video && player.video.src) {
+          player.video.removeAttribute('src'); // empty source
+          player.video.load();
+      }
+    } catch (error) {
+      //  console.log('unloadVideo error', error)
+    }
+  }
+
+  _addPendingPromise(p){
+    this._pendingPromises.push(p);
+  }
+
+  _removePendingPromise(p){
+    let idx =  this._pendingPromises.indexOf(p);
+    if(idx > -1){
+      this._pendingPromises.splice(idx, 1);
+    }
+  }
+
+  onMediaExpired(){
+    this._stopProgress();
+    this.emit(CUSTOM_EVENTS.MEDIA_EXPIRED);
+  }
+
+  cancelPendingPromises(){
+    if(this._pendingPromises.length > 0){
+      this._pendingPromises.forEach(promise => {
+        promise.reject(DESTROYED)
+      })
+    }
+    this._pendingPromises = [];
+  }
+
+  enableAutoBuffer(start){
+    if(start){
+      if(!this._allInitPromise){
+        return;
+      }
+      this._allInitPromise.then(()=>{
+        this._startProgress();
+      })
+    }else{
+      this._stopProgress();
+    }
+  }
+
+  destroy(){
+    if(this.mp4){
+      this.mp4.destroy();
+    }
+    if(this.mse){
+      this.mse.destroy();
+    }
+    if(this.video) {
+      this.video.removeEventListener(CUSTOM_EVENTS.BUFFERED_RESET, this._onBufferedResetFunc);
+    }
+    super.destroy();
+  }
+
+  emitInitFail(reason){
+    this.emit(CUSTOM_EVENTS.INIT_FAIL, reason);
+  }
+
+  emitParseError(){
+    this.emit(CUSTOM_EVENTS.PARSE_ERROR);
+  }
+
+  /***
+   * @return Promise
+   */
+  get ready(){
+    return this._allInitPromise;
+  }
+}
+Mp4Player.uniqueId = 1;
+Mp4Player.isSupported = isSupported;
+Mp4Player.isSupportedWithXgmse = isSupportedWithXgmse;
+Mp4Player.isMediaSourceSupported = isMediaSourceSupported;
+Mp4Player.CUSTOM_EVENTS = CUSTOM_EVENTS;
+
+export default Mp4Player;

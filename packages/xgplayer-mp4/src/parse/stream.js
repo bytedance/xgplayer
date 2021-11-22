@@ -90,6 +90,10 @@ class Stream {
   readUint16 () {
     return Stream.readByte(this.dataview, 2)
   }
+  
+  readUint24 () {
+    return Stream.readByte(this.dataview, 3)
+  }
 
   readUint32 () {
     return Stream.readByte(this.dataview, 4)
