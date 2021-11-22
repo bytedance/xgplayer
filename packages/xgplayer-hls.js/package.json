@@ -34,8 +34,8 @@
     "eventemitter3": "^4.0.7",
     "hls.js": "^1.1.1"
   },
-  "peerDependency": {
-    "xgplayer": "^0.1.0"
+  "peerDependencies": {
+    "xgplayer": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

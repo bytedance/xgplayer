@@ -38,8 +38,8 @@
     "webpack-cli": "^3.1.2",
     "webpack-merge": "^4.2.2"
   },
-  "peerDependency": {
-    "xgplayer": "^0.1.0"
+  "peerDependencies": {
+    "xgplayer": "^2.0.0"
   },
   "dependencies": {
     "concat-typed-array": "^1.0.2",

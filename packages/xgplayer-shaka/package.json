@@ -31,8 +31,8 @@
   "dependencies": {
     "shaka-player": "^2.4.0"
   },
-  "peerDependency": {
-    "xgplayer": "^0.1.0"
+  "peerDependencies": {
+    "xgplayer": "^2.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
