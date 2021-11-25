@@ -63,7 +63,7 @@ const umd = {
   mode: 'production',
   module: babelModuleConfig,
   optimization: {
-    minimize: true
+    minimize: false
   }
 }
 
