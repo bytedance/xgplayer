@@ -1221,7 +1221,7 @@ module.exports = exports["default"];
 /* 8 */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"version\":\"2.31.3\"}");
+module.exports = JSON.parse("{\"version\":\"2.31.4\"}");
 
 /***/ }),
 /* 9 */
