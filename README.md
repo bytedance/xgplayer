@@ -98,4 +98,4 @@ If you have any problem, please let us know.
 
 
 ### Join Us
-We welcome anyone with an interest in web media technology to join! Please contact us at  yinguohui@bytedance.com
+We welcome anyone with an interest in web media technology to join! Please contact us at  infra-fe@bytedance.com
