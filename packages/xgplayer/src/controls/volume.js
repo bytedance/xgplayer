@@ -15,6 +15,9 @@ let volume = function () {
     bar = container.querySelector('.xgplayer-bar')
     selected = container.querySelector('.xgplayer-drag')
     if (sniffer.device === 'mobile') {
+      if(player.volume === 0) {
+        player.video.muted = true
+      }
       onVolumeChange()
     }
   }
@@ -138,7 +141,7 @@ let volume = function () {
         removeClass(root, 'xgplayer-volume-muted')
         removeClass(root, 'xgplayer-volume-small')
         removeClass(root, 'xgplayer-volume-large')
-        if (player.volume === 0) {
+        if (player.volume === 0 || player.muted) {
           addClass(root, 'xgplayer-volume-muted')
         } else if (player.volume < 0.5) {
           addClass(root, 'xgplayer-volume-small')

@@ -340,8 +340,19 @@ export function setStyle(elem, name, value) {
   }
 }
 
+export const PresentationMode = {
+  PIP: 'picture-in-picture',
+  INLINE: 'inline',
+  FULLSCREEN: 'fullscreen'
+}
+
+export function checkWebkitSetPresentationMode (video) {
+  return typeof video.webkitSetPresentationMode === 'function'
+}
+
 export const util = {
   createDom, hasClass, addClass, removeClass, toggleClass, findDom, padStart, format, event, typeOf, 
   deepCopy, getBgImage, copyDom, setInterval: _setInterval, clearInterval: _clearInterval, createImgBtn, isWeiXin, isUc, computeWatchDur,
   offInDestroy, on, once, getBuffered2, checkIsBrowser, setStyle
 }
+

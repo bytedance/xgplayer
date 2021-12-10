@@ -87,7 +87,7 @@ class Proxy {
     }
 
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked', 'progress', 
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadedmetadata', 'loadeddata', 'loadstart'
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'ratechange', 'loadedmetadata', 'loadeddata', 'loadstart'
     ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
@@ -369,11 +369,12 @@ class Proxy {
     return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
   }
   get paused () {
-    if(this.video) {
-      return this.video.paused
-    } else {
-      return false
-    }
+    // if(this.video) {
+    //   return this.video.paused
+    // } else {
+    //   return false
+    // }
+    return hasClass(this.root, 'xgplayer-pause')
   }
   get playbackRate () {
     if(this.video) {
@@ -450,8 +451,9 @@ class Proxy {
     if (!hasClass(this.root, 'xgplayer-ended')) {
       this.emit('urlchange', this.video.src)
     }
-    this.autoplay = true
+    removeClass(this.root, 'xgplayer-ended xgplayer-is-replay xgplayer-is-error')
     this.video.pause()
+    this.emit('pause')
     this.video.src = url
     this.emit('srcChange')
   }

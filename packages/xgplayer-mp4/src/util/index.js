@@ -64,11 +64,12 @@ util.sum = function (...rst) {
  * @param  {Number} sample_order [帧次序]
  * @return {Object}              [块的位置和当前帧的偏移数]
  */
-util.stscOffset = function (stsc, sample_order) {
+util.stscOffset = function (stsc, sample_order, stscObj) {
   let chunk_index; let samples_offset = ''
-  let chunk_start = stsc.entries.filter((item) => {
-    return item.first_sample <= sample_order && sample_order < item.first_sample + item.chunk_count * item.samples_per_chunk
-  })[0]
+  // let chunk_start = stsc.entries.filter((item) => {
+  //   return item.first_sample <= sample_order && sample_order < item.first_sample + item.chunk_count * item.samples_per_chunk
+  // })[0]
+  let chunk_start = stscObj[sample_order];
   if (!chunk_start) {
     let last_chunk = stsc.entries.pop()
     stsc.entries.push(last_chunk)
@@ -91,8 +92,8 @@ util.stscOffset = function (stsc, sample_order) {
   }
 }
 
-util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart) {
-  let chunkOffset = util.stscOffset(stsc, order + 1)
+util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart, stscObj) {
+  let chunkOffset = util.stscOffset(stsc, order + 1, stscObj)
   let result = stco.entries[chunkOffset.chunk_index - 1] + util.sum.apply(null, stsz.entries.slice(chunkOffset.samples_offset[0] - 1, chunkOffset.samples_offset[1] - 1)) - mdatStart
   if (result === undefined) {
     throw `result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`
@@ -102,7 +103,7 @@ util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart) {
   return result
 }
 
-util.seekSampleTime = function (stts, ctts, order, time_offset=0) {
+util.seekSampleTime = function (stts, cttsObj, order) {
   let time; let duration; let count = 0; let startTime = 0; let offset = 0
   stts.entry.every(item => {
     duration = item.sampleDuration
@@ -115,22 +116,14 @@ util.seekSampleTime = function (stts, ctts, order, time_offset=0) {
       return true
     }
   })
-  if (ctts) {
-    let ct = 0
-    ctts.entry.every(item => {
-      ct += item.count
-      if (order < ct) {
-        offset = item.offset
-        return false
-      } else {
-        return true
-      }
-    })
+  if (cttsObj) {
+    if(cttsObj[order]){
+      offset = cttsObj[order]
+    }
   }
   if (!time) {
     time = startTime + (order - count) * duration
   }
-  time -= time_offset
   return {time, duration, offset}
 }
 
@@ -159,4 +152,127 @@ util.seekTrakDuration = function (trak, timeScale) {
   return Number(duration / timeScale).toFixed(4)
 }
 
+util.StringToArrayBuffer = function (str) {
+  let arr = new ArrayBuffer(str.length)
+  let view = new Uint8Array(arr)
+  for (let i = 0; i < str.length; i++) {
+    view[i] = str.charCodeAt(i)
+  }
+  return arr
+}
+/**
+ * Convert a hex string to a Uint8Array.
+ * @param {string} str
+ * @return {!Uint8Array}
+ * @export
+ */
+util.fromHex = function (str) {
+  let arr = new Uint8Array(str.length / 2)
+  for (let i = 0; i < str.length; i += 2) {
+    arr[i / 2] = window.parseInt(str.substr(i, 2), 16)
+  }
+  return arr
+}
+util.fromCharCode = function (array) {
+  let max = 16000
+  let ret = ''
+  for (let i = 0; i < array.length; i += max) {
+    let subArray = array.subarray(i, i + max)
+    ret += String.fromCharCode.apply(null, subArray)
+  }
+
+  return ret
+}
+util.ArrayBufferToString = function (arr) {
+  let str = ''
+  let view = new Uint8Array(arr)
+  for (let i = 0; i < view.length; i++) {
+    str += String.fromCharCode(view[i])
+  }
+  return str
+}
+util.Base64ToHex = function (str) {
+  let bin = window.atob(str.replace(/-/g, '+').replace(/_/g, '/'))
+  let res = ''
+  for (let i = 0; i < bin.length; i++) {
+    res += ('0' + bin.charCodeAt(i).toString(16)).substr(-2)
+  }
+  return res
+}
+
+/**
+ * Convert a Uint8Array to a base64 string.  The output will always use the
+ * alternate encoding/alphabet also known as "base64url".
+ * @param {!Uint8Array} arr
+ * @param {boolean=} padding If true, pad the output with equals signs.
+ *   Defaults to true.
+ * @return {string}
+ * @export
+ */
+util.toBase64 = function (arr, padding) {
+  // btoa expects a "raw string" where each character is interpreted as a byte.
+  let bytes = util.fromCharCode(arr)
+  padding = (padding === undefined) ? true : padding
+  let base64 = window.btoa(bytes).replace(/\+/g, '-').replace(/\//g, '_')
+  return padding ? base64 : base64.replace(/=*$/, '')
+}
+
+util.toUTF8 = function (str) {
+  // http://stackoverflow.com/a/13691499
+  // Converts the given string to a URI encoded string.  If a character falls
+  // in the ASCII range, it is not converted; otherwise it will be converted to
+  // a series of URI escape sequences according to UTF-8.
+  // Example: 'g#€' -> 'g#%E3%82%AC'
+  let encoded = encodeURIComponent(str)
+  // Convert each escape sequence individually into a character.  Each escape
+  // sequence is interpreted as a code-point, so if an escape sequence happens
+  // to be part of a multi-byte sequence, each byte will be converted to a
+  // single character.
+  // Example: 'g#%E3%82%AC' -> '\x67\x35\xe3\x82\xac'
+  let utf8 = unescape(encoded)
+
+  let result = new Uint8Array(utf8.length)
+  for (let i = 0; i < utf8.length; ++i) {
+    result[i] = utf8.charCodeAt(i)
+  }
+  return result.buffer
+}
+
+util.bufferToString = function (value) {
+  return ("0"+(Number(value).toString(16))).slice(-2).toUpperCase()
+}
+util.strToBuf = function (str) {
+  let buffer = []
+  for(let i = 0; i < str.length; i = i + 2) {
+    buffer.push(
+      parseInt(str[i] + str[i + 1], 16)
+    )
+  }
+  return new Uint8Array(buffer)
+}
+util.str2hex = function (str) {
+  if(str === "") {
+    return ""
+  }
+  let arr = [];
+  for(let i = 0; i < str.length; i++) {
+    arr.push(str.charCodeAt(i))
+  }
+  return arr
+}
+util.parse = function (a) {
+  if (!Array.isArray(a)) {
+    let arr = [];
+    let value = '';
+    for(let i = 0; i < a.length; i++) {
+      if (i % 2) {
+        value = a[i - 1] + a[ i ]
+        arr.push(parseInt(value, 16))
+        value = ''
+      }
+    }
+    return arr
+  }
+  return a.map(item => {return parseInt(item, 16)})
+}
 export default util
