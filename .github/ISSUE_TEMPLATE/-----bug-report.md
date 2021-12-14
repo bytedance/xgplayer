@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**您使用的西瓜播放器版本是多少？ What version of xglayer are you using?**
+**您使用的西瓜播放器版本是多少？ What version of xgplayer are you using?**
 
 
 **您使用的操作系统和浏览器分别是？ What OS and browser are you using?**
