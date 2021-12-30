@@ -313,7 +313,7 @@ class Mp4Player extends Player {
     }, () => {
       if (i < 10) {
         setTimeout(function () {
-          player._loadData(i + 1)
+          player._loadData(i + 1, time)
         }, 2000)
       }
     })
