@@ -231,6 +231,7 @@ class MP4 {
       let moovStart = 0
       let moov
       let boxes
+      let mdat
       try {
         parsed = new Parser(res)
       } catch (e) {
@@ -238,9 +239,10 @@ class MP4 {
         return false
       }
       self._boxes = boxes = parsed.boxes
+      mdat = self._boxes.find(item => item.type === 'mdat')
       boxes.every(item => {
         moovStart += item.size
-        if (item.type === 'moov') {
+        if (item.type === 'moov' && mdat) {
           moov = item
           self.moovBox = moov
           self.emit('moovReady', moov)
@@ -252,7 +254,7 @@ class MP4 {
       if (!moov) {
         let nextBox = parsed.nextBox
         if (nextBox) {
-          if (nextBox.type === 'moov') {
+          if (nextBox.type === 'moov' && mdat) {
             self.getData(moovStart, moovStart + nextBox.size + 28).then(res => {
               let parsed = new Parser(res)
               self._boxes = self._boxes.concat(parsed.boxes)
