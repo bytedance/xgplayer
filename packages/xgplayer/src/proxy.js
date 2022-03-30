@@ -487,6 +487,9 @@ class Proxy {
   get pip () {
     return hasClass(this.root, 'xgplayer-pip-active')
   }
+  get isMiniPlayer () {
+    return hasClass(this.root, 'xgplayer-miniplayer-active')
+  }
 }
 
 export default Proxy
