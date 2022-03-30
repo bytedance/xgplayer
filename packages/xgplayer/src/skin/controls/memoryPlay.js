@@ -29,7 +29,7 @@ let s_memoryPlay = function () {
       }, lastPlayTimeHideDelay * 1000)
     }
   }
-  player.once('play', handlePlay)
+  player.once('playing', handlePlay)
   player.once('ended', removeFunc)
 }
 

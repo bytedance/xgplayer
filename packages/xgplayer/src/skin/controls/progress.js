@@ -166,8 +166,12 @@ let s_progress = function () {
       player.config.enableSwipeHandler.call(player);
     });
   };
-
-  ['touchstart', 'mousedown'].forEach(item => {
+  let events = ['touchstart', 'mousedown'];
+  if (sniffer.device === 'mobile') {
+    // 解决在移动端触发多次seeking问题
+    events.pop()
+  }
+  events.forEach(item => {
     container.addEventListener(item, function (e) {
       if (player.config.disableProgress) return;
       // e.preventDefault()
@@ -205,6 +209,7 @@ let s_progress = function () {
           progress.style.width = `${w * 100 / containerWidth}%`
 
           if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+            console.log('trigger touchmove')
             player.currentTime = Number(now).toFixed(1)
           } else {
             let time = findDom(player.controls, '.xgplayer-time')
@@ -230,6 +235,7 @@ let s_progress = function () {
         player.emit('focus')
       }
       let up = function (e) {
+        console.log('up event', e)
         // e.preventDefault()
         e.stopPropagation()
         event(e)
@@ -250,6 +256,7 @@ let s_progress = function () {
           if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
           else {
             progress.style.width = `${w * 100 / containerWidth}%`
+            console.warn('trigger touchup')
             player.currentTime = Number(now).toFixed(1)
           }
         }
@@ -259,10 +266,14 @@ let s_progress = function () {
         player.emit('focus')
         player.isProgressMoving = false
       }
-      window.addEventListener('mousemove', move)
-      window.addEventListener('touchmove', move, { passive: false })
-      window.addEventListener('mouseup', up)
-      window.addEventListener('touchend', up)
+      // if (item === 'touchstart') {
+        window.addEventListener('touchmove', move, { passive: false })
+        window.addEventListener('touchend', up)
+      // } else {
+        window.addEventListener('mousemove', move)
+        // console.warn('add envent mouseup')
+        window.addEventListener('mouseup', up)
+      // }
       return true
     })
   })
