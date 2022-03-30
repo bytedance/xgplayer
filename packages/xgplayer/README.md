@@ -61,7 +61,7 @@ The following is how to use a self-starting plug-in：
 
 ```js
 import Player from 'xgplayer';
-import 'xgplyaer-mp4';
+import 'xgplayer-mp4';
 
 const player = new Player({
     id: 'video',
