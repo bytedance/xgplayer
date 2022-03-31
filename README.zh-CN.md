@@ -102,6 +102,6 @@ $ npm run dev
 
 岗位类型：社招、校招、实习
 
-发送简历：yinguohui@bytedance.com
+发送简历：infra-fe@bytedance.com
 
 邮件标题格式：【简历】+ 姓名 ＋ 前端开发工程师 + 来源：xgplayer github
