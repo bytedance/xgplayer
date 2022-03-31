@@ -39,7 +39,9 @@
     "cz": "git cz",
     "precz": "lint-staged",
     "remove": "lerna run clean",
-    "clean": "lerna clean"
+    "clean": "lerna clean",
+    "build:player": "lerna run build --scope=xgplayer --stream",
+    "watch:player": "lerna run watch --scope=xgplayer --stream"
   },
   "repository": {
     "type": "git",

@@ -43,7 +43,7 @@ const client = {
     library: 'FlvJsPlayer',
     libraryTarget: 'window'
   },
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   module: {
     rules: [{
       test: /\.js$/,

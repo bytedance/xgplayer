@@ -1,5 +1,5 @@
 
-import { PresentationMode, checkWebkitSetPresentationMode } from '../utils/util'
+import { PresentationMode, checkWebkitSetPresentationMode, addClass, removeClass} from '../utils/util'
 
 let pip = function () {
   let player = this
@@ -25,10 +25,12 @@ let pip = function () {
   }
 
   player.video.addEventListener('enterpictureinpicture', function (pipWindow) {
+    addClass(player.root, 'xgplayer-pip-active')
     player.emit('requestPictureInPicture', pipWindow)
   })
 
   player.video.addEventListener('leavepictureinpicture', function () {
+    removeClass(player.root, 'xgplayer-pip-active')
     player.emit('exitPictureInPicture')
   })
 
