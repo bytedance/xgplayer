@@ -193,7 +193,7 @@ class Lyric {
     }
   }
   hide () {
-    this.__updateHandle__.off('lyricUpdate', this.__updateHandle__)
+    this.__player__.off('lyricUpdate', this.__updateHandle__)
   }
 }
 
