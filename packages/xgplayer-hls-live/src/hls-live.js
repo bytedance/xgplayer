@@ -16,7 +16,6 @@ class HlsLiveController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
     this.url = '';
-    this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
@@ -119,7 +118,7 @@ class HlsLiveController {
       let mdata;
       try {
         this.m3u8Text = buffer.shift();
-        mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+        mdata = M3U8Parser.parse(this.m3u8Text, this.url);
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
       }
@@ -245,7 +244,6 @@ class HlsLiveController {
   }
 
   load (url) {
-    this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
     this._preload();
   }

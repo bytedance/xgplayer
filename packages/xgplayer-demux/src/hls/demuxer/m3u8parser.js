@@ -16,7 +16,6 @@ class M3U8Parser {
     let ref = refs.shift()
     if (!ref.match('#EXTM3U')) {
       throw new Error(`Invalid m3u8 file: not "#EXTM3U"`);
-      return null;
     }
     ref = refs.shift();
     let nextDiscontinue = false;
@@ -63,39 +62,21 @@ class M3U8Parser {
       ret.frags = []
     }
 
-    let freg = {
+    const frag = {
       start: ret.duration,
       duration: parseFloat(refm[2]) * 1000
     }
 
-    ret.duration += freg.duration;
+    ret.duration += frag.duration;
     let nextline = refs.shift();
     if (nextline.match(/#(.*):(.*)/)) {
       nextline = refs.shift();
     }
-    if (nextline.length > 0 && nextline.charAt(0) === '/' && baseurl.match(/.*\/\/.*\.\w+/g)) {
-      baseurl = baseurl.match(/.*\/\/.*\.\w+/g)[0];
-    }
-    if (nextline.match(/.*:\/\/.*/)) {
-      freg.url = nextline;
-    } else {
-      freg.url = baseurl + nextline;
-    }
-    freg.discontinue = discontinue;
-    ret.frags.push(freg);
-  }
 
-  static parseURL (url) {
-    let baseurl = '';
-    let urls = url.match(/(.*\/).*\.m3u8/);
-    if (urls && urls.length > 0) {
-      for (let i = 0; i < urls.length; i++) {
-        if (urls[i].match(/.*\/$/g) && urls[i].length > baseurl.length) {
-          baseurl = urls[i];
-        }
-      }
-    }
-    return baseurl;
+    frag.url = getAbsoluteUrl(nextline, baseurl)
+
+    frag.discontinue = discontinue;
+    ret.frags.push(frag);
   }
 
   static parseDecrypt(refm, ret) {
@@ -122,6 +103,17 @@ class M3U8Parser {
       }
     };
   }
+}
+
+const REGEXP_ABSOLUTE_URL = /^(?:[a-zA-Z0-9+\-.]+:)?\/\//
+const REGEXP_URL_PAIR = /^((?:[a-zA-Z0-9+\-.]+:)?\/\/[^/?#]*)?([^?#]*\/)?/
+
+function getAbsoluteUrl (url, parentUrl) {
+  if (!parentUrl || !url || REGEXP_ABSOLUTE_URL.test(url)) return url
+  const pairs = REGEXP_URL_PAIR.exec(parentUrl)
+  if (!pairs) return url
+  if (url[0] === '/') return pairs[1] + url
+  return pairs[1] + pairs[2] + url
 }
 
 export default M3U8Parser;

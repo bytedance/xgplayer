@@ -16,7 +16,6 @@ class HlsVodController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
     this.url = '';
-    this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
@@ -163,7 +162,7 @@ class HlsVodController {
   _onLoaderCompete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
-      let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+      let mdata = M3U8Parser.parse(this.m3u8Text, this.url);
       try {
         this._playlist.pushM3U8(mdata);
       } catch (error) {
@@ -267,7 +266,6 @@ class HlsVodController {
   }
 
   load (url) {
-    this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
     this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url)
   }
@@ -337,7 +335,6 @@ class HlsVodController {
   destory () {
     this.configs = {};
     this.url = '';
-    this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = 3;
