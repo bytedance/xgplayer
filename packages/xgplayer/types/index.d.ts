@@ -4,9 +4,6 @@
  */
 
 declare module 'xgplayer' {
-
-    import {EventEmitter} from 'events';
-
     type DanmuModelType = 'top' | 'bottom' | 'scroll' | string;
 
     interface DanmuOptions {
@@ -344,7 +341,10 @@ declare module 'xgplayer' {
         enableStallCheck?: boolean;
     }
 
-    class Proxy extends EventEmitter {
+    type EventListener = (...args: any[]) => void;
+    type EmitterMethod = (type: string, listener: EventListener) => void;
+
+    class Proxy {
 
         // 是否开始播放
         public hasStart: boolean;
@@ -464,6 +464,17 @@ declare module 'xgplayer' {
         public proxyOn (event: string, fn: VoidFunction): void;
           
         public proxyOnce (event: string, fn: VoidFunction): void;
+
+        /**
+         * The `Proxy` class relies on the `event-emitter` package and calls its
+         * function within its constructor via `EventEmitter(this)`. The `EventEmitter`
+         * is a function which defines properties (`emit|on|off|once`) on the object (`this`).
+         * It's not a class, so we cannot extend it in type definitions.
+         */
+        public emit(type: string, ...args: any[]): void;
+        public off: EmitterMethod;
+        public on: EmitterMethod;
+        public once: EmitterMethod;
     }
 
     class Danmu {
@@ -543,11 +554,11 @@ declare module 'xgplayer' {
         public reload(): void;
 
         /**
-         * 播放器销毁
+         * Player destruction (播放器销毁)
          *
-         * @param isDelDom 是否删除Dom
+         * @param shouldDeleteDom - Determines whether to delete DOM (是否删除DOM)
          */
-        public destroy(isDelDom?: boolean): void;
+        public destroy(shouldDeleteDom?: boolean): void;
 
         /**
          *  播放器重播，重播的组件就调用了这个方法
