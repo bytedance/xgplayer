@@ -17,11 +17,16 @@ const isEnded = (player, flv) => {
 }
 
 class FlvPlayer extends Player {
+  /**
+   * @param {import('xgplayer').IPlayerOptions} config
+   */
   constructor (config) {
     super(config)
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
     // const preloadTime = player.config.preloadTime || 15
+    this.handleTimeUpdate = this.handleTimeUpdate.bind(this)
+    this.handleSeek = this.handleSeek.bind(this)
   }
 
   start () {
@@ -31,19 +36,37 @@ class FlvPlayer extends Player {
     super.start(flv.mse.url)
   }
 
-  initEvents () {
-    this.on('timeupdate', this.handleTimeUpdate.bind(this))
-
-    this.on('seeking', this.handleSeek.bind(this))
-
-    this.once('destroy', this._destroy.bind(this))
+  /**
+   * @param {boolean} isDelDom
+   */
+  destroy (isDelDom = true) {
+    this.context.destroy()
+    this.context = null
+    this.flv = null
+    this.off('timeupdate', this.handleTimeUpdate)
+    this.off('seeking', this.handleSeek)
+    super.destroy(isDelDom)
   }
 
+  /**
+   * @private
+   */
+  initEvents () {
+    this.on('timeupdate', this.handleTimeUpdate)
+    this.on('seeking', this.handleSeek)
+  }
+
+  /**
+   * @private
+   */
   handleTimeUpdate () {
     this.loadData()
     isEnded(this, this.flv)
   }
 
+  /**
+   * @private
+   */
   handleSeek () {
     const time = this.currentTime
     const range = this.getBufferedRange()
@@ -52,12 +75,10 @@ class FlvPlayer extends Player {
     }
   }
 
-  _destroy () {
-    this.context.destroy()
-    this.context = null
-    this.flv = null
-  }
-
+  /**
+   * @private
+   * @param {number} time
+   */
   loadData (time = this.currentTime) {
     const range = this.getBufferedRange()
     if (range[1] - time < (this.config.preloadTime || 15) - 5) {
@@ -65,6 +86,9 @@ class FlvPlayer extends Player {
     }
   }
 
+  /**
+   * @type {string}
+   */
   get src () {
     return this.currentSrc
   }
