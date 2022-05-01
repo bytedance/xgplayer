@@ -21,12 +21,20 @@ class Xhr {
     this.xhr = xhr
     this.run()
   }
+
+  destroy () {
+    this.cancel()
+    this.xhr = null
+  }
+
   cancel () {
-    this.xhr.abort()
+    if (this.xhr.readyState !== this.xhr.DONE) {
+      this.xhr.abort()
+    }
   }
 
   run () {
-    if (this.xhr.readyState === 1) {
+    if (this.xhr.readyState === this.xhr.OPENED) {
       this.xhr.send()
     }
   }
