@@ -63,6 +63,7 @@ class Music extends Player {
     this.halfPass = false
     this.history = []
     this.index = 0
+    this.closeDBTimeoutId = -1
     if (!opts.controls) {
       this.root.style.display = 'none'
       return
@@ -162,6 +163,18 @@ class Music extends Player {
       })
     }
   }
+  destroy (isDelDom = true) {
+    // The player might be destroyed before the database is closed, and the database is
+    // closed with a timeout. All properties are cleaned up during the destruction, leading
+    // to an exception `Cannot read properties of undefined (reading 'closeDB')`.
+    clearTimeout(this.closeDBTimeoutId)
+    // The database might be open when the `destroy` is being called so we have to close it anyway.
+    this.database.closeDB()
+    if (this.xhr) {
+      this.xhr.destroy()
+    }
+    super.destroy(isDelDom)
+  }
   lyric (lyricTxts, Dom) {
     if (this.__lyric__) {
       this.__lyric__.unbind(this)
@@ -182,10 +195,10 @@ class Music extends Player {
       this.checkOffline(this.list[this.nextIndex].src, this.list[this.nextIndex].vid || this.list[this.nextIndex].name).then(url => {
         if (url.indexOf('blob:') < 0) {
           let offlineVid = player.list[player.nextIndex].vid || player.list[player.nextIndex].name
-          let xhr = new Xhr(player.list[player.nextIndex].src, res => {
+          player.xhr = new Xhr(player.list[player.nextIndex].src, res => {
             player.database.openDB(() => {
               player.database.addData(player.database.myDB.ojstore.name, [{vid: offlineVid, blob: new Blob([res], {type: 'audio/mp4; codecs="mp4a.40.5"'})}])
-              setTimeout(() => {
+              player.closeDBTimeoutId = setTimeout(() => {
                 player.database.closeDB()
               }, 5000)
             })
@@ -320,7 +333,7 @@ class Music extends Player {
       }
       self.database.openDB(() => {
         self.database.getDataByKey(self.database.myDB.ojstore.name, offlineVid, result => {
-          setTimeout(() => {
+          self.closeDBTimeoutId = setTimeout(() => {
             self.database.closeDB()
           }, 5000)
           if (result) {
