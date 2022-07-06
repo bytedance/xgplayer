@@ -1,9 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 class MSE {
   constructor(configs) {
     this.configs = Object.assign({}, configs);
@@ -63,7 +57,7 @@ class MSE {
       if (type === 'audio') {
         track = tracks.audioTrack;
       } else if (type === 'video') {
-        track = tracks.videoTrack;
+        track = tracks.videoTrack; // return;
       }
 
       if (track) {
@@ -105,6 +99,7 @@ class MSE {
           let source = sources.sources[type];
 
           if (source && !source.inited) {
+            // console.log('append initial segment')
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else if (source) {
@@ -138,6 +133,7 @@ class MSE {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
 
       if (!buffer.updating) {
+        // console.log('remove', start, end)
         buffer.remove(start, end);
       }
     }
@@ -159,7 +155,9 @@ class MSE {
             const clean = () => {
               if (!buffer.updating) {
                 MSE.clearBuffer(buffer);
-                resolve();
+                buffer.addEventListener('updateend', () => {
+                  resolve();
+                });
               } else if (retryTime > 0) {
                 setTimeout(clean, 200);
                 retryTime--;
@@ -175,8 +173,12 @@ class MSE {
           buffer.addEventListener('updateend', doCleanBuffer);
         });
       } else {
-        MSE.clearBuffer(buffer);
-        task = Promise.resolve();
+        task = new Promise(resolve => {
+          MSE.clearBuffer(buffer);
+          buffer.addEventListener('updateend', () => {
+            resolve();
+          });
+        }); // task = Promise.resolve()
       }
 
       taskList.push(task);
@@ -223,4 +225,4 @@ class MSE {
 
 }
 
-exports.default = MSE;
+export default MSE;

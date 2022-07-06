@@ -30,7 +30,7 @@ const umd = {
     }]
   },
   externals: {
-    xgplayer: 'xgplayer'
+    'xgplayer': 'xgplayer'
   },
   optimization: {
     minimize: true
@@ -66,7 +66,7 @@ const client = {
     }]
   },
   externals: {
-    xgplayer: 'Player'
+    'xgplayer': 'Player'
   },
   mode: 'production',
   optimization: {

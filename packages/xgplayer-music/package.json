@@ -1,12 +1,13 @@
 {
   "name": "xgplayer-music",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "xgplayer plugin for music",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "watch": "webpack --progress --display-chunks -p --watch",
+    "publish": "npm publish --registry=https://registry.npmjs.org"
   },
   "repository": {
     "type": "git",

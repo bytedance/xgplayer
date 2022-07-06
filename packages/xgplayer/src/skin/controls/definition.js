@@ -56,6 +56,7 @@ let s_definition = function () {
         return a.href === src
       }
     })
+    console.warn('cursrc:', cursrc, 'src:', src, 'list:', list)
     tmp.push(`</ul><p class='name'>${(cursrc[0] || {name: ''}).name}</p>`)
     let urlInRoot = root.querySelector('.xgplayer-definition')
     if (urlInRoot) {

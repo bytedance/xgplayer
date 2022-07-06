@@ -5,6 +5,9 @@ Box.MP4DecConfigDescrTag = function (stream) {
   let box = new Box()
   let size
   box.type = stream.readUint8()
+  if (box.type !== 4) {
+    return box
+  }
   size = stream.readUint8()
   if (size === 0x80) {
     box.extend = true

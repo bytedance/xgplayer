@@ -1598,7 +1598,7 @@ var Analyze = function () {
       var WIDTH = canvas.width;
       var HEIGHT = canvas.height;
       var color = new _util.Color(this.style.color).toRGB();
-      var bgColor = new _util.Color(this.style.color).toRGB();
+      var bgColor = new _util.Color(this.style.bgColor).toRGB();
       analyser.fftSize = this.__size__;
       var draw = function draw() {
         _this2.__status__['wave'] = (0, _util.requestAnimationFrame)(draw);
@@ -1643,7 +1643,7 @@ var Analyze = function () {
       var WIDTH = canvas.width;
       var HEIGHT = canvas.height;
       var color = new _util.Color(this.style.color).toArray();
-      var bgColor = new _util.Color(this.style.color).toRGB();
+      var bgColor = new _util.Color(this.style.bgColor).toRGB();
       analyser.fftSize = this.__size__;
 
       var draw = function draw() {
@@ -1657,7 +1657,7 @@ var Analyze = function () {
         var x = 0;
         for (var i = 0; i < bufferLen; i++) {
           barHeight = dataArray[i];
-          ctx.fillStyle = 'rgb(' + (barHeight + color[0]) + ',' + color[1] + ',' + color[2] + ')';
+          ctx.fillStyle = 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
           ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2);
           x += barWidth + 1;
         }
@@ -1809,10 +1809,11 @@ var Color = function () {
       var color = this.color.slice(1);
       var rgb = [];
       if (color.length === 6) {
-        color = color.match(/\d{2}/g);
-        rgb = color.map(function (item) {
-          return Number('0x' + item);
-        });
+        for (var _i = 0; _i < 6; _i += 2) {
+          rgb.push(Number('0x' + color.slice(_i, _i + 2)));
+        }
+      } else {
+        console.error('the color value is not valid');
       }
       return rgb;
     }
@@ -2239,7 +2240,7 @@ var keys  = __webpack_require__(24)
   , value = __webpack_require__(28)
   , max   = Math.max;
 
-module.exports = function (dest, src/*, …srcn*/) {
+module.exports = function (dest, src /*, …srcn*/) {
 	var error, i, length = max(arguments.length, 2), assign;
 	dest = Object(value(dest));
 	assign = function (key) {
@@ -2342,7 +2343,7 @@ var process = function (src, obj) {
 };
 
 // eslint-disable-next-line no-unused-vars
-module.exports = function (opts1/*, …options*/) {
+module.exports = function (opts1 /*, …options*/) {
 	var result = create(null);
 	forEach.call(arguments, function (options) {
 		if (!isValue(options)) return;
@@ -2386,7 +2387,7 @@ module.exports = function () {
 
 var indexOf = String.prototype.indexOf;
 
-module.exports = function (searchString/*, position*/) {
+module.exports = function (searchString /*, position*/) {
 	return indexOf.call(this, searchString, arguments[1]) > -1;
 };
 

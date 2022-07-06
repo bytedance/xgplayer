@@ -1,10 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-class MediaSegmentList {
+export default class MediaSegmentList {
   constructor(type) {
     this._type = type;
     this._list = [];
@@ -123,5 +117,3 @@ class MediaSegmentList {
   }
 
 }
-
-exports.default = MediaSegmentList;

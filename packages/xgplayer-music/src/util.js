@@ -58,10 +58,11 @@ class Color {
     let color = this.color.slice(1)
     let rgb = []
     if (color.length === 6) {
-      color = color.match(/\d{2}/g)
-      rgb = color.map((item) => {
-        return Number(`0x${item}`)
-      })
+      for (let i = 0; i < 6; i += 2) {
+        rgb.push(Number('0x' + color.slice(i, i + 2)))
+      }
+    } else {
+      console.error('the color value is not valid')
     }
     return rgb
   }

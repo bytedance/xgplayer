@@ -1,16 +1,5 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _events = require("../constants/events");
-
-var _events2 = _interopRequireDefault(_events);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const CRYTO_EVENTS = _events2.default.CRYTO_EVENTS;
+import EVENTS from '../constants/events';
+const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 
 class Crypto {
   constructor(config) {
@@ -61,4 +50,4 @@ class Crypto {
 
 }
 
-exports.default = Crypto;
+export default Crypto;

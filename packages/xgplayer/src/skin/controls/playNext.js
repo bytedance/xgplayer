@@ -26,7 +26,7 @@ let s_playNext = function () {
   let onUrlListEnd = function () {
     addClass(player.root, 'xgplayer-playnext-inactive')
   }
-  player.on('urlListEnd', onUrlListEnd)
+  player.on('urlListEnd', onUrlListEnd) 
 
   function onDestroy () {
     player.off('urlListEnd', onUrlListEnd)

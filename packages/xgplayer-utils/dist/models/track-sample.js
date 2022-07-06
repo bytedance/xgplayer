@@ -1,10 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-class AudioTrackSample {
+export class AudioTrackSample {
   constructor(info) {
     let _default = AudioTrackSample.getDefault();
 
@@ -25,10 +19,7 @@ class AudioTrackSample {
   }
 
 }
-
-exports.AudioTrackSample = AudioTrackSample;
-
-class VideoTrackSample {
+export class VideoTrackSample {
   constructor(info) {
     let _default = VideoTrackSample.getDefault();
 
@@ -52,5 +43,3 @@ class VideoTrackSample {
   }
 
 }
-
-exports.VideoTrackSample = VideoTrackSample;

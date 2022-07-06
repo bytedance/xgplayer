@@ -1,9 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 class UTF8 {
   static decode(uint8array) {
     const out = [];
@@ -76,4 +70,4 @@ class UTF8 {
 
 }
 
-exports.default = UTF8;
+export default UTF8;

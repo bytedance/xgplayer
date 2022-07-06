@@ -62,7 +62,7 @@ class Analyze {
     const WIDTH = canvas.width
     const HEIGHT = canvas.height
     const color = new Color(this.style.color).toRGB()
-    const bgColor = new Color(this.style.color).toRGB()
+    const bgColor = new Color(this.style.bgColor).toRGB()
     analyser.fftSize = this.__size__
     const draw = () => {
       this.__status__['wave'] = req(draw)
@@ -103,7 +103,7 @@ class Analyze {
     const WIDTH = canvas.width
     const HEIGHT = canvas.height
     const color = new Color(this.style.color).toArray()
-    const bgColor = new Color(this.style.color).toRGB()
+    const bgColor = new Color(this.style.bgColor).toRGB()
     analyser.fftSize = this.__size__
 
     const draw = () => {
@@ -117,7 +117,7 @@ class Analyze {
       let x = 0
       for (var i = 0; i < bufferLen; i++) {
         barHeight = dataArray[i]
-        ctx.fillStyle = `rgb(${barHeight + color[0]},${color[1]},${color[2]})`
+        ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`
         ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2)
         x += barWidth + 1
       }

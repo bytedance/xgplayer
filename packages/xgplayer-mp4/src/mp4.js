@@ -254,7 +254,13 @@ class MP4 {
         if (nextBox) {
           if (nextBox.type === 'moov') {
             self.getData(moovStart, moovStart + nextBox.size + 28).then(res => {
-              let parsed = new Parser(res)
+              let parsed
+              // try {
+                parsed = new Parser(res)
+              // }catch(e) {
+
+              // }
+              
               self._boxes = self._boxes.concat(parsed.boxes)
               moov = parsed.boxes.filter(box => box.type === 'moov')
               if (moov.length) {
@@ -301,7 +307,6 @@ class MP4 {
     let stsz = util.findBox(trak, 'stsz') // sample-size
     let stts = util.findBox(trak, 'stts') // sample-time
     let stco = util.findBox(trak, 'stco') // chunk-offset
-
     let cttsObj = type === 'video' ? this._cttsObj : null;
     let stscObj = type === 'video' ? this._stscVideoObj : this._stscAudioObj;
     let mdatStart = this.mdatStart
@@ -328,11 +333,12 @@ class MP4 {
         })
       }
     } else {
+      let offset = util.seekSampleOffset(stsc, stco, stsz, start, mdatStart, stscObj)
       samples = {
         idx: start,
         size: stsz.entries[start],
         time: util.seekSampleTime(stts, cttsObj, start),
-        offset: util.seekSampleOffset(stsc, stco, stsz, start, mdatStart, stscObj)
+        offset: offset
       }
     }
     return samples
@@ -475,7 +481,7 @@ class MP4 {
       end = videoNextFrame.offset
       if (this.audioTrak) {
         let audioNextFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndex + 1].order, 0)
-        end = Math.max(end, audioNextFrame.offset)
+        end = Math.max(end, audioNextFrame.offset || 0)
       }
     }
     if (window.isNaN(start) || (end !== undefined && window.isNaN(end))) {
@@ -487,7 +493,10 @@ class MP4 {
   loadFragment (fragIndex) {
     let self = this
     let range = this.getFragRange(fragIndex)
-    if(range === [0, 0]) return false;
+    if(range === [0, 0]) {
+      debugger
+      return false;
+    }
     return this.getData(range[0], range[1]).then((dat) => {
       return self.createFragment(new Uint8Array(dat), range[0] - this.mdatStart, fragIndex)
     })

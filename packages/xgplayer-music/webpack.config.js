@@ -56,6 +56,7 @@ const client = {
     library: 'Music',
     libraryTarget: 'window'
   },
+  devtool: 'source-map',
   module: {
     rules: [{
       test: /\.js$/,

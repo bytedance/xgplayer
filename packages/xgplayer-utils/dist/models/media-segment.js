@@ -1,10 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-class MediaSegment {
+export default class MediaSegment {
   constructor() {
     this.startDts = -1;
     this.endDts = -1;
@@ -23,5 +17,3 @@ class MediaSegment {
   }
 
 }
-
-exports.default = MediaSegment;

@@ -1,10 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-class MediaSample {
+export default class MediaSample {
   constructor(info) {
     let _default = MediaSample.getDefaultInf();
 
@@ -31,5 +25,3 @@ class MediaSample {
   }
 
 }
-
-exports.default = MediaSample;

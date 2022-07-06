@@ -72,6 +72,7 @@ class XgBuffer {
         length = 0;
         break;
       } else {
+        // console.log('mark1')
         let templength = this.array[0].length - this.offset;
         ret.set(this.array[0].slice(this.offset, this.array[0].length), tmpoff);
         this.array.shift();

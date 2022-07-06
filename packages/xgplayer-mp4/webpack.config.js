@@ -41,7 +41,7 @@ const client = {
     library: 'Mp4Player',
     libraryTarget: 'window'
   },
-  devtool: argv.watch ? 'source-map' : 'none',
+  // devtool: argv.watch ? 'source-map' : 'none',
   module: {
     rules: [
       {

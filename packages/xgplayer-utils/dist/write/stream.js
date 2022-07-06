@@ -1,9 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 class Stream {
   constructor(buffer) {
     if (buffer instanceof ArrayBuffer) {
@@ -149,4 +143,4 @@ class Stream {
 
 }
 
-exports.default = Stream;
+export default Stream;

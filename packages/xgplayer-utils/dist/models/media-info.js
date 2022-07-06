@@ -1,9 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 const isObjectFilled = obj => {
   for (let key in obj) {
     if (obj.hasOwnProperty(key)) {
@@ -16,7 +10,7 @@ const isObjectFilled = obj => {
   return true;
 };
 
-class MediaInfo {
+export default class MediaInfo {
   constructor() {
     this.mimeType = null;
     this.duration = null;
@@ -73,5 +67,3 @@ class MediaInfo {
   }
 
 }
-
-exports.default = MediaInfo;

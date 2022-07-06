@@ -1,10 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-class AudioTrackMeta {
+export class AudioTrackMeta {
   constructor(meta) {
     const _default = {
       sampleRate: 48000,
@@ -31,10 +25,7 @@ class AudioTrackMeta {
   }
 
 }
-
-exports.AudioTrackMeta = AudioTrackMeta;
-
-class VideoTrackMeta {
+export class VideoTrackMeta {
   constructor(meta) {
     const _default = {
       avcc: null,
@@ -79,5 +70,3 @@ class VideoTrackMeta {
   }
 
 }
-
-exports.VideoTrackMeta = VideoTrackMeta;

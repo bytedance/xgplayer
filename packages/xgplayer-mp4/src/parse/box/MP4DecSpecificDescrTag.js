@@ -4,6 +4,10 @@ Box.MP4DecSpecificDescrTag = function (stream) {
   let box = new Box()
   let size, dataSize
   box.type = stream.readUint8()
+  if (box.type !== 5) {
+    stream.position = stream.position - 1
+    return box
+  }
   size = stream.readUint8()
   if (size === 0x80) {
     box.extend = true

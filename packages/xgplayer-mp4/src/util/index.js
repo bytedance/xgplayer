@@ -94,7 +94,9 @@ util.stscOffset = function (stsc, sample_order, stscObj) {
 
 util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart, stscObj) {
   let chunkOffset = util.stscOffset(stsc, order + 1, stscObj)
-  let result = stco.entries[chunkOffset.chunk_index - 1] + util.sum.apply(null, stsz.entries.slice(chunkOffset.samples_offset[0] - 1, chunkOffset.samples_offset[1] - 1)) - mdatStart
+  let sum =  util.sum.apply(null, stsz.entries.slice(chunkOffset.samples_offset[0] - 1, chunkOffset.samples_offset[1] - 1))
+  let ss = stco.entries[chunkOffset.chunk_index - 1]
+  let result = ss + sum - mdatStart
   if (result === undefined) {
     throw `result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`
   } else if (result < 0) {

@@ -1,28 +1,16 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _mediaInfo = require("./models/media-info");
-
-var _mediaInfo2 = _interopRequireDefault(_mediaInfo);
-
-var _events = require("events");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+import MediaInfo from './models/media-info';
+import { EventEmitter } from 'events';
 const DIRECT_EMIT_FLAG = '__TO__';
 
 class Context {
   constructor(allowedEvents = []) {
-    this._emitter = new _events.EventEmitter();
+    this._emitter = new EventEmitter();
     this._instanceMap = {}; // 所有的解码流程实例
 
     this._clsMap = {}; // 构造函数的map
 
     this._inited = false;
-    this.mediaInfo = new _mediaInfo2.default();
+    this.mediaInfo = new MediaInfo();
     this.allowedEvents = allowedEvents;
     this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
   }
@@ -99,8 +87,8 @@ class Context {
 
     const self = this;
     const enhanced = class extends cls {
-      constructor(...args) {
-        super(...args);
+      constructor(a, b, c) {
+        super(a, b, c);
         this.listeners = {};
         this.onceListeners = {};
         this.TAG = tag;
@@ -151,7 +139,8 @@ class Context {
       }
 
       emit(messageName, ...args) {
-        checkMessageName(messageName);
+        checkMessageName(messageName); // console.log('emit ', messageName);
+
         const beforeList = self._hooks ? self._hooks[messageName] : null;
 
         if (beforeList) {
@@ -275,4 +264,4 @@ class Context {
 
 }
 
-exports.default = Context;
+export default Context;

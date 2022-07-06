@@ -41,7 +41,15 @@
     "remove": "lerna run clean",
     "clean": "lerna clean",
     "build:player": "lerna run build --scope=xgplayer --stream",
-    "watch:player": "lerna run watch --scope=xgplayer --stream"
+    "watch:player": "lerna run watch --scope=xgplayer --stream",
+    "build:mp4": "lerna run build --scope=xgplayer-mp4 --stream",
+    "build:flv": "lerna run build --scope=xgplayer-flv --stream",
+    "build:flvlive": "lerna run build --scope=xgplayer-flv-live --stream",
+    "build:flvvod": "lerna run build --scope=xgplayer-flv-vod --stream",
+    "build:music": "lerna run build --scope=xgplayer-music --stream",
+    "watch:music": "lerna run watch --scope=xgplayer-music --stream",
+    "watch:mp4": "lerna run watch --scope=xgplayer-mp4 --stream",
+    "watch:flv.js": "lerna run watch --scope=xgplayer-flv.js --stream"
   },
   "repository": {
     "type": "git",

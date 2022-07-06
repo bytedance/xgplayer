@@ -7,7 +7,7 @@ module.exports = {
 
   // Modules from env
   sniffer: require('./src/env/sniffer').default,
-  isLe: require('./src/env/isle').default,
+  // isLe: require('./src/env/isle').default,
   UTF8: require('./src/env/utf8').default,
 
   // Models
