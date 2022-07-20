@@ -207,8 +207,12 @@ class HlsJsPlayer extends Player {
   }
 
   destroy() {
-    super.destroy();
     clearInterval(this._statisticsTimmer);
+    if (this.hls) {
+      this.hls.destroy();
+    }
+
+    super.destroy();
   }
 }
 
