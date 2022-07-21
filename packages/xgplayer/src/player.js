@@ -330,12 +330,12 @@ class Player extends Proxy {
       allOff(this)
     }
 
-    if (!this.paused) {
-      this.pause()
-      this.once('pause', destroyFunc)
-    } else {
-      destroyFunc.call(this)
-    }
+    // destroy immediately
+    // Don't use the paused property detection, it doesn't use MediaElement.paused, 
+    // so it's not accurate enough. Destroy after waiting for pause event, this 
+    // changes the synchronous behavior of destroy api
+    destroyFunc.call(this)
+
     super.destroy()
   }
 
