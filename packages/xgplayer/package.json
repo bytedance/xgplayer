@@ -44,7 +44,6 @@
         "Firefox > 20"
     ],
     "devDependencies": {
-        "@types/events": "^3.0.0",
         "autoprefixer": "^9.1.5",
         "babel-core": "^6.26.3",
         "babel-loader": "^7.1.4",
