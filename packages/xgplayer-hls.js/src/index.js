@@ -151,6 +151,17 @@ class HlsJsPlayer extends Player {
     })
     this._statistics();
   }
+  updateURLOnly (url) {
+    const player = this
+    const levelController = player.hls.levelController
+
+    if (Array.isArray(levelController._levels) && levelController._levels.length > 0) {
+      levelController._levels[0].url = [url]
+    }
+    player.config.url = url
+    player.url = url
+    player.hls.originUrl = url
+  }
 
   _statistics() {
     let statsInfo = {
