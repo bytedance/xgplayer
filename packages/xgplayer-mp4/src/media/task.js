@@ -110,7 +110,8 @@ class Task {
   }
 
   run () {
-    if (this.xhr.readyState === 1) {
+    // 兼容有些情况下调用open方法后，readyState为0的问题
+    if (this.xhr.readyState === 1 || this.xhr.OPENED === 1) {
       this.running = true
       this.xhr.send()
     } else {
