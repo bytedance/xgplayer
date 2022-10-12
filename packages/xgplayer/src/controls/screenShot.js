@@ -1,6 +1,7 @@
 let screenShot = function () {
   let player = this
   let screenShotOptions = player.config.screenShot
+  let callBack = null
   if (!screenShotOptions) {
     return
   }
@@ -8,7 +9,8 @@ let screenShot = function () {
   player.video.setAttribute('crossOrigin', 'anonymous')
 
   let encoderOptions = 0.92
-  if(screenShotOptions.quality || screenShotOptions.quality === 0) {
+
+  if (screenShotOptions.quality || screenShotOptions.quality === 0) {
     encoderOptions = screenShotOptions.quality
   }
   let type = screenShotOptions.type === undefined ? 'image/png' : screenShotOptions.type
@@ -17,9 +19,9 @@ let screenShot = function () {
   let canvas = document.createElement('canvas')
   let canvasCtx = canvas.getContext('2d')
   let img = new Image()
-  canvas.width = this.config.width || 600
-  canvas.height = this.config.height || 337.5
 
+  canvas.width = this.config.width || 600
+  canvas.height = this.config.height || 337.5  
   let saveScreenShot = function (data, filename) {
     let saveLink = document.createElement('a')
     saveLink.href = data
@@ -33,12 +35,19 @@ let screenShot = function () {
     save = screenShotOptions.saveImg === undefined ? save : screenShotOptions.saveImg
     canvas.width = player.video.videoWidth || 600
     canvas.height = player.video.videoHeight || 337.5
+    callBack = screenShotOptions.callBack
     img.onload = (function () {
       canvasCtx.drawImage(player.video, 0, 0, canvas.width, canvas.height)
       img.src = canvas.toDataURL(type, encoderOptions).replace(type, 'image/octet-stream')
       let screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
+      let saveFileName = screenShotOptions.fileName || player.lang.SCREENSHOT
+
       player.emit('screenShot', screenShotImg)
-      save && saveScreenShot(screenShotImg, '截图' + format)
+      if (save && callBack) {
+        callBack(screenShotImg, saveFileName, format)
+      } else {
+        save && saveScreenShot(screenShotImg, saveFileName + format)
+      }
     })()
   }
   player.on('screenShotBtnClick', player.screenShot)
