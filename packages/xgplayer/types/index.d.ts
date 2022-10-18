@@ -534,7 +534,7 @@ declare module 'xgplayer' {
          *
          * @param url 视频地址
          */
-        public start(url?: string): void;
+        public start(url?: string | Array<{src: string; type?: string}>): void;
 
         /**
          * 重新加载视频
