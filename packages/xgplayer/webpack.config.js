@@ -16,35 +16,40 @@ const rules = [{
       }
     },
     'postcss-loader',
-    'sass-loader'
+    {
+      loader: 'sass-loader',
+      options: {
+        implementation: require('sass')
+      }
+    }
   ]
 }, {
   test: /\.svg/,
   loader: 'raw-loader'
-}];
+}]
 
 const umdModuleConfig = {
   rules
-};
+}
 
 const babelModuleConfig = {
   rules: rules.concat({
-    test:/\.(js|jsx)$/,
-    use:{
-      loader:'babel-loader',
-      options:{
-        presets:[
+    test: /\.(js|jsx)$/,
+    use: {
+      loader: 'babel-loader',
+      options: {
+        presets: [
           'es2015'
         ],
         plugins: [
-          "add-module-exports",
-          "babel-plugin-bulk-import"
+          'add-module-exports',
+          'babel-plugin-bulk-import'
         ]
       }
     },
-    exclude:/node_modules/
+    exclude: /node_modules/
   })
-};
+}
 
 const umd = {
   entry: {
@@ -107,10 +112,10 @@ const client = {
   }
 }
 
-const controls = ['airplay', 'cssFullscreen', 'danmu', 'definition', 'download', 'enter', 'error', 'errorRetry', 
-  'flex', 'fullscreen', 'i18n', 'keyboard', 'loading', 'localPreview', 'memoryPlay', 'miniplayer', 'mobile', 'pc', 
-  'pip', 'play', 'playbackRate', 'playNext', 'poster', 'progress', 'reload', 'replay', 'rotate', 'screenShot', 
-  'start', 'textTrack', 'nativeTextTrack', 'time', 'volume'];
+const controls = ['airplay', 'cssFullscreen', 'danmu', 'definition', 'download', 'enter', 'error', 'errorRetry',
+  'flex', 'fullscreen', 'i18n', 'keyboard', 'loading', 'localPreview', 'memoryPlay', 'miniplayer', 'mobile', 'pc',
+  'pip', 'play', 'playbackRate', 'playNext', 'poster', 'progress', 'reload', 'replay', 'rotate', 'screenShot',
+  'start', 'textTrack', 'nativeTextTrack', 'time', 'volume']
 
 const umd_es6_controls = controls.map(key => {
   return {
