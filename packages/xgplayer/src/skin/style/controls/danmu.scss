@@ -14,10 +14,12 @@
     overflow: hidden;
     z-index: 9;
     outline: none;
+    pointer-events: none;
     > * {
       position: absolute;
       white-space: nowrap;
       z-index: 9;
+      pointer-events: auto;
     }
   }
 }
