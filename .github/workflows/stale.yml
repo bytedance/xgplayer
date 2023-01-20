@@ -21,6 +21,7 @@ jobs:
     - uses: actions/stale@v5
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
+        ignore-updates: true,
         days-before-stale: 90
         stale-issue-message: 'Stale issue message'
         stale-pr-message: 'Stale pull request message'
