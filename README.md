@@ -95,7 +95,3 @@ Welcome to use xgplayer! Please read the following terms carefully. Using xgplay
 1. Xgplayer is licensed under the [MIT](http://opensource.org/licenses/MIT) License. You comply with its obligations by default.
 2. By default, you authorize us to place your logo in xgplayer website, which using xgplayer.
 If you have any problem, please let us know.
-
-
-### Join Us
-We welcome anyone with an interest in web media technology to join! Please contact us at  infra-fe@bytedance.com
