@@ -606,17 +606,6 @@ declare module 'xgplayer' {
         public pluginsCall(): void;
 
         /**
-         * 播放器获取画中画，可自定义触发画中画功能的条件，不局限于播放器控件中使用
-         *
-         */
-        public getPIP(): void;
-
-        /**
-         * 播放器还原画中画，可自定义触发还原画中画功能的条件，不局限于播放器控件中使用
-         */
-        public exitPIP(): void;
-
-        /**
          * 进入迷你播放器模式
          *
          */
