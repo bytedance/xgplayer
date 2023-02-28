@@ -82,6 +82,7 @@ let player = new Player({
 $ git clone --recurse-submodules -j8 git@github.com:bytedance/xgplayer.git # 或者：git clone git@github.com:bytedance/xgplayer.git
 $ cd xgplayer
 $ npm install
+$ npm run build:player
 $ npm run dev
 ```
 
