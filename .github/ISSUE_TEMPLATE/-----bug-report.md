@@ -13,7 +13,11 @@ assignees: ''
 **您使用的操作系统和浏览器分别是？ What OS and browser are you using?**
 
 
-**如何复现问题？如果您用 [codepen](https://codepen.io/) 或者 [codesandbox](https://codesandbox.io/) 等工具还原一下问题并提供demo地址，这样会加快我们识别及解决问题的进度 How to reproduce the problem? If you use tools such as [codepen](https://codepen.io/) or [codesandbox](https://codesandbox.io/) to restore the problem and provide a demo address, this will speed up our process of identifying and solving problems?**
+**如何复现问题？ How to reproduce the problem?**
+
+<!--
+如果您用 [codepen](https://codepen.io/) 或者 [codesandbox](https://codesandbox.io/) 等工具还原一下问题并提供demo地址，这样会加快我们识别及解决问题的进度 If you use tools such as [codepen](https://codepen.io/) or [codesandbox](https://codesandbox.io/) to restore the problem and provide a demo address, this will speed up our process of identifying and solving problems?
+-->
 
 
 
