@@ -1,5 +1,5 @@
 ---
-name: 问题反馈 Bug report
+name: 问题反馈 Bug report (v2)
 about: Describe this issue template's purpose here.
 title: ''
 labels: ''
