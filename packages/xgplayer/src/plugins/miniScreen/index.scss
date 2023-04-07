@@ -1,0 +1,198 @@
+@import "../../style/variable";
+.xg-mini-layer {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 11;
+  background: linear-gradient(180deg,rgba(57,57,57,.9),rgba(57,57,57,0) 50.27%);
+  .mask {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+  xg-mini-header {
+    display: flex;
+    top: 0;
+    left: 0;
+    right: 40px;
+    box-sizing: border-box;
+    padding: 10px 3px 0 8px;
+    justify-content: space-between;
+    color: #ffffff;
+    font-size: 14px;
+    position: absolute;
+    // 超过结束时的blur层
+    z-index: 22;
+    .xgplayer-pip-disableBtn {
+      pointer-events: all;
+    }
+    #disabledMini {
+      display: none;
+      position: relative;
+    }
+    #disabledMini + label {
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    #disabledMini + label::before {
+      content: "";
+      color: #ff142b;
+      background-color: transparent;
+      border-radius: 2px;
+      border: solid 1px #cdcdcd;
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 16px;
+      margin-right: 7px;
+    }
+    #disabledMini:checked {
+      + label {
+        color: #ff142b;
+      }
+      + label::before {
+        border-color: #ff142b;
+      }
+      + label:after {
+        content: "";
+        position: absolute;
+        width: 4px;
+        height: 8px;
+        border-color: #ff142b;
+        border-style: solid;
+        border-width: 0px 2px 2px 0px;
+        transform: rotate(45deg);
+        left: 6px;
+        top: 5px;
+      }
+    }
+    .xgplayer-mini-disableBtn {
+      xg-tips {
+        position: absolute;
+        padding: 4px 6px;
+        white-space: nowrap;
+        bottom: -30px;
+        right: 15px;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.54);
+        display: none;
+      }
+    }
+    .xgplayer-mini-disableBtn:hover {
+      #disabledMini {
+        + label::before {
+          border-color: #ff142b;
+        }
+        + label {
+          color: #ff142b;
+        }
+      }
+      xg-tips {
+        display: block;
+      }
+    }
+  }
+  .mini-cancel-btn {
+    cursor: pointer;
+    display: block;
+    color: #fff;
+    width: 40px;
+    height: 38px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-align: center;
+    line-height: 38px;
+  }
+  .play-icon {
+    cursor: pointer;
+    height: 48px;
+    width: 48px;
+    position: absolute;
+    background: rgba(0,0,0,.54);
+    border-radius: 24px;
+    top: 50%;
+    left: 50%;
+    margin: -24px 0 0 -24px;
+    svg, img {
+      width: 50px;
+      height: 50px;
+      fill: #faf7f7;
+    }
+  }
+  .xg-icon-play {
+    display: none;
+  }
+  .xg-icon-pause {
+    display: block;
+  }
+
+  &[data-state=pause] {
+    .xg-icon-play {
+      display: block;
+    }
+    .xg-icon-pause {
+      display: none;
+    }
+  }
+}
+.xgplayer-miniicon {
+  position: relative;
+  outline: none;
+  display: block;
+  .name {
+    text-align: center;
+    font-size: 13px;
+    line-height: 20px;
+    height: 20px;
+    color: $definitionNameColor;
+    line-height: 40px;
+    span{
+      font-size: 13px;
+      width: 60px;
+      height: 20px;
+      line-height: 20px;
+      background: $definitionNameBgColor;
+      border-radius: 10px;
+      display:inline-block;
+      vertical-align:middle;
+    }
+  }
+}
+
+.xgplayer-mini {
+  position: fixed;
+  width: 320px;
+  height: 180px;
+  z-index: 91;
+  box-shadow: 0 4px 7px 2px rgba(0, 0, 0, .2);
+  &:hover {
+    cursor: move;
+    .xg-mini-layer {
+      display: block;
+    }
+  }
+  &.xgplayer-ended {
+    .xg-mini-layer {
+      display: none;
+    }
+  }
+}
+
+.xgplayer-mobile {
+  .xg-mini-layer .play-icon {
+    background: none;
+    border-radius: initial;
+  }
+}

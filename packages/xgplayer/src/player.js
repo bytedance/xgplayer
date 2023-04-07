@@ -1,516 +1,2432 @@
-import Proxy from './proxy'
-import { util, deepCopy, findDom, createDom, addClass, typeOf, hasClass, removeClass, checkIsBrowser } from './utils/util'
-import sniffer from './utils/sniffer'
-import XgplayerTimeRange from './utils/xgplayerTimeRange'
+import MediaProxy from './mediaProxy'
+import Util, { checkIsCurrentVideo } from './utils/util'
+import Sniffer from './utils/sniffer'
+import Database from './utils/database'
 import Errors from './error'
-import allOff from 'event-emitter/all-off'
-import s_i18n from './skin/controls/i18n.js'
-import './skin/style/index.scss'
+import * as Events from './events'
+import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API, PLATER_ID } from './constant'
+import Plugin, { POSITIONS } from './plugin/plugin'
+import BasePlugin from './plugin/basePlugin'
+import pluginsManager from './plugin/pluginsManager'
+import STATE_CLASS from './stateClassMap'
+import getDefaultConfig from './defaultConfig'
+import { usePreset } from './plugin/preset'
+import hooksDescriptor, { runHooks, useHooks, removeHooks, delHooksDescriptor, usePluginHooks, removePluginHooks, hook } from './plugin/hooksDescriptor'
+import Controls from './plugins/controls/index'
+import XG_DEBUG, { bindDebug } from './utils/debug'
+import I18N from './lang/i18n'
+import version from './version'
+import { STATES, STATE_ARRAY } from './state'
 
-import {
-  version
-} from '../version.json'
-class Player extends Proxy {
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
+
+/**
+ * @typedef { import ('./defaultConfig').IDefinition } IDefinition
+ */
+
+/* eslint-disable camelcase */
+const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
+let REAL_TIME_SPEED = 0 // 实时下载速率, kb/s
+let AVG_SPEED = 0 // 平均下载速率, kb/s
+
+class Player extends MediaProxy {
+  /**
+   * @type {number}
+   * @description set debugger level
+   *  1 - only print error logs
+   *  2 - print warn logs and error logs
+   *  3 - print all debug logs and error stack logs
+   */
+  static set debugger (value) {
+    XG_DEBUG.config.debug = value
+  }
+
+  static get debugger () {
+    return XG_DEBUG.config.debug
+  }
+
+  /**
+   * 获取当前处理激活态的实例id
+   * @returns { number | string | null }
+   */
+  static getCurrentUserActivePlayerId () {
+    return pluginsManager.getCurrentUseActiveId()
+  }
+
+  /**
+   * 设置实例的用户行为激活状态
+   * @param { number | string } playerId
+   * @param { boolean } isActive
+   */
+  static setCurrentUserActive (playerId, isActive) {
+    pluginsManager.setCurrentUserActive(playerId, isActive)
+  }
+
+  /**
+   * @param { IPlayerOptions } options
+   */
   constructor (options) {
-    super(options)
-    this.config = deepCopy({
-      width: 600,
-      height: 337.5,
-      ignores: [],
-      whitelist: [],
-      lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
-      inactive: 3000,
-      volume: 0.6,
-      controls: true,
-      controlsList: ['nodownload']
-    }, options)
-    this.version = version
+    const config = Util.deepMerge(getDefaultConfig(), options)
+    super(config)
+    hooksDescriptor(this, PlAYER_HOOKS)
+
+    /**
+     * @type { IPlayerOptions }
+     * @description 当前播放器的配置信息
+     */
+    this.config = config
+
+    /**
+     * @type { string }
+     * @private
+     */
+    this._pluginInfoId = Util.generateSessionId()
+
+    bindDebug(this)
+    // resolve default preset
+    const defaultPreset = this.constructor.defaultPreset
+    if (this.config.presets.length) {
+      const defaultIdx = this.config.presets.indexOf('default')
+      if (defaultIdx >= 0 && defaultPreset) {
+        this.config.presets[defaultIdx] = defaultPreset
+      }
+    } else if (defaultPreset) {
+      this.config.presets.push(defaultPreset)
+    }
+
+    // timer and flags
     this.userTimer = null
+    /**
+     * @private
+     */
     this.waitTimer = null
-    this.history = []
-    this.isProgressMoving = false
-    this.root = findDom(document, `#${this.config.id}`)
-    this.controls = createDom('xg-controls', '', {
-      unselectable: 'on',
-      onselectstart: 'return false'
-    }, 'xgplayer-controls')
-    if (this.config.isShowControl) {
-      this.controls.style.display = 'none'
-    }
-    if (!this.root) {
-      let el = this.config.el
-      if (el && el.nodeType === 1) {
-        this.root = el
-      } else {
-        this.emit('error', new Errors({
-          type: 'use',
-          errd: {
-            line: 45,
-            handle: 'Constructor',
-            msg: 'container id can\'t be empty'
-          },
-          vid: this.config.vid
-        }))
-        console.error('container id can\'t be empty')
-        return false
-      }
-    }
-    // this.rootBackup = copyDom(this.root)
-    addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart xgplayer-pause ${this.config.controls ? '' : 'xgplayer-no-controls'}`)
-    this.root.appendChild(this.controls)
-    if (this.config.fluid) {
-      this.root.style['max-width'] = '100%'
-      this.root.style['width'] = '100%'
-      this.root.style['height'] = '0'
-      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
 
-      this.video.style['position'] = 'absolute'
-      this.video.style['top'] = '0'
-      this.video.style['left'] = '0'
-    } else {
-      // this.root.style.width = `${this.config.width}px`
-      // this.root.style.height = `${this.config.height}px`
-      if (this.config.width) {
-        if (typeof this.config.width !== 'number') {
-          this.root.style.width = this.config.width
-        } else {
-          this.root.style.width = `${this.config.width}px`
-        }
-      }
-      if (this.config.height) {
-        if (typeof this.config.height !== 'number') {
-          this.root.style.height = this.config.height
-        } else {
-          this.root.style.height = `${this.config.height}px`
-        }
-      }
-    }
-    if (this.config.execBeforePluginsCall) {
-      this.config.execBeforePluginsCall.forEach(item => {
-        item.call(this, this)
-      })
-    }
-    if(!this.config.closeI18n) {
-      Player.install(s_i18n.name, s_i18n.method)
-    }
-    if (this.config.controlStyle && typeOf(this.config.controlStyle) === 'String') {
-      let self = this
-      fetch(self.config.controlStyle, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
-      }).then(function (res) {
-        if (res.ok) {
-          res.json().then(function (obj) {
-            for (var prop in obj) {
-              if (obj.hasOwnProperty(prop)) {
-                self.config[prop] = obj[prop]
-              }
-            }
-            self.pluginsCall()
-          })
-        }
-      }).catch(function (err) {
-        console.log('Fetch错误:' + err)
-      })
-    } else {
-      this.pluginsCall()
-    }
-    if(this.config.controlPlugins) {
-      Player.controlsRun(this.config.controlPlugins, this)
-    }
-    this.ev.forEach((item) => {
-      let evName = Object.keys(item)[0]
-      let evFunc = this[item[evName]]
-      if (evFunc) {
-        this.on(evName, evFunc)
-      }
-    });
+    /**
+     * @private
+     */
+    this._state = STATES.INITIAL
 
-    ['focus', 'blur'].forEach(item => {
-      this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
-    })
-    let player = this
-    this.mousemoveFunc = function () {
-      player.emit('focus')
-      if (!player.config.closeFocusVideoFocus) {
-        player.video.focus()
-      }
-    }
-    this.root.addEventListener('mousemove', this.mousemoveFunc)
-    this.playFunc = function () {
-      player.emit('focus')
-      if (!player.config.closePlayVideoFocus) {
-        player.video.focus()
-      }
-    }
-    player.once('play', this.playFunc)
+    /**
+     * @public
+     * @readonly
+     * @type { boolean }
+     */
+    this.isError = false
 
-    this.getVideoSize = function () {
-      if (this.video.videoWidth && this.video.videoHeight) {
-        let containerSize = player.root.getBoundingClientRect()
-        if (player.config.fitVideoSize === 'auto') {
-          if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
-            player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
-          } else {
-            player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
-          }
-        } else if (player.config.fitVideoSize === 'fixWidth') {
-          player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
-        } else if (player.config.fitVideoSize === 'fixHeight') {
-          player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
-        }
-      }
-    }
-    player.once('loadeddata', this.getVideoSize)
+    /**
+     * @private
+     */
+    this._hasStart = false
+    /**
+     * Whether the player is in the seeking state
+     * @type { boolean }
+     * @readonly
+     */
+    this.isSeeking = false
 
-    setTimeout(() => {
-      this.emit('ready')
-      this.isReady = true
+    /**
+     * @type { boolean }
+     * @readonly
+     */
+    this.isCanplay = false
+    /**
+     * @private
+     * @readonly
+     */
+    this._useAutoplay = false
+    /**
+     *  @type { number }
+     */
+    this.rotateDeg = 0
+    /**
+     * Whether the player is focus
+     * @type { boolean }
+     * @readonly
+     */
+    this.isActive = false
+
+    /**
+     * Whether player is currently in fullscreen
+     * @type { boolean }
+     * @readonly
+     */
+    this.fullscreen = false
+    /**
+     * @type { boolean }
+     * @readonly
+     */
+    this.cssfullscreen = false
+    /**
+     * @type { boolean }
+     * @readonly
+     */
+    this.isRotateFullscreen = false
+
+    /**
+     * fullscreenElement
+     * @type { HTMLElement | null }
+     * @readonly
+     */
+    this._fullscreenEl = null
+
+    /**
+     * cssfullscreen target Element
+     * @type { HTMLElement | null }
+     * @readonly
+     */
+    this._cssfullscreenEl = null
+
+    /**
+     * @type { IDefinition | null }
+     * @readonly
+     */
+    this.curDefinition = null
+    /**
+     * @private
+     * @type { string }
+     */
+    this._orgCss = ''
+    /**
+     * @readonly
+     * @type { number }
+     */
+    this._fullScreenOffset = null
+    /**
+     * @private
+     * @type { number }
+     */
+    this._videoHeight = 0
+    /**
+     * @private
+     * @type { number }
+     */
+    this._videoWidth = 0
+
+    /**
+     * @private
+     * @type { { t: number, acc:number, acc: number, loopAcc: number, [propName: string]: any;} }
+     */
+    this._accPlayed = {
+      t: 0,
+      acc: 0,
+      loopAcc: 0
+    }
+
+    /**
+     * @type { null | HTMLElement }
+     * @readonly
+     * @description  控制栏和video不同布局的时候内部容器
+     */
+    this.innerContainer = null
+
+    /**
+     * @type { null | Object }
+     * @readonly
+     * @description 控制栏插件
+     */
+    this.controls = null
+
+    /**
+     * @type { null | HTMLElement }
+     * @readonly
+     */
+    this.topBar = null
+
+    /**
+     * @type { null | HTMLElement }
+     * @readonly
+     * @description 当前播放器根节点
+     */
+    this.root = null
+
+    this.__i18n = I18N.init(this._pluginInfoId)
+
+    // android 6以下不支持自动播放
+    if (
+      Sniffer.os.isAndroid &&
+      Sniffer.osVersion > 0 &&
+      Sniffer.osVersion < 6
+    ) {
+      this.config.autoplay = false
+    }
+
+    /**
+     * @readonly
+     * @type {any}
+     */
+    this.database = new Database()
+
+    /**
+     * @readonly
+     * @type { boolean }
+     */
+    this.isUserActive = false
+
+    const rootInit = this._initDOM()
+    if (!rootInit) {
+      console.error(
+        new Error(
+          `can't find the dom which id is ${this.config.id} or this.config.el does not exist`
+        )
+      )
+      return
+    }
+
+    // url为空的情况下 根据definition或playnext.urlList设置播放地址
+    // 若未配置definition.defaultDefinition，默认将配置为definition.list[0].definition
+    const { definition = {}, url } = this.config
+
+    if (!url && definition.list && definition.list.length > 0) {
+      let defaultDefinitionObj = definition.list.find(
+        (e) => e.definition && e.definition === definition.defaultDefinition
+      )
+      if (!defaultDefinitionObj) {
+        definition.defaultDefinition = definition.list[0].definition
+        defaultDefinitionObj = definition.list[0]
+      }
+      this.config.url = defaultDefinitionObj.url
+      this.curDefinition = defaultDefinitionObj
+    }
+
+    this._bindEvents()
+    this._registerPresets()
+    this._registerPlugins()
+    pluginsManager.onPluginsReady(this)
+
+    // url为空的情况下 根据definition设置播放地址
+    this.getInitDefinition()
+
+    this.setState(STATES.READY)
+    Util.setTimeout(this, () => {
+      this.emit(Events.READY)
     }, 0)
+    this.onReady && this.onReady()
 
-    if (this.config.videoInit) {
-      if (hasClass(this.root, 'xgplayer-nostart')) {
+    if (this.config.videoInit || this.config.autoplay) {
+      if (!this.hasStart || this.state < STATES.ATTACHED) {
         this.start()
       }
     }
-    if (player.config.rotate) {
-      player.on('requestFullscreen', this.updateRotateDeg)
-      player.on('exitFullscreen', this.updateRotateDeg)
-    }
-
-    function onDestroy () {
-      player.root.removeEventListener('mousemove', player.mousemoveFunc)
-      player.off('destroy', onDestroy)
-    }
-    player.once('destroy', onDestroy)
   }
 
-  attachVideo () {
-    if(this.video && this.video.nodeType === 1) {
-      this.root.insertBefore(this.video, this.root.firstChild)
-    }
-    setTimeout(() => {
-      this.emit('complete')
-      if(this.danmu && typeof this.danmu.resize === 'function') {
-        this.danmu.resize()
-      }
-    }, 1)
-  }
-
-  start (url = this.config.url) {
-    if(!this.video) return
-    let player = this
-    if (!url || url === '') {
-      this.emit('urlNull')
-      return
-    }
-    this.canPlayFunc = function () {
-      player.off('canplay', player.canPlayFunc)
-      let playPromise = player.video.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.then(function () {
-          player.emit('autoplay started')
-        }).catch(function () {
-          player.emit('autoplay was prevented')
-          addClass(player.root, 'xgplayer-is-autoplay')
-        })
-      }
-    }
-    if (typeOf(url) !== 'Array') {
-      if (typeOf(url) === 'String' && url.indexOf('blob:') > -1 && url === this.video.src) {
-        // 在Chromium环境下用mse url给video二次赋值会导致错误
+  /**
+   * init control domElement
+   * @private
+   */
+  _initDOM () {
+    this.root = this.config.id ? document.getElementById(this.config.id) : null
+    if (!this.root) {
+      const el = this.config.el
+      if (el && el.nodeType === 1) {
+        this.root = el
       } else {
-        this.video.src = url
+        this.emit(
+          Events.ERROR,
+          new Errors('use', this.config.vid, {
+            line: 32,
+            handle: 'Constructor',
+            msg: 'container id can\'t be empty'
+          })
+        )
+        console.error('this.confg.id or this.config.el can\'t be empty')
+        return false
       }
-    } else {
-      url.forEach(item => {
-        this.video.appendChild(createDom('source', '', {
-          src: `${item.src}`,
-          type: `${item.type || ''}`
-        }))
-      })
     }
+    const ret = pluginsManager.checkPlayerRoot(this.root)
+    if (ret) {
+      XG_DEBUG.logWarn(
+        'The is an Player instance already exists in this.root, destroy it and reinitialize'
+      )
+      ret.destroy()
+    }
+    this.root.setAttribute(PLATER_ID, this.playerId)
+    pluginsManager.init(this)
+    this._initBaseDoms()
+
+    // 允许自定义video对象的构造
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if (XgVideoProxy && this.mediaConfig.mediaType === XgVideoProxy.mediaType) {
+      const el = this.innerContainer || this.root
+      this.detachVideoEvents(this.media)
+      const _nVideo = new XgVideoProxy(el, this.config, this.mediaConfig)
+      this.attachVideoEvents(_nVideo)
+      this.media = _nVideo
+    }
+    this.media.setAttribute(PLATER_ID, this.playerId)
+    if (this.config.controls) {
+      const _root = this.config.controls.root || null
+      const controls = pluginsManager.register(this, Controls, { root: _root })
+      this.controls = controls
+    }
+    const device =
+      this.config.isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
+    this.addClass(
+      `${STATE_CLASS.DEFAULT} ${STATE_CLASS.INACTIVE} xgplayer-${device} ${
+        this.config.controls ? '' : STATE_CLASS.NO_CONTROLS
+      }`
+    )
     if (this.config.autoplay) {
-      if (sniffer.os.isPhone) {
-        this.canPlayFunc()
-      } else {
-        this.on('canplay', this.canPlayFunc)
+      this.addClass(STATE_CLASS.ENTER)
+    } else {
+      this.addClass(STATE_CLASS.NO_START)
+    }
+    if (this.config.fluid) {
+      let { width, height } = this.config
+      if (typeof width !== 'number' || typeof height !== 'number') {
+        width = 600
+        height = 337.5
       }
-    }
-    if(!this.config.disableStartLoad) {
-      this.video.load()
-    }
-    this.attachVideo()
-  }
-
-  reload () {
-    this.video.load()
-    this.reloadFunc = function () {
-      // eslint-disable-next-line handle-callback-err
-      let playPromise = this.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.catch(err => {})
+      const style = {
+        width: '100%',
+        height: '0',
+        'max-width': '100%',
+        'padding-top': `${(height * 100) / width}%`
+        // position: 'relative',
+        // top: '0',
+        // left: '0'
       }
-    }
-    this.once('loadeddata', this.reloadFunc)
-  }
-
-  destroy (isDelDom = true) {
-    let player = this
-    clearInterval(this.bulletResizeTimer)
-    for (let k in this._interval) {
-      clearInterval(this._interval[k])
-      this._interval[k] = null
-    }
-    if (this.checkTimer) {
-      clearInterval(this.checkTimer)
-    }
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-    }
-    this.ev.forEach((item) => {
-      let evName = Object.keys(item)[0]
-      let evFunc = this[item[evName]]
-      if (evFunc) {
-        this.off(evName, evFunc)
-      }
-    });
-    if (this.loadeddataFunc) {
-      this.off('loadeddata', this.loadeddataFunc)
-    }
-    if (this.reloadFunc) {
-      this.off('loadeddata', this.reloadFunc)
-    }
-    if (this.replayFunc) {
-      this.off('play', this.replayFunc)
-    }
-    if (this.playFunc) {
-      this.off('play', this.playFunc)
-    }
-    if (this.getVideoSize) {
-      this.off('loadeddata', this.getVideoSize)
-    };
-    ['focus', 'blur'].forEach(item => {
-      this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
-    })
-    if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
-      ['video', 'controls'].forEach(item => {
-        if (this[item]) {
-          this[item].removeEventListener('keydown', function (e) { player.onKeydown(e, player) })
-        }
+      Object.keys(style).forEach((key) => {
+        this.root.style[key] = style[key]
       })
-    }
-
-    function destroyFunc () {
-      this.emit('destroy')
-      // this.root.id = this.root.id + '_del'
-      // parentNode.insertBefore(this.rootBackup, this.root)
-
-      // fix video destroy https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element
-      this.video.removeAttribute('src') // empty source
-      this.video.load()
-      if (isDelDom) {
-        // parentNode.removeChild(this.root)
-        this.root.innerHTML = ''
-        let classNameList = this.root.className.split(' ')
-        if (classNameList.length > 0) {
-          this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
-        } else {
-          this.root.className = ''
-        }
-      }
-
-      for (let k in this) {
-        // if (k !== 'config') {
-        delete this[k]
-        // }
-      }
-      allOff(this)
-    }
-
-    // destroy immediately
-    // Don't use the paused property detection, it doesn't use MediaElement.paused, 
-    // so it's not accurate enough. Destroy after waiting for pause event, this 
-    // changes the synchronous behavior of destroy api
-    destroyFunc.call(this)
-
-    super.destroy()
-  }
-
-  replay () {
-    let self = this
-    let _replay = this._replay
-    // ie9 bugfix
-    removeClass(this.root, 'xgplayer-ended')
-    if(sniffer.browser.indexOf('ie') > -1) {
-      this.emit('play')
-      this.emit('playing')
-    }
-    
-    if (_replay && _replay instanceof Function) {
-      _replay()
     } else {
-      this.currentTime = 0
-      // eslint-disable-next-line handle-callback-err
-      let playPromise = this.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.catch(err => {})
-      }
-    }
-  }
-
-  userGestureTrigEvent (name, param) {
-    const defaultUserGestureEventHandler = (name, param) => {
-      this.emit(name, param)
-    }
-    if(this.config.userGestureEventMiddleware && typeof this.config.userGestureEventMiddleware[name] === 'function') {
-      this.config.userGestureEventMiddleware[name].call(this, this, name, param, defaultUserGestureEventHandler)
-    } else {
-      defaultUserGestureEventHandler.call(this, name, param);
-    }
-  }
-
-  pluginsCall () {
-    if(Player.plugins['s_i18n']) {
-      Player.plugins['s_i18n'].call(this, this)
-    }
-    let self = this
-    if (Player.plugins) {
-      let ignores = this.config.ignores
-      Object.keys(Player.plugins).forEach(name => {
-        let descriptor = Player.plugins[name]
-        if(!descriptor || typeof descriptor !== 'function'){
-          console.warn('plugin name', name , 'is invalid')
-        } else {
-          if (!ignores.some(item => name === item || name === 's_' + item) && name !== 's_i18n') {
-            if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
-              if (name === sniffer.device) {
-                setTimeout(() => {
-                  // if destroyed, skip
-                  if (!self.video) return;
-                  descriptor.call(self, self)
-                }, 0)
-              }
-            } else {
-              descriptor.call(this, this)
-            }
+      ['width', 'height'].forEach((key) => {
+        if (this.config[key]) {
+          if (typeof this.config[key] !== 'number') {
+            this.root.style[key] = this.config[key]
+          } else {
+            this.root.style[key] = `${this.config[key]}px`
           }
         }
       })
     }
+    return true
   }
 
-  onFocus () {
-    let player = this
-    if(hasClass(this.root, 'xgplayer-inactive')) {
-      player.emit('controlShow')
+  /**
+   * @private
+   */
+  _initBaseDoms () {
+    /**
+     * @readonly
+     * @type { HTMLElement | null }
+     */
+    this.topBar = null
+    /**
+     * @readonly
+     * @type { HTMLElement |null }
+     */
+    this.leftBar = null
+    /**
+     * @readonly
+     * @type { HTMLElement | null }
+     */
+    this.rightBar = null
+
+    if (this.config.marginControls) {
+      this.innerContainer = Util.createDom(
+        'xg-video-container',
+        '',
+        { 'data-index': -1 },
+        'xg-video-container'
+      )
+      this.root.appendChild(this.innerContainer)
     }
-    removeClass(this.root, 'xgplayer-inactive')
-    if (player.userTimer) {
-      clearTimeout(player.userTimer)
-    }
-    player.userTimer = setTimeout(function () {
-      player.emit('blur')
-    }, player.config.inactive)
   }
 
-  onBlur () {
-    // this.video.blur()
-    if ((this.config.enablePausedInactive || !this.paused) && !this.ended && !this.config.closeInactive) {
-      if(!hasClass(this.root, 'xgplayer-inactive')) {
-        this.emit('controlHide')
-      }
-      addClass(this.root, 'xgplayer-inactive')
-    }
-  }
-
-  onPlay () {
-    addClass(this.root, 'xgplayer-isloading')
-    addClass(this.root, 'xgplayer-playing')
-    removeClass(this.root, 'xgplayer-pause')
-  }
-
-  onPause () {
-    addClass(this.root, 'xgplayer-pause')
-    if (this.userTimer) {
-      clearTimeout(this.userTimer)
-    }
-    this.emit('focus')
-  }
-
-  onEnded () {
-    addClass(this.root, 'xgplayer-ended')
-    removeClass(this.root, 'xgplayer-playing')
-  }
-
-  onSeeking () {
-    this.isSeeking = true
-    // 兼容IE下无法触发waiting事件的问题 seeking的时候直接出发waiting
-    this.onWaiting()
-    // addClass(this.root, 'seeking');
-  }
-
-  // onTimeupdate () {
-  //   // for ie,playing fired before waiting
-  //   if (this.waitTimer) {
-  //     clearTimeout(this.waitTimer)
-  //   }
-  //   removeClass(this.root, 'xgplayer-isloading')
-
-  // }
-
-  onSeeked () {
-    // for ie,playing fired before waiting
-    this.once('timeupdate', () => {
-      this.isSeeking = false
+  /**
+   * @private
+   */
+  _bindEvents () {
+    ['focus', 'blur'].forEach((item) => {
+      this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
+
+    FULLSCREEN_EVENTS.forEach((item) => {
+      document && document.addEventListener(item, this.onFullscreenChange)
+    })
+
+    if (Sniffer.os.isIos) {
+      this.media.addEventListener( 'webkitbeginfullscreen', this._onWebkitbeginfullscreen)
+      this.media.addEventListener( 'webkitendfullscreen', this._onWebkitendfullscreen)
     }
-    removeClass(this.root, 'xgplayer-isloading')
+
+    this.once(Events.LOADED_DATA, this.resize)
+
+    this.playFunc = () => {
+      if (!this.config.closeFocusVideoFocus) {
+        this.media.focus()
+      }
+    }
+    this.once(Events.PLAY, this.playFunc)
   }
 
-  onWaiting () {
-    let self = this
-    if (self.waitTimer) {
-      clearTimeout(self.waitTimer)
+  /**
+   * @private
+   */
+  _unbindEvents () {
+    this.root.removeEventListener('mousemove', this.mousemoveFunc)
+    FULLSCREEN_EVENTS.forEach((item) => {
+      document.removeEventListener(item, this.onFullscreenChange)
+    })
+    this.playFunc && this.off(Events.PLAY, this.playFunc)
+    this.off(Events.CANPLAY, this.canPlayFunc)
+    this.media.removeEventListener( 'webkitbeginfullscreen', this._onWebkitbeginfullscreen)
+    this.media.removeEventListener('webkitendfullscreen', this._onWebkitendfullscreen)
+  }
+
+  /**
+   *
+   * @param { any } url
+   * @returns
+   */
+  _startInit (url) {
+    if (!this.media) {
+      return
     }
-    if (self.checkTimer) {
-      clearInterval(self.checkTimer)
-      self.checkTimer = null
+    if (
+      !url ||
+      url === '' ||
+      (Util.typeOf(url) === 'Array' && url.length === 0)
+    ) {
+      url = ''
+      this.emit(Events.URL_NULL)
+      XG_DEBUG.logWarn(
+        'config.url is null, please get url and run player._startInit(url)'
+      )
+      if (this.config.nullUrlStart) {
+        return
+      }
     }
-    let time = self.currentTime
-    self.waitTimer = setTimeout(function () {
-      addClass(self.root, 'xgplayer-isloading')
-      self.checkTimer = setInterval(function () {
-        if (self.currentTime !== time) {
-          removeClass(self.root, 'xgplayer-isloading')
-          clearInterval(self.checkTimer)
-          self.checkTimer = null
+    this._detachSourceEvents(this.media)
+    if (Util.typeOf(url) === 'Array' && url.length > 0) {
+      this._attachSourceEvents(this.media, url)
+    } else if (!this.media.src || this.media.src !== url) {
+      this.media.src = url
+    } else if (!url) {
+      this.media.removeAttribute('src')
+    }
+
+    if (Util.typeOf(this.config.volume) === 'Number') {
+      this.volume = this.config.volume
+    }
+
+    const _root = this.innerContainer ? this.innerContainer : this.root
+    if (this.media instanceof window.Element && !_root.contains(this.media)) {
+      _root.insertBefore(this.media, _root.firstChild)
+    }
+
+    const { readyState } = this.media
+    XG_DEBUG.logInfo('_startInit readyState', readyState)
+    if (this.config.autoplay) {
+      !(/^blob/.test(this.media.currentSrc) || /^blob/.test(this.media.src)) &&
+        this.load();
+      // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
+      (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.mediaPlay()
+    }
+
+    if (readyState >= 2) {
+      this.canPlayFunc()
+    } else {
+      this.once(Events.CANPLAY, this.canPlayFunc)
+    }
+    if (!this.hasStart || this.state < STATES.ATTACHED) {
+      pluginsManager.afterInit(this)
+    }
+    this.hasStart = true
+    this.setState(STATES.ATTACHED)
+    Util.setTimeout(
+      this,
+      () => {
+        this.emit(Events.COMPLETE)
+      },
+      0
+    )
+  }
+
+  /**
+   * @description 注册组件 组件列表config.plugins
+   * @param { {boolean} } [isInit] 是否是首次初始化
+   * @private
+   */
+  _registerPlugins (isInit = true) {
+    /**
+     * @private
+     */
+    this._loadingPlugins = []
+    const ignores = this.config.ignores || []
+    const plugins = this.config.plugins || []
+    const i18n = this.config.i18n || []
+    isInit && I18N.extend(i18n, this.__i18n)
+    const ignoresStr = ignores.join('||').toLowerCase().split('||')
+    const cuPlugins = this.plugins
+    plugins.forEach((plugin) => {
+      try {
+        const pluginName = plugin.plugin
+          ? plugin.plugin.pluginName
+          : plugin.pluginName
+        // 在ignores中的不做组装
+        if (pluginName && ignoresStr.indexOf(pluginName.toLowerCase()) > -1) {
+          return null
         }
-      }, 1000)
-    }, 500)
+
+        if (!isInit && cuPlugins[pluginName.toLowerCase()]) {
+          return
+        }
+
+        if (plugin.lazy && plugin.loader) {
+          const loadingPlugin = pluginsManager.lazyRegister(this, plugin)
+          if (plugin.forceBeforeInit) {
+            loadingPlugin
+              .then(() => {
+                this._loadingPlugins.splice(
+                  this._loadingPlugins.indexOf(loadingPlugin),
+                  1
+                )
+              })
+              .catch((e) => {
+                XG_DEBUG.logError('_registerPlugins:loadingPlugin', e)
+                this._loadingPlugins.splice(
+                  this._loadingPlugins.indexOf(loadingPlugin),
+                  1
+                )
+              })
+            this._loadingPlugins.push(loadingPlugin)
+          }
+
+          return
+        }
+        return this.registerPlugin(plugin)
+      } catch (err) {
+        XG_DEBUG.logError('_registerPlugins:', err)
+        // return
+      }
+    })
   }
 
-  onPlaying () {
-    // 兼容safari下无法自动播放会触发该事件的场景
-    if (this.paused) {
+  /**
+   * @private
+   */
+  _registerPresets () {
+    this.config.presets.forEach((preset) => {
+      usePreset(this, preset)
+    })
+  }
+
+  /**
+   * @private
+   * @param { string } position ]
+   */
+  _getRootByPosition (position) {
+    let _root = null
+    switch (position) {
+      case POSITIONS.ROOT_RIGHT:
+        if (!this.rightBar) {
+          this.rightBar = Util.createPositionBar('xg-right-bar', this.root)
+        }
+        _root = this.rightBar
+        break
+      case POSITIONS.ROOT_LEFT:
+        if (!this.leftBar) {
+          this.leftBar = Util.createPositionBar('xg-left-bar', this.root)
+        }
+        _root = this.leftBar
+        break
+      case POSITIONS.ROOT_TOP:
+        if (!this.topBar) {
+          this.topBar = Util.createPositionBar('xg-top-bar', this.root)
+          if (this.config.topBarAutoHide) {
+            Util.addClass(this.topBar, STATE_CLASS.TOP_BAR_AUTOHIDE)
+          }
+        }
+        _root = this.topBar
+        break
+      default:
+        _root = this.innerContainer || this.root
+        break
+    }
+    return _root
+  }
+
+  /**
+   *
+   * @param { {plugin: function, options:object} | function } plugin
+   * @param { {[propName: string]: any;} } [config]
+   * @returns { any } plugin
+   */
+  registerPlugin (plugin, config) {
+    const _retPlugin = pluginsManager.formatPluginInfo(plugin, config)
+    const { PLUFGIN, options } = _retPlugin
+
+    // 如果当前配置plugins中不存在该组件, 则将其push
+    const { plugins } = this.config
+    const exits = pluginsManager.checkPluginIfExits(PLUFGIN.pluginName, plugins)
+    !exits && plugins.push(PLUFGIN)
+
+    // 获取配置的position或者root
+    const _pConfig = pluginsManager.getRootByConfig(PLUFGIN.pluginName, this.config)
+    _pConfig.root && (options.root = _pConfig.root)
+    _pConfig.position && (options.position = _pConfig.position)
+
+    const position = options.position
+      ? options.position
+      : (options.config && options.config.position) ||
+        (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
+    if (
+      !options.root &&
+      typeof position === 'string' &&
+      position.indexOf('controls') > -1
+    ) {
+      return (
+        this.controls &&
+        this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
+      )
+    }
+    if (!options.root) {
+      options.root = this._getRootByPosition(position)
+    }
+    return pluginsManager.register(this, PLUFGIN, options)
+  }
+
+  /**
+   *
+   * @param { any } plugin
+   */
+  deregister (plugin) {
+    if (typeof plugin === 'string') {
+      pluginsManager.unRegister(this, plugin)
+    } else if (plugin instanceof BasePlugin) {
+      pluginsManager.unRegister(this, plugin.pluginName)
+    }
+  }
+
+  /**
+   *
+   * @param { any } plugin
+   * @param { boolean } removedFromConfig
+   */
+  unRegisterPlugin (plugin, removedFromConfig = false) {
+    this.deregister(plugin)
+    if (removedFromConfig) {
+      this.removePluginFromConfig(plugin)
+    }
+  }
+
+  removePluginFromConfig (plugin) {
+    let pluginName
+    if (typeof plugin === 'string') {
+      pluginName = plugin
+    } else if (plugin instanceof BasePlugin) {
+      pluginName = plugin.pluginName
+    }
+    if (!pluginName) {
       return
     }
+    for (let i = this.config.plugins.length - 1; i > -1; i--) {
+      const plugin = this.config.plugins[i]
+      if (plugin.pluginName.toLowerCase() === pluginName.toLowerCase()) {
+        this.config.plugins.splice(i, 1)
+        break
+      }
+    }
+  }
+
+  /**
+   * 当前播放器挂载的插件实例列表
+   * @type { {[propName: string]: any | null } }
+   */
+  get plugins () {
+    return pluginsManager.getPlugins(this)
+  }
+
+  /**
+   * get a plugin instance
+   * @param { string } pluginName
+   * @return { null | any } plugin
+   */
+  getPlugin (pluginName) {
+    const plugin = pluginsManager.findPlugin(this, pluginName)
+    return plugin && plugin.pluginName ? plugin : null
+  }
+
+  /**
+   *
+   * @param { string } className
+   */
+  addClass (className) {
+    if (!this.root) {
+      return
+    }
+    if (!Util.hasClass(this.root, className)) {
+      Util.addClass(this.root, className)
+    }
+  }
+
+  /**
+   *
+   * @param { string } className
+   * @returns
+   */
+  removeClass (className) {
+    if (!this.root) {
+      return
+    }
+    Util.removeClass(this.root, className)
+  }
+
+  /**
+   *
+   * @param { string } className
+   * @returns { boolean } has
+   */
+  hasClass (className) {
+    if (!this.root) {
+      return
+    }
+    return Util.hasClass(this.root, className)
+  }
+
+  /**
+   *
+   * @param { string } key
+   * @param { any } value
+   * @returns void
+   */
+  setAttribute (key, value) {
+    if (!this.root) {
+      return
+    }
+    this.root.setAttribute(key, value)
+  }
+
+  /**
+   *
+   * @param { string } key
+   * @param { any } value
+   * @returns void
+   */
+  removeAttribute (key, value) {
+    if (!this.root) {
+      return
+    }
+    this.root.removeAttribute(key, value)
+  }
+
+  /**
+   *
+   * @param { any } url
+   * @returns { Promise<void> | void }
+   * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
+   */
+  start (url) {
+    // 已经开始初始化播放了 则直接调用play
+    if (this.state > STATES.ATTACHING) {
+      return
+    }
+    if (!url && !this.config.url) {
+      this.getInitDefinition()
+    }
+    this.hasStart = true
+    this.setState(STATES.ATTACHING)
+
+    this._registerPlugins(false)
+    return pluginsManager
+      .beforeInit(this)
+      .then(() => {
+        // this.config为空即已经销毁，不再执行后面的异步流程
+        if (!this.config) {
+          return
+        }
+        if (!url) {
+          url = this.url || this.config.url
+        }
+        const ret = this._startInit(url)
+        return ret
+      })
+      .catch((e) => {
+        e.fileName = 'player'
+        e.lineNumber = '236'
+        XG_DEBUG.logError('start:beforeInit:', e)
+        throw e
+      })
+  }
+
+  /**
+   * @param { string | object } url
+   * @param { boolean | {
+   *    seamless?: boolean,
+   *    currentTime?: number,
+   *    bitrate?: number
+   * } } [options]
+   * @returns { Promise | null } 执行结果
+   */
+  switchURL (url, options) {
+    let _src = url
+    if (Util.typeOf(url) === 'Object') {
+      _src = url.url
+    }
+    const curTime = this.currentTime
+    const isPaused = this.paused && !this.isError
+    this.src = _src
+    return new Promise((resolve) => {
+      const _canplay = () => {
+        this.currentTime = curTime
+        if (isPaused) {
+          this.once('canplay', () => {
+            this.pause()
+          })
+        }
+        resolve()
+      }
+      if (Sniffer.os.isAndroid) {
+        this.once('timeupdate', () => {
+          _canplay()
+        })
+      } else {
+        this.once('canplay', () => {
+          _canplay()
+        })
+      }
+      this.play()
+    })
+  }
+
+  /**
+   * @description call play without play hook
+   * @deprecated this api renamed to mediaPlay, you can call it as player.mediaPlay()
+   */
+  videoPlay () {
+    this.mediaPlay()
+  }
+
+  /**
+   * @description call play without play hook
+   */
+  mediaPlay () {
+    if (!this.hasStart && this.state < STATES.ATTACHED) {
+      this.removeClass(STATE_CLASS.NO_START)
+      this.addClass(STATE_CLASS.ENTER)
+      this.start()
+      this._useAutoplay = true
+      return
+    }
+    if (this.state < STATES.RUNNING) {
+      this.removeClass(STATE_CLASS.NO_START)
+      !this.isCanplay && this.addClass(STATE_CLASS.ENTER)
+    }
+    const playPromise = super.play()
+    if (playPromise !== undefined && playPromise && playPromise.then) {
+      playPromise
+        .then(() => {
+          this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+          this.addClass(STATE_CLASS.PLAYING)
+          if (this.state < STATES.RUNNING) {
+            XG_DEBUG.logInfo('>>>>playPromise.then')
+            this.setState(STATES.RUNNING)
+            this.emit(Events.AUTOPLAY_STARTED)
+          }
+        })
+        .catch((e) => {
+          XG_DEBUG.logWarn('>>>>playPromise.catch', e.name)
+          if (this.media && this.media.error) {
+            this.onError()
+            // this.errorHandler('error')
+            this.removeClass(STATE_CLASS.ENTER)
+            // this.setState(STATES.ERROR)
+            return
+          }
+          // 避免AUTOPLAY_PREVENTED先于playing和play触发
+          if (e.name === 'NotAllowedError') {
+            /**
+             * @private
+             */
+            this._errorTimer = Util.setTimeout(
+              this,
+              () => {
+                this._errorTimer = null
+                this.emit(Events.AUTOPLAY_PREVENTED)
+                this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+                this.removeClass(STATE_CLASS.ENTER)
+                this.pause()
+                this.setState(STATES.NOTALLOW)
+              },
+              0
+            )
+          }
+        })
+    } else {
+      XG_DEBUG.logWarn('video.play not return promise')
+      if (this.state < STATES.RUNNING) {
+        this.setState(STATES.RUNNING)
+        this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+        this.removeClass(STATE_CLASS.NO_START)
+        this.removeClass(STATE_CLASS.ENTER)
+        this.addClass(STATE_CLASS.PLAYING)
+        this.emit(Events.AUTOPLAY_STARTED)
+      }
+    }
+    return playPromise
+  }
+
+  /**
+   * @description call play without pause hook
+   */
+  mediaPause () {
+    super.pause()
+  }
+
+  /**
+   * @description call play without pause hook
+   * @deprecated this api renamed to mediaPause, you can call it as player.mediaPause()
+   */
+  videoPause () {
+    super.pause()
+  }
+
+  play () {
+    this.removeClass(STATE_CLASS.PAUSED)
+    runHooks(this, 'play', () => {
+      this.mediaPlay()
+    })
+  }
+
+  pause () {
+    runHooks(this, 'pause', () => {
+      super.pause()
+    })
+  }
+
+  /**
+   *
+   * @param { number } time
+   * @param { 'play' | 'pause' | 'auto' } [status]
+   * @returns
+   */
+  seek (time, status) {
+    if (!this.media || Number.isNaN(Number(time) || !this.hasStart)) {
+      return
+    }
+    const { isSeekedPlay, seekedStatus } = this.config
+    const _status = status || (isSeekedPlay ? 'play' : seekedStatus)
+    time =
+      time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
+    this.once(Events.CANPLAY, () => {
+      this.removeClass(STATE_CLASS.ENTER)
+      this.isSeeking = false
+      switch (_status) {
+        case 'play':
+          this.play()
+          break
+        case 'pause':
+          this.pause()
+          break
+        default:
+          !this.paused && this.play()
+      }
+    })
+    if (this.state < STATES.RUNNING) {
+      this.removeClass(STATE_CLASS.NO_START)
+      this.addClass(STATE_CLASS.ENTER)
+      this.currentTime = time
+      _status === 'play' && this.play()
+    } else {
+      this.currentTime = time
+    }
+  }
+
+  getInitDefinition () {
+    // url为空的情况下 根据definition设置播放地址
+    const { definition, url } = this.config
+    if (
+      !url &&
+      definition &&
+      definition.list &&
+      definition.list.length > 0 &&
+      definition.defaultDefinition
+    ) {
+      definition.list.map((item) => {
+        if (item.definition === definition.defaultDefinition) {
+          this.config.url = item.url
+          this.curDefinition = item
+        }
+      })
+    }
+  }
+
+  /**
+   * @typedef { import('./defaultConfig').IDefinition } definition
+   */
+  /**
+   * @description change the definition of the current playback
+   * @param { definition } to
+   * @param { definition } [from]
+   */
+  changeDefinition (to, from) {
+    const { definition } = this.config
+
+    if (Array.isArray(definition?.list)) {
+      definition.list.forEach((item) => {
+        if (to?.definition === item.definition) {
+          this.curDefinition = item
+        }
+      })
+    }
+
+    if (to?.bitrate && typeof to.bitrate !== 'number') {
+      to.bitrate = parseInt(to.bitrate, 10) || 0
+    }
+
+    this.emit(Events.DEFINITION_CHANGE, { from, to })
+    if (!this.hasStart) {
+      this.config.url = to.url
+      return
+    }
+    const ret = this.switchURL(to.url, {
+      seamless: definition.seamless !== false
+        && typeof MediaSource !== 'undefined'
+        && typeof MediaSource.isTypeSupported === 'function',
+      ...to
+    })
+    if (ret && ret.then) {
+      ret.then(() => {
+        this.emit(Events.AFTER_DEFINITION_CHANGE, { from, to })
+      })
+    } else {
+      this.emit(Events.AFTER_DEFINITION_CHANGE, { from, to })
+    }
+  }
+
+  reload () {
+    this.load()
+    /**
+     * @private
+     */
+    this.reloadFunc = function () {
+      this.play()
+    }
+    this.once(Events.LOADED_DATA, this.reloadFunc)
+  }
+
+  resetState () {
+    const {
+      NOT_ALLOW_AUTOPLAY,
+      PLAYING,
+      NO_START,
+      PAUSED,
+      REPLAY,
+      ENTER,
+      ENDED,
+      ERROR,
+      LOADING
+    } = STATE_CLASS
+    const clsList = [
+      NOT_ALLOW_AUTOPLAY,
+      PLAYING,
+      NO_START,
+      PAUSED,
+      REPLAY,
+      ENTER,
+      ENDED,
+      ERROR,
+      LOADING
+    ]
+    this.hasStart = false
+    this.isError = false
+    this._useAutoplay = false
+    this.mediaPause()
+    this._accPlayed.acc = 0
+    this._accPlayed.t = 0
+    this._accPlayed.loopAcc = 0
+    clsList.forEach((cls) => {
+      this.removeClass(cls)
+    })
+    this.addClass(STATE_CLASS.ENTER)
+    this.emit(Events.RESET)
+  }
+
+  /**
+   * 重置播放实例
+   * @param { Array<string> } unregisterPlugins 重置的时候需要卸载重新初始化的插件列表
+   * @param { boolean } [isResetConfig] 是否需要重置配置列表
+   * @returns
+   */
+  reset (unregisterPlugins = [], isResetConfig) {
+    this.resetState()
+    const { plugins } = this
+
+    if (!plugins) {
+      return
+    }
+
+    unregisterPlugins.map((pn) => {
+      this.deregister(pn)
+    })
+
+    if (isResetConfig) {
+      const de = getDefaultConfig()
+      Object.keys(this.config).keys((k) => {
+        if (
+          this.config[k] !== 'undefined' &&
+          (k === 'plugins' || k === 'presets' || k === 'el' || k === 'id')
+        ) {
+          this.config[k] = de[k]
+        }
+      })
+    }
+  }
+
+  /**
+   * @description destroy the player instance
+   * @returns
+   */
+  destroy () {
+    const { innerContainer, root, media } = this
+    if (!root || !media) {
+      return
+    }
+    this.hasStart = false
+    this._useAutoplay = false
+    root.removeAttribute(PLATER_ID)
+    this.updateAcc('destroy')
+    this._unbindEvents()
+    this._detachSourceEvents(this.media)
+    Util.clearAllTimers(this)
+    this.emit(Events.DESTROY)
+    pluginsManager.destroy(this)
+    delHooksDescriptor(this)
+    super.destroy()
+    // 退出全屏
+    if (this.fullscreen && this._fullscreenEl === this.root) {
+      this.exitFullscreen()
+    }
+
+    if (innerContainer) {
+      const _c = innerContainer.children
+      for (let i = 0; i < _c.length; i++) {
+        innerContainer.removeChild(_c[i])
+      }
+    }
+    !innerContainer &&
+    media instanceof window.Node &&
+      root.contains(media) &&
+      root.removeChild(media);
+    ['topBar', 'leftBar', 'rightBar', 'innerContainer'].map((item) => {
+      this[item] && root.removeChild(this[item])
+      this[item] = null
+    })
+    const cList = root.className.split(' ')
+    if (cList.length > 0) {
+      root.className = cList
+        .filter((name) => name.indexOf('xgplayer') < 0)
+        .join(' ')
+    } else {
+      root.className = ''
+    }
+    this.removeAttribute('data-xgfill');
+
+    [
+      'isSeeking',
+      'isCanplay',
+      'isActive',
+      'cssfullscreen',
+      'fullscreen'
+    ].forEach((key) => {
+      this[key] = false
+    })
+  }
+
+  replay () {
+    this.removeClass(STATE_CLASS.ENDED)
+    this.currentTime = 0
     this.isSeeking = false
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-    }
-    removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
-    addClass(this.root, 'xgplayer-playing')
+    runHooks(this, 'replay', () => {
+      this.once(Events.CANPLAY, () => {
+        const playPromise = this.mediaPlay()
+        if (playPromise && playPromise.catch) {
+          playPromise.catch((err) => {
+            console.log(err)
+          })
+        }
+      })
+      this.play()
+      this.emit(Events.REPLAY)
+      this.onPlay()
+    })
   }
 
-  static install (name, descriptor) {
-    if (!checkIsBrowser()) {
+  retry () {
+    this.removeClass(STATE_CLASS.ERROR)
+    this.addClass(STATE_CLASS.LOADING)
+    runHooks(this, 'retry', () => {
+      const cur = this.currentTime
+      this.src = this.config.url
+      !this.config.isLive && (this.currentTime = cur)
+      this.once(Events.CANPLAY, () => {
+        this.mediaPlay()
+      })
+    })
+  }
+
+  /**
+   *
+   * @param { HTMLElement } root
+   * @param { HTMLElement } [el]
+   * @param { string } [rootClass]
+   * @param { string } [pClassName]
+   */
+  changeFullStyle (root, el, rootClass, pClassName) {
+    if (!root) {
       return
     }
+    if (!pClassName) {
+      pClassName = STATE_CLASS.PARENT_FULLSCREEN
+    }
+    if (!this._orgCss) {
+      this._orgCss = Util.filterStyleFromText(root)
+    }
+    Util.addClass(root, rootClass)
+    if (el && el !== root && !this._orgPCss) {
+      /**
+       * @private
+       */
+      this._orgPCss = Util.filterStyleFromText(el)
+      Util.addClass(el, pClassName)
+      el.setAttribute(PLATER_ID, this.playerId)
+    }
+  }
+
+  /**
+   *
+   * @param { HTMLElement } root
+   * @param { HTMLElement } [el]
+   * @param { string } [rootClass]
+   * @param { string } [pClassName]
+   */
+  recoverFullStyle (root, el, rootClass, pClassName) {
+    if (!pClassName) {
+      pClassName = STATE_CLASS.PARENT_FULLSCREEN
+    }
+    if (this._orgCss) {
+      Util.setStyleFromCsstext(root, this._orgCss)
+      this._orgCss = ''
+    }
+    Util.removeClass(root, rootClass)
+    if (el && el !== root && this._orgPCss) {
+      Util.setStyleFromCsstext(el, this._orgPCss)
+      this._orgPCss = ''
+      Util.removeClass(el, pClassName)
+      el.removeAttribute(PLATER_ID)
+    }
+  }
+
+  /**
+   * @param { HTMLElement } [el]
+   * @returns { Promise<void> }
+   */
+  getFullscreen (el = this.config.fullscreenTarget) {
+    const { root, media } = this
+    if (!el) {
+      el = root
+    }
+    this._fullScreenOffset = {
+      top: Util.scrollTop(),
+      left: Util.scrollLeft()
+    }
+
+    this._fullscreenEl = el
+    /**
+     * @private
+     */
+    this._fullActionFrom = 'get'
+    const fullEl = Util.getFullScreenEl()
+    if (fullEl === this._fullscreenEl) {
+      this.onFullscreenChange()
+      return
+    }
+    try {
+      for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
+        const key = GET_FULLSCREEN_API[i]
+        if (el[key]) {
+          const ret =
+            key === 'webkitRequestFullscreen'
+              ? el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
+              : el[key]()
+          if (ret && ret.then) {
+            return ret
+          } else {
+            return Promise.resolve()
+          }
+        }
+      }
+      if (media.fullscreenEnabled || media.webkitSupportsFullscreen) {
+        media.webkitEnterFullscreen()
+        return Promise.resolve()
+      }
+      return Promise.reject(new Error('call getFullscreen fail'))
+    } catch (err) {
+      return Promise.reject(new Error('call getFullscreen fail'))
+    }
+  }
+
+  /**
+   * @param { HTMLElement } [el]
+   * @returns { Promise<void> }
+   */
+  exitFullscreen (el) {
+    if (this.isRotateFullscreen) {
+      this.exitRotateFullscreen()
+    }
+    if (!this._fullscreenEl && !Util.getFullScreenEl()) {
+      return
+    }
+    const { root, media } = this
+    if (el) {
+      el = root
+    }
+    this._fullActionFrom = 'exit'
+    try {
+      for (let i = 0; i < EXIT_FULLSCREEN_API.length; i++) {
+        const key = EXIT_FULLSCREEN_API[i]
+        if (document[key]) {
+          const ret = document[key]()
+          if (ret && ret.then) {
+            return ret
+          } else {
+            return Promise.resolve()
+          }
+        }
+      }
+      if (media && media.webkitSupportsFullscreen) {
+        media.webkitExitFullScreen()
+        return Promise.resolve()
+      }
+      return Promise.reject(new Error('call exitFullscreen fail'))
+    } catch (err) {
+      return Promise.reject(new Error('call exitFullscreen fail'))
+    }
+  }
+
+  /**
+   * @param { HTMLElement } [el]
+   * @returns
+   */
+  getCssFullscreen (el = this.config.fullscreenTarget) {
+    if (this.isRotateFullscreen) {
+      this.exitRotateFullscreen()
+    } else if (this.fullscreen) {
+      this.exitFullscreen()
+    }
+    const _class = el
+      ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.CSS_FULLSCREEN}`
+      : STATE_CLASS.CSS_FULLSCREEN
+    this.changeFullStyle(this.root, el, _class)
+    const { fullscreen = {} } = this.config
+    const useCssFullscreen =
+      fullscreen.useCssFullscreen === true ||
+      (typeof fullscreen.useCssFullscreen === 'function' &&
+        fullscreen.useCssFullscreen())
+    if (useCssFullscreen) {
+      this.fullscreen = true
+      this.emit(Events.FULLSCREEN_CHANGE, true)
+    }
+    this._cssfullscreenEl = el
+    this.cssfullscreen = true
+    this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
+  }
+
+  /**
+   * @param { HTMLElement } [el]
+   * @returns
+   */
+  exitCssFullscreen () {
+    const _class = this._cssfullscreenEl
+      ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.CSS_FULLSCREEN}`
+      : STATE_CLASS.CSS_FULLSCREEN
+    if (!this.fullscreen) {
+      this.recoverFullStyle(this.root, this._cssfullscreenEl, _class)
+    } else {
+      const { fullscreen = {} } = this.config
+      const useCssFullscreen =
+        fullscreen.useCssFullscreen === true ||
+        (typeof fullscreen.useCssFullscreen === 'function' &&
+          fullscreen.useCssFullscreen())
+      if (useCssFullscreen) {
+        this.recoverFullStyle(this.root, this._cssfullscreenEl, _class)
+        this.fullscreen = false
+        this.emit(Events.FULLSCREEN_CHANGE, false)
+      } else {
+        this.removeClass(_class)
+      }
+    }
+    this._cssfullscreenEl = null
+    this.cssfullscreen = false
+    this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
+  }
+
+  /**
+   * 进入旋转全屏
+   * @param { HTMLElement } [el]
+   */
+  getRotateFullscreen (el) {
+    if (this.cssfullscreen) {
+      this.exitCssFullscreen(el)
+    }
+    const _class = el
+      ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.ROTATE_FULLSCREEN}`
+      : STATE_CLASS.ROTATE_FULLSCREEN
+    this._fullscreenEl = el || this.root
+    this.changeFullStyle(
+      this.root,
+      el,
+      _class,
+      STATE_CLASS.PARENT_ROTATE_FULLSCREEN
+    )
+    this.isRotateFullscreen = true
+    this.fullscreen = true
+    this.setRotateDeg(90)
+    this.emit(Events.FULLSCREEN_CHANGE, true)
+  }
+
+  /**
+   * 退出旋转全屏
+   * @param { HTMLElement } [el]
+   */
+  exitRotateFullscreen (el) {
+    const _class =
+      this._fullscreenEl !== this.root
+        ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.ROTATE_FULLSCREEN}`
+        : STATE_CLASS.ROTATE_FULLSCREEN
+    this.recoverFullStyle(
+      this.root,
+      this._fullscreenEl,
+      _class,
+      STATE_CLASS.PARENT_ROTATE_FULLSCREEN
+    )
+    this.isRotateFullscreen = false
+    this.fullscreen = false
+    this.setRotateDeg(0)
+    this.emit(Events.FULLSCREEN_CHANGE, false)
+  }
+
+  setRotateDeg (deg) {
+    if (window.orientation === 90 || window.orientation === -90) {
+      this.rotateDeg = 0
+    } else {
+      this.rotateDeg = deg
+    }
+  }
+
+  /**
+   * @description 播放器焦点状态，控制栏显示
+   * @param { {
+   *   autoHide?: boolean, // 是否可以自动隐藏
+   *   delay?: number // 自动隐藏的延迟时间, ms, 不传默认使用3000ms
+   * } } [data]
+   */
+  focus (
+    data = {
+      autoHide: !this.config.closeDelayBlur,
+      delay: this.config.inactive
+    }
+  ) {
+    if (this.isActive) {
+      this.onFocus(data)
+      return
+    }
+    this.emit(Events.PLAYER_FOCUS, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @description 取消播放器当前焦点状态
+   * @param { { ignorePaused?: boolean } } [data]
+   */
+  blur (data = { ignorePaused: false }) {
+    if (!this.isActive) {
+      this.onBlur(data)
+      return
+    }
+    this.emit(Events.PLAYER_BLUR, {
+      paused: this.paused,
+      ended: this.ended,
+      ...data
+    })
+  }
+
+  /**
+   * @protected
+   * @param { { autoHide?: boolean, delay?: number} } [data]
+   * @returns
+   */
+  onFocus ({
+    autoHide = !this.config.closePlayerBlur,
+    delay = this.config.inactive
+  } = {}) {
+    this.isActive = true
+    this.removeClass(STATE_CLASS.INACTIVE)
+    if (this.userTimer) {
+      Util.clearTimeout(this, this.userTimer)
+      this.userTimer = null
+    }
+    if (!autoHide) {
+      if (this.userTimer) {
+        Util.clearTimeout(this, this.userTimer)
+        this.userTimer = null
+      }
+      return
+    }
+    this.userTimer = Util.setTimeout(
+      this,
+      () => {
+        this.userTimer = null
+        this.blur()
+      },
+      delay
+    )
+  }
+
+  /**
+   * @protected
+   * @param {{ ignorePaused?: boolean }} [data]
+   * @returns
+   */
+  onBlur ({ ignorePaused = false } = {}) {
+    if (!this.isActive) {
+      return
+    }
+    const { closePauseVideoFocus } = this.config
+    this.isActive = false
+    if (ignorePaused || closePauseVideoFocus || (!this.paused && !this.ended)) {
+      this.addClass(STATE_CLASS.INACTIVE)
+    }
+  }
+
+  canPlayFunc = () => {
+    if (!this.config) {
+      return
+    }
+    const { autoplay, startTime, defaultPlaybackRate } = this.config
+
+    XG_DEBUG.logInfo('player', 'canPlayFunc, startTime', startTime)
+    if (startTime) {
+      this.currentTime = startTime > this.duration ? this.duration : startTime
+      this.config.startTime = 0 // 仅仅使用一次
+    }
+
+    // 解决浏览器安装了一些倍速扩展插件的情况下，倍速设置失效问题
+    this.playbackRate = defaultPlaybackRate;
+
+    (autoplay || this._useAutoplay) && this.mediaPlay()
+    this.off(Events.CANPLAY, this.canPlayFunc)
+    this.removeClass(STATE_CLASS.ENTER)
+  }
+
+  /**
+   *
+   */
+  onFullscreenChange = (event, isFullScreen) => {
+    const delayResize = () => {
+      Util.setTimeout(this, () => {
+        this.resize()
+      }, 100)
+    }
+    const fullEl = Util.getFullScreenEl()
+    if (this._fullActionFrom) {
+      this._fullActionFrom = ''
+    } else {
+      // 快捷键触发
+      this.emit(Events.USER_ACTION, {
+        eventType: 'system',
+        action: 'switch_fullscreen',
+        pluginName: 'player',
+        currentTime: this.currentTime,
+        duration: this.duration,
+        props: [{
+          prop: 'fullscreen',
+          from: true,
+          to: false
+        }]
+      })
+    }
+    const isVideo = checkIsCurrentVideo(fullEl, this.playerId, PLATER_ID)
+    if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || isVideo))) {
+      delayResize()
+      !this.config.closeFocusVideoFocus && this.media.focus()
+      this.fullscreen = true
+      // this.addClass(STATE_CLASS.FULLSCREEN)
+      this.changeFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)
+      this.emit(Events.FULLSCREEN_CHANGE, true, this._fullScreenOffset)
+      if (this.cssfullscreen) {
+        this.exitCssFullscreen()
+      }
+    } else if (this.fullscreen) {
+      delayResize()
+      const { _fullScreenOffset, config } = this
+      if (config.needFullscreenScroll) {
+        // 保证页面scroll的情况下退出全屏 页面回到原位置
+        window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
+        Util.setTimeout( this, () => {
+          this.fullscreen = false
+          this._fullScreenOffset = null
+        }, 100)
+      } else {
+        // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
+        !this.config.closeFocusVideoFocus && this.media.focus()
+        this.fullscreen = false
+        this._fullScreenOffset = null
+      }
+      if (!this.cssfullscreen) {
+        this.recoverFullStyle( this.root,this._fullscreenEl, STATE_CLASS.FULLSCREEN)
+      } else {
+        this.removeClass(STATE_CLASS.FULLSCREEN)
+      }
+      this._fullscreenEl = null
+      // this.removeClass(STATE_CLASS.FULLSCREEN)
+      this.emit(Events.FULLSCREEN_CHANGE, false)
+    }
+  }
+
+  _onWebkitbeginfullscreen = (e) => {
+    this._fullscreenEl = this.media
+    this.onFullscreenChange(e, true)
+  }
+
+  _onWebkitendfullscreen = (e) => {
+    this.onFullscreenChange(e, false)
+  }
+
+  onEmptied () {
+    this.updateAcc('emptied')
+  }
+
+  /**
+   * @protected
+   */
+  onCanplay () {
+    this.removeClass(STATE_CLASS.ENTER)
+    this.removeClass(STATE_CLASS.ERROR)
+    this.removeClass(STATE_CLASS.LOADING)
+    this.isCanplay = true
+    this.waitTimer && Util.clearTimeout(this, this.waitTimer)
+  }
+
+  onLoadeddata () {
+    this.isError = false
+  }
+
+  onLoadstart () {
+    this.removeClass(STATE_CLASS.ERROR)
+  }
+
+  /**
+   * @protected
+   */
+  onPlay () {
+    if (this.state === STATES.ENDED) {
+      this.setState(STATES.RUNNING)
+    }
+    this.removeClass(STATE_CLASS.PAUSED)
+    this.ended && this.removeClass(STATE_CLASS.ENDED)
+    !this.config.closePlayVideoFocus && this.focus()
+  }
+
+  /**
+   * @protected
+   */
+  onPause () {
+    this.addClass(STATE_CLASS.PAUSED)
+    this.updateAcc('pause')
+    if (!this.config.closePauseVideoFocus) {
+      if (this.userTimer) {
+        Util.clearTimeout(this, this.userTimer)
+        this.userTimer = null
+      }
+      this.focus()
+    }
+  }
+
+  /**
+   * @protected
+   */
+  onEnded () {
+    this.updateAcc('ended')
+    this.addClass(STATE_CLASS.ENDED)
+    this.setState(STATES.ENDED)
+    // this.removeClass(STATE_CLASS.PLAYING)
+  }
+
+  /**
+   * @protected
+   */
+  onError () {
+    // this.setState(STATES.ERROR)
+    this.isError = true
+    this.updateAcc('error')
+    this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+    this.removeClass(STATE_CLASS.NO_START)
+    this.removeClass(STATE_CLASS.ENTER)
+    this.removeClass(STATE_CLASS.LOADING)
+    this.addClass(STATE_CLASS.ERROR)
+  }
+
+  /**
+   * @protected
+   */
+  onSeeking () {
+    if (!this.isSeeking) {
+      this.updateAcc('seeking')
+    }
+    this.isSeeking = true
+    this.addClass(STATE_CLASS.SEEKING)
+  }
+
+  /**
+   * @protected
+   */
+  onSeeked () {
+    this.isSeeking = false
+    // for ie,playing fired before waiting
+    if (this.waitTimer) {
+      Util.clearTimeout(this, this.waitTimer)
+    }
+    this.removeClass(STATE_CLASS.LOADING)
+    this.removeClass(STATE_CLASS.SEEKING)
+  }
+
+  /**
+   * @protected
+   */
+  onWaiting () {
+    if (this.waitTimer) {
+      Util.clearTimeout(this, this.waitTimer)
+    }
+    this.updateAcc('waiting')
+    this.waitTimer = Util.setTimeout(this, () => {
+      this.addClass(STATE_CLASS.LOADING)
+      Util.clearTimeout(this, this.waitTimer)
+      this.waitTimer = null
+    }, 200)
+  }
+
+  /**
+   * @protected
+   */
+  onPlaying () {
+    this.isError = false
+    const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
+    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING]
+    clsList.forEach((cls) => {
+      this.removeClass(cls)
+    })
+  }
+
+  /**
+   * @protected
+   */
+  onTimeupdate () {
+    !this._videoHeight && this.resize()
+    if ((this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) &&
+      this.media.readyState > 2
+    ) {
+      this.removeClass(STATE_CLASS.LOADING)
+      Util.clearTimeout(this, this.waitTimer)
+      this.waitTimer = null
+    }
+
+    // 兼容safari在调整为静音之后未调用play自动起播问题
+    if (!this.paused && this.state < STATES.RUNNING && this.duration) {
+      this.setState(STATES.RUNNING)
+      this.emit(Events.AUTOPLAY_STARTED)
+    }
+
+    if (!this._accPlayed.t && !this.paused && !this.ended) {
+      this._accPlayed.t = new Date().getTime()
+    }
+  }
+
+  onVolumechange () {
+    Util.typeOf(this.config.volume) === 'Number' &&
+      (this.config.volume = this.volume)
+  }
+
+  onRatechange () {
+    this.config.defaultPlaybackRate = this.playbackRate
+  }
+
+  /**
+   * 触发用户行为事件，第一个参数是Dom事件
+   * @param { Event } event
+   * @param { string } action
+   * @param {[propName: string]: any; } [params]
+   * @returns
+   */
+  emitUserAction (event, action, params) {
+    if (!this.media || !action || !event) {
+      return
+    }
+    const eventType =
+      Util.typeOf(event) === 'String' ? event : event.type || ''
+
+    // if (action === 'switch_play_pause') {
+    //   Util.typeOf(params.paused) === 'Undefined' && (params.paused = this.paused)
+    //   params.isFirstStart = !this.playing
+    // }
+
+    if (params.props && Util.typeOf(params.props) !== 'Array') {
+      params.props = [params.props]
+    }
+    this.emit(Events.USER_ACTION, {
+      eventType,
+      action,
+      // pluginName: this.pluginName,
+      currentTime: this.currentTime,
+      duration: this.duration,
+      ended: this.ended,
+      event,
+      ...params
+    })
+  }
+
+  updateAcc (endType) {
+    if (this._accPlayed.t) {
+      const _at = new Date().getTime() - this._accPlayed.t
+      this._accPlayed.acc += _at
+      this._accPlayed.t = 0
+      if (endType === 'ended' || this.ended) {
+        this._accPlayed.loopAcc = this._accPlayed.acc
+      }
+    }
+  }
+
+  /**
+   *
+   * @param { number } time
+   * @returns { boolean }
+   */
+  checkBuffer (time) {
+    const buffered = this.media.buffered
+    if (!buffered || buffered.length === 0 || !this.duration) {
+      return true
+    }
+    const currentTime = time || this.media.currentTime || 0.2
+    const len = buffered.length
+    for (let i = 0; i < len; i++) {
+      if (buffered.start(i) <= currentTime && buffered.end(i) > currentTime) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
+   * @description position video/audio according to height ratio and y coordinate
+   * @param { { h: number, y?: number, x?:number, w?:number} } pos
+   * @returns
+   */
+  position (pos = { h: 0, y: 0, x: 0, w: 0 }) {
+    if (!this.media || !pos || !pos.h) {
+      return
+    }
+    const rvH = 1 / pos.h
+    let _transform = rvH !== 1 ? `scale(${rvH})` : ''
+    let _tx = 0
+    let _ty = 0
+    if (pos.y) {
+      _ty = (100 - pos.h * 100) / 2 - pos.y * 100
+    }
+    if (pos.w && pos.x) {
+      _tx = (100 - pos.w * 100) / 2 - pos.x * 100
+    }
+    _transform += ` translate(${_tx}%, ${_ty}%)`
+    this.media.style.transform = _transform
+    this.media.style.webkitTransform = _transform
+  }
+
+  /**
+   * @description Update configuration parameters
+   * @param { IPlayerOptions } config
+   */
+  setConfig (config) {
+    if (!config) {
+      return
+    }
+    Object.keys(config).map((key) => {
+      if (key !== 'plugins') {
+        this.config[key] = config[key]
+        const plugin = this.plugins[key.toLowerCase()]
+        if (plugin && Util.typeOf(plugin.setConfig) === 'Function') {
+          plugin.setConfig(config[key])
+        }
+      }
+    })
+  }
+
+  /**
+   * @description play another video resource
+   * @param { IPlayerOptions } config
+   */
+  playNext (config) {
+    this.resetState()
+    this.setConfig(config)
+    this._currentTime = 0
+    this._duration = 0
+    this.play()
+    this.emit(Events.PLAYNEXT, config)
+  }
+
+  resize () {
+    if (!this.media) {
+      return
+    }
+    const { videoWidth, videoHeight } = this.media
+    const { fitVideoSize, videoFillMode } = this.config
+
+    if (videoFillMode === 'fill' || videoFillMode === 'cover') {
+      this.setAttribute('data-xgfill', videoFillMode)
+    }
+
+    if (!videoHeight || !videoWidth) {
+      return
+    }
+    this._videoHeight = videoHeight
+    this._videoWidth = videoWidth
+    const containerSize = this.root.getBoundingClientRect()
+    const controlsHeight =
+      this.controls && this.innerContainer
+        ? this.controls.root.getBoundingClientRect().height
+        : 0
+    const width = containerSize.width
+    const height = containerSize.height - controlsHeight
+    const videoFit = parseInt((videoWidth / videoHeight) * 1000, 10)
+    const fit = parseInt((width / height) * 1000, 10)
+    let rWidth = width
+    let rHeight = height
+    const _style = {}
+    if (
+      (fitVideoSize === 'auto' && fit > videoFit) ||
+      fitVideoSize === 'fixWidth'
+    ) {
+      rHeight = (width / videoFit) * 1000
+      if (this.config.fluid) {
+        _style.paddingTop = `${(rHeight * 100) / rWidth}%`
+      } else {
+        _style.height = `${rHeight + controlsHeight}px`
+      }
+    } else if (
+      (fitVideoSize === 'auto' && fit < videoFit) ||
+      fitVideoSize === 'fixHeight'
+    ) {
+      rWidth = (videoFit * height) / 1000
+      _style.width = `${rWidth}px`
+    }
+    // 全屏不做行间css设置
+    if (!this.fullscreen && !this.cssfullscreen) {
+      Object.keys(_style).forEach((key) => {
+        this.root.style[key] = _style[key]
+      })
+    }
+    // video填充模式
+    if (
+      (videoFillMode === 'fillHeight' && fit < videoFit) ||
+      (videoFillMode === 'fillWidth' && fit > videoFit)
+    ) {
+      this.setAttribute('data-xgfill', 'cover')
+    }
+    const data = {
+      videoScale: videoFit,
+      vWidth: rWidth,
+      vHeight: rHeight,
+      cWidth: rWidth,
+      cHeight: rHeight + controlsHeight
+    }
+    this.emit(Events.VIDEO_RESIZE, data)
+  }
+
+  /**
+   *
+   * @param { number } left
+   * @param { number } top
+   * @returns
+   */
+  updateObjectPosition (left = 0, top = 0) {
+    if (this.media.updateObjectPosition) {
+      this.media.updateObjectPosition(left, top)
+      return
+    }
+    this.media.style.objectPosition = `${left * 100}% ${top * 100}%`
+  }
+
+  /**
+   * @protected
+   * @param { number } newState
+   */
+  setState (newState) {
+    XG_DEBUG.logInfo(
+      'setState',
+      `state from:${STATE_ARRAY[this.state]} to:${STATE_ARRAY[newState]}`
+    )
+    this._state = newState
+  }
+
+  /**
+   * @type { number }
+   */
+  get state () {
+    return this._state
+  }
+
+  /**
+   * @type { boolean }
+   */
+  get isFullscreen () {
+    return this.fullscreen
+  }
+
+  /**
+   * @type { boolean }
+   */
+  get isCssfullScreen () {
+    return this.cssfullscreen
+  }
+
+  /**
+   * @type { boolean }
+   * @description 是否开始播放
+   */
+  get hasStart () {
+    return this._hasStart
+  }
+
+  set hasStart (bool) {
+    if (typeof bool === 'boolean') {
+      this._hasStart = bool
+      if (bool === false) {
+        this.setState(STATES.READY)
+      }
+      this.emit('hasstart')
+    }
+  }
+
+  /**
+   * @type { boolean }
+   * @description 是否已经进入起播状态
+   */
+  get isPlaying () {
+    return this._state === STATES.RUNNING || this._state === STATES.ENDED
+  }
+
+  set isPlaying (value) {
+    if (value) {
+      this.setState(STATES.RUNNING)
+    } else {
+      this._state >= STATES.RUNNING && (this.setState(STATES.ATTACHED))
+    }
+  }
+
+  /**
+   * @type { Array.<IDefinition> }
+   */
+  set definitionList (list) {
+    const { definition } = this.config
+    let curDef = null
+    let targetDef = null
+
+    definition.list = list
+    this.emit('resourceReady', list)
+
+    list.forEach((item) => {
+      if (this.curDefinition?.definition === item.definition) {
+        curDef = item
+      }
+      if (definition.defaultDefinition === item.definition) {
+        targetDef = item
+      }
+    })
+    if (!targetDef && list.length > 0) {
+      targetDef = list[0]
+    }
+    curDef
+      ? this.changeDefinition(curDef)
+      : targetDef && this.changeDefinition(targetDef)
+  }
+
+  get definitionList () {
+    if (!this.config || !this.config.definition) {
+      return []
+    }
+    return this.config.definition.list || []
+  }
+
+  /**
+   * @description VideoFrames infos
+   * @type { {
+   *   total: number,
+   *   dropped: number,
+   *   corrupted: number,
+   *   droppedRate: number,
+   *   droppedDuration: number
+   * } }
+   */
+  get videoFrameInfo () {
+    const ret = {
+      total: 0,
+      dropped: 0,
+      corrupted: 0,
+      droppedRate: 0,
+      droppedDuration: 0
+    }
+    if (!this.media || !this.media.getVideoPlaybackQuality) {
+      return ret
+    }
+    const _quality = this.media.getVideoPlaybackQuality()
+    ret.dropped = _quality.droppedVideoFrames || 0
+    ret.total = _quality.totalVideoFrames || 0
+    ret.corrupted = _quality.corruptedVideoFrames || 0
+    if (ret.total > 0) {
+      ret.droppedRate = (ret.dropped / ret.total) * 100
+      ret.droppedDuration = parseInt(
+        (this.cumulateTime / ret.total) * ret.dropped,
+        0
+      )
+    }
+    return ret
+  }
+
+  /**
+   * @type { string }
+   */
+  set lang (lang) {
+    const result = I18N.langKeys.filter((key) => key === lang)
+    if (result.length === 0 && lang !== 'zh') {
+      console.error(
+        `Sorry, set lang fail, because the language [${lang}] is not supported now, list of all supported languages is [${I18N.langKeys.join()}] `
+      )
+      return
+    }
+    this.config.lang = lang
+    pluginsManager.setLang(lang, this)
+  }
+
+  get lang () {
+    return this.config.lang
+  }
+
+  get i18n () {
+    let _l = this.config.lang
+    if (_l === 'zh') {
+      _l = 'zh-cn'
+    }
+    return this.__i18n.lang[_l] || this.__i18n.lang.en
+  }
+
+  get i18nKeys () {
+    return this.__i18n.textKeys || {}
+  }
+
+  /**
+   * @type { string }
+   */
+  get version () {
+    return version
+  }
+
+  /**
+   * @type { number | string }
+   */
+  get playerId () {
+    return this._pluginInfoId
+  }
+
+  /**
+   * @type { any }
+   */
+  set url (url) {
+    /**
+     * @private
+     */
+    this.__url = url
+  }
+
+  get url () {
+    return this.__url || this.config.url
+  }
+
+  /**
+   * @type { string }
+   */
+  set poster (posterUrl) {
+    this.plugins.poster && this.plugins.poster.update(posterUrl)
+  }
+
+  get poster () {
+    return this.plugins.poster
+      ? this.plugins.poster.config.poster
+      : this.config.poster
+  }
+
+  get readyState () {
+    return super.readyState
+  }
+
+  get error () {
+    const key = super.error
+    return this.i18n[key] || key
+  }
+
+  get networkState () {
+    return super.networkState
+  }
+
+  /**
+   * @type { boolean }
+   */
+  get fullscreenChanging () {
+    return !(this._fullScreenOffset === null)
+  }
+
+  /**
+   * 累计观看时长
+   * @type number
+   */
+  get cumulateTime () {
+    const { _accPlayed } = this
+    this.updateAcc('get')
+    return _accPlayed.acc
+  }
+
+  /**
+   * @type { number }
+   */
+  get zoom () {
+    return this.config.zoom
+  }
+
+  /**
+   * @type { number }
+   */
+  set zoom (value) {
+    this.config.zoom = value
+  }
+
+  /**
+   * @description 均衡下载速度，单位kb/s, 根据10条最新下载速度计算出来的加权值，如果没有测速能力则默认是0
+   * @type { number }
+   */
+  set avgSpeed (val) {
+    AVG_SPEED = val
+  }
+
+  get avgSpeed () {
+    return AVG_SPEED
+  }
+
+  /**
+   * @type { number }
+   * 最新一次下载速度，单位kb/s, 如果没有测速能力则默认是0
+   */
+  set realTimeSpeed (val) {
+    REAL_TIME_SPEED = val
+  }
+
+  get realTimeSpeed () {
+    return REAL_TIME_SPEED
+  }
+
+  /**
+   * @param { string } hookName
+   * @param { Function } handler
+   * @param { {pre: Function| null , next: Function | null} } preset
+   * @returns
+   */
+  hook (hookName, handler, preset = { pre: null, next: null }) {
+    // eslint-disable-next-line no-return-assign
+    return hook.call(this, ...arguments)
+  }
+
+  /**
+   * @param { string } hookName
+   * @param { (player: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
+   * @returns {boolean} isSuccess
+   */
+  useHooks (hookName, handler) {
+    return useHooks.call(this, ...arguments)
+  }
+
+  /**
+   *
+   * @param { string } hookName
+   * @param { (player: any, ...args) => boolean | Promise<any> } handler
+   * @returns
+   */
+  removeHooks (hookName, handler) {
+    return removeHooks.call(this, ...arguments)
+  }
+
+  /**
+   *
+   * @param { string } pluginName
+   * @param { string } hookName
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
+   * @returns { boolean } isSuccess
+   */
+  usePluginHooks (pluginName, hookName, handler, ...args) {
+    return usePluginHooks.call(this, ...arguments)
+  }
+
+  /**
+   *
+   * @param { string } pluginName
+   * @param { string } hookName
+   * @param { (plugin: any, ...args) => boolean | Promise<any> } handler
+   * @param  {...any} args
+   * @returns { boolean } isSuccess
+   */
+  removePluginHooks (pluginName, hookName, handler, ...args) {
+    return removePluginHooks.call(this, ...arguments)
+  }
+
+  /**
+   * 设置当前实例的用户激活态
+   * @param { boolean } isActive
+   * @param { boolean } [isMuted]
+   */
+  setUserActive (isActive, isMuted) {
+    if (typeof isMuted === 'boolean' && isMuted !== this.muted) {
+      this.addInnerOP('volumechange')
+      this.muted = isMuted
+    }
+    pluginsManager.setCurrentUserActive(this.playerId, isActive)
+  }
+
+  /**
+   * 当前浏览器是否支持hevc编码
+   * @returns {boolean}
+   */
+  static isHevcSupported () {
+    return Sniffer.isHevcSupported()
+  }
+
+  /**
+   * 检测编码参数是否被当前浏览器支持
+   * @doc https://developer.mozilla.org/en-US/docs/Web/API/MediaCapabilities/decodingInfo
+   * @param {MediaDecodingConfiguration} info
+   * @returns {MediaCapabilitiesDecodingInfo}
+   */
+  static probeConfigSupported (info) {
+    return Sniffer.probeConfigSupported(info)
+  }
+
+  /**
+   * @deprecated
+   * 插件全部迁移完成再做删除
+   */
+  static install (name, descriptor) {
     if (!Player.plugins) {
       Player.plugins = {}
     }
@@ -519,12 +2435,10 @@ class Player extends Proxy {
     }
   }
 
-  static installAll (list) {
-    for(let k = 0; k < list.length; k++){
-      Player.install(list[k].name, list[k].method)
-    }
-  }
-
+  /**
+   * @deprecated
+   * 插件全部迁移完成再做删除
+   */
   static use (name, descriptor) {
     if (!Player.plugins) {
       Player.plugins = {}
@@ -532,22 +2446,22 @@ class Player extends Proxy {
     Player.plugins[name] = descriptor
   }
 
-  static useAll (list) {
-    for (let k in list) {
-      Player.use(list[k].name, list[k].method)
-    }
-  }
+  static defaultPreset = null;
 
-  static controlsRun (controlLst, context) {
-    controlLst.forEach(function(control) {
-      control.method.call(context)
-    })
-  }
+  /**
+   * @description 自定义media构造函数
+   */
+  static XgVideoProxy = null;
 }
 
-Player.util = util
-Player.sniffer = sniffer
-Player.Errors = Errors
-Player.XgplayerTimeRange = XgplayerTimeRange
-
-export default Player
+export {
+  Player as default,
+  Plugin,
+  BasePlugin,
+  Events,
+  Errors,
+  Sniffer,
+  Util,
+  STATE_CLASS,
+  I18N
+}

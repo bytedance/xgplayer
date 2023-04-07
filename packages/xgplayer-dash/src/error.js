@@ -1,7 +1,8 @@
-import Player from 'xgplayer'
-import {version} from '../version.json'
-
-class _Errors extends Player.Errors {
+/* eslint-disable no-undef */
+import { Errors } from 'xgplayer'
+const version = JSON.parse('__XGPLAYER_DASH__')
+console.log('version', version)
+class _Errors extends Errors {
   constructor (type, vid, errd = {}, url = '') {
     errd.version = version
     super(type, vid, errd)

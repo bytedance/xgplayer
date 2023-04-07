@@ -1,10 +1,7 @@
-import EventEmitter from 'event-emitter'
-
 class Xhr {
   constructor (url, callback) {
-    EventEmitter(this)
     this.url = url
-    let xhr = new window.XMLHttpRequest()
+    const xhr = new window.XMLHttpRequest()
     xhr.target = this
     xhr.responseType = 'arraybuffer'
     xhr.open('get', url)
@@ -16,11 +13,13 @@ class Xhr {
       }
     }
     xhr.onerror = function (e) {
-      xhr.target.emit('error' + e.message)
+      // TODO: 改成回调家或者promise
+      // xhr.target.emit('error' + e.message)
     }
     this.xhr = xhr
     this.run()
   }
+
   cancel () {
     this.xhr.abort()
   }

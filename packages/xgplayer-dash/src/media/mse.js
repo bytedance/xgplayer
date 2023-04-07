@@ -1,11 +1,11 @@
-import EventEmitter from 'event-emitter'
-import Player from 'xgplayer'
+import EventEmitter from 'eventemitter3'
+import { Util } from 'xgplayer'
 import Errors from '../error'
 
-class MSE {
+class MSE extends EventEmitter {
   constructor () {
-    let self = this
-    EventEmitter(this)
+    super()
+    const self = this
     this.codecs = []
     this.sourceBuffer = {}
     this.mediaSource = new MediaSource()
@@ -33,17 +33,17 @@ class MSE {
   }
 
   addSourceBuffer (codecs) {
-    let self = this
+    const self = this
     this.codecs.push(codecs)
-    let sourceBuffer = this.mediaSource.addSourceBuffer(codecs)
+    const sourceBuffer = this.mediaSource.addSourceBuffer(codecs)
     this.sourceBuffer[codecs] = sourceBuffer
     sourceBuffer.addEventListener('error', function (e) {
-      self.emit('error', new Errors('mse', '', {line: 16, handle: '[MSE] constructor sourceopen', msg: e.message}))
+      self.emit('error', new Errors('mse', '', { line: 16, handle: '[MSE] constructor sourceopen', msg: e.message }))
     })
     sourceBuffer.addEventListener('updateend', function (e) {
       self.emit(codecs + ' updateend')
-      if (self.queue[codecs] && Player.util.typeOf(self.queue[codecs]) === 'Array') {
-        let buffer = self.queue[codecs].shift()
+      if (self.queue[codecs] && Util.typeOf(self.queue[codecs]) === 'Array') {
+        const buffer = self.queue[codecs].shift()
         if (buffer) {
           if (sourceBuffer.updating === false && self.state === 'open') {
             sourceBuffer.appendBuffer(buffer)
@@ -56,7 +56,7 @@ class MSE {
   }
 
   appendBuffer (codecs, buffer) {
-    let sourceBuffer = this.sourceBuffer[codecs]
+    const sourceBuffer = this.sourceBuffer[codecs]
     if (sourceBuffer.updating === false && this.state === 'open') {
       // console.log('appendBuffer true')
       sourceBuffer.appendBuffer(buffer)

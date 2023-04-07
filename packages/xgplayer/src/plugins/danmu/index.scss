@@ -1,0 +1,356 @@
+// definition
+$definitionLiColor: rgba(255, 255, 255, 0.80);
+$definitionLiActiveColor: #fff;
+$definitionNameColor: rgba(255, 255, 255, 0.80);
+$definitionNameBgColor: rgba(0, 0, 0, 0.38);
+
+// slider
+$sliderBgColor: rgba(0, 0, 0, 0.54);
+$sliderBarBgColor: rgba(255, 255, 255, 0.30);
+$sliderDragBgColor: #FA1F41;
+$sliderDragAfterBgColor: #fff;
+$sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
+.xgplayer {
+  .danmu-icon  {
+    .danmu-switch {
+      margin:0 auto;
+      display: flex;
+      &-open {
+        display: none;
+      }
+
+      &-closed {
+        display: block;
+      }
+    }
+    &[data-state=active] {
+      .danmu-switch {
+        padding-left: 12px;
+        background-color: #f85959;
+        &-open {
+          display: block;
+        }
+
+        &-closed {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .xgplayer-danmu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    outline: none;
+    > * {
+      position: absolute;
+      white-space: nowrap;
+    }
+
+  }
+}
+
+@mixin xgplayer($danmuHandle) {
+  .xgplayer-#{$danmuHandle}-line{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    width: 150px;
+    height: 4px;
+    background: #aaa;
+    border-radius: 4px;
+    border-style: none;
+    margin-left: 10px;
+    margin-top: -2px;
+  }
+  .xgplayer-#{$danmuHandle}-line::-moz-focus-outer {
+    border: 0!important;
+  }
+  .xgplayer-#{$danmuHandle}-color::-webkit-slider-runnable-track{
+    outline: none;
+    width: 150px;
+    height: 4px;
+    border-radius: 4px;
+  }
+  .xgplayer-#{$danmuHandle}-color::-moz-range-track{
+    outline: none;
+    background-color: #aaa;
+    border-color: transparent;
+    cursor: pointer;
+    width: 150px;
+    height: 4px;
+    border-radius: 4px;
+  }
+  .xgplayer-#{$danmuHandle}-color::-ms-track{
+    outline: none;
+    background-color: #aaa;
+    color: transparent;
+    border-color: transparent;
+    width: 150px;
+    height: 4px;
+    border-radius: 4px;
+  }
+  .xgplayer-#{$danmuHandle}-bar::-webkit-slider-thumb{
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 6px solid #f85959;
+    height: 6px;
+    width: 6px;
+    margin-top: -4px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .xgplayer-#{$danmuHandle}-bar::-moz-range-thumb{
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 6px solid #f85959;
+    height: 0;
+    width: 0;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .xgplayer-#{$danmuHandle}-bar::-ms-thumb{
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 6px solid #f85959;
+    height: 6px;
+    width: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+}
+@mixin dot($panelContent) {
+  .xgplayer-#{$panelContent}-dot{
+    width: 3px;
+    height: 3px;
+    border: 3px solid #aaa;
+    border-radius: 50%;
+    background-color: #aaa;
+    position: relative;
+    top: 16px;
+    z-index: -1;
+  }
+}
+.xgplayer {
+  .xgplayer-panel{
+    outline: none;
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    position: relative;
+    font: {
+      size: 13px;
+    }
+    color: $definitionNameColor;
+    z-index: 36;
+    .xgplayer-panel-icon{
+      // margin-top: 14px;
+      cursor: pointer;
+      position: absolute;
+      // margin-left: 5px;
+      // top: 10px;
+    }
+  }
+  // .selected-color {
+  //   color: #f85959;
+  // }
+  .xgplayer-panel-slider{
+    z-index: 36;
+    display: none;
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    background: $sliderBgColor;
+    border-radius: 1px;
+    padding: 10px 20px;
+    outline: none;
+    left: -115px;
+    bottom: 42px;
+    .xgplayer-hidemode {
+      padding-bottom: 10px;
+      &-radio li{
+        display: inline;
+        list-style: none;
+        cursor: pointer;
+      }
+      ul{
+        display: flex;
+        justify-content: space-around;
+      }
+      li{
+        margin: 0 12px;
+        font-size: 11px;
+        color: #aaa;
+      }
+      &-font{
+        margin-bottom: 10px;
+      }
+    }
+    .xgplayer-transparency{
+      display: block;
+      margin-top: 10px;
+      @include xgplayer(transparency);
+      .xgplayer-transparency-bar::-moz-range-progress {
+        outline: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        height: 4px;
+        border-radius: 4px;
+        background: linear-gradient(to right, #f85959, #f85959 100% , #aaa)
+      }
+    }
+    .xgplayer-showarea{
+      display: block;
+      margin-top: 8px;
+      &-name {
+        display: inline-block;
+        position: relative;
+        top: -10px;
+      }
+      &-control {
+        display: inline-block;
+        &-up {
+          width: 150px;
+          margin-left: 10px;
+          display: -moz-box;
+          display: -ms-flexbox;
+          display: -webkit-box;
+          display: flex;
+          -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+          justify-content: space-between;
+          color: #aaa;
+        }
+        &-down {
+          position: relative;
+          top: -10px;
+        }
+        &-down-dots {
+          display: -webkit-box;
+          display: -ms-flexbox;
+          display: flex;
+          width: 150px;
+          margin-left: 10px;
+          -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+          justify-content: space-between;
+        }
+      }
+      &-twoquarters {
+        margin-left: -6px;
+      }
+      &-threequarters {
+        margin-left: -6px;
+      }
+      &-full {
+        margin-right: 3px;
+      }
+      @include xgplayer(showarea);
+      @include dot(showarea-zero);
+      @include dot(showarea-onequarters);
+      @include dot(showarea-twoquarters);
+      @include dot(showarea-threequarters);
+      @include dot(showarea-full);
+    }
+    .xgplayer-danmuspeed{
+      display: block;
+      &-name {
+        display: inline-block;
+        position: relative;
+        top: -10px;
+      }
+      &-control {
+        display: inline-block;
+        &-up {
+          width: 150px;
+          margin-left: 10px;
+          display: -moz-box;
+          display: -ms-flexbox;
+          display: -webkit-box;
+          display: flex;
+          -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+          justify-content: space-between;
+          color: #aaa;
+        }
+        &-down {
+          position: relative;
+          top: -10px;
+        }
+        &-down-dots {
+          display: -webkit-box;
+          display: -ms-flexbox;
+          display: flex;
+          width: 150px;
+          margin-left: 10px;
+          -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+          justify-content: space-between;
+        }
+      }
+      @include xgplayer(danmuspeed);
+      @include dot(danmuspeed-small);
+      @include dot(danmuspeed-middle);
+      @include dot(danmuspeed-large);
+    }
+    .xgplayer-danmufont{
+      display: block;
+      &-name {
+        display: inline-block;
+        position: relative;
+        top: -10px;
+      }
+      &-control {
+        display: inline-block;
+        &-up {
+          width: 150px;
+          margin-left: 10px;
+          display: -moz-box;
+          display: -ms-flexbox;
+          display: -webkit-box;
+          display: flex;
+          -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+          justify-content: space-between;
+          color: #aaa;
+        }
+        &-down {
+          position: relative;
+          top: -10px;
+        }
+        &-down-dots {
+          display: -webkit-box;
+          display: -ms-flexbox;
+          display: flex;
+          width: 150px;
+          margin-left: 10px;
+          -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+          justify-content: space-between;
+        }
+      }
+      @include xgplayer(danmufont);
+      @include dot(danmufont-small);
+      @include dot(danmufont-middle);
+      @include dot(danmufont-large);
+    }
+  }
+  .slider-show .xgplayer-panel-slider{
+    display: block;
+  }
+}

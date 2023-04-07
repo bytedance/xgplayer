@@ -1,0 +1,288 @@
+@import "../../style/variable";
+
+.xgplayer {
+  .xgplayer-progress {
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: 100px;
+    height: 20px;
+    left: 0;
+    right: 0;
+    top: 0;
+    outline: none;
+    flex: 1;
+    cursor: pointer;
+  }
+
+  .xgplayer-progress-outer {
+    position: relative;
+    width: 100%;
+    height: 2px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .progress-list {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+  }
+
+  .xgplayer-progress-inner {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    background: $progressOuterBgColor;
+    transition: height 0.2s ease-in, opacity 0.2s ease-out;
+    border-radius: inherit;
+    margin-right: 2px;
+    pointer-events: none;
+    &:last-child, &:only-child{
+      margin-right: 0;
+    }
+  }
+
+  .inner-focus-point {
+    background: #fff;
+    position: relative;
+    &:before, &:after{
+      position: absolute;
+      top: 0;
+      content: ' ';
+      display: block;
+      width: 2px;
+      height: 300%;
+      top: 50%;
+      z-index: 1;
+      transform: translateY(-50%);
+      border-radius: 3px;
+      background: #fff;
+    }
+    &:before {
+      left: 0;
+    }
+    &:after {
+      right: 0;
+    }
+  }
+
+  .xgplayer-progress-cache,.xgplayer-progress-played {
+    display: block;
+    height: 100%;
+    width: 0;
+    position:absolute;
+    top: 0;
+    left: 0;
+    border-radius: inherit;
+  }
+  
+  .xgplayer-progress-played {
+    background: $progressPlayedBgImage
+  }
+
+  .xgplayer-progress-cache {
+    background: $progressCacheBgColor
+  }
+
+  /* 滑块样式 */
+  .xgplayer-progress-btn {
+    display: block;
+    background: rgba(255, 94, 94, 0.304093);
+    border: 0.5px solid rgba(255, 94, 94, 0.056545);
+    box-shadow: 0px 0px 1px rgba(255, 0, 0, 0.382897);
+    width: 20px;
+    height: 20px;
+    border-radius: 30px;
+    left: 0;
+    top: 50%;
+    position: absolute;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    pointer-events: none;
+    &:before {
+      content: ' ';
+      display: block;
+      position: relative;
+      width: 12px;
+      height: 12px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 30px;
+      background: #FFFFFF;
+    }
+    &.active {
+      border: 4px solid rgba(255, 94, 94, 0.064057);
+      &:before{
+        box-shadow: 0px 0px 3px rgba(248, 89, 89, 0.689);
+      }
+    }
+  }
+  
+  /* 进度条打点*/
+  .xgplayer-progress-dot {
+    display: inline-block;
+    position: absolute;
+    height: 100%;
+    width: 5px;
+    top: 0px;
+    background: white;
+    border-radius: 6px;
+    z-index: 16;
+    .xgplayer-progress-tip {
+      position: absolute;
+      left: 25%;
+      top: -40px;
+      height: auto;
+      line-height: 30px;
+      width: auto;
+      transform: scale(0.8) translateX(-50%);
+      background: rgba(0, 0, 0, .3);
+      border-radius: 6px;
+      border: 1px solid rgba(0, 0, 0, .8);
+      cursor: default;
+      white-space: nowrap;
+      display: none;
+    }
+    &:hover {
+      .xgplayer-progress-tip {
+        display: block;
+      }
+    }
+  }
+
+  .flex-controls {
+    .xgplayer-progress {
+      transform: translateY(0);
+    }
+  }
+
+  &.xgplayer-pc {
+    .xgplayer-progress-btn {
+      transform: translate(-50%, -50%) scale(0);
+    }
+    .xgplayer-progress-outer {
+      height: 3px;
+    }
+    .xgplayer-progress-inner {
+      margin-right: 4px;
+      &:last-child, &:only-child{
+        margin-right: 0;
+      }
+    }
+    .inner-focus-point {
+      &:before, &:after{
+        width: 3px;
+      }
+    }
+
+    .inner-focus-highlight {
+      background:rgba(255, 255, 255, 0.8);
+    }
+    
+    .xgplayer-progress {
+      &.active {
+        .xgplayer-progress-outer {
+          height: 6px;
+          margin-bottom: 3px;
+          transition: height .3s ease, margin-bottom .3s ease;
+          // .xgplayer-progress-point {
+          //   display: block;
+          // }
+        }
+        .xgplayer-progress-btn {
+          transform: translate(-50%, -50%) scale(1);
+        }
+        .inner-focus-point {
+          &:before, &:after{
+            width: 6px;
+          }
+        }
+      }
+    }
+  }
+  // 进度条位于底部的时候
+  .xgplayer-progress-bottom {
+    .xgplayer-progress-outer {
+      top: 9px;
+    }
+    .xgplayer-progress-btn {
+      &:before {
+        height: 6px;
+        width: 6px;
+      }
+    }
+  }
+
+  &.xgplayer-mobile  {
+    // 进度条位于底部的时候
+    .xgplayer-progress-bottom {
+      .xgplayer-progress-outer {
+        height: 4px;
+      }
+    }
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .xgplayer {
+    .xgplayer-progress {
+      .xgplayer-progress-inner {
+        background-color: $progressOuterBgColor;
+      }
+
+      .inner-focus-highlight {
+        background:rgba(255, 255, 255, 0.8);
+      }
+
+      .xgplayer-progress-btn {
+        background: rgba(255, 94, 94, 0.304093);
+        border: 0.5px solid rgba(255, 94, 94, 0.056545);
+        box-shadow: 0px 0px 1px rgba(255, 0, 0, 0.382897);
+        &:before {
+          background-color: #fff;
+        }
+      }
+      .xgplayer-progress-played {
+        background-color: $progressPlayedBgImage
+      }
+    
+      .xgplayer-progress-cache {
+        background-color: $progressCacheBgColor
+      }
+    }
+  }
+}
+
+.xg-mini-progress {
+  display: none;
+  position: absolute;
+  height: 2px;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  // background-color: red;
+  pointer-events: none;
+  xg-mini-progress-played,  xg-mini-progress-cache{
+    height: 100%;
+    width: 0;
+    position:absolute;
+    top: 0;
+    left: 0;
+    border-radius: inherit;
+  }
+  xg-mini-progress-played {
+    background: $progressPlayedBgImage
+  }
+  xg-mini-progress-cache {
+    background: $progressCacheBgColor
+  }
+}
+
+.xgplayer-inactive, .xgplayer-mini {
+  .xg-mini-progress {
+    display: block;
+  }
+}

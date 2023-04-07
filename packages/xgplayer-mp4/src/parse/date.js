@@ -1,6 +1,6 @@
 class UTC {
   constructor () {
-    let time = new Date()
+    const time = new Date()
     time.setFullYear(1904)
     time.setMonth(0)
     time.setDate(1)
@@ -9,6 +9,7 @@ class UTC {
     time.setSeconds(0)
     this.time = time
   }
+
   setTime (value) {
     this.time.setTime(this.time.getTime() + value * 1)
     return this.time.toLocaleString()

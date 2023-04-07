@@ -1,0 +1,44 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Date: 2022-06-10 14:42:30
+ * @LastEditors: wuranran
+ * @LastEditTime: 2022-06-22 22:27:18
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="xgplayer.css">
+  <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
+  <style>
+    #video{
+      position: absolute;
+      /* left:200px;
+      top:200px; */
+    }
+  </style>
+  <script>
+    var ua = navigator.userAgent.toLowerCase()
+    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
+    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
+      var vConsole = new window.VConsole();
+    }
+  </script>
+  <script src="xgplayer.js?cwecewcwe"></script>
+</head>
+
+<body>
+
+    <div id="video"></div>
+
+ 
+  <!-- <script defer type ="module" src="index.js"></script> -->
+  <script src="xgplayer-vr.js"></script>
+</body>
+
+</html>

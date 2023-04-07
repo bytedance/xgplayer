@@ -1,0 +1,56 @@
+.xgplayer {
+  .xgplayer-poster {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center center;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    transition: opacity .3s ease,visibility .3s ease;
+    pointer-events: none;
+    &.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+}
+
+.xgplayer.xgplayer-playing {
+  .xgplayer-poster {
+    // display: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.xgplayer {
+  &.xgplayer-is-enter, &.xgplayer-playing {
+    .xgplayer-poster.xg-showplay {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.xgplayer {
+  &.xgplayer-nostart, 
+  &.xgplayer-ended,
+  &.not-allow-autoplay {
+    .xgplayer-poster {
+      // display: block;
+      opacity: 1;
+      visibility: visible;
+      &.hide {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+  }
+}
+

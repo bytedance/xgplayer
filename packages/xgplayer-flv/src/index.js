@@ -1,15 +1,13 @@
-import FlvLivePlayer from 'xgplayer-flv-live'
-import FlvVodPlayer from 'xgplayer-flv-vod'
+/* c8 ignore next 12 */
+import { FlvPlugin } from './plugin'
 
-class FlvPlayer{
-  constructor (config) {
-    if (config.isLive) {
-      return new FlvLivePlayer(config)
-    } else {
-      return new FlvVodPlayer(config)
-    }
-    flv.load()
-  }
-}
+export {
+  ERR,
+  ERR_CODE,
+  EVENT,
+  StreamingError
+} from 'xgplayer-streaming-shared'
 
-module.exports = FlvPlayer
+export * from './flv'
+export { FlvPlugin }
+export default FlvPlugin

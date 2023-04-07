@@ -1,0 +1,18 @@
+.xgplayer {
+  .xgplayer-play {
+    .xg-icon-play {
+      display: none;
+    }
+    .xg-icon-pause {
+      display: block;
+    }
+    &[data-state=pause] {
+      .xg-icon-play {
+        display: block;
+      }
+      .xg-icon-pause {
+        display: none;
+      }
+    }
+  }
+}

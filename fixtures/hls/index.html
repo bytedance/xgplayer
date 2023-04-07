@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>HLS 测试</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="text-base">
+
+  <div id="points" class="container p-3">
+    <label>
+      <span>功能测试点：</span>
+      <select id="test-point" class="bg-gray-200">
+        <option value="0">全部</option>
+        <option value="1">1.请求超时/重试次数/重试间隔</option>
+        <option value="2">2.最大缓存时长/保留已播放缓存时长</option>
+        <option value="3">3.自动播放/静音自动播放</option>
+        <option value="4">4.切换视频流正常播放，点击暂停，播放均正常</option>
+        <option value="5">5.点播开始播放时间点/点播seek/点播重播</option>
+        <option value="6">6.直播暂停后断流，开始播放分重新拉流。修改disconnectTime改变断流时间</option>
+      </select>
+      <div id="test-point-desc" class="text-gray-500 mt-2"></div>
+    </label>
+  </div>
+
+  <div id="options" class="container p-3">
+    <h3 class="text-lg font-semibold text-indigo-500">参数</h3>
+    <div class="flex flex-wrap">
+      <label id="preset-url" class="mr-3 mb-2 p-1 bg-gray-200">
+        预设URL
+        <select>
+          <option value="">请选择</option>
+          <option value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">[TS] Big Buck Bunny</option>
+          <option value="https://playertest.longtailvideo.com/adaptive/aes-with-tracks/master.m3u8">[TS] AES-128 加密</option>
+          <option value="https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8">[FMP4] 音视频分离 & 多清晰度 & 多语言音频</option>
+        </select>
+      </label>
+      <label id="url" class="mr-3 mb-2 p-1 bg-gray-200">URL<input style="width: 500px"/></label>
+      <label id="is-live" class="mr-3 mb-2 p-1 bg-gray-200">直播<input type="checkbox" /></label>
+      <label id="autoplay" class="hidden mr-3 mb-2 p-1 bg-gray-200">自动播放<input type="checkbox" /></label>
+      <label id="autoplay-muted" class="hidden mr-3 mb-2 p-1 bg-gray-200">静音自动播放<input type="checkbox" /></label>
+      <label id="load-timeout" class="hidden mr-3 mb-2 p-1 bg-gray-200">请求超时时长<input class="w-20" type="number" />ms</label>
+      <label id="retry-count" class="hidden mr-3 mb-2 p-1 bg-gray-200">请求重试次数<input class="w-12" type="number" /></label>
+      <label id="retry-delay" class="hidden mr-3 mb-2 p-1 bg-gray-200">请求重试间隔<input class="w-20" type="number" />ms</label>
+      <label id="fetch-options" class="hidden mr-3 mb-2 p-1 bg-gray-200">请求参数<input class="w-52" /></label>
+      <label id="preload-time" class="hidden mr-3 mb-2 p-1 bg-gray-200">缓存最小长度<input class="w-12" type="number" />s</label>
+      <label id="buffer-behind" class="hidden mr-3 mb-2 p-1 bg-gray-200">保留多久当前时间之前的缓存<input class="w-12"
+          type="number" />s</label>
+      <label id="max-jump-distance" class="hidden mr-3 mb-2 p-1 bg-gray-200">最大跳洞距离<input class="w-12"
+          type="number" />s</label>
+      <label id="start-time" class="hidden mr-3 mb-2 p-1 bg-gray-200">[点播]开始播放时间点<input class="w-12" type="number" />s</label>
+      <label id="target-latency" class="hidden mr-3 mb-2 p-1 bg-gray-200">[直播]目标延迟<input class="w-12" type="number" />s</label>
+      <label id="max-latency" class="hidden mr-3 mb-2 p-1 bg-gray-200">[直播]最大延迟<input class="w-12" type="number" />s</label>
+      <label id="disconnect-time" class="hidden mr-3 mb-2 p-1 bg-gray-200">[直播]暂停后多久断流<input class="w-12"
+          type="number" />s</label>
+    </div>
+    <div class="flex flex-wrap">
+      <button id="reset-opt" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">重置参数</button>
+      <button id="apply-opt" class="py-1 px-2 bg-green-500 text-white shadow-md">更新参数</button>
+    </div>
+  </div>
+
+  <div id="api" class="container p-3">
+    <h3 class="text-lg font-semibold text-indigo-500">API 方法</h3>
+    <div class="flex flex-wrap">
+      <button id="play" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">播放</button>
+      <button id="pause" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">暂停</button>
+      <button id="replay" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">重播/重拉流</button>
+      <button id="destroy" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">销毁</button>
+      <button id="switch-url" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">切换url</button>
+      <button id="set-url" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">设置url</button>
+      <button id="seek" class="py-1 px-2 bg-green-500 text-white shadow-md">seek</button>
+    </div>
+    <details class="mt-3">
+      <summary>说明</summary>
+      <dl>
+        <p>重播/重拉流：点播重新播放/直播重新拉流</p>
+        <p>销毁：点击按钮销毁播放器</p>
+        <p>切换url：点击按钮，出现弹框输入新URL</p>
+        <p>设置url：点击按钮输入新URL，同切换url</p>
+        <p>seek：点击按钮输入跳转时间点</p>
+      </dl>
+    </details>
+  </div>
+
+  <div class="container p-3">
+    <div id="player"></div>
+  </div>
+
+  <div id="streams" class="container p-3 hidden">
+    <div class="flex flex-wrap items-center">
+      <h3 class="text-lg font-semibold text-indigo-500">音视频流切换</h3>
+      <label class="ml-2 p-1 bg-gray-200">强制切换<input type="checkbox" id="stream-force" /></label>
+    </div>
+    <div id="video-streams" class="flex flex-wrap bg-blue-100"></div>
+    <div id="audio-streams" class="flex flex-wrap bg-pink-100 mt-2"></div>
+    <details class="mt-3">
+      <summary>说明</summary>
+      <dl>
+        <p>浅蓝背景是视频流，粉色背景是音频流</p>
+        <p>点击对应按钮可以切流，切换后等一会儿，会高亮对应按钮</p>
+        <p>强制切换，表示是否立刻切换到对应流。非强制切换会将下一个分片设置为对应流的，是无缝切换，需要等一会儿才生效</p>
+      </dl>
+    </details>
+  </div>
+
+  <div id="log" class="container p-3">
+    <h3 class="text-lg font-semibold text-indigo-500">日志</h3>
+    <div class="flex flex-wrap">
+      <div class="mr-2">
+        <h4>事件</h4>
+        <div id="event" class="h-40 bg-gray-200" style="resize: both; overflow: scroll; width: 500px;"></div>
+      </div>
+      <div>
+        <h4>错误</h4>
+        <div id="error" class="h-40 bg-gray-200" style="resize: both; overflow: scroll; width: 500px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="status" class="container p-3">
+    <h3 class="text-lg font-semibold text-indigo-500">状态</h3>
+    <div class="flex flex-wrap">
+      <div class="flex-grow">
+        <h4>速度</h4>
+        <div id="speed"></div>
+      </div>
+      <div class="flex-grow">
+        <h4>帧信息</h4>
+        <div id="frame"></div>
+      </div>
+      <div class="flex-grow">
+        <h4>缓存</h4>
+        <div id="buffer"></div>
+      </div>
+      <div style="width: 90vw;">
+        <h4>参数</h4>
+        <div id="option"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./index.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "xgplayer-dash-live",
+  "version": "3.0.0-next.0",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "sideEffects": false,
+  "libd": {
+    "umdName": "DashLivePlayer"
+  },
+  "files": [
+    "dist",
+    "es"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
+  "dependencies": {
+    "xgplayer-helper-transmuxers": "3.0.0-next.0",
+    "xgplayer-helper-utils": "3.0.0-next.0",
+    "xgplayer-helper-models": "3.0.0-alpha.128"
+  },
+  "peerDependencies": {
+    "xgplayer": ">=3.0.0-next.0",
+    "core-js": ">=3.12.1"
+  }
+}

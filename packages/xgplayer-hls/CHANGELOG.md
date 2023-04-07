@@ -1,0 +1,140 @@
+## xgplayer-hls@3.0.0-next.33 
+fix: 🐛 (xgplayer-hls) 兼容m3u8 endlist之后有冗余内容的情况 
+
+## xgplayer-hls@3.0.0-next.32
+更新 xgplayer-transmuxer 至 3.0.0-next.25，解决265流seek时卡住问题
+
+## xgplayer-hls@3.0.0-next.31
+fix: 🐛 (xgplayer-hls) 修复开播时buffer检测未空的问题
+
+## xgplayer-hls@3.0.0-next.30
+refactor: 💡 (xgplayer-hls) 调整剩余未播buf数值，过低阈值会产生waiting无法触发error
+
+## xgplayer-hls@3.0.0-next.29
+feat: (xgplayer-hls) 兼容分片track数量变化
+refactor: 💡 (xgplayer-hls) 增加 getStats API
+
+## xgplayer-hls@3.0.0-next.28
+fix: 🐛 (xgplayer-hls) 支持hls插件空url初始化
+fix: mediaType支持audio标签
+
+## xgplayer-hls@3.0.0-next.27
+fix: (xgplayer-transmuxer) H265流Sei payload type 解析错误
+fix: (xgplayer-hls) 起播gap
+
+## xgplayer-hls@3.0.0-next.26
+fix: (flv、hls) empty player url ignore plugin init 
+test: 💍 (xgplayer-hls) 增加BufferService单测用例
+
+## xgplayer-hls@3.0.0-next.25
+feat: 🎸 (xgplayer-hls) 支持流内codec变更
+refactor: 💡 (xgplayer-hls) 升级 share 库版本
+
+## xgplayer-hls@3.0.0-next.24
+fix: 音频异常sampleIndex当做无音频流播放
+fix: (xgplayer-transmuxer) hls流忽略使用分割nal拆分sample 
+
+## xgplayer-hls@3.0.0-next.23
+fix: 🐛 修复hls切码率时时间点未续播问题
+
+## xgplayer-hls@3.0.0-next.23-0
+fix: 🐛 (xgplayer-hls) 修复hls内速度统计一直为0的问题
+
+## xgplayer-hls@3.0.0-next.21
+fix: (hls) 长时间切后台播放, ts请求失败 
+fix: (hls) 点播流时间戳处理导致duration变化
+
+## xgplayer-hls@3.0.0-next.20
+feat(core): 更新根目录依赖的core-js版本为3.12.1; packages下各个包peerDependencies中增加core-js
+
+## xgplayer-hls@3.0.0-next.19
+fix: 🐛 (xgplayer-hls) suppress uncaptured errors in promise 
+
+## xgplayer-hls@3.0.0-next.18
+fix: 🐛 (xgplayer-hls) package.json files
+
+## ~~xgplayer-hls@3.0.0-next.17~~（deprecated）
+包发布有问题，缺失 dist 目录
+
+## xgplayer-hls@3.0.0-next.16
+升级 xgplayer-transmuxer 至 3.0.0-next.10
+升级 xgplayer-streaming-shared 至 3.0.0-next.11
+
+## xgplayer-hls@3.0.0-next.15
+修复 eslint 不合规代码
+
+## xgplayer-hls@3.0.0-next.14
+升级 xgplayer-transmuxer 至 3.0.0-next.9
+升级 xgplayer-streaming-shared 至 3.0.0-next.10
+
+## xgplayer-hls@3.0.0-next.13
+fix: 🐛 (xgplayer-hls) 第一次开播时MSE两次bindMedia流程精简为一次
+
+## xgplayer-hls@next.12-2
+fix: video、audio metadata changed in the middle
+
+## xgplayer-hls@next.12-2
+fix: video、audio metadata changed in the middle
+
+## xgplayer-hls@next.12-1
+feat: add getStats() API
+
+## xgplayer-flv@next.9-2
+fix: videoInit = false 时起播异常
+
+## xgplayer-hls@next.12
+fix: beforePlayerInit增加异步处理逻辑
+
+## xgplayer-hls@next.11
+fix: 点播流调用replay()后 seeked event no emit anymore
+
+## xgplayer-hls@next.10
+fix: (hls) 切换流地址后，replay()时播放旧流
+
+## xgplayer-hls@next.9
+fix: (hls) 直播刷新m3u8失败不对外emit error
+feat: (hls) add noaudiotrack event
+fix: (xgvideo) 兼容音频metadata change
+feat: (hls & flv) 去掉sourcemap
+
+## xgplayer-hls@next.8
+>feat: (flv & hls) 过滤G711音频，当做无音频流播放
+>feat: (mp4-new) isSupported()判断逻辑调整, 发布 next.1
+
+## xgplayer-hls@next.7
+>* fix: (flv & hls) safari下直播 pip失效, video duration设置成Infinity safair下有问题
+>* feat: (xgplayer-livevideo) 软解适配encrypted-mp4、点播seek优化、 `6-2之后改成发内部包`
+
+## xgplayer-hls@next.6-3
+>* fix: (flv & hls) isSupported()判断逻辑调整
+
+
+## xgplayer-hls@next.6
+>* feat: (xgplayer-livevideo) seek精准度优化
+>* feat: (xgplayer-livevideo) support pass decoder url
+>* feat: (xgplayer-hls) add seiintime event
+>* feat: (xgplayer-hls) 支持设置外部解密模块
+>* fix: (hls & flv) changeDefinition
+>* fix: (xgplayer-hls) load events not emit
+>* fix: (xgplayer-hls, livevideo) degrade not work
+
+
+## xgplayer-hls@next.5
+>* feat: (xgplayer-hls) 对外emit的sei信息 originPts统一成ms为单位
+>* feat:(flv & hls) 错误码最终版
+>* fix: (hls & flv) chrome兼容v50以下版本
+
+## xgplayer-hls@next.4
+>* feat: (xgplayer-hls) 音视频分离 & fmp4 软解 & 提取 h265 流信息
+>* feat: (xgplayer-hls) 重拉流时刷新主 m3u8 文件
+>* fix:  (xgplayer-hls) 音视频未分离时 fmp4 音频 codec 字符串没找到
+>* fix:  (xgplayer-streaming-shared) fmp4 moof中解析不到defaultDuration，默认值计算
+
+## xgplayer-hls@next.3
+>* feat: (hls & flv) add baseDts to live core
+
+
+## xgplayer-hls@next.2
+>* feat: (xgplayer-hls) hls preloadTime 参数设置为 30 秒
+>* feat: (xgplayer-hls) 可配置最大播放列表分片数量 & 修复空m3u8会丢失第一个分片
+

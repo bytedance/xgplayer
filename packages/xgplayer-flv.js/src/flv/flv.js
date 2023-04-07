@@ -80,7 +80,7 @@ Object.defineProperty(flvjs, 'version', {
     enumerable: true,
     get: function () {
         // replaced by browserify-versionify transform
-        return '__VERSION__';
+        return __VERSION__;
     }
 });
 

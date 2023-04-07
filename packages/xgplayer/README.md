@@ -44,7 +44,7 @@ it can be staged loading for that does not support streaming mp4. This means sea
 
     const player = new Player({
         id: 'vs',
-        url: 'https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
+        url: 'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
     })
     ```
 
@@ -61,7 +61,7 @@ The following is how to use a self-starting plug-in：
 
 ```js
 import Player from 'xgplayer';
-import 'xgplayer-mp4';
+import 'xgplyaer-mp4';
 
 const player = new Player({
     id: 'video',

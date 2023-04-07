@@ -1,0 +1,19 @@
+
+<svg width="46px" height="48px" viewBox="0 0 46 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <path d="M37.0323169,28.798772 C39.6560242,25.9961024 39.6560242,22.0177165 37.0315376,19.2151067 C32.062252,13.908557 25.6809859,10.028742 18.5160719,8.22716155 C15.0325864,7.35180824 11.5771765,9.01986271 10.4791176,12.9963836 C9.38105859,16.9729044 9,20.1671746 9,23.975446 C9,27.8079431 9.41232265,31.1157397 10.4978208,35.0215327 C11.583319,38.9273257 15.1120753,40.644305 18.5355545,39.781872 C25.6934548,37.9786765 32.0684263,34.1012482 37.0323169,28.798772 Z" id="path-1"></path>
+        <filter x="-40.0%" y="-37.5%" width="180.0%" height="175.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.38 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="组件库" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/48/play" transform="translate(-1.000000, 0.000000)">
+            <g id="Fill-5">
+                <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-1"></use>
+            </g>
+        </g>
+    </g>
+</svg>

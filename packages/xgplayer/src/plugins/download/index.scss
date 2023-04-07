@@ -1,0 +1,22 @@
+.xgplayer {
+  .xgplayer-download {
+    position: relative;
+    // order: 9;
+    display: block;
+    cursor: pointer;
+  }
+}
+.lang-is-en {
+  .xgplayer-download {
+    .xgplayer-tips {
+      margin-left: -32px;
+    }
+  }
+}
+.lang-is-jp {
+  .xgplayer-download {
+    .xgplayer-tips {
+      margin-left: -40px;
+    }
+  }
+}

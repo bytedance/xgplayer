@@ -1,0 +1,19 @@
+.xgplayer {
+  .xgplayer-cssfullscreen {
+    .xg-get-cssfull {
+      display: block;
+    }
+    .xg-exit-cssfull {
+      display: none;
+    }
+  
+    &[data-state=full] {
+      .xg-get-cssfull{
+        display: none;
+      }
+      .xg-exit-cssfull {
+        display: block;
+      }
+    }
+  }
+}

@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html style="font-size: 48px;">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=device-width,viewport-fit=contain,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+  <meta name="referrer" content="no-referrer">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>西瓜播放器-MP4视频</title>
+  <link rel="stylesheet" href="../layout.css">
+  <style>
+    body {
+      overflow-x: hidden;
+
+      width: 100%;
+    }
+
+    * {
+      margin: 0;
+    }
+
+    #wrapper {
+      margin-bottom: 20px;
+      /* overflow: hidden; */
+
+      background: #ff9500;
+    }
+
+    .space1,
+    .space {
+      /* overflow: hidden; */
+      font-size: 24px;
+      line-height: 40px;
+      /* overflow: hidden; */
+
+      width: 100%;
+      height: 40px;
+      margin-top: 10px;
+
+      text-align: center;
+    }
+
+    .form {
+      padding: 0 5px;
+    }
+
+    .form h2 {
+      line-height: 30px;
+
+      height: 30px;
+      margin-top: 15px;
+      margin-bottom: 10px;
+    }
+
+    .item {
+      line-height: 30px;
+
+      position: relative;
+
+      display: inline-block;
+
+      width: 250px;
+      height: 30px;
+      margin-bottom: 10px;
+      margin-left: 40px;
+      padding: 0 20px;
+      /* border: solid 1px rgb(152, 154, 152); */
+
+      background-color: #f5f3f0;
+    }
+
+    .item label {
+      display: inline-block;
+
+      margin-right: 10px;
+    }
+
+    .item label.check {
+      width: 100px;
+    }
+
+    .item input {
+      line-height: 24px;
+
+      position: absolute;
+      top: 3px;
+      /* width: 200px; */
+
+      height: 24px;
+      padding: 0 5px;
+
+      color: #5d5757;
+      border-width: 0;
+    }
+
+    .item input[type='checkbox'i] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn {
+      font-size: 16px;
+
+      display: block;
+
+      width: 150px;
+      height: 30px;
+      margin-bottom: 20px;
+      margin-left: 50%;
+
+      transform: translateX(-50%);
+
+      border: 1px solid #d9cdcd;
+      background: #83cad8;
+    }
+
+    .operator {
+      margin-top: 20px;
+      padding: 0 20px;
+    }
+
+    .operator .o-btn {
+      line-height: 24px;
+
+      display: inline-block;
+
+      width: 80px;
+      height: 24px;
+      margin: 5px 10px;
+
+      text-align: center;
+
+      border: 1px solid #5d5757;
+    }
+
+    .xgplayer .gradient::after {
+      position: absolute;
+      bottom: 0;
+
+      width: 100%;
+      height: 40px;
+
+      content: '';
+
+      background: linear-gradient(0deg,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, .738) 19%,
+          rgba(0, 0, 0, .541) 34%,
+          rgba(0, 0, 0, .382) 47%,
+          rgba(0, 0, 0, .278) 56.5%,
+          rgba(0, 0, 0, .194) 65%,
+          rgba(0, 0, 0, .126) 73%,
+          rgba(0, 0, 0, .075) 80.2%,
+          rgba(0, 0, 0, .042) 86.1%,
+          rgba(0, 0, 0, .021) 91%,
+          rgba(0, 0, 0, .008) 95.2%,
+          rgba(0, 0, 0, .002) 98.2%,
+          rgba(0, 0, 0, 0) 100%);
+    }
+
+    .xgplayer .gradient::before {
+      position: absolute;
+      top: 0;
+
+      width: 100%;
+      height: 40px;
+
+      content: '';
+
+      background: linear-gradient(180deg,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, .738) 19%,
+          rgba(0, 0, 0, .541) 34%,
+          rgba(0, 0, 0, .382) 47%,
+          rgba(0, 0, 0, .278) 56.5%,
+          rgba(0, 0, 0, .194) 65%,
+          rgba(0, 0, 0, .126) 73%,
+          rgba(0, 0, 0, .075) 80.2%,
+          rgba(0, 0, 0, .042) 86.1%,
+          rgba(0, 0, 0, .021) 91%,
+          rgba(0, 0, 0, .008) 95.2%,
+          rgba(0, 0, 0, .002) 98.2%,
+          rgba(0, 0, 0, 0) 100%);
+    }
+
+    .name {
+      color: red;
+      font-weight: 600;
+    }
+
+    /* xg-text-track  {background-image: linear-gradient(to bottom, dimgray, lightgray);color: papayawhip;} 
+    xg-text-track b {background-color: yellow;} */
+
+    /* .xgplayer xg-text-track{
+                                  position: absolute;
+                                  bottom: 30px;
+                                  color: #fff;
+                                  left: 20px;
+                                  right: 20px;
+                                }
+                                .xgplayer xg-text-track p {
+                                  line-height: 24px;
+                                  text-align: center;
+                                } */
+  </style>
+  <!-- <link rel="stylesheet" href="../../packages/xgplayer/dist/xgplayer.css"> -->
+  <script src="https://s3.pstatp.com/toutiao/videoarch-fe/vconsole.min.js"></script>
+</head>
+
+<body>
+  <section id="wrapper" class="player-container">
+    <div class="space">autoplayMuted</div>
+    <div id="vs1" style="font-size: 16px;">
+    </div>
+    <div class="space">2</div>
+    <!-- <div class="btn" id="js_fullscreen">点击全屏</div>
+      <div class="btn" id="js_fullscreen1">点击全屏1</div>
+      <div class="btn" id="js_fullscreen2">点击全屏2</div> -->
+    <div id="vs2">
+    </div>
+    <div class="space">3</div>
+    <div id="vs3">
+    </div>
+    <div class="space">4</div>
+    <div id="vs4">
+    </div>
+    <div class="space">5</div>
+    <div id="vs5">
+    </div>
+    <div class="space">6</div>
+    <div id="vs6">
+    </div>
+    <div class="space">7</div>
+    <div id="vs7">
+    </div>
+    <div class="space">8</div>
+    <div id="vs8">
+    </div>
+    <div class="space">9</div>
+    <div id="vs9">
+    </div>
+    <div class="space">10</div>
+    <div id="vs10">
+    </div>
+    <div class="space">11</div>
+    <div id="vs11">
+    </div>
+    <div class="space">12</div>
+    <div id="vs12">
+    </div>
+    <div class="space">13</div>
+    <div id="vs13">
+    </div>
+    <div class="space">14</div>
+    <div id="vs14">
+    </div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+    <div class="space">14</div>
+
+    <div class="space">14</div>
+  </section>
+  <script>
+    var PlayIcon = 'sjsjs'
+    var isMobile = navigator.userAgent.toLowerCase().indexOf('mobile') > -1
+    if (navigator.userAgent.toLowerCase().indexOf('mobile') > -1 && location.href.indexOf('vconsole=1') > -1) {
+      var vConsole = new window.VConsole();
+    }
+    function getNewConfig(config, index) {
+      var newConfig = {}
+      for (var key in config) {
+        newConfig[key] = config[key]
+        newConfig.id = 'vs' + (index + 1)
+      }
+      return newConfig
+    }
+    const big_thumbs = [{
+      duration: 435.696,
+      'fext': "jpg",
+      'img_num': 44,
+      'img_url': "http://p3-tt.byteimg.com/origin/2eeef001125bfb83855f6",
+      'img_x_len': 10,
+      'img_x_size': 240,
+      'img_y_len': 5,
+      'img_y_size': 136,
+      'interval': 10,
+      'uri': "2eeef001125bfb83855f6"
+    }]
+    var player = null
+    var player1 = null
+    var config = null
+
+    const text = 'WEBVTT\r\n\r\n1\r\n00:00:00.067 --> 00:00:08.692\r\n的星空外找的有没有这呼吸声深深的绿色湖底存在着什么东京石头架的问你从到底有没有住着仙人\nThe starry sky to find out if there is this breathing sound deep green lake bottom exists what tokyo stone frame of ask you from in the end there is no immortal living\r\n\r\n2\r\n00:00:08.987 --> 00:00:11.543\r\n我们人类是否活在玛雅人的郁梦中\nDo we humans live in the depression of the maya dream\r\n\r\n3\r\n00:00:11.736 --> 00:00:14.503\r\n为什么不安心会有金字塔的文明\nWhy not feel at ease that there will be a pyramid of civilization\r\n\r\n4\r\n00:00:14.816 --> 00:00:17.623\r\n为什么世界上不在有空的存在\nWhy is there no empty existence in the world\r\n\r\n5\r\n00:00:17.976 --> 00:00:20.663\r\n为什么生活里会有梦中的场景\nWhy is there a dream scene in life\r\n\r\n6\r\n00:00:21.016 --> 00:00:23.783\r\n为什么快乐星球让人如此着迷\nWhy is the happy planet so fascinating\r\n\r\n7\r\n00:00:24.136 --> 00:00:25.583\r\n什么是快乐星球\nWhat is the happy planet\r\n\r\n8\r\n00:00:27.138 --> 00:00:28.661\r\n什么是快乐星球\nWhat is the happy planet\r\n\r\n9\r\n00:00:30.258 --> 00:00:34.821\r\n如果你想知道什么是快乐星球的花我现在就带你研究\nIf you want to know what is the flower of the happy planet, I will take you to study now\r\n\r\n10\r\n00:00:36.660 --> 00:00:45.232\r\n的星空外焦的有没有这呼吸声深深的一丝胡笛存在着什么东京石东家的万物从到底有没有住个仙人\nThe starry sky outside the scorched there is no this breathing sound deep a hint of Hu Di exists what tokyo stone east home everything from in the end there is no live a fairy\r\n\r\n11\r\n00:00:45.527 --> 00:00:48.091\r\n我们人类是否活在玛雅人的预谋中\nAre we humans living in the premeditation of the Maya\r\n\r\n12\r\n00:00:48.268 --> 00:00:51.051\r\n为什么不安心会有金字塔的文明\nWhy not feel at ease that there will be a civilization with pyramids\r\n\r\n13\r\n00:00:51.388 --> 00:00:54.171\r\n为什么世界上不再有恐龙的存在\nWhy there are no more dinosaurs in the world\r\n\r\n14\r\n00:00:54.508 --> 00:00:57.251\r\n为什么生活里会有梦中的场景\nWhy there will be scenes in dreams in life\r\n\r\n15\r\n00:00:57.588 --> 00:01:00.331\r\n为什么快乐星球让人如此着迷\nWhy Happy Planet is so fascinating\r\n\r\n16\r\n00:01:00.668 --> 00:01:02.131\r\n什么是快乐星球\nWhat is the happy planet\r\n\r\n17\r\n00:01:03.668 --> 00:01:05.211\r\n什么是快乐星球\nWhat is the happy planet\r\n\r\n18\r\n00:01:06.817 --> 00:01:11.382\r\n如果你想知道什么是快乐星球的花我现在就带你研究\nIf you want to know what is the flower of the happy planet, I will take you to study now\r\n\r\n19\r\n00:01:13.097 --> 00:01:21.782\r\n的星空外找的有没有这呼吸声深深的绿色湖底存在着什么东京石头架的问你从到底有没有度过先人\nThe starry sky to find out if there is this breathing sound deep green lake bottom exists what Tokyo stone shelf of ask you from in the end have not spent ancestors\r\n\r\n20\r\n00:01:22.057 --> 00:01:24.622\r\n我们人类是否活在玛雅人的郁梦中\nAre we humans living in the dream of the Mayans\r\n\r\n21\r\n00:01:24.817 --> 00:01:27.542\r\n为什么不安心会有金字塔的文明\nWhy not feel at ease that there will be a civilization of pyramids\r\n\r\n22\r\n00:01:27.897 --> 00:01:28.902\r\n为什么事\nWhy things\r\n\r\n"'
+    // var _url = URL.createObjectURL(text)
+    var blob = new Blob([text], { type: 'text/vtt; charset=UTF-8' });
+    var url = URL.createObjectURL(blob)
+    function initPlayer() {
+      config = {
+        id: "vs1",
+        url: './assets/test1.mp4', // 'https://internal-api-drive-stream.feishu-pre.cn/space/api/box/stream/download/all/boxcnBQqV9SeFJE7LPnstLJyEGe', // '../media/demo1.mp4',
+        poster: "https://tosv.boe.byted.org/obj/web-business-image/202012015d0dc56f8a796e014b54aef1",
+        playsinline: true,
+        x5VideoPlayerType: 'h5-page',
+        videoInit: true,
+        autoplay: true,
+        autoplayMuted: true,
+        // closeVideoClick: true,
+        closePlayVideoFocus: true,
+        closePauseVideoFocus: true,
+        closeFocusVideoFocus: false,
+        inactive: 3000,
+        progressBarSpots: {
+          ispots: [{
+            time: 27,
+            text: '打点处的自定义文案',
+            id: 1,
+            duration: 1,
+            color: '#fff',
+            style: {}
+          }, {
+            time: 80,
+            text: '打点处的自定义文案222',
+            id: 2,
+            duration: 1, // 进度条标识点的时长 默认1s【可选】单位为s
+            color: '#fff', // 进度条标识点的显示颜色【可选】
+            style: {} // 指定样式
+          }]
+        },
+        // 播放器起搏时间
+        startTime: 0,
+        // fitVideoSize: "fixWidth",
+        fluid: false,
+        width: '100%', // window.innerWidth,26
+        height: isMobile ? 211 : window.innerWidth * 9 / 16,
+        ignores: navigator.userAgent.indexOf('Mobile') > -1 ? ['definition', 'cssfullscreen'] : [],
+        controls: {
+          mode: location.href.indexOf('flex') > 0 ? "flex" : "normal"
+        },
+        start: {
+          // disableAnimate: true,
+          // mode: 'hide'
+        },
+        progress: {
+          isDragingSeek: true
+        },
+        controls: {
+          mode: 'flex'
+        },
+        miniscreen: {
+          isScrollSwitch: true
+        },
+        pip: true,
+        debug: true,
+        needFullsreenScroll: true
+      }
+      player = new Player(config)//getNewConfig(config, 0))
+      player.usePluginHooks('error', 'errorHandler', (error) => {
+        // error.message = '这是我自定义的显示文案'
+        console.log('errorHandler', error)
+        return error
+      })
+      subTitle && subTitle.attachPlayer(player)
+    }
+
+    var _list = [
+      {
+        "start": 0.067,
+        "end": 8.692,
+        "time": "00:00:00.067-->00:00:08.692",
+        "text": [
+          "的星空外找的有没有这呼吸声深深的绿色湖底存在着什么东京石头架的问你从到底有没有住着仙人",
+          "The starry sky to find out if there is this breathing sound deep green lake bottom exists what tokyo stone frame of ask you from in the end there is no immortal livingr"
+        ]
+      },
+      {
+        "start": 8.987,
+        "end": 11.543,
+        "time": "00:00:08.987-->00:00:11.543",
+        "text": [
+          "我们人类是否活在玛雅人的郁梦中",
+          "Do we humans live in the depression of the maya dreamr"
+        ]
+      },
+      {
+        "start": 11.736,
+        "end": 14.503,
+        "time": "00:00:11.736-->00:00:14.503",
+        "text": [
+          "为什么不安心会有金字塔的文明",
+          "Why not feel at ease that there will be a pyramid of civilizationr"
+        ]
+      },
+      {
+        "start": 14.816,
+        "end": 17.623,
+        "time": "00:00:14.816-->00:00:17.623",
+        "text": [
+          "为什么世界上不在有空的存在",
+          "Why is there no empty existence in the worldr"
+        ]
+      },
+      {
+        "start": 17.976,
+        "end": 20.663,
+        "time": "00:00:17.976-->00:00:20.663",
+        "text": [
+          "为什么生活里会有梦中的场景",
+          "Why is there a dream scene in lifer"
+        ]
+      },
+      {
+        "start": 21.016,
+        "end": 23.783,
+        "time": "00:00:21.016-->00:00:23.783",
+        "text": [
+          "为什么快乐星球让人如此着迷",
+          "Why is the happy planet so fascinatingr"
+        ]
+      },
+      {
+        "start": 24.136,
+        "end": 25.583,
+        "time": "00:00:24.136-->00:00:25.583",
+        "text": [
+          "什么是快乐星球",
+          "What is the happy planetr"
+        ]
+      },
+      {
+        "start": 27.138,
+        "end": 28.661,
+        "time": "00:00:27.138-->00:00:28.661",
+        "text": [
+          "什么是快乐星球",
+          "What is the happy planetr"
+        ]
+      },
+      {
+        "start": 30.258,
+        "end": 34.821,
+        "time": "00:00:30.258-->00:00:34.821",
+        "text": [
+          "如果你想知道什么是快乐星球的花我现在就带你研究",
+          "If you want to know what is the flower of the happy planet, I will take you to study nowr"
+        ]
+      },
+      {
+        "start": 36.66,
+        "end": 45.232,
+        "time": "00:00:36.660-->00:00:45.232",
+        "text": [
+          "的星空外焦的有没有这呼吸声深深的一丝胡笛存在着什么东京石东家的万物从到底有没有住个仙人",
+          "The starry sky outside the scorched there is no this breathing sound deep a hint of Hu Di exists what tokyo stone east home everything from in the end there is no live a fairyr"
+        ]
+      },
+      {
+        "start": 45.527,
+        "end": 48.091,
+        "time": "00:00:45.527-->00:00:48.091",
+        "text": [
+          "我们人类是否活在玛雅人的预谋中",
+          "Are we humans living in the premeditation of the Mayar"
+        ]
+      },
+      {
+        "start": 48.268,
+        "end": 51.051,
+        "time": "00:00:48.268-->00:00:51.051",
+        "text": [
+          "为什么不安心会有金字塔的文明",
+          "Why not feel at ease that there will be a civilization with pyramidsr"
+        ]
+      },
+      {
+        "start": 51.388,
+        "end": 54.171,
+        "time": "00:00:51.388-->00:00:54.171",
+        "text": [
+          "为什么世界上不再有恐龙的存在",
+          "Why there are no more dinosaurs in the worldr"
+        ]
+      },
+      {
+        "start": 54.508,
+        "end": 57.251,
+        "time": "00:00:54.508-->00:00:57.251",
+        "text": [
+          "为什么生活里会有梦中的场景",
+          "Why there will be scenes in dreams in lifer"
+        ]
+      },
+      {
+        "start": 57.588,
+        "end": 60.331,
+        "time": "00:00:57.588-->00:01:00.331",
+        "text": [
+          "为什么快乐星球让人如此着迷",
+          "Why Happy Planet is so fascinatingr"
+        ]
+      },
+      {
+        "start": 60.668,
+        "end": 62.131,
+        "time": "00:01:00.668-->00:01:02.131",
+        "text": [
+          "什么是快乐星球",
+          "What is the happy planetr"
+        ]
+      },
+      {
+        "start": 63.668,
+        "end": 65.211,
+        "time": "00:01:03.668-->00:01:05.211",
+        "text": [
+          "什么是快乐星球",
+          "What is the happy planetr"
+        ]
+      },
+      {
+        "start": 66.817,
+        "end": 71.382,
+        "time": "00:01:06.817-->00:01:11.382",
+        "text": [
+          "如果你想知道什么是快乐星球的花我现在就带你研究",
+          "If you want to know what is the flower of the happy planet, I will take you to study nowr"
+        ]
+      },
+      {
+        "start": 73.097,
+        "end": 81.782,
+        "time": "00:01:13.097-->00:01:21.782",
+        "text": [
+          "的星空外找的有没有这呼吸声深深的绿色湖底存在着什么东京石头架的问你从到底有没有度过先人",
+          "The starry sky to find out if there is this breathing sound deep green lake bottom exists what Tokyo stone shelf of ask you from in the end have not spent ancestorsr"
+        ]
+      },
+      {
+        "start": 82.057,
+        "end": 84.622,
+        "time": "00:01:22.057-->00:01:24.622",
+        "text": [
+          "我们人类是否活在玛雅人的郁梦中",
+          "Are we humans living in the dream of the Mayansr"
+        ]
+      },
+      {
+        "start": 84.817,
+        "end": 87.542,
+        "time": "00:01:24.817-->00:01:27.542",
+        "text": [
+          "为什么不安心会有金字塔的文明",
+          "Why not feel at ease that there will be a civilization of pyramidsr"
+        ]
+      },
+      {
+        "start": 87.897,
+        "end": 88.902,
+        "time": "00:01:27.897-->00:01:28.902",
+        "text": [
+          "为什么事",
+          "Why things"
+        ]
+      }
+    ]
+
+    var _lis1 = JSON.parse("[{\"start\":6.47,\"end\":165.52,\"list\":[{\"start\":6.47,\"end\":6.89,\"time\":\"00:00:06.470-->00:00:06.890\",\"text\":[\"<c class=\\\"highlight\\\">你好，</c>\\r\"],\"textTag\":[\"\"]},{\"start\":7,\"end\":9.09,\"time\":\"00:00:07.000-->00:00:09.090\",\"text\":[\"我是Brian Caris Epic<br />公司的图形技术总监\\r\"],\"textTag\":[\"\"]},{\"start\":9.19,\"end\":9.53,\"time\":\"00:00:09.190-->00:00:09.530\",\"text\":[\"游戏。\\r\"],\"textTag\":[\"default\"]},{\"start\":9.63,\"end\":13.13,\"time\":\"00:00:09.630-->00:00:13.130\",\"text\":[\"<c class=\\\"highlight\\\">嗨，我是特<b>殊项目的<c class=\\\"red\\\">普通</c>高原对象</b>。</c>\\r\"],\"textTag\":[\"\"]},{\"start\":13.89,\"end\":14.49,\"time\":\"00:00:13.890-->00:00:14.490\",\"text\":[\"几年前，\\r\"],\"textTag\":[\"default\"]},{\"start\":14.59,\"end\":17.09,\"time\":\"00:00:14.590-->00:00:17.090\",\"text\":[\"我们团结一心，头脑风暴后才想到\\r\"],\"textTag\":[\"default\"]},{\"start\":17.19,\"end\":20.09,\"time\":\"00:00:17.190-->00:00:20.090\",\"text\":[\"<c class=\\\"highlight\\\">我们可以推动实时图形技术的发展</c>。\\r\"],\"textTag\":[\"\"]},{\"start\":20.19,\"end\":23.54,\"time\":\"00:00:20.190-->00:00:23.540\",\"text\":[\"有两个关键的领域最突出的第一\\r\"],\"textTag\":[\"default\"]},{\"start\":26.83,\"end\":28.82,\"time\":\"00:00:26.830-->00:00:28.820\",\"text\":[\"瞬间跳动。\\r\"],\"textTag\":[\"default\"],\"index\":8},{\"start\":28.92,\"end\":34.41,\"time\":\"00:00:28.920-->00:00:34.410\",\"text\":[\"我不需要被强迫去做一个世界必须是静止的游戏。 <br/>我很好地利用了它的速度快得多。\\r\"],\"textTag\":[\"default\"],\"index\":9},{\"start\":34.51,\"end\":36.72,\"time\":\"00:00:34.510-->00:00:36.720\",\"text\":[\"我们称这个新系统为流明。\\r\"],\"textTag\":[\"default\"],\"index\":10},{\"start\":36.82,\"end\":39.73,\"time\":\"00:00:36.820-->00:00:39.730\",\"text\":[\"我们要向你展示我们的能力。\\r\"],\"textTag\":[\"default\"],\"index\":11},{\"start\":39.83,\"end\":40.28,\"time\":\"00:00:39.830-->00:00:40.280\",\"text\":[\"但首先，\\r\"],\"textTag\":[\"default\"],\"index\":12},{\"start\":40.38,\"end\":43.19,\"time\":\"00:00:40.380-->00:00:43.190\",\"text\":[\"我们认为还有一个领域我们可以推动\\r\"],\"textTag\":[\"default\"],\"index\":13},{\"start\":43.29,\"end\":45.01,\"time\":\"00:00:43.290-->00:00:45.010\",\"text\":[\"前进，真正高尚的几何学。\\r\"],\"textTag\":[\"default\"],\"index\":14},{\"start\":45.11,\"end\":48.37,\"time\":\"00:00:45.110-->00:00:48.370\",\"text\":[\"艺术家不必担心波莉的计数。\\r\"],\"textTag\":[\"default\"],\"index\":15},{\"start\":48.55,\"end\":49.81,\"time\":\"00:00:48.550-->00:00:49.810\",\"text\":[\"打个电话或者回忆一下，\\r\"],\"textTag\":[\"default\"],\"index\":16},{\"start\":49.91,\"end\":54.7,\"time\":\"00:00:49.910-->00:00:54.700\",\"text\":[\"直接使用胶片质量资产并将其直接带入引擎。\\r\"],\"textTag\":[\"default\"],\"index\":17},{\"start\":54.8,\"end\":56.43,\"time\":\"00:00:54.800-->00:00:56.430\",\"text\":[\"这对我来说是件大事。\\r\"],\"textTag\":[\"default\"]},{\"start\":56.53,\"end\":59.18,\"time\":\"00:00:56.530-->00:00:59.180\",\"text\":[\"我只想把我的斑马模型，\\r\"],\"textTag\":[\"default\"]},{\"start\":59.28,\"end\":60.97,\"time\":\"00:00:59.280-->00:01:00.970\",\"text\":[\"我的摄影扫描我的加拿大，\\r\"],\"textTag\":[\"default\"]},{\"start\":61.07,\"end\":64.16,\"time\":\"00:01:01.070-->00:01:04.160\",\"text\":[\"不浪费任何时间优化创造过敏，\\r\"],\"textTag\":[\"default\"]},{\"start\":64.26,\"end\":67.41,\"time\":\"00:01:04.260-->00:01:07.410\",\"text\":[\"或者甚至降低质量以使其撞击框架。 对吧？\\r\"],\"textTag\":[\"default\"]},{\"start\":67.51,\"end\":70.88,\"time\":\"00:01:07.510-->00:01:10.880\",\"text\":[\"最后. 这就是它的意义所在。 很有效果的艺术。\\r\"],\"textTag\":[\"default\"]},{\"start\":71.08,\"end\":73.43,\"time\":\"00:01:11.080-->00:01:13.430\",\"text\":[\"我们称之为新技术。 奶妈。\\r\"],\"textTag\":[\"default\"]},{\"start\":73.53,\"end\":78.09,\"time\":\"00:01:13.530-->00:01:18.090\",\"text\":[\"这是未来不真实的引擎运行在一个PlayStation <br/>5现场。\\r\"],\"textTag\":[\"default\"]},{\"start\":78.19,\"end\":80.12,\"time\":\"00:01:18.190-->00:01:20.120\",\"text\":[\"太棒了。 让我们来看一看。\\r\"],\"textTag\":[\"default\"]},{\"start\":82.83,\"end\":84.45,\"time\":\"00:01:22.830-->00:01:24.450\",\"text\":[\"一定要用正确的方法。\\r\"],\"textTag\":[\"default\"]},{\"start\":101.24,\"end\":102.04,\"time\":\"00:01:41.240-->00:01:42.040\",\"text\":[\"在我们继续之前，\\r\"],\"textTag\":[\"default\"]},{\"start\":102.14,\"end\":105.6,\"time\":\"00:01:42.140-->00:01:45.600\",\"text\":[\"让我们停一下，看看这个演示的一些关键特性。\\r\"],\"textTag\":[\"default\"]},{\"start\":106.13,\"end\":109.15,\"time\":\"00:01:46.130-->00:01:49.150\",\"text\":[\"你所看到的大部分都是用像素级的扫描资源构建的<br/>。\\r\"],\"textTag\":[\"default\"]},{\"start\":109.25,\"end\":111.27,\"time\":\"00:01:49.250-->00:01:51.270\",\"text\":[\"但是代替使用游戏版本，\\r\"],\"textTag\":[\"default\"]},{\"start\":111.37,\"end\":112.95,\"time\":\"00:01:51.370-->00:01:52.950\",\"text\":[\"我们使用电影版本，\\r\"],\"textTag\":[\"default\"]},{\"start\":113.05,\"end\":115.4,\"time\":\"00:01:53.050-->00:01:55.400\",\"text\":[\"其通常仅用于薄膜中。\\r\"],\"textTag\":[\"default\"]},{\"start\":115.5,\"end\":117.88,\"time\":\"00:01:55.500-->00:01:57.880\",\"text\":[\"它们每个大约有一百万个三角形。\\r\"],\"textTag\":[\"default\"]},{\"start\":118.13,\"end\":119.84,\"time\":\"00:01:58.130-->00:01:59.840\",\"text\":[\"感谢虚拟纹理。\\r\"],\"textTag\":[\"default\"]},{\"start\":119.94,\"end\":122.04,\"time\":\"00:01:59.940-->00:02:02.040\",\"text\":[\"它们也都使用8 k纹理。\\r\"],\"textTag\":[\"default\"]},{\"start\":122.14,\"end\":128.93,\"time\":\"00:02:02.140-->00:02:08.930\",\"text\":[\"然后我可以非常快的绘制出大量的三角形，有超过<br/>十亿的三角形的源几何。\\r\"],\"textTag\":[\"default\"]},{\"start\":129.03,\"end\":134.93,\"time\":\"00:02:09.030-->00:02:14.930\",\"text\":[\"在每一帧中，nano缓慢下降到大约2000万个绘制三<br/>角形。\\r\"],\"textTag\":[\"default\"]},{\"start\":135.92,\"end\":138.05,\"time\":\"00:02:15.920-->00:02:18.050\",\"text\":[\"那么多三角形是什么样子的？\\r\"],\"textTag\":[\"default\"]},{\"start\":138.51,\"end\":139.76,\"time\":\"00:02:18.510-->00:02:19.760\",\"text\":[\"不是噪音。\\r\"],\"textTag\":[\"default\"]},{\"start\":140.02,\"end\":141.28,\"time\":\"00:02:20.020-->00:02:21.280\",\"text\":[\"这些是三角形。\\r\"],\"textTag\":[\"default\"]},{\"start\":141.38,\"end\":144.65,\"time\":\"00:02:21.380-->00:02:24.650\",\"text\":[\"每种颜色都很小，看起来都像\\r\"],\"textTag\":[\"default\"]},{\"start\":144.75,\"end\":145.05,\"time\":\"00:02:24.750-->00:02:25.050\",\"text\":[\"噪音。\\r\"],\"textTag\":[\"default\"]},{\"start\":145.15,\"end\":147.38,\"time\":\"00:02:25.150-->00:02:27.380\",\"text\":[\"然后我实现了像素的细节，\\r\"],\"textTag\":[\"default\"]},{\"start\":147.48,\"end\":150.47,\"time\":\"00:02:27.480-->00:02:30.470\",\"text\":[\"这意味着<b>三角形</b>通常是像素的大小。\\r\"],\"textTag\":[\"\"]},{\"start\":150.81,\"end\":156.31,\"time\":\"00:02:30.810-->00:02:36.310\",\"text\":[\"这种数量的几何细节需要阴影像素精度以及。 <br/>我也能做到这一点。\\r\"],\"textTag\":[\"default\"]},{\"start\":157.18,\"end\":158.67,\"time\":\"00:02:37.180-->00:02:38.670\",\"text\":[\"说到灯光，\\r\"],\"textTag\":[\"default\"]},{\"start\":158.77,\"end\":161.47,\"time\":\"00:02:38.770-->00:02:41.470\",\"text\":[\"本演示中的所有照明都是完全动态的\\r\"],\"textTag\":[\"default\"]},{\"start\":161.57,\"end\":165.52,\"time\":\"00:02:41.570-->00:02:45.520\",\"text\":[\"与流明的力量，甚至包括多重反弹全球照明。\\r\"],\"textTag\":[\"default\"]}]},{\"start\":165.71,\"end\":456.39,\"list\":[{\"start\":165.71,\"end\":168.4,\"time\":\"00:02:45.710-->00:02:48.400\",\"text\":[\"不用地图，也不用烤东西。\\r\"],\"textTag\":[\"default\"]},{\"start\":168.5,\"end\":169.72,\"time\":\"00:02:48.500-->00:02:49.720\",\"text\":[\"没有GI\\r\"],\"textTag\":[\"default\"]},{\"start\":169.82,\"end\":171.86,\"time\":\"00:02:49.820-->00:02:51.860\",\"text\":[\"所有那些美丽的灯光都消失了。\\r\"],\"textTag\":[\"default\"]},{\"start\":172.23,\"end\":173.15,\"time\":\"00:02:52.230-->00:02:53.150\",\"text\":[\"启用流明后，\\r\"],\"textTag\":[\"default\"]},{\"start\":173.25,\"end\":176.28,\"time\":\"00:02:53.250-->00:02:56.280\",\"text\":[\"我们可以移动灯光和边界立即改变。\\r\"],\"textTag\":[\"default\"]},{\"start\":178.96,\"end\":180.3,\"time\":\"00:02:58.960-->00:03:00.300\",\"text\":[\"好让我们继续，\\r\"],\"textTag\":[\"default\"]},{\"start\":189.08,\"end\":192.28,\"time\":\"00:03:09.080-->00:03:12.280\",\"text\":[\"我们的音频系统也有了很大的改进。\\r\"],\"textTag\":[\"default\"]},{\"start\":192.38,\"end\":195.25,\"time\":\"00:03:12.380-->00:03:15.250\",\"text\":[\"卷积混响允许我们测量混响\\r\"],\"textTag\":[\"default\"]},{\"start\":195.35,\"end\":197.01,\"time\":\"00:03:15.350-->00:03:17.010\",\"text\":[\"真实空间的特征，\\r\"],\"textTag\":[\"default\"]},{\"start\":197.11,\"end\":201.05,\"time\":\"00:03:17.110-->00:03:21.050\",\"text\":[\"就像我们在虚拟空间中采样和复制的真实洞穴。\\r\"],\"textTag\":[\"default\"]},{\"start\":201.4,\"end\":204.94,\"time\":\"00:03:21.400-->00:03:24.940\",\"text\":[\"声场渲染允许我们进行记录和回放，\\r\"],\"textTag\":[\"default\"]},{\"start\":205.04,\"end\":206.3,\"time\":\"00:03:25.040-->00:03:26.300\",\"text\":[\"专门的音频。\\r\"],\"textTag\":[\"default\"]},{\"start\":213.03,\"end\":215.92,\"time\":\"00:03:33.030-->00:03:35.920\",\"text\":[\"所有这些加在一起就是一种更令人陶醉的经历。\\r\"],\"textTag\":[\"default\"]},{\"start\":226.98,\"end\":227.9,\"time\":\"00:03:46.980-->00:03:47.900\",\"text\":[\"嗯\\r\"],\"textTag\":[\"default\"]},{\"start\":231.76,\"end\":235.2,\"time\":\"00:03:51.760-->00:03:55.200\",\"text\":[\"这种形式的蝙蝠是由尼亚加拉效应系统创造的。\\r\"],\"textTag\":[\"default\"]},{\"start\":235.79,\"end\":240.82,\"time\":\"00:03:55.790-->00:04:00.820\",\"text\":[\"尼亚加拉的粒子现在可以彼此对话，并且前所未有<br/>地了解环境。\\r\"],\"textTag\":[\"default\"]},{\"start\":247.44,\"end\":253.11,\"time\":\"00:04:07.440-->00:04:13.110\",\"text\":[\"它还增加了大量的新功能来运行流体模拟，就像你<br/>在下面的水中看到的那样。\\r\"],\"textTag\":[\"default\"]},{\"start\":266.64,\"end\":269.14,\"time\":\"00:04:26.640-->00:04:29.140\",\"text\":[\"演示在我们的混沌物理系统上运行。\\r\"],\"textTag\":[\"default\"]},{\"start\":269.24,\"end\":273.68,\"time\":\"00:04:29.240-->00:04:33.680\",\"text\":[\"在这里我们用它来精确地模拟落石的刚体\\r\"],\"textTag\":[\"default\"]},{\"start\":273.78,\"end\":275.34,\"time\":\"00:04:33.780-->00:04:35.340\",\"text\":[\"以及她围巾上的布料。\\r\"],\"textTag\":[\"default\"]},{\"start\":293.85,\"end\":295.95,\"time\":\"00:04:53.850-->00:04:55.950\",\"text\":[\"既然环境如此复杂，\\r\"],\"textTag\":[\"default\"]},{\"start\":296.05,\"end\":299.26,\"time\":\"00:04:56.050-->00:04:59.260\",\"text\":[\"我们需要大大改进我们的动画系统以适应\\r\"],\"textTag\":[\"default\"]},{\"start\":299.44,\"end\":302.58,\"time\":\"00:04:59.440-->00:05:02.580\",\"text\":[\"加上预测替换和运动变形，\\r\"],\"textTag\":[\"default\"]},{\"start\":302.68,\"end\":306.79,\"time\":\"00:05:02.680-->00:05:06.790\",\"text\":[\"动态修改ik和身体位置，使其看起来更自然\\r\"],\"textTag\":[\"default\"]},{\"start\":307.03,\"end\":309.77,\"time\":\"00:05:07.030-->00:05:09.770\",\"text\":[\"使角色能更真实地与\\r\"],\"textTag\":[\"default\"]},{\"start\":309.87,\"end\":310.4,\"time\":\"00:05:09.870-->00:05:10.400\",\"text\":[\"环境。\\r\"],\"textTag\":[\"default\"]},{\"start\":310.5,\"end\":315.87,\"time\":\"00:05:10.500-->00:05:15.870\",\"text\":[\"我们已经添加了触发无缝上下文动画事件的能力，<br/>比如她的手在门上承诺。\\r\"],\"textTag\":[\"default\"]},{\"start\":320.62,\"end\":324,\"time\":\"00:05:20.620-->00:05:24.000\",\"text\":[\"动态pi是惊人的，不仅仅是为了加速迭代，\\r\"],\"textTag\":[\"default\"]},{\"start\":324.1,\"end\":326.37,\"time\":\"00:05:24.100-->00:05:26.370\",\"text\":[\"也因为它对游戏的影响。\\r\"],\"textTag\":[\"default\"]},{\"start\":327.3,\"end\":331.14,\"time\":\"00:05:27.300-->00:05:31.140\",\"text\":[\"任何光源都可以移动，还会有漂亮的反弹灯光。\\r\"],\"textTag\":[\"default\"]},{\"start\":331.92,\"end\":334.28,\"time\":\"00:05:31.920-->00:05:34.280\",\"text\":[\"动态照明也意味着镜面反射，\\r\"],\"textTag\":[\"default\"]},{\"start\":334.38,\"end\":336.9,\"time\":\"00:05:34.380-->00:05:36.900\",\"text\":[\"你可以在所有的金属表面看到。\\r\"],\"textTag\":[\"default\"]},{\"start\":337,\"end\":340.34,\"time\":\"00:05:37.000-->00:05:40.340\",\"text\":[\"你甚至可以看到尼亚加拉电的虫子对灯光的反应。\\r\"],\"textTag\":[\"default\"]},{\"start\":342.6,\"end\":345.21,\"time\":\"00:05:42.600-->00:05:45.210\",\"text\":[\"流明不仅对移动的光源作出反应，\\r\"],\"textTag\":[\"default\"]},{\"start\":345.31,\"end\":347.06,\"time\":\"00:05:45.310-->00:05:47.060\",\"text\":[\"同时也改变了几何形状。\\r\"],\"textTag\":[\"default\"]},{\"start\":355.53,\"end\":357.82,\"time\":\"00:05:55.530-->00:05:57.820\",\"text\":[\"别忘了，我们提到过高保利资产。\\r\"],\"textTag\":[\"default\"]},{\"start\":357.98,\"end\":360.74,\"time\":\"00:05:57.980-->00:06:00.740\",\"text\":[\"这座雕像是直接从Z刷进口的，\\r\"],\"textTag\":[\"default\"]},{\"start\":360.84,\"end\":363.5,\"time\":\"00:06:00.840-->00:06:03.500\",\"text\":[\"超过3300万个三角形。\\r\"],\"textTag\":[\"default\"]},{\"start\":363.6,\"end\":365.26,\"time\":\"00:06:03.600-->00:06:05.260\",\"text\":[\"不烘烤正常的地图。\\r\"],\"textTag\":[\"default\"]},{\"start\":365.36,\"end\":367.1,\"time\":\"00:06:05.360-->00:06:07.100\",\"text\":[\"No authored lo d's.\\r\"],\"textTag\":[\"default\"]},{\"start\":373.63,\"end\":376.08,\"time\":\"00:06:13.630-->00:06:16.080\",\"text\":[\"我们能做的不只是一尊雕像。\\r\"],\"textTag\":[\"default\"]},{\"start\":376.18,\"end\":382.25,\"time\":\"00:06:16.180-->00:06:22.250\",\"text\":[\"在这个房间里有差不多500个同样水平的雕像\\r\"],\"textTag\":[\"default\"]},{\"start\":382.35,\"end\":386.39,\"time\":\"00:06:22.350-->00:06:26.390\",\"text\":[\"光是雕塑就有160多亿个三角形。\\r\"],\"textTag\":[\"default\"]},{\"start\":390.12,\"end\":391.56,\"time\":\"00:06:30.120-->00:06:31.560\",\"text\":[\"在整个演示中，\\r\"],\"textTag\":[\"default\"]},{\"start\":391.66,\"end\":394.78,\"time\":\"00:06:31.660-->00:06:34.780\",\"text\":[\"有数千亿个三角形。\\r\"],\"textTag\":[\"default\"]},{\"start\":415.27,\"end\":418.03,\"time\":\"00:06:55.270-->00:06:58.030\",\"text\":[\"所以你的态度. 你拥有无限的几何学。\\r\"],\"textTag\":[\"default\"]},{\"start\":418.13,\"end\":419.19,\"time\":\"00:06:58.130-->00:06:59.190\",\"text\":[\"加上流明，\\r\"],\"textTag\":[\"default\"]},{\"start\":419.29,\"end\":422.47,\"time\":\"00:06:59.290-->00:07:02.470\",\"text\":[\"你有完全动态的照明和全局照明，\\r\"],\"textTag\":[\"default\"]},{\"start\":422.63,\"end\":425.54,\"time\":\"00:07:02.630-->00:07:05.540\",\"text\":[\"全都运行在PlayStation 5上。\\r\"],\"textTag\":[\"default\"]},{\"start\":454.95,\"end\":456.39,\"time\":\"00:07:34.950-->00:07:36.390\",\"text\":[\"时间不多了。\\r\"],\"textTag\":[\"default\"]}]},{\"start\":457.03,\"end\":511.7,\"list\":[{\"start\":457.03,\"end\":460.12,\"time\":\"00:07:37.030-->00:07:40.120\",\"text\":[\"这不需要被限制在小房间里。\\r\"],\"textTag\":[\"default\"]},{\"start\":460.22,\"end\":462.72,\"time\":\"00:07:40.220-->00:07:42.720\",\"text\":[\"它可以一直延伸到地平线。\\r\"],\"textTag\":[\"default\"]},{\"start\":466.32,\"end\":467.96,\"time\":\"00:07:46.320-->00:07:47.960\",\"text\":[\"入口\\r\"],\"textTag\":[\"default\"]},{\"start\":471.29,\"end\":472.42,\"time\":\"00:07:51.290-->00:07:52.420\",\"text\":[\"别让我失望。\\r\"],\"textTag\":[\"default\"]},{\"start\":509.64,\"end\":511.7,\"time\":\"00:08:29.640-->00:08:31.700\",\"text\":[\"是时候看看接下来会发生什么了。\"],\"textTag\":[\"default\"]}]}]")
+
+    var subTitle = null
+    var options = {
+      player: player,
+      subTitles: [{
+        label: '中文',
+        language: 'cn',
+        id: '0',
+        isDefault: false,
+        url: './subtitle/cn.vtt'
+      }, {
+        label: '英文',
+        language: 'en',
+        id: '1',
+        //  list: _lis1,
+        isDefault: true,
+        //url: 'http://tosv.byted.org/obj/tos-cn-o-0004/0edaf77715f44faebe2e348f5157280a'
+        url: './subtitle/en.vtt'
+        //url: 'http://lf1-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/52ce3882d70941d5b660913cbd83d969'
+        //url: './ass/cn.ass'
+      }],
+      defaultOpen: true,
+      mode: 'stroke',
+      line: 'double',
+      offsetBottom: 10,
+      baseSizeX: 49, // 横向基准字号
+      baseSizeY: 28, // 竖向基准字号, 宽高比例大于1.2视作竖向视频
+      minSize: 16, // 最小字号
+      minMobileSize: 13, // 移动端兜底字号
+      fitVideo: true, // 是否适配视频画面
+      domRender: false
+    }
+
+    function initSubtitle() {
+      subTitle = new window.XgSubtitle(options)
+      subTitle.on('resize', (data) => {
+        console.log('subTitle resize', data)
+      })
+      player && subTitle.attachPlayer(player)
+    }
+
+    function setSubTitles() {
+      var subTitles = [{
+        label: '英文',
+        url: './subtitle/en.vtt',
+        //url: 'http://lf6-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/d04fa4122dac42d69e8233a4dfda82fe',
+        // url: './ass/double.ass',
+        id: '2',
+        isDefault: true,
+        language: 'en'
+      }]
+      subTitle.setSubTitles(subTitles)
+    }
+  </script>
+  <script>
+    var playerLoaded = false
+    var configLoaded = true
+    var sources = [{
+      src: './xgplayer/xgplayer.min.css',
+      type: 'css',
+    }, {
+      src: './xgplayer/index.min.js',
+      type: 'js',
+      onLoad: function () {
+        playerLoaded = true
+        if (configLoaded && playerLoaded) {
+          console.log('initPlayer')
+          window.initPlayer && window.initPlayer()
+        }
+      }
+    }, {
+      src: '../dist/index.js',
+      type: 'js',
+      onLoad: function () {
+        initSubtitle()
+      }
+    }]
+
+    function addSource(source) {
+      for (var i = 0; i < source.length; i++) {
+        var dom = null
+        if (source[i].type === 'css') {
+          dom = document.createElement('link')
+          dom.rel = "stylesheet"
+          dom.href = source[i].src + '?' + new Date().getTime()
+        } else if (source[i].type === 'js') {
+          dom = document.createElement('script')
+          dom.src = source[i].src + '?' + new Date().getTime()
+        }
+        if (source[i].onLoad) {
+          dom.onload = source[i].onLoad
+        }
+        document.body.appendChild(dom)
+      }
+    }
+    addSource(sources)
+  </script>
+</body>
+
+</html>

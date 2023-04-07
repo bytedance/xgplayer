@@ -1,0 +1,104 @@
+.xgplayer-texttrack[data-state=open]{
+  .xg-texttrak-open {
+    display: block;
+  }
+
+  .xg-texttrak-close {
+    display: none;
+  }
+}
+
+.xgplayer-texttrack[data-state=close]{
+  .xg-texttrak-open {
+    display: none;
+  }
+
+  .xg-texttrak-close {
+    display: block;
+  }
+}
+
+.xgplayer-texttrack-active {
+  .xgplayer-texttrack {
+    ul {
+      display: block;
+    }
+  }
+}
+
+.xgplayer xg-text-track.follow-control {
+  transition: transform .2s ease;
+}
+
+.xgplayer-is-texttrack {
+  .xgplayer-texttrack {
+    display: block;
+  }
+}
+
+
+// 外挂字幕的dom样式
+xg-text-track.xg-text-track {
+  font-family: "PingFang SC","SF Pro SC","SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif;
+  -webkit-font-smoothing: antialiased;
+  position: absolute;
+  bottom: 0;
+  color: #fff;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  &.text-track-no-fitvideo {
+    margin-bottom: 2%;
+  }
+  &.text-track-hide {
+    opacity: 0;
+    visibility: hidden;
+  }
+  &.text-track-show {
+    opacity: 1;
+    visibility: visible;
+  }
+  xg-text-track-inner {
+    display: block;
+    max-width: 92%;
+  }
+  xg-text-track-span {
+    display: -webkit-box;
+    text-align: center;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    padding: 1px 4px;
+    -webkit-line-clamp: 1;
+    line-height: 120%;
+    word-break: break-word;
+    &.text-track-deputy {
+      font-size: 75%;
+    }
+    &.text-track-single{
+      -webkit-line-clamp: 1;
+    }
+    &.text-track-double {
+      -webkit-line-clamp: 2;
+    }
+    &.text-track-three{
+      -webkit-line-clamp: 3;
+    }
+  }
+
+  &.text-track-bg {
+    xg-text-track-inner {
+      background-color: rgba(0, 0, 0, .54);
+      border-radius: 2px;
+    }
+  }
+  &.text-track-stroke {
+    xg-text-track-inner{
+      background-color: none;
+      border-radius: 0;
+      text-shadow: -1px 1px 0 rgba(0,0,0,0.7), 1px 1px 0 rgba(0,0,0,0.7), 1px -1px 0 rgba(0,0,0,0.7), -1px -1px 0 rgba(0,0,0,0.7);
+    }
+  }
+}

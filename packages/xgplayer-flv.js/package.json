@@ -1,46 +1,40 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "2.3.0",
+  "version": "3.0.0-next.0",
   "description": "web video player",
-  "main": "./dist/index.js",
-  "scripts": {
-    "init": "npm install",
-    "clean": "rm -rf dist browser",
-    "prepare": "npm run build",
-    "dev": "webpack --config ./webpack.config.dev.js",
-    "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "libd": {
+    "umdName": "FlvJsPlugin"
   },
-  "babel": {
-    "presets": [
-      "es2015"
-    ],
-    "plugins": [
-      "add-module-exports",
-      "babel-plugin-bulk-import"
-    ]
+  "files": [
+    "dist",
+    "es"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bytedance/xgplayer.git"
   },
+  "unpkgFiles": [
+    "dist"
+  ],
   "author": "cuc_ygh@163.com",
-  "license": "ISC",
-  "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-plugin-bulk-import": "^1.0.2",
-    "babel-preset-es2015": "^6.24.1",
-    "webpack": "^4.8.3",
-    "webpack-cli": "^3.3.2"
-  },
-  "peerDependencies": {
-    "xgplayer": "^2.0.0"
+  "license": "MIT",
+  "peerDependency": {
+    "xgplayer": "^0.1.0"
   },
   "dependencies": {
     "es6-promise": "^4.2.4",
     "glob": "^7.1.2",
     "webworkify": "^1.5.0"
+  },
+  "peerDependencies": {
+    "xgplayer": ">=3.0.0-next.6",
+    "core-js": ">=3.12.1"
   }
 }

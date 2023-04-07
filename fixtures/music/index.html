@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html style="font-size: 48px;">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=device-width,viewport-fit=contain,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="user-scalable=no">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>西瓜播放器-MP4视频</title>
+  <style>
+    #canvas {
+        position:absolute;
+        top: 0;
+        left:0;
+        /* -webkit-mask-image:linear-gradient(to bottom,rgba(255,255,255,0.3) 0,rgba(255,255,255,.8) 70%,rgba(255,255,255,0.9) 100%); */
+        width: 100%;
+        height: 70px;
+      }
+      .xgplayer.xgplayer-music .xgplayer-controls {
+        background-image: none;
+      }
+      .player-container {
+        position: relative;
+      }
+  </style>
+</head>
+
+<body>
+  <section class="swiper" style="height: 300px;">
+    <div id="vs4" class="slide"></div>
+  </section>
+  <section id="wrapper" class="player-container" style="background-color: yellow;color: yellow;">
+    <div id="vs" class="vs">
+    </div>
+    <canvas id="canvas"></canvas>
+  </section>
+</body>
+<script type="module" src="./index.js"></script>
+</html>

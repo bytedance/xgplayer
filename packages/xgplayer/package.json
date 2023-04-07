@@ -1,72 +1,50 @@
 {
-    "name": "xgplayer",
-    "version": "2.32.2",
-    "description": "video player",
-    "main": "./dist/index.js",
-    "typings": "./types/index.d.ts",
-    "bin": {
-        "xgplayer": "bin/xgplayer.js"
-    },
-    "scripts": {
-        "prepare": "npm run build",
-        "postpublish": "git push --tags",
-        "build": "node ./src/version.js && webpack --progress --display-chunks -p",
-        "watch": "webpack --progress --display-chunks -p --watch --mode development",
-        "release:stable": "npm version patch && npm publish --registry=https://registry.npmjs.org",
-        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag xgplayer-2-alpha --registry=https://registry.npmjs.org",
-        "release:alpha-test": "npm publish --tag alpha-test-2x --registry=https://registry.npmjs.org"
-    },
-    "keywords": [
-        "video",
-        "player"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/bytedance/xgplayer.git"
-    },
-    "author": "yinguohui@bytedance.com",
-    "license": "MIT",
-    "dependencies": {
-        "chalk": "^2.3.2",
-        "commander": "^2.15.1",
-        "danmu.js": "^1.1.2",
-        "downloadjs": "1.4.7",
-        "draggabilly": "^2.2.0",
-        "event-emitter": "^0.3.5",
-        "fs-extra": "^5.0.0",
-        "xgplayer-subtitles": "^1.0.19"
-    },
-    "browserslist": [
-        "> 5%",
-        "IE 9",
-        "iOS 7",
-        "Firefox > 20"
-    ],
-    "devDependencies": {
-        "@types/events": "^3.0.0",
-        "autoprefixer": "^9.1.5",
-        "babel-core": "^6.26.3",
-        "babel-loader": "^7.1.4",
-        "babel-plugin-add-module-exports": "^0.2.1",
-        "babel-plugin-bulk-import": "^1.0.2",
-        "babel-plugin-transform-object-rest-spread": "^6.26.0",
-        "babel-plugin-transform-runtime": "^6.23.0",
-        "babel-preset-env": "^1.7.0",
-        "babel-preset-es2015": "^6.24.1",
-        "chai": "^4.1.2",
-        "core-js": "^2.5.4",
-        "css-loader": "^0.28.11",
-        "json-loader": "^0.5.7",
-        "postcss-cssnext": "^3.1.0",
-        "postcss-loader": "^2.1.5",
-        "raw-loader": "^2.0.0",
-        "sass": "^1.56.1",
-        "sass-loader": "^10.3.1",
-        "style-loader": "^0.20.3",
-        "sugarss": "^1.0.1",
-        "uglifyjs-webpack-plugin": "^2.2.0",
-        "webpack": "^4.16.5",
-        "webpack-cli": "^3.1.0",
-        "zlib": "^1.0.5"
-    }
+  "name": "xgplayer",
+  "version": "3.0.0-next.50",
+  "description": "video player",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "sideEffects": [
+    "*.scss",
+    "*.css",
+    "**/*.css"
+  ],
+  "libd": {
+    "umdName": "Player"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "next"
+  },
+  "files": [
+    "dist",
+    "es",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "unpkgFiles": [
+    "dist"
+  ],
+  "keywords": [
+    "video",
+    "player"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
+  "author": "yinguohui@bytedance.com",
+  "license": "MIT",
+  "dependencies": {
+    "danmu.js": ">=1.1.6",
+    "delegate": "^3.2.0",
+    "downloadjs": "1.4.7",
+    "eventemitter3": "^4.0.7",
+    "xgplayer-subtitles": ">=1.0.24"
+  },
+  "peerDependencies": {
+    "core-js": ">=3.12.1"
+  }
 }

@@ -1,0 +1,40 @@
+$timeColor: #fff;
+$timeDurationColor: rgba(255, 255, 255, 0.50);
+
+.xgplayer {
+  .xgplayer-time {
+    min-width: 40px;
+    font-size: 14px;
+    font-family: PingFangSC-Semibold;
+    color: $timeColor;
+    text-align: center;
+    display: inline-block;
+    line-height: 40px;
+    span {
+      display: inline-block;
+      line-height: 40px;
+      height: 40px;
+      // text-align: center;
+      // vertical-align: middle;
+    }
+    .time-duration {
+      color: $timeDurationColor;
+    }
+
+    .time-live-tag {
+      display: none;
+    }
+  }
+  &.xgplayer-mobile {
+    .xgplayer-time {
+      min-width: 30px;
+      font-size: 12px;
+      &.left {
+        margin-right: 8px;
+      }
+      &.right {
+        margin-left: 8px;
+      }
+    }
+  }
+}

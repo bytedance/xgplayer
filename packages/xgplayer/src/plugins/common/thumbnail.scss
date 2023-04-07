@@ -1,0 +1,27 @@
+
+.xgplayer {
+  xg-thumbnail {
+    display: block;
+  }
+}
+// .xgplayer {
+//   xg-thumbnail {
+//     display: none;
+//     position: relative;
+//     width: 160px;
+//     height: 90px;
+//     &.show {
+//       display: block;
+//     }
+//   }
+
+//   @media only screen and (max-width: 480px) {
+//     .xgplayer-mobile xg-thumbnail {
+//       width: 120px;
+//       height: 67px;
+//       &.portrait {
+//         display: none;
+//       }
+//     }
+//   }
+// }

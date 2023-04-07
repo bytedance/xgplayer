@@ -1,0 +1,35 @@
+.xgplayer {
+  .xgplayer-fullscreen {
+    .xg-exit-fullscreen {
+      display: none;
+    }
+    .xg-get-fullscreen {
+      display: block;
+    }
+
+    &[data-state=full] {
+      .xg-exit-fullscreen {
+        display: block;
+      }
+      .xg-get-fullscreen {
+        display: none;
+      }
+    }
+  }
+  .xg-top-bar {
+    .xgplayer-back {
+      position: relative;
+      left: 0;
+      top: 16px;
+      width: 34px;
+      height: 40px;
+      display: none;
+      // svg {
+      //   display: block;
+      // }
+      &.show {
+        display: block;
+      }
+    }
+  }
+}

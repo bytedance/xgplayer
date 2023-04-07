@@ -1,57 +1,87 @@
 import Player from './player'
+import Plugin from './plugin/plugin'
+import BasePlugin from './plugin/basePlugin'
+import * as Events from './events'
+import STATE_CLASS from './stateClassMap'
+import I18N from './lang/i18n'
+import Errors from './error'
+import Sniffer from './utils/sniffer'
+import Util from './utils/util'
+import PresetPlayer from './index.umd'
+import { STATES } from './state'
 
-import Airplay from './controls/airplay.js'
-import CssFullscreen from './controls/cssFullscreen.js'
-import Danmu from './controls/danmu.js'
-import Definition from './controls/definition.js'
-import Download from './controls/download.js'
-import ErrorRetryControl from './controls/errorRetry.js'
-import Fullscreen from './controls/fullscreen.js'
-import Keyboard from './controls/keyboard.js'
-import LocalPreview from './controls/localPreview.js'
-import MemoryPlay from './controls/memoryPlay.js'
-import Miniplayer from './controls/miniplayer.js'
-import Mobile from './controls/mobile.js'
-import Pc from './controls/pc.js'
-import Pip from './controls/pip.js'
-import Play from './controls/play.js'
-import PlayNext from './controls/playNext.js'
-import Reload from './controls/reload.js'
-import Replay from './controls/replay.js'
-import Rotate from './controls/rotate.js'
-import ScreenShot from './controls/screenShot.js'
-import StallCheck from './controls/stallCheck.js'
-import Start from './controls/start.js'
-import Volume from './controls/volume.js'
-import TextTrack from './controls/textTrack.js'
+export * from './presets'
 
-Player.installAll([
-    Airplay,
-    CssFullscreen,
-    Danmu,
-    Definition,
-    Download,
-    ErrorRetryControl,
-    Fullscreen,
-    Keyboard,
-    LocalPreview,
-    MemoryPlay,
-    Miniplayer,
-    Mobile,
-    Pc,
-    Pip,
-    Play,
-    PlayNext,
-    Reload,
-    Replay,
-    Rotate,
-    ScreenShot,
-    StallCheck,
-    Start,
-    Volume,
-    TextTrack  
-])
+export { default as langZhHk } from './lang/zh-hk'
+export { default as langJp } from './lang/jp'
+export { default as langZhCn } from './lang/zh-cn'
 
-import './skin/index.js';
+export { default as Danmu } from './plugins/danmu'
+export { DanmuIcon, DanmuPanel } from './plugins/danmu'
+export { default as TextTrack } from './plugins/track'
 
-export default Player
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
+
+/**
+ * @typedef { import ('./defaultConfig').IDefinition } IDefinition
+ */
+
+/**
+ * @typedef { import ('./proxy').IVideoProxy } IVideoProxy
+ */
+
+/**
+ * @typedef { import ('./plugin/basePlugin').IBasePluginOptions } IBasePluginOptions
+ */
+
+/**
+ * @typedef { import ('./plugin/plugin').IPluginOptions } IPluginOptions
+ */
+
+/**
+ * @typedef { import ('./error').IError } IError
+ */
+
+/**
+ * @typedef { import ('./lang/i18n').IXGI18nText } IXGI18nText
+ */
+
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
+
+/**
+ * @typedef { import ('./proxy').IVideoProxy } IVideoProxy
+ */
+
+/**
+ * @typedef { import ('./plugin/basePlugin').IBasePluginOptions } IBasePluginOptions
+ */
+
+/**
+ * @typedef { import ('./plugin/plugin').IPluginOptions } IPluginOptions
+ */
+
+/**
+ * @typedef { import ('./error').IError } IError
+ */
+
+/**
+ * @typedef { import ('./lang/i18n').IXGI18nText } IXGI18nText
+ */
+
+export {
+  PresetPlayer as default,
+  Player as SimplePlayer,
+  BasePlugin,
+  Plugin,
+  Events,
+  Errors,
+  Sniffer,
+  Util,
+  STATE_CLASS,
+  I18N,
+  STATES
+}

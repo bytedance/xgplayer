@@ -1,22 +1,19 @@
-
-import querystring from 'querystring'
 class XHR {
-  constructor ({url, method = 'GET', type = 'arraybuffer', data = {}} = {}) {
+  constructor ({ url, method = 'GET', type = 'arraybuffer', data = {} } = {}) {
     return new Promise((resolve, reject) => {
-      let R = new window.XMLHttpRequest()
-      let _method = method.toUpperCase()
-      let _data = []
+      const R = new window.XMLHttpRequest()
+      const _method = method.toUpperCase()
+      const _data = []
       if (type) {
         R.responseType = type
       }
-      let splitUrls = url.split('?');
-      let search = data;
-      if(splitUrls[1]){
-        Object.assign(search, querystring.parse(splitUrls[1])) ;
+      for (const k in data) {
+        if (Object.prototype.hasOwnProperty.call(data, k)) {
+          _data.push(`k=${data[k]}`)
+        }
       }
       if (_method === 'GET') {
-        let u = Object.keys(search).length > 0 ? `${splitUrls[0]}?${querystring.stringify(search)}` : splitUrls[0];
-        R.open(_method, u) 
+        R.open(_method, `${url}?${_data.join('&')}`)
         R.send()
       } else if (_method === 'post') {
         if (url.indexOf('data:application/json;base64') === 0) {

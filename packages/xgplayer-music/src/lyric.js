@@ -1,7 +1,8 @@
-import Player from 'xgplayer'
+import { Util } from 'xgplayer'
 
 class LyricTime {
   constructor (timeTxt) {
+    // eslint-disable-next-line no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp
     this.regRule = /(\d{2}(?=:)):(\d{2}(?=\.))\.(\d{2,3})/g
     if (this.regRule.test(timeTxt)) {
       this.time = RegExp.$1 * 60 + RegExp.$2 * 1 + ('0.' + RegExp.$3) * 1
@@ -11,14 +12,14 @@ class LyricTime {
   }
 }
 
-export {LyricTime}
+export { LyricTime }
 
 class Lyric {
-  constructor (txts, dom, options) {
+  constructor (txts, dom) {
     this.rawTxts = txts
     this.txts = txts.map((item) => { return item.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g) })
     this.isDynamics = txts.map((item, idx) => {
-      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length > 0 && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
+      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length === this.txts[idx].length && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
     })
     this.isDynamic = this.isDynamics.some((item) => {
       return item
@@ -52,33 +53,36 @@ class Lyric {
           idx
         }
       })
-    }).filter(item => {
-      if(options.removeBlankLine) return item.lyric !== '\r\n' && item.lyric !== '\n' && item.lyric !== ''
-      else return true
     })
-
     this.line = 0
   }
+
   set interval (val) {
     this.__ainimateInterval__ = val
   }
+
   get interval () {
     return this.__ainimateInterval__
   }
+
   set offset (val) {
     this.__offset__ = val
   }
+
   get offset () {
     return this.__offset__
   }
+
   set offsetScale (val) {
     this.__offsetScale__ = val
   }
+
   get offsetScale () {
     return this.__offsetScale__
   }
+
   adjust () {
-    let list = this.list
+    const list = this.list
     for (let i = 0, j, k, len = list.length; i < len; i++) {
       for (j = i + 1; j < len; j++) {
         if (list[j].time > list[i].time) {
@@ -86,25 +90,27 @@ class Lyric {
         }
       }
       if (j < len) {
-        let sep = (list[j].time - list[i].time) / (j - i)
+        const sep = (list[j].time - list[i].time) / (j - i)
         for (k = i + 1; k < j; k++) {
           list[k].time = list[k - 1].time + sep
         }
       }
     }
   }
+
   find (curTime) {
     const list = this.list
     const interval = this.__ainimateInterval__
     const offset = this.__offset__
     curTime = curTime + offset > 0 ? curTime + offset : 0
-    return list.filter(({time}, idx) => {
-      let idxy = idx + 1
+    return list.filter(({ time }, idx) => {
+      const idxy = idx + 1
       return curTime >= time && ((list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time) || (idxy >= list.length))
     })
   }
+
   bind (player) {
-    let self = this
+    const self = this
     this.__player__ = player
     if (self.isDynamic) {
       self.__handle__ = (() => {
@@ -130,6 +136,7 @@ class Lyric {
       return false
     }
   }
+
   unbind (player) {
     delete this.__player__
     if (this.__handle__) {
@@ -137,19 +144,20 @@ class Lyric {
       delete this.__handle__
     }
   }
+
   show () {
-    let dom = this.dom
-    let lyrbicTxts = []
-    let self = this
+    const dom = this.dom
+    const lyrbicTxts = []
+    const self = this
     const ev = ['click', 'touchstart']
     if (dom && dom.nodeType === 1) {
-      const lrcWrap = Player.util.createDom('div', `<div></div>`, {}, 'xgplayer-lrcWrap')
+      const lrcWrap = Util.createDom('div', '<div></div>', {}, 'xgplayer-lrcWrap')
       dom.appendChild(lrcWrap)
       this.list.forEach(item => {
         lyrbicTxts.push(`<xg-lyric-item class="xgplayer-lyric-item" data-idx="${item.idx}">${item.lyric.replace(/[\r\n]/g, '')}</xg-lyric-item>`)
       })
       lrcWrap.innerHTML = lyrbicTxts.join('')
-      const lrcForward = Player.util.createDom('xg-lrcForward', `<div></div>`, {}, 'xgplayer-lrcForward')
+      const lrcForward = Util.createDom('xg-lrcForward', '<div></div>', {}, 'xgplayer-lrcForward')
       dom.appendChild(lrcForward)
       ev.forEach(item => {
         lrcForward.addEventListener(item, function (e) {
@@ -160,7 +168,7 @@ class Lyric {
         }, false)
       })
 
-      const lrcBack = Player.util.createDom('xg-lrcBack', `<div></div>`, {}, 'xgplayer-lrcBack')
+      const lrcBack = Util.createDom('xg-lrcBack', '<div></div>', {}, 'xgplayer-lrcBack')
       dom.appendChild(lrcBack)
       ev.forEach(item => {
         lrcBack.addEventListener(item, function (e) {
@@ -171,9 +179,9 @@ class Lyric {
         }, false)
       })
       this.__updateHandle__ = (item) => {
-        let domWrap = this.dom.querySelector('.xgplayer-lrcWrap')
+        const domWrap = this.dom.querySelector('.xgplayer-lrcWrap')
         let activeDom = domWrap.querySelector('.xgplayer-lyric-item-active')
-        let offsetHeight = domWrap.offsetHeight
+        const offsetHeight = domWrap.offsetHeight
         let activeTop
         if (activeDom) {
           activeDom.className = 'xgplayer-lyric-item'
@@ -192,6 +200,7 @@ class Lyric {
       this.__player__.emit('error', 'lyric container can not be empty')
     }
   }
+
   hide () {
     this.__updateHandle__.off('lyricUpdate', this.__updateHandle__)
   }

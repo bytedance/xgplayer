@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>Document</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #wrapper {
+      width: 600px;
+    }
+
+    video {
+      filter: saturate(100%) !important;
+      -webkit-filter: saturate(100%) !important;
+    }
+  </style>
+  <link
+          rel="stylesheet"
+          href="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.103-8/dist/xgplayer.min.css"
+  />
+<!--  <script src="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.101-7/dist/index.min.js" charset="utf-8"></script>-->
+<!--  <script src="http://unpkg.pstatp.com/xgplayer-mp4/3.0.0-next.3/dist/index.min.js" charset="utf-8"></script>-->
+</head>
+<body>
+<section id="wrapper">
+  <div id="vs"></div>
+</section>
+<script type="module">
+  import Player from '../../packages/xgplayer/src/index'
+        let player=new Player({
+          id: 'vs',
+          autoplay: true,
+          volume: 0,
+          url:'./err.mp4',
+          poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
+          playsinline: true,
+          thumbnail: {
+          pic_num: 44,
+          width: 160,
+          height: 90,
+          col: 10,
+          row: 10,
+          // urls: ['//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-thumbnail.jpg'],
+          },
+          TestSpeed: {
+            url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
+            openSpeed: true,
+            loadSize: 200*1024,
+            testTimeStep: 5000,
+            testCnt: 3,
+          },
+          height: window.innerHeight,
+          width: window.innerWidth,
+          // plugins: [MP4Player]
+        });
+  window.player = player
+  player.on('ended', () => {
+    player.replay()
+  })
+</script>
+<!--<script type="module" src="./index.js"></script>-->
+</body>
+</html>

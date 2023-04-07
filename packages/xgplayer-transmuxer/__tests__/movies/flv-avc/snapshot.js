@@ -1,0 +1,27 @@
+module.exports = {
+  videoCodec: 'avc1.640015',
+  fpsNum: 30,
+  fpsDen: 2,
+  width: 388,
+  height: 300,
+  sarRatio: [237, 235],
+  pps: [new Uint8Array([104, 235, 227, 203, 34, 192])],
+  sps: [new Uint8Array([103, 100, 0, 21, 172, 217, 65, 144, 159, 158, 255, 240, 14, 208, 14, 177, 0, 0, 3, 0, 1, 0, 0, 3, 0, 30, 15, 22, 45, 150])],
+  videoFrameCount: 134,
+  firstVideoFramePts: 133,
+  firstVideoFrameDts: 0,
+  lastVideoFramePts: 8933,
+  lastVideoFrameDts: 8866,
+  firstVideoFrameUnitsByteLength: 755,
+  lastVideoFrameUnitsByteLength: 334,
+
+  audioCodec: 'mp4a.40.2',
+  sampleRate: 44100,
+  channelCount: 2,
+  audioConfig: [18, 16],
+  audioFrameCount: 369,
+  fistAudioFramePts: 133,
+  lastAudioFramePts: 8678,
+  fistAudioFrameByteLength: 24,
+  lastAudioFrameByteLength: 467
+}

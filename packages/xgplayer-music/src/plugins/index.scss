@@ -1,0 +1,38 @@
+.xgplayer.xgplayer-music {
+  overflow: visible;
+
+  .xgplayer-controls {
+    height: 70px;
+  }
+
+  xg-icon .xg-tips {
+    display: none
+  }
+
+  .xgplayer-progress {
+    top: 0;
+    transform: none;
+
+    .xgplayer-progress-point {
+      opacity: 0;
+    }
+  }
+  xg-bar {
+    display: none;
+  }
+}
+
+.xgplayer-music {
+  .xgplayer-name {
+    position: absolute;
+    color: #ddd;
+    display: block;
+    text-align: center;
+    left: 50%;
+    transform: translate(-50%, -20px);
+  }
+}
+
+// .xgplayer-cover {
+//   padding: 5px 0;
+// }

@@ -1,7 +1,7 @@
 import Box from '../box'
 
 Box.ftyp = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeStr(data.major_brand)
   stream.writeUint32(data.minor_version)
   data.compatible_brands.forEach(item => {

@@ -1,0 +1,33 @@
+{
+  "name": "xgplayer-mp4-new",
+  "version": "3.0.0-next.2",
+  "main": "dist/index.min.js",
+  "module": "dist/index.min.js",
+  "types": "es/index.d.ts",
+  "sideEffects": false,
+  "libd": {
+    "umdName": "MP4Player"
+  },
+  "files": [
+    "dist",
+    "es"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
+  "dependencies": {
+    "eventemitter3": "^4.0.7",
+    "xgplayer-mp4-loader": "0.0.1",
+    "xgplayer-streaming-shared": "3.0.0-next.8",
+    "xgplayer-transmuxer": "3.0.0-next.8"
+  },
+  "peerDependencies": {
+    "xgplayer": "3.0.0-next.26",
+    "core-js": ">=3.12.1"
+  }
+}

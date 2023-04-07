@@ -1,0 +1,35 @@
+.xgplayer {
+  .xgplayer-playnext {
+    position: relative;
+    display: none;
+    cursor: pointer;
+    // .xgplayer-icon {
+    //   width: 24px;
+    // }
+    .xgplayer-tips {
+      .xgplayer-tip-playnext {
+        display: block;
+      }
+    }
+    &:hover {
+      opacity: 0.85;
+      .xgplayer-tips {
+        display: block;
+      }
+    }
+  }
+}
+.lang-is-en {
+  .xgplayer-playnext {
+    .xgplayer-tips {
+      margin-left: -25px;
+    }
+  }
+}
+.lang-is-jp {
+  .xgplayer-playnext {
+    .xgplayer-tips {
+      margin-left: -38px;
+    }
+  }
+}

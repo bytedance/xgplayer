@@ -1,0 +1,40 @@
+import { VideoTrack, TrackType, VideoCodecType } from '../../src'
+
+describe('VideoTrack', () => {
+
+  test('All', () => {
+    const track = new VideoTrack()
+    expect(track.id).toBe(1)
+    expect(track.pid).toBe(-1)
+    expect(track.type).toBe(TrackType.VIDEO)
+    expect(track.codecType).toBe(VideoCodecType.AVC)
+    expect(track.codec).toBe('')
+    expect(track.timescale).toBe(0)
+    expect(track.sequenceNumber).toBe(0)
+    expect(track.present).toBe(false)
+    expect(track.baseMediaDecodeTime).toBe(0)
+    expect(track.duration).toBe(0)
+    expect(track.fpsNum).toBe(0)
+    expect(track.fpsDen).toBe(0)
+    expect(track.width).toBe(0)
+    expect(track.height).toBe(0)
+    expect(track.nalUnitSize).toBe(4)
+    expect(track.baseDts).toBe(0)
+    expect(track.samples).toEqual([])
+    expect(track.warnings).toEqual([])
+    expect(track.pps).toEqual([])
+    expect(track.sps).toEqual([])
+    expect(track.vps).toEqual([])
+    expect(track.sarRatio).toEqual([])
+    expect(track.exist()).toBe(false)
+    track.samples.push({})
+    expect(track.exist()).toBe(false)
+    track.pps.push(1)
+    track.sps.push(1)
+    track.codec = 'c'
+    expect(track.exist()).toBe(true)
+    track.reset()
+    expect(track.exist()).toBe(false)
+  })
+
+})

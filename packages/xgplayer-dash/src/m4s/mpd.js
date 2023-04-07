@@ -1,9 +1,38 @@
-import EventEmitter from 'event-emitter'
+import EventEmitter from 'eventemitter3'
 import util from '../util/index.js'
 import XHR from '../util/xhr'
-import Xml2Json from '../util/xml2json';
-class MPD {
+import Xml2Json from './xml2json'
+
+function parseMPD (ctx) {
+  let xmlString
+  if (typeof ctx === 'string') {
+    xmlString = ctx
+  }
+  if (ctx instanceof ArrayBuffer) {
+    const uint8arr = new Uint8Array(ctx)
+    xmlString = String.fromCharCode.apply(null, uint8arr)
+  }
+  if (!xmlString) {
+    return null
+  }
+  /**
+   * <ContentProtection schemeIdUri="urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4">
+   *  <mas:MarlinContentIds>
+   *    <mas:MarlinContentId>urn:marlin:kid:5d92bb7de814a7a972d12cc70003043b</mas:MarlinContentId>
+   *  </mas:MarlinContentIds>
+   *  <MarlinContentIds>
+   *    <MarlinContentIds> xx </MarlinContentIds>
+   *  </MarlinContentIds>
+   *  标签前有前缀，解析会报错，正则去掉前缀
+   */
+  // xmlString = xmlString.replace(/<([A-z]*:?)*:/g, '<').replace(/<\/([A-z]*:?)*:/g, '</');
+  xmlString = xmlString.replace(/<(\/)?(\w+:)+(\w+)/g, '<$1$3')
+  return Xml2Json.parse(xmlString)
+}
+
+class MPD extends EventEmitter {
   constructor (url) {
+    super()
     this.url = url
     this.mediaList = {
       video: [],
@@ -15,54 +44,35 @@ class MPD {
     this.isEnd = false
     this.duration = 0
     this.init(url)
-    EventEmitter(this)
   }
 
-  static parseMPD(ctx) {
-    let xmlString;
-    if (typeof ctx === 'string') {
-        xmlString = ctx;
-    }
-    if (ctx instanceof ArrayBuffer) {
-        let uint8arr = new Uint8Array(ctx);
-        xmlString = String.fromCharCode.apply(null, uint8arr);
-    }
-    if (!xmlString) {
-        return null;
-    }
-    return Xml2Json.parse(xmlString);
-}
-
   fetch (url) {
-    let self = this
-    let meta = {TYPE: 'LIVE', ENDLIST: ''}
-    let segments = []
+    const self = this
+    const meta = { TYPE: 'LIVE', ENDLIST: '' }
+    const segments = []
     return new Promise((resolve, reject) => {
-      new XHR({type: '', url}).then((res) => {
-        let ctx = res.responseText
+      new XHR({ type: '', url }).then((res) => {
+        const ctx = res.responseText
         if (ctx) {
-          let mpd = MPD.parseMPD(ctx)
-          if (!mpd) {
-            reject(new Error('parse mpd error'));
-          }
-          let repID = []
-          if (mpd.type === 'static') {
+          const repID = []
+          const result = parseMPD(ctx)
+          if (result.type === 'static') {
             meta.TYPE = 'VOD'
           }
-          if (mpd.minBufferTime) {
-            meta.minBufferTime = util.durationConvert(mpd.minBufferTime)
+          if (result.minBufferTime) {
+            meta.minBufferTime = util.durationConvert(result.minBufferTime)
           }
-          if (mpd.maxSegmentDuration) {
-            meta.maxSegmentDuration = util.durationConvert(mpd.maxSegmentDuration)
+          if (result.maxSegmentDuration) {
+            meta.maxSegmentDuration = util.durationConvert(result.maxSegmentDuration)
           }
-          if (mpd.mediaPresentationDuration) {
-            self.duration = util.durationConvert(mpd.mediaPresentationDuration)
+          if (result.mediaPresentationDuration) {
+            self.duration = util.durationConvert(result.mediaPresentationDuration)
           }
           let MpdBaseURL = ''
-          if(mpd.BaseURL) {
-            MpdBaseURL = mpd.BaseURL[0]
+          if (result.BaseURL) {
+            MpdBaseURL = result.BaseURL[0]
           }
-          let Period = mpd.Period[0]
+          const Period = result.Period[0]
           if (!self.duration && Period && Period.duration) {
             self.duration = util.durationConvert(Period.duration)
           }
@@ -97,12 +107,12 @@ class MPD {
               }
             }
             asItem.Representation.forEach((rItem, rIndex) => {
-              if(repID.indexOf(rItem.id) > -1) {
+              if (repID.indexOf(rItem.id) > -1) {
                 rItem.id = (parseInt(repID[repID.length - 1]) + 1).toString()
               }
               repID.push(rItem.id)
               let initSegment = ''
-              let mediaSegments = []
+              const mediaSegments = []
               let timescale = 0
               let duration = 0
               let baseURL = url.slice(0, url.lastIndexOf('/') + 1) + MpdBaseURL
@@ -170,10 +180,10 @@ class MPD {
                 timescale = parseFloat(ST.timescale)
                 duration = parseFloat(ST.duration)
                 let segmentDuration = duration / timescale
-                let start = parseInt(ST.startNumber)
-                let end = start + Math.ceil(self.duration / segmentDuration) - 1
+                const start = parseInt(ST.startNumber)
+                const end = start + Math.ceil(self.duration / segmentDuration) - 1
                 for (let i = start; i <= end; i++) {
-                  let startTime = segmentDuration * (i - start)
+                  const startTime = segmentDuration * (i - start)
                   let endTime = segmentDuration * (i - start + 1)
                   if (i === end) {
                     segmentDuration = self.duration - segmentDuration * (end - start)
@@ -190,7 +200,7 @@ class MPD {
                 }
               }
               if (mimeType === 'video/mp4') {
-                self.mediaList['video'].push({
+                self.mediaList.video.push({
                   id: rItem.id,
                   baseURL,
                   initSegment: baseURL + initSegment.replace('$RepresentationID$', rItem.id),
@@ -200,6 +210,8 @@ class MPD {
                   codecs,
                   width,
                   height,
+                  maxWidth,
+                  maxHeight,
                   frameRate,
                   sar,
                   startWithSAP,
@@ -209,7 +221,7 @@ class MPD {
                   encrypted
                 })
               } else if (mimeType === 'audio/mp4') {
-                self.mediaList['audio'].push({
+                self.mediaList.audio.push({
                   id: rItem.id,
                   baseURL,
                   initSegment: baseURL + initSegment.replace('$RepresentationID$', rItem.id),
@@ -235,18 +247,19 @@ class MPD {
               return a.bandwidth - b.bandwidth
             })
           })
-         
-          resolve({meta, segments})
+          resolve({ meta, segments })
         } else {
           reject(new Error('parse error'))
         }
       }).catch((err) => {
+        console.error(err)
         reject(err)
       })
     })
   }
+
   init (url) {
-    let self = this
+    const self = this
     this.fetch(url).then((res) => {
       self.type = res.meta.TYPE.toLocaleLowerCase()
       self.emit('ready')
@@ -261,16 +274,19 @@ class MPD {
       }
     })
   }
+
   seek (time) {
-    let self = this
-    let mediaResults = {}
+    const self = this
+    const mediaResults = {}
 
     if (this.type === 'vod' || time !== undefined) {
       ['video', 'audio'].forEach(mediaType => {
-        let mo = self.mediaList[mediaType][self.mediaList[mediaType].selectedIdx]
-        mediaResults[mediaType] = mo.mediaSegments.filter((item) => {
-          return ((item.start <= time && time < item.end) || (item.start <= time - item.segmentDuration && time - item.segmentDuration < item.end) || (item.start <= time + item.segmentDuration && time + item.segmentDuration < item.end)) && !item.downloaded
-        })
+        const mo = self.mediaList[mediaType][self.mediaList[mediaType].selectedIdx]
+        if (mo) {
+          mediaResults[mediaType] = mo.mediaSegments.filter((item) => {
+            return ((item.start <= time && time < item.end) || (item.start <= time - item.segmentDuration && time - item.segmentDuration < item.end) || (item.start <= time + item.segmentDuration && time + item.segmentDuration < item.end)) && !item.downloaded
+          })
+        }
       })
     }
     return mediaResults

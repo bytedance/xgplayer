@@ -6,7 +6,7 @@ class Stream {
       this.dataview = new DataView(buffer)
       this.dataview.position = 0
     } else {
-      throw new Errors('parse', '', {line: 9, handle: '[Stream] constructor', msg: 'data is valid'})
+      throw new Errors('parse', '', { line: 9, handle: '[Stream] constructor', msg: 'data is valid' })
     }
   }
 
@@ -19,8 +19,8 @@ class Stream {
   }
 
   skip (count) {
-    let loop = Math.floor(count / 4)
-    let last = count % 4
+    const loop = Math.floor(count / 4)
+    const last = count % 4
     for (let i = 0; i < loop; i++) {
       Stream.readByte(this.dataview, 4)
     }
@@ -54,7 +54,7 @@ class Stream {
         break
       case 3:
         if (sign) {
-          throw 'not supported for readByte 3'
+          throw new Error('not supported for readByte 3')
         } else {
           res = buffer.getUint8(buffer.position) << 16
           res |= buffer.getUint8(buffer.position + 1) << 8
@@ -70,7 +70,7 @@ class Stream {
         break
       case 8:
         if (sign) {
-          throw new Errors('parse', '', {line: 73, handle: '[Stream] readByte', msg: 'not supported for readBody 8'})
+          throw new Errors('parse', '', { line: 73, handle: '[Stream] readByte', msg: 'not supported for readBody 8' })
         } else {
           res = buffer.getUint32(buffer.position) << 32
           res |= buffer.getUint32(buffer.position + 4)
@@ -102,9 +102,11 @@ class Stream {
   readInt8 () {
     return Stream.readByte(this.dataview, 1, true)
   }
+
   readInt16 () {
     return Stream.readByte(this.dataview, 2, true)
   }
+
   readInt32 () {
     return Stream.readByte(this.dataview, 4, true)
   }

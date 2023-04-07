@@ -1,12 +1,12 @@
-import EventEmitter from 'event-emitter'
+import EventEmitter from 'eventemitter3'
 import MPD from './m4s/mpd'
 import Task from './media/task'
 import MSE from './media/mse'
 import EME from './media/eme'
 
-class DASH {
+class DASH extends EventEmitter {
   constructor (url, options = {}, video) {
-    EventEmitter(this)
+    super()
     this.mse = undefined
     this.url = url
     this.inited = false
@@ -17,25 +17,27 @@ class DASH {
       this.eme = new EME(options.dashOpts.drm)
     }
   }
-  getData (url, range = []) {
+
+  getData (url, range = [0]) {
     return new Promise((resolve, reject) => {
-      let task = new Task(url, resolve, range)
+      const task = new Task(url, resolve, range)
       task.once('error', err => {
         self.emit('error', err)
       })
     })
   }
+
   init (url) {
-    let mpd = new MPD(url)
+    const mpd = new MPD(url)
     this.mpd = mpd
-    let dash = this
+    const dash = this
     let mse
     let vl, al
     return new Promise((resolve, reject) => {
       mpd.once('ready', () => {
         dash.type = mpd.type
-        vl = mpd.mediaList['video']
-        al = mpd.mediaList['audio']
+        vl = mpd.mediaList.video
+        al = mpd.mediaList.audio
         if (dash.eme) {
           // console.log('dash.eme')
           // console.log(`${vl[vl.selectedIdx].mimeType}; codecs="${vl[vl.selectedIdx].codecs}"`)
@@ -46,23 +48,25 @@ class DASH {
         mse = new MSE()
         mse.on('sourceopen', function () {
           ['video', 'audio'].forEach(mediaType => {
-            let ml = mpd.mediaList[mediaType]
-            mse.addSourceBuffer(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}"`)
-            dash.getData(
-              ml[ml.selectedIdx].initSegment,
-              ml[ml.selectedIdx].initSegmentRange
-            ).then(function (initRes) {
-              // console.log('get initSegment');
-              mse.appendBuffer(`${ml[0].mimeType};codecs="${ml[0].codecs}"`, initRes)
-              mse.once(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}" updateend`, function () {
-                ml[ml.selectedIdx].inited = true
-                mse.emit('updateend')
+            const ml = mpd.mediaList[mediaType]
+            if (ml[ml.selectedIdx]) {
+              mse.addSourceBuffer(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}"`)
+              dash.getData(
+                ml[ml.selectedIdx].initSegment,
+                ml[ml.selectedIdx].initSegmentRange
+              ).then(function (initRes) {
+                // console.log('get initSegment');
+                mse.appendBuffer(`${ml[0].mimeType};codecs="${ml[0].codecs}"`, initRes)
+                mse.once(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}" updateend`, function () {
+                  ml[ml.selectedIdx].inited = true
+                  mse.emit('updateend')
+                })
               })
-            })
+            }
           })
         })
         mse.on('updateend', function (e) {
-          if (vl[vl.selectedIdx].inited && al[al.selectedIdx].inited) {
+          if (vl[vl.selectedIdx] && vl[vl.selectedIdx].inited && al[al.selectedIdx] && al[al.selectedIdx].inited) {
             dash.inited = true
             if (vl[vl.selectedIdx].encrypted || al[al.selectedIdx].encrypted) {
               dash.eme.emit('encrypted')
@@ -89,17 +93,19 @@ class DASH {
       })
     })
   }
+
   seek (time) {
-    let dash = this
-    let seekResult = this.mpd.seek(time);
+    const dash = this
+    const seekResult = this.mpd.seek(time);
     ['video', 'audio'].forEach(mediaType => {
-      if (seekResult[mediaType].length > 0) {
+      if (seekResult[mediaType] && seekResult[mediaType].length > 0) {
         // console.log('seekResult[mediaType].length > 0')
         // console.log(seekResult[mediaType])
         seekResult[mediaType].every(item => {
           if (item.downloaded) {
             return true
           }
+          // eslint-disable-next-line no-unused-vars
           const tasker = new Task(item.url, (res) => {
             if (res === 'Not Found') {
               // console.log('Not Found')
@@ -116,8 +122,8 @@ class DASH {
               // console.log(dash.mpd.mediaList[mediaType][0].codecs)
               dash.mse.appendBuffer(`${dash.mpd.mediaList[mediaType][0].mimeType};codecs="${dash.mpd.mediaList[mediaType][0].codecs}"`, new Uint8Array(res))
             }
-            let idx = item.idx
-            let ml = dash.mpd.mediaList[mediaType]
+            const idx = item.idx
+            const ml = dash.mpd.mediaList[mediaType]
             ml[ml.selectedIdx].mediaSegments.every(sItem => {
               if (sItem.idx !== idx) {
                 return true

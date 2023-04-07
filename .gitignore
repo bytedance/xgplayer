@@ -75,9 +75,18 @@ typings/
 
 #editor workspace file
 .idea/
-
-
+es/
+lib/
+browser/
+dist/
+types/
+types/*
+packages/*/types/
 .DS_Store
+fixtures/*/*
+!fixtures/*/index.html
 
-.history
-examples
+#http-server cert
+*.pem
+
+examples/
