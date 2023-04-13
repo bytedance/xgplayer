@@ -1,6 +1,16 @@
 # 版本更新记录
+## 3.0.0-next.54
+>* feat(xgplayer); 修复mobile插件disableGesture或者gestureX的时候进度条操作不生效问题
+>* feat(xgplayer): switchUrl参数类型备注
+>* feat(xgplayer): texttrack插件scss文件直接加入外挂字幕样式
+>* feat(xgplayer):音量按钮增加拖拽状态的识别; 进度条增加分段预览hover机制; 进度条预览增加扩展dom
+\边界值处理\预览图宽高配置\预览图兼容durationchange
+## 3.0.0-next.53
+>* feat(xgplayer): 修复loadstart之后error提示不隐藏问题; 修复.xg-tips获取异常报错问题
+>* feat(xgplayer): add fps detect plugin
 ## 3.0.0-next.52
->* feat(xgplayer): mediaPlay中调用start逻辑添加hasStart控制
+>* refactor(xgplayer): 修改switchUrl第二个参数，支持options形式并方便再扩展
+>* refactor(xgplayer): IDefinition 类型增加 bandwidth
 ## 3.0.0-next.51
 >* feat(xgplayer): mediaPlay中调用start逻辑添加hasStart控制
 ## 3.0.0-next.50

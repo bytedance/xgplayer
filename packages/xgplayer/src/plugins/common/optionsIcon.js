@@ -186,7 +186,7 @@ export default class OptionsIcon extends Plugin {
     this.curIndex = data.to.index
     this.curItem = list[this.curIndex]
     this.changeCurrentText()
-    const { isItemClickHide } = this.config
+    const { isItemClickHide } = this.config;
     (isItemClickHide || IS_MOBILE || listType === LIST_TYPES.RIGHT_SIDE) && this.toggle(false)
   }
 

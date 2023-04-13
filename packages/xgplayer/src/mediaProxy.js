@@ -629,7 +629,7 @@ class MediaProxy extends EventEmitter {
    * @description  返回视频的当前网络状态
    */
   get networkState () {
-    return this.media.networkStat
+    return this.media.networkState
   }
 
   /**
