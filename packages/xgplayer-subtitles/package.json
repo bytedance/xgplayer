@@ -1,29 +1,39 @@
 {
   "name": "xgplayer-subtitles",
-  "version": "1.0.24",
+  "version": "1.1.0",
   "description": "",
-  "main": "./dist/index.min.js",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "sideEffects": [
+    "*.scss",
+    "*.css",
+    "**/*.css"
+  ],
+  "libd": {
+    "umdName": "XgSubtitle"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "latest"
+  },
   "files": [
     "/es",
     "/dist",
     "README.md",
     "CHANGELOG.md"
   ],
-  "scripts": {
-    "postpublish": "git push --tags",
-    "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=https://registry.npmjs.org/",
-    "release": "npm version patch && npm publish --registry=https://registry.npmjs.org/",
-    "prepare": "npm run build",
-    "build": "npm run build:main",
-    "build:main": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
-    "build:es": "rm -rf ./es && ./node_modules/.bin/babel src --out-dir es",
-    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
-  },
-  "author": "hongqiongxing@butedance.com",
+  "unpkgFiles": [
+    "dist"
+  ],
+  "author": "hongqiongxing@bytedance.com",
   "license": "MIT",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "dependencies": {
     "eventemitter3": "^4.0.7"
+  },
+  "peerDependencies": {
+    "core-js": ">=3.12.1"
   }
 }

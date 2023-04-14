@@ -1,3 +1,21 @@
+
+## xgplayer-hls@3.0.0-next.37-1
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.33
+
+## xgplayer-hls@3.0.0-next.37
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.32
+fix: track发生变化判断影响软解播放
+
+## xgplayer-hls@3.0.0-next.36
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.31
+fix: (xgplayer-hls) track发生变化检测默认开启`allowedStreamTrackChange`, 兼容seek场景
+
+## xgplayer-hls@3.0.0-next.35
+fix: 🐛 (xgplayer-hls) 支持无缝切换码率
+
+## xgplayer-hls@3.0.0-next.34 
+fix: 🐛 (xgplayer-hls) HLS直播支持显示 webvtt
+
 ## xgplayer-hls@3.0.0-next.33 
 fix: 🐛 (xgplayer-hls) 兼容m3u8 endlist之后有冗余内容的情况 
 

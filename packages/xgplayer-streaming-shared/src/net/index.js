@@ -90,11 +90,16 @@ export class NetLoader extends EventEmitter {
     if (this._currentTask.alive) {
       this._alive.push(this._currentTask)
     }
-    this._currentTask.exec().catch(e => {}).finally(() => {
+    const req = this._currentTask.exec().catch(e => {})
+
+    if (!(req && typeof req.finally === 'function')) return
+
+    req.finally(() => {
       if (this._currentTask?.alive && this._alive?.length > 0) {
         this._alive = this._alive.filter(task => task && task !== this._currentTask)
       }
       this._processTask()
     })
+
   }
 }

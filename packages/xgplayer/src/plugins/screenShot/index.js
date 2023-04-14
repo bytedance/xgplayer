@@ -56,12 +56,22 @@ export default class ScreenShot extends IconPlugin {
     saveLink.dispatchEvent(event)
   }
 
-  createCanvans (width, height) {
+  createCanvas (width, height) {
     const canvas = document.createElement('canvas')
-    this.canvasCtx = canvas.getContext('2d')
+    const canvasCtx = canvas.getContext('2d')
+
+    this.canvasCtx = canvasCtx
     this.canvas = canvas
+
     canvas.width = width || this.config.width
     canvas.height = height || this.config.height
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
+    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingQuality
+    canvasCtx.imageSmoothingEnabled = true
+    if (canvasCtx.imageSmoothingEnabled) {
+      canvasCtx.imageSmoothingQuality = 'high'
+    }
   }
 
   onClickBtn (e) {
@@ -80,17 +90,44 @@ export default class ScreenShot extends IconPlugin {
     const type = option.type || config.type
     return new Promise((resolve, reject) => {
       let canvas = null
+      let canvasCtx
+
       if (player.media.canvas) {
         canvas = player.media.canvas
       } else {
         if (!this.canvas) {
-          this.createCanvans(width, height)
+          this.createCanvas(width, height)
         } else {
           this.canvas.width = width || config.width
           this.canvas.height = height || config.height
         }
-        this.canvasCtx.drawImage(player.media, 0, 0, width || config.width, height || config.height)
         canvas = this.canvas
+        canvasCtx = this.canvasCtx
+
+        const mediaRatio = player.media.videoWidth / player.media.videoHeight
+        const canvasRatio = canvas.width / canvas.height
+        const sx = 0, sy = 0, sw = player.media.videoWidth, sh = player.media.videoHeight
+        let dx, dy, dw, dh
+
+        if (mediaRatio > canvasRatio) {
+          dw = canvas.width
+          dh = canvas.width / mediaRatio
+          dx = 0
+          dy = Math.round((canvas.height - dh) / 2)
+        } else if (mediaRatio === canvasRatio) {
+          dw = canvas.width
+          dh = canvas.height
+          dx = 0
+          dy = 0
+        } else if (mediaRatio < canvasRatio) {
+          dw = canvas.height * mediaRatio
+          dh = canvas.height
+          dx = Math.round((canvas.width - dw) / 2)
+          dy = 0
+        }
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+        canvasCtx.drawImage(player.media, sx, sy, sw, sh, dx, dy, dw, dh)
       }
       let src = canvas.toDataURL(type, quality).replace(type, 'image/octet-stream')
       src = src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
@@ -119,7 +156,7 @@ export default class ScreenShot extends IconPlugin {
     return `
       <xg-icon class="xgplayer-shot">
       <div class="${className}">
-      ${this.icons.screenshotIcon ? '' : `<span lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</span>`} 
+      ${this.icons.screenshotIcon ? '' : `<span lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</span>`}
       </div>
     </xg-icon>`
   }

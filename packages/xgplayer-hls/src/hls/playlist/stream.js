@@ -24,8 +24,17 @@ export class Stream {
   /** @type {import('../../parser/model').AudioStream[]} */
   audioStreams = []
 
+  /** @type {import('../../parser/model').SubTitleStream[]} */
+  subtitleStreams = []
+
+  /** @type {import('../../parser/model').ClosedCaptionsStream[]} */
+  closedCaptions = []
+
   /** @type {import('../../parser/model').AudioStream | null} */
   currentAudioStream = null
+
+  /** @type {import('../../parser/model').subtitleStreams | null} */
+  currentSubtitleStream = null
 
   /**
    * asdasd {@link AudioStream}
@@ -49,16 +58,20 @@ export class Stream {
     return this.lastSegment?.end || 0
   }
 
-  constructor (playlist, audioPlaylist) {
-    this.update(playlist, audioPlaylist)
+  get currentSubtitleEndSn () {
+    return this.currentSubtitleStream?.endSN || 0
+  }
+
+  constructor (playlist, audioPlaylist, subtitlePlaylist) {
+    this.update(playlist, audioPlaylist, subtitlePlaylist)
   }
 
   clearOldSegment (startTime, pointer) {
     if (this.currentAudioStream) {
-      this._clearSegments(this.currentAudioStream, startTime, pointer)
+      this._clearSegments(startTime, pointer)
     }
 
-    return this._clearSegments(this, startTime, pointer)
+    return this._clearSegments(startTime, pointer)
   }
 
   getAudioSegment (seg) {
@@ -87,6 +100,7 @@ export class Stream {
           this.snDiff = playlist.segments[0].sn - audioPlaylist.segments[0].sn
         }
       }
+
     } else { // master stream
       this.id = playlist.id
       this.bitrate = playlist.bitrate
@@ -97,10 +111,47 @@ export class Stream {
       this.videoCodec = playlist.videoCodec
       this.textCodec = playlist.textCodec
       this.audioStreams = playlist.audioStreams
-
+      this.subtitleStreams = playlist.subtitleStreams
       if (!this.currentAudioStream && this.audioStreams.length) {
         this.currentAudioStream = this.audioStreams.find(x => x.default) || this.audioStreams[0]
       }
+
+      if (!this.currentSubtitleStream && this.subtitleStreams.length) {
+        this.currentSubtitleStream = this.subtitleStreams.find(x => x.default) || this.subtitleStreams[0]
+      }
+    }
+  }
+
+  updateSubtitle (subtitlePlaylist) {
+    if (!(subtitlePlaylist && this.currentSubtitleStream && Array.isArray(subtitlePlaylist.segments))) return
+
+    const newSegs = this._updateSegments(subtitlePlaylist, this.currentSubtitleStream)
+    const segs = this.currentSubtitleStream.segments
+    if (segs.length > 100 ) {
+      this.currentSubtitleStream.segments = segs.slice(100)
+    }
+
+    if (!newSegs) return
+
+    return newSegs.map(x => {
+      return {
+        sn: x.sn,
+        url: x.url,
+        duration: x.duration,
+        start: x.start,
+        end: x.end,
+        lang: this.currentSubtitleStream.lang
+      }
+    })
+  }
+
+
+  switchSubtitle (lang) {
+    const toSwitch = this.subtitleStreams.find(x => x.lang === lang)
+    const origin = this.currentSubtitleStream
+    if (toSwitch) {
+      this.currentSubtitleStream = toSwitch
+      origin.segments = []
     }
   }
 
@@ -149,11 +200,14 @@ export class Stream {
             toAppend.forEach(seg => (seg.cc += lastCC))
           }
         }
-
+        segObj.endSN = playlist.endSN
         segObj.segments = segments.concat(toAppend)
+
+        return toAppend
       }
     } else {
       segObj.segments = playlist.segments
     }
   }
+
 }

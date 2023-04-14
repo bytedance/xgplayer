@@ -67,7 +67,7 @@ async function build (target) {
       })
     }
 
-    formats.forEach(async f => {
+    await Promise.all(formats.map(async f => {
       if (typeof f === 'string') {
         f = { format: f, output: `index.${f}.min.js` }
       }
@@ -118,7 +118,7 @@ async function build (target) {
       } else {
         await buildFormat(false)
       }
-    })
+    }))
   }
 
   if (config.es !== false) {

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-streaming-shared",
-  "version": "3.0.0-next.27",
+  "version": "3.0.1",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -14,8 +14,7 @@
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public",
-    "tag": "next"
+    "access": "public"
   },
   "license": "MIT",
   "dependencies": {
@@ -23,5 +22,8 @@
   },
   "unpkgFiles": [
     "dist"
-  ]
+  ],
+  "peerDependencies": {
+    "core-js": ">=3.12.1"
+  }
 }

@@ -7,15 +7,42 @@ export class MasterPlaylist {
   isMaster = true
 }
 
-export class AudioStream {
+
+const MediaType = {
+  Audio: 'AUDIO',
+  Video: 'VIDEO',
+  SubTitle: 'SUBTITLE',
+  ClosedCaptions: 'CLOSED-CAPTIONS'
+}
+
+export class MediaStream {
   id = 0
   url = ''
   default = false
+  autoSelect = false
+  forced = false
   group = ''
   name = ''
   lang = ''
-  channels = 0
   segments = []
+  endSN = 0
+}
+
+export class AudioStream extends MediaStream {
+  mediaType = MediaType.Audio
+  channels = 0
+}
+
+export class VideoStream extends MediaStream {
+  mediaType = MediaType.Video
+}
+
+export class SubTitleStream extends MediaStream {
+  mediaType = MediaType.SubTitle
+}
+
+export class ClosedCaptionsStream extends MediaStream {
+  mediaType = MediaType.ClosedCaptions
 }
 
 export class MasterStream {
@@ -32,6 +59,12 @@ export class MasterStream {
 
   /** @type {AudioStream[]} */
   audioStreams = []
+
+  /** @type {SubTitleStream[]} */
+  subtitleStreams = []
+
+  /** @type {ClosedCaptionsStream[]} */
+  closedCaptionsStream = []
 }
 
 export class MediaPlaylist {

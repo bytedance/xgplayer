@@ -4,6 +4,26 @@ import { Hls } from './hls'
 import { Event } from './hls/constants'
 import PluginExtension from './plugin-extension'
 
+export function parseSwitchUrlArgs (args, plugin) {
+  const { player } = plugin
+  const curTime = player.currentTime
+  const options = {
+    startTime: curTime
+  }
+
+  switch (typeof args) {
+    case 'boolean':
+      options.seamless = args
+      break
+    case 'object':
+      Object.assign(options, args)
+      break
+    default:
+      break
+  }
+  return options
+}
+
 export class HlsPlugin extends BasePlugin {
   static Hls = Hls
 
@@ -57,7 +77,7 @@ export class HlsPlugin extends BasePlugin {
     this.hls = new Hls({
       softDecode: this.softDecode,
       isLive: config.isLive,
-      media: this.player.video,
+      media: this.player.media || this.player.video,
       startTime: config.startTime,
       url: config.url,
       ...hlsOpts
@@ -70,9 +90,13 @@ export class HlsPlugin extends BasePlugin {
           configurable: true
         }
       })
-      this.hls.on('sourceAttached', () => {
+      if (this.hls.media?.src) {
+        this.hls.on('sourceAttached', () => {
+          _resolve(true)
+        })
+      } else {
         _resolve(true)
-      })
+      }
     } else {
       _resolve(true)
     }
@@ -91,8 +115,8 @@ export class HlsPlugin extends BasePlugin {
       this.player?.useHooks('replay', () => this.hls?.replay())
     }
 
+    this.on(Events.SWITCH_SUBTITLE || 'switch_subtitle', this._onSwitchSubtitle)
     this.on(Events.URL_CHANGE, this._onSwitchURL)
-    // this.on(Events.DEFINITION_CHANGE, this._onDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
 
     this._transError()
@@ -110,12 +134,14 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.SEI_IN_TIME)
     this._transCoreEvent(EVENT.SPEED)
     this._transCoreEvent(EVENT.HLS_MANIFEST_LOADED)
-    this._transCoreEvent(Event.STREAM_PARSED)
-    this._transCoreEvent(Event.NO_AUDIO_TRACK)
     this._transCoreEvent(EVENT.HLS_LEVEL_LOADED)
     this._transCoreEvent(EVENT.STREAM_EXCEPTION)
     this._transCoreEvent(EVENT.SWITCH_URL_SUCCESS)
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
+    this._transCoreEvent(Event.NO_AUDIO_TRACK)
+    this._transCoreEvent(Event.STREAM_PARSED)
+    this._transCoreEvent(Event.SUBTITLE_SEGMENTS)
+    this._transCoreEvent(Event.SUBTITLE_PLAYLIST)
 
     if (config.url) {
       this.hls.load(config.url, true).catch(e => {})
@@ -124,8 +150,11 @@ export class HlsPlugin extends BasePlugin {
     return promise
   }
 
+  /**
+   * @returns {import('./hls').Stats |  undefined}
+   */
   getStats = () => {
-    return this.hls?.getStats() || {}
+    return this.hls?.getStats()
   }
 
   destroy = () => {
@@ -138,22 +167,28 @@ export class HlsPlugin extends BasePlugin {
     this.pluginExtension = null
   }
 
+  /**
+   * @param {string | boolean} [mediaType]
+   * @param {string} [codec]
+   * @returns {boolean}
+   * - mediaType: 默认检测 MSE 对 H264 codec是否支持，传入 true 或者配置参数的mediaType的取值检测 WebAssembly是否支持
+   * - codec: 暂无使用
+   */
   static isSupported (mediaType, codec) {
     return Hls.isSupported(mediaType, codec)
   }
 
-  _onSwitchURL = (url) => {
-    const { player, hls } = this
-    if (hls) {
-      const curTime = player.currentTime
-
-      player.config.url = url
-      hls.switchURL(url, curTime).catch(e => {})
-    }
+  _onSwitchSubtitle = ({lang}) => {
+    this.hls?.switchSubtitleStream(lang)
   }
 
-  _onDefinitionChange = ({ to }) => {
-    if (this.hls) this.hls.switchURL(to).catch(e => {})
+  _onSwitchURL = (url, args) => {
+    const { player, hls } = this
+    if (hls) {
+      const options = parseSwitchUrlArgs(args, this)
+      player.config.url = url
+      hls.switchURL(url, options).catch(e => {})
+    }
   }
 
   _transError () {
@@ -171,7 +206,23 @@ export class HlsPlugin extends BasePlugin {
           ...e,
           eventName
         })
+
+        if (eventName === EVENT.SEI_IN_TIME && this.hls.hasSubtitle) {
+          this._emitSeiPaylodTime(e)
+        }
       }
     })
   }
+
+  _emitSeiPaylodTime (e) {
+    try {
+      const seiJson = JSON.parse(Array.from(e.data.payload).map(x=>String.fromCharCode(x)).join('').slice(0,-1))
+      if (!seiJson['rtmp_dts']) return
+      this.player.emit('core_event', {
+        eventName: Event.SEI_PAYLOAD_TIME,
+        time: seiJson['rtmp_dts']
+      })
+    } catch (e) {}
+  }
+
 }

@@ -12,6 +12,16 @@ import { clamp } from './utils'
 /**
  * @typedef {import('./manifest-loader/parser/model').MediaSegment} MediaSegment
  */
+/**
+ * @typedef {import("../../../xgplayer-streaming-shared/es/services/stats").StatsInfo} Stats
+ */
+/**
+ * @typedef {{
+ *  seamless?: boolean,
+ *  startTime?: number,
+ *  bitrate?: number
+ * }} SwitchUrlOptions
+ */
 
 const logger = new Logger('hls')
 
@@ -53,6 +63,8 @@ export class Hls extends EventEmitter {
   _segmentProcessing = false
   _reloadOnPlay = false
 
+  _switchUrlOpts = null
+
   constructor (cfg) {
     super()
     this.config = cfg = getConfig(cfg)
@@ -76,6 +88,7 @@ export class Hls extends EventEmitter {
   get isLive () { return this._playlist.isLive }
   get streams () { return this._playlist.streams }
   get currentStream () { return this._playlist.currentStream }
+  get hasSubtitle () { return this._playlist.hasSubtitle}
 
   get baseDts () {
     return this._bufferService?.baseDts
@@ -89,6 +102,9 @@ export class Hls extends EventEmitter {
     return Buffer.info(Buffer.get(this.media), this.media?.currentTime, maxHole)
   }
 
+  /**
+   * @returns {Stats}
+   */
   getStats () {
     return this._stats.getStats()
   }
@@ -101,11 +117,68 @@ export class Hls extends EventEmitter {
     if (url) this.config.url = url
     url = this.config.url
     await this._reset(reuseMse)
-    if (url) url = url.trim()
-    if (!url) throw this._emitError(new StreamingError(ERR.OTHER, ERR.SUB_TYPES.OPTION, null, null, 'm3u8 url is missing'))
-    await this._loadM3U8(url)
-    await this._loadSegment()
+    await this._loadData(url)
     this._startTick()
+  }
+
+  /**
+   * @param {string} url
+   * @private
+   */
+  async _loadData (url) {
+    try {
+      if (url) url = url.trim()
+    } catch (e) {}
+
+    if (!url) throw this._emitError(new StreamingError(ERR.OTHER, ERR.SUB_TYPES.OPTION, null, null, 'm3u8 url is missing'))
+
+    const manifest = await this._loadM3U8(url)
+    const { currentStream } = this._playlist
+
+    if (this._urlSwitching) {
+      if (currentStream.bitrate === 0 && this._switchUrlOpts?.bitrate) {
+        currentStream.bitrate = this._switchUrlOpts?.bitrate
+      }
+      const switchTimePoint = this._getSeamlessSwitchPoint()
+      this.config.startTime = switchTimePoint
+
+      const segIdx = this._playlist.findSegmentIndexByTime(switchTimePoint)
+      const nextSeg = this._playlist.getSegmentByIndex(segIdx + 1)
+
+      if (nextSeg) {
+        // move to next segment in case of media stall
+        const bufferClearStartPoint = nextSeg.start
+        await this._bufferService.removeBuffer(bufferClearStartPoint)
+      }
+    }
+
+    if (manifest) {
+      if (this.isLive) {
+        this._bufferService.setLiveSeekableRange(0, 0xffffffff)
+        logger.log('totalDuration first time got', this._playlist.totalDuration)
+
+        // 配置的目标延迟小于首次获取分片总时长
+        if (this.config.targetLatency < this._playlist.totalDuration) {
+          this.config.targetLatency = this._playlist.totalDuration
+          this.config.maxLatency = 1.5 * this.config.targetLatency
+        }
+
+        if (!manifest.isMaster) this._pollM3U8(url)
+      } else {
+        await this._bufferService.updateDuration(currentStream.totalDuration)
+
+        const { startTime } = this.config
+        if (startTime) {
+          if (!this._switchUrlOpts?.seamless) {
+            this.media.currentTime = startTime
+          }
+
+          this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(startTime) || 0)
+        }
+      }
+    }
+
+    await this._loadSegment()
   }
 
   async replay (isPlayEmit) {
@@ -115,22 +188,69 @@ export class Hls extends EventEmitter {
     return this.media.play(!isPlayEmit)
   }
 
-  async switchURL (url, startTime = 0) {
-    this.config.startTime = startTime
-    this.config.url = url
-    let appended
-    try {
-      appended = this.config.softDecode ? this.load(url) : (await this.load(url))
-    } catch (error) {
-      this.emit(Event.SWITCH_URL_FAILED, error)
-      throw error
+  /**
+   * @param {string} url
+   * @param {?SwitchUrlOptions} options
+   * @returns
+   */
+  async switchURL (url, options = {}) {
+    const defaultOpts = {
+      seamless: false,
+      startTime: 0,
+      bitrate: 0
     }
-    this._reloadOnPlay = false
+    switch (typeof options) {
+      case 'number':
+        options = {startTime: options}
+        break
+      case 'boolean':
+        options = {seamless: options}
+        break
+      case 'object':
+        for (const key in options) {
+          if (options[key] === undefined || options[key] === null) {
+            delete options[key]
+          }
+        }
+        break
+      default:
+        throw `unsupported switchURL args: ${options}`
+    }
 
-    if (appended) {
-      this.emit(Event.SWITCH_URL_SUCCESS, { url })
+    options = Object.assign({}, defaultOpts, options)
+
+    const { seamless, startTime } = options
+    this.config.url = url
+    this.config.startTime = startTime
+    this._switchUrlOpts = options
+
+    if (!seamless) {
+      let appended
+      try {
+        appended = this.config.softDecode ? this.load(url) : (await this.load(url))
+      } catch (error) {
+        this.emit(Event.SWITCH_URL_FAILED, error)
+        throw error
+      }
+      this._reloadOnPlay = false
+
+      if (appended) {
+        this.emit(Event.SWITCH_URL_SUCCESS, { url })
+      }
+      return this.media.play(true)
+    } else {
+      this._urlSwitching = true
+      this._prevSegSn = null
+      this._prevSegCc = null
+
+      this._playlist.reset()
+      this._bufferService.seamlessSwitch()
+      await this._clear()
+      await this._loadData(url)
+      this._startTick()
     }
-    return this.media.play(true)
+
+    this._switchUrlOpts = null
   }
 
   async switchStream (id, force = true) {
@@ -147,6 +267,7 @@ export class Hls extends EventEmitter {
       throw this._emitError(StreamingError.create(error))
     }
 
+    // 同步更新
     if (curStream.currentAudioStream && toSwitch.audioStreams.length > 2) {
       const curId = curStream.currentAudioStream.id
       toSwitch.currentAudioStream = toSwitch.audioStreams.find(x => x.id === curId) || toSwitch.currentAudioStream
@@ -199,6 +320,12 @@ export class Hls extends EventEmitter {
     return toSwitch
   }
 
+  async switchSubtitleStream (lang) {
+    this._playlist.switchSubtitle(lang)
+    await this._manifestLoader.stopPoll()
+    await this._refreshM3U8()
+  }
+
   async destroy () {
     if (!this.media) return
     this.removeAllListeners()
@@ -213,6 +340,10 @@ export class Hls extends EventEmitter {
     this.media = null
   }
 
+  /**
+   * @param {('video'|'audio')?} mediaType
+   * @returns {Boolean}
+   */
   static isSupported (mediaType) {
     if (!mediaType || mediaType === 'video' || mediaType === 'audio') {
       return MSE.isSupported()
@@ -234,7 +365,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _loadM3U8 = async (url) => {
+  async _loadM3U8 (url) {
     let playlist
     try {
       [playlist] = await this._manifestLoader.load(url)
@@ -243,35 +374,33 @@ export class Hls extends EventEmitter {
     }
     if (!playlist) return
     this._playlist.upsertPlaylist(playlist)
+
     if (playlist.isMaster) {
+      if (this._playlist.currentStream.subtitleStreams?.length) {
+        this.emit(Event.SUBTITLE_PLAYLIST, {
+          list: this._playlist.currentStream.subtitleStreams
+        })
+      }
       await this._refreshM3U8()
     }
     this.emit(Event.STREAM_PARSED)
-    if (this.isLive) {
-      this._bufferService.setLiveSeekableRange(0, 0xffffffff)
-      if (!playlist.isMaster) this._pollM3U8(url)
-    } else {
-      await this._bufferService.updateDuration(this._playlist.currentStream.totalDuration)
-      const { startTime } = this.config
-      if (startTime) {
-        this.media.currentTime = startTime
-        this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(startTime) || 0)
-      }
-    }
+    return playlist
   }
 
   /**
-   * @private
+   * @private 首次更新 master playlist 的 media level
    */
   _refreshM3U8 () {
     const stream = this._playlist.currentStream
     if (!stream || !stream.url) throw this._emitError(StreamingError.create(null, null, new Error('m3u8 url is not defined')))
     const url = stream.url
     const audioUrl = stream.currentAudioStream?.url
-    return this._manifestLoader.load(url, audioUrl).then(([mediaPlaylist, audioPlaylist]) => {
+    const subtitleUrl = stream.currentSubtitleStream?.url
+    return this._manifestLoader.load(url, audioUrl, subtitleUrl).then(([mediaPlaylist, audioPlaylist, subtitlePlaylist]) => {
       if (!mediaPlaylist) return
-      this._playlist.upsertPlaylist(mediaPlaylist, audioPlaylist)
-      if (this.isLive) this._pollM3U8(url, audioUrl)
+      this._playlist.upsertPlaylist(mediaPlaylist, audioPlaylist, subtitlePlaylist)
+      if (!this.isLive) return
+      this._pollM3U8(url, audioUrl, subtitleUrl)
     }).catch(err => {
       throw this._emitError(StreamingError.create(err))
     })
@@ -280,13 +409,15 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _pollM3U8 (url, audioUrl) {
+  _pollM3U8 (url, audioUrl, subtitleUrl) {
     let isEmpty = this._playlist.isEmpty
     this._manifestLoader.poll(
       url,
       audioUrl,
-      (p1, p2) => {
-        this._playlist.upsertPlaylist(p1, p2)
+      subtitleUrl,
+      (p1, p2, p3) => {
+        this._playlist.upsertPlaylist(p1, p2, p3)
+        this._playlist.clearOldSegment()
         if (p1 && isEmpty && !this._playlist.isEmpty) {
           this._loadSegment()
         }
@@ -294,6 +425,7 @@ export class Hls extends EventEmitter {
       }, (err) => {
         this._emitError(StreamingError.create(err))
       },
+      // 刷新时间
       (this._playlist.lastSegment?.duration || 0) * 1000)
   }
 
@@ -308,6 +440,7 @@ export class Hls extends EventEmitter {
     if (!nextSeg || (curSeg && !this.isLive && curSeg.end - currentTime >= this.config.preloadTime)) return
     return this._loadSegmentDirect()
   }
+
 
   /**
    * @private
@@ -334,6 +467,11 @@ export class Hls extends EventEmitter {
     }
 
     if (appended) {
+      if (this._urlSwitching) {
+        this._urlSwitching = false
+        this.emit(Event.SWITCH_URL_SUCCESS, { url: this.config.url })
+      }
+
       this._playlist.moveSegmentPointer()
       if (seg.isLast) {
         this._end()
@@ -461,21 +599,21 @@ export class Hls extends EventEmitter {
       if (!liveEdge) return
       const latency = liveEdge - this.media.currentTime
       if (latency >= cfg.maxLatency) {
-        logger.debug('latency jump', latency)
+        logger.debug(`latency jump, currentTime:${this.media.currentTime}, liveEdge:${liveEdge},  latency=${latency}`)
         this.media.currentTime = liveEdge - cfg.targetLatency
       }
     }
 
     this._seiService.throw(this.media.currentTime)
 
-    if (this.config.allowedStreamTrackChange) {
+    if (this.config.allowedStreamTrackChange && !this.config.softDecode) {
       this._checkStreamTrackChange(this.media.currentTime)
     }
 
   }
 
   _checkStreamTrackChange (time) {
-    const changedSeg = this._playlist.checkSegmentTrackChange(time)
+    const changedSeg = this._playlist.checkSegmentTrackChange(time, this._bufferService.nbSb)
     if (!changedSeg) return
     this.switchURL(this.config.url, changedSeg.start + 0.2)
   }
@@ -500,6 +638,7 @@ export class Hls extends EventEmitter {
     this._reloadOnPlay = false
     this._prevSegSn = null
     this._prevSegCc = null
+    this._switchUrlOpts = null
     this._playlist.reset()
     this._segmentLoader.reset()
     this._seiService.reset()
@@ -586,11 +725,37 @@ export class Hls extends EventEmitter {
         this.media.pause()
       }
       this._stopTick()
+      if (this._urlSwitching) {
+        this._urlSwitching = false
+        this.emit(Event.SWITCH_URL_FAILED, error)
+      }
       this.emit(Event.ERROR, error)
       if (endOfStream) this._end()
       this._seiService.reset()
     }
     return error
+  }
+
+  /**
+   * @private
+   */
+  _getSeamlessSwitchPoint () {
+    const { media } = this
+    let nextLoadPoint = media.currentTime
+    if (!media.paused) {
+      const segIdx = this._playlist.findSegmentIndexByTime(media.currentTime)
+      const curSeg = this._playlist.getSegmentByIndex(segIdx)
+      const latestKbps = this._stats?.getStats().downloadSpeed // latest download speed
+      if (latestKbps && curSeg) {
+        const delay = (curSeg.duration * this._playlist.currentStream.bitrate) / latestKbps + 1
+
+        nextLoadPoint += delay
+      } else {
+        nextLoadPoint += 5
+      }
+    }
+
+    return nextLoadPoint
   }
 }
 

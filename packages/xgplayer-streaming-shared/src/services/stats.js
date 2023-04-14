@@ -40,13 +40,23 @@ class Stats {
     this.encodeType = encode
   }
 
+  setFpsFromScriptData ({data}) {
+    const fps = data?.onMetaData?.framerate
+    if (fps && fps > 0 && fps < 100) {
+      this.fps = fps
+    }
+  }
+
   setVideoMeta (track) {
     this.width = track.width
     this.height = track.height
     this.videoCodec = track.codec
     this.encodeType = track.codecType
     if (track.fpsNum && track.fpsDen) {
-      this.fps = track.fpsNum / track.fpsDen
+      const fps = track.fpsNum / track.fpsDen
+      if (fps > 0 && fps < 100) {
+        this.fps = fps
+      }
     }
   }
 
@@ -62,9 +72,9 @@ class Stats {
 
   updateBitrate (samples) {
     if (!this.fps || this.fps >= 100) {
-      const samp0 = samples[0]
-      if (samp0?.duration) {
-        this.fps = Math.round(this._timescale / samp0.duration)
+      if (samples.length) {
+        const duration = samples.reduce((a,b) => a += b.duration, 0) / samples.length
+        this.fps = Math.round(this._timescale / duration)
       }
     }
     samples.forEach(sample => {
@@ -82,6 +92,26 @@ class Stats {
   }
 }
 
+
+/**
+ * @typedef {Object} StatsInfo
+ * @property {number} downloadSpeed
+ * @property {number} avgSpeed
+ * @property {number} currentTime
+ * @property {number} bufferEnd
+ * @property {number} decodeFps
+ * @property {string} encodeType
+ * @property {string} audioCodec
+ * @property {string} videoCodec
+ * @property {string} domain
+ * @property {number} fps
+ * @property {number} bitrate
+ * @property {number} width
+ * @property {number} height
+ * @property {number} samplerate
+ * @property {number} channelCount
+ * @property {number} gop
+ */
 class MediaStatsService {
 
   _core = null
@@ -95,28 +125,26 @@ class MediaStatsService {
     this._bindEvents()
   }
 
+
+  /** @returns {StatsInfo} */
   getStats () {
     const { currentTime = 0, decodeFps = 0 } = this._core?.media || {}
     return {
       ...this._stats.getStats(),
-      /** @type {number} */
-      downloadSpeed: this._core?.speedInfo?.().speed,
-
-      avgSpeed: this._core?.speedInfo?.().avgSpeed,
-
-      /** @type {number} */
+      downloadSpeed: this._core?.speedInfo?.().speed || 0,
+      avgSpeed: this._core?.speedInfo?.().avgSpeed || 0,
       currentTime,
-
-      /** @type {number} */
       bufferEnd: this._core?.bufferInfo()?.remaining || 0,
-
-      /** @type {number} */
       decodeFps
     }
   }
 
   _bindEvents () {
     this._core.on(EVENT.DEMUXED_TRACK, (track) => this._stats.updateBitrate(track.samples))
+
+    this._core.on(EVENT.FLV_SCRIPT_DATA, data => {
+      this._stats.setFpsFromScriptData(data)
+    })
 
     this._core.on(EVENT.METADATA_PARSED, e => {
       if (e.type === 'video') {

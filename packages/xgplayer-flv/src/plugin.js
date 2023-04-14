@@ -75,7 +75,6 @@ export class FlvPlugin extends BasePlugin {
     }
 
     this.on(Events.URL_CHANGE, this._onSwitchURL)
-    // this.on(Events.DEFINITION_CHANGE, this._onDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
 
     this._transError()
@@ -97,11 +96,14 @@ export class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.SWITCH_URL_SUCCESS)
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
 
-    this.flv.load(config.url, true)
+    return this.flv.load(config.url, true)
   }
 
+  /**
+   * @return {import('./flv').Stats | undefined}
+   */
   getStats = () => {
-    return this.flv?.getStats() || {}
+    return this.flv?.getStats()
   }
 
   destroy = () => {
@@ -113,11 +115,22 @@ export class FlvPlugin extends BasePlugin {
     this.pluginExtension = null
   }
 
-  /** @type {boolean} */
+  /**
+   * @param {string | boolean} [mediaType]
+   * @param {string} [codec]
+   * @returns {boolean}
+   * - mediaType: 默认检测 MSE 对 H264 codec是否支持，传入 true 或者配置参数的mediaType的取值检测 WebAssembly是否支持
+   * - codec: 暂无使用
+   */
   static isSupported (mediaType, codec) {
     return Flv.isSupported(mediaType, codec)
   }
 
+  /**
+   *
+   * @param {string} url
+   * @param {boolean} seamless
+   */
   _onSwitchURL = (url, seamless) => {
     if (this.flv) {
       this.player.config.url = url

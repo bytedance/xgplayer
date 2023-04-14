@@ -8,6 +8,7 @@ describe('Utils', () => {
     expect(clamp(3, 0, 2)).toBe(2)
     expect(clamp(0, 0, 2)).toBe(0)
     expect(clamp(2, 0, 2)).toBe(2)
+    expect(clamp(2, 0, -1)).toBe(0)
   })
 
 })

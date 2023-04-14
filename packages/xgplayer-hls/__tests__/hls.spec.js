@@ -5,9 +5,17 @@ jest.mock('../src/hls/playlist')
 
 import { Hls } from '../src/hls'
 import { BufferService } from '../src/hls/buffer-service'
-import { Playlist } from '../src/hls/playlist' 
+import { Playlist } from '../src/hls/playlist'
 import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
-import { NetLoader, BandwidthService, getVideoPlaybackQuality, Buffer, MSE, Logger } from 'xgplayer-streaming-shared'
+import {
+  NetLoader,
+  BandwidthService,
+  getVideoPlaybackQuality,
+  Buffer,
+  MSE,
+  Logger,
+  MediaStatsService
+} from 'xgplayer-streaming-shared'
 
 describe('Hls', () => {
   const { EVENT } = jest.requireActual('xgplayer-streaming-shared')
@@ -39,12 +47,14 @@ describe('Hls', () => {
   TransmuxerLogger.disable = tLoggerDisable
 
   const bufferServiceReset = jest.fn()
+  const updateDuration = jest.fn()
   const endOfStream = jest.fn()
   const bufferDestroy = jest.fn()
   const seamlessSwitch = jest.fn()
   const clearAllBuffer = jest.fn()
   BufferService.mockImplementation(() => {
     return {
+      updateDuration,
       reset: bufferServiceReset,
       endOfStream,
       seamlessSwitch,
@@ -60,8 +70,12 @@ describe('Hls', () => {
       reset: bandwidthServiceReset,
       appendBuffer,
       addChunkRecord: jest.fn(),
-      getLatestSpeed () { return 1 },
-      getAvgSpeed () { return 1 },
+      getLatestSpeed() {
+        return 1
+      },
+      getAvgSpeed() {
+        return 1
+      }
     }
   })
 
@@ -107,8 +121,22 @@ describe('Hls', () => {
 
   test('public properties', () => {
     const hls = new Hls({ media })
+    const baseDtsType = typeof hls.baseDts
+    const MediaStatsServiceMockData = {
+      avgSpeed: 0,
+      currentTime: 0,
+      bufferEnd: 0,
+      decodeFps: 1
+    }
+
+    jest.spyOn(MediaStatsService.prototype, 'getStats').mockImplementation(() => {
+      return MediaStatsServiceMockData
+    })
+
     expect(hls.media).toBe(media)
     expect(hls.version).toBe('test')
+    expect(baseDtsType === 'undefined' || baseDtsType === 'number').toBe(true)
+    expect(hls.getStats()).toEqual(MediaStatsServiceMockData)
   })
 
   test('info methods', () => {
@@ -169,6 +197,27 @@ describe('Hls', () => {
     await hls.switchURL('url')
     expect(load).toHaveBeenCalled()
     expect(media.play).toHaveBeenCalled()
+
+    // argument `options` should not support incorrect type
+    expect
+      .extend({
+        async switchUrlFailureByReceivedUnExpectedArgs() {
+          let passed = true
+          try {
+            await hls.switchURL('url', function () {})
+          } catch {
+            passed = false
+          }
+
+          return {
+            message: () =>
+              passed ? '' : `switchUrl failed while receiving unExpected args`,
+            pass: passed
+          }
+        }
+      })
+
+    await expect().not.switchUrlFailureByReceivedUnExpectedArgs()
   })
 
   test('destroy', async () => {
@@ -192,6 +241,5 @@ describe('Hls', () => {
     expect(loaderCancel).toHaveBeenCalled()
     expect(clearAllBuffer).toHaveBeenCalled()
     expect(hls.currentStream).toBe(streams[1])
-  }) 
-
+  })
 })

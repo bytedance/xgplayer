@@ -1,4 +1,18 @@
 
+## xgplayer-flv@next.24-1
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.33
+fix: getStats() 统计帧率不准确问题
+
+## xgplayer-flv@next.24
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.32
+fix: getStats() 统计帧率不准确问题
+
+## xgplayer-flv@next.23
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.31
+
+## xgplayer-flv@next.20
+fix: catch for play() call
+
 ## xgplayer-flv@next.20
 fix: catch for play() call
 

@@ -24,6 +24,7 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "unpkg": "latest",
   "unpkgFiles": [
     "dist"
   ],

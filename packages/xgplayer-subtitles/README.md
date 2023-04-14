@@ -44,7 +44,9 @@
         domRender: true, // 默认为true，会创建dom自行渲染，如果配置为false则只触发更新事件, 不做dom更新
         defaultOpen: false, // 是否默认开启字幕
         mode: 'bg', //可选 字幕显示模式，支持bg(背景）和 stroke(字体边框填充)，默认stroke
-        line: 'double' // 可选 字幕最大显示行数 默认单行，single, 支持single/double/three,
+        line: 'double', // 可选 字幕最大显示行数 默认单行，single, 支持single/double/three、
+        updateMode: 'vod' // 字幕更新类型，vod-字幕内容会做缓存，live-字幕内容不做缓存, 渲染完即丢弃， 默认为vod 1.1.0 之后的版本支持
+        debugger: 'false' // 调试信息输出，默认为false
       }
     const subTitle = new window.XgSubtitle(options)
     // 如果在初始化的时候播放器还没有播放器实例，也可以使用以下挂载播放器
@@ -95,12 +97,13 @@
 #### switch({id:'', language:''})
 切换字幕. id和language只需有一个即可，用户从初始化的字幕列表中选择字幕
 ```javascript
-subtitle.switch({id: 'cn'}).then(() => {
+subtitle.switch({id: 'cn', language:'cn'}).then(() => {
     console.log('切换成功')
 }).catch(() => {
     console.log('切换失败')
 })
 ```
+
 切换信息返回说明
 ```javascript
 {
@@ -153,3 +156,22 @@ subTitle.on('update', data => {
 })
 ```
 
+#### off
+字幕被关闭的时候触发，subtitle.switchOff()接口会触发该事件
+
+#### change
+字幕变化的时候触发
+
+
+```javascript
+subTitle.on('change', data => {
+ console.log('current subtitle is ', data)
+})
+```
+#### reset
+字幕重置，该事件只在字幕集成在hls中的时候触发
+
+```javascript
+subTitle.on('reset', data => {
+ console.log('the new subTitle list is ', data.list)
+})

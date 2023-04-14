@@ -23,11 +23,14 @@ export class BufferService {
       this._softVideo = hls.media
     } else {
       this._mse = new MSE()
-      const _ret = this._mse.bindMedia(hls.media)
-      if (_ret && _ret.then) {
-        _ret.then(() => {
-          hls && hls.emit('sourceAttached')
-        })
+
+      if (hls.config.url) {
+        const _ret = this._mse.bindMedia(hls.media)
+        if (_ret && _ret.then) {
+          _ret.then(() => {
+            hls && hls.emit('sourceAttached')
+          })
+        }
       }
     }
 
@@ -39,6 +42,12 @@ export class BufferService {
 
   get baseDts () {
     return this._transmuxer?._demuxer?._fixer?._baseDts
+  }
+
+  get nbSb () {
+    if (!this._mse?._sourceBuffer) return 0
+
+    return Object.keys(this._mse._sourceBuffer).length
   }
 
   async updateDuration (duration) {
@@ -154,6 +163,15 @@ export class BufferService {
     }
   }
 
+  async removeBuffer (start = 0, end = Infinity) {
+    const media = this.hls.media
+    if (!this._mse || !media || start < 0 || end < start || start >= this._mse.duration) return
+
+    return this._mse
+      .clearBuffer(start, end)
+      .then(() => this.hls.emit(EVENT.REMOVE_BUFFER, { start, end, removeEnd: end }))
+  }
+
   async evictBuffer (bufferBehind) {
     const media = this.hls.media
     if (!this._mse || !media || !bufferBehind || bufferBehind < 0) return
@@ -162,9 +180,7 @@ export class BufferService {
     if (removeEnd <= 0) return
     const start = Buffer.start(Buffer.get(media))
     if (start + 1 >= removeEnd) return
-    return this._mse
-      .clearBuffer(0, removeEnd)
-      .then(() => this.hls.emit(EVENT.REMOVE_BUFFER, { removeEnd }))
+    return this.removeBuffer(0, removeEnd)
   }
 
   async clearAllBuffer () {
@@ -177,11 +193,11 @@ export class BufferService {
 
   async reset (reuseMse = false) {
     if (this._mse && !reuseMse) {
+      this._sourceCreated = false
       await this._mse.unbindMedia()
       await this._mse.bindMedia(this.hls.media)
     }
     this._transmuxer = null
-    this._sourceCreated = false
     this._needInitSegment = true
     this._directAppend = false
   }
@@ -250,5 +266,9 @@ export class BufferService {
         }
       }
     })
+  }
+
+  seamlessSwitch () {
+    this._needInitSegment = true
   }
 }

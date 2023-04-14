@@ -1,5 +1,6 @@
 import { clamp } from '../utils'
 import { Stream } from './stream'
+import { Event } from '../constants'
 
 export class Playlist {
   /** @type {import('./stream').Stream[]} */
@@ -32,8 +33,16 @@ export class Playlist {
     return this.currentStream?.segments
   }
 
+  get currentSubtitleEndSn () {
+    return this.currentStream?.currentSubtitleEndSn
+  }
+
   get liveEdge () {
     return this.currentStream?.liveEdge
+  }
+
+  get totalDuration () {
+    return this.currentStream?.totalDuration || 0
   }
 
   get seekRange () {
@@ -51,6 +60,10 @@ export class Playlist {
 
   get isLive () {
     return this.currentStream?.live
+  }
+
+  get hasSubtitle () {
+    return !!this.currentStream?.currentSubtitleStream
   }
 
   getAudioSegment (seg) {
@@ -92,7 +105,7 @@ export class Playlist {
     }
   }
 
-  upsertPlaylist (playlist, audioPlaylist) {
+  upsertPlaylist (playlist, audioPlaylist, subtitlePlaylist) {
     if (!playlist) return
     if (playlist.isMaster) {
       this.streams.length = playlist.streams.length
@@ -104,13 +117,20 @@ export class Playlist {
         }
       })
       this.currentStream = this.streams[0]
+      // update media
     } else if (Array.isArray(playlist.segments)) {
       const stream = this.currentStream
       if (stream) {
-        stream.update(playlist, audioPlaylist)
+        stream.update(playlist, audioPlaylist, subtitlePlaylist)
+        const newSubtitleSegs = stream.updateSubtitle(subtitlePlaylist)
+        if (newSubtitleSegs) {
+          this.hls.emit(Event.SUBTITLE_SEGMENTS, {
+            list: newSubtitleSegs
+          })
+        }
       } else {
         this.reset()
-        this.currentStream = this.streams[0] = new Stream(playlist, audioPlaylist)
+        this.currentStream = this.streams[0] = new Stream(playlist, audioPlaylist, subtitlePlaylist)
       }
     }
 
@@ -126,6 +146,10 @@ export class Playlist {
     }
   }
 
+  switchSubtitle (lang) {
+    this.currentStream?.switchSubtitle(lang)
+  }
+
   clearOldSegment (maxPlaylistSize = 50) {
     const stream = this.currentStream
     if (!this.dvrWindow || !stream) return
@@ -137,7 +161,7 @@ export class Playlist {
     this._segmentPointer = stream.clearOldSegment(startTime, this._segmentPointer)
   }
 
-  checkSegmentTrackChange (cTime) {
+  checkSegmentTrackChange (cTime, nbSb) {
     const index = this.findSegmentIndexByTime(cTime)
     const seg = this.getSegmentByIndex(index)
 
@@ -145,6 +169,10 @@ export class Playlist {
 
     if (!seg.hasAudio && !seg.hasVideo) return
 
+    // when seek
+    if (nbSb !== 2 && seg.hasAudio && seg.hasVideo) return seg
+
+    // continuous play
     if (seg.end - cTime > 0.3) return
 
     const next = this.getSegmentByIndex(index + 1)

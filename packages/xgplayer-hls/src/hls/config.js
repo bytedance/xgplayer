@@ -31,6 +31,7 @@ export function getConfig (cfg) {
     maxPlaylistSize: 50,
     retryCount: 3,
     retryDelay: 1000,
+    pollRetryCount: 2,
     loadTimeout: 10000,
     preloadTime: 30,
     softDecode: false,
@@ -39,7 +40,7 @@ export function getConfig (cfg) {
     startTime: 0,
     targetLatency: 10,
     maxLatency: 20,
-    allowedStreamTrackChange: false,
+    allowedStreamTrackChange: true,
     ...cfg,
     media
   }

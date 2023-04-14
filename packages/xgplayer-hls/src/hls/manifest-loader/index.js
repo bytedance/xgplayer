@@ -24,22 +24,45 @@ export class ManifestLoader {
       timeout: loadTimeout,
       onRetryError: this._onLoaderRetry
     })
+
+    this._subtitleLoader = new NetLoader({
+      ...fetchOptions,
+      responseType: 'text',
+      retry: retryCount,
+      retryDelay: retryDelay,
+      timeout: loadTimeout,
+      onRetryError: this._onLoaderRetry
+    })
+
   }
 
-  async load (url, audioUrl) {
+  async load (url, audioUrl, subtitleUrl) {
     const toLoad = [this._loader.load(url)]
     if (audioUrl) {
       toLoad.push(this._audioLoader.load(audioUrl))
     }
 
+    if (subtitleUrl) {
+      toLoad.push(this._subtitleLoader.load(subtitleUrl))
+    }
+
     let videoText
     let audioText
+    let subtitleText
 
     try {
-      const [video, audio] = await Promise.all(toLoad)
+      const [video, audio, subtitle] = await Promise.all(toLoad)
       if (!video) return []
+
       videoText = video.data
-      audioText = audio?.data
+
+      if (audioUrl) {
+        audioText = audio?.data
+        subtitleText = subtitle?.data
+      } else {
+        subtitleText = audio?.data
+      }
+
     } catch (error) {
       throw StreamingError.network(error)
     }
@@ -48,10 +71,12 @@ export class ManifestLoader {
 
     let playlist
     let audioPlaylist
+    let subtitlePlaylist
     try {
       if (onPreM3U8Parse) {
         videoText = onPreM3U8Parse(videoText) || videoText
         if (audioText) audioText = onPreM3U8Parse(audioText, true) || audioText
+        if (subtitleText) subtitleText = onPreM3U8Parse(subtitleText, true) || subtitleText
       }
       playlist = M3U8Parser.parse(videoText, url)
       if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
@@ -60,6 +85,10 @@ export class ManifestLoader {
       if (audioText) {
         audioPlaylist = M3U8Parser.parse(audioText, audioUrl)
       }
+      if (subtitleText) {
+        subtitlePlaylist = M3U8Parser.parse(subtitleText, subtitleUrl)
+      }
+
     } catch (error) {
       throw new StreamingError(ERR.MANIFEST, ERR.SUB_TYPES.HLS, error)
     }
@@ -71,20 +100,25 @@ export class ManifestLoader {
       }
     }
 
-    return [playlist, audioPlaylist]
+    return [playlist, audioPlaylist, subtitlePlaylist]
   }
 
-  poll (url, audioUrl, cb, errorCb, time) {
+  poll (url, audioUrl, subtitleUrl, cb, errorCb, time) {
     clearTimeout(this._timer)
     time = time || 3000
+    let retryCount = this.hls.config.pollRetryCount
     const fn = async () => {
       clearTimeout(this._timer)
       try {
-        const res = await this.load(url, audioUrl)
+        const res = await this.load(url, audioUrl, subtitleUrl)
         if (!res[0]) return
-        cb(res[0], res[1])
+        retryCount = this.hls.config.pollRetryCount
+        cb(res[0], res[1], res[2])
       } catch (e) {
-        errorCb(e)
+        retryCount--
+        if (retryCount <= 0) {
+          errorCb(e)
+        }
       }
       this._timer = setTimeout(fn, time)
     }

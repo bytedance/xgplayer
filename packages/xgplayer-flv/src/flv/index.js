@@ -7,6 +7,10 @@ import { searchKeyframeIndex } from './utils'
 
 export const logger = new Logger('flv')
 
+
+/**
+ * @typedef {import("../../../xgplayer-streaming-shared/es/services/stats").StatsInfo} Stats
+ */
 export class Flv extends EventEmitter {
   /** @type {HTMLMediaElement | null} */
   media = null
@@ -16,22 +20,23 @@ export class Flv extends EventEmitter {
   /** @type {import('./options').FlvOption} */
   _opts = null
 
-  /** @type {BufferService | null} */
+  /** @type {BufferService} */
   _bufferService = null
 
-  /** @type {GapService | null} */
+  /** @type {GapService} */
   _gapService = null
 
   /** @type {MediaStatsService} */
   _stats = null
 
+  /** @type {NetLoader} */
   _mediaLoader = null
+
   _maxChunkWaitTimer = null
 
   _tickTimer = null
   _tickInterval = 500
 
-  _noEndOfStreamOnDone = false
   _urlSwitching = false
   _seamlessSwitching = false
 
@@ -97,6 +102,9 @@ export class Flv extends EventEmitter {
     }
   }
 
+  /**
+   * @returns {Stats}
+   */
   getStats () {
     return this._stats.getStats()
   }
@@ -128,7 +136,6 @@ export class Flv extends EventEmitter {
   async replay (seamlesslyReload = this._opts.seamlesslyReload, isPlayEmit) {
     if (!this.media) return
     if (seamlesslyReload) {
-      this._noEndOfStreamOnDone = true
       await this._clear()
 
       setTimeout(() => {
@@ -159,7 +166,6 @@ export class Flv extends EventEmitter {
       return this.media.play(true).catch(()=>{})
     }
 
-    this._noEndOfStreamOnDone = true
     await this._clear()
 
     setTimeout(() => {
@@ -183,6 +189,10 @@ export class Flv extends EventEmitter {
     this._bufferService = null
   }
 
+  /**
+   * @param {('video'|'audio')?} mediaType
+   * @returns {Boolean}
+   */
   static isSupported (mediaType) {
     if (!mediaType || mediaType === 'video' || mediaType === 'audio') {
       return MSE.isSupported()
@@ -233,7 +243,7 @@ export class Flv extends EventEmitter {
 
     this.emit(EVENT.LOAD_START, { url })
 
-    logger.debug('load data, loding:', this._loading, url)
+    logger.debug('load data, loading:', this._loading, url)
 
     if (this._loading) {
       await this._mediaLoader.cancel()
@@ -301,13 +311,8 @@ export class Flv extends EventEmitter {
 
     if (done && !this.media.seeking) {
       this.emit(EVENT.LOAD_COMPLETE)
-      logger.debug('load done', this._noEndOfStreamOnDone)
-
-      if (this._noEndOfStreamOnDone) {
-        this._noEndOfStreamOnDone = false
-      } else {
-        return this._end()
-      }
+      logger.debug('load done')
+      return this._end()
     } else {
       const { maxReaderInterval } = this._opts
       if (maxReaderInterval) {

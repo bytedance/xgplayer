@@ -126,6 +126,16 @@ describe('BufferService', () => {
     jest.clearAllMocks()
   })
 
+  test('constructor', async () => {
+    hls.config.url = ''
+    new BufferService(hls)
+    expect(bindMedia).not.toHaveBeenCalled()
+
+    hls.config.url = 'url'
+    new BufferService(hls)
+    expect(bindMedia).toHaveBeenCalled()
+  })
+
   test('appendBuffer', async () => {
     const bs = new BufferService(hls)
     bs.createSource(
@@ -154,6 +164,13 @@ describe('BufferService', () => {
       0
     )
     expect(result).toHaveLength(0)
+  })
+
+  test('removeBuffer', async () => {
+    const bs = new BufferService(hls)
+
+    await bs.removeBuffer(20, 0)
+    expect(clearBuffer).not.toHaveBeenCalled()
   })
 
   test('evictBuffer', async () => {
@@ -222,5 +239,11 @@ describe('BufferService', () => {
     const bs = new BufferService(hls)
     await bs.clearAllBuffer()
     expect(clearAllBuffer).toHaveBeenCalled()
+  })
+
+  test('seamlessSwitch', async () => {
+    const bs = new BufferService(hls)
+    bs.seamlessSwitch()
+    expect(bs._needInitSegment).toBe(true)
   })
 })
