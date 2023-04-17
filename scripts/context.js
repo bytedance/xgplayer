@@ -126,6 +126,9 @@ function createContext () {
     runPostPublish (name, pkg) {
       if (config.onPostPublish) return config.onPostPublish(pkg, name)
     },
+    /**
+     * @returns {import('.').Config}
+     */
     getConfig (pkg) {
       if (!pkg) return config
       return Object.assign({}, config, pkg.libd)

@@ -87,7 +87,9 @@ async function build (target) {
           replace: { ...replace, __DEV__: dev },
           banner,
           cssPreprocessorOptions: config.cssPreprocessorOptions,
-          plugins: config.plugins
+          plugins: config.plugins,
+          externals: config.externals,
+          visualizer: config.visualizer
         })
         cfg.build.minify = 'terser'
         cfg.build.terserOptions = { module: f.format === 'es', output: { comments: false } }

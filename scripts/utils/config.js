@@ -1,6 +1,8 @@
 const path = require('path')
 const fs = require('fs-extra')
 const react = require('@vitejs/plugin-react')
+const { viteExternalsPlugin } = require('vite-plugin-externals')
+const { visualizer: visualizerPlugin } = require('rollup-plugin-visualizer')
 const { resolveConfig } = require('vite')
 const legacy = require('./legacy')
 const ctx = require('../context')
@@ -170,6 +172,8 @@ async function getBuildConfig (isDev, cfg = {}, isEs) {
           }
         }
         : undefined,
+      // Vite Externals
+      cfg.externals ? viteExternalsPlugin(cfg.externals) : undefined,
       (isDev || !cfg.legacy) ? undefined : legacy({ needPolyfills: cfg.needPolyfills, exclude: cfg.babelExclude }),
       isDev
         ? undefined
@@ -193,6 +197,8 @@ async function getBuildConfig (isDev, cfg = {}, isEs) {
             }
           }
         },
+      // Rollup Visualizer Plugin
+      cfg.visualizer && !isDev && !isEs ? visualizerPlugin(typeof cfg.visualizer === 'object' ? cfg.visualizer : undefined) : undefined,
       ...cfg.plugins
     ].filter(Boolean),
     worker: {
