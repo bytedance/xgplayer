@@ -28,7 +28,7 @@
 
 1. 安装
 
-    ```
+    ```bash
     $ npm install xgplayer
     ```
 
@@ -56,41 +56,26 @@
 
 ### 插件
 
-西瓜播放器提供了较多的插件，插件分两类：一部分是自启动的，一部分是继承播放器核心类 xgplayer 的。原则上官方提供插件都是自启动的，封装的第三方类库都是继承方式。有些功能插件本身能提供降级方案建议使用自启动方式，否则建议使用继承方式。播放器支持自定义插件，更多内容查看 [插件](http://h5player.bytedance.com/plugins/)
-
-对于自启动的插件使用方法如下：
-
-```js
-import Player from 'xgplayer'
-import 'xgplayer-mp4'
-
-let player = new Player({
-    id: 'video',
-    url: '//abc.com/test.mp4'
-})
-```
-
-<code>xgplayer-mp4</code>插件就是自启动的，它会自己加载 mp4 视频、解析 mp4 格式，实现自定义加载、缓冲、无缝切换等[详情]((http://h5player.bytedance.com/plugins/#xgplayer-mp4))。对于不支持 [MSE](https://www.w3.org/TR/media-source/) 的设备自动降级。
+西瓜播放器提供了较多的插件，并支持自定义插件，更多内容查看 [插件](http://h5player.bytedance.com/plugins/)。播放器内有不少内置插件，如果需要关闭某些插件可以通过 [ignores](https://h5player.bytedance.com/config/#ignores) 配置禁用
 
 
-### Mobile Support
+### 开发调试
 
-西瓜播放器支持移动端，不过安卓设备品牌和系统众多，兼容性问题很多，播放器提供白名单机制保证在移动端完美的运行。[白名单机制](http://h5player.bytedance.com/config/#%E7%99%BD%E5%90%8D%E5%8D%95)
+为了方便开发者调试，我们在仓库 fixtures 目录内提供了示例代码。播放器使用 yarn 进行包管理，只需简单几步即可开始在仓库内启动调试
 
-
-### Dev
-
-为了方便开发者调试，我们提供了示例视频资源。示例文件较大，可使用 git clone --recurse-submodules -j8 命令完整拉取源码和示例文件；如果你只对源码感兴趣可以使用 git clone 命令仅拉取源码部分。
-
-```
-$ git clone --recurse-submodules -j8 git@github.com:bytedance/xgplayer.git # 或者：git clone git@github.com:bytedance/xgplayer.git
+```bash
 $ cd xgplayer
-$ npm install
-$ npm run dev
+$ yarn
+$ yarn dev:xgplayer
 ```
 
-访问 [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
+其它插件启动，请参考仓库根目录内 package.json 提供 scripts 命令，比如：
 
+```bash
+$ yarn dev:hls
+$ yarn dev:flv
+$ yarn dev:mp4
+```
 
 ### 使用协议
 
