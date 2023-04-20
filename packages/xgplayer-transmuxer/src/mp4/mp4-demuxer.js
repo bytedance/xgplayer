@@ -100,7 +100,7 @@ export class MP4Demuxer {
     }
   }
 
-  demuxPart (data, dataStart, videoIndexRange, audioIndexRange, moov, useEME, kidValue) {
+  demuxPart (data, dataStart, videoIndexRange, audioIndexRange, moov, useEME, kidValue, customDescryptHandler) {
     this.parseSamples(moov)
 
     this.videoTrack.useEME = useEME
@@ -207,7 +207,7 @@ export class MP4Demuxer {
         }
       }
     }
-    this.decoderData(videoTrack, audioTrack)
+    this.decoderData(videoTrack, audioTrack, customDescryptHandler)
     let nalSize = 0
     for (let i = 0; i < videoTrack.samples.length; i++) {
       let start = 0
@@ -243,9 +243,9 @@ export class MP4Demuxer {
     this.metadataTrack.reset()
   }
 
-  decoderData (videoTrack, audioTrack) {
+  decoderData (videoTrack, audioTrack, customDescryptHandler) {
     if (videoTrack.useEME || audioTrack.useEME) return
-    Crypto.decoderAESCTRData(videoTrack, audioTrack)
+    Crypto.decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler)
   }
 
   static probe (data) {
