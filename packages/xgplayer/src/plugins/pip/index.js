@@ -119,7 +119,7 @@ class PIP extends IconPlugin {
     if (!this.isPIPAvailable()) {
       return false
     }
-    e.stopPropagation()
+    e.stopPropagation && e.stopPropagation()
     if (this.isPip) {
       this.exitPIP()
       this.emitUserAction(e, 'change_pip', { props: 'pip', from: true, to: false })
