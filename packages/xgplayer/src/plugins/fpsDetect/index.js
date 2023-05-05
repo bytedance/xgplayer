@@ -85,7 +85,7 @@ export default class FpsDetect extends BasePlugin {
           if (curDecodedFrames <= this.config.reportFrame){
             this._currentStuckCount ++
           } else {
-            this._currentStuckCount ++
+            this._currentStuckCount = 0
           }
         }
       }
