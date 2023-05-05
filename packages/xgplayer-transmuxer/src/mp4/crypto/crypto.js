@@ -46,7 +46,7 @@ const Crypto = {
     return result
   },
 
-  decoderAESCTRData (videoTrack, audioTrack) {
+  decoderAESCTRData (videoTrack, audioTrack, customDescryptHandler) {
     if (videoTrack.videoSenc) {
       const key = videoTrack.kidValue
       const senc = videoTrack.videoSenc
@@ -72,7 +72,7 @@ const Crypto = {
         }
         const tempBuffer = new Buffer()
         tempBuffer.write(...decodeBuffers)
-        let decrypted = Crypto.decryptWordArray(tempBuffer.buffer, key, iv)
+        let decrypted = customDescryptHandler ? customDescryptHandler(tempBuffer.buffer, key, iv) : Crypto.decryptWordArray(tempBuffer.buffer, key, iv)
         const buffer = new Buffer()
         encodeBuffers.forEach((clearDataBuf, i) => {
           const protectedDataLen = decodeBuffers[i].length
@@ -90,7 +90,7 @@ const Crypto = {
       const senc = audioTrack.audioSenc
       audioTrack.samples.forEach((item, index) => {
         const sencBox = senc[index]
-        const dec = Crypto.decryptWordArray(item.data, key, sencBox.InitializationVector)
+        const dec = customDescryptHandler ? customDescryptHandler(item.data, key, sencBox.InitializationVector) : Crypto.decryptWordArray(item.data, key, sencBox.InitializationVector)
         audioTrack.samples[index].data = dec
       })
     }
