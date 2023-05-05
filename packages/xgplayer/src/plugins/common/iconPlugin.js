@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-export default class Fullscreen extends Plugin {
+export default class Icon extends Plugin {
   afterCreate () {
     this.bind('mouseenter', this._onMouseenter)
     this.bind('mouseleave', this._onMouseLeave)
