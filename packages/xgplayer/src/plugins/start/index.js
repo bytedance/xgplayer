@@ -91,6 +91,10 @@ class Start extends Plugin {
       this.onPlayPause('pause')
     })
 
+    this.on(Events.RESET, () => {
+      this.onPlayerReset()
+    })
+
     this.clickHandler = this.hook('startClick', this.switchPausePlay, {
       pre: (e) => {
         e.cancelable && e.preventDefault()
@@ -101,6 +105,14 @@ class Start extends Plugin {
     })
 
     this.bind(['click', 'touchend'], this.clickHandler)
+  }
+
+  onPlayerReset = () => {
+    this.autoPlayStart = false
+    const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
+    this.setAttr('data-state', 'play')
+    Util.removeClass(this.root, className)
+    this.show()
   }
 
   onAutoplayStart = () => {

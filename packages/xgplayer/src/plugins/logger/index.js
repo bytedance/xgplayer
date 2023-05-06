@@ -61,7 +61,7 @@ class XGLogger extends BasePlugin {
       this.loadedCostTime = this.vt - this.newPointTime
       const { isTimeUpdate, isFFSend, autoplayStart } = this._state
       XG_DEBUG.logInfo(`[xgLogger]${this.player.playerId} LOADED_DATA`, `fvt:${this.fvt} isTimeUpdate:${this._state.isTimeUpdate} loadedCostTime:${this.loadedCostTime}`)
-      if (isTimeUpdate && autoplayStart) {
+      if (isTimeUpdate || autoplayStart) {
         this._sendFF('loadedData')
       }
       if (!isFFSend) {
