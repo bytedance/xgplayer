@@ -6,10 +6,21 @@ import Util from './utils/util'
  */
 
 const ERROR_TYPE_MAP = {
-  1: 'network',
-  2: 'network',
-  3: 'decoder',
-  4: 'format'
+  1: 'media',
+  2: 'media',
+  3: 'media',
+  4: 'media',
+  5: 'media',
+  6: 'media'
+}
+
+const ERROR_MAP = {
+  1: 5101,
+  2: 5102,
+  3: 5103,
+  4: 5104,
+  5: 5105,
+  6: 5106
 }
 
 const ErrorTypes = {
@@ -84,6 +95,10 @@ class Errors {
       const mediaError = errorInfo.mediaError ? errorInfo.mediaError : (player.media.error || {})
       const { duration, currentTime, ended, src, currentSrc } = player
       const { readyState, networkState } = player.media
+      let _errc = errorInfo.errorCode || mediaError.code
+      if (ERROR_MAP[_errc]) {
+        _errc = ERROR_MAP[_errc]
+      }
       const r = {
         playerVersion: version,
         currentTime,
@@ -93,7 +108,7 @@ class Errors {
         networkState,
         src: src || currentSrc,
         errorType: errorInfo.errorType,
-        errorCode: errorInfo.errorCode || mediaError.code,
+        errorCode: _errc,
         message: errorInfo.errorMessage || mediaError.message,
         mediaError,
         originError: errorInfo.originError ? errorInfo.originError.stack : '',
