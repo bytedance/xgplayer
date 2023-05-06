@@ -75,10 +75,12 @@ function formatList (list) {
     if (!item.id && !item.language) {
       item.id = index
     }
+    // 如果是数字类型，转成字符串
+    item.id = String(item.id)
     !item.url && (item.url = item.src)
     !item.text && (item.text = item.label)
     !item.language && (item.language = item.srclang)
-    item.isDefault === undefined && (item.isDefault = item.default)
+    item.isDefault === undefined && (item.isDefault = item.default || false)
     if (item.isDefault || item.default) {
       if (defaultIndex < 0) {
         defaultIndex = index
@@ -88,6 +90,12 @@ function formatList (list) {
     }
   })
   return defaultIndex
+}
+
+function checkIsSame (src, dist) {
+  const isIdS = Util.isNotNull(src.id) && Util.isNotNull(dist.id) && src.id === dist.id
+  const isLS = Util.isNotNull(src.language) && Util.isNotNull(dist.language) && src.language === dist.language
+  return isIdS || isLS
 }
 
 export default class TextTrack extends OptionsIcon {
@@ -178,6 +186,11 @@ export default class TextTrack extends OptionsIcon {
    */
   _initExtSubTitle (defaultIndex) {
     const { list, style, isDefaultOpen } = this.config
+    // 默认开启，但是没有指定开启项的时候, 默认启用第一个字幕
+    if (isDefaultOpen && defaultIndex < 0) {
+      defaultIndex = 0
+      list[0].isDefault = true
+    }
     const config = {
       subTitles: list,
       defaultOpen: isDefaultOpen,
@@ -267,7 +280,6 @@ export default class TextTrack extends OptionsIcon {
   }
 
   _onListReset = (data) => {
-    console.log('_onListReset', data)
     this.updateList(data)
   }
 
@@ -277,7 +289,7 @@ export default class TextTrack extends OptionsIcon {
       return cIndex
     }
     list.forEach((item, index) => {
-      if (item.id === subtitle.id || item.language === subtitle.language) {
+      if (checkIsSame(item, subtitle)) {
         cIndex = index
       }
     })
@@ -397,11 +409,8 @@ export default class TextTrack extends OptionsIcon {
   onItemClick (e, data) {
     const target = e.delegateTarget
     const language = target.getAttribute('language')
-    let id = target.getAttribute('data-id')
+    const id = target.getAttribute('data-id')
     const type = target.getAttribute('data-type')
-    if (id && !Number.isNaN(parseInt(id))) {
-      id = parseInt(id)
-    }
     super.onItemClick(...arguments)
     this.handlerClickSwitch(e, { language, id, type })
   }
@@ -448,8 +457,8 @@ export default class TextTrack extends OptionsIcon {
     }
     list.map((item, index) => {
       const itemInfo = {
-        language: item.language || item.srclang,
-        'data-id': item.id
+        language: item.language || item.srclang || '',
+        'data-id': item.id || ''
       }
       itemInfo.selected = this.curIndex === index
       itemInfo.showText = this.getTextByLang(item)

@@ -533,6 +533,10 @@ util.isUndefined = function (val) {
   }
 }
 
+util.isNotNull = function (val) {
+  return !(val === undefined || val === null)
+}
+
 /**
  *
  * @param { HTMLElement } dom
