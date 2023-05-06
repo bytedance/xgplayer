@@ -1720,6 +1720,7 @@ class Player extends MediaProxy {
 
   onLoadstart () {
     this.removeClass(STATE_CLASS.ERROR)
+    this.isCanplay = false
   }
 
   /**
@@ -1974,8 +1975,10 @@ class Player extends MediaProxy {
     this.setConfig(config)
     this._currentTime = 0
     this._duration = 0
-    this.play()
-    this.emit(Events.PLAYNEXT, config)
+    runHooks(this, 'playnext', () => {
+      this.start()
+      this.emit(Events.PLAYNEXT, config)
+    })
   }
 
   resize () {

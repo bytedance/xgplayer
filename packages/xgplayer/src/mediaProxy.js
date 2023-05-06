@@ -394,6 +394,14 @@ class MediaProxy extends EventEmitter {
   }
 
   /**
+   * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IMediaProxy | null }
+   * @deprecated Property [video] is renamed to [media],you can access using player.media= xx
+   */
+  set video (media) {
+    this.media = media
+  }
+
+  /**
    *
    * @returns {  Promise<void> | null }
    */

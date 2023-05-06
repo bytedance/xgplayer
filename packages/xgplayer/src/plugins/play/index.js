@@ -28,7 +28,7 @@ class Play extends IconPlugin {
     this.btnClick = this.btnClick.bind(this)
     this.bind(['touchend', 'click'], this.btnClick)
 
-    this.on([Events.PAUSE, Events.ERROR], () => {
+    this.on([Events.PAUSE, Events.ERROR, Events.EMPTIED], () => {
       this.animate(player.paused)
     })
     this.on(Events.PLAY, () => {
@@ -68,6 +68,7 @@ class Play extends IconPlugin {
   }
 
   animate (paused) {
+    if (!this.player) {return}
     const { i18nKeys } = this
     const tipDom = this.find('.xg-tips')
     if (paused) {
