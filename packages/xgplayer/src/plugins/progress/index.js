@@ -404,6 +404,11 @@ class Progress extends Plugin {
     if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
     }
+
+    if (!player.duration && !player.isPlaying) {
+      player.play()
+      return
+    }
     e.stopPropagation()
     // e.preventDefault()
     this.focus()
