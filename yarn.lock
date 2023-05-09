@@ -5938,6 +5938,15 @@ xgplayer-mp4-loader@0.0.1:
     xgplayer-streaming-shared "3.0.0-next.2-1"
     xgplayer-transmuxer "3.0.0-next.2-1"
 
+xgplayer-mp4-loader@0.0.1-next.7:
+  version "0.0.1-next.7"
+  resolved "http://bnpm.byted.org/xgplayer-mp4-loader/-/xgplayer-mp4-loader-0.0.1-next.7.tgz#4b108a08906cc4c2439ef838ed8819733d9f72d9"
+  integrity sha512-neGXwjzuqHfZfNZ/ZIv3b7AIO8qwxobYOZyVeR6QGEq4Px3sIWuAiwAIm5zc1Nt9DhXfQDQEVnJoE8T3yrXJhw==
+  dependencies:
+    eventemitter3 "^4.0.7"
+    xgplayer-streaming-shared "3.0.0-next.27"
+    xgplayer-transmuxer "3.0.0-next.24"
+
 xgplayer-streaming-shared@3.0.0-next.2-1:
   version "3.0.0-next.2-1"
   resolved "https://registry.npmjs.org/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.2-1.tgz#357cd2d160f3f12a21dacd8a8fadb7f598639166"
@@ -6001,6 +6010,15 @@ xgplayer-transmuxer@3.0.0-next.8:
   dependencies:
     "@babel/runtime" "^7.15.3"
     core-js "3"
+
+xgplayer-transmuxer@3.0.1:
+  version "3.0.1"
+  resolved "http://bnpm.byted.org/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.1.tgz#c2f92c13ad3faa71834bb0a06106aa0bb8c0ba88"
+  integrity sha512-FM1Yvt8SzsI0OApbV4zNdIf19IgJdjMFVqnEClmpyHj4aW2Kns7OxKp4bwIbU5pn3H3XQtJvQSYNzsRY2jz8+A==
+  dependencies:
+    "@babel/runtime" "^7.15.3"
+    concat-typed-array "^1.0.2"
+    crypto-es "^1.2.4"
 
 xml-name-validator@^4.0.0:
   version "4.0.0"
