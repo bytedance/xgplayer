@@ -1,4 +1,13 @@
 # 版本更新记录
+## 3.0.2
+>* feat(xgplayer): 更新依赖xgplayer-subtitles@1.1.1
+>* fix(xgplayer): 修复字幕id为数字的时候0的判断问题
+>* fix(xgplayer): 修复字幕id或者language为空的时候比对异常问题
+>* feat(xgplayer): 错误码规范,媒体错误归类为51xx
+>* fix(xgplayer): 增加video的set,向下兼容
+>* fix(xgplayer): playNext内部重启流程修改为start
+>* feat(xgplayer): start插件和play插件针对reset的场景做兼容
+>* fix(xgplayer): 修复起播之前click进度条,duration为0导致seek异常问题
 ## 3.0.0-next.54
 >* feat(xgplayer); 修复mobile插件disableGesture或者gestureX的时候进度条操作不生效问题
 >* feat(xgplayer): switchUrl参数类型备注
