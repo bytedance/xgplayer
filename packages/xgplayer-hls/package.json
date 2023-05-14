@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls",
-  "version": "3.0.1",
+  "version": "3.0.2-rc.0",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -14,7 +14,8 @@
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "access": "public",
+    "tag": "rc"
   },
   "license": "MIT",
   "unpkgFiles": [
@@ -26,7 +27,7 @@
     "xgplayer-streaming-shared": "3.0.1"
   },
   "peerDependencies": {
-    "xgplayer": ">=3.0.1",
+    "xgplayer": "3.0.2",
     "core-js": ">=3.12.1"
   }
 }

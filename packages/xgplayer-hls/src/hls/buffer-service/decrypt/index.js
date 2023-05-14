@@ -24,7 +24,7 @@ export class Decryptor {
     this.externalDecryptor = null
   }
 
-  destroy() {
+  destroy () {
     if (this.externalDecryptor?.destroy) {
       this.externalDecryptor.destroy()
     }
