@@ -219,10 +219,14 @@ export class BufferService {
   }
 
   async destroy () {
-    const mse = this._mse
+    this._decryptor?.destroy()
+    if (this._mse) {
+      await this._mse.unbindMedia()
+    }
+
+    this._decryptor = null
     this._mse = null
     this._softVideo = null
-    if (mse) await mse.unbindMedia()
   }
 
   /**
