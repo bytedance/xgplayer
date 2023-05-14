@@ -24,6 +24,12 @@ export class Decryptor {
     this.externalDecryptor = null
   }
 
+  destroy() {
+    if (this.externalDecryptor?.destroy) {
+      this.externalDecryptor.destroy()
+    }
+  }
+
   decrypt (video, audio) {
     if (!video && !audio) return
     const ret = []
