@@ -117,7 +117,7 @@ export class HlsPlugin extends BasePlugin {
 
     this.on(Events.SWITCH_SUBTITLE || 'switch_subtitle', this._onSwitchSubtitle)
     this.on(Events.URL_CHANGE, this._onSwitchURL)
-    this.on(Events.DESTROY, this.destroy)
+    this.on(Events.DESTROY, this.destroy.bind(this))
 
     this._transError()
     this._transCoreEvent(EVENT.TTFB)
@@ -151,13 +151,9 @@ export class HlsPlugin extends BasePlugin {
   }
 
   /**
-   * @returns {import('./hls').Stats |  undefined}
+   * It needs to be supported as a subclass to be inherited externally, so don't write it as an attribute here
    */
-  getStats = () => {
-    return this.hls?.getStats()
-  }
-
-  destroy = () => {
+  destroy () {
     if (this.hls) {
       this.hls.destroy()
       this.hls = null
@@ -166,6 +162,14 @@ export class HlsPlugin extends BasePlugin {
     this.pluginExtension?.destroy()
     this.pluginExtension = null
   }
+
+  /**
+   * @returns {import('./hls').Stats |  undefined}
+   */
+  getStats = () => {
+    return this.hls?.getStats()
+  }
+
 
   /**
    * @param {string | boolean} [mediaType]
