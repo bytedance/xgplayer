@@ -103,7 +103,7 @@ jobs:
             name: build
         - name: npm version 
           run: |
-            zx scripts/workflow/set-packages-version.mjs
+            zx scripts/workflow/set-package-version.mjs
           env: 
             TAG: ${{steps.extract_tag.outputs.result}}
         - name: setup npm
