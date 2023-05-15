@@ -95,7 +95,6 @@ jobs:
             
         - name: install repo deps
           run: |
-            rm yarn.lock
             yarn install --registry="https://registry.yarnpkg.com"
         - name: download build
           uses: actions/download-artifact@v3
