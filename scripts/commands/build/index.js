@@ -12,7 +12,24 @@ const { build: viteBuild } = require('vite')
 const ctx = require('../../context')
 const { getUmdName, getJsEntry, getUmdGlobals, getEsBuildConfig, getBuildConfig } = require('../../utils')
 
-async function build (target) {
+async function buildAll() {
+  const pkgNames = fs.readdirSync(path.resolve(ctx.rootPath, './packages'))
+
+  for (let name of pkgNames) {
+    try {
+      await build(name);
+    } catch(e) {
+      console.error(e.message);
+      process.exit(1);
+    } 
+  }
+}
+
+async function build (target, { all } = {all: false}) {
+  if (!target && all) {
+    buildAll();
+  }
+
   if (!target && ctx.isMonorepo) {
     const ret = await prompt({
       type: 'autocomplete',

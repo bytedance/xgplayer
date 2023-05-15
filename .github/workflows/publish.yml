@@ -1,0 +1,142 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Release Version
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: ["v*"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+    - uses: actions/checkout@v3
+    - name: cache node_modules
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-node-modules
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 14.x
+    - name: setup global dependencies
+      run: |
+        npm install yarn -g 
+        npm install zx -g
+
+    - name: install repo dependencies
+      run: |
+        yarn install 
+    - name: build
+      run: |
+        yarn build 
+    - name: upload build
+      uses: actions/upload-artifact@v3
+      with:
+        name: build
+        path: |
+          packages/**/dist
+          packages/**/es
+          packages/**/lib
+          package.json
+  release_npm:
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      needs: [build]
+      environment: npm_token
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: extract tag
+          id: extract_tag
+          uses: actions/github-script@v6
+          with:
+            script: |
+              const prefix = 'refs/tags/';
+              const ref = context.ref;
+              return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
+            result-encoding: string
+        - uses: actions/checkout@v3
+          with:
+            ref: 'main'
+        - name: use Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: 14.x
+        - name: cache node_modules
+          uses: actions/cache@v3
+          env:
+            cache-name: cache-node-modules
+          with:
+            path: node_modules
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-build-${{ env.cache-name }}-
+              ${{ runner.os }}-build-
+              ${{ runner.os }}-
+        - name: setup git
+          run: |
+            git config --global user.name 'leonardoFu'
+            git config --global user.email 'leonardoFu@users.noreply.github.com'
+            git fetch --tags
+            git pull
+        - name: setup global deps
+          run: |
+            npm install yarn -g 
+            npm install zx -g
+
+        - name: install repo deps
+          run: |
+            yarn install
+        - name: download build
+          uses: actions/download-artifact@v3
+          with:
+            name: build
+        - name: npm version 
+          run: |
+            zx scripts/set-packages-version.mjs
+          env: 
+            TAG: ${{steps.extract_tag.outputs.result}}
+        - name: setup npm
+          run: |
+            touch .npmrc
+            echo //registry.npmjs.org/:_authToken="$NPM_TOKEN" >> .npmrc
+            echo "cat .npmrc"
+            cat .npmrc
+
+            echo "ls -a ."
+            ls -a .
+
+            echo "ls -a ${{ github.workspace }}"
+            ls -a ${{ github.workspace }}
+          env:
+            CI: true
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        - name: publish
+          run: |
+            npm publish
+        - name: push to release branch
+          uses: EndBug/add-and-commit@v9
+          with: 
+            add: "."
+            default_author: github_actor
+            fetch: true
+            new_branch: release
+            push: '--set-upstream origin release --force'
+            message: 'Auto Publish npm version ${{steps.extract_tag.outputs.result}}'
+        - name: create PR from back to main
+          uses: actions/github-script@v6
+          env: 
+            RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
+          with: 
+            script: |
+              require('../scripts/release-create-pr.js')(context, github)
