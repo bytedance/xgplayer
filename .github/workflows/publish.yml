@@ -36,7 +36,7 @@ jobs:
 
     - name: install repo dependencies
       run: |
-        yarn install 
+        yarn install --registry="https://registry.yarnpkg.com" 
     - name: build
       run: |
         yarn build:all 
@@ -45,9 +45,8 @@ jobs:
       with:
         name: build
         path: |
-          packages/**/dist
-          packages/**/es
-          packages/**/lib
+          packages/**/dist/**
+          packages/**/es/**
           package.json
   release_npm:
       if: ${{ startsWith(github.ref, 'refs/tags/') }}
@@ -96,14 +95,14 @@ jobs:
 
         - name: install repo deps
           run: |
-            yarn install
+            yarn install --registry="https://registry.yarnpkg.com"
         - name: download build
           uses: actions/download-artifact@v3
           with:
             name: build
         - name: npm version 
           run: |
-            zx scripts/set-packages-version.mjs
+            zx scripts/workflow/set-packages-version.mjs
           env: 
             TAG: ${{steps.extract_tag.outputs.result}}
         - name: setup npm
