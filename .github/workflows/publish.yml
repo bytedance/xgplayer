@@ -139,4 +139,4 @@ jobs:
             RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
           with: 
             script: |
-              require('../scripts/workflow/release-create-pr.js')(context, github)
+              require('../scripts/workflow/create-release-pr.js')(context, github)
