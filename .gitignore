@@ -85,6 +85,7 @@ packages/*/types/
 .DS_Store
 fixtures/*/*
 !fixtures/*/index.html
+!fixtures/*/index.js
 
 #http-server cert
 *.pem
