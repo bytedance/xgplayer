@@ -139,4 +139,6 @@ jobs:
             RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
           with: 
             script: |
-              require('scripts/workflow/create-release-pr.js')(context, github)
+              console.log(__dirname);
+              const path = require('path')
+              require(path.resolve(__dirname, './scripts/workflow/create-release-pr.js'))(context, github)
