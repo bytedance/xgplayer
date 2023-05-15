@@ -45,8 +45,8 @@ jobs:
       with:
         name: build
         path: |
-          packages/**/dist/**
-          packages/**/es/**
+          packages/*/dist/**
+          packages/*/es/**
           package.json
   release_npm:
       if: ${{ startsWith(github.ref, 'refs/tags/') }}
