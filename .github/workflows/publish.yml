@@ -5,6 +5,7 @@ name: Release Version
 
 on:
   push:
+    # branchs: ["main"]
     tags: ["v*"]
 jobs:
   build:
@@ -36,9 +37,9 @@ jobs:
     - name: install repo dependencies
       run: |
         yarn install --registry="https://registry.yarnpkg.com" 
-    - name: build
-      run: |
-        yarn build:all 
+    # - name: build
+    #   run: |
+    #     yarn build:all 
     - name: upload build
       uses: actions/upload-artifact@v3
       with:
