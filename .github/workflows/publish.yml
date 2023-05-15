@@ -39,7 +39,7 @@ jobs:
         yarn install 
     - name: build
       run: |
-        yarn build 
+        yarn build:all 
     - name: upload build
       uses: actions/upload-artifact@v3
       with:
@@ -121,9 +121,9 @@ jobs:
           env:
             CI: true
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        - name: publish
-          run: |
-            npm publish
+        # - name: publish
+        #   run: |
+        #     npm publish
         - name: push to release branch
           uses: EndBug/add-and-commit@v9
           with: 
@@ -139,4 +139,4 @@ jobs:
             RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
           with: 
             script: |
-              require('../scripts/release-create-pr.js')(context, github)
+              require('../scripts/workflow/release-create-pr.js')(context, github)
