@@ -27,7 +27,7 @@ async function buildAll() {
 
 async function build (target, { all } = {all: false}) {
   if (!target && all) {
-    buildAll();
+    return buildAll();
   }
 
   if (!target && ctx.isMonorepo) {
