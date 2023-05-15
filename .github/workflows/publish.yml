@@ -37,9 +37,9 @@ jobs:
     - name: install repo dependencies
       run: |
         yarn install --registry="https://registry.yarnpkg.com" 
-    - name: build
-      run: |
-        yarn build:all 
+    # - name: build
+    #   run: |
+        # yarn build:all 
     - name: upload build
       uses: actions/upload-artifact@v3
       with:
@@ -92,9 +92,10 @@ jobs:
           run: |
             npm install yarn -g 
             npm install zx -g
-
+            
         - name: install repo deps
           run: |
+            rm yarn.lock
             yarn install --registry="https://registry.yarnpkg.com"
         - name: download build
           uses: actions/download-artifact@v3
