@@ -120,9 +120,12 @@ jobs:
           env:
             CI: true
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        # - name: publish
-        #   run: |
-        #     yarn workspaces foreach npm publish
+        - name: publish
+          run: |
+            yarn workspaces foreach npm publish
+        - name: rm npmrc
+          run: |
+            rm .npmrc
         - name: push to release branch
           uses: EndBug/add-and-commit@v9
           with: 
