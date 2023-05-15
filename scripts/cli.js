@@ -22,8 +22,9 @@ cli
 
 cli
   .command('build [pkg]', 'Build package')
-  .action((pkg) => {
-    build(pkg)
+  .option('-a, --all', 'build all packages')
+  .action((pkg, { all }) => {
+    build(pkg, { all })
   })
 
 cli
