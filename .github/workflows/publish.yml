@@ -5,7 +5,6 @@ name: Release Version
 
 on:
   push:
-    branches: [ "main" ]
     tags: ["v*"]
 jobs:
   build:
@@ -37,9 +36,9 @@ jobs:
     - name: install repo dependencies
       run: |
         yarn install --registry="https://registry.yarnpkg.com" 
-    # - name: build
-    #   run: |
-        # yarn build:all 
+    - name: build
+      run: |
+        yarn build:all 
     - name: upload build
       uses: actions/upload-artifact@v3
       with:
@@ -123,7 +122,7 @@ jobs:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         # - name: publish
         #   run: |
-        #     npm publish
+        #     yarn workspaces foreach npm publish
         - name: push to release branch
           uses: EndBug/add-and-commit@v9
           with: 

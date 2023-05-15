@@ -3,7 +3,8 @@
 import { getPackageVersion } from './get-package-version.mjs'
 import path from 'path';
 import versionHelper from './version-helper.mjs';
-const pkgJson = await fs.readJson(path.resolve(__dirname, '../package.json'));
+const pkgDirs = path.resolve(__dirname, '../../packages')
+const pkgNames = fs.readdirSync(pkgDirs);
 
 const version = getPackageVersion();
 
@@ -12,21 +13,24 @@ if (!version) {
     process.exit(1)
 }
 
+for (let name of pkgNames) {
+    const jsonFilePath = path.resolve(__dirname, '../../packages/' + name + '/package.json')
+    console.log('reading json path');
+    const pkgJson = await fs.readJson(jsonFilePath);
+    pkgJson.version = version;
+    
+    const tag = versionHelper.getVersionTag(versionHelper.addVersionPrefix(version));
+    pkgJson.publishConfig = Object.assign(pkgJson.publishConfig, {
+        tag: tag
+    });    
 
-pkgJson.version = version;
+    await fs.outputJson(
+        jsonFilePath,
+        pkgJson,
+        {
+            spaces: 2
+        }
+    )
+}    
 
-const tag = versionHelper.getVersionTag(versionHelper.addVersionPrefix(version));
 
-pkgJson.publishConfig = {
-    tag: tag
-};
-
-const jsonPath = path.join(__dirname, '../package.json');
-
-await fs.outputJson(
-    jsonPath,
-    pkgJson,
-    {
-        spaces: 2
-    }
-)
