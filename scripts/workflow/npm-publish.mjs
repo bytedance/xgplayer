@@ -17,13 +17,13 @@ import blockList from './block-list.mjs';
     let packages = workspace.getRecursiveWorkspaceChildren().filter(pkg => !blockList.includes(pkg.manifest.raw.name))
     await Promise.all(packages.map((pkg) => {
         const pkgName = pkg.manifest.raw.name
-        const prom = $`yarn workspace ${pkgName} exec npm ls`
+        const prom = $`yarn workspace ${pkgName} exec npm publish`
         return prom
             .then(() => {
                 console.log(pkgName, ' is successfully published')
             })
             .catch((e) => {
-                console.log(pkgName, ' is failed to publish, reason: ', e.message)
+                console.error(pkgName, ' is failed to publish, reason: ', e.message)
             })
     }))
 })()
