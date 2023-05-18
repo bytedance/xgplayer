@@ -140,7 +140,7 @@ class MediaStatsService {
   }
 
   _bindEvents () {
-    this._core.on(EVENT.DEMUXED_TRACK, (track) => this._stats.updateBitrate(track.samples))
+    this._core.on(EVENT.DEMUXED_TRACK, ({videoTrack}) => this._stats.updateBitrate(videoTrack.samples))
 
     this._core.on(EVENT.FLV_SCRIPT_DATA, data => {
       this._stats.setFpsFromScriptData(data)

@@ -25,12 +25,7 @@ export class BufferService {
       this._mse = new MSE()
 
       if (hls.config.url) {
-        const _ret = this._mse.bindMedia(hls.media)
-        if (_ret && _ret.then) {
-          _ret.then(() => {
-            hls && hls.emit('sourceAttached')
-          })
-        }
+        this._mse.bindMedia(hls.media)
       }
     }
 
@@ -193,11 +188,11 @@ export class BufferService {
 
   async reset (reuseMse = false) {
     if (this._mse && !reuseMse) {
+      this._transmuxer = null
       this._sourceCreated = false
       await this._mse.unbindMedia()
       await this._mse.bindMedia(this.hls.media)
     }
-    this._transmuxer = null
     this._needInitSegment = true
     this._directAppend = false
   }

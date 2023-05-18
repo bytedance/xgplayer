@@ -150,7 +150,7 @@ export class BufferService {
     const mse = this._mse
 
     // emit demuxed track
-    this.flv.emit(EVENT.DEMUXED_TRACK, videoTrack)
+    this.flv.emit(EVENT.DEMUXED_TRACK, {videoTrack})
 
     const newId = `${videoTrack.codec}/${videoTrack.width}/${videoTrack.height}/${audioTrack.codec}/${audioTrack.config}`
     if (newId !== this._initSegmentId) {

@@ -54,16 +54,11 @@ export class HlsPlugin extends BasePlugin {
   }
 
   beforePlayerInit () {
-    let _resolve
-    const promise = new Promise((resolve, reject) => {
-      _resolve = resolve
-    })
     const config = this.player.config
 
     if (!config.url &&
       // private config key
       !config.__allowHlsEmptyUrl__) {
-      _resolve()
       return
     }
 
@@ -90,15 +85,6 @@ export class HlsPlugin extends BasePlugin {
           configurable: true
         }
       })
-      if (this.hls.media?.src) {
-        this.hls.on('sourceAttached', () => {
-          _resolve(true)
-        })
-      } else {
-        _resolve(true)
-      }
-    } else {
-      _resolve(true)
     }
 
     if (this.softDecode) {
@@ -130,6 +116,7 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.BUFFEREOS)
     this._transCoreEvent(EVENT.KEYFRAME)
     this._transCoreEvent(EVENT.METADATA_PARSED)
+    this._transCoreEvent(EVENT.DEMUXED_TRACK)
     this._transCoreEvent(EVENT.SEI)
     this._transCoreEvent(EVENT.SEI_IN_TIME)
     this._transCoreEvent(EVENT.SPEED)
@@ -146,8 +133,6 @@ export class HlsPlugin extends BasePlugin {
     if (config.url) {
       this.hls.load(config.url, true).catch(e => {})
     }
-
-    return promise
   }
 
   /**

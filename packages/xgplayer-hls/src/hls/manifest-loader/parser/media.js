@@ -114,6 +114,8 @@ export function parseMediaPlaylist (lines, parentUrl) {
     }
   }
 
+  media.segments = media.segments.filter(x => x.duration !== 0)
+
   const lastSegment = media.segments[media.segments.length - 1]
   if (lastSegment) media.endSN = lastSegment.sn
 

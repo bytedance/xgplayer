@@ -36,7 +36,7 @@ export class Transmuxer {
 
     this._fireEvents(videoTrack, audioTrack, metadataTrack, discontinuity || needInit)
 
-    this.hls.emit(Event.DEMUXED_TRACK, videoTrack)
+    this.hls.emit(Event.DEMUXED_TRACK, {videoTrack, audioTrack})
 
     if (this._remuxer) {
       try {
