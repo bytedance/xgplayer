@@ -117,9 +117,6 @@ jobs:
         - name: publish
           run: |
             zx scripts/workflow/npm-publish.mjs
-        - name: rm npmrc
-          run: |
-            rm .npmrc
         - name: push to release branch
           uses: EndBug/add-and-commit@v9
           with: 
