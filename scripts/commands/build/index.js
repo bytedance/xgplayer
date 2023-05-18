@@ -36,7 +36,7 @@ const buildInWorker = async (target) => {
     reject = rej;
   })
 
-  const worker = new Worker(__dirname);
+  const worker = new Worker(path.resolve(__dirname, './index.js'));
   worker.postMessage(target);
   worker.on('message', (result) => {
     worker.terminate();
