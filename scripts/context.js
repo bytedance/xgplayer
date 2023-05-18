@@ -154,6 +154,41 @@ function createContext () {
         }
       }).filter(x => x && !x.private)
     },
+    async getPkgDeps() {
+      const getConfiguration = (p) => {
+        return Configuration.create(p, p, new Map([]));
+      };
+
+      const portablePath = npath.toPortablePath(path.resolve(process.cwd()))
+      const configuration = await getConfiguration(portablePath);
+      const {project} = await Project.find(configuration, portablePath);
+
+
+      const workspace = new Workspace(portablePath, {project});
+      await workspace.setup();
+
+      let packages = workspace.getRecursiveWorkspaceChildren()
+      const topArr = []
+      const depdended = (idHash, manifestList) => {
+          return manifestList.find(
+            manifest => manifest.dependencies.get(idHash) || manifest.devDependencies.get(idHash) || manifest.peerDependencies.get(idHash)
+          )
+      }
+      let maxLoop = 100
+      while(packages.length && maxLoop > 0) {
+        const manifestList = packages.map(c => c.manifest);
+
+        const noDeps = packages.filter(c => !depdended(c.locator.identHash, manifestList))
+        topArr.unshift(noDeps.map(noDep => path.basename(noDep.cwd)));
+        packages = packages.filter(c => !noDeps.includes(c));
+        maxLoop--;
+        if (maxLoop === 0) {
+          console.warn('There might be cycle dependencies in packages: ', packages.map(pkg => pkg.manifest.name).join(','))
+        }
+      }
+
+      return topArr;
+    },
     isTs
   }
 
