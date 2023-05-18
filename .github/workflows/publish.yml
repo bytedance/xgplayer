@@ -107,13 +107,7 @@ jobs:
             TAG: ${{steps.extract_tag.outputs.result}}
         - name: setup npm
           run: |
-            touch .npmrc
-            echo //registry.npmjs.org/:_authToken="$NPM_TOKEN" >> .npmrc
-            echo "cat .npmrc"
-            cat .npmrc
-
-            echo "ls -a ."
-            ls -a .
+            npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
 
             echo "ls -a ${{ github.workspace }}"
             ls -a ${{ github.workspace }}
