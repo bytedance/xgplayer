@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "xgplayer-mp4-new",
   "version": "3.0.0-next.2",
   "main": "dist/index.min.js",
