@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-streaming-shared",
-  "version": "3.0.1",
+  "version": "3.0.3-alpha.0",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -14,7 +14,8 @@
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "access": "public",
+    "tag": "alpha"
   },
   "license": "MIT",
   "dependencies": {
