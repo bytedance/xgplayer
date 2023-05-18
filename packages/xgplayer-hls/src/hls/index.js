@@ -183,7 +183,7 @@ export class Hls extends EventEmitter {
 
   async replay (isPlayEmit) {
     this.config.startTime = 0
-    this.config.softDecode ? this.load() : (await this.load())
+    await this.load()
     this._reloadOnPlay = false
     return this.media.play(!isPlayEmit)
   }

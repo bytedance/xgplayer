@@ -27,6 +27,10 @@ export class FlvFixer {
     this._videoTimestampBreak = 0
     this._lastVideoDuration = 0
 
+    // 在视频帧遇到下一个关键帧之前，如果音频时间戳发生了跳变，不能确定是否音视频都发生跳变还是单纯音频发生跳变.
+    // 这里记录关键帧标识, 从下一个关键帧开始，如果视频没有跳变，才能判断是只有音频发生了跳变
+    this._keyFrameInNextChunk = false
+
     this._lastAudioExceptionGapDot = -Infinity
     this._lastAudioExceptionOverlapDot = -Infinity
     this._lastAudioExceptionLargeGapDot = -Infinity
@@ -80,6 +84,8 @@ export class FlvFixer {
 
     this._fixAudio(audioTrack)
 
+    this._keyFrameInNextChunk = false
+
     this._fixVideo(videoTrack)
 
     if (this.metadataTrack.exist()) {
@@ -110,6 +116,7 @@ export class FlvFixer {
     samples.forEach(x => {
       x.dts -= this._baseDts
       x.pts -= this._baseDts
+      if (x.keyframe) this._keyFrameInNextChunk = true
     })
 
     let refSampleDurationInt
@@ -309,7 +316,7 @@ export class FlvFixer {
       let delta = sample.pts - nextPts
 
       // only audio breaked
-      if (i === 0 && this._audioTimestampBreak >= TRACK_BREACKED_CHECK_TIME) {
+      if (i === 0 && this._audioTimestampBreak >= TRACK_BREACKED_CHECK_TIME && this._keyFrameInNextChunk) {
         nextPts = this._audioNextPts = sample.dts
         delta = 0
         this._audioTimestampBreak = 0

@@ -21,7 +21,7 @@ export const EVENT = {
   SPEED: 'core.speed',
   HLS_MANIFEST_LOADED: 'core.hlsmanifestloaded',
   HLS_LEVEL_LOADED: 'core.hlslevelloaded',
-  DEMUXED_TRACK:'demuxedtrack',
+  DEMUXED_TRACK:'core.demuxedtrack',
 
   STREAM_EXCEPTION: 'core.streamexception',
   LARGE_AV_FIRST_FRAME_GAP_DETECT: 'LARGE_AV_FIRST_FRAME_GAP_DETECT',
