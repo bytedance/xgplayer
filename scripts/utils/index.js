@@ -62,12 +62,38 @@ function installPkgs (pkgs) {
   })
 }
 
+function splitSubArrays(inputArray, max = 4) {
+  if (!Array.isArray(inputArray)) {
+    throw new TypeError('输入必须是一个数组');
+  }
+
+  const outputArray = [];
+
+  for (const subArray of inputArray) {
+    if (!Array.isArray(subArray)) {
+      throw new TypeError('输入数组的子项必须是数组');
+    }
+
+    if (subArray.length > max) {
+      for (let i = 0; i < subArray.length; i += max) {
+        outputArray.push(subArray.slice(i, i + max));
+      }
+    } else {
+      outputArray.push(subArray);
+    }
+  }
+
+  return outputArray;
+}
+
+
 module.exports = {
   installPkgs,
   logger: require('./logger'),
   getUmdName,
   getJsEntry,
   getUmdGlobals,
-  isTsUmdEntry,
+  isTsUmdEntry, 
+  splitSubArrays,
   ...require('./config')
 }

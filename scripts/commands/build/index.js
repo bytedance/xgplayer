@@ -10,22 +10,63 @@ const brotli = require('brotli-size')
 const ui = require('cliui')({ width: process.stdout.columns || 80 })
 const { build: viteBuild } = require('vite')
 const ctx = require('../../context')
-const { getUmdName, getJsEntry, getUmdGlobals, getEsBuildConfig, getBuildConfig } = require('../../utils')
+const { getUmdName, getJsEntry, getUmdGlobals, getEsBuildConfig, getBuildConfig, splitSubArrays } = require('../../utils')
+const os = require('os');
+const numCPUs = os.cpus().length;
+
+const { isMainThread, parentPort, Worker } = require('worker_threads');
+
+
+if (!isMainThread) {
+  parentPort.once('message', async (target) => {
+    try {
+      await build(target);
+    } catch (e) {
+      console.error(e.message);
+      parentPort.postMessage('failed');
+    }
+    parentPort.postMessage('finished');
+  })
+}
+
+const buildInWorker = async (target) => {
+  let resolve, reject;
+  const result = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  })
+
+  const worker = new Worker(__dirname);
+  worker.postMessage(target);
+  worker.on('message', (result) => {
+    worker.terminate();
+    if (result === 'failed') {
+      reject(new Error(target + ' build failed'));
+    } else {
+      resolve();
+
+    }
+
+  })
+  return result;
+}
 
 async function buildAll() {
-  const pkgNames = fs.readdirSync(path.resolve(ctx.rootPath, './packages'))
+  const pkgNames = splitSubArrays(await ctx.getPkgDeps(), Math.ceil(numCPUs / 2));
 
-  for (let name of pkgNames) {
+  for (const curPkgs of pkgNames) {
     try {
-      await build(name);
-    } catch(e) {
+      await Promise.all(curPkgs.map(buildInWorker))
+
+    } catch (e) {
       console.error(e.message);
-      process.exit(1);
-    } 
+      // process.exit(1);
+    }
   }
 }
 
-async function build (target, { all } = {all: false}) {
+async function build(target, { all } = { all: false }) {
+
   if (!target && all) {
     return buildAll();
   }

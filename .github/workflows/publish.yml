@@ -5,7 +5,7 @@ name: Release Version
 
 on:
   push:
-    branchs: ["main"]
+    branches: ["main"]
     tags: ["v*"]
 jobs:
   build:
@@ -122,7 +122,7 @@ jobs:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         - name: publish
           run: |
-            yarn workspaces foreach npm publish
+            zx scripts/workflow/npm-publish.mjs
         - name: rm npmrc
           run: |
             rm .npmrc
