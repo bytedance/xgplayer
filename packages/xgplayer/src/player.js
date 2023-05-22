@@ -264,6 +264,20 @@ class Player extends MediaProxy {
      */
     this.isUserActive = false
 
+    /**
+     * @private
+     * @description seek之后canplay回调函数定义
+     * @type { Function | null }
+     */
+    this._onceSeekCanplay = null
+
+    /**
+     * @description 记录seek之前是否处于暂停状态
+     * @type { number }
+     * @private
+     */
+    this._isPauseBeforeSeek = 0
+
     const rootInit = this._initDOM()
     if (!rootInit) {
       console.error(
@@ -1009,9 +1023,14 @@ class Player extends MediaProxy {
     }
     const { isSeekedPlay, seekedStatus } = this.config
     const _status = status || (isSeekedPlay ? 'play' : seekedStatus)
-    time =
-      time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
-    this.once(Events.CANPLAY, () => {
+    time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
+
+    !this._isPauseBeforeSeek && (this._isPauseBeforeSeek = this.paused ? 2 : 1)
+
+    this._onceSeekCanplay && this.off(Events.CANPLAY, this._onceSeekCanplay)
+
+    this._onceSeekCanplay = () => {
+      // const { seekedStatus } = this.config
       this.removeClass(STATE_CLASS.ENTER)
       this.isSeeking = false
       switch (_status) {
@@ -1022,14 +1041,20 @@ class Player extends MediaProxy {
           this.pause()
           break
         default:
-          !this.paused && this.play()
+          this._isPauseBeforeSeek > 1 || this.paused ? this.pause() : this.play()
       }
-    })
+      this._isPauseBeforeSeek = 0
+      this._onceSeekCanplay = null
+    }
+
+    this.once(Events.CANPLAY, this._onceSeekCanplay)
+
     if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
-      _status === 'play' && this.play()
+      // 未起播状态不论希望保持什么状态，都要触发一次play, 避免ios下起播异常问题
+      this.play()
     } else {
       this.currentTime = time
     }
