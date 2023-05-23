@@ -8,21 +8,39 @@
     }
   }
   
-  @keyframes xg_options_active {
+  @keyframes xg_right_options_active {
     0% {
-      transform: translateX(0);
+      transform: translateX(50%);
     }
     100% {
       transform: translateX(-50%);
     }
   }
 
-  @keyframes xg_options_hide {
+  @keyframes xg_right_options_hide {
     0% {
       transform: translateX(-50%);
     }
     100% {
       transform: translateX(50%);
+    }
+  }
+
+  @keyframes xg_left_options_active {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(50%);
+    }
+  }
+
+  @keyframes xg_left_options_hide {
+    0% {
+      transform: translateX(50%);
+    }
+    100% {
+      transform: translateX(-50%);
     }
   }
 
@@ -72,10 +90,9 @@
       display: block;
       height: auto;
     }
-    &.right-side {
+    &.xg-side-list {
       width: 20%;
       height: 100%;
-      right: -10.5%;
       bottom: 0;
       background: rgba(0,0,0,0.9);
       display: flex;
@@ -100,13 +117,29 @@
       li:last-child {
         margin-bottom: 20px;
       }
+    }
+    &.xg-right-side {
+      right: -10.5%;
       &.active {
         height: 100%;
-        animation: xg_options_active .3s ease-out forwards;
+        animation: xg_right_options_active .2s ease-out forwards;
       }
       &.hide {
         height: 100%;
-        animation: xg_options_hide .3s ease-in forwards;
+        animation: xg_right_options_hide .2s ease-in forwards;
+      }
+    }
+
+    &.xg-left-side {
+      left: -10.5%;
+      transform: translateX(-50%);
+      &.active {
+        height: 100%;
+        animation: xg_left_options_active .2s ease-out forwards;
+      }
+      &.hide {
+        height: 100%;
+        animation: xg_left_options_hide .2s ease-in forwards;
       }
     }
   }
