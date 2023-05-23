@@ -1,16 +1,24 @@
 
 import Plugin, { Events, Util, Sniffer, POSITIONS } from '../../plugin'
 import OptionList from './optionList'
-import './optionsIcon.scss'
+// import './optionsIcon.scss'
 
 const LIST_TYPES = {
-  RIGHT_SIDE:'rightSide',
+  SIDE: 'side',
   MIDDLE: 'middle'
 }
 
 const TOGGLE_MODES = {
   CLICK: 'click',
   HOVER: 'hover'
+}
+
+function getListClassName (listType, position) {
+  if (listType === LIST_TYPES.SIDE) {
+    return position === POSITIONS.CONTROLS_LEFT ? 'xg-side-list xg-left-side' : 'xg-side-list xg-right-side'
+  } else {
+    return ''
+  }
 }
 
 /**
@@ -39,7 +47,7 @@ export default class OptionsIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 100,
       list: [],
-      listType: 'middle', // 模式 rightSide-右侧边栏  middle-中间显示
+      listType: 'middle', // 模式 side-右侧边栏  middle-中间显示
       listStyle: {},
       hidePortrait: true,
       isShowIcon: false,
@@ -64,7 +72,7 @@ export default class OptionsIcon extends Plugin {
     const { config } = this
     this.initIcons()
     if (IS_MOBILE && config.listType !== LIST_TYPES.MIDDLE) {
-      config.listType = 'rightSide'
+      config.listType = LIST_TYPES.SIDE
     }
 
     config.hidePortrait && Util.addClass(this.root, 'portrait')
@@ -176,7 +184,7 @@ export default class OptionsIcon extends Plugin {
     this.emit('icon_mouseleave', {
       pluginName: this.pluginName
     })
-    if (this.config.listType !== LIST_TYPES.RIGHT_SIDE) {
+    if (this.config.listType !== LIST_TYPES.SIDE) {
       this.isActive && this.toggle(false)
     }
   }
@@ -198,10 +206,10 @@ export default class OptionsIcon extends Plugin {
     const { controls } = this.player
     const { listType } = this.config
     if (isActive) {
-      listType === 'rightSide' ? controls.blur() : controls.focus()
+      listType === LIST_TYPES.SIDE ? controls.blur() : controls.focus()
       this.optionsList && this.optionsList.show()
     } else {
-      listType === 'rightSide' ? controls.focus() : controls.focusAwhile()
+      listType === LIST_TYPES.SIDE ? controls.focus() : controls.focusAwhile()
       this.optionsList && this.optionsList.hide()
     }
     this.isActive = isActive
@@ -216,7 +224,7 @@ export default class OptionsIcon extends Plugin {
     this.curItem = list[this.curIndex]
     this.changeCurrentText()
     const { isItemClickHide } = this.config;
-    (isItemClickHide || IS_MOBILE || listType === LIST_TYPES.RIGHT_SIDE) && this.toggle(false)
+    (isItemClickHide || IS_MOBILE || listType === LIST_TYPES.SIDE) && this.toggle(false)
   }
 
   onIconClick (e) {
@@ -250,12 +258,12 @@ export default class OptionsIcon extends Plugin {
     const options = {
       config: {
         data: itemList || [],
-        className: config.listType === LIST_TYPES.RIGHT_SIDE ? 'right-side' : '',
+        className: getListClassName(config.listType, config.position), // config.listType === LIST_TYPES.SIDE ? 'xg-right-side' : '',
         onItemClick: (e, data) => {
           this.onItemClick(e, data)
         }
       },
-      root: config.listType === LIST_TYPES.RIGHT_SIDE ? (player.innerContainer || player.root) : this.root
+      root: config.listType === LIST_TYPES.SIDE ? (player.innerContainer || player.root) : this.root
     }
 
     if (this.config.isShowIcon) {
@@ -266,7 +274,8 @@ export default class OptionsIcon extends Plugin {
       this.show()
     }
     const { height } = this.player.root.getBoundingClientRect()
-    this.optionsList && this.optionsList.setStyle({maxHeight: `${height - 50}px`})
+    const _maxH = config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
+    this.optionsList && this.optionsList.setStyle({ maxHeight: `${_maxH}px` })
   }
 
   destroy () {
