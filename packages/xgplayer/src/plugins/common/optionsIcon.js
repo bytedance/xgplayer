@@ -8,6 +8,11 @@ const LIST_TYPES = {
   MIDDLE: 'middle'
 }
 
+const TOGGLE_MODES = {
+  CLICK: 'click',
+  HOVER: 'hover'
+}
+
 /**
  * @typedef {{
  *   isShow?: boolean,
@@ -38,7 +43,8 @@ export default class OptionsIcon extends Plugin {
       listStyle: {},
       hidePortrait: true,
       isShowIcon: false,
-      isItemClickHide: true // 列表点击之后是否隐藏列表
+      isItemClickHide: true, // 列表点击之后是否隐藏列表
+      toggleMode: TOGGLE_MODES.HOVER // 激活状态切换模式
     }
   }
 
@@ -77,9 +83,20 @@ export default class OptionsIcon extends Plugin {
       this.optionsList && this.optionsList.hide()
       this.isActive = false
     })
-    this.activeEvent = IS_MOBILE ? 'touchend' : 'mouseenter'
-    this.bind(this.activeEvent, this.onEnter)
-    this.bind('mouseleave', this.onLeave)
+
+    if (IS_MOBILE) {
+      config.toggleMode = TOGGLE_MODES.CLICK
+      this.activeEvent = 'touchend'
+    } else {
+      this.activeEvent = config.toggleMode === TOGGLE_MODES.CLICK ? 'click' : 'mouseenter'
+    }
+
+    if (config.toggleMode === TOGGLE_MODES.CLICK) {
+      this.bind(this.activeEvent, this.switchActiveState)
+    } else {
+      this.bind(this.activeEvent, this.onEnter)
+      this.bind('mouseleave', this.onLeave)
+    }
     this.isIcons && this.bind('click', this.onIconClick)
   }
 
@@ -138,7 +155,19 @@ export default class OptionsIcon extends Plugin {
     this.emit('icon_mouseenter', {
       pluginName: this.pluginName
     })
-    this.toggle(true)
+    this.switchActiveState(e)
+  }
+
+  switchActiveState = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const { toggleMode } = this.config
+    // console.log('>>>switchActiveState', e.type, this.activeEvent, this.isActive)
+    if (toggleMode === TOGGLE_MODES.CLICK) {
+      this.toggle(!this.isActive)
+    } else {
+      this.toggle(true)
+    }
   }
 
   onLeave = (e) => {
@@ -153,12 +182,12 @@ export default class OptionsIcon extends Plugin {
   }
 
   onListEnter = (e) => {
-    console.log('onListEnter')
+    // console.log('onListEnter')
     this.enterType = 2
   }
 
   onListLeave = (e) => {
-    console.log('onListLeave', e.target)
+    // console.log('onListLeave', e.target)
     this.enterType = 0
     this.isActive && this.toggle(false)
   }
@@ -226,7 +255,7 @@ export default class OptionsIcon extends Plugin {
           this.onItemClick(e, data)
         }
       },
-      root: config.listType === LIST_TYPES.RIGHT_SIDE ? player.root : this.root
+      root: config.listType === LIST_TYPES.RIGHT_SIDE ? (player.innerContainer || player.root) : this.root
     }
 
     if (this.config.isShowIcon) {
@@ -236,11 +265,19 @@ export default class OptionsIcon extends Plugin {
       this.changeCurrentText()
       this.show()
     }
+    const { height } = this.player.root.getBoundingClientRect()
+    this.optionsList && this.optionsList.setStyle({maxHeight: `${height - 50}px`})
   }
 
   destroy () {
-    this.unbind(this.activeEvent, this.onEnter)
-    this.unbind('mouseleave', this.onLeave)
+    const { config } = this
+    if (config.toggleMode === TOGGLE_MODES.CLICK) {
+      this.unbind(this.activeEvent, this.switchActiveState)
+    } else {
+      this.unbind(this.activeEvent, this.onEnter)
+      this.unbind('mouseleave', this.onLeave)
+    }
+    this.isIcons && this.unbind('click', this.onIconClick)
     if (this.optionsList) {
       this.optionsList.destroy()
       this.optionsList = null
