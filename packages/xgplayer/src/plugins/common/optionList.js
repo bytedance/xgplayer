@@ -82,6 +82,12 @@ export default class OptionList {
     Util.addClass(this.root, 'hide')
   }
 
+  setStyle (style) {
+    Object.keys(style).forEach((key) => {
+      this.root.style[key] = style[key]
+    })
+  }
+
   destroy () {
     if (this._delegates) {
       this._delegates.map(item => {
