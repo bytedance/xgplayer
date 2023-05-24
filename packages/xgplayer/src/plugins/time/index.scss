@@ -24,15 +24,22 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
     .time-live-tag {
       display: none;
     }
+
+    &.xg-time-left {
+      margin-left: 0;
+    }
+    &.xg-time-right {
+      margin-right: 0;
+    }
   }
   &.xgplayer-mobile {
     .xgplayer-time {
       min-width: 30px;
       font-size: 12px;
-      &.left {
+      &.xg-time-left {
         margin-right: 8px;
       }
-      &.right {
+      &.xg-time-right {
         margin-left: 8px;
       }
     }

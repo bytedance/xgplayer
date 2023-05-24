@@ -46,10 +46,10 @@ function init(index = 0, config = {}) {
     width: '100%',
     ignores:['playbackrate'],
     plugins: [TextTrack],
-    // controls: {
-    //   // mode: 'normal',
-    //   // initShow: true
-    // },
+    controls: {
+      // mode: 'flex',
+      // initShow: true
+    },
     progress: {
       // root: document.getElementById('controls0')
     },

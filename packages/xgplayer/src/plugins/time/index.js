@@ -39,7 +39,7 @@ class Time extends Plugin {
     }
     if (this.mode === 'flex') {
       this.createCenterTime()
-      this.hide()
+      this.root.style.display = 'none'
     }
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
@@ -62,9 +62,20 @@ class Time extends Plugin {
 
   show () {
     if (this.mode === 'flex') {
+      this.centerCurDom && (this.centerCurDom.style.display = 'block')
+      this.centerDurDom && (this.centerDurDom.style.display = 'block')
       return
     }
-    super.show()
+    this.root.style.display = 'block'
+  }
+
+  hide () {
+    if (this.mode === 'flex') {
+      this.centerCurDom && (this.centerCurDom.style.display = 'none')
+      this.centerDurDom && (this.centerDurDom.style.display = 'none')
+      return
+    }
+    this.root.style.display = 'none'
   }
 
   onTimeUpdate (isEnded) {
@@ -103,8 +114,8 @@ class Time extends Plugin {
       return
     }
     const center = player.controls.center
-    this.centerCurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time left')
-    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time right')
+    this.centerCurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time xg-time-left')
+    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time xg-time-right')
     center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom)
     center.appendChild(this.centerDurDom)
   }

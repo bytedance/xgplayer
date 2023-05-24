@@ -112,12 +112,6 @@ $controlHeight: 48px;
     text-align: center;
   }
 
-  &.xgplayer-mobile {
-    .xg-center-grid {
-      z-index: 2;
-    }
-  }
-
   .flex-controls {
     .xg-inner-controls {
       justify-content: space-around;
@@ -134,9 +128,20 @@ $controlHeight: 48px;
       align-items: center;
       left: 0;
       right: 0;
-      padding: 0;
+      padding: 0 16px;
     }
   }
+  &.xgplayer-mobile {
+    .xg-center-grid {
+      z-index: 2;
+    }
+    .flex-controls {
+      .xg-center-grid {
+        padding: 0 8px;
+      }
+    }
+  }
+
   .bottom-controls {
     .xg-center-grid {
       top: 20px;
