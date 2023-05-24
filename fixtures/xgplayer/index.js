@@ -163,6 +163,15 @@ function init(index = 0, config = {}) {
       currentTime = window[p].currentTime
     }
   })
+  window[p].usePluginHooks('mobile', 'videoClick', (plugin, event, data) =>{
+    console.log('mobile videoClick', event, data)
+    return true
+  })
+
+  window[p].usePluginHooks('mobile', 'videoDbClick', (plugin, event, data) =>{
+    console.log('mobile videoDbClick', event, data)
+    return true
+  })
 
   // window[p].usePluginHooks('progress', 'dragstart', (plugin, event, data) =>{
   //   console.log('progress', data)
