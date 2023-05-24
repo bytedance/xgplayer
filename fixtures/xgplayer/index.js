@@ -163,6 +163,10 @@ function init(index = 0, config = {}) {
       currentTime = window[p].currentTime
     }
   })
+  window[p].useHooks('play', () => {
+    console.log('useHooks play dddd')
+    return true
+  })
   window[p].usePluginHooks('mobile', 'videoClick', (plugin, event, data) =>{
     console.log('mobile videoClick', event, data)
     return true
