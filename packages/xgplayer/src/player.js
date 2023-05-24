@@ -986,8 +986,8 @@ class Player extends MediaProxy {
 
   play () {
     this.removeClass(STATE_CLASS.PAUSED)
-    runHooks(this, 'play', () => {
-      this.mediaPlay()
+    return runHooks(this, 'play', () => {
+      return this.mediaPlay()
     })
   }
 
