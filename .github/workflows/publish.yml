@@ -12,6 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
+    - name: extract tag
+        id: extract_tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prefix = 'refs/tags/';
+            const ref = context.ref;
+            return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
+          result-encoding: string
     - uses: actions/checkout@v3
     - name: cache node_modules
       uses: actions/cache@v3
@@ -37,6 +46,11 @@ jobs:
     - name: install repo dependencies
       run: |
         yarn install --registry="https://registry.yarnpkg.com" 
+    - name: npm version 
+      run: |
+        zx scripts/workflow/set-package-version.mjs
+      env: 
+        TAG: ${{steps.extract_tag.outputs.result}}
     - name: build
       run: |
         yarn build:all 
