@@ -104,6 +104,9 @@ class Progress extends Plugin {
     this.useable = useable
   }
 
+  show () {
+    this.root && (this.root.style.display = 'flex')
+  }
   /**
    * @description 创建内部进度条，并挂载到xg-outer上,
    *              并把一些对外API绑定在progress上供外部调用
