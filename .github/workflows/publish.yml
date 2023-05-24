@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-    - name: extract tag
+      - name: extract tag
         id: extract_tag
         uses: actions/github-script@v6
         with:
@@ -21,47 +21,47 @@ jobs:
             const ref = context.ref;
             return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
           result-encoding: string
-    - uses: actions/checkout@v3
-    - name: cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-node-modules
-      with:
-        path: node_modules
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
+      - uses: actions/checkout@v3
+      - name: cache node_modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 14.x
-    - name: setup global dependencies
-      run: |
-        npm install yarn -g 
-        npm install zx -g
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.x
+      - name: setup global dependencies
+        run: |
+          npm install yarn -g 
+          npm install zx -g
 
-    - name: install repo dependencies
-      run: |
-        yarn install --registry="https://registry.yarnpkg.com" 
-    - name: npm version 
-      run: |
-        zx scripts/workflow/set-package-version.mjs
-      env: 
-        TAG: ${{steps.extract_tag.outputs.result}}
-    - name: build
-      run: |
-        yarn build:all 
-    - name: upload build
-      uses: actions/upload-artifact@v3
-      with:
-        name: build
-        path: |
-          packages/*/dist/**
-          packages/*/es/**
-          package.json
+      - name: install repo dependencies
+        run: |
+          yarn install --registry="https://registry.yarnpkg.com" 
+      - name: npm version 
+        run: |
+          zx scripts/workflow/set-package-version.mjs
+        env: 
+          TAG: ${{steps.extract_tag.outputs.result}}
+      - name: build
+        run: |
+          yarn build:all 
+      - name: upload build
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: |
+            packages/*/dist/**
+            packages/*/es/**
+            package.json
   release_npm:
       if: ${{ startsWith(github.ref, 'refs/tags/') }}
       needs: [build]
