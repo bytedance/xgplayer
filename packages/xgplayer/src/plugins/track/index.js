@@ -187,7 +187,7 @@ export default class TextTrack extends OptionsIcon {
   _initExtSubTitle (defaultIndex) {
     const { list, style, isDefaultOpen } = this.config
     // 默认开启，但是没有指定开启项的时候, 默认启用第一个字幕
-    if (isDefaultOpen && defaultIndex < 0) {
+    if (isDefaultOpen && defaultIndex < 0 && list.length > 0) {
       defaultIndex = 0
       list[0].isDefault = true
     }
