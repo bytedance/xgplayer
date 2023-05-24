@@ -6347,15 +6347,6 @@ xgplayer-mp4-loader@0.0.1:
     xgplayer-streaming-shared "3.0.0-next.2-1"
     xgplayer-transmuxer "3.0.0-next.2-1"
 
-xgplayer-mp4-loader@0.0.1-next.7:
-  version "0.0.1-next.7"
-  resolved "https://registry.yarnpkg.com/xgplayer-mp4-loader/-/xgplayer-mp4-loader-0.0.1-next.7.tgz#4b108a08906cc4c2439ef838ed8819733d9f72d9"
-  integrity sha512-neGXwjzuqHfZfNZ/ZIv3b7AIO8qwxobYOZyVeR6QGEq4Px3sIWuAiwAIm5zc1Nt9DhXfQDQEVnJoE8T3yrXJhw==
-  dependencies:
-    eventemitter3 "^4.0.7"
-    xgplayer-streaming-shared "3.0.0-next.27"
-    xgplayer-transmuxer "3.0.0-next.24"
-
 xgplayer-streaming-shared@3.0.0-next.2-1:
   version "3.0.0-next.2-1"
   resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.2-1.tgz#357cd2d160f3f12a21dacd8a8fadb7f598639166"
@@ -6363,20 +6354,6 @@ xgplayer-streaming-shared@3.0.0-next.2-1:
   dependencies:
     "@babel/runtime" "^7.15.3"
     core-js "3"
-
-xgplayer-streaming-shared@3.0.0-next.27:
-  version "3.0.0-next.27"
-  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.27.tgz#fab1969ec7c8589d7c31956cac1f059ad8523fa1"
-  integrity sha512-jB1i0DJhjSFhL4brn+mR98rVYRZtqmBdh18dZ9tdMFpXJ1EYmguwqlpaR55XZbRZFXgjEjtoDUTSzZQWscNfnA==
-  dependencies:
-    eventemitter3 "^4.0.7"
-
-xgplayer-streaming-shared@3.0.0-next.34:
-  version "3.0.0-next.34"
-  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.34.tgz#11c9da94207fb1ed19526fa62c543377e4ef3fe7"
-  integrity sha512-ISs4sf0UmjpQ2Ecx6+k3Hcl6nlFIQ64641zZhPRK4unoNYR+6YXmUm1owHNSOjoMbeWnYD6F47FRic3PdJkcpg==
-  dependencies:
-    eventemitter3 "^4.0.7"
 
 xgplayer-streaming-shared@3.0.0-next.8:
   version "3.0.0-next.8"
@@ -6394,24 +6371,6 @@ xgplayer-transmuxer@3.0.0-next.2-1:
     "@babel/runtime" "^7.15.3"
     core-js "3"
 
-xgplayer-transmuxer@3.0.0-next.24:
-  version "3.0.0-next.24"
-  resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.0-next.24.tgz#3f0fbff398a694cdd7ecbd0a4063a087a73b329b"
-  integrity sha512-OGEQX2y3f0ZGkgq/JciWP/P30hjbXhA9oUObNbuO/yYEIgt9ULtix01J/4QsGZ/g9pE1K8bdq1nvYCiv+hME+A==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    concat-typed-array "^1.0.2"
-    crypto-es "^1.2.4"
-
-xgplayer-transmuxer@3.0.0-next.25:
-  version "3.0.0-next.25"
-  resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.0-next.25.tgz#ff2c066a83d7d2eef2a342f6034e991469fd319e"
-  integrity sha512-MsHbXQx1+fAaNM0Yk3sKcqbRefiQpJzzWmtn1MkpnjaGJaJvmFDz0nRAMBhE6CrQnA9JRUATvJ80eeG31qRdYg==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    concat-typed-array "^1.0.2"
-    crypto-es "^1.2.4"
-
 xgplayer-transmuxer@3.0.0-next.8:
   version "3.0.0-next.8"
   resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.0-next.8.tgz#73c99976905cd8ca7f3b7d20a82a1ae4a3786bdb"
@@ -6419,15 +6378,6 @@ xgplayer-transmuxer@3.0.0-next.8:
   dependencies:
     "@babel/runtime" "^7.15.3"
     core-js "3"
-
-xgplayer-transmuxer@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.1.tgz#c2f92c13ad3faa71834bb0a06106aa0bb8c0ba88"
-  integrity sha512-FM1Yvt8SzsI0OApbV4zNdIf19IgJdjMFVqnEClmpyHj4aW2Kns7OxKp4bwIbU5pn3H3XQtJvQSYNzsRY2jz8+A==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    concat-typed-array "^1.0.2"
-    crypto-es "^1.2.4"
 
 xml-name-validator@^4.0.0:
   version "4.0.0"
