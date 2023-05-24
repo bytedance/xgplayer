@@ -1,6 +1,7 @@
 import Plugin, { Events, Util, Sniffer, STATES } from '../../plugin'
 import Touche from './touch'
 import SeekTipIcon from '../assets/seekicon.svg'
+import { runHooks } from '../../plugin/hooksDescriptor'
 // import BackSvg from './back.svg'
 import './index.scss'
 
@@ -38,6 +39,8 @@ const ACTIONS = {
   PLAYBACK: 'playbackrate',
   LIGHT: ''
 }
+
+const HOOKS = ['videoClick', 'videoDbClick']
 
 class MobilePlugin extends Plugin {
   static get pluginName () {
@@ -121,8 +124,10 @@ class MobilePlugin extends Plugin {
   }
 
   afterCreate () {
+    HOOKS.map(item => {
+      this.__hooks[item] = null
+    })
     const { playerConfig, config, player } = this
-
     if (playerConfig.closeVideoDblclick === true) {
       config.closedbClick = true
     }
@@ -139,7 +144,7 @@ class MobilePlugin extends Plugin {
 
     this.registerThumbnail()
 
-    const eventType = this.domEventType
+    const eventType = this.domEventType === 'mouse' ? 'mouse' : 'touch'
     this.touch = new Touche(this.root, { eventType, needPreventDefault: !this.config.disableGesture })
 
     this.root.addEventListener('contextmenu', e => {
@@ -323,7 +328,7 @@ class MobilePlugin extends Plugin {
         this.updateBrightness(diffy / height)
         break
       case 2:
-      // ios系统不支持音量调节
+        // ios系统不支持音量调节
         if (!Sniffer.os.isIos) {
           this.updateVolume(diffy / height)
         }
@@ -491,7 +496,7 @@ class MobilePlugin extends Plugin {
     })
   }
 
-  onClick (e) {
+  clickHandler (e) {
     const { player, config, playerConfig } = this
     if (player.state < STATES.RUNNING) {
       if (!playerConfig.closeVideoClick) {
@@ -505,19 +510,33 @@ class MobilePlugin extends Plugin {
       player.isActive ? player.blur() : player.focus()
     } else if (!playerConfig.closeVideoClick) {
       if (player.isActive || config.focusVideoClick) {
-        this.emitUserAction('click', 'switch_play_pause')
+        this.sendUseAction(Util.createEvent('click'))
         this.switchPlayPause()
       }
       player.focus()
     }
   }
 
-  onDbClick (e) {
+  dbClickHandler (e) {
     const { config, player } = this
     if (!config.closedbClick && player.state >= STATES.RUNNING) {
       this.sendUseAction(Util.createEvent('dblclick'))
       this.switchPlayPause()
     }
+  }
+
+  onClick (e) {
+    const { player } = this
+    runHooks(this, HOOKS[0], (plugin, data) => {
+      this.clickHandler(data.e)
+    }, { e, paused: player.paused })
+  }
+
+  onDbClick (e) {
+    const { player } = this
+    runHooks(this, HOOKS[1], (plugin, data) => {
+      this.dbClickHandler(data.e)
+    }, { e, paused: player.paused })
   }
 
   onPress (e) {
