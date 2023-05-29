@@ -37,6 +37,7 @@ export function getOption (opts) {
     maxJumpDistance: 3,
     analyzeDuration: 20000,
     seamlesslyReload: false,
+    keepStatusAfterSwitch: true,
     ...opts
   }
 

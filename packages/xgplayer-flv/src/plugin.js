@@ -135,7 +135,19 @@ export class FlvPlugin extends BasePlugin {
     if (this.flv) {
       this.player.config.url = url
       this.flv.switchURL(url, seamless)
+
+      if (!seamless && this.player.config?.flv?.keepStatusAfterSwitch) {
+        this._keepPauseStatus()
+      }
     }
+  }
+
+  _keepPauseStatus = () => {
+    const paused = this.player.paused
+    if (!paused) return
+    this.player.once('canplay', () => {
+      this.player.pause()
+    })
   }
 
   _onDefinitionChange = ({ to }) => {

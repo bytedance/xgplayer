@@ -177,7 +177,19 @@ export class HlsPlugin extends BasePlugin {
       const options = parseSwitchUrlArgs(args, this)
       player.config.url = url
       hls.switchURL(url, options).catch(e => {})
+
+      if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
+        this._keepPauseStatus()
+      }
     }
+  }
+
+  _keepPauseStatus = () => {
+    const paused = this.player.paused
+    if (!paused) return
+    this.player.once('canplay', () => {
+      this.player.pause()
+    })
   }
 
   _transError () {
