@@ -305,7 +305,6 @@ export class Flv extends EventEmitter {
     // ！！
     if (this._seamlessSwitching) {
       this._seamlessSwitching = false
-      this.media.play().catch(()=>{})
       this._tick()
     }
 
