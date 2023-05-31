@@ -184,7 +184,7 @@ class Controls extends Plugin {
       { 'bottom-controls': mode === 'bottom' },
       { [STATE_CLASS.CONTROLS_AUTOHIDE]: autoHide },
       { 'xgplayer-controls-initshow': initShow || !autoHide })
-    return `<xg-controls class="${className}" unselectable="on" onselectstart="return false">
+    return `<xg-controls class="${className}" unselectable="on">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">
       </xg-left-grid>

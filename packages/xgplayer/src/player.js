@@ -1741,6 +1741,7 @@ class Player extends MediaProxy {
 
   onLoadeddata () {
     this.isError = false
+    this.isSeeking = false
   }
 
   onLoadstart () {
