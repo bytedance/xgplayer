@@ -63,7 +63,7 @@ export class Flv extends EventEmitter {
       responseType: 'arraybuffer'
     })
 
-    this._bufferService = new BufferService(this, this._opts.softDecode ? this.media : undefined, this._opts.analyzeDuration)
+    this._bufferService = new BufferService(this, this._opts.softDecode ? this.media : undefined, this._opts)
     this._seiService = new SeiService(this)
     this._bandwidthService = new BandwidthService()
     this._stats = new MediaStatsService(this)

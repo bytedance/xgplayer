@@ -23,7 +23,7 @@ export class BufferService {
 
   _demuxStartTime = 0
 
-  _analyzeDuration = 0
+  _opts = null
 
   get baseDts () {
     return this._demuxer?._fixer?._baseDts
@@ -33,9 +33,9 @@ export class BufferService {
    * @param {import('../index').Flv} flv
    * @param {Object} [softVideo]
    */
-  constructor (flv, softVideo, analyzeDuration = 20000) {
+  constructor (flv, softVideo, opts) {
     this.flv = flv
-    this._analyzeDuration = analyzeDuration
+    this._opts = opts
 
     if (softVideo) { // soft decode
       this._softVideo = softVideo
@@ -118,8 +118,23 @@ export class BufferService {
     }
     const { videoTrack, audioTrack, metadataTrack } = demuxer
 
-    const videoExist = videoTrack.exist()
-    const audioExist = audioTrack.exist()
+    let videoExist = videoTrack.exist()
+    let audioExist = audioTrack.exist()
+
+    if (this._opts.onlyAudio) {
+      videoExist = false
+      videoTrack.present = false
+    }
+
+    if (this._opts.onlyVideo) {
+      audioExist = false
+      audioTrack.present = false
+    }
+
+    if (!videoExist && !audioExist) {
+      throw new StreamingError(ERR.OTHER, ERR.SUB_TYPES.OPTION, null, null, 'no stream track processing')
+    }
+
     if (
       (!videoExist && videoTrack.present) ||
       (!audioExist && audioTrack.present)
@@ -129,7 +144,7 @@ export class BufferService {
       if (track && track.samples.length) {
         duration = ((track.samples[track.samples.length - 1].originPts - track.samples[0].originPts) / track.timescale) * 1000
       }
-      if (duration > this._analyzeDuration) {
+      if (duration > this._opts.analyzeDuration) {
         logger.warn(`analyze duration exceeded, ${duration}ms`, track)
         videoTrack.present = videoExist
         audioTrack.present = audioExist
