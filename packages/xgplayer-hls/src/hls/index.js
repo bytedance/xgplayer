@@ -653,6 +653,9 @@ export class Hls extends EventEmitter {
   _end () {
     this._clear()
     this._bufferService.endOfStream()
+    if (this.media.readyState <= 2) {
+      this._startTick()
+    }
   }
 
   /**
