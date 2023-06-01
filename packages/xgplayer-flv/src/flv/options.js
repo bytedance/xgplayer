@@ -38,6 +38,8 @@ export function getOption (opts) {
     analyzeDuration: 20000,
     seamlesslyReload: false,
     keepStatusAfterSwitch: true,
+    onlyVideo: false,
+    onlyAudio: false,
     ...opts
   }
 
