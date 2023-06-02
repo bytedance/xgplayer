@@ -131,10 +131,6 @@ export class BufferService {
       audioTrack.present = false
     }
 
-    if (!videoExist && !audioExist) {
-      throw new StreamingError(ERR.OTHER, ERR.SUB_TYPES.OPTION, null, null, 'no stream track processing')
-    }
-
     if (
       (!videoExist && videoTrack.present) ||
       (!audioExist && audioTrack.present)
