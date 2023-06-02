@@ -70,8 +70,8 @@ export function createResponse (
   age = (age !== null && age !== undefined) ? parseFloat(age) : null
   contentLength = parseInt(contentLength || '0', 10)
   if (Number.isNaN(contentLength)) contentLength = 0
-  const option = { range, vid, index, contentLength, age, startTime, firstByteTime, endTime: Date.now(), priOptions }
-  return { data, done, option, response }
+  const options = { range, vid, index, contentLength, age, startTime, firstByteTime, endTime: Date.now(), priOptions }
+  return { data, done, options, response }
 }
 
 export function calculateSpeed (byteLen, millisec) {
