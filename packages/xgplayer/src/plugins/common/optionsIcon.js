@@ -147,7 +147,7 @@ export default class OptionsIcon extends Plugin {
     typeof item === 'number' && (item = list[item])
     try {
       if (typeof item[key] === 'object') {
-        return item[key][lang] || item[key].zh
+        return item[key][lang] || item[key].en
       } else {
         return item[key]
       }
