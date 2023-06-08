@@ -1,12 +1,21 @@
 {
     "name": "xgplayer",
-    "version": "2.32.2",
+    "version": "2.32.3",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
     "bin": {
         "xgplayer": "bin/xgplayer.js"
     },
+    "files": [
+        "bin",
+        "browser",
+        "dist",
+        "es",
+        "types",
+        "README.md",
+        "CHANGELOG.md"
+    ],
     "scripts": {
         "prepare": "npm run build",
         "postpublish": "git push --tags",
