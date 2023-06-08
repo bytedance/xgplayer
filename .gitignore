@@ -81,3 +81,8 @@ typings/
 
 .history
 examples
+
+# artifacts
+es/
+dist/
+browser/
