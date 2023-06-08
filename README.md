@@ -82,9 +82,9 @@ For debugging, we provide example video files in github. You can clone the whole
 ```
 $ git clone --recurse-submodules -j8 git@github.com:bytedance/xgplayer.git # OR git clone git@github.com:bytedance/xgplayer.git
 $ cd xgplayer
-$ npm install
-$ npm run build:player
-$ npm run dev
+$ yarn
+$ yarn build:player
+$ yarn dev
 ```
 
 Then visit [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
