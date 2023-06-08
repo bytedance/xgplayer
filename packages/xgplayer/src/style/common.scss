@@ -1,4 +1,4 @@
-@import "variable";
+@import 'variable';
 /** xgplayer base style begain**/
 .xgplayer-fullscreen-parent {
   position: fixed;
@@ -28,7 +28,7 @@
   z-index: 9999;
   transform-origin: top left;
   transform: rotate(90deg);
-  .xgplayer.xgplayer-rotate-fullscreen  {
+  .xgplayer.xgplayer-rotate-fullscreen {
     position: absolute;
     top: 0;
     left: 0;
@@ -51,35 +51,40 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: "PingFang SC", "Helvetica Neue", Helvetica, STHeiTi, "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, STHeiTi, 'Microsoft YaHei',
+    'WenQuanYi Micro Hei', sans-serif;
   font-size: 14px;
   font-weight: 400;
   background: $playerBgColor;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-touch-callout:none;
-  -webkit-user-select:none;
-  -khtml-user-select:none;
-  -moz-user-select:none;
-  -ms-user-select:none;
-  user-select:none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   cursor: pointer;
   * {
-      margin: 0;
-      padding: 0;
-      border: 0;
-      vertical-align: baseline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+    white-space: normal;
+    word-wrap: normal;
+    overflow-wrap: normal;
   }
-  ul, li {
+  ul,
+  li {
     list-style: none;
   }
   .xgplayer-none {
     display: none;
   }
 
-  &.xgplayer-is-fullscreen{
+  &.xgplayer-is-fullscreen {
     position: fixed;
-    top:0;
+    top: 0;
     left: 0;
     width: 100%;
     height: 100%;
@@ -127,18 +132,18 @@
     position: absolute;
     top: 0;
     left: 0;
-    width:100%;
+    width: 100%;
     height: 100%;
     outline: none;
   }
 
-  &[data-xgfill=cover] {
+  &[data-xgfill='cover'] {
     video {
       object-fit: cover;
     }
   }
 
-  &[data-xgfill=fill] {
+  &[data-xgfill='fill'] {
     video {
       object-fit: fill;
     }
@@ -166,7 +171,7 @@
     font-size: 13px;
     text-align: center;
     span {
-      display:inline-block;
+      display: inline-block;
       min-width: 52px;
       height: 24px;
       line-height: 24px;
@@ -189,7 +194,8 @@
       left: 50%;
       transform: translateX(-50%);
     }
-    &:active,&:hover {
+    &:active,
+    &:hover {
       .xg-tips {
         display: block;
       }
@@ -212,7 +218,8 @@
       width: 100%;
     }
 
-    svg, img {
+    svg,
+    img {
       height: 100%;
       display: block;
     }
@@ -224,7 +231,8 @@
     display: block;
   }
 
-  &.xgplayer-inactive, &.xgplayer-mini {
+  &.xgplayer-inactive,
+  &.xgplayer-mini {
     xg-bar {
       display: none;
     }
@@ -252,12 +260,13 @@
       left: 0;
       width: 34px;
       margin-top: 0;
-      &:first-child{
+      &:first-child {
         margin-left: 0;
       }
     }
   }
-  .xg-left-bar, .xg-right-bar {
+  .xg-left-bar,
+  .xg-right-bar {
     position: absolute;
     z-index: 9;
     top: $barWidth;
@@ -276,7 +285,7 @@
     display: none;
     position: absolute;
     padding: 4px 6px;
-    background:$tipsBgColor;
+    background: $tipsBgColor;
     border-radius: 4px;
     font-size: $tipsFontsize;
     color: $tipsColor;
@@ -292,14 +301,15 @@
 
 // 移动端适配
 .xgplayer-mobile {
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   * {
     text-decoration: none;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   }
 
   &.xgplayer-rotate-fullscreen {
-    .xg-top-bar, .xg-pos {
+    .xg-top-bar,
+    .xg-pos {
       left: 6%;
       right: 6%;
     }
@@ -340,7 +350,8 @@
 //   }
 // }
 
-@supports ((height: constant(safe-area-inset-top)) or (height: env(safe-area-inset-top))) and (-webkit-overflow-scrolling: touch) {
+@supports ((height: constant(safe-area-inset-top)) or (height: env(safe-area-inset-top)))
+  and (-webkit-overflow-scrolling: touch) {
   // .xgplayer-mobile {
   //   &.xgplayer-rotate-fullscreen {
   //     .xg-pos {
@@ -354,9 +365,10 @@
 }
 
 // 竖屏兼容
-@media screen and (orientation:portrait) {
+@media screen and (orientation: portrait) {
   .xgplayer-mobile {
-    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen {
+    &.xgplayer-is-fullscreen,
+    &.xgplayer-is-cssfullscreen {
       //.flex-controls {
       .xgplayer-controls {
         bottom: 34px;
@@ -377,10 +389,11 @@
 }
 
 // 横屏兼容
-@media only screen and (orientation:landscape) {
+@media only screen and (orientation: landscape) {
   .xgplayer-mobile {
     &.xgplayer-is-fullscreen {
-      .xg-top-bar, .xg-pos {
+      .xg-top-bar,
+      .xg-pos {
         left: 6%;
         right: 6%;
       }
