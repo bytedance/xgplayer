@@ -9,6 +9,7 @@
     "dev:xgplayer": "yarn libd dev fixtures/xgplayer",
     "dev:hls": "yarn libd dev fixtures/hls",
     "dev:flv": "yarn libd dev fixtures/flv",
+    "dev:flvjs": "yarn libd dev fixtures/flvjs",
     "dev:mp4": "yarn libd dev fixtures/mp4",
     "dev:music": "yarn libd dev fixtures/music",
     "dev:pano": "yarn libd dev fixtures/pano",

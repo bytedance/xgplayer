@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLV.js 测试</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="text-base">
+  <div class="container p-3">
+    <div id="player"></div>
+  </div>
+
+  <div id="log" class="container p-3">
+    <div class="flex flex-center">
+      <h3 class="text-lg font-semibold text-indigo-500">日志</h3>
+      <label class="ml-3 p-1 bg-gray-200">暂停事件<input id="log-pause" type="checkbox" /></label>
+    </div>
+    <div class="flex flex-wrap">
+      <div class="mr-2">
+        <h4>事件</h4>
+        <div id="event" class="h-40 bg-gray-200" style="resize: both; overflow: scroll; width: 500px;"></div>
+      </div>
+      <div>
+        <h4>错误</h4>
+        <div id="error" class="h-40 bg-gray-200" style="resize: both; overflow: scroll; width: 500px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./index.js"></script>
+</body>
+</html>

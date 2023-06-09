@@ -1,5 +1,5 @@
 import { BasePlugin, Errors, Events } from 'xgplayer'
-import Flv from './flv/flv'
+import Flv from 'flv.js'
 
 class FlvJsPlugin extends BasePlugin {
   static get isSupported () {
