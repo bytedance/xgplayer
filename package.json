@@ -94,7 +94,7 @@
     "ts-jest": "^28.0.5",
     "ts-morph": "^14.0.0",
     "url-toolkit": "2.1.6",
-    "vite": "^2.9.8",
+    "vite": "^2.9.16",
     "vite-plugin-externals": "0.5.1",
     "zlib": "^1.0.5"
   }
