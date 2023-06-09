@@ -238,7 +238,9 @@ export class MSE {
    */
   changeType (type, mimeType) {
     const sb = this._sourceBuffer[type]
-    if (!this.mediaSource || !sb || sb.mimeType === mimeType || typeof sb.changeType !== 'function') return Promise.resolve()
+    if (!this.mediaSource || !sb || sb.mimeType === mimeType) return Promise.resolve()
+
+    if (typeof sb.changeType !== 'function') return Promise.reject()
 
     return this._enqueueOp(type, () => {
       sb.changeType(mimeType)
