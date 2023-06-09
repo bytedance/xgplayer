@@ -31,11 +31,12 @@
   },
   "dependencies": {
     "es6-promise": "^4.2.4",
+    "flv.js": "^1.6.2",
     "glob": "^7.1.2",
     "webworkify": "^1.5.0"
   },
   "peerDependencies": {
-    "xgplayer": ">=3.0.0-next.6",
-    "core-js": ">=3.12.1"
+    "core-js": ">=3.12.1",
+    "xgplayer": ">=3.0.0"
   }
 }
