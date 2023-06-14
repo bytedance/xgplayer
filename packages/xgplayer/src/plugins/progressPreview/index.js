@@ -258,7 +258,7 @@ export default class ProgressPreview extends Plugin {
   }
 
   updateLinePos (offset, cwidth) {
-    const { root, previewLine, timePoint, player, config } = this
+    const { root, previewLine, player, config } = this
     const { mode } = player.controls
     const isflex = mode === 'flex'
     let lwidth = root.getBoundingClientRect().width
@@ -266,24 +266,19 @@ export default class ProgressPreview extends Plugin {
     if (!lwidth) {
       return
     }
-    const tWidth = timePoint.getBoundingClientRect().width
     lwidth = this._hasThumnail && lwidth < config.width ? config.width : lwidth
     let x = offset - lwidth / 2
-    let _t, _tt
+    let _t
     if (x < 0 && !isflex) {
       x = 0
       _t = offset - lwidth / 2
-      !this.thumbnail && (_tt = offset - lwidth / 2 - tWidth / 2)
     } else if (x > cwidth - lwidth && !isflex) {
       _t = x - (cwidth - lwidth)
-      !this.thumbnail && (_tt = x - (cwidth - lwidth) - tWidth / 2)
       x = cwidth - lwidth
     } else {
       _t = 0
-      !this.thumbnail && (_tt = -tWidth / 2)
     }
     _t !== undefined && (previewLine.style.transform = `translateX(${_t.toFixed(2)}px)`)
-    _tt !== undefined && (timePoint.style.transform = `translateX(${_tt.toFixed(2)}px)`)
     root.style.transform = `translateX(${x.toFixed(2)}px) translateZ(0)`
   }
 

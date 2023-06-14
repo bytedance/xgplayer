@@ -1,16 +1,5 @@
-$thumbnailWidth: 160px;  // 缩略图显示宽度
-$thumbnailBg: rgba(17, 16, 16, 1);
-$spotHeight: 6px; // 故事点高度
-$spotWidth: 6px; // 故事点高度
-$spotColor: #fff;
-$bottom: 7px;
-$textHeight: 40px;
-$top: 8px;
-
+$bottom: -7px;
 .xgplayer {
-  // .xgplayer-progress-point {
-  //   opacity: 0;
-  // }
   .xgplayer-spot {
     position: absolute;
     // z-index: 10;
@@ -59,11 +48,6 @@ $top: 8px;
     &.short-line {
       .xg-spot-line{
         height: 6px;
-        top: 6px;
-      }
-      .xg-spot-content {
-        padding-bottom: 0;
-        bottom: 10px;
       }
     }
     &.no-thumbnail {
@@ -98,7 +82,7 @@ $top: 8px;
 
   .xg-spot-line {
     position: relative;
-    top: $top;
+    bottom: $bottom;
     margin-left: 50%;
     display: block;
     width: 1px;
@@ -110,9 +94,10 @@ $top: 8px;
   /* 时间预览样式 */
   .xgplayer-progress-point {
     display: none;
-    position: absolute;
-    bottom: 0;
+    position: relative;
+    bottom: -4px;
     left: 50%;
+    transform: translateX(-50%);
     background:rgba(0, 0, 0, 0.54);
     font-size: 11px;
     color: #fff;
@@ -126,14 +111,14 @@ $top: 8px;
   .xg-spot-content {
     position: relative;
     // width: 160px;
-    top: $top;
+    bottom: $bottom;
     color: #fff;
     border-radius: 2px 2px 0px 0px;
   }
 
   .xg-spot-ext-text {
     position: relative;
-    top: $top;
+    bottom: $bottom;
   }
   
   .xg-spot-thumbnail {
