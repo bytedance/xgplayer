@@ -1,4 +1,5 @@
 $bottom: -7px;
+$shortBottom: -4px;
 .xgplayer {
   .xgplayer-spot {
     position: absolute;
@@ -49,6 +50,9 @@ $bottom: -7px;
       .xg-spot-line{
         height: 6px;
       }
+      .xg-spot-content {
+        bottom: $shortBottom;
+      }
     }
     &.no-thumbnail {
       .xg-spot-thumbnail {
@@ -95,7 +99,7 @@ $bottom: -7px;
   .xgplayer-progress-point {
     display: none;
     position: relative;
-    bottom: -4px;
+    bottom: $shortBottom;
     left: 50%;
     transform: translateX(-50%);
     background:rgba(0, 0, 0, 0.54);
