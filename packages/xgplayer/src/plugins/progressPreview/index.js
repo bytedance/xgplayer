@@ -299,7 +299,6 @@ export default class ProgressPreview extends Plugin {
       return
     }
 
-    this.updateLinePos(offset, cwidth)
     // let now = offset / cwidth * player.duration
     // now = now < 0 ? 0 : (now > player.duration ? player.duration : now)
     _state.now = time
@@ -320,6 +319,7 @@ export default class ProgressPreview extends Plugin {
     }
     this.updateTimeText(timeStr)
     this.updateThumbnails(_state.now)
+    this.updateLinePos(offset, cwidth)
   }
 
   /**
