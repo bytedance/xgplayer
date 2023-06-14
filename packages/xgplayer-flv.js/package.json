@@ -37,6 +37,6 @@
   },
   "peerDependencies": {
     "core-js": ">=3.12.1",
-    "xgplayer": "3.0.5-alpha.0"
+    "xgplayer": "3.0.5-alpha.1"
   }
 }
