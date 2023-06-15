@@ -193,7 +193,7 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const { config, player } = this
-    if (player.state < STATES.RUNNING || !this.autoPlayStart) {
+    if (!player || player.state < STATES.RUNNING || !this.autoPlayStart) {
       return
     }
     // 一直显示
