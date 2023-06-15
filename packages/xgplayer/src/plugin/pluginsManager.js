@@ -177,8 +177,6 @@ const pluginsManager = {
         const config = originalOptions[keys[i]]
         if (Util.typeOf(config) === 'Object') {
           options.config = Object.assign({}, options.config, originalOptions[keys[i]])
-        } else if (Util.typeOf(config) === 'Boolean') {
-          options.config.disable = !config
         }
         break
       }

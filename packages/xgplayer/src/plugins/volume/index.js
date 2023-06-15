@@ -49,10 +49,6 @@ class Volume extends Plugin {
       isMoving: false,
       isActive: false
     }
-    if (this.config.disable) {
-      return
-    }
-
     this.initIcons()
 
     const { commonStyle, volume } = this.playerConfig
@@ -91,6 +87,9 @@ class Volume extends Plugin {
     }
 
     this.onVolumeChange()
+    if (this.config.disable) {
+      this.disable()
+    }
   }
 
   onBarMousedown = (e) => {
@@ -188,7 +187,10 @@ class Volume extends Plugin {
    * @desc 聚焦
    */
   focus () {
-    const { player } = this
+    const { player, config } = this
+    if (config.disable) {
+      return
+    }
     player.focus({ autoHide: false })
     if (this._timerId) {
       Util.clearTimeout(this, this._timerId)
@@ -240,6 +242,9 @@ class Volume extends Plugin {
   }
 
   changeMuted (e) {
+    if (this.config.disable) {
+      return
+    }
     // e.preventDefault()
     e && e.stopPropagation()
     const { player, _d } = this
@@ -311,9 +316,6 @@ class Volume extends Plugin {
   }
 
   render () {
-    if (this.config.disable) {
-      return
-    }
     const volume = this.config.default || this.player.volume
     const isShowVolumeValue = this.config.showValueLabel
     return `

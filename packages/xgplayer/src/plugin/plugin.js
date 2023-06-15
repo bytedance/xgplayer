@@ -22,6 +22,11 @@ const POSITIONS = {
   CONTROLS: 'controls'
 }
 
+const PLUGIN_STATE_CLASS = {
+  ICON_DISABLE: 'xg-icon-disable',
+  ICON_HIDE: 'xg-icon-hide'
+}
+
 /**
  * Check if the url is a link address
  * @param { string } str
@@ -408,6 +413,20 @@ class Plugin extends BasePlugin {
     return this._children
   }
 
+  /**
+   *
+   */
+  disable () {
+    console.log('>>>>disable', this.pluginName, this.find('.xgplayer-icon'))
+    this.config.disable = true
+    Util.addClass(this.find('.xgplayer-icon'), PLUGIN_STATE_CLASS.ICON_DISABLE)
+  }
+
+  enable () {
+    this.config.disable = false
+    Util.removeClass(this.find('.xgplayer-icon'), PLUGIN_STATE_CLASS.ICON_DISABLE)
+  }
+
   children () {
     return {}
   }
@@ -664,5 +683,6 @@ class Plugin extends BasePlugin {
 export {
   Plugin as default,
   ROOT_TYPES,
-  POSITIONS
+  POSITIONS,
+  PLUGIN_STATE_CLASS
 }

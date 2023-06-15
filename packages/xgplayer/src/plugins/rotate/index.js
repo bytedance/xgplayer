@@ -27,12 +27,8 @@ export default class Rotate extends IconPlugin {
   }
 
   afterCreate () {
-    if (this.config.disable) {
-      return
-    }
     super.afterCreate()
     this.appendChild('.xgplayer-icon', this.icons.rotate)
-    this.onBtnClick = this.onBtnClick.bind(this)
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on(Events.VIDEO_RESIZE, () => {
@@ -53,7 +49,10 @@ export default class Rotate extends IconPlugin {
     this.unbind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
   }
 
-  onBtnClick (e) {
+  onBtnClick = (e) => {
+    if (this.config.disable) {
+      return
+    }
     e.preventDefault()
     e.stopPropagation()
     this.emitUserAction(e, 'rotate')
@@ -115,9 +114,6 @@ export default class Rotate extends IconPlugin {
   }
 
   render () {
-    if (this.config.disable) {
-      return
-    }
     return `
     <xg-icon class="xgplayer-rotate">
       <div class="xgplayer-icon">

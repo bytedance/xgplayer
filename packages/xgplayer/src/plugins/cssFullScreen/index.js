@@ -32,18 +32,8 @@ export default class CssFullScreen extends IconPlugin {
     }
   }
 
-  beforeCreate (args) {
-    if (typeof args.player.config.cssFullscreen === 'boolean') {
-      args.config.disable = !args.player.config.cssFullscreen
-    }
-  }
-
   afterCreate () {
     super.afterCreate()
-    if (this.config.disable) {
-      return
-    }
-
     if (this.config.target) {
       this.playerConfig.fullscreenTarget = this.config.target
     }
@@ -52,7 +42,6 @@ export default class CssFullScreen extends IconPlugin {
     this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
     })
-    this.btnClick = this.btnClick.bind(this)
     this.handleCssFullscreen = this.hook('cssFullscreen_change', this.btnClick, {
       pre: (e) => {
         e.preventDefault()
@@ -69,7 +58,10 @@ export default class CssFullScreen extends IconPlugin {
     contentIcon.appendChild(icons.exitCssFullscreen)
   }
 
-  btnClick (e) {
+  btnClick = (e) => {
+    if (this.config.disable) {
+      return
+    }
     e.preventDefault()
     e.stopPropagation()
     const { isCssfullScreen } = this.player
@@ -108,9 +100,6 @@ export default class CssFullScreen extends IconPlugin {
   }
 
   render () {
-    if (this.config.disable) {
-      return
-    }
     return `<xg-icon class='xgplayer-cssfullscreen'>
     <div class="xgplayer-icon">
     </div>

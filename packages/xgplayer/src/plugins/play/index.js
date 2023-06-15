@@ -20,12 +20,10 @@ class Play extends IconPlugin {
 
   afterCreate () {
     super.afterCreate()
-    const { player, config } = this
-    if (config.disable) {
-      return
-    }
+    const { player } = this
+
     this.initIcons()
-    this.btnClick = this.btnClick.bind(this)
+
     this.bind(['touchend', 'click'], this.btnClick)
 
     this.on([Events.PAUSE, Events.ERROR, Events.EMPTIED], () => {
@@ -44,10 +42,13 @@ class Play extends IconPlugin {
     }
   }
 
-  btnClick (e) {
+  btnClick = (e) => {
+    const { player, config } = this
+    if (config.disable) {
+      return
+    }
     e.preventDefault()
     e.stopPropagation()
-    const { player } = this
     this.emitUserAction(e, 'switch_play_pause', { prop: 'paused', from: player.paused, to: !player.paused })
     if (player.ended) {
       player.replay()
@@ -86,9 +87,6 @@ class Play extends IconPlugin {
   }
 
   render () {
-    if (this.config.disable) {
-      return
-    }
     return `<xg-icon class="xgplayer-play">
     <div class="xgplayer-icon">
     </div>

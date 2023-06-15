@@ -36,9 +36,6 @@ export default class Download extends IconPlugin {
 
   afterCreate () {
     super.afterCreate()
-    if (this.config.disable) {
-      return
-    }
     this.appendChild('.xgplayer-icon', this.icons.download)
     this.bind(['click', 'touchend'], this.download)
   }
@@ -50,7 +47,7 @@ export default class Download extends IconPlugin {
   }
 
   download = (e) => {
-    if (this.isLock) {
+    if (this.isLock || this.config.disable) {
       return
     }
     this.emitUserAction(e, 'download')
@@ -82,9 +79,6 @@ export default class Download extends IconPlugin {
   }
 
   render () {
-    if (this.config.disable) {
-      return
-    }
     return `<xg-icon class="xgplayer-download">
    <div class="xgplayer-icon">
    </div>

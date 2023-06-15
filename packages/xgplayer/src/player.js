@@ -574,18 +574,24 @@ class Player extends MediaProxy {
     const i18n = this.config.i18n || []
     isInit && I18N.extend(i18n, this.__i18n)
     const ignoresStr = ignores.join('||').toLowerCase().split('||')
+    console.log('>>>>ignoresStr', ignoresStr)
     const cuPlugins = this.plugins
     plugins.forEach((plugin) => {
       try {
         const pluginName = plugin.plugin
           ? plugin.plugin.pluginName
           : plugin.pluginName
+        if (!pluginName) {
+          return
+        }
+        const pluginNameL = pluginName.toLowerCase()
+        const isIgnore = this.config[pluginNameL] || this.config[pluginName]
         // 在ignores中的不做组装
-        if (pluginName && ignoresStr.indexOf(pluginName.toLowerCase()) > -1) {
-          return null
+        if ((Util.typeOf(isIgnore) === 'Boolean' && !isIgnore) || ignoresStr.indexOf(pluginNameL) > -1) {
+          return
         }
 
-        if (!isInit && cuPlugins[pluginName.toLowerCase()]) {
+        if (!isInit && cuPlugins[pluginNameL]) {
           return
         }
 

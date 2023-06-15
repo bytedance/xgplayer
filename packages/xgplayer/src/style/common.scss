@@ -189,6 +189,12 @@
     cursor: pointer;
     color: $definitionNameColor;
     fill: #fff;
+    cursor: pointer;
+
+    &.xg-icon-disable {
+      cursor: not-allowed;
+    }
+
     .xg-tips {
       top: -30px;
       left: 50%;
@@ -209,7 +215,6 @@
       transform: translateY(-50%);
       cursor: pointer;
     }
-
     .xg-icon-disable {
       cursor: not-allowed;
     }

@@ -46,9 +46,6 @@ export default class Fullscreen extends IconPlugin {
   afterCreate () {
     super.afterCreate()
     const { config, playerConfig } = this
-    if (config.disable) {
-      return
-    }
 
     if (config.target) {
       this.playerConfig.fullscreenTarget = this.config.target
@@ -64,6 +61,9 @@ export default class Fullscreen extends IconPlugin {
 
     this.handleFullscreen = this.hook('fullscreenChange', this.toggleFullScreen, {
       pre: (e) => {
+        if (this.config.disable) {
+          return
+        }
         const { fullscreen } = this.player
         this.emitUserAction(e, 'switch_fullscreen', {
           prop: 'fullscreen',
@@ -139,11 +139,14 @@ export default class Fullscreen extends IconPlugin {
    * @param { Event } [e]
    */
   toggleFullScreen (e) {
+    const { player, config } = this
+    if (config.disable) {
+      return
+    }
     if (e) {
       e.preventDefault()
       e.stopPropagation()
     }
-    const { player, config } = this
     const useCssFullscreen = config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())
     if (useCssFullscreen) {
       if (player.fullscreen) {
@@ -200,9 +203,6 @@ export default class Fullscreen extends IconPlugin {
    * @returns
    */
   render () {
-    if (this.config.disable) {
-      return
-    }
     const langKey = 'FULLSCREEN_TIPS'
     return `<xg-icon class="xgplayer-fullscreen">
     <div class="xgplayer-icon">

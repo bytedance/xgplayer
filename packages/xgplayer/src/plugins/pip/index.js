@@ -116,7 +116,7 @@ class PIP extends IconPlugin {
   }
 
   switchPIP = (e) => {
-    if (!this.isPIPAvailable()) {
+    if (!this.isPIPAvailable() || this.config.disable) {
       return false
     }
     e.stopPropagation && e.stopPropagation()

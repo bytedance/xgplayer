@@ -37,30 +37,37 @@ function init(index = 0, config = {}) {
     DynamicBg: {
       disable: false
     },
-    marginControls: false,
+    marginControls: true,
     loop: false,
     autoplay: false,
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
     width: '100%',
-    ignores:['playbackrate'],
+    ignores:['definition'],
     plugins: [TextTrack],
     controls: {
       // mode: 'flex',
       // initShow: true
     },
-    progress: {
-      // root: document.getElementById('controls0')
-    },
-    volume: {
-      position: 'rootTop'
-    },
-    mobile: {
-      // gestureX: false
-    },
+    // volume: {
+    //   disable: true
+    // },
+    // play: {
+    //   disable: true,
+    // },
+    // playbackRate: {
+    //   disable: true
+    // },
+    // cssFullscreen: {
+    //   disable: true
+    // },
+    // fullscreen: {
+    //   disable: true
+    // },
     texttrack: {
       debugger: false,
+      // disable: true,
       list: [{
         label: '双语',
         language: 'double',

@@ -106,6 +106,9 @@ export default class OptionsIcon extends Plugin {
       this.bind('mouseleave', this.onLeave)
     }
     this.isIcons && this.bind('click', this.onIconClick)
+    if (this.config.disable) {
+      this.disable()
+    }
   }
 
   initIcons () {
@@ -167,9 +170,12 @@ export default class OptionsIcon extends Plugin {
   }
 
   switchActiveState = (e) => {
+    const { toggleMode, disable } = this.config
+    if (disable) {
+      return
+    }
     e.preventDefault()
     e.stopPropagation()
-    const { toggleMode } = this.config
     // console.log('>>>switchActiveState', e.type, this.activeEvent, this.isActive)
     if (toggleMode === TOGGLE_MODES.CLICK) {
       this.toggle(!this.isActive)
