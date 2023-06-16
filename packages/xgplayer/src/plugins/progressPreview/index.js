@@ -284,8 +284,8 @@ export default class ProgressPreview extends Plugin {
 
   updateTimeText (timeStr) {
     const { timeText, timePoint } = this
-    timeText.textContent = timeStr
-    !this.thumbnail && (timePoint.textContent = timeStr)
+    timeText.innerHTML = timeStr
+    !this.thumbnail && (timePoint.innerHTML = timeStr)
   }
 
   updatePosition (offset, cwidth, time, e) {
