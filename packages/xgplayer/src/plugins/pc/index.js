@@ -130,7 +130,7 @@ export default class PCPlugin extends BasePlugin {
     if (playerConfig.closeVideoDblclick || !e.target || (e.target !== player.media && e.target !== player.media.__canvas)) {
       return
     }
-    if (this._clickCount < 2) {
+    if (!playerConfig.closeVideoClick && this._clickCount < 2) {
       this._clickCount = 0
       return
     }
