@@ -28,6 +28,7 @@ export default class FpsDetect extends BasePlugin {
     this._lastDecodedFrames = 0
     this._currentStuckCount = 0
     this._lastCheckPoint = null
+    this._payload = []
     if (config.disabled) return
     const getVideoPlaybackQuality = player.media.getVideoPlaybackQuality
     if (!getVideoPlaybackQuality) return
@@ -61,7 +62,7 @@ export default class FpsDetect extends BasePlugin {
     this._timer = null
   }
 
-  _checkStuck (curDecodedFrames){
+  _checkStuck (curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval){
     const { media } = this.player
     const hidden = document.hidden
     const paused = media.paused
@@ -69,9 +70,11 @@ export default class FpsDetect extends BasePlugin {
       const curTime = media.currentTime
       const buffered = media.buffered
       let enoughBuffer = false
+      let bufs = []
       for (let i = 0; i < buffered.length; i++){
         const start = buffered.start(i)
         const end = buffered.end(i)
+        bufs.push({start, end})
         if (start <= curTime && curTime <= end - 1){
           enoughBuffer = true
           break
@@ -79,29 +82,36 @@ export default class FpsDetect extends BasePlugin {
       }
       if (media.readyState === 4 && enoughBuffer){
         if (this._currentStuckCount > this.config.stuckCount){
-          this.emit(Events.FPS_STUCK)
-          this._currentStuckCount = 0
+          this.emit(Events.FPS_STUCK, this._payload)
+          this._reset()
         } else {
           if (curDecodedFrames <= this.config.reportFrame){
             this._currentStuckCount ++
+            this._payload.push({ bufs, currentTime: media.currentTime, curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval})
           } else {
-            this._currentStuckCount = 0
+            this._reset()
           }
         }
       }
     }
   }
 
+  _reset(){
+    this._payload = []
+    this._currentStuckCount = 0
+  }
+
   _checkDecodeFPS (){
     if (!this.player.media){
       return
     }
-    const { totalVideoFrames } = this.player.media.getVideoPlaybackQuality()
+    const { totalVideoFrames, droppedVideoFrames } = this.player.media.getVideoPlaybackQuality()
     const currTime = performance.now()
     if (totalVideoFrames){
       if (this._lastCheckPoint){
         const curDecoded = totalVideoFrames - this._lastDecodedFrames
-        this._checkStuck(curDecoded)
+        const checkInterval = currTime - this._lastCheckPoint
+        this._checkStuck(curDecoded, totalVideoFrames, droppedVideoFrames, checkInterval)
       }
     }
     this._lastDecodedFrames = totalVideoFrames
