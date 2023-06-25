@@ -1,4 +1,10 @@
 /**
+ * @callback m3u8ParseCallback
+ * @param {string} m3u8
+ * @returns {string?}
+ */
+
+/**
  * @typedef {{
  *  media: HTMLMediaElement,
  *  url?: string,
@@ -19,9 +25,9 @@
  *  seiInTime?: boolean,
  *  manifestList?: Array<{url: string, manifest: string}>
  *  fetchOptions?: RequestInit
- *  onPreM3U8Parse?: (m3u8: string) => string | void
+ *  onPreM3U8Parse?: m3u8ParseCallback,
  *  decryptor?: Decryptor,
- *  minSegmentsStartPlay?: number
+ *  minSegmentsStartPlay?: number,
  * }} HlsOption
  */
 
