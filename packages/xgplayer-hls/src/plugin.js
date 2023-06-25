@@ -7,6 +7,13 @@ import PluginExtension from './plugin-extension'
 export function parseSwitchUrlArgs (args, plugin) {
   const { player } = plugin
   const curTime = player.currentTime
+
+  /**
+   * @type {{
+   *  startTime: number
+   *  seamless?: boolean
+   * }}
+   */
   const options = {
     startTime: curTime
   }
@@ -112,6 +119,7 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.LOAD_COMPLETE)
     this._transCoreEvent(EVENT.LOAD_RETRY)
     this._transCoreEvent(EVENT.SOURCEBUFFER_CREATED)
+    this._transCoreEvent(EVENT.APPEND_BUFFER)
     this._transCoreEvent(EVENT.REMOVE_BUFFER)
     this._transCoreEvent(EVENT.BUFFEREOS)
     this._transCoreEvent(EVENT.KEYFRAME)

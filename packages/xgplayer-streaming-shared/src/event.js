@@ -8,6 +8,7 @@ export const EVENT = {
   LOAD_RETRY: 'core.loadretry',
   SOURCEBUFFER_CREATED: 'core.sourcebuffercreated',
   ANALYZE_DURATION_EXCEEDED: 'core.analyzedurationexceeded',
+  APPEND_BUFFER: 'core.appendbuffer',
   REMOVE_BUFFER: 'core.removebuffer',
   BUFFEREOS: 'core.buffereos',
   KEYFRAME: 'core.keyframe',
