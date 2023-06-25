@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3'
-import { Buffer, ERR, GapService, getVideoPlaybackQuality, isMediaPlaying, Logger, MediaStatsService, MSE, SeiService, StreamingError } from 'xgplayer-streaming-shared'
+import { Buffer, ERR, EVENT, GapService, Logger, MSE, MediaStatsService, SeiService, StreamingError, getVideoPlaybackQuality, isMediaPlaying } from 'xgplayer-streaming-shared'
 import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import { BufferService } from './buffer-service'
 import { getConfig } from './config'
