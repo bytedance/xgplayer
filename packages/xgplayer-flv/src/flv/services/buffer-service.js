@@ -174,6 +174,9 @@ export class BufferService {
     this._demuxStartTime = 0
 
     const mse = this._mse
+    const afterAppend = () => {
+      this.emit(EVENT.APPEND_BUFFER, {})
+    }
 
     // emit demuxed track
     this.flv.emit(EVENT.DEMUXED_TRACK, {videoTrack})
@@ -229,11 +232,13 @@ export class BufferService {
       if (remuxResult.audioSegment) p.push(mse.append(audioType, remuxResult.audioSegment))
 
       this.flv._transferCost.start(TRANSFER_EVENT.APPEND)
-      return Promise.all(p).then(() => {
+      return Promise.all(p).then(afterAppend).then(() => {
         this.flv._transferCost.end(TRANSFER_EVENT.APPEND)
+        afterAppend()
       })
     } else if (this._softVideo) {
       this._softVideo.appendBuffer(videoTrack, audioTrack)
+      afterAppend()
     }
   }
 
