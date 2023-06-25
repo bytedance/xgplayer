@@ -790,7 +790,6 @@ class MediaProxy extends EventEmitter {
   /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
 
   /**
-   *
    * @param { string } event
    * @param { any } [data]
    * @returns
@@ -800,9 +799,8 @@ class MediaProxy extends EventEmitter {
   }
 
   /**
-   *
    * @param { string } event
-   * @param { (data?: any) => any } callback
+   * @param { (...args: any[]) => any } callback
    * @returns
    */
   on (event, callback, ...args) {
@@ -810,9 +808,8 @@ class MediaProxy extends EventEmitter {
   }
 
   /**
-   *
    * @param { string } event
-   * @param { (data?: any) => any } callback
+   * @param { (...args: any[]) => any } callback
    * @returns
    */
   once (event, callback, ...args) {
@@ -822,7 +819,7 @@ class MediaProxy extends EventEmitter {
   /**
    *
    * @param { string } event
-   * @param { (data?: any) => any } callback
+   * @param { (...args: any[]) => any } callback
    * @returns
    */
   off (event, callback, ...args) {

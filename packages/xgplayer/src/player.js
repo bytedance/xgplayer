@@ -180,7 +180,7 @@ class Player extends MediaProxy {
 
     /**
      * @type { IDefinition | null }
-     * @readonly
+     * @public
      */
     this.curDefinition = null
     /**
