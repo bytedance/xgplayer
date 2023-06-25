@@ -9,6 +9,7 @@ export const EVENT = {
   SOURCEBUFFER_CREATED: 'core.sourcebuffercreated',
   MEDIASOURCE_OPENED: 'core.mediasourceopened',
   ANALYZE_DURATION_EXCEEDED: 'core.analyzedurationexceeded',
+  APPEND_BUFFER: 'core.appendbuffer',
   REMOVE_BUFFER: 'core.removebuffer',
   BUFFEREOS: 'core.buffereos',
   KEYFRAME: 'core.keyframe',
