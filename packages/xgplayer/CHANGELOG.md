@@ -1,4 +1,16 @@
 # 版本更新记录
+## 3.0.4
+-
+## 3.0.3
+>* feat(xgplayr): 默认语言取英文
+>* fix(xgplayer): 修复loadeddata之后isSeeking状态异常问题
+>* fix(xgplayer): 修复起播之前seek ios上会事件触发异常问题
+>* fix(xgplayer): play接口返回promise
+>* feat(xgplayer): 列表按钮的列表增加左侧弹出能力
+>* feat(xgplayer): 带列表的按钮增加点击呼出和隐藏按钮的功能
+>* feat(xgplayer): mobile组件增加hooks
+>* fix(xgplayer): time组件flex状态下无法隐藏问题修复
+>* fix(xgplayer): 画中画 - 执行switchPIP报错(e.stopPropagation not a function)
 ## 3.0.2
 >* feat(xgplayer): 更新依赖xgplayer-subtitles@1.1.1
 >* fix(xgplayer): 修复字幕id为数字的时候0的判断问题

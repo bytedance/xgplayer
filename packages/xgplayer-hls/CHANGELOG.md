@@ -1,3 +1,21 @@
+## xgplayer-hls@3.0.4
+
+
+## xgplayer-hls@3.0.3
+fix: (xgplayer-hls) play stall with start gap meet
+feat: (xgplayer-hls) add keepStatusAfterSwitch option
+fix: (xgplayer-hls) 过滤duration为0的分片 
+fix: (xgplayer-hls) beforePlayerInit()钩子去除异步返回值 
+
+## xgplayer-hls@3.0.2
+fix: 🐛 (xgplayer-hls) destroy api supported as a subclass
+refactor: 💡 (xgplayer-hls) hls destroy will kill decryptor
+
+## xgplayer-hls@3.0.1
+-
+
+## xgplayer-hls@3.0.0-next.37-1
+chore: 更新 xgplayer-streaming-shared@3.0.0-next.33
 
 ## xgplayer-hls@3.0.0-next.37-1
 chore: 更新 xgplayer-streaming-shared@3.0.0-next.33

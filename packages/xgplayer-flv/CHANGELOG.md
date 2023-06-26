@@ -1,3 +1,15 @@
+## xgplayer-flv@3.0.4
+fix: (xgplayer-flv) play error with only script tag received first fetch
+
+## xgplayer-flv@3.0.3
+fix: (xgplayer-flv) play stall with start gap meet
+feat: (xgplayer-flv) add onlyVideo、onlyAudio options
+fix: (xgplayer-flv) audio timestamp breaked before video long time case play stall refact: core.demuxedtrack export demuxed video & audio track 
+
+## xgplayer-flv@3.0.2
+-
+## xgplayer-flv@3.0.1
+-
 
 ## xgplayer-flv@next.24-1
 chore: 更新 xgplayer-streaming-shared@3.0.0-next.33
