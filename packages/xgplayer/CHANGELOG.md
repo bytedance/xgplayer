@@ -1,9 +1,15 @@
 # 版本更新记录
+## 3.0.5
+>* fix: 🐛 (xgplayer) 防止被全局基础样式影响导致icon下移不显示
+>* feat(xgplayer): 控制栏预览删除对time节点的定位,relative定位,只对容器节点
+>* feat(xgpayer): 预览打点文案的时候添加底部边距作位移
+>* fix: 🐛 (player) 修复closeVideoClick=true时，双击事件无效问题 (fixed #970)
+>* fix: 修复倍速切换插件一直显示滚动条 bug
+>* feat(xgplayer): hover时间显示支持html代码插入
 ## 3.0.4
--
-## 3.0.3
 >* feat(xgplayr): 默认语言取英文
 >* fix(xgplayer): 修复loadeddata之后isSeeking状态异常问题
+## 3.0.3
 >* fix(xgplayer): 修复起播之前seek ios上会事件触发异常问题
 >* fix(xgplayer): play接口返回promise
 >* feat(xgplayer): 列表按钮的列表增加左侧弹出能力
