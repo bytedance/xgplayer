@@ -71,6 +71,10 @@ export const USER_ACTION = 'user_action'
 
 export const RESET = 'reset'
 
+export const SOURCE_ERROR = 'source_error'
+
+export const SOURCE_SUCCESS = 'source_success'
+
 export const SWITCH_SUBTITLE = 'switch_subtitle'
 
 export const VIDEO_EVENTS = [
