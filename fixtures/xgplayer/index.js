@@ -1,6 +1,9 @@
-import Player from '../../packages/xgplayer/src/index'
+import Player, { SimplePlayer } from '../../packages/xgplayer/src/index'
+import Poster from '../../packages/xgplayer/src/plugins/poster'
+import Start from '../../packages/xgplayer/src/plugins/start'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
+import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
 
 // 全局配置语言
 I18N.extend([
@@ -28,7 +31,7 @@ function init(index = 0, config = {}) {
     window[p].destroy()
     window[p] = null
   }
-  window[p] = new Player({
+  window[p] = new SimplePlayer({
     id: 'video' + index,
     url:
     [{src:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4'},
@@ -45,13 +48,16 @@ function init(index = 0, config = {}) {
     preloadTime: 20,
     width: '100%',
     ignores:['playbackrate'],
-    plugins: [TextTrack],
-    controls: {
-      // mode: 'flex',
-      // initShow: true
-    },
+    plugins: [TextTrack, Start,DynamicBg],
+    // controls: {
+    //   // mode: 'normal',
+    //   // initShow: true
+    // },
     progress: {
       // root: document.getElementById('controls0')
+    },
+    DynamicBg: {
+      disable: false
     },
     volume: {
       position: 'rootTop'
@@ -131,10 +137,13 @@ function init(index = 0, config = {}) {
     //     { name: '超清', url: './media/msdv3.mp4' }]
     // },
     // width: 300,
-    height: 500,
+    height: 700,
     ...config
   })
 
+  setTimeout(() => {
+    window[p].registerPlugin(Poster)
+  }, 10)
   // window[p].usePluginHooks('progresspreview', 'transformTime', (plugin, time) => {
   //   plugin.setTimeContent(`~~${(time)}~~`)
 
