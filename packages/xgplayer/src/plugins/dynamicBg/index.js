@@ -59,6 +59,7 @@ class DynamicBg extends Plugin {
     return {
       isInnerRender: false,
       disable: true,
+      index: -1,
       /**
        * Rendering method
        * realtime - Realtime rendering
@@ -197,7 +198,7 @@ class DynamicBg extends Plugin {
       // 保证节点插入到video之前
       const parent = !this.config.isInnerRender ? player.root : (player.innerContainer || player.root)
       parent.insertAdjacentHTML('afterbegin',
-        `<div class="xgplayer-dynamic-bg"><canvas>
+        `<div class="xgplayer-dynamic-bg" data-index="${config.index}"><canvas>
         </canvas><xgmask></xgmask></div>`)
       this.root = parent.children[0]
       this.canvas = this.find('canvas')
