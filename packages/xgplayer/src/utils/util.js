@@ -74,12 +74,6 @@ util.hasClass = function (el, className) {
     const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
     return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
   }
-  // if (el.classList) {
-  //   return Array.prototype.some.call(el.classList, item => item === className)
-  // } else {
-  //   const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
-  //   return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
-  // }
 }
 
 /**

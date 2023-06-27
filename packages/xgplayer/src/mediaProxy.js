@@ -152,7 +152,8 @@ class MediaProxy extends EventEmitter {
       airplay: options.airplay,
       'webkit-airplay': options.airplay,
       tabindex: options.tabindex | 0,
-      mediaType: options.mediaType || 'video'
+      mediaType: options.mediaType || 'video',
+      'data-index': -1
     }, options.videoConfig, options.videoAttributes)
     /**
      * @description Compatible with WeChat webview
