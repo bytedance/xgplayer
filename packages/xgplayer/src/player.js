@@ -1018,7 +1018,7 @@ class Player extends MediaProxy {
    * @returns
    */
   seek (time, status) {
-    if (!this.media || Number.isNaN(Number(time) || !this.hasStart)) {
+    if (!this.media || Number.isNaN(Number(time)) || !this.hasStart) {
       return
     }
     const { isSeekedPlay, seekedStatus } = this.config
@@ -1048,10 +1048,8 @@ class Player extends MediaProxy {
     }
 
     this.once(Events.CANPLAY, this._onceSeekCanplay)
-
     if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
-      this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
       // 未起播状态不论希望保持什么状态，都要触发一次play, 避免ios下起播异常问题
       this.play()
