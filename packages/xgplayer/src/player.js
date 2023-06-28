@@ -1027,7 +1027,7 @@ class Player extends MediaProxy {
 
     !this._isPauseBeforeSeek && (this._isPauseBeforeSeek = this.paused ? 2 : 1)
 
-    this._onceSeekCanplay && this.off(Events.CANPLAY, this._onceSeekCanplay)
+    this._onceSeekCanplay && this.off(Events.SEEKED, this._onceSeekCanplay)
 
     this._onceSeekCanplay = () => {
       // const { seekedStatus } = this.config
@@ -1047,7 +1047,7 @@ class Player extends MediaProxy {
       this._onceSeekCanplay = null
     }
 
-    this.once(Events.CANPLAY, this._onceSeekCanplay)
+    this.once(Events.SEEKED, this._onceSeekCanplay)
     if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
       this.currentTime = time
@@ -1264,7 +1264,7 @@ class Player extends MediaProxy {
     this.currentTime = 0
     this.isSeeking = false
     runHooks(this, 'replay', () => {
-      this.once(Events.CANPLAY, () => {
+      this.once(Events.SEEKED, () => {
         const playPromise = this.mediaPlay()
         if (playPromise && playPromise.catch) {
           playPromise.catch((err) => {
