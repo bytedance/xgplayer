@@ -3,6 +3,7 @@ export const ERR = {
   NETWORK: 'network',
   NETWORK_TIMEOUT: 'network_timeout',
   NETWORK_FORBIDDEN:'network_forbidden',
+  NETWORK_NOTFOUND: 'network_notfound',
   NETWROK_RANGE_NOT_SATISFIABLE:'network_range_not_satisfiable',
   DEMUX: 'demux',
   REMUX: 'remux',
@@ -29,6 +30,7 @@ export const ERR = {
     SIDX:'SIDX',
     NO_CANPLAY_ERROR:'NO_CANPLAY_ERROR',
     BUFFERBREAK_ERROR:'BUFFERBREAK_ERROR',
+    WAITING_TIMEOUT_ERROR: 'WAITINT_TIME_OUT_ERROR',
     MEDIA_ERR_ABORTED:'MEDIA_ERR_ABORTED',
     MEDIA_ERR_NETWORK:'MEDIA_ERR_NETWORK',
     MEDIA_ERR_DECODE:'MEDIA_ERR_DECODE',
@@ -46,6 +48,7 @@ export const ERR_CODE = {
   [ERR.NETWORK]: 2100,
   [ERR.NETWORK_TIMEOUT]: 2101,
   [ERR.NETWORK_FORBIDDEN]:2103,
+  [ERR.NETWORK_NOTFOUND]:2104,
   [ERR.NETWROK_RANGE_NOT_SATISFIABLE]:2116,
   [ERR.DEMUX]: {
     FLV: 3100,
@@ -79,9 +82,12 @@ export const ERR_CODE = {
   [ERR.OTHER]: 8000,
   [ERR.RUNTIME]:{
     NO_CANPLAY_ERROR:9001,
-    BUFFERBREAK_ERROR:9002
+    BUFFERBREAK_ERROR:9002,
+    WAITING_TIMEOUT_ERROR:9003
   }
 }
+
+
 
 export class StreamingError extends Error {
   constructor (type, subType, origin, payload, msg) {
