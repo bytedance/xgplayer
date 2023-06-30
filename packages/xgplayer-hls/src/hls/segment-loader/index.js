@@ -165,8 +165,8 @@ export class SegmentLoader {
   }
 
   _emitOnLoaded = (res, url) => {
-    const { data, response, option } = res
-    const { firstByteTime, startTime, endTime, contentLength } = option || {}
+    const { data, response, options } = res
+    const { firstByteTime, startTime, endTime, contentLength } = options || {}
     const time = endTime - startTime
 
     this._bandwidthService.addRecord(contentLength || data.byteLength, time)

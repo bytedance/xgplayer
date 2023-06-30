@@ -557,7 +557,7 @@ export class Hls extends EventEmitter {
     const seekRange = this._playlist.seekRange
 
     if (seekRange) {
-      const newSeekTime = clamp(seekTime, seekRange[0] + 0.1, seekRange[1] - 0.1)
+      const newSeekTime = clamp(seekTime, seekRange[0], seekRange[1] - 0.1)
       if (
         // if newSeekTime less than 0, media.currentTime will be 0, this causes an infinite loop
         newSeekTime >= 0 &&
