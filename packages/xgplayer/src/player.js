@@ -550,13 +550,9 @@ class Player extends MediaProxy {
     }
     this.hasStart = true
     this.setState(STATES.ATTACHED)
-    Util.setTimeout(
-      this,
-      () => {
-        this.emit(Events.COMPLETE)
-      },
-      0
-    )
+    Util.setTimeout(this, () => {
+      this.emit(Events.COMPLETE)
+    }, 0)
   }
 
   /**
@@ -1267,7 +1263,7 @@ class Player extends MediaProxy {
       this.once(Events.SEEKED, () => {
         const playPromise = this.mediaPlay()
         if (playPromise && playPromise.catch) {
-          playPromise.catch((err) => {
+          playPromise.catch(err => {
             console.log(err)
           })
         }

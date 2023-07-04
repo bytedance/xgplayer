@@ -173,7 +173,8 @@ class Touche {
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
     root.removeEventListener(this.events.end, this.onTouchEnd)
-    root.removeEventListener(this.events.move, this.onTouchMove)    e.moving = _pos.moving
+    root.removeEventListener(this.events.move, this.onTouchMove)
+    e.moving = _pos.moving
     e.press = _pos.press
     _pos.press && this.trigger(EVENTS.PRESS_END, e)
     this.trigger(EVENTS.TOUCH_END, e)

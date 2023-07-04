@@ -70,7 +70,7 @@ export default class FpsDetect extends BasePlugin {
       const curTime = media.currentTime
       const buffered = media.buffered
       let enoughBuffer = false
-      let bufs = []
+      const bufs = []
       for (let i = 0; i < buffered.length; i++){
         const start = buffered.start(i)
         const end = buffered.end(i)
@@ -96,7 +96,7 @@ export default class FpsDetect extends BasePlugin {
     }
   }
 
-  _reset(){
+  _reset (){
     this._payload = []
     this._currentStuckCount = 0
   }
