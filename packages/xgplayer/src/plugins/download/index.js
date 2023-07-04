@@ -40,7 +40,13 @@ export default class Download extends IconPlugin {
       return
     }
     this.appendChild('.xgplayer-icon', this.icons.download)
-    this.bind(['click', 'touchend'], this.download)
+    this._handler = this.hook('click', this.download, {
+      pre: (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    })
+    this.bind(['click', 'touchend'], this._handler)
   }
 
   registerIcons () {
