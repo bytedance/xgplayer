@@ -20,7 +20,8 @@ export const MSEErrorType = {
 
 const OP_NAME = {
   APPEND: 'appendBuffer',
-  REMOVE: 'removeBuffer'
+  REMOVE: 'removeBuffer',
+  UPDATE_DURATION:'updateDuration'
 }
 
 export class MSEError extends Error {
@@ -107,9 +108,20 @@ export class MSE {
    * @return { Promise }
    */
   updateDuration (duration) {
-    // 设置值比当前值小，会导致异常
+    const isReduceDuration = this.mediaSource && this.mediaSource.duration > duration
     if (this.mediaSource && this.mediaSource.duration > duration) {
-      return Promise.resolve()
+      let bufferEnd = 0
+      Object.keys(this._sourceBuffer).forEach(k => {
+        try {
+          bufferEnd = Math.max(this.bufferEnd(k) || 0, bufferEnd)
+        } catch (error) {
+          // ignore
+        }
+      })
+      if (duration < bufferEnd) {
+        // 设置值比bufferEnd值小，会导致异常
+        return Promise.resolve()
+      }
     }
 
     return this._enqueueBlockingOp(() => {
@@ -121,7 +133,7 @@ export class MSE {
         this.mediaSource.duration = duration
         this._logger.debug('[debug mse] setDuration')
       }
-    }, 'updateDuration')
+    }, OP_NAME.UPDATE_DURATION, {isReduceDuration})
   }
 
   /** @return { Promise } */
@@ -246,7 +258,7 @@ export class MSE {
       sb.changeType(mimeType)
       sb.mimeType = mimeType
       this._onSBUpdateEnd(type)
-    })
+    }, 'changeType', {mimeType})
   }
 
   /**
@@ -331,9 +343,13 @@ export class MSE {
     return p
   }
 
-  clearOpQueues (type) {
+  clearOpQueues (type, allClear) {
     this._logger.debug('MSE clearOpQueue START')
     const queue = this._queue[type]
+    if (allClear && queue) {
+      this._queue[type] = []
+      return
+    }
     if (!queue || !queue[type] || queue.length < 5) return
     const initOpque = []
     queue.forEach(op => {
@@ -418,7 +434,6 @@ export class MSE {
     } else {
       queue.push(op)
     }
-
     if (this.isOpened) {
       if (queue.length === 1) {
         this._startQueue(type)
@@ -435,7 +450,7 @@ export class MSE {
     return op.promise
   }
 
-  async _enqueueBlockingOp (exec, opName) {
+  async _enqueueBlockingOp (exec, opName, context) {
     if (!this.mediaSource) return Promise.resolve()
     const types = Object.keys(this._sourceBuffer)
     if (!types.length) {
@@ -447,7 +462,8 @@ export class MSE {
       const queue = this._queue[t]
       const prom = createPublicPromise()
       waiters.push(prom)
-      queue.push({exec: () => prom.resolve(), promise: prom, opName})
+      queue.push({exec: () => {
+        prom.resolve()}, promise: prom, opName, context})
       if (queue.length === 1) {
         this._startQueue(t)
       }
@@ -460,7 +476,10 @@ export class MSE {
         types.forEach(t => {
           const queue = this._queue[t]
           const sb = this._sourceBuffer[t]
-          queue?.shift()
+          const op = queue?.length > 0 ? queue[0] : null
+          if (!(op?.opName === OP_NAME.UPDATE_DURATION && op?.context?.isReduceDuration)) {
+            queue?.shift()
+          }
           if (!sb || !sb.updating) {
             this._startQueue(t)
           }
