@@ -434,10 +434,20 @@ export class Hls extends EventEmitter {
    */
   _loadSegment = async () => {
     if (this._segmentProcessing || !this.media) return
-    const currentTime = this.media.currentTime
-    const curSeg = this._playlist.currentSegment
     const nextSeg = this._playlist.nextSegment
-    if (!nextSeg || (curSeg && !this.isLive && curSeg.end - currentTime >= this.config.preloadTime)) return
+
+    if (!nextSeg) return
+
+    if (!this.isLive) {
+      const bInfo = this.bufferInfo()
+      if (bInfo.remaining >= this.config.preloadTime) return
+
+      // reset segment pointer by buffer end
+      if (bInfo.end && Math.abs(nextSeg.start - bInfo.end) > 1) {
+        this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(bInfo.end + 0.1))
+      }
+    }
+
     return this._loadSegmentDirect()
   }
 
@@ -448,6 +458,7 @@ export class Hls extends EventEmitter {
   async _loadSegmentDirect () {
     const seg = this._playlist.nextSegment
     if (!seg) return
+
 
     let appended = false
     let cachedError = null
@@ -569,8 +580,8 @@ export class Hls extends EventEmitter {
     }
 
     const curSeg = this._playlist.currentSegment
+    const info = Buffer.info(Buffer.get(this.media), seekTime, 0.1)
     if (curSeg) {
-      const info = Buffer.info(Buffer.get(this.media), seekTime, 0.1)
       if (info.end && Math.abs(info.end - curSeg.end) < 0.2) return
     }
 
@@ -584,7 +595,10 @@ export class Hls extends EventEmitter {
 
     this._stopTick()
     await this._segmentLoader.cancel()
-    await this._loadSegmentDirect()
+    this._segmentProcessing = false
+    if (!info.end || this.isLive) {
+      await this._loadSegmentDirect()
+    }
     this._startTick()
   }
 
