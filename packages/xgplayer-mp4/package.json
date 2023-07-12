@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4",
-  "version": "3.0.5",
+  "version": "3.0.6-alpha.3",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -18,7 +18,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "latest"
+    "tag": "alpha"
   },
   "repository": {
     "type": "git",
@@ -39,9 +39,9 @@
     "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "eventemitter3": "^4.0.7",
-    "xgplayer-mp4-loader": "3.0.5",
-    "xgplayer-streaming-shared": "3.0.5",
-    "xgplayer-transmuxer": "3.0.5"
+    "xgplayer-mp4-loader": "3.0.6-alpha.3",
+    "xgplayer-streaming-shared": "3.0.6-alpha.3",
+    "xgplayer-transmuxer": "3.0.6-alpha.3"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.0",
