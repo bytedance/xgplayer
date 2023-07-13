@@ -2010,7 +2010,6 @@ class Player extends MediaProxy {
 
     console.log('>>pos', _pos)
     const formStyle = Util.getTransformStyle(_pos)
-    console.log('formStyle', formStyle)
     this.media.style.transform = formStyle
     this.media.style.webkitTransform = formStyle
   }
@@ -2131,6 +2130,7 @@ class Player extends MediaProxy {
       cWidth: rWidth,
       cHeight: rHeight + controlsHeight
     }
+    this.resizePosition()
     this.emit(Events.VIDEO_RESIZE, data)
   }
 
