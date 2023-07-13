@@ -434,7 +434,7 @@ export class MSE {
     } else {
       queue.push(op)
     }
-    if (this.isOpened) {
+    if (this.isOpened || this.isEnded) {
       if (queue.length === 1) {
         this._startQueue(type)
       }
