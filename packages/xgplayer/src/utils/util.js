@@ -74,12 +74,6 @@ util.hasClass = function (el, className) {
     const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
     return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
   }
-  // if (el.classList) {
-  //   return Array.prototype.some.call(el.classList, item => item === className)
-  // } else {
-  //   const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
-  //   return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
-  // }
 }
 
 /**
@@ -847,6 +841,10 @@ util.createPositionBar = function (className, root) {
   )
   root.appendChild(dom)
   return dom
+}
+
+util.getTransformStyle = function (pos = {x:0, y:0, scale:1, rotate:0}){
+  return `translate(${pos.x || 0}%, ${pos.y || 0}%) scale(${pos.scale || 1}) rotate(${pos.rotate || 0}turn)`
 }
 
 function isObject (value) {

@@ -204,6 +204,18 @@ class Player extends MediaProxy {
      */
     this._videoWidth = 0
 
+    this.videoPos = {
+      pi: 1, // 宽高比
+      scale: 0,
+      rotate: 0,
+      x: 0,
+      y: 0,
+      h: -1, // 高度占比
+      w: -1, // 宽度占比
+      vy: -1, // 画面在y方向的偏移
+      vx: -1 // 画面在x方向的偏移
+    }
+
     /**
      * @private
      * @type { { t: number, acc:number, acc: number, loopAcc: number, [propName: string]: any;} }
@@ -1949,6 +1961,60 @@ class Player extends MediaProxy {
     return false
   }
 
+  resizePosition () {
+    const { rotate, vy, vx, h, w } = this.videoPos
+    let _pi = this.videoPos._pi
+    if (!_pi) {
+      _pi = this.media.videoWidth / this.media.videoHeight * 100
+    }
+    if (!_pi) {
+      return
+    }
+    this.videoPos.pi = _pi
+    const _pos = {
+      rotate: rotate
+    }
+    let offsetY = 0
+    let offsetX = 0
+    let scale = 1
+    if (rotate <= 0 || rotate === 0.5) {
+      scale = h > 0 ? 100 / h : (w > 0 ? 100 / w : 1)
+      _pos.scale = scale
+      offsetY = vy > 0 ? (100 - h) / 2 - vy : 0
+      _pos.y = rotate === 0.5 ? 0 - offsetY : offsetY
+      offsetX = vx > 0 ? (100 - w) / 2 - vx : 0
+      _pos.x = rotate === 0.5 ? 0 - offsetX : offsetX
+      this.media.style.width = '100%'
+      this.media.style.height = '100%'
+    } else if (rotate === 0.75 || rotate === 0.25) {
+      const { root, innerContainer } = this
+      const width = root.offsetWidth
+      const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
+      const pi1 = width / height * 100
+      const rWidth = height
+      const rHeight = width
+      const offset = height - width
+      offsetX = -offset / 2 / rWidth * 100
+      _pos.x = rotate === 0.75 ? offsetX + vy / 2 : offsetX - vy / 2
+      offsetY = offset / 2 / rHeight * 100
+      _pos.y = rotate === 0.75 ? offsetY + vx / 2 : offsetY - vx / 2
+      if (this.videoPos.pi < pi1) {
+        scale = rWidth / this.videoPos.pi * 100 / rHeight
+      } else {
+        scale = rHeight * this.videoPos.pi / 100 / rWidth
+      }
+      _pos.scale = scale
+      this.media.style.width = `${rWidth}px`
+      this.media.style.height = `${rHeight}px`
+    }
+
+    console.log('>>pos', _pos)
+    const formStyle = Util.getTransformStyle(_pos)
+    console.log('formStyle', formStyle)
+    this.media.style.transform = formStyle
+    this.media.style.webkitTransform = formStyle
+  }
+
   /**
    * @description position video/audio according to height ratio and y coordinate
    * @param { { h: number, y?: number, x?:number, w?:number} } pos
@@ -1958,19 +2024,12 @@ class Player extends MediaProxy {
     if (!this.media || !pos || !pos.h) {
       return
     }
-    const rvH = 1 / pos.h
-    let _transform = rvH !== 1 ? `scale(${rvH})` : ''
-    let _tx = 0
-    let _ty = 0
-    if (pos.y) {
-      _ty = (100 - pos.h * 100) / 2 - pos.y * 100
-    }
-    if (pos.w && pos.x) {
-      _tx = (100 - pos.w * 100) / 2 - pos.x * 100
-    }
-    _transform += ` translate(${_tx}%, ${_ty}%)`
-    this.media.style.transform = _transform
-    this.media.style.webkitTransform = _transform
+    const { videoPos } = this
+    videoPos.h = pos.h * 100 || 0
+    videoPos.w = pos.w * 100 || 0
+    videoPos.vx = pos.x * 100 || 0
+    videoPos.vy = pos.y * 100 || 0
+    this.resizePosition()
   }
 
   /**
