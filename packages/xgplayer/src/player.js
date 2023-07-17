@@ -2401,6 +2401,23 @@ class Player extends MediaProxy {
   }
 
   /**
+   * @type { 0 | 0.25 | 0.5 | 0.75 }
+   * @description Media element rotation angle
+   */
+  set videoRotateDeg (val) {
+    if (val < 0 || val > 1 || val / 0.25 !== 0 || val === this.videoPos.rotate) {
+      console.warn('videoRotateDeg', val)
+      return
+    }
+    this.videoPos.rotate = val
+    this.resizePosition()
+  }
+
+  get videoRotateDeg () {
+    return this.videoPos.rotate
+  }
+
+  /**
    * @description 均衡下载速度，单位kb/s, 根据10条最新下载速度计算出来的加权值，如果没有测速能力则默认是0
    * @type { number }
    */

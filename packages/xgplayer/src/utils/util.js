@@ -802,7 +802,6 @@ util.generateSessionId = function (did = 0) {
   return uuid
 }
 
-
 util.createEvent = function (eventName) {
   let event
   if (typeof window.Event === 'function') {
@@ -843,7 +842,7 @@ util.createPositionBar = function (className, root) {
   return dom
 }
 
-util.getTransformStyle = function (pos = {x:0, y:0, scale:1, rotate:0}){
+util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }) {
   return `translate(${pos.x || 0}%, ${pos.y || 0}%) scale(${pos.scale || 1}) rotate(${pos.rotate || 0}turn)`
 }
 
