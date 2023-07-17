@@ -117,6 +117,7 @@ class Start extends Plugin {
 
   onAutoplayStart = () => {
     if (this.autoPlayStart) {
+      this.onPlayPause('play')
       return
     }
     const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
