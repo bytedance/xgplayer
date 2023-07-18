@@ -22,6 +22,7 @@ export function parseMediaPlaylist (lines, parentUrl) {
     }
     if (line[0] !== '#') { // url
       curSegment.sn = curSN
+      curSegment.index = curSN - media.startSN
       curSegment.cc = curCC
       curSegment.url = getAbsoluteUrl(line, parentUrl)
       if (curKey) curSegment.key = curKey.clone(curSN)

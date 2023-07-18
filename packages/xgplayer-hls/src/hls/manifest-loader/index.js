@@ -1,4 +1,4 @@
-import { NetLoader, StreamingError, ERR } from 'xgplayer-streaming-shared'
+import { NetLoader, StreamingError, EVENT, ERR } from 'xgplayer-streaming-shared'
 import { M3U8Parser } from './parser'
 import { Event } from '../constants'
 
@@ -54,13 +54,18 @@ export class ManifestLoader {
       const [video, audio, subtitle] = await Promise.all(toLoad)
       if (!video) return []
 
+      this._emitOnLoaded(video, url)
+
       videoText = video.data
 
       if (audioUrl) {
         audioText = audio?.data
         subtitleText = subtitle?.data
+        audioText && this._emitOnLoaded(audio, audioUrl)
+        subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
       } else {
-        subtitleText = audio?.data
+        subtitleText = subtitle?.data
+        subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
       }
 
     } catch (error) {
@@ -135,6 +140,17 @@ export class ManifestLoader {
       this._loader.cancel(),
       this._audioLoader.cancel()
     ])
+  }
+
+  _emitOnLoaded = (res, url) => {
+    const { response, options } = res
+    const { firstByteTime, startTime, endTime, contentLength } = options || {}
+    const time = endTime - startTime
+
+    this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
+    this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
+    this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
+    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers })
   }
 
   _onLoaderRetry = (error, retryTime) => {

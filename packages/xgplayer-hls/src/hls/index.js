@@ -516,7 +516,9 @@ export class Hls extends EventEmitter {
     const start = seg ? seg.start : audioSeg.start
     const stream = this._playlist.currentStream
     this._bufferService.createSource(data[0], data[1], stream?.videoCodec, stream?.audioCodec)
+    const before = Date.now()
     await this._bufferService.appendBuffer(seg, audioSeg, data[0], data[1], discontinuity, this._prevSegSn === sn - 1, start)
+    this.emit(Event.APPEND_COST, {elapsed: Date.now() - before, url: seg.url, index: seg.index})
     await this._bufferService.evictBuffer(this.config.bufferBehind)
     this._prevSegCc = cc
     this._prevSegSn = sn
