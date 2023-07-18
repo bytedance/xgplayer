@@ -1,6 +1,6 @@
-import { BasePlugin, Events, Errors } from 'xgplayer'
+import { BasePlugin, Errors, Events } from 'xgplayer'
 import { EVENT } from 'xgplayer-streaming-shared'
-import { Hls } from './hls'
+import { Hls, logger } from './hls'
 import { Event } from './hls/constants'
 import PluginExtension from './plugin-extension'
 
@@ -36,6 +36,8 @@ export class HlsPlugin extends BasePlugin {
 
   static EVENT = Event
 
+  logger = logger
+
   /**
    * @type {Hls}
    */
@@ -70,7 +72,26 @@ export class HlsPlugin extends BasePlugin {
     }
 
     if (this.hls) this.hls.destroy()
-    this.player.switchURL = this._onSwitchURL
+
+    /**
+     * 支持被继承时，指定不可写的属性。用来实现外部 switchURL 逻辑
+     */
+    const descriptor = Object.getOwnPropertyDescriptor(this.player, 'switchURL')
+    if (!descriptor || descriptor.writable) {
+      this.player.switchURL = (url, args) => {
+        const { player, hls } = this
+        if (hls) {
+          const options = parseSwitchUrlArgs(args, this)
+          player.config.url = url
+          hls.switchURL(url, options).catch(e => {})
+
+          if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
+            this._keepPauseStatus()
+          }
+        }
+      }
+    }
+    const onSwitchUrl = this.player.switchURL
 
     const hlsOpts = config.hls || {}
     hlsOpts.innerDegrade = hlsOpts.innerDegrade || config.innerDegrade
@@ -108,8 +129,8 @@ export class HlsPlugin extends BasePlugin {
       this.player?.useHooks('replay', () => this.hls?.replay())
     }
 
+    this.on(Events.URL_CHANGE, onSwitchUrl)
     this.on(Events.SWITCH_SUBTITLE || 'switch_subtitle', this._onSwitchSubtitle)
-    this.on(Events.URL_CHANGE, this._onSwitchURL)
     this.on(Events.DESTROY, this.destroy.bind(this))
 
     this._transError()
@@ -178,19 +199,6 @@ export class HlsPlugin extends BasePlugin {
 
   _onSwitchSubtitle = ({lang}) => {
     this.hls?.switchSubtitleStream(lang)
-  }
-
-  _onSwitchURL = (url, args) => {
-    const { player, hls } = this
-    if (hls) {
-      const options = parseSwitchUrlArgs(args, this)
-      player.config.url = url
-      hls.switchURL(url, options).catch(e => {})
-
-      if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
-        this._keepPauseStatus()
-      }
-    }
   }
 
   _keepPauseStatus = () => {
