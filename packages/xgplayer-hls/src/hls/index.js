@@ -440,7 +440,7 @@ export class Hls extends EventEmitter {
 
     if (!this.isLive) {
       const bInfo = this.bufferInfo()
-      if (bInfo.remaining >= this.config.preloadTime) return
+      if (bInfo.remaining >= this.config.preloadTime || Math.abs(bInfo.end - this.media.duration) < 0.1) return
 
       // reset segment pointer by buffer end
       if (bInfo.end && Math.abs(nextSeg.start - bInfo.end) > 1) {
@@ -458,7 +458,6 @@ export class Hls extends EventEmitter {
   async _loadSegmentDirect () {
     const seg = this._playlist.nextSegment
     if (!seg) return
-
 
     let appended = false
     let cachedError = null
@@ -568,7 +567,7 @@ export class Hls extends EventEmitter {
     const seekRange = this._playlist.seekRange
 
     if (seekRange) {
-      const newSeekTime = clamp(seekTime, seekRange[0], seekRange[1] - 0.1)
+      const newSeekTime = clamp(seekTime, seekRange[0], seekRange[1])
       if (
         // if newSeekTime less than 0, media.currentTime will be 0, this causes an infinite loop
         newSeekTime >= 0 &&
