@@ -84,6 +84,7 @@ export class MediaPlaylist {
 
 export class MediaSegment {
   sn = 0 // Media Sequence Number
+  index = 0 // sn offset start from 0
   cc = 0
   url = ''
   title = ''
