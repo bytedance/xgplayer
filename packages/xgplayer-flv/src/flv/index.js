@@ -290,9 +290,7 @@ export class Flv extends EventEmitter {
 
     try {
       await this._bufferService.appendBuffer(chunk)
-      if (this.isLive) {
-        this._bufferService?.evictBuffer(this._opts.bufferBehind)
-      }
+      this._bufferService?.evictBuffer(this._opts.bufferBehind)
     } catch (error) {
       return this._emitError(StreamingError.create(error))
     }
