@@ -24,7 +24,7 @@ export { getConfig, ManifestLoader, Playlist, SegmentLoader}
  * }} SwitchUrlOptions
  */
 
-const logger = new Logger('hls')
+export const logger = new Logger('hls')
 
 export class Hls extends EventEmitter {
   static version = __VERSION__

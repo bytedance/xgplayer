@@ -1,6 +1,6 @@
 import { BasePlugin, Events, Errors } from 'xgplayer'
 import { EVENT } from 'xgplayer-streaming-shared'
-import { Flv } from './flv'
+import { Flv, logger } from './flv'
 import PluginExtension from './plugin-extension'
 
 export class FlvPlugin extends BasePlugin {
@@ -10,11 +10,14 @@ export class FlvPlugin extends BasePlugin {
     return 'flv'
   }
 
+  logger = logger
+
   /** @type {Flv} */
   flv = null;
 
   /** @type {PluginExtension} */
   pluginExtension = null
+
 
   /** @type {Flv} */
   get core () {
