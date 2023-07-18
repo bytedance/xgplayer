@@ -171,7 +171,7 @@ class Keyboard extends BasePlugin {
     if (currentTime + this.seekStep <= duration) {
       _time = currentTime + this.seekStep
     } else {
-      _time = duration - 1
+      _time = duration
     }
     const props = {
       currentTime: {

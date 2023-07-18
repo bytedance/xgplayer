@@ -884,6 +884,11 @@ class Player extends MediaProxy {
     const isPaused = this.paused && !this.isError
     this.src = _src
     return new Promise((resolve) => {
+      const _error = () => {
+        this.off('timeupdate', _canplay)
+        this.off('canplay', _canplay)
+        resolve(false)
+      }
       const _canplay = () => {
         this.currentTime = curTime
         if (isPaused) {
@@ -891,16 +896,14 @@ class Player extends MediaProxy {
             this.pause()
           })
         }
-        resolve()
+        this.off('error', _error)
+        resolve(true)
       }
+      this.once('error', _error)
       if (Sniffer.os.isAndroid) {
-        this.once('timeupdate', () => {
-          _canplay()
-        })
+        this.once('timeupdate', _canplay)
       } else {
-        this.once('canplay', () => {
-          _canplay()
-        })
+        this.once('canplay', _canplay)
       }
       this.play()
     })
