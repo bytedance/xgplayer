@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-music",
-  "version": "3.0.6-alpha.4",
+  "version": "3.0.6-alpha.6",
   "description": "xgplayer plugin for music",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -43,7 +43,7 @@
     "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.6-alpha.4",
+    "xgplayer": "3.0.6-alpha.6",
     "core-js": ">=3.12.1"
   }
 }
