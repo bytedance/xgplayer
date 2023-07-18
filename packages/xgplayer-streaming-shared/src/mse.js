@@ -284,7 +284,7 @@ export class MSE {
     if (!this._sourceBuffer[type]) return Promise.resolve()
 
     return this._enqueueOp(type, () => {
-      if (!this.mediaSource) return
+      if (!this.mediaSource || this.media.error) return
       this._logger.debug('MSE APPEND START', context)
       this._opst = nowTime()
       this._sourceBuffer[type]?.appendBuffer(buffer)
@@ -305,7 +305,7 @@ export class MSE {
       isInsertHead = true
     }
     return this._enqueueOp(type, () => {
-      if (!this.mediaSource) return
+      if (!this.mediaSource || this.media.error) return
       const sb = this._sourceBuffer[type]
       if (startTime >= endTime || !sb) {
         this._onSBUpdateEnd(type)
@@ -321,7 +321,7 @@ export class MSE {
     let p
     Object.keys(this._sourceBuffer).forEach(k => {
       p = this._enqueueOp(k, () => {
-        if (!this.mediaSource) return
+        if (!this.mediaSource || this.media.error) return
         const sb = this._sourceBuffer[k]
         this._logger.debug('MSE clearBuffer START', k, startTime, endTime)
         sb.remove(startTime, endTime)
@@ -334,7 +334,7 @@ export class MSE {
     let p
     Object.keys(this._sourceBuffer).forEach(k => {
       p = this._enqueueOp(k, () => {
-        if (!this.mediaSource) return
+        if (!this.mediaSource || this.media.error) return
         const sb = this._sourceBuffer[k]
         this._logger.debug('MSE clearAllBuffer START', k)
         sb.remove(0, Buffer.end(Buffer.get(sb)))
