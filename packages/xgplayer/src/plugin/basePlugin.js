@@ -36,6 +36,16 @@ class BasePlugin {
       }
     }
   }
+  static defineMethod (Obj, map) {
+    for (const key in map) {
+      if (Object.prototype.hasOwnProperty.call(map, key) && typeof map[key] === 'function') {
+        Object.defineProperty(Obj, key, {
+          configurable: true,
+          value: map[key]
+        })
+      }
+    }
+  }
 
   /**
    * @type { { [propName: string]: any } }
