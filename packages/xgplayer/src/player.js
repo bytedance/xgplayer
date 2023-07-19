@@ -883,11 +883,11 @@ class Player extends MediaProxy {
     const curTime = this.currentTime
     const isPaused = this.paused && !this.isError
     this.src = _src
-    return new Promise((resolve) => {
-      const _error = () => {
+    return new Promise((resolve, reject) => {
+      const _error = (e) => {
         this.off('timeupdate', _canplay)
         this.off('canplay', _canplay)
-        resolve(false)
+        reject(e)
       }
       const _canplay = () => {
         this.currentTime = curTime
@@ -900,6 +900,10 @@ class Player extends MediaProxy {
         resolve(true)
       }
       this.once('error', _error)
+      if (!_src){
+        this.errorHandler('error', {code: 6, message: 'empty_src'})
+        return
+      }
       if (Sniffer.os.isAndroid) {
         this.once('timeupdate', _canplay)
       } else {
@@ -1839,7 +1843,7 @@ class Player extends MediaProxy {
       this.addClass(STATE_CLASS.LOADING)
       Util.clearTimeout(this, this.waitTimer)
       this.waitTimer = null
-    }, 200)
+    }, this.config.minWaitDelay)
   }
 
   /**
