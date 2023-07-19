@@ -25,7 +25,7 @@ import ZH from '../lang/zh-cn'
 
 export default class DefaultPreset {
   constructor () {
-    const contolsIcons = [Mobile, Progress, PlayIcon, FullScreen, TimeIcon,
+    const contolsIcons = [Progress, Mobile, PlayIcon, FullScreen, TimeIcon,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, MiniProgress]
 
