@@ -218,7 +218,6 @@ export class Hls extends EventEmitter {
     }
 
     options = Object.assign({}, defaultOpts, options)
-
     const { seamless, startTime } = options
     this.config.url = url
     this.config.startTime = startTime
@@ -443,7 +442,7 @@ export class Hls extends EventEmitter {
       if (bInfo.remaining >= this.config.preloadTime || Math.abs(bInfo.end - this.media.duration) < 0.1) return
 
       // reset segment pointer by buffer end
-      if (bInfo.end && Math.abs(nextSeg.start - bInfo.end) > 1) {
+      if (!this._urlSwitching && bInfo.end && Math.abs(nextSeg.start - bInfo.end) > 1) {
         this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(bInfo.end + 0.1))
       }
     }
