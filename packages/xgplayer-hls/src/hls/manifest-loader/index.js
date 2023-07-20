@@ -1,4 +1,4 @@
-import { NetLoader, StreamingError, ERR } from 'xgplayer-streaming-shared'
+import { NetLoader, StreamingError, EVENT, ERR } from 'xgplayer-streaming-shared'
 import { M3U8Parser } from './parser'
 import { Event } from '../constants'
 
@@ -54,13 +54,18 @@ export class ManifestLoader {
       const [video, audio, subtitle] = await Promise.all(toLoad)
       if (!video) return []
 
+      this._emitOnLoaded(video, url)
+
       videoText = video.data
 
       if (audioUrl) {
         audioText = audio?.data
         subtitleText = subtitle?.data
+        audioText && this._emitOnLoaded(audio, audioUrl)
+        subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
       } else {
-        subtitleText = audio?.data
+        subtitleText = subtitle?.data
+        subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
       }
 
     } catch (error) {
@@ -103,6 +108,31 @@ export class ManifestLoader {
     return [playlist, audioPlaylist, subtitlePlaylist]
   }
 
+  parseText (videoText, url) {
+    const { onPreM3U8Parse } = this.hls.config
+
+    let playlist
+    try {
+      if (onPreM3U8Parse) {
+        videoText = onPreM3U8Parse(videoText) || videoText
+      }
+      playlist = M3U8Parser.parse(videoText, url)
+      if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
+        throw new Error('empty segments list')
+      }
+    } catch (error) {
+      throw new StreamingError(ERR.MANIFEST, ERR.SUB_TYPES.HLS, error)
+    }
+    if (playlist) {
+      if (playlist.isMaster) {
+        this.hls.emit(Event.HLS_MANIFEST_LOADED, { playlist })
+      } else {
+        this.hls.emit(Event.HLS_LEVEL_LOADED, { playlist })
+      }
+    }
+    return [playlist]
+  }
+
   poll (url, audioUrl, subtitleUrl, cb, errorCb, time) {
     clearTimeout(this._timer)
     time = time || 3000
@@ -135,6 +165,17 @@ export class ManifestLoader {
       this._loader.cancel(),
       this._audioLoader.cancel()
     ])
+  }
+
+  _emitOnLoaded = (res, url) => {
+    const { response, options } = res
+    const { firstByteTime, startTime, endTime, contentLength } = options || {}
+    const time = endTime - startTime
+
+    this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
+    this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
+    this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
+    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers, url })
   }
 
   _onLoaderRetry = (error, retryTime) => {

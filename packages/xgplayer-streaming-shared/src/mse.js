@@ -325,7 +325,7 @@ export class MSE {
         const sb = this._sourceBuffer[k]
         this._logger.debug('MSE clearBuffer START', k, startTime, endTime)
         sb.remove(startTime, endTime)
-      })
+      }, OP_NAME.REMOVE)
     })
     return p
   }
@@ -476,10 +476,7 @@ export class MSE {
         types.forEach(t => {
           const queue = this._queue[t]
           const sb = this._sourceBuffer[t]
-          const op = queue?.length > 0 ? queue[0] : null
-          if (!(op?.opName === OP_NAME.UPDATE_DURATION && op?.context?.isReduceDuration)) {
-            queue?.shift()
-          }
+          queue?.shift()
           if (!sb || !sb.updating) {
             this._startQueue(t)
           }
@@ -514,7 +511,10 @@ export class MSE {
   _onSBUpdateEnd = (type) => {
     const queue = this._queue[type]
     if (queue) {
-      const op = queue.shift()
+      const op = queue[0]
+      if (!(op?.opName === OP_NAME.UPDATE_DURATION)) {
+        queue.shift()
+      }
       if (op) {
         const costtime = nowTime() - this._opst
         this._logger.debug('UpdateEnd', op.opName, costtime, op.context)

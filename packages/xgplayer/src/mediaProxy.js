@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors, { ERROR_TYPE_MAP } from './error'
-import { URL_CHANGE, WAITING, VIDEO_EVENTS } from './events'
+import { URL_CHANGE, WAITING, VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from './events'
 /**
  * @typedef { import ('eventemitter3') } EventEmitter
  */
@@ -152,7 +152,8 @@ class MediaProxy extends EventEmitter {
       airplay: options.airplay,
       'webkit-airplay': options.airplay,
       tabindex: options.tabindex | 0,
-      mediaType: options.mediaType || 'video'
+      mediaType: options.mediaType || 'video',
+      'data-index': -1
     }, options.videoConfig, options.videoAttributes)
     /**
      * @description Compatible with WeChat webview
@@ -295,6 +296,11 @@ class MediaProxy extends EventEmitter {
      * @private
      */
     this._videoSourceCount = _c.length
+
+    this._vLoadeddata = (e) => {
+      this.emit(SOURCE_SUCCESS, { src: e.target.currentSrc, host: Util.getHostFromUrl(e.target.currentSrc) })
+    }
+
     /**
      * @private
      */
@@ -309,13 +315,22 @@ class MediaProxy extends EventEmitter {
     !this._sourceError && (this._sourceError = (e) => {
       this._videoSourceCount--
       if (this._videoSourceCount === 0) {
-        const _err = { code: 4, message: 'sources load error' }
+        const _err = { code: 4, message: 'sources_load_error' }
         _eHandler ? _eHandler.error(e, _err) : this.errorHandler('error', _err)
       }
+      const type = ERROR_TYPE_MAP[4]
+      this.emit(SOURCE_ERROR, new Errors(this, {
+        errorType: type,
+        errorCode: 4,
+        errorMessage: 'sources_load_error',
+        mediaError: { code: 4, message: 'sources_load_error' },
+        src: e.target.src
+      }))
     })
     for (let i = 0; i < _c.length; i++) {
       _c[i].addEventListener('error', this._sourceError)
     }
+    video.addEventListener('loadeddata', this._vLoadeddata)
   }
 
   /**
@@ -334,6 +349,7 @@ class MediaProxy extends EventEmitter {
     while (_c.length > 0) {
       video.removeChild(_c[0])
     }
+    this._vLoadeddata && video.removeEventListener('loadeddata', this._vLoadeddata)
   }
 
   /**

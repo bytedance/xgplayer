@@ -173,7 +173,7 @@ export class SegmentLoader {
     this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
     this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
     this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
-    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers })
+    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers, url })
   }
 
   _onLoaderRetry = (error, retryTime) => {

@@ -31,10 +31,10 @@ function getTouch (touches) {
   }
 }
 
-function preventToucheDefault (e) {
-  const ua = navigator.userAgent;
-  /(?:iPhone|iPad)/.test(ua) && e.cancelable && e.preventDefault()
-}
+// function preventToucheDefault (e) {
+//   const ua = navigator.userAgent;
+//   /(?:iPhone|iPad)/.test(ua) && e.cancelable && e.preventDefault()
+// }
 
 function getDefaultConfig () {
   return {
@@ -150,8 +150,8 @@ class Touche {
   }
 
   onTouchStart (e) {
-    const { _pos, root, config } = this
-    config.needPreventDefault && preventToucheDefault(e)
+    const { _pos, root } = this
+    // config.needPreventDefault && preventToucheDefault(e)
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.y = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -168,8 +168,8 @@ class Touche {
   }
 
   onTouchEnd (e) {
-    const { _pos, root, config } = this
-    config.needPreventDefault && preventToucheDefault(e)
+    const { _pos, root } = this
+    // config.needPreventDefault && preventToucheDefault(e)
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
     root.removeEventListener(this.events.end, this.onTouchEnd)

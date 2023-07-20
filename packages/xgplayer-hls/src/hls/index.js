@@ -132,7 +132,7 @@ export class Hls extends EventEmitter {
 
     if (!url) throw this._emitError(new StreamingError(ERR.OTHER, ERR.SUB_TYPES.OPTION, null, null, 'm3u8 url is missing'))
 
-    const manifest = await this._loadM3U8(url)
+    const manifest = await this._loadM3U8(url, this.config.manifest)
     const { currentStream } = this._playlist
 
     if (this._urlSwitching) {
@@ -218,7 +218,6 @@ export class Hls extends EventEmitter {
     }
 
     options = Object.assign({}, defaultOpts, options)
-
     const { seamless, startTime } = options
     this.config.url = url
     this.config.startTime = startTime
@@ -365,10 +364,12 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _loadM3U8 (url) {
+  async _loadM3U8 (url, manifest) {
     let playlist
     try {
-      [playlist] = await this._manifestLoader.load(url)
+      [playlist] = manifest
+        ? this._manifestLoader.parseText(manifest, url) :
+        await this._manifestLoader.load(url)
     } catch (error) {
       throw this._emitError(StreamingError.create(error))
     }
@@ -443,7 +444,7 @@ export class Hls extends EventEmitter {
       if (bInfo.remaining >= this.config.preloadTime || Math.abs(bInfo.end - this.media.duration) < 0.1) return
 
       // reset segment pointer by buffer end
-      if (bInfo.end && Math.abs(nextSeg.start - bInfo.end) > 1) {
+      if (!this._urlSwitching && bInfo.end && Math.abs(nextSeg.start - bInfo.end) > 1) {
         this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(bInfo.end + 0.1))
       }
     }
@@ -475,7 +476,6 @@ export class Hls extends EventEmitter {
     if (cachedError) {
       return this._emitError(StreamingError.create(cachedError))
     }
-
     if (appended) {
       if (this._urlSwitching) {
         this._urlSwitching = false
@@ -516,7 +516,9 @@ export class Hls extends EventEmitter {
     const start = seg ? seg.start : audioSeg.start
     const stream = this._playlist.currentStream
     this._bufferService.createSource(data[0], data[1], stream?.videoCodec, stream?.audioCodec)
+    const before = Date.now()
     await this._bufferService.appendBuffer(seg, audioSeg, data[0], data[1], discontinuity, this._prevSegSn === sn - 1, start)
+    this.emit(Event.APPEND_COST, {elapsed: Date.now() - before, url: seg.url})
     await this._bufferService.evictBuffer(this.config.bufferBehind)
     this._prevSegCc = cc
     this._prevSegSn = sn

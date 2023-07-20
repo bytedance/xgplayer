@@ -550,13 +550,9 @@ class Player extends MediaProxy {
     }
     this.hasStart = true
     this.setState(STATES.ATTACHED)
-    Util.setTimeout(
-      this,
-      () => {
-        this.emit(Events.COMPLETE)
-      },
-      0
-    )
+    Util.setTimeout(this, () => {
+      this.emit(Events.COMPLETE)
+    }, 0)
   }
 
   /**
@@ -883,7 +879,12 @@ class Player extends MediaProxy {
     const curTime = this.currentTime
     const isPaused = this.paused && !this.isError
     this.src = _src
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      const _error = (e) => {
+        this.off('timeupdate', _canplay)
+        this.off('canplay', _canplay)
+        reject(e)
+      }
       const _canplay = () => {
         this.currentTime = curTime
         if (isPaused) {
@@ -891,16 +892,18 @@ class Player extends MediaProxy {
             this.pause()
           })
         }
-        resolve()
+        this.off('error', _error)
+        resolve(true)
+      }
+      this.once('error', _error)
+      if (!_src){
+        this.errorHandler('error', {code: 6, message: 'empty_src'})
+        return
       }
       if (Sniffer.os.isAndroid) {
-        this.once('timeupdate', () => {
-          _canplay()
-        })
+        this.once('timeupdate', _canplay)
       } else {
-        this.once('canplay', () => {
-          _canplay()
-        })
+        this.once('canplay', _canplay)
       }
       this.play()
     })
@@ -1018,7 +1021,7 @@ class Player extends MediaProxy {
    * @returns
    */
   seek (time, status) {
-    if (!this.media || Number.isNaN(Number(time) || !this.hasStart)) {
+    if (!this.media || Number.isNaN(Number(time)) || !this.hasStart) {
       return
     }
     const { isSeekedPlay, seekedStatus } = this.config
@@ -1027,7 +1030,7 @@ class Player extends MediaProxy {
 
     !this._isPauseBeforeSeek && (this._isPauseBeforeSeek = this.paused ? 2 : 1)
 
-    this._onceSeekCanplay && this.off(Events.CANPLAY, this._onceSeekCanplay)
+    this._onceSeekCanplay && this.off(Events.SEEKED, this._onceSeekCanplay)
 
     this._onceSeekCanplay = () => {
       // const { seekedStatus } = this.config
@@ -1047,11 +1050,9 @@ class Player extends MediaProxy {
       this._onceSeekCanplay = null
     }
 
-    this.once(Events.CANPLAY, this._onceSeekCanplay)
-
+    this.once(Events.SEEKED, this._onceSeekCanplay)
     if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
-      this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
       // 未起播状态不论希望保持什么状态，都要触发一次play, 避免ios下起播异常问题
       this.play()
@@ -1266,10 +1267,10 @@ class Player extends MediaProxy {
     this.currentTime = 0
     this.isSeeking = false
     runHooks(this, 'replay', () => {
-      this.once(Events.CANPLAY, () => {
+      this.once(Events.SEEKED, () => {
         const playPromise = this.mediaPlay()
         if (playPromise && playPromise.catch) {
-          playPromise.catch((err) => {
+          playPromise.catch(err => {
             console.log(err)
           })
         }
@@ -1836,7 +1837,7 @@ class Player extends MediaProxy {
       this.addClass(STATE_CLASS.LOADING)
       Util.clearTimeout(this, this.waitTimer)
       this.waitTimer = null
-    }, 200)
+    }, this.config.minWaitDelay)
   }
 
   /**
