@@ -4,7 +4,10 @@ import Player, { SimplePlayer } from '../../packages/xgplayer/src/index'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
-
+window.POS = {
+  "h": 0.40625,
+  "y": 0.1899999976158142
+}
 // 全局配置语言
 I18N.extend([
   {
@@ -33,18 +36,7 @@ function init(index = 0, config = {}) {
   }
   window[p] = new Player({
     id: 'video' + index,
-    url:
-    [
-      {
-          "src": "//v3-web.douyinvod.com/8f1282bd3ebc6627fe6edd11ab7ab21e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
-      },
-      {
-          "src": "//v26-web.douyinvod.com/4d55158b93f09f1ac4d86b66bb42cc4e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
-      },
-      {
-          "src": "//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000cicr6inog65l740057ag&line=0&file_id=a1571ac065784bc48102e99cde7a2cda&sign=05b1511ce3feee7ed6c65a84ad9be301&is_play_url=1&source=PackSourceEnum_FEED&aid=6383"
-      }
-  ],
+    url: '//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000cirt32rc77u91a693ek0&line=0&file_id=a0646de047fa4533b552940e7b6685f4&sign=212796f782a906dc43d7f8d067bb6c39&is_play_url=1&source=PackSourceEnum_SEARCH&aid=6383',
     DynamicBg: {
       disable: false
     },
@@ -57,6 +49,7 @@ function init(index = 0, config = {}) {
     width: '100%',
     ignores:['playbackrate'],
     plugins: [TextTrack],
+    rotate: true,
     // controls: {
     //   // mode: 'normal',
     //   // initShow: true

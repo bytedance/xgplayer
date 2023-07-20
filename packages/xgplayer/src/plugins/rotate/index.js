@@ -65,6 +65,10 @@ export default class Rotate extends IconPlugin {
     if (!rotateDeg) {
       rotateDeg = 0
     }
+    if (innerRotate) {
+      this.player.videoRotateDeg = rotateDeg
+      return
+    }
     const { root, innerContainer } = this.player
     const video = this.player.media
     const width = root.offsetWidth
