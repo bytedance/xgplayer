@@ -802,7 +802,6 @@ util.generateSessionId = function (did = 0) {
   return uuid
 }
 
-
 util.createEvent = function (eventName) {
   let event
   if (typeof window.Event === 'function') {
@@ -841,6 +840,22 @@ util.createPositionBar = function (className, root) {
   )
   root.appendChild(dom)
   return dom
+}
+
+util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }) {
+  return `scale(${pos.scale || 1}) translate(${pos.x || 0}%, ${pos.y || 0}%) rotate(${pos.rotate || 0}deg)`
+}
+
+/**
+ * @description 角度换算
+ * @param {number} val
+ * @returns {number}
+ */
+util.convertDeg = function (val) {
+  if (Math.abs(val) <= 1) {
+    return val * 360
+  }
+  return val % 360
 }
 
 function isObject (value) {
