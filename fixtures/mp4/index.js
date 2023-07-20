@@ -21,5 +21,6 @@ let player=new Player({
   },
   height: window.innerHeight,
   width: window.innerWidth,
-  plugins: [Mp4Player]
+  plugins: [Mp4Player],
+  screenShot: true,
 });

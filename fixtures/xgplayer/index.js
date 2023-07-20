@@ -50,15 +50,19 @@ function init(index = 0, config = {}) {
       // mode: 'flex',
       // initShow: true
     },
+    "screenShot": true,
+    // videoAttributes: {
+    //   // crossOrigin: 'anonymous',
+    // },
     progress: {
       // root: document.getElementById('controls0')
     },
     volume: {
       position: 'rootTop'
     },
-    mobile: {
-      // gestureX: false
-    },
+    // mobile: {
+    //   // gestureX: false
+    // },
     texttrack: {
       debugger: false,
       list: [{

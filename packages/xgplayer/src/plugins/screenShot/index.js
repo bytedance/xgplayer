@@ -39,6 +39,10 @@ export default class ScreenShot extends IconPlugin {
       }
     }
     this.once(Events.VIDEO_RESIZE, this.initSize)
+    // fix 截图下载报错问题
+    if (this.player) {
+      this.player.crossOrigin = 'anonymous'
+    }
   }
 
   onPluginsReady () {
