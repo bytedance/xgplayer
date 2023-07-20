@@ -41,6 +41,7 @@ export function getConfig (cfg) {
     targetLatency: 10,
     maxLatency: 20,
     allowedStreamTrackChange: true,
+    manifest: '',
     ...cfg,
     media
   }

@@ -108,6 +108,31 @@ export class ManifestLoader {
     return [playlist, audioPlaylist, subtitlePlaylist]
   }
 
+  parseText (videoText, url) {
+    const { onPreM3U8Parse } = this.hls.config
+
+    let playlist
+    try {
+      if (onPreM3U8Parse) {
+        videoText = onPreM3U8Parse(videoText) || videoText
+      }
+      playlist = M3U8Parser.parse(videoText, url)
+      if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
+        throw new Error('empty segments list')
+      }
+    } catch (error) {
+      throw new StreamingError(ERR.MANIFEST, ERR.SUB_TYPES.HLS, error)
+    }
+    if (playlist) {
+      if (playlist.isMaster) {
+        this.hls.emit(Event.HLS_MANIFEST_LOADED, { playlist })
+      } else {
+        this.hls.emit(Event.HLS_LEVEL_LOADED, { playlist })
+      }
+    }
+    return [playlist]
+  }
+
   poll (url, audioUrl, subtitleUrl, cb, errorCb, time) {
     clearTimeout(this._timer)
     time = time || 3000
@@ -150,7 +175,7 @@ export class ManifestLoader {
     this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
     this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
     this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
-    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers })
+    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers, url })
   }
 
   _onLoaderRetry = (error, retryTime) => {
