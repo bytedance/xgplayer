@@ -39,6 +39,9 @@
     height: 100%;
     transform: rotate(0);
   }
+  &.xgplayer-mobile {
+    width: 90%;
+  }
   .xgplayer-mobile {
     video {
       z-index: -1;
@@ -115,6 +118,9 @@
     transform-origin: top left;
     transform: rotate(90deg);
     z-index: 9999;
+    &.xgplayer-mobile {
+      width: 90vh;
+    }
     &.xgplayer-mobile video {
       z-index: -1;
     }
