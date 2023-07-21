@@ -212,8 +212,8 @@ class Player extends MediaProxy {
       y: 0,
       h: -1, // 高度占比
       w: -1, // 宽度占比
-      vy: -1, // 画面在y方向的偏移
-      vx: -1 // 画面在x方向的偏移
+      vy: 0, // 画面在y方向的偏移
+      vx: 0 // 画面在x方向的偏移
     }
 
     /**
@@ -1979,6 +1979,11 @@ class Player extends MediaProxy {
     let offsetX = 0
     let scale = 1
     const _t = Math.abs(rotate / 90)
+    const { root, innerContainer } = this
+    const width = root.offsetWidth
+    const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
+    let rHeight = height
+    let rWidth = width
     if (_t % 2 === 0) {
       scale = h > 0 ? 100 / h : (w > 0 ? 100 / w : 1)
       _pos.scale = scale
@@ -1986,25 +1991,16 @@ class Player extends MediaProxy {
       _pos.y = _t === 2 ? 0 - offsetY : offsetY
       offsetX = vx > 0 ? (100 - w) / 2 - vx : 0
       _pos.x = _t === 2 ? 0 - offsetX : offsetX
-      this.media.style.width = '100%'
-      this.media.style.height = '100%'
+      this.media.style.width = `${rWidth}px`
+      this.media.style.height = `${rHeight}px`
     } else if (_t % 2 === 1) {
-      const { root, innerContainer } = this
-      const width = root.offsetWidth
-      const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
-      const pi1 = width / height * 100
-      const rWidth = height
-      const rHeight = width
+      rWidth = height
+      rHeight = width
       const offset = height - width
       offsetX = -offset / 2 / rWidth * 100
-      _pos.x = _t === 3 ? offsetX + vy : offsetX - vy
+      _pos.x = _t === 3 ? offsetX + vy / 2 : offsetX - vy / 2
       offsetY = offset / 2 / rHeight * 100
-      _pos.y = _t === 3 ? offsetY + vx : offsetY - vx
-      if (this.videoPos.pi < pi1) {
-        scale = rWidth / this.videoPos.pi * 100 / rHeight
-      } else {
-        scale = rHeight * this.videoPos.pi / 100 / rWidth
-      }
+      _pos.y = _t === 3 ? offsetY + vx / 2 : offsetY - vx / 2
       _pos.scale = scale
       this.media.style.width = `${rWidth}px`
       this.media.style.height = `${rHeight}px`
