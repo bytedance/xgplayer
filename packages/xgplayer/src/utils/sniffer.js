@@ -165,6 +165,21 @@ const sniffer = {
   },
 
   /**
+   * @description check is support MediaSource Extends
+   * @param {string} [mime]
+   * @returns { boolean }
+   */
+  isMSESupport (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"') {
+    if (typeof MediaSource === 'undefined' || !MediaSource) return false
+    try {
+      return MediaSource.isTypeSupported(mime)
+    } catch (error) {
+      this._logger.error(mime, error)
+      return false
+    }
+  },
+
+  /**
    * Is HEVC Hardware decoding supported by current browser
    * @returns {boolean}
    */
