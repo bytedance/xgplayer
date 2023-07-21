@@ -2,8 +2,8 @@ const path = require('path')
 const fs = require('fs-extra')
 const execa = require('execa')
 const logger = require('./utils/logger')
-const { Configuration, Project , Workspace } = require('@yarnpkg/core');
-const {  npath } = require('@yarnpkg/fslib');
+const { Configuration, Project , Workspace } = require('@yarnpkg/core')
+const { npath } = require('@yarnpkg/fslib')
 function createContext () {
   const rootPath = fs.realpathSync(process.cwd())
   const rootPkgPath = path.resolve(rootPath, 'package.json')
@@ -155,40 +155,40 @@ function createContext () {
         }
       }).filter(x => x && !x.private)
     },
-    async getPkgDeps() {
+    async getPkgDeps () {
       const getConfiguration = (p) => {
-        return Configuration.create(p, p, new Map([]));
-      };
+        return Configuration.create(p, p, new Map([]))
+      }
 
       const portablePath = npath.toPortablePath(path.resolve(process.cwd()))
-      const configuration = await getConfiguration(portablePath);
-      const {project} = await Project.find(configuration, portablePath);
+      const configuration = await getConfiguration(portablePath)
+      const {project} = await Project.find(configuration, portablePath)
 
 
-      const workspace = new Workspace(portablePath, {project});
-      await workspace.setup();
+      const workspace = new Workspace(portablePath, {project})
+      await workspace.setup()
 
       let packages = workspace.getRecursiveWorkspaceChildren()
       const topArr = []
       const depdended = (idHash, manifestList) => {
-          return manifestList.find(
-            manifest => manifest.dependencies.get(idHash) || manifest.devDependencies.get(idHash) || manifest.peerDependencies.get(idHash)
-          )
+        return manifestList.find(
+          manifest => manifest.dependencies.get(idHash) || manifest.devDependencies.get(idHash) || manifest.peerDependencies.get(idHash)
+        )
       }
       let maxLoop = 100
-      while(packages.length && maxLoop > 0) {
-        const manifestList = packages.map(c => c.manifest);
+      while (packages.length && maxLoop > 0) {
+        const manifestList = packages.map(c => c.manifest)
 
         const noDeps = packages.filter(c => !depdended(c.locator.identHash, manifestList))
-        topArr.unshift(noDeps.map(noDep => path.basename(noDep.cwd)));
-        packages = packages.filter(c => !noDeps.includes(c));
-        maxLoop--;
+        topArr.unshift(noDeps.map(noDep => path.basename(noDep.cwd)))
+        packages = packages.filter(c => !noDeps.includes(c))
+        maxLoop--
         if (maxLoop === 0) {
           console.warn('There might be cycle dependencies in packages: ', packages.map(pkg => pkg.manifest.name).join(','))
         }
       }
 
-      return topArr;
+      return topArr
     },
     isTs
   }

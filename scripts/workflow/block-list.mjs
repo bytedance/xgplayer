@@ -1,1 +1,1 @@
-export default ["xgplayer-mp4-new"];
+export default ['xgplayer-mp4-new']
