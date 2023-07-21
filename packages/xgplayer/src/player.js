@@ -1506,7 +1506,7 @@ class Player extends MediaProxy {
    * 进入旋转全屏
    * @param { HTMLElement } [el]
    */
-  getRotateFullscreen (el) {
+  getRotateFullscreen (el = this.config.fullscreenTarget) {
     if (this.cssfullscreen) {
       this.exitCssFullscreen(el)
     }
