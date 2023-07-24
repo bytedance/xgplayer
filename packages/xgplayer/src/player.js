@@ -900,9 +900,7 @@ class Player extends MediaProxy {
       const _canplay = () => {
         this.currentTime = curTime
         if (isPaused) {
-          this.once('canplay', () => {
-            this.pause()
-          })
+          this.pause()
         }
         this.off('error', _error)
         resolve(true)
@@ -1523,7 +1521,6 @@ class Player extends MediaProxy {
     this.isRotateFullscreen = true
     this.fullscreen = true
     this.setRotateDeg(90)
-    console.log('>>>getRotateFullscreen', `innerWidth: ${window.innerWidth} innerHeight:${window.innerHeight} clientWidth:${ window.screen.width}  availHeight:${window.screen.availHeight}  offsetHeight:${document.body.offsetHeight} ${window.innerHeight / window.screen.height}`)
     this._rootStyle = this.root.getAttribute('style')
     this.root.style.width = `${window.innerHeight}px`
     this.emit(Events.FULLSCREEN_CHANGE, true)
