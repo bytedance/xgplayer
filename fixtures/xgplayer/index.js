@@ -4,6 +4,7 @@ import Player, { SimplePlayer } from '../../packages/xgplayer/src/index'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
+console.log('vconsole')
 window.POS = {
   "h": 0.40625,
   "y": 0.1899999976158142
@@ -54,6 +55,9 @@ function init(index = 0, config = {}) {
     //   // mode: 'normal',
     //   // initShow: true
     // },
+    fullscreen: {
+      rotateFullscreen: true
+    },
     progress: {
       // root: document.getElementById('controls0')
     },
@@ -298,7 +302,7 @@ window.clearLog = clearLog
 window.addLog = addLog
 window.playNext = playNext
 window.destroy = destroy
-window.init = init
+window.initPlayer = init
 window.createDot = (index) => {
   const player = window[`player${index}`]
   const time = parseInt(Math.random(1) * player.duration, 10)

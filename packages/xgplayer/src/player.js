@@ -1523,6 +1523,9 @@ class Player extends MediaProxy {
     this.isRotateFullscreen = true
     this.fullscreen = true
     this.setRotateDeg(90)
+    console.log('>>>getRotateFullscreen', `innerWidth: ${window.innerWidth} innerHeight:${window.innerHeight} clientWidth:${ window.screen.width}  availHeight:${window.screen.availHeight}  offsetHeight:${document.body.offsetHeight} ${window.innerHeight / window.screen.height}`)
+    this._rootStyle = this.root.getAttribute('style')
+    this.root.style.width = `${window.innerHeight}px`
     this.emit(Events.FULLSCREEN_CHANGE, true)
   }
 
@@ -1545,6 +1548,10 @@ class Player extends MediaProxy {
     this.fullscreen = false
     this.setRotateDeg(0)
     this.emit(Events.FULLSCREEN_CHANGE, false)
+    if (this._rootStyle) {
+      this.root.style.style = this._rootStyle
+      this._rootStyle = false
+    }
   }
 
   setRotateDeg (deg) {
