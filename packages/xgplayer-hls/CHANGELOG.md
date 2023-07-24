@@ -1,5 +1,24 @@
-## xgplayer-hls@3.0.4
+## xgplayer-hls@3.0.6
+>* fix: fetch response导出结构改动对speed、loadcomplete事件的影响
+>* fix: buffer内seek重复下载分片
+>* feat: 增加m3u8请求的`core.speed`、`core.loadcomplete`事件，增加buffer添加耗时事件`core.appendcost`
+>* feat: 初始化播放支持直接传入m3u8文本内容
 
+```typescript
+new Player({
+    url,
+    plugins: [HlsPlugin]
+    hls: {
+        manifest: 'm3u8 txt'
+    }
+})
+```
+
+## xgplayer-hls@3.0.5
+- 
+
+## xgplayer-hls@3.0.4
+- 
 
 ## xgplayer-hls@3.0.3
 fix: (xgplayer-hls) play stall with start gap meet

@@ -619,7 +619,9 @@ export class Hls extends EventEmitter {
       }
     }
 
-    this._seiService.throw(this.media.currentTime)
+    if (cfg.seiInTime) {
+      this._seiService.throw(this.media.currentTime)
+    }
 
     if (this.config.allowedStreamTrackChange && !this.config.softDecode) {
       this._checkStreamTrackChange(this.media.currentTime)
