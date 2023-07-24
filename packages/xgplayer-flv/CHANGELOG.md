@@ -1,3 +1,8 @@
+## xgplayer-flv@3.0.6
+
+## xgplayer-flv@3.0.5
+
+
 ## xgplayer-flv@3.0.4
 fix: (xgplayer-flv) play error with only script tag received first fetch
 
