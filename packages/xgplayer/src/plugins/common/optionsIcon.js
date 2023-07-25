@@ -77,6 +77,10 @@ export default class OptionsIcon extends Plugin {
 
     config.hidePortrait && Util.addClass(this.root, 'portrait')
 
+    this.on([Events.VIDEO_RESIZE, Events.FULLSCREEN_CHANGE], () => {
+      this._resizeList()
+    })
+
     this.once(Events.CANPLAY, () => {
       if (config.list && config.list.length > 0) {
         this.renderItemList(config.list)
@@ -158,7 +162,6 @@ export default class OptionsIcon extends Plugin {
   }
 
   onEnter = (e) => {
-    e.preventDefault()
     e.stopPropagation()
     this.emit('icon_mouseenter', {
       pluginName: this.pluginName
@@ -167,10 +170,8 @@ export default class OptionsIcon extends Plugin {
   }
 
   switchActiveState = (e) => {
-    e.preventDefault()
     e.stopPropagation()
     const { toggleMode } = this.config
-    // console.log('>>>switchActiveState', e.type, this.activeEvent, this.isActive)
     if (toggleMode === TOGGLE_MODES.CLICK) {
       this.toggle(!this.isActive)
     } else {
@@ -179,7 +180,6 @@ export default class OptionsIcon extends Plugin {
   }
 
   onLeave = (e) => {
-    e.preventDefault()
     e.stopPropagation()
     this.emit('icon_mouseleave', {
       pluginName: this.pluginName
@@ -217,7 +217,6 @@ export default class OptionsIcon extends Plugin {
 
   // 列表点击回调
   onItemClick (e, data) {
-    e.preventDefault()
     e.stopPropagation()
     const { listType, list } = this.config
     this.curIndex = data.to.index
@@ -267,14 +266,21 @@ export default class OptionsIcon extends Plugin {
     }
 
     if (this.config.isShowIcon) {
+      const { height } = this.player.root.getBoundingClientRect()
+      const _maxH = config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
+      if (_maxH) {
+        options.config.maxHeight = `${_maxH}px`
+      }
       this.optionsList = new OptionList(options)
-      // this.optionsList.root.addEventListener('mouseenter', this.onListEnter)
-      // this.optionsList.root.addEventListener('mouseleave', this.onListLeave)
       this.changeCurrentText()
       this.show()
     }
+    this._resizeList()
+  }
+
+  _resizeList () {
     const { height } = this.player.root.getBoundingClientRect()
-    const _maxH = config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
+    const _maxH = this.config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
     this.optionsList && this.optionsList.setStyle({ maxHeight: `${_maxH}px` })
   }
 
