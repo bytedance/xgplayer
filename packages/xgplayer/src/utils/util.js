@@ -651,7 +651,6 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
 util.stopPropagation = (e) => {
   if (e) {
     e.stopPropagation()
-    e.cancelable && e.preventDefault()
   }
 }
 
