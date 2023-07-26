@@ -101,7 +101,7 @@ export class Buffer {
 
     for (let i = 0, l = buffers.length; i < l; i++) {
       const item = buffers[i]
-      if (pos + maxHole >= item[0] && pos < item[1]) {
+      if (pos + maxHole >= item[0] && pos <= item[1]) {
         start = item[0]
         end = item[1]
         index = i

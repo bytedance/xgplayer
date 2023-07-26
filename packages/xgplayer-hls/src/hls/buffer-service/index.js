@@ -45,6 +45,10 @@ export class BufferService {
     return Object.keys(this._mse._sourceBuffer).length
   }
 
+  get msIsOpend () {
+    return this._mse?.isOpened
+  }
+
   async updateDuration (duration) {
     logger.debug('update duration', duration)
     if (this._mse) {
