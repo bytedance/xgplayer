@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-dash",
-  "version": "3.0.7-alpha.1",
+  "version": "3.0.7-alpha.3",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "dist/index.min.js",
   "module": "es/index.js",
