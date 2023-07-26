@@ -25,14 +25,20 @@ function addAnimate (key, seconds, callback = { start: null, end: null }) {
     window.clearTimeout(AnimateMap[key].id)
     delete AnimateMap[key]
   }, seconds)
+  return AnimateMap[key].id
 }
 
-function clearAnimation () {
+function clearAnimation (id) {
+  if (id) {
+    window.clearTimeout(id)
+    return
+  }
   Object.keys(AnimateMap).map(key => {
     window.clearTimeout(AnimateMap[key].id)
     delete AnimateMap[key]
   })
 }
+
 
 class Start extends Plugin {
   static get pluginName () {
@@ -163,7 +169,7 @@ class Start extends Plugin {
   }
 
   animate (endShow) {
-    addAnimate('pauseplay', 400, {
+    this._animateId = addAnimate('pauseplay', 400, {
       start: () => {
         Util.addClass(this.root, 'interact')
         this.show()
@@ -172,8 +178,15 @@ class Start extends Plugin {
       end: () => {
         Util.removeClass(this.root, 'interact')
         !endShow && this.hide()
+        this._animateId = null
       }
     })
+  }
+
+  endAnimate () {
+    Util.removeClass(this.root, 'interact')
+    clearAnimation(this._animateId)
+    this._animateId = null
   }
 
   switchPausePlay (e) {
@@ -212,6 +225,7 @@ class Start extends Plugin {
     if ((config.isShowPause && player.paused && !player.ended) || (config.isShowEnd && player.ended)) {
       this.switchStatus()
       this.show()
+      this.endAnimate()
       return
     }
 
@@ -233,7 +247,7 @@ class Start extends Plugin {
 
   destroy () {
     this.unbind(['click', 'touchend'], this.clickHandler)
-    clearAnimation()
+    clearAnimation(this._animateId)
   }
 
   render () {
