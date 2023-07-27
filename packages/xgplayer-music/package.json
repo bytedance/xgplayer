@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-music",
-  "version": "3.0.7-alpha.3",
+  "version": "3.0.7",
   "description": "xgplayer plugin for music",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -21,7 +21,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "alpha"
+    "tag": "latest"
   },
   "unpkgFiles": [
     "dist"
@@ -43,7 +43,7 @@
     "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.7-alpha.3",
+    "xgplayer": "3.0.7",
     "core-js": ">=3.12.1"
   }
 }
