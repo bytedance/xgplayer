@@ -1,4 +1,10 @@
 # 版本更新记录
+## 3.0.7
+>* fix(xgplayer): start插件修复play/pause切换过快导致的动效异常问题
+>* fix(xgplayer): 修复列表按钮在ipad端列表过滚动操作不生效问题
+>* feat(xgplayer): Sniffer中添加isMSESupport API, swicthUrl切换之后暂停问题修复
+>* feat(xgplayer): 旋转全屏适配移动端有控制栏的的场景
+>* fix(xgplayer): 修复position和rotate异常问题，增加videoRotateDeg作为video旋转角度
 ## 3.0.6
 >* feat(xgplayer): 增加下载按钮点击的hook;
 >* feat(xgplayer): ios端touche事件删除阻止默认行为;
