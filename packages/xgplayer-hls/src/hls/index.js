@@ -134,7 +134,7 @@ export class Hls extends EventEmitter {
 
     if (!url) throw this._emitError(new StreamingError(ERR.OTHER, ERR.SUB_TYPES.OPTION, null, null, 'm3u8 url is missing'))
 
-    const manifest = await this._loadM3U8(url, this.config.manifest)
+    const manifest = await this._loadM3U8(url)
     const { currentStream } = this._playlist
 
     if (this._urlSwitching) {
@@ -366,9 +366,11 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _loadM3U8 (url, manifest) {
+  async _loadM3U8 (url) {
     let playlist
     try {
+      const manifest = this.config.manifestList?.filter(x => x.url === url)[0]?.manifest;
+
       [playlist] = manifest
         ? this._manifestLoader.parseText(manifest, url) :
         await this._manifestLoader.load(url)

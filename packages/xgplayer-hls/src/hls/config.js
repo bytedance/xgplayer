@@ -15,6 +15,9 @@
  *  loadTimeout?: number,
  *  preloadTime?: number,
  *  disconnectTime?: number,
+ *  allowedStreamTrackChange?: boolean,
+ *  seiInTime?: boolean,
+ *  manifestList?: Array<{url: string, manifest: string}>
  *  fetchOptions?: RequestInit
  *  onPreM3U8Parse?: (m3u8: string) => string | void
  *  decryptor?: Decryptor
@@ -42,7 +45,7 @@ export function getConfig (cfg) {
     maxLatency: 20,
     allowedStreamTrackChange: true,
     seiInTime: false,
-    manifest: '',
+    manifestList: [],
     ...cfg,
     media
   }
