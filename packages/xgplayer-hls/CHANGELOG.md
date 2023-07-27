@@ -1,3 +1,9 @@
+## xgplayer-hls@3.0.7
+>* fix: 分片时长与m3u8中指定不一致漏下载分片case
+>* fix: play ended stall case
+>* feat: `setInTime` option not open default
+
+
 ## xgplayer-hls@3.0.6
 >* fix: fetch response导出结构改动对speed、loadcomplete事件的影响
 >* fix: buffer内seek重复下载分片
