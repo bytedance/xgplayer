@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { Errors } from 'xgplayer'
-const version = JSON.parse('__XGPLAYER_DASH__')
+import { version } from '../package.json'
 console.log('version', version)
 class _Errors extends Errors {
   constructor (type, vid, errd = {}, url = '') {
