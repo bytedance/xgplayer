@@ -120,15 +120,13 @@ window.onload = function () {
 
       function pushEvent(name, value, container) {
         container = container || dlEvent
-        console.debug('[test]', name, value)
+        // console.debug('[test]', name, value)
         if (container === dlEvent && logFilter && !logFilter(name, value)) {
           return
         }
 
-        if (name === 'core.metadataparsed') {
-          if (value.track?.samples?.length > 100) {
-            return { '_': '数据过大，请查看devtools' }
-          }
+        if (name === 'core.metadataparsed' || name === 'core.demuxedtrack') {
+          return { '_': '数据过大，请查看devtools' }
         }
         try {
           value = JSON.stringify(value)

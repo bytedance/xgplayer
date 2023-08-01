@@ -50,7 +50,7 @@ export default class Xml2Json {
         if (child.nodeType !== Node.COMMENT_NODE) {
           const childPath = path + '.' + childName
           result.__cnt++
-          if (result[childName] === null || result[childName] !== undefined) {
+          if (result[childName] === null || result[childName] === undefined) {
             const c = Xml2Json.parseDOMChildren(child, childPath)
             if (childName !== '#text' || /[^\s]/.test(c)) {
               const o = {}
