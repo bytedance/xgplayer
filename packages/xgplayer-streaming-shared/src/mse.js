@@ -327,7 +327,7 @@ export class MSE {
         sb.remove(startTime, endTime)
       }, OP_NAME.REMOVE)
     })
-    return p
+    return p || Promise.resolve()
   }
 
   clearAllBuffer () {
