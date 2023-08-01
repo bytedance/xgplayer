@@ -446,7 +446,6 @@ export class Hls extends EventEmitter {
     if (!this.isLive) {
       const bInfo = this.bufferInfo()
       const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < 0.1
-
       if (bInfo.remaining >= this.config.preloadTime || bufferThroughout) {
         if (bufferThroughout && this._bufferService.msIsOpend) {
           this._bufferService.endOfStream()
@@ -583,7 +582,7 @@ export class Hls extends EventEmitter {
     const seekRange = this._playlist.seekRange
 
     if (seekRange) {
-      const newSeekTime = clamp(seekTime, seekRange[0], seekRange[1])
+      const newSeekTime = clamp(seekTime, seekRange[0], this.isLive ? seekRange[1] : this.media.duration)
       if (
         // if newSeekTime less than 0, media.currentTime will be 0, this causes an infinite loop
         newSeekTime >= 0 &&
