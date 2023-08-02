@@ -1,6 +1,6 @@
 {
   "name": "xgplayer",
-  "version": "3.0.7",
+  "version": "3.0.8-alpha.1",
   "description": "video player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -16,7 +16,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "latest"
+    "tag": "alpha"
   },
   "files": [
     "dist",
@@ -43,7 +43,7 @@
     "delegate": "^3.2.0",
     "downloadjs": "1.4.7",
     "eventemitter3": "^4.0.7",
-    "xgplayer-subtitles": "3.0.7"
+    "xgplayer-subtitles": "3.0.8-alpha.1"
   },
   "peerDependencies": {
     "core-js": ">=3.12.1"
