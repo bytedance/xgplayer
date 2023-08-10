@@ -11,7 +11,6 @@ export class Logger {
   constructor (name,config) {
     this.name = name || ''
     this._prefix = `[${this.name}]`
-    Logger.disabled = config?.disabled || true
     this.logCacheLevel = config?.logCacheLevel || 3
     this.logMaxSize = config?.logMaxSize || LOG_MAX_SIZE
     this.logSize = 0

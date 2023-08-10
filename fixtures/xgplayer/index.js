@@ -1,7 +1,14 @@
-import Player from '../../packages/xgplayer/src/index'
+import Player, { SimplePlayer } from '../../packages/xgplayer/src/index'
+// import Poster from '../../packages/xgplayer/src/plugins/poster'
+// import Start from '../../packages/xgplayer/src/plugins/start'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
-
+// import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
+console.log('vconsole')
+window.POS = {
+  "h": 0.40625,
+  "y": 0.1899999976158142
+}
 // 全局配置语言
 I18N.extend([
   {
@@ -30,31 +37,48 @@ function init(index = 0, config = {}) {
   }
   window[p] = new Player({
     id: 'video' + index,
-    url:
-    [{src:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4'},
-      {src:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4'},
-      {src:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4'}],
-    DynamicBg: {
+    url: [
+      {
+          "src": "//v3-web.douyinvod.com/8f1282bd3ebc6627fe6edd11ab7ab21e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
+      },
+      {
+          "src": "//v26-web.douyinvod.com/4d55158b93f09f1ac4d86b66bb42cc4e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
+      },
+      {
+          "src": "//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000cicr6inog65l740057ag&line=0&file_id=a1571ac065784bc48102e99cde7a2cda&sign=05b1511ce3feee7ed6c65a84ad9be301&is_play_url=1&source=PackSourceEnum_FEED&aid=6383"
+      }
+  ],
+  DynamicBg: {
       disable: false
     },
     marginControls: false,
     loop: false,
-    autoplay: false,
+    autoplay: true,
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
     width: '100%',
     ignores:['playbackrate'],
     plugins: [TextTrack],
-    controls: {
-      // mode: 'flex',
-      // initShow: true
+    rotate: true,
+    // controls: {
+    //   // mode: 'normal',
+    //   // initShow: true
+    // },
+    fullscreen: {
+      rotateFullscreen: true
     },
     progress: {
       // root: document.getElementById('controls0')
     },
+    DynamicBg: {
+      disable: false
+    },
     volume: {
       position: 'rootTop'
+    },
+    rotate: {
+      innerRotate: false
     },
     mobile: {
       // gestureX: false
@@ -131,10 +155,25 @@ function init(index = 0, config = {}) {
     //     { name: '超清', url: './media/msdv3.mp4' }]
     // },
     // width: 300,
-    height: 500,
+    height: 700,
     ...config
   })
 
+  // setTimeout(() => {
+  //   window[p].registerPlugin(Poster)
+  // }, 10)
+  window[p].once('canplay',() => {
+    console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
+    window[p].seek(30)
+    window[p].play()
+  })
+
+  window[p].on('source_success', (data) => {
+    console.log('source_success', data)
+  })
+  window[p].on('source_error', (data) => {
+    console.error('source_error', data)
+  })
   // window[p].usePluginHooks('progresspreview', 'transformTime', (plugin, time) => {
   //   plugin.setTimeContent(`~~${(time)}~~`)
 
@@ -276,7 +315,7 @@ window.clearLog = clearLog
 window.addLog = addLog
 window.playNext = playNext
 window.destroy = destroy
-window.init = init
+window.initPlayer = init
 window.createDot = (index) => {
   const player = window[`player${index}`]
   const time = parseInt(Math.random(1) * player.duration, 10)

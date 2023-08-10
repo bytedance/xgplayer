@@ -204,6 +204,18 @@ class Player extends MediaProxy {
      */
     this._videoWidth = 0
 
+    this.videoPos = {
+      pi: 1, // 宽高比
+      scale: 0,
+      rotate: 0,
+      x: 0,
+      y: 0,
+      h: -1, // 高度占比
+      w: -1, // 宽度占比
+      vy: 0, // 画面在y方向的偏移
+      vx: 0 // 画面在x方向的偏移
+    }
+
     /**
      * @private
      * @type { { t: number, acc:number, acc: number, loopAcc: number, [propName: string]: any;} }
@@ -550,13 +562,9 @@ class Player extends MediaProxy {
     }
     this.hasStart = true
     this.setState(STATES.ATTACHED)
-    Util.setTimeout(
-      this,
-      () => {
-        this.emit(Events.COMPLETE)
-      },
-      0
-    )
+    Util.setTimeout(this, () => {
+      this.emit(Events.COMPLETE)
+    }, 0)
   }
 
   /**
@@ -883,24 +891,29 @@ class Player extends MediaProxy {
     const curTime = this.currentTime
     const isPaused = this.paused && !this.isError
     this.src = _src
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      const _error = (e) => {
+        this.off('timeupdate', _canplay)
+        this.off('canplay', _canplay)
+        reject(e)
+      }
       const _canplay = () => {
         this.currentTime = curTime
         if (isPaused) {
-          this.once('canplay', () => {
-            this.pause()
-          })
+          this.pause()
         }
-        resolve()
+        this.off('error', _error)
+        resolve(true)
+      }
+      this.once('error', _error)
+      if (!_src){
+        this.errorHandler('error', {code: 6, message: 'empty_src'})
+        return
       }
       if (Sniffer.os.isAndroid) {
-        this.once('timeupdate', () => {
-          _canplay()
-        })
+        this.once('timeupdate', _canplay)
       } else {
-        this.once('canplay', () => {
-          _canplay()
-        })
+        this.once('canplay', _canplay)
       }
       this.play()
     })
@@ -1018,7 +1031,7 @@ class Player extends MediaProxy {
    * @returns
    */
   seek (time, status) {
-    if (!this.media || Number.isNaN(Number(time) || !this.hasStart)) {
+    if (!this.media || Number.isNaN(Number(time)) || !this.hasStart) {
       return
     }
     const { isSeekedPlay, seekedStatus } = this.config
@@ -1027,7 +1040,7 @@ class Player extends MediaProxy {
 
     !this._isPauseBeforeSeek && (this._isPauseBeforeSeek = this.paused ? 2 : 1)
 
-    this._onceSeekCanplay && this.off(Events.CANPLAY, this._onceSeekCanplay)
+    this._onceSeekCanplay && this.off(Events.SEEKED, this._onceSeekCanplay)
 
     this._onceSeekCanplay = () => {
       // const { seekedStatus } = this.config
@@ -1047,11 +1060,9 @@ class Player extends MediaProxy {
       this._onceSeekCanplay = null
     }
 
-    this.once(Events.CANPLAY, this._onceSeekCanplay)
-
+    this.once(Events.SEEKED, this._onceSeekCanplay)
     if (this.state < STATES.RUNNING) {
       this.removeClass(STATE_CLASS.NO_START)
-      this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
       // 未起播状态不论希望保持什么状态，都要触发一次play, 避免ios下起播异常问题
       this.play()
@@ -1266,10 +1277,10 @@ class Player extends MediaProxy {
     this.currentTime = 0
     this.isSeeking = false
     runHooks(this, 'replay', () => {
-      this.once(Events.CANPLAY, () => {
+      this.once(Events.SEEKED, () => {
         const playPromise = this.mediaPlay()
         if (playPromise && playPromise.catch) {
-          playPromise.catch((err) => {
+          playPromise.catch(err => {
             console.log(err)
           })
         }
@@ -1493,7 +1504,7 @@ class Player extends MediaProxy {
    * 进入旋转全屏
    * @param { HTMLElement } [el]
    */
-  getRotateFullscreen (el) {
+  getRotateFullscreen (el = this.config.fullscreenTarget) {
     if (this.cssfullscreen) {
       this.exitCssFullscreen(el)
     }
@@ -1510,6 +1521,8 @@ class Player extends MediaProxy {
     this.isRotateFullscreen = true
     this.fullscreen = true
     this.setRotateDeg(90)
+    this._rootStyle = this.root.getAttribute('style')
+    this.root.style.width = `${window.innerHeight}px`
     this.emit(Events.FULLSCREEN_CHANGE, true)
   }
 
@@ -1532,6 +1545,10 @@ class Player extends MediaProxy {
     this.fullscreen = false
     this.setRotateDeg(0)
     this.emit(Events.FULLSCREEN_CHANGE, false)
+    if (this._rootStyle) {
+      this.root.style.style = this._rootStyle
+      this._rootStyle = false
+    }
   }
 
   setRotateDeg (deg) {
@@ -1836,7 +1853,7 @@ class Player extends MediaProxy {
       this.addClass(STATE_CLASS.LOADING)
       Util.clearTimeout(this, this.waitTimer)
       this.waitTimer = null
-    }, 200)
+    }, this.config.minWaitDelay)
   }
 
   /**
@@ -1949,6 +1966,54 @@ class Player extends MediaProxy {
     return false
   }
 
+  resizePosition () {
+    const { rotate, vy, vx, h, w } = this.videoPos
+    let _pi = this.videoPos._pi
+    if (!_pi) {
+      _pi = this.media.videoWidth / this.media.videoHeight * 100
+    }
+    if (!_pi) {
+      return
+    }
+    this.videoPos.pi = _pi
+    const _pos = {
+      rotate: rotate
+    }
+    let offsetY = 0
+    let offsetX = 0
+    let scale = 1
+    const _t = Math.abs(rotate / 90)
+    const { root, innerContainer } = this
+    const width = root.offsetWidth
+    const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
+    let rHeight = height
+    let rWidth = width
+    if (_t % 2 === 0) {
+      scale = h > 0 ? 100 / h : (w > 0 ? 100 / w : 1)
+      _pos.scale = scale
+      offsetY = vy > 0 ? (100 - h) / 2 - vy : 0
+      _pos.y = _t === 2 ? 0 - offsetY : offsetY
+      offsetX = vx > 0 ? (100 - w) / 2 - vx : 0
+      _pos.x = _t === 2 ? 0 - offsetX : offsetX
+      this.media.style.width = `${rWidth}px`
+      this.media.style.height = `${rHeight}px`
+    } else if (_t % 2 === 1) {
+      rWidth = height
+      rHeight = width
+      const offset = height - width
+      offsetX = -offset / 2 / rWidth * 100
+      _pos.x = _t === 3 ? offsetX + vy / 2 : offsetX - vy / 2
+      offsetY = offset / 2 / rHeight * 100
+      _pos.y = _t === 3 ? offsetY + vx / 2 : offsetY - vx / 2
+      _pos.scale = scale
+      this.media.style.width = `${rWidth}px`
+      this.media.style.height = `${rHeight}px`
+    }
+    const formStyle = Util.getTransformStyle(_pos)
+    this.media.style.transform = formStyle
+    this.media.style.webkitTransform = formStyle
+  }
+
   /**
    * @description position video/audio according to height ratio and y coordinate
    * @param { { h: number, y?: number, x?:number, w?:number} } pos
@@ -1958,19 +2023,12 @@ class Player extends MediaProxy {
     if (!this.media || !pos || !pos.h) {
       return
     }
-    const rvH = 1 / pos.h
-    let _transform = rvH !== 1 ? `scale(${rvH})` : ''
-    let _tx = 0
-    let _ty = 0
-    if (pos.y) {
-      _ty = (100 - pos.h * 100) / 2 - pos.y * 100
-    }
-    if (pos.w && pos.x) {
-      _tx = (100 - pos.w * 100) / 2 - pos.x * 100
-    }
-    _transform += ` translate(${_tx}%, ${_ty}%)`
-    this.media.style.transform = _transform
-    this.media.style.webkitTransform = _transform
+    const { videoPos } = this
+    videoPos.h = pos.h * 100 || 0
+    videoPos.w = pos.w * 100 || 0
+    videoPos.vx = pos.x * 100 || 0
+    videoPos.vy = pos.y * 100 || 0
+    this.resizePosition()
   }
 
   /**
@@ -2072,6 +2130,7 @@ class Player extends MediaProxy {
       cWidth: rWidth,
       cHeight: rHeight + controlsHeight
     }
+    this.resizePosition()
     this.emit(Events.VIDEO_RESIZE, data)
   }
 
@@ -2339,6 +2398,23 @@ class Player extends MediaProxy {
    */
   set zoom (value) {
     this.config.zoom = value
+  }
+
+  /**
+   * @type {number}
+   * @description Media element rotation angle, Only multiples of 90 degrees are supported
+   */
+  set videoRotateDeg (val) {
+    val = Util.convertDeg(val)
+    if (val % 90 !== 0 || val === this.videoPos.rotate) {
+      return
+    }
+    this.videoPos.rotate = val
+    this.resizePosition()
+  }
+
+  get videoRotateDeg () {
+    return this.videoPos.rotate
   }
 
   /**

@@ -36,13 +36,17 @@ export default class Rotate extends IconPlugin {
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on(Events.VIDEO_RESIZE, () => {
-      // console.log('Events.VIDEO_RESIZE')
-      if (this.rotateDeg) {
+      if (this.rotateDeg && this.config.innerRotate) {
         Util.setTimeout(this, () => {
           this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
         }, 100)
       }
     })
+
+    const root = this.player.root
+    this.rootWidth = root.style.width || root.offsetWidth || root.clientWidth
+    this.rootHeight = root.style.height || root.offsetHeight || root.clientHeight
+
     if (this.rotateDeg) {
       this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
     }
@@ -61,16 +65,20 @@ export default class Rotate extends IconPlugin {
   }
 
   updateRotateDeg (rotateDeg, innerRotate) {
-    const player = this.player
     if (!rotateDeg) {
       rotateDeg = 0
     }
-    const { root, innerContainer } = this.player
-    const video = this.player.media
+    if (innerRotate) {
+      this.player.videoRotateDeg = rotateDeg
+      return
+    }
+    const { player, rootWidth, rootHeight } = this
+    const { root, innerContainer } = player
+    const video = player.media
     const width = root.offsetWidth
     const height = innerContainer && innerRotate ? innerContainer.offsetHeight : root.offsetHeight
-    let rWidth = '100%'
-    let rHeight = '100%'
+    let rWidth = rootWidth
+    let rHeight = rootHeight
     let x = 0
     let y = 0
     if (rotateDeg === 0.75 || rotateDeg === 0.25) {

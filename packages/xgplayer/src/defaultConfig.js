@@ -86,6 +86,7 @@ import { getLang } from './utils/util'
  *   },
  *   videoConfig?: { [propName: string]: any },
  *   isHideTips?: boolean,
+ *   minWaitDelay?: number,
  *   commonStyle?: {
  *     progressColor?: string,
  *     playedColor?: string,
@@ -170,6 +171,7 @@ export default function getDefaultConfig () {
     thumbnail: null, // Preview image configuration
     videoConfig: {}, // video attribute configuration
     isHideTips: false, // if hide the icon tips
+    minWaitDelay: 200, // The min threshold of waiting delay time
     commonStyle: { // General style configuration
       progressColor: '', // Background color of progress bar
       playedColor: '', // The background color of played part in the progress bar

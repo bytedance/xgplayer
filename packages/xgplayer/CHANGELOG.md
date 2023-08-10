@@ -1,4 +1,19 @@
 # 版本更新记录
+## 3.0.7
+>* fix(xgplayer): start插件修复play/pause切换过快导致的动效异常问题
+>* fix(xgplayer): 修复列表按钮在ipad端列表过滚动操作不生效问题
+>* feat(xgplayer): Sniffer中添加isMSESupport API, swicthUrl切换之后暂停问题修复
+>* feat(xgplayer): 旋转全屏适配移动端有控制栏的的场景
+>* fix(xgplayer): 修复position和rotate异常问题，增加videoRotateDeg作为video旋转角度
+## 3.0.6
+>* feat(xgplayer): 增加下载按钮点击的hook;
+>* feat(xgplayer): ios端touche事件删除阻止默认行为;
+>* feat(xgplayer): seek 和 replay回调监听使用seeked代替canplay, 兼容safari下seek的时候canplay不触发问题
+>* feat(xgplayer): 增加SOURCE_SUCCESS和SOURCE_ERROR事件触发
+>* fix(xgplayer): 修复初始化之后注册组件会挂载在video之前问题
+>* feat(xgplayer): hover时间显示支持html代码插入
+>* fix: 🐛 (player) 修复closeVideoClick=true时，双击事件无效问题
+>* fix(xgplayer): switchUrl API promise在切换src为空的时候返回空的问题
 ## 3.0.5
 >* fix: 🐛 (xgplayer) 防止被全局基础样式影响导致icon下移不显示
 >* feat(xgplayer): 控制栏预览删除对time节点的定位,relative定位,只对容器节点

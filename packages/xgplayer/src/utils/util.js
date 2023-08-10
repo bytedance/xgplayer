@@ -74,12 +74,6 @@ util.hasClass = function (el, className) {
     const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
     return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
   }
-  // if (el.classList) {
-  //   return Array.prototype.some.call(el.classList, item => item === className)
-  // } else {
-  //   const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
-  //   return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
-  // }
 }
 
 /**
@@ -657,7 +651,6 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
 util.stopPropagation = (e) => {
   if (e) {
     e.stopPropagation()
-    e.cancelable && e.preventDefault()
   }
 }
 
@@ -808,7 +801,6 @@ util.generateSessionId = function (did = 0) {
   return uuid
 }
 
-
 util.createEvent = function (eventName) {
   let event
   if (typeof window.Event === 'function') {
@@ -847,6 +839,22 @@ util.createPositionBar = function (className, root) {
   )
   root.appendChild(dom)
   return dom
+}
+
+util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }) {
+  return `scale(${pos.scale || 1}) translate(${pos.x || 0}%, ${pos.y || 0}%) rotate(${pos.rotate || 0}deg)`
+}
+
+/**
+ * @description 角度换算
+ * @param {number} val
+ * @returns {number}
+ */
+util.convertDeg = function (val) {
+  if (Math.abs(val) <= 1) {
+    return val * 360
+  }
+  return val % 360
 }
 
 function isObject (value) {

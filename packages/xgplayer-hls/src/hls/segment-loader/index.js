@@ -165,15 +165,15 @@ export class SegmentLoader {
   }
 
   _emitOnLoaded = (res, url) => {
-    const { data, response, option } = res
-    const { firstByteTime, startTime, endTime, contentLength } = option || {}
+    const { data, response, options } = res
+    const { firstByteTime, startTime, endTime, contentLength } = options || {}
     const time = endTime - startTime
 
     this._bandwidthService.addRecord(contentLength || data.byteLength, time)
     this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
     this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
     this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
-    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers })
+    this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers, url })
   }
 
   _onLoaderRetry = (error, retryTime) => {

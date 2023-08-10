@@ -4,8 +4,12 @@ export default class OptionList {
   constructor (args) {
     this.config = args.config
     this.parent = args.root
-    this.root = Util.createDom('ul', '', {}, `xg-options-list ${this.config.className}`)
+    this.root = Util.createDom('ul', '', {}, `xg-options-list xg-list-slide-scroll ${this.config.className}`)
     args.root.appendChild(this.root)
+    const { maxHeight } = this.config
+    if (maxHeight) {
+      this.setStyle({ maxHeight })
+    }
     this.onItemClick = this.onItemClick.bind(this)
     this.renderItemList()
     const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'

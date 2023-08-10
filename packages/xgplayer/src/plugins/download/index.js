@@ -1,5 +1,5 @@
 import downloadUtil from 'downloadjs'
-import { POSITIONS } from '../../plugin'
+import { POSITIONS, Util } from '../../plugin'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
 import DownloadSvg from '../assets/download.svg'
@@ -40,7 +40,13 @@ export default class Download extends IconPlugin {
       return
     }
     this.appendChild('.xgplayer-icon', this.icons.download)
-    this.bind(['click', 'touchend'], this.download)
+    this._handler = this.hook('click', this.download, {
+      pre: (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    })
+    this.bind(['click', 'touchend'], this._handler)
   }
 
   registerIcons () {
@@ -48,14 +54,20 @@ export default class Download extends IconPlugin {
       download: DownloadSvg
     }
   }
-
   download = (e) => {
     if (this.isLock) {
       return
     }
     this.emitUserAction(e, 'download')
-    const url = this.getAbsoluteURL(this.player.src)
-    downloadUtil(url)
+    const { url } = this.playerConfig
+    let dUrl = ''
+    if (Util.typeOf(url) === 'String') {
+      dUrl = url
+    } else if (Util.typeOf(url) === 'Array' && url.length > 0) {
+      dUrl = url[0].src
+    }
+    const newUrl = this.getAbsoluteURL(dUrl)
+    downloadUtil(newUrl)
     this.isLock = true
     this.timer = window.setTimeout(() => {
       this.isLock = false
