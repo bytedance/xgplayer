@@ -19,6 +19,7 @@ export default class TestSpeed extends BasePlugin {
   }
 
   getSpeed = (type = DEFAULT_SPEED_TYPE) => {
+    if (!this.speedListCache || !this.speedListCache[type]) return 0
     if (this.speedListCache[type].length <= 0) return 0
     let total = 0
     this.speedListCache[type].map(item => {
@@ -103,6 +104,7 @@ export default class TestSpeed extends BasePlugin {
   }
 
   appendList = (speed, type = DEFAULT_SPEED_TYPE) => {
+    if (!this.speedListCache || !this.speedListCache[type]) return
     const { saveSpeedMax } = this.config
     if (this.speedListCache[type].length >= saveSpeedMax) {
       this.speedListCache[type].shift()
@@ -159,9 +161,9 @@ export default class TestSpeed extends BasePlugin {
     this.off('real_time_speed', this._onRealSpeedChange)
     this.off([Events.LOADED_DATA, Events.REPLAY], this.startTimer)
     SPEED_TYPE.forEach((type)=> {
-      this.speedListCache[type] = []
+      this.speedListCache && this.speedListCache[type] && (this.speedListCache[type] = [])
     })
-    this.speedListCache = {}
+    this.speedListCache && (this.speedListCache = {})
     clearTimeout(this.timer)
     this.timer = null
     if (this.xhr && this.xhr.readyState !== 4) {
