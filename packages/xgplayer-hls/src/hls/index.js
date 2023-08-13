@@ -469,7 +469,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _loadSegmentDirect () {
+  async _loadSegmentDirect (loadOnce) {
     const seg = this._playlist.nextSegment
     if (!seg) return
 
@@ -498,7 +498,7 @@ export class Hls extends EventEmitter {
       this._playlist.moveSegmentPointer()
       if (seg.isLast) {
         this._end()
-      } else {
+      } else if (!loadOnce) {
         this._loadSegment()
       }
     }
@@ -611,7 +611,7 @@ export class Hls extends EventEmitter {
     await this._segmentLoader.cancel()
     this._segmentProcessing = false
     if (!info.end || this.isLive) {
-      await this._loadSegmentDirect()
+      await this._loadSegmentDirect(true)
     }
     this._startTick()
   }
@@ -683,7 +683,7 @@ export class Hls extends EventEmitter {
   _end () {
     this._clear()
     this._bufferService.endOfStream()
-    if (this.media.readyState <= 2) {
+    if (this.media.readyState <= 2 || this.media.buffered.length > 1) {
       this._startTick()
     }
   }
