@@ -1,15 +1,19 @@
+## xgplayer-flv@3.0.8
+
+## xgplayer-flv@3.0.7
+
 ## xgplayer-flv@3.0.6
 
 ## xgplayer-flv@3.0.5
 
 
 ## xgplayer-flv@3.0.4
-fix: (xgplayer-flv) play error with only script tag received first fetch
+>* fix: (xgplayer-flv) play error with only script tag received first fetch
 
 ## xgplayer-flv@3.0.3
-fix: (xgplayer-flv) play stall with start gap meet
-feat: (xgplayer-flv) add onlyVideo、onlyAudio options
-fix: (xgplayer-flv) audio timestamp breaked before video long time case play stall refact: core.demuxedtrack export demuxed video & audio track 
+>* fix: (xgplayer-flv) play stall with start gap meet
+>* feat: (xgplayer-flv) add onlyVideo、onlyAudio options
+>* fix: (xgplayer-flv) audio timestamp breaked before video long time case play stall refact: core.demuxedtrack export demuxed video & audio track 
 
 ## xgplayer-flv@3.0.2
 -

@@ -1,3 +1,19 @@
+## xgplayer-hls@3.0.8
+>* fix: m3u8文本累计duration与实际视频duration不一致结尾seek不触发end
+>* fix: 起播seek存在并行重复下载分片case
+>* feat: manifest option chang to manifestList
+
+```typescript
+new Player({
+    url,
+    plugins: [HlsPlugin]
+    hls: {
+        manifestList: Array<{url: string, manifest: string}>
+    }
+})
+```
+
+
 ## xgplayer-hls@3.0.7
 >* fix: 分片时长与m3u8中指定不一致漏下载分片case
 >* fix: play ended stall case
