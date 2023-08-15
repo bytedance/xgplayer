@@ -1,4 +1,7 @@
 # 版本更新记录
+## 3.0.8
+>* fix(xgplayer): download链接获取兼容blob
+>* fix: 🐛 (xgplayer) 修复roate旋转容器时，一直旋转的问题 fixed #1045
 ## 3.0.7
 >* fix(xgplayer): start插件修复play/pause切换过快导致的动效异常问题
 >* fix(xgplayer): 修复列表按钮在ipad端列表过滚动操作不生效问题
