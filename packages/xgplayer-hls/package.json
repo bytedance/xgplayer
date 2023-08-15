@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls",
-  "version": "3.0.8-alpha.6",
+  "version": "3.0.8",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "alpha"
+    "tag": "latest"
   },
   "license": "MIT",
   "unpkgFiles": [
@@ -23,8 +23,8 @@
   ],
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-transmuxer": "3.0.8-alpha.6",
-    "xgplayer-streaming-shared": "3.0.8-alpha.6"
+    "xgplayer-transmuxer": "3.0.8",
+    "xgplayer-streaming-shared": "3.0.8"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.0",
