@@ -125,17 +125,18 @@ export class TsFixer {
     const vDelta = this._videoNextDts - firstSample.dts
 
     if (Math.abs(vDelta) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
+      videoTrack.warnings.push({
+        type: WarningType.LARGE_VIDEO_GAP_BETWEEN_CHUNK,
+        nextDts: this._videoNextDts / 90,
+        firstSampleDts: firstSample.dts / 90,
+        nextSampleDts: (samples[1]?.dts || 0) / 90,
+        sampleDuration: vDelta / 90
+      })
+
       // resolve first frame first
       firstSample.dts += vDelta
       firstSample.pts += vDelta
 
-      videoTrack.warnings.push({
-        type: WarningType.LARGE_VIDEO_GAP_BETWEEN_CHUNK,
-        nextDts: this._videoNextDts,
-        firstSampleDts: firstSample.dts,
-        nextSampleDts: samples[1]?.dts,
-        sampleDuration: vDelta
-      })
 
       // check to ajust the whole segment
       if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_VIDEO_FRAME_DURATION) {
