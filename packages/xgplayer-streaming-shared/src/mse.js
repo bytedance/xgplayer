@@ -186,7 +186,7 @@ export class MSE {
       Object.keys(this._queue).forEach((t) => {
         const queue = this._queue[t]
         if (queue) {
-          queue.forEach(x => x.promise.resolve)
+          queue.forEach(x => x.promise?.resolve?.())
         }
       })
 
@@ -434,6 +434,7 @@ export class MSE {
     } else {
       queue.push(op)
     }
+
     if (this.isOpened || this.isEnded) {
       if (queue.length === 1) {
         this._startQueue(type)
