@@ -216,6 +216,13 @@ class Player extends MediaProxy {
       vx: 0 // 画面在x方向的偏移
     }
 
+    this.sizeInfo = {
+      width: 0,
+      height: 0,
+      left: 0,
+      top: 0
+    }
+
     /**
      * @private
      * @type { { t: number, acc:number, acc: number, loopAcc: number, [propName: string]: any;} }
@@ -427,6 +434,11 @@ class Player extends MediaProxy {
         }
       })
     }
+    const { width, height, left, top } = this.root.getBoundingClientRect()
+    this.sizeInfo.width = width
+    this.sizeInfo.height = height
+    this.sizeInfo.left = left
+    this.sizeInfo.top = top
     return true
   }
 
@@ -1872,7 +1884,7 @@ class Player extends MediaProxy {
    * @protected
    */
   onTimeupdate () {
-    !this._videoHeight && this.resize()
+    !this._videoHeight && this.media.videoHeight && this.resize()
     if ((this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) &&
       this.media.readyState > 2
     ) {
@@ -2069,6 +2081,11 @@ class Player extends MediaProxy {
     if (!this.media) {
       return
     }
+    const containerSize = this.root.getBoundingClientRect()
+    this.sizeInfo.width = containerSize.width
+    this.sizeInfo.height = containerSize.height
+    this.sizeInfo.left = containerSize.left
+    this.sizeInfo.top = containerSize.top
     const { videoWidth, videoHeight } = this.media
     const { fitVideoSize, videoFillMode } = this.config
 
@@ -2081,7 +2098,6 @@ class Player extends MediaProxy {
     }
     this._videoHeight = videoHeight
     this._videoWidth = videoWidth
-    const containerSize = this.root.getBoundingClientRect()
     const controlsHeight =
       this.controls && this.innerContainer
         ? this.controls.root.getBoundingClientRect().height

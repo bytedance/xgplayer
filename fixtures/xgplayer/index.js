@@ -37,17 +37,18 @@ function init(index = 0, config = {}) {
   }
   window[p] = new Player({
     id: 'video' + index,
-    url: [
-      {
-          "src": "//v3-web.douyinvod.com/8f1282bd3ebc6627fe6edd11ab7ab21e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
-      },
-      {
-          "src": "//v26-web.douyinvod.com/4d55158b93f09f1ac4d86b66bb42cc4e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
-      },
-      {
-          "src": "//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000cicr6inog65l740057ag&line=0&file_id=a1571ac065784bc48102e99cde7a2cda&sign=05b1511ce3feee7ed6c65a84ad9be301&is_play_url=1&source=PackSourceEnum_FEED&aid=6383"
-      }
-  ],
+    url: './222.mp4',
+  //   [
+  //     {
+  //         "src": "//v3-web.douyinvod.com/8f1282bd3ebc6627fe6edd11ab7ab21e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
+  //     },
+  //     {
+  //         "src": "//v26-web.douyinvod.com/4d55158b93f09f1ac4d86b66bb42cc4e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
+  //     },
+  //     {
+  //         "src": "//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000cicr6inog65l740057ag&line=0&file_id=a1571ac065784bc48102e99cde7a2cda&sign=05b1511ce3feee7ed6c65a84ad9be301&is_play_url=1&source=PackSourceEnum_FEED&aid=6383"
+  //     }
+  // ],
   DynamicBg: {
       disable: false
     },
@@ -57,9 +58,10 @@ function init(index = 0, config = {}) {
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
-    width: '100%',
+    width: '80%',
     ignores:['playbackrate'],
-    plugins: [TextTrack],
+    plugins: [],
+    
     rotate: true,
     // controls: {
     //   // mode: 'normal',
@@ -82,6 +84,33 @@ function init(index = 0, config = {}) {
     },
     mobile: {
       // gestureX: false
+    },
+    progresspreview: {
+      ispots: [{
+        id: 1,
+        time: 2,
+        template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(1)>这是点击按钮</button></div>`,
+        style: {
+          backgroundColor: 'yellow'
+        },
+        duration: 20
+      },{
+        id: 2,
+        time:40,
+        template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(2)">这是点击按钮</button></div>`,
+        style: {
+          backgroundColor: 'yellow'
+        },
+        duration: 20
+      }, {
+        id: 3,
+        time: 70,
+        template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(3)>这是点击按钮</button></div>`,
+        style: {
+          backgroundColor: 'yellow'
+        },
+        duration: 10
+      }]
     },
     texttrack: {
       debugger: false,
@@ -158,6 +187,9 @@ function init(index = 0, config = {}) {
     height: 700,
     ...config
   })
+  window._onClick = function(id) {
+    console.log(id)
+  }
 
   // setTimeout(() => {
   //   window[p].registerPlugin(Poster)
