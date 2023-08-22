@@ -69,7 +69,8 @@ const APIS = {
     style.width = `${ret.width}%`
     let className = `xgspot_${iSpot.id} xgplayer-spot`
     ret.isMini && (className += ' mini')
-    const dotDom = Util.createDom('xg-spot', iSpot.template || '', {
+    const _t = iSpot.template ? `<div class="xgplayer-spot-pop">${iSpot.template}</div>` : ''
+    const dotDom = Util.createDom('xg-spot', _t, {
       'data-text': iSpot.text,
       'data-time': iSpot.time,
       'data-id': iSpot.id
@@ -78,6 +79,7 @@ const APIS = {
       dotDom.style[key] = style[key]
     })
     progress.outer && progress.outer.appendChild(dotDom)
+    this.positionDot(dotDom, iSpot.id)
   },
 
   /**
@@ -201,6 +203,43 @@ const APIS = {
     })
   },
 
+  positionDots () {
+    const { _ispots, playerSize } = this
+    const { sizeInfo } = this.player
+    const { progress } = this.player.plugins
+    if (!progress || sizeInfo.width === playerSize.width) {
+      return
+    }
+    playerSize.width = sizeInfo.width
+    playerSize.left = sizeInfo.left
+    _ispots.forEach(item => {
+      const dotDom = progress.find(`xg-spot[data-id="${item.id}"]`)
+      dotDom && this.positionDot(dotDom, item.id)
+    })
+  },
+
+  positionDot (dotDom, id) {
+    const _pop = Util.findDom(dotDom, '.xgplayer-spot-pop')
+    if (!_pop) {
+      return
+    }
+    const pRect = this.playerSize
+
+    const rect1 = dotDom.getBoundingClientRect()
+    const rect = _pop.getBoundingClientRect()
+    const _left = rect1.left - pRect.left
+    const _diff = pRect.width - _left - rect1.width / 2
+    if (_left < rect.width / 2 || pRect.width < rect.width) {
+      const t = rect.width / 2 - _left
+      _pop.style.left = `${t}px`
+    } else if (_diff < rect.width / 2) {
+      const t = _diff - rect.width / 2 + rect1.width / 2
+      _pop.style.left = `${t}px`
+    } else {
+      _pop.style.left = '50%'
+    }
+  },
+
   updateDuration () {
     const { progress } = this.player.plugins
     if (!progress) {
@@ -242,6 +281,10 @@ export default function initDotsAPI (plugin) {
     return item
   })
   plugin.ispotsInit = false
+  plugin.playerSize = {
+    left: player.sizeInfo.left,
+    width: player.sizeInfo.width
+  }
   plugin.on(Events.DURATION_CHANGE, () => {
     if (!plugin.ispotsInit) {
       plugin.initDots()
@@ -249,5 +292,8 @@ export default function initDotsAPI (plugin) {
       // 更新节点
       plugin.updateDuration()
     }
+  })
+  plugin.on(Events.VIDEO_RESIZE, () => {
+    plugin.positionDots()
   })
 }

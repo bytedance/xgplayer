@@ -14,6 +14,23 @@ $shortBottom: -4px;
       min-width: 6px;
       transform: translate(-50%, 0);
     }
+    &.active {
+      .xgplayer-spot-pop {
+        display: block;
+        opacity: 1;
+        pointer-events: initial;
+      }
+    }
+  }
+  .xgplayer-spot-pop {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    padding-bottom: 5px;
+    transform: translateX(-50%);
   }
 
   @at-root.xgplayer-mobile {
