@@ -1980,8 +1980,11 @@ class Player extends MediaProxy {
 
   resizePosition () {
     const { rotate, vy, vx, h, w } = this.videoPos
+    if (!rotate && !vy && !vx) {
+      return
+    }
     let _pi = this.videoPos._pi
-    if (!_pi) {
+    if (!_pi && this.media.videoHeight) {
       _pi = this.media.videoWidth / this.media.videoHeight * 100
     }
     if (!_pi) {
