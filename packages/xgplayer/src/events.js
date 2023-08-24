@@ -12,6 +12,7 @@ export const CANPLAY_THROUGH = 'canplaythrough'
 export const DURATION_CHANGE = 'durationchange'
 export const VOLUME_CHANGE = 'volumechange'
 export const LOADED_DATA = 'loadeddata'
+export const LOADED_METADATA = 'loadedmetadata'
 export const RATE_CHANGE = 'ratechange'
 export const PROGRESS = 'progress'
 export const LOAD_START = 'loadstart'
@@ -92,6 +93,7 @@ export const VIDEO_EVENTS = [
   'durationchange',
   'volumechange',
   'loadeddata',
+  'loadedmetadata',
   'ratechange',
   'progress',
   'loadstart',
