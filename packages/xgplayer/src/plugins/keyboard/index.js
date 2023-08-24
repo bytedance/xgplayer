@@ -1,4 +1,5 @@
 import { BasePlugin, Events } from '../../plugin'
+
 /**
  * @typedef {{
  *   seekStep?: number,
@@ -6,6 +7,7 @@ import { BasePlugin, Events } from '../../plugin'
  *   disableBodyTrigger?: boolean,
  *   keyCodeMap?: { [propName: string]: any },
  *   disable: boolean,
+ *   playbackRate: number,
  *   isIgnoreUserActive: boolean,
  *   [propName: string]: any
  * }} IKeyboardConfig
@@ -37,12 +39,13 @@ class Keyboard extends BasePlugin {
   static get defaultConfig () {
     return {
       seekStep: 10, // Left/right fast forward each operation time
-      checkVisible: true, // Whether to check the visibility when the shortcut key takes effect
+      checkVisible: false, // Whether to check the visibility when the shortcut key takes effect
       disableBodyTrigger: false, // Whether to monitor the shortcut keys on the body
       disableRootTrigger: false, // 是否在player.root上做快捷键监听
       isGlobalTrigger: false, // Whether the shortcut key needs to be triggered globally
       keyCodeMap: {},
       disable: false,
+      playbackRate: 2, // 长按倍速限制
       isIgnoreUserActive: false // 是否忽略用户激活状态
     }
   }
@@ -54,7 +57,7 @@ class Keyboard extends BasePlugin {
         if (!this.keyCodeMap[key]) {
           this.keyCodeMap[key] = extendkeyCodeMap[key]
         } else {
-          ['keyCode', 'action', 'disable', 'isBodyTarget'].map(key1 => {
+          ['keyCode', 'action', 'disable', 'pressAction', 'disablePress', 'isBodyTarget'].map(key1 => {
             extendkeyCodeMap[key][key1] && (this.keyCodeMap[key][key1] = extendkeyCodeMap[key][key1])
           })
         }
@@ -73,37 +76,51 @@ class Keyboard extends BasePlugin {
         keyCode: 32,
         action: 'playPause',
         disable: false,
+        disablePress: false,
         noBodyTarget: false
       },
       up: {
         keyCode: 38,
         action: 'upVolume',
         disable: false,
+        disablePress: false,
         noBodyTarget: true
       },
       down: {
         keyCode: 40,
         action: 'downVolume',
         disable: false,
+        disablePress: false,
         noBodyTarget: true
       },
       left: {
         keyCode: 37,
         action: 'seekBack',
+        disablePress: false,
         disable: false
       },
       right: {
         keyCode: 39,
         action: 'seek',
+        pressAction: 'changePlaybackRate',
+        disablePress: false,
         disable: false
       },
       esc: {
         keyCode: 27,
         action: 'exitFullscreen',
+        disablePress: true,
         disable: false
       }
     }
     this.mergekeyCodeMap()
+    this._keyState = {
+      isKeyDown: false,
+      isBodyKeyDown: false,
+      isPress: false,
+      tt: 0,
+      playbackRate: 0
+    }
     this.player.root.addEventListener('keydown', this.onKeydown)
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
@@ -133,6 +150,9 @@ class Keyboard extends BasePlugin {
 
   downVolume (event) {
     const { player } = this
+    if (player.volume <= 0) {
+      return
+    }
     const val = parseFloat((player.volume - 0.1).toFixed(1))
     const props = {
       volume: {
@@ -150,6 +170,9 @@ class Keyboard extends BasePlugin {
 
   upVolume (event) {
     const { player } = this
+    if (player.volume >= 1) {
+      return
+    }
     const val = parseFloat((player.volume + 0.1).toFixed(1))
     const props = {
       volume: {
@@ -168,8 +191,9 @@ class Keyboard extends BasePlugin {
   seek (event) {
     const { currentTime, duration } = this.player
     let _time = currentTime
-    if (currentTime + this.seekStep <= duration) {
-      _time = currentTime + this.seekStep
+    const _step = event.repeat && this.seekStep >= 4 ? parseInt(this.seekStep / 2, 10) : this.seekStep
+    if (currentTime + _step <= duration) {
+      _time = currentTime + _step
     } else {
       _time = duration
     }
@@ -185,9 +209,10 @@ class Keyboard extends BasePlugin {
 
   seekBack (event) {
     const { currentTime } = this.player
+    const _step = event.repeat ? parseInt(this.seekStep / 2, 10) : this.seekStep
     let _time = 0
-    if (currentTime - this.seekStep >= 0) {
-      _time = currentTime - this.seekStep
+    if (currentTime - _step >= 0) {
+      _time = currentTime - _step
     }
     const props = {
       currentTime: {
@@ -197,6 +222,14 @@ class Keyboard extends BasePlugin {
     }
     this.emitUserAction(event, 'seek', { props })
     this.player.currentTime = _time
+  }
+
+  changePlaybackRate (event) {
+    const { _keyState, config, player } = this
+    if (_keyState.playbackRate === 0) {
+      _keyState.playbackRate = player.playbackRate
+      player.playbackRate = config.playbackRate
+    }
   }
 
   playPause (event) {
@@ -235,64 +268,126 @@ class Keyboard extends BasePlugin {
   }
 
   onBodyKeyDown = (event) => {
+    if (!this.player) {
+      return
+    }
     const e = event || window.event
-    if (!this.player || (!this.player.isUserActive && !this.config.isIgnoreUserActive)) {
-      return
-    }
-    if (this.config.disable || this.config.disableBodyTrigger || !this.checkIsVisible() || e.metaKey || e.altKey || e.ctrlKey) {
-      return
-    }
     const keyCode = e.keyCode
-    if ((e.target === document.body || (this.config.isGlobalTrigger && !isDisableTag(e.target))) && this.checkCode(keyCode, true)) {
-      preventDefault(e)
-      this.handleKeyCode(keyCode, event)
-      return false
+    const { _keyState } = this
+    // 首次进入进行是否生效校验
+    if (!event.repeat) {
+      if (_keyState.isKeyDown || this.config.disable || this.config.disableBodyTrigger || (!this.player.isUserActive && !this.config.isIgnoreUserActive) || !this.checkIsVisible() || e.metaKey || e.altKey || e.ctrlKey) {
+        return
+      }
+      if ((e.target === document.body || (this.config.isGlobalTrigger && !isDisableTag(e.target))) && this.checkCode(keyCode, true)) {
+        _keyState.isBodyKeyDown = true
+      }
+      document.addEventListener('keyup', this.onBodyKeyUp)
     }
-    return false
+    if (!_keyState.isBodyKeyDown) {
+      return
+    }
+    this.handleKeyDown(e)
+  }
+
+  onBodyKeyUp = (event) => {
+    if (!this.player) {
+      return
+    }
+    document.removeEventListener('keyup', this.onBodyKeyUp)
+    this.handleKeyUp(event)
   }
 
   onKeydown = (event) => {
+    if (!this.player) {
+      return
+    }
     const e = event || window.event
-    if (this.config.disable || this.config.disableRootTrigger || e.metaKey || e.altKey || e.ctrlKey) {
+    const { _keyState } = this
+    // 首次按下检查是否满足触发他条件
+    if (!e.repeat) {
+      if (this.config.disable || this.config.disableRootTrigger || e.metaKey || e.altKey || e.ctrlKey) {
+        return
+      }
+      if (!this.player.isUserActive && !this.config.isIgnoreUserActive) {
+        return
+      }
+      if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
+        _keyState.isKeyDown = true
+      }
+      this.player.root.addEventListener('keyup', this.onKeyup)
+    }
+    // 长按不满足触发条件直接返回
+    if (!_keyState.isKeyDown) {
       return
     }
-    if (!this.player.isUserActive && !this.config.isIgnoreUserActive) {
-      return
-    }
-    if (!this.player.isUserActive && !this.config.isIgnoreUserActive) {
-      return
-    }
-    if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
-      preventDefault(e)
-    } else {
-      return true
-    }
-    this.handleKeyCode(e.keyCode, event)
+    this.handleKeyDown(e)
   }
 
-  handleKeyCode (curKeyCode, event) {
-    Object.keys(this.keyCodeMap).map(key => {
-      const { action, keyCode, disable } = this.keyCodeMap[key]
-      if (keyCode === curKeyCode && !disable) {
-        if (typeof action === 'function') {
-          action(event, this.player)
-        } else if (typeof action === 'string') {
-          if (typeof this[action] === 'function') {
-            this[action](event, this.player)
-          }
-        }
-        this.emit(Events.SHORTCUT, {
-          key: key,
-          target: event.target,
-          ...this.keyCodeMap[key]
-        })
+  onKeyup = (event) => {
+    if (!this.player) {
+      return
+    }
+    this.player.root.removeEventListener('keyup', this.onKeyup)
+    this.handleKeyUp(event)
+  }
+
+  handleKeyDown (e) {
+    const { _keyState } = this
+    if (e.repeat) {
+      _keyState.isPress = true
+      const _t = Date.now()
+      if (_t - _keyState.tt < 200) {
+        return
       }
-    })
+      _keyState.tt = _t
+    }
+    preventDefault(e)
+    this.handleKeyCode(e.keyCode, e, _keyState.isPress)
+  }
+
+  handleKeyUp (e) {
+    const { _keyState } = this
+    if (_keyState.playbackRate > 0) {
+      this.player.playbackRate = _keyState.playbackRate
+      _keyState.playbackRate = 0
+    }
+    _keyState.isKeyDown = false
+    _keyState.isPress = false
+    _keyState.tt = 0
+  }
+
+  handleKeyCode (curKeyCode, event, isPress) {
+    const arr = Object.keys(this.keyCodeMap)
+    for (let i = 0; i < arr.length; i++) {
+      const { action, keyCode, disable, pressAction, disablePress } = this.keyCodeMap[arr[i]]
+      if (keyCode === curKeyCode) {
+        if (!disable && !(isPress && disablePress)) {
+          const _action = !isPress ? action : (pressAction || action)
+          if (typeof _action === 'function') {
+            action(event, this.player, isPress)
+          } else if (typeof _action === 'string') {
+            if (typeof this[_action] === 'function') {
+              this[_action](event, this.player, isPress)
+            }
+          }
+          this.emit(Events.SHORTCUT, {
+            key: arr[i],
+            target: event.target,
+            isPress: isPress,
+            ...this.keyCodeMap[arr[i]]
+          })
+        }
+        break
+      }
+    }
   }
 
   destroy () {
     this.player.root.removeEventListener('keydown', this.onKeydown)
     document.removeEventListener('keydown', this.onBodyKeyDown)
+    this.player.root.removeEventListener('keyup', this.onKeyup)
+    document.removeEventListener('keyup', this.onBodyKeyUp)
   }
 
   disable () {
