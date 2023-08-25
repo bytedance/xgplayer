@@ -88,7 +88,7 @@ class Controls extends Plugin {
     playerConfig.closeControlsBlur && player.focus({ autoHide: false })
   }
 
-  onMouseLeave = () => {
+  onMouseLeave = (e) => {
     const { player } = this
     player.focus()
   }
@@ -116,11 +116,12 @@ class Controls extends Plugin {
   }
 
   show () {
-    Util.addClass(this.root, 'show')
+    this.root.style.display = ''
+    this.player.focus()
   }
 
   hide () {
-    Util.removeClass(this.root, 'show')
+    this.root.style.display = 'none'
   }
 
   /**

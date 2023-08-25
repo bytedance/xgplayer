@@ -1563,7 +1563,8 @@ class Player extends MediaProxy {
    * @description 播放器焦点状态，控制栏显示
    * @param { {
    *   autoHide?: boolean, // 是否可以自动隐藏
-   *   delay?: number // 自动隐藏的延迟时间, ms, 不传默认使用3000ms
+   *   delay?: number     // 自动隐藏的延迟时间, ms, 不传默认使用3000ms
+   *   isLock?: boolean   // 是否锁定, 锁定之后自动呼出和blur调用都不生效, 默认值false
    * } } [data]
    */
   focus (
@@ -1601,33 +1602,31 @@ class Player extends MediaProxy {
 
   /**
    * @protected
-   * @param { { autoHide?: boolean, delay?: number} } [data]
+   * @param { { autoHide?: boolean, delay?: number, isLock?: boolean } } [data]
    * @returns
    */
-  onFocus ({
-    autoHide = !this.config.closePlayerBlur,
-    delay = this.config.inactive
-  } = {}) {
+  onFocus (data = { autoHide: true, delay: 3000 }) {
     this.isActive = true
     this.removeClass(STATE_CLASS.INACTIVE)
     if (this.userTimer) {
       Util.clearTimeout(this, this.userTimer)
       this.userTimer = null
     }
-    if (!autoHide) {
+    if (data.autoHide === false || data.isLock === true) {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
         this.userTimer = null
       }
       return
     }
+    const time = data.delay || this.config.inactive
     this.userTimer = Util.setTimeout(
       this,
       () => {
         this.userTimer = null
         this.blur()
       },
-      delay
+      time
     )
   }
 
