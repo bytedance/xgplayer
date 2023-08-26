@@ -86,12 +86,12 @@ class Time extends Plugin {
     let current = player.currentTime + this.timeOffset
     current = Util.adjustTimeByDuration(current, duration, isEnded)
     if (this.mode === 'flex') {
-      this.centerCurDom.innerHTML = Util.format(current)
+      this.centerCurDom.innerHTML = this.minWidthTime(Util.format(current))
       if (duration !== Infinity && duration > 0) {
         this.centerDurDom.innerHTML = Util.format(duration)
       }
     } else {
-      this.timeDom.innerHTML = Util.format(current)
+      this.timeDom.innerHTML = this.minWidthTime(Util.format(current))
       if (duration !== Infinity && duration > 0) {
         this.durationDom.innerHTML = Util.format(duration)
       }
@@ -100,10 +100,10 @@ class Time extends Plugin {
 
   onReset () {
     if (this.mode === 'flex') {
-      this.centerCurDom.innerHTML = Util.format(0)
+      this.centerCurDom.innerHTML = this.minWidthTime(Util.format(0))
       this.centerDurDom.innerHTML = Util.format(0)
     } else {
-      this.timeDom.innerHTML = Util.format(0)
+      this.timeDom.innerHTML = this.minWidthTime(Util.format(0))
       this.durationDom.innerHTML = Util.format(0)
     }
   }
@@ -114,9 +114,21 @@ class Time extends Plugin {
       return
     }
     const center = player.controls.center
-    this.centerCurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time xg-time-left')
-    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time xg-time-right')
-    center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom)
+    this.centerCurDom = Util.createDom(
+      'xg-icon',
+      '00:00',
+      {},
+      'xgplayer-time xg-time-left'
+    )
+    this.centerDurDom = Util.createDom(
+      'xg-icon',
+      '00:00',
+      {},
+      'xgplayer-time xg-time-right'
+    )
+    center.children.length > 0
+      ? center.insertBefore(this.centerCurDom, center.children[0])
+      : center.appendChild(this.centerCurDom)
     center.appendChild(this.centerDurDom)
   }
 
@@ -157,10 +169,17 @@ class Time extends Plugin {
       return
     }
     if (this.mode === 'flex') {
-      this.centerCurDom.innerHTML = Util.format(time)
+      this.centerCurDom.innerHTML = this.minWidthTime(Util.format(time))
       return
     }
-    this.timeDom.innerHTML = Util.format(time)
+    this.timeDom.innerHTML = this.minWidthTime(Util.format(time))
+  }
+
+  minWidthTime (timeStr) {
+    return timeStr
+      .split(':')
+      .map(value => `<span class="time-min-width">${value}</span>`)
+      .join(':')
   }
 
   resetActive () {

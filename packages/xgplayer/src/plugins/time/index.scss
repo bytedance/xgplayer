@@ -16,6 +16,16 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
       height: 40px;
       // text-align: center;
       // vertical-align: middle;
+      .time-min-width {
+        text-align: center;
+        min-width: 2ch;
+        &:first-child {
+          text-align: right;
+        }
+        &:last-child {
+          text-align: left;
+        }
+      }
     }
     .time-duration {
       color: $timeDurationColor;
