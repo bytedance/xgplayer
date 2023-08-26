@@ -23,7 +23,7 @@ import { getLang } from './utils/util'
  *   height?: number | string,
  *   fluid?: boolean,
  *   fitVideoSize?: 'fixWidth'|'fixHeight'|'fixed',
- *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover',
+ *   videoFillMode?: 'auto'|'fillHeight'|'fillWidth'|'fill'|'cover'|'contain',
  *   volume?: number | { [propName: string]: any },
  *   autoplay?: boolean,
  *   autoplayMuted?: boolean,
