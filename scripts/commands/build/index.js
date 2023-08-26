@@ -11,64 +11,64 @@ const ui = require('cliui')({ width: process.stdout.columns || 80 })
 const { build: viteBuild } = require('vite')
 const ctx = require('../../context')
 const { getUmdName, getJsEntry, getUmdGlobals, getEsBuildConfig, getBuildConfig, splitSubArrays } = require('../../utils')
-const os = require('os');
-const numCPUs = os.cpus().length;
+const os = require('os')
+const numCPUs = os.cpus().length
 
-const { isMainThread, parentPort, Worker } = require('worker_threads');
+const { isMainThread, parentPort, Worker } = require('worker_threads')
 
 
 if (!isMainThread) {
   parentPort.once('message', async (target) => {
     try {
-      await build(target);
+      await build(target)
     } catch (e) {
-      console.error(e.message);
-      parentPort.postMessage('failed');
+      console.error(e.message)
+      parentPort.postMessage('failed')
     }
-    parentPort.postMessage('finished');
+    parentPort.postMessage('finished')
   })
 }
 
 const buildInWorker = async (target) => {
-  let resolve, reject;
+  let resolve, reject
   const result = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
+    resolve = res
+    reject = rej
   })
 
-  const worker = new Worker(path.resolve(__dirname, './index.js'));
-  worker.postMessage(target);
+  const worker = new Worker(path.resolve(__dirname, './index.js'))
+  worker.postMessage(target)
   worker.on('message', (result) => {
-    worker.terminate();
+    worker.terminate()
     if (result === 'failed') {
-      reject(new Error(target + ' build failed'));
+      reject(new Error(target + ' build failed'))
     } else {
-      resolve();
+      resolve()
 
     }
 
   })
-  return result;
+  return result
 }
 
-async function buildAll() {
-  const pkgNames = splitSubArrays(await ctx.getPkgDeps(), Math.ceil(numCPUs / 2));
+async function buildAll () {
+  const pkgNames = splitSubArrays(await ctx.getPkgDeps(), Math.ceil(numCPUs / 2))
 
   for (const curPkgs of pkgNames) {
     try {
       await Promise.all(curPkgs.map(buildInWorker))
 
     } catch (e) {
-      console.error(e.message);
+      console.error(e.message)
       // process.exit(1);
     }
   }
 }
 
-async function build(target, { all } = { all: false }) {
+async function build (target, { all } = { all: false }) {
 
   if (!target && all) {
-    return buildAll();
+    return buildAll()
   }
 
   if (!target && ctx.isMonorepo) {
