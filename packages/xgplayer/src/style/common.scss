@@ -143,6 +143,12 @@
     outline: none;
   }
 
+  &[data-xgfill='contain'] {
+    video {
+      object-fit: contain;
+    }
+  }
+
   &[data-xgfill='cover'] {
     video {
       object-fit: cover;
