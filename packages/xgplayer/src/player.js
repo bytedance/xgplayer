@@ -1390,7 +1390,7 @@ class Player extends MediaProxy {
     const fullEl = Util.getFullScreenEl()
     if (fullEl === this._fullscreenEl) {
       this.onFullscreenChange()
-      return
+      return Promise.resolve()
     }
     try {
       for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
