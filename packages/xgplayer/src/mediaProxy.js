@@ -282,10 +282,11 @@ class MediaProxy extends EventEmitter {
   _attachSourceEvents (video, urls) {
     video.removeAttribute('src')
     video.load()
-    urls.forEach(item => {
+    urls.forEach((item, index) => {
       this.media.appendChild(Util.createDom('source', '', {
         src: `${item.src}`,
-        type: `${item.type || ''}`
+        type: `${item.type || ''}`,
+        'data-index': index + 1
       }))
     })
     const _c = video.children
@@ -296,6 +297,8 @@ class MediaProxy extends EventEmitter {
      * @private
      */
     this._videoSourceCount = _c.length
+
+    this._videoSourceIndex = _c.length
 
     this._vLoadeddata = (e) => {
       this.emit(SOURCE_SUCCESS, { src: e.target.currentSrc, host: Util.getHostFromUrl(e.target.currentSrc) })
@@ -312,9 +315,11 @@ class MediaProxy extends EventEmitter {
         break
       }
     }
+    // safari有些版本不是所有source都请求，导致单独使用_videoSourceIndex计算会报错
     !this._sourceError && (this._sourceError = (e) => {
-      this._videoSourceCount--
-      if (this._videoSourceCount === 0) {
+      const _dIndex = parseInt(e.target.getAttribute('data-index'), 10)
+      this._videoSourceIndex--
+      if (this._videoSourceIndex === 0 || _dIndex >= this._videoSourceCount) {
         const _err = { code: 4, message: 'sources_load_error' }
         _eHandler ? _eHandler.error(e, _err) : this.errorHandler('error', _err)
       }
