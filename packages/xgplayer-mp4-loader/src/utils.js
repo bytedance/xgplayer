@@ -197,7 +197,7 @@ export function moovToMeta (moov) {
         width = e1.width
         height = e1.height
         videoTimescale = videoTrack.mdia?.mdhd?.timescale
-        videoCodec = (e1.avcC || e1.hvcC)?.codec
+        videoCodec = (e1.avcC || e1.hvcC || e1.vvcC)?.codec
         if (e1.type === 'encv') {
           defaultKID = e1.sinf?.schi?.tenc.default_KID
         }
