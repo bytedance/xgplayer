@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4-loader",
-  "version": "3.0.8-alpha.8",
+  "version": "3.0.8-alpha.9",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -22,7 +22,7 @@
     "dist"
   ],
   "dependencies": {
-    "xgplayer-transmuxer": "3.0.8-alpha.8",
+    "xgplayer-transmuxer": "3.0.8-alpha.9",
     "xgplayer-streaming-shared": "3.0.8-alpha.3",
     "eventemitter3": "^4.0.7"
   },
