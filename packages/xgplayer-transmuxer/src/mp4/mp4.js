@@ -505,7 +505,7 @@ export class MP4 {
       config = MP4.vvcC(track)
       typ = MP4.types.bvc2
     } else {
-      MP4.avcC(track)
+      config = MP4.avcC(track)
       typ = MP4.types.avc1
     }
     // const isHevc = track.codecType === VideoCodecType.HEVC
