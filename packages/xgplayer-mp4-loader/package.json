@@ -22,8 +22,13 @@
     "dist"
   ],
   "dependencies": {
+<<<<<<< HEAD
     "xgplayer-transmuxer": "3.0.17",
     "xgplayer-streaming-shared": "3.0.17",
+=======
+    "xgplayer-transmuxer": "3.0.9-alpha.3",
+    "xgplayer-streaming-shared": "3.0.11-alpha.10",
+>>>>>>> 2770c2cf (bvc2 codec support)
     "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
