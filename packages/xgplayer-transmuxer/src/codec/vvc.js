@@ -211,8 +211,8 @@ export class VVC {
       spsParsed
     }
 
-    console.log('parseVVCDecoderConfigurationRecord:', data)
-    console.log(ret)
+    // console.log('parseVVCDecoderConfigurationRecord:', data)
+    // console.log(ret)
 
     return ret
   }
@@ -369,7 +369,7 @@ export class VVC {
   }
 
   static parseSPS (sps) {
-    console.log(sps)
+    // console.log(sps)
     const eg = new ExpGolomb(sps)
 
     eg.readUByte()

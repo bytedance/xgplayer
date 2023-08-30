@@ -582,11 +582,6 @@ export class MP4 {
   static vvcC (track) {
     const vvcC = track.vvcC
     return MP4.box(MP4.types.bv2C, new Uint8Array(vvcC))
-    // return [
-    //   Fmp4.size(8 + vvcC.byteLength),
-    //   Fmp4.type('vvcC'),
-    //   vvcC
-    // ]
   }
 
   static hvcC (track) {
