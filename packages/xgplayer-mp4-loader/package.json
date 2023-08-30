@@ -1,10 +1,6 @@
 {
   "name": "xgplayer-mp4-loader",
-<<<<<<< HEAD
   "version": "3.0.9",
-=======
-  "version": "3.0.8-alpha.8",
->>>>>>> d9aadf8f (release: xgplayer-mp4-loader@3.0.8-alpha.8)
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
