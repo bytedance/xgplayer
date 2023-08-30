@@ -60,7 +60,9 @@ export class MP4 {
     'schi',
     'mehd',
     'fiel',
-    'sdtp'
+    'sdtp',
+    'bvc2',
+    'bv2C'
   ].reduce((p, c) => {
     p[c] = [c.charCodeAt(0), c.charCodeAt(1), c.charCodeAt(2), c.charCodeAt(3)]
     return p
@@ -353,7 +355,7 @@ export class MP4 {
       content = MP4.encv(track)
       // console.log('[remux],encv, len,', content.byteLength, track.type, hashVal(content.toString()))
     } else {
-      content = MP4.avc1hev1(track)
+      content = MP4.avc1hev1vvc1(track)
       // console.log('[remux],avc1hev1, len,', content.byteLength, track.type, hashVal(content.toString()))
     }
     const stsd = MP4.box(MP4.types.stsd, new Uint8Array([
@@ -493,10 +495,22 @@ export class MP4 {
     return MP4.box(MP4.types.sinf, content, MP4.box(MP4.types.frma, frma), MP4.box(MP4.types.schm, schm), schi)
   }
 
-  static avc1hev1 (track) {
-    const isHevc = track.codecType === VideoCodecType.HEVC
-    const typ = isHevc ? MP4.types.hvc1 : MP4.types.avc1
-    const config = isHevc ? MP4.hvcC(track) : MP4.avcC(track)
+  static avc1hev1vvc1 (track) {
+    let config
+    let typ
+    if (track.codecType === VideoCodecType.HEVC) {
+      config = MP4.hvcC(track)
+      typ = MP4.types.hvc1
+    } else if (track.codecType === VideoCodecType.VVCC){
+      config = MP4.vvcC(track)
+      typ = MP4.types.bvc2
+    } else {
+      config = MP4.avcC(track)
+      typ = MP4.types.avc1
+    }
+    // const isHevc = track.codecType === VideoCodecType.HEVC
+    // const typ = isHevc ? MP4.types.hvc1 : MP4.types.avc1
+    // const config = isHevc ? MP4.hvcC(track) : MP4.avcC(track)
     const boxes = [
       new Uint8Array([
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // reserved
@@ -524,7 +538,7 @@ export class MP4 {
     ]
     // console.log('[remux],avc1hev1_0, len,', boxes[0].byteLength, hashVal(boxes[0].toString()))
     // console.log('[remux],avc1hev1_1, len,', boxes[1].byteLength, hashVal(boxes[1].toString()))
-    if (isHevc) {
+    if (track.codecType === VideoCodecType.HEVC) {
       boxes.push(MP4.box(MP4.types.fiel, new Uint8Array([0x01, 0x00])))
       // console.log('[remux],fiel, len,', boxes[2].byteLength, hashVal(boxes[2].toString()))
     } else if (track.sarRatio && track.sarRatio.length > 1) {
@@ -563,6 +577,11 @@ export class MP4 {
     ].concat(...sps)
       .concat([track.pps.length]) // numOfPictureParameterSets
       .concat(...pps)))
+  }
+
+  static vvcC (track) {
+    const vvcC = track.vvcC
+    return MP4.box(MP4.types.bv2C, new Uint8Array(vvcC))
   }
 
   static hvcC (track) {
