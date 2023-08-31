@@ -1,4 +1,12 @@
 # 版本更新记录
+## 3.0.9
+>* fix(xgplayer):修复sourceList播放类型下safari第一个source节点不触发error导致整体error不触发问题
+>* feat(xgplayer): player.focus API增加控制了栏锁定模式
+>* feat(xgplayer): 增加LOADED_METADATA事件的触发
+>* feat(xgplayer): 键盘快捷键添加长按限流优化, 200ms触发一次; rigth键长按添加2倍速
+>* fix(xgplayer): 没有position或者rotate角度设置的时候不做video的style设置
+>* feat(xgplayer): 进度条打点提示层的显示增加播放器边界限制
+>* fix: current time shifting when updating
 ## 3.0.8
 >* fix(xgplayer): download链接获取兼容blob
 >* fix: 🐛 (xgplayer) 修复roate旋转容器时，一直旋转的问题 fixed #1045
