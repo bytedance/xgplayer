@@ -20,7 +20,8 @@
  *  manifestList?: Array<{url: string, manifest: string}>
  *  fetchOptions?: RequestInit
  *  onPreM3U8Parse?: (m3u8: string) => string | void
- *  decryptor?: Decryptor
+ *  decryptor?: Decryptor,
+ *  minSegmentsStartPlay?: number
  * }} HlsOption
  */
 
@@ -46,6 +47,7 @@ export function getConfig (cfg) {
     allowedStreamTrackChange: true,
     seiInTime: false,
     manifestList: [],
+    minSegmentsStartPlay: 3,
     ...cfg,
     media
   }
