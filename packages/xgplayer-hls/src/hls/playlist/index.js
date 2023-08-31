@@ -54,12 +54,20 @@ export class Playlist {
     ]
   }
 
+  get nbSegments () {
+    return this.currentSegments?.length || 0
+  }
+
   get isEmpty () {
     return !this.currentSegments?.length
   }
 
   get isLive () {
     return this.currentStream?.live
+  }
+
+  get hadSegmentLoaded () {
+    return this._segmentPointer !== -1
   }
 
   get hasSubtitle () {

@@ -154,30 +154,34 @@ export class Hls extends EventEmitter {
       }
     }
 
-    if (manifest) {
-      if (this.isLive) {
-        this._bufferService.setLiveSeekableRange(0, 0xffffffff)
-        logger.log('totalDuration first time got', this._playlist.totalDuration)
+    if (!manifest) return
 
-        // 配置的目标延迟小于首次获取分片总时长
-        if (this.config.targetLatency < this._playlist.totalDuration) {
-          this.config.targetLatency = this._playlist.totalDuration
-          this.config.maxLatency = 1.5 * this.config.targetLatency
-        }
+    if (this.isLive) {
+      this._bufferService.setLiveSeekableRange(0, 0xffffffff)
+      logger.log('totalDuration first time got:', this._playlist.totalDuration)
+      logger.log('nb segments got:', this._playlist.nbSegments)
 
-        if (!manifest.isMaster) this._pollM3U8(url)
-      } else {
-        await this._bufferService.updateDuration(currentStream.totalDuration)
-
-        const { startTime } = this.config
-        if (startTime) {
-          if (!this._switchUrlOpts?.seamless) {
-            this.media.currentTime = startTime
-          }
-
-          this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(startTime) || 0)
-        }
+      // 配置的目标延迟小于首次获取分片总时长
+      if (this.config.targetLatency < this._playlist.totalDuration) {
+        this.config.targetLatency = this._playlist.totalDuration
+        this.config.maxLatency = 1.5 * this.config.targetLatency
       }
+
+      if (!manifest.isMaster) this._pollM3U8(url)
+      if (this._playlist.nbSegments < this.config.minSegmentsStartPlay) return
+
+      await this._loadSegment()
+      return
+    }
+
+    await this._bufferService.updateDuration(currentStream.totalDuration)
+
+    const { startTime } = this.config
+    if (startTime) {
+      if (!this._switchUrlOpts?.seamless) {
+        this.media.currentTime = startTime
+      }
+      this._playlist.setNextSegmentByIndex(this._playlist.findSegmentIndexByTime(startTime) || 0)
     }
 
     await this._loadSegment()
@@ -423,7 +427,8 @@ export class Hls extends EventEmitter {
       (p1, p2, p3) => {
         this._playlist.upsertPlaylist(p1, p2, p3)
         this._playlist.clearOldSegment()
-        if (p1 && isEmpty && !this._playlist.isEmpty) {
+        const switchToNoEmpty = p1 && isEmpty && !this._playlist.isEmpty
+        if (switchToNoEmpty || (!this._playlist.hadSegmentLoaded && this._playlist.nbSegments >= this.config.minSegmentsStartPlay)) {
           this._loadSegment()
         }
         if (isEmpty) isEmpty = this._playlist.isEmpty
