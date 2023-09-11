@@ -1,3 +1,5 @@
+## xgplayer-hls@3.0.9
+
 ## xgplayer-hls@3.0.8
 >* fix: m3u8文本累计duration与实际视频duration不一致结尾seek不触发end
 >* fix: 起播seek存在并行重复下载分片case
