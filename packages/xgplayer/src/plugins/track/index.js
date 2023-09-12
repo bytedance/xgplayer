@@ -306,7 +306,7 @@ export default class TextTrack extends OptionsIcon {
     if (!list) {
       return
     }
-    this.updateList()
+    this.updateList({list})
     this.subTitles && this.subTitles.setSubTitles(this.config.list, this.curIndex > -1, needRemove)
   }
 
