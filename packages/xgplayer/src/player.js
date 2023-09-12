@@ -209,7 +209,7 @@ class Player extends MediaProxy {
     this.videoPos = {
       pi: 1, // 宽高比
       scale: 0,
-      rotate: 0,
+      rotate: -1,
       x: 0,
       y: 0,
       h: -1, // 高度占比
@@ -1989,7 +1989,7 @@ class Player extends MediaProxy {
 
   resizePosition () {
     const { rotate, vy, vx, h, w } = this.videoPos
-    if (!rotate && !vy && !vx) {
+    if (rotate < 0 && !vy && !vx) {
       return
     }
     let _pi = this.videoPos._pi
