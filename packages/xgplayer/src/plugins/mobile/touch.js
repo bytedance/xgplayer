@@ -31,11 +31,6 @@ function getTouch (touches) {
   }
 }
 
-// function preventToucheDefault (e) {
-//   const ua = navigator.userAgent;
-//   /(?:iPhone|iPad)/.test(ua) && e.cancelable && e.preventDefault()
-// }
-
 function getDefaultConfig () {
   return {
     pressDelay: 600,
@@ -68,10 +63,6 @@ class Touche {
   }
 
   _initEvent () {
-    this.onTouchStart = this.onTouchStart.bind(this)
-    this.onTouchMove = this.onTouchMove.bind(this)
-    this.onTouchEnd = this.onTouchEnd.bind(this)
-    this.onTouchCancel = this.onTouchCancel.bind(this)
     this.root.addEventListener(this.events.start, this.onTouchStart)
   }
 
@@ -149,7 +140,7 @@ class Touche {
     })
   }
 
-  onTouchStart (e) {
+  onTouchStart = (e) => {
     const { _pos, root } = this
     // config.needPreventDefault && preventToucheDefault(e)
     const touch = getTouch(e.touches)
@@ -163,11 +154,11 @@ class Touche {
     this.trigger(EVENTS.TOUCH_START, e)
   }
 
-  onTouchCancel (e) {
+  onTouchCancel = (e) => {
     this.onTouchEnd(e)
   }
 
-  onTouchEnd (e) {
+  onTouchEnd = (e) => {
     const { _pos, root } = this
     // config.needPreventDefault && preventToucheDefault(e)
     this.__clearPress()
@@ -184,7 +175,7 @@ class Touche {
     _pos.moving = false
   }
 
-  onTouchMove (e) {
+  onTouchMove = (e) => {
     const { _pos, config } = this
     const touch = getTouch(e.touches)
     const x = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -207,10 +198,11 @@ class Touche {
       touchmove: 'onTouchMove',
       touchstart: 'onTouchStart'
     }
-    Object.keys(map).map(key => {
-      this.root.removeEventListener('touchend', this[map[key]])
+    Object.keys(map).forEach(key => {
+      this.root.removeEventListener(key, this[map[key]])
     })
   }
 }
 
 export default Touche
+
