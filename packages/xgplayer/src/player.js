@@ -307,6 +307,18 @@ class Player extends MediaProxy {
      */
     this._isPauseBeforeSeek = 0
 
+    /**
+     * @description 内部状态记录
+     * @type { {
+    *   isActiveLocked: boolean;
+    * } }
+    * @readonly
+    */
+    this.innerStates = {
+      // 当前的active是否是锁定状态
+      isActiveLocked: false
+    }
+
     const rootInit = this._initDOM()
     if (!rootInit) {
       console.error(
@@ -1628,28 +1640,28 @@ class Player extends MediaProxy {
    * @returns
    */
   onFocus (data = { autoHide: true, delay: 3000 }) {
+    const { innerStates } = this
     this.isActive = true
     this.removeClass(STATE_CLASS.INACTIVE)
     if (this.userTimer) {
       Util.clearTimeout(this, this.userTimer)
       this.userTimer = null
     }
-    if (data.autoHide === false || data.isLock === true) {
+    if (data.isLock !== undefined) {
+      innerStates.isActiveLocked = data.isLock
+    }
+    if (data.autoHide === false || data.isLock === true || innerStates.isActiveLocked) {
       if (this.userTimer) {
         Util.clearTimeout(this, this.userTimer)
         this.userTimer = null
       }
       return
     }
-    const time = data.delay || this.config.inactive
-    this.userTimer = Util.setTimeout(
-      this,
-      () => {
-        this.userTimer = null
-        this.blur()
-      },
-      time
-    )
+    const time = data && data.delay ? data.delay : this.config.inactive
+    this.userTimer = Util.setTimeout(this, () => {
+      this.userTimer = null
+      this.blur()
+    }, time)
   }
 
   /**
@@ -1658,7 +1670,7 @@ class Player extends MediaProxy {
    * @returns
    */
   onBlur ({ ignorePaused = false } = {}) {
-    if (!this.isActive) {
+    if (!this.isActive || this.innerStates.isActiveLocked) {
       return
     }
     const { closePauseVideoFocus } = this.config

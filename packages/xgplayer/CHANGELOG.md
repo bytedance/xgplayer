@@ -1,4 +1,8 @@
 # 版本更新记录
+## 3.0.10
+>* fix(xgplayer): 播放器销毁mobile插件事件解绑不全问题修复
+>* fix(xgplayer): 初始videoPo.rotate修改为-1
+>* feat(xgplayer): player.focus API增加控制了栏锁定模式
 ## 3.0.9
 >* fix(xgplayer):修复sourceList播放类型下safari第一个source节点不触发error导致整体error不触发问题
 >* feat(xgplayer): player.focus API增加控制了栏锁定模式
