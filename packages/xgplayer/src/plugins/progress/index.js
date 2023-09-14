@@ -92,12 +92,21 @@ class Progress extends Plugin {
     this._disableBlur = false
   }
 
+  get offsetDuration () {
+    return this.playerConfig.customDuration || this.player.offsetDuration || this.player.duration
+  }
+
   get duration () {
     return this.playerConfig.customDuration || this.player.duration
   }
 
   get timeOffset () {
     return this.playerConfig.timeOffset || 0
+  }
+
+  get currentTime () {
+    const { offsetCurrentTime, currentTime } = this.player
+    return offsetCurrentTime >= 0 ? offsetCurrentTime : (currentTime + this.timeOffset)
   }
 
   changeState (useable = true) {
@@ -562,12 +571,16 @@ class Progress extends Plugin {
    */
   updateWidth (currentTime, percent, type) {
     const { config, player } = this
+    const { timeSegments } = this.playerConfig
     if (config.isCloseClickSeek && type === 0) {
       return
     }
     const realTime = currentTime >= player.duration ? player.duration - config.endedDiff : Number(currentTime).toFixed(1)
-    this.updatePercent(percent)
-    this.updateTime(currentTime)
+    const _offsetTime = Util.getOffsetCurrentTime(currentTime, timeSegments)
+    const _offsetPercent = _offsetTime / this.offsetDuration
+    console.log('>>>updateWidth', currentTime, realTime, percent, _offsetTime, _offsetPercent)
+    this.updatePercent(_offsetTime)
+    this.updateTime(_offsetPercent)
     if (type === 1 && (!config.isDragingSeek || player.config.mediaType === 'audio')) {
       return
     }
@@ -642,9 +655,9 @@ class Progress extends Plugin {
     }
     percent = percent > 1 ? 1 : (percent < 0 ? 0 : percent)
     this.progressBtn.style.left = `${percent * 100}%`
-    this.innerList.update({ played: percent * this.duration }, this.duration)
+    this.innerList.update({ played: percent * this.offsetDuration }, this.offsetDuration)
     const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ played: percent * this.duration }, this.duration)
+    miniprogress && miniprogress.update({ played: percent * this.offsetDuration }, this.offsetDuration)
   }
 
   /**
@@ -653,7 +666,7 @@ class Progress extends Plugin {
    * @returns
    */
   onTimeupdate (isEnded) {
-    const { player, _state, duration } = this
+    const { player, _state, offsetDuration } = this
     if (player.isSeeking || this.isProgressMoving) {
       return
     }
@@ -666,12 +679,12 @@ class Progress extends Plugin {
         _state.now = -1
       }
     }
-    let time = this.timeOffset + player.currentTime
-    time = Util.adjustTimeByDuration(time, duration, isEnded)
-    this.innerList.update({ played: time }, duration)
-    this.progressBtn.style.left = `${time / duration * 100}%`
+    let time = this.currentTime // this.timeOffset + player.currentTime
+    time = Util.adjustTimeByDuration(time, offsetDuration, isEnded)
+    this.innerList.update({ played: time }, offsetDuration)
+    this.progressBtn.style.left = `${time / offsetDuration * 100}%`
     const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ played: time }, duration)
+    miniprogress && miniprogress.update({ played: time }, offsetDuration)
   }
 
   /**
