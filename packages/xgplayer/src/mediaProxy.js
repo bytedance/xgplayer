@@ -172,6 +172,11 @@ class MediaProxy extends EventEmitter {
       this.mediaConfig.loop = 'loop'
     }
 
+    // Warning：一些移动端浏览器需要设置DOM属性，否则会导致非静音切换频地址后开播失败
+    if (options.autoplayMuted && !Object.prototype.hasOwnProperty.call(this.mediaConfig, 'muted')) {
+      this.mediaConfig.muted = true
+    }
+
     /**
      * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IMediaProxy | null }
      */
