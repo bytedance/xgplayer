@@ -1,10 +1,11 @@
-import Player, { SimplePlayer } from '../../packages/xgplayer/src/index'
+import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
 // import Poster from '../../packages/xgplayer/src/plugins/poster'
 // import Start from '../../packages/xgplayer/src/plugins/start'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
 console.log('vconsole')
+window.Util = Util
 window.POS = {
   "h": 0.40625,
   "y": 0.1899999976158142
@@ -37,31 +38,19 @@ function init(index = 0, config = {}) {
   }
   window[p] = new Player({
     id: 'video' + index,
-    url: './222.mp4',
-  //   [
-  //     {
-  //         "src": "//v3-web.douyinvod.com/8f1282bd3ebc6627fe6edd11ab7ab21e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
-  //     },
-  //     {
-  //         "src": "//v26-web.douyinvod.com/4d55158b93f09f1ac4d86b66bb42cc4e/649a9de1/video/tos/cn/tos-cn-ve-152c001-alinc2/owOAiQsiiMCFogZQIPAB1QZCmAEvvMVnSI2zJ/?a=6383&ch=5&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1233&bt=1233&cs=0&ds=4&ft=GN7rKGVVywIiRZm8Zmo~xj7ScoAppB996vrKktfDfto0g3&mime_type=video_mp4&qs=0&rc=ZGZkaGY8NTQ3ZTs4M2Q6NEBpajozN285cmx1bDMzNGkzM0BhLzRhNmItNWAxNDNgLjJeYSNeMi00MmRrM2BgLS1kLS9zcw%3D%3D&l=2023062715280030A46D62A1944C09A04F&btag=e00028000"
-  //     },
-  //     {
-  //         "src": "//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000cicr6inog65l740057ag&line=0&file_id=a1571ac065784bc48102e99cde7a2cda&sign=05b1511ce3feee7ed6c65a84ad9be301&is_play_url=1&source=PackSourceEnum_FEED&aid=6383"
-  //     }
-  // ],
+    url: "//www.douyin.com/aweme/v1/play/?aid=6383&app_name=aweme&channel=channel_pc_web&device_platform=web&did=0&file_id=04b6b579aaf64942bcc57f6954b811cc&fp=verify_lkkstvaf_kc3S4S8D_vCIm_4Ckn_86WE_emQFw5ALyblC&is_play_url=1&line=0&referer=&sign=99a98a0b93793a736c61fb329a795474&source=PackSourceEnum_FEED&target=7271575282622958904&user_agent=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F116.0.0.0%20Safari%2F537.36&video_id=v0200fg10000cjkt5drc77u07pkv6rlg&webid=7260388078304020026&downgrade_264=1",
   DynamicBg: {
       disable: false
     },
-    marginControls: false,
+    marginControls: true,
     loop: false,
-    autoplay: true,
+    autoplay: false,
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
     width: '80%',
     ignores:['playbackrate'],
     plugins: [],
-    
     rotate: true,
     // controls: {
     //   // mode: 'normal',
@@ -85,33 +74,42 @@ function init(index = 0, config = {}) {
     mobile: {
       // gestureX: false
     },
+    // timeSegments: ,
+    timeSegmentsControls:{
+      disable: false,
+      segments: [{start: 0, end: 10}]
+    },
+    keyboard: {
+      seekStep: 2
+    },
     progresspreview: {
-      ispots: [{
+      ispots1: [{
         id: 1,
-        time: 2,
-        template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(1)>这是点击按钮</button></div>`,
+        time: 22,
+        // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(1)>这是点击按钮</button></div>`,
         style: {
           backgroundColor: 'yellow'
         },
-        duration: 20
+        duration: 58
       },{
         id: 2,
-        time:40,
-        template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(2)">这是点击按钮</button></div>`,
+        time:120,
+        // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(2)">这是点击按钮</button></div>`,
         style: {
           backgroundColor: 'yellow'
         },
-        duration: 20
+        duration: 30
       }, {
         id: 3,
-        time: 70,
-        template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(3)>这是点击按钮</button></div>`,
+        time: 189,
+        // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(3)>这是点击按钮</button></div>`,
         style: {
           backgroundColor: 'yellow'
         },
-        duration: 10
+        duration: 11
       }]
     },
+    seekedStatus: 'pause',
     texttrack: {
       debugger: false,
       list: [{
@@ -196,8 +194,8 @@ function init(index = 0, config = {}) {
   // }, 10)
   window[p].once('canplay',() => {
     console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
-    window[p].seek(30)
-    window[p].play()
+    // window[p].seek(30)
+    // window[p].play()
   })
 
   window[p].on('source_success', (data) => {
@@ -218,21 +216,21 @@ function init(index = 0, config = {}) {
     // addLog(index, `[download_speed_change] speed:${data.speed}, realTimeSpeed:${data.realTimeSpeed || 0}`)
   })
 
-  window[p].on('xglog', data => {
-    console.log('[xglog]', data)
-    if (data.eventType === 'firstFrame' || data.eventType === 'waitingEnd') {
-      addLog(
-        index,
-        `[xglog] eventType:${data.eventType} ${data.costTime || 0} ${data.endType || ''}`
-      )
-    }
-  })
+  // window[p].on('xglog', data => {
+  //   console.log('[xglog]', data)
+  //   if (data.eventType === 'firstFrame' || data.eventType === 'waitingEnd') {
+  //     addLog(
+  //       index,
+  //       `[xglog] eventType:${data.eventType} ${data.costTime || 0} ${data.endType || ''}`
+  //     )
+  //   }
+  // })
 
   window.currentTime = 0
   window[p].on('timeupdate', () => {
-    if (window[p].currentTime > currentTime) {
-      currentTime = window[p].currentTime
-    }
+    // if (window[p].currentTime > currentTime) {
+    //   currentTime = window[p].currentTime
+    // }
   })
   window[p].useHooks('play', () => {
     console.log('useHooks play dddd')

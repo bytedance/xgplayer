@@ -171,6 +171,8 @@ class Player extends MediaProxy {
      */
     this._fullscreenEl = null
 
+    this.timeSegments = []
+
     /**
      * cssfullscreen target Element
      * @type { HTMLElement | null }
@@ -231,6 +233,14 @@ class Player extends MediaProxy {
       t: 0,
       acc: 0,
       loopAcc: 0
+    }
+
+    /**
+     * @description 播放器时长、播放时间偏移信息
+     */
+    this._offsetInfo = {
+      currentTime: -1,
+      duration: 0
     }
 
     /**
@@ -2091,7 +2101,7 @@ class Player extends MediaProxy {
     const { videoWidth, videoHeight } = this.media
     const { fitVideoSize, videoFillMode } = this.config
 
-    if (videoFillMode === 'fill' || videoFillMode === 'cover' || videoFillMode  === 'contain') {
+    if (videoFillMode === 'fill' || videoFillMode === 'cover' || videoFillMode === 'contain') {
       this.setAttribute('data-xgfill', videoFillMode)
     }
 
@@ -2459,6 +2469,21 @@ class Player extends MediaProxy {
     return REAL_TIME_SPEED
   }
 
+  get offsetCurrentTime () {
+    return this._offsetInfo.currentTime || 0
+  }
+
+  set offsetCurrentTime (val) {
+    this._offsetInfo.currentTime = val
+  }
+
+  get offsetDuration () {
+    return this._offsetInfo.duration || 0
+  }
+
+  set offsetDuration (val) {
+    this._offsetInfo.duration = val || 0
+  }
   /**
    * @param { string } hookName
    * @param { Function } handler
