@@ -81,12 +81,12 @@ export default class ProgressPreview extends Plugin {
   afterCreate () {
     this._curDot = null
     this.handlerSpotClick = this.hook('spotClick', (_event, data) => {
-      if (data.currentTime) {
-        this.player.seek(data.currentTime)
+      if (data.seekTime) {
+        this.player.seek(data.seekTime)
       }
     })
     this.transformTimeHook = this.hook('transformTime', (time) => {
-      this.setTimeContent(Util.format(time))
+      this.setTimeContent(time)
     })
     initDotsAPI(this)
 
@@ -319,10 +319,11 @@ export default class ProgressPreview extends Plugin {
 
   /**
    * @description 设置自定义时间显示字符串
-   * @param {string} str
+   * @param {number} time
    */
-  setTimeContent (str) {
-    this.timeStr = str
+  setTimeContent (time) {
+    // const offTime = Util.getOffsetCurrentTime(time, this.playerConfig.timeSegments)
+    this.timeStr = `${Util.format(time)}`
   }
 
   updateThumbnails (time) {

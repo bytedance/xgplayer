@@ -94,6 +94,10 @@ import { getLang } from './utils/util'
  *     sliderBtnStyle?: { [propName: string]: any },
  *     volumeColor?: string
  *   },
+ *   timeSegments: Array<{
+ *     start: Number,
+ *     end: Number
+ *   }>
  *   [propName: string]: any;
  * } } IPlayerOptions
  */
@@ -178,6 +182,7 @@ export default function getDefaultConfig () {
       cachedColor: '', // The background color of cached part in the progress bar
       sliderBtnStyle: {}, // progress bar slider style
       volumeColor: ''
-    }
+    },
+    timeSegments: []
   }
 }

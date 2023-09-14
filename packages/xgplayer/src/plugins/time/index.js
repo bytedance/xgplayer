@@ -20,11 +20,13 @@ class Time extends Plugin {
   }
 
   get duration () {
-    return this.playerConfig.customDuration || this.player.duration
+    const { offsetDuration, duration } = this.player
+    return this.playerConfig.customDuration || offsetDuration || duration
   }
 
   get currentTime () {
-    return this.player.currentTime || 0
+    const { offsetCurrentTime, currentTime } = this.player
+    return offsetCurrentTime >= 0 ? offsetCurrentTime : currentTime
   }
 
   get timeOffset () {
@@ -44,6 +46,7 @@ class Time extends Plugin {
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
     this.on(Events.DURATION_CHANGE, () => {
+      console.log('>>>offsetCurrentTime DURATION_CHANGE')
       this.onTimeUpdate()
     })
     this.on(Events.TIME_UPDATE, () => {
@@ -83,7 +86,7 @@ class Time extends Plugin {
     if (config.disable || this.isActiving || !player.hasStart) {
       return
     }
-    let current = player.currentTime + this.timeOffset
+    let current = this.currentTime + this.timeOffset
     current = Util.adjustTimeByDuration(current, duration, isEnded)
     if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = this.minWidthTime(Util.format(current))

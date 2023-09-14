@@ -14,6 +14,7 @@ import Progress from '../plugins/progress'
 import PlayIcon from '../plugins/play'
 import FullScreen from '../plugins/fullscreen'
 import TimeIcon from '../plugins/time'
+import TimeSegments from '../plugins/time/timesegments'
 import Volume from '../plugins/volume'
 import RotateIcon from '../plugins/rotate'
 import PIPIcon from '../plugins/pip'
@@ -43,7 +44,7 @@ export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode === 'mobile'
     const { isLive } = playerConfig
-    const vodPlugins = isLive ? [] : [Progress, MiniProgress, ProgressPreview, TimeIcon]
+    const vodPlugins = isLive ? [] : [Progress, MiniProgress, ProgressPreview, TimeIcon, TimeSegments]
 
     const contolsIcons = [...vodPlugins, PlayIcon, FullScreen,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
