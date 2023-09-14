@@ -857,6 +857,76 @@ util.convertDeg = function (val) {
   return val % 360
 }
 
+util.getIndexByTime = function (time, segments) {
+  const _len = segments.length
+  let _index = -1
+  if (_len < 1) {
+    return _index
+  }
+  if (time <= segments[0].end || _len < 2) {
+    _index = 0
+  } else if (time > segments[_len - 1].end) {
+    _index = _len - 1
+  } else {
+    for (let i = 1; i < _len; i++) {
+      if (time > segments[i - 1].end && time <= segments[i].end){
+        _index = i
+        break
+      }
+    }
+  }
+  return _index
+}
+util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
+  let _index = -1
+  if (index >= 0 && index < segments.length) {
+    _index = index
+  } else {
+    _index = util.getIndexByTime(currentTime, segments)
+  }
+  if (_index < 0) {
+    return -1
+  }
+  const _len = segments.length
+  const { start, end, cTime, offset } = segments[_index]
+  if (currentTime < start) {
+    return cTime
+  } else if (currentTime >= start && currentTime <= end) {
+    return currentTime - offset
+  } else if (currentTime > end && _index >= _len - 1) {
+    return end
+  }
+  return -1
+}
+
+/**
+ *
+ * @param {*} offsetTime
+ * @param {*} segments
+ * @returns
+ */
+util.getCurrentTimeByOffset = function (offsetTime, segments) {
+  let _index = -1
+  if (!segments || segments.length < 0) {
+    return offsetTime
+  }
+  for (let i = 0; i < segments.length; i++) {
+    if (offsetTime <= segments[i].duration) {
+      _index = i
+      break
+    }
+  }
+  if (_index !== -1) {
+    const { start } = segments[_index]
+    if (_index - 1 < 0) {
+      return start + offsetTime
+    } else {
+      return start + (offsetTime - segments[_index - 1].duration)
+    }
+  }
+  return offsetTime
+}
+
 function isObject (value) {
   const type = typeof value
   return value !== null && (type === 'object' || type === 'function')
