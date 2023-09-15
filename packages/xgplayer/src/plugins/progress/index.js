@@ -579,8 +579,8 @@ class Progress extends Plugin {
     const _offsetTime = Util.getOffsetCurrentTime(currentTime, timeSegments)
     const _offsetPercent = _offsetTime / this.offsetDuration
     console.log('>>>updateWidth', currentTime, realTime, percent, _offsetTime, _offsetPercent)
-    this.updatePercent(_offsetTime)
-    this.updateTime(_offsetPercent)
+    this.updatePercent(currentTime)
+    this.updateTime(percent)
     if (type === 1 && (!config.isDragingSeek || player.config.mediaType === 'audio')) {
       return
     }
@@ -605,7 +605,7 @@ class Progress extends Plugin {
     offset = offset > rWidth ? rWidth : (offset < 0 ? 0 : offset)
     let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
-    const currentTime = parseInt(percent * this.duration * 1000, 10) / 1000
+    const currentTime = parseInt(percent * this.offsetDuration * 1000, 10) / 1000
     return {
       percent,
       currentTime,

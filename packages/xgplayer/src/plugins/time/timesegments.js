@@ -37,14 +37,15 @@ export default class TimeSegments extends BasePlugin {
   formatTimeSegments (timeSegments) {
     timeSegments.sort((a,b) =>{ return a.start - b.start })
     timeSegments.forEach((item, index) => {
-      item.duration = item.end - item.start
       if (index === 0) {
         item.offset = item.start
         item.cTime = 0
+        item.duration = item.end - item.start
       } else {
         const last = timeSegments[index - 1]
         item.offset = last.offset + (item.start - last.end)
         item.cTime = last.duration + last.cTime
+        item.allDuration = last.duration + item.start - last.end
       }
       this.duration += (item.end - item.start)
     })
@@ -62,7 +63,7 @@ export default class TimeSegments extends BasePlugin {
     this.player.offsetCurrentTime = time
     this.changeIndex(0, timeSegments)
     if (this.curPos.start > 0){
-      this.player.seek(this.curPos.start)
+      this.player.currentTime = this.curPos.start
     }
   }
 
@@ -79,7 +80,7 @@ export default class TimeSegments extends BasePlugin {
     console.log('>>>_onTimeupdate', currentTime, curTime)
     this.player.offsetCurrentTime = curTime
     if (currentTime < start) {
-      this.player.seek(start)
+      this.player.currentTime = start
     } else if (currentTime > end && index >= _len - 1) {
       this.player.pause()
     }

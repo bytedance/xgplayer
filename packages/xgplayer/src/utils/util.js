@@ -884,13 +884,25 @@ util.getOffsetCurrentTime = function (currentTime, segments) {
     return currentTime
   }
   const _len = segments.length
-  const { start, end, cTime, duration, offset } = segments[_index]
+  const { start, end, cTime, offset } = segments[_index]
   if (currentTime < start) {
     return cTime
   } else if (currentTime > end && _index >= _len - 1) {
-    return cTime + duration
+    return cTime + end - start
   } else if (currentTime > start) {
     return currentTime - offset
+  }
+}
+
+util.getCurrentTimeByOffset = function (offsetTime, segments) {
+  let _index = -1
+  for (let i = 0; i < segments.length; i++) {
+    if (offsetTime >= segments[i].start && offsetTime <= segments[i].end) {
+      _index = i
+    }
+  }
+  if (_index !== -1) {
+    return offsetTime + segments[_index].offset
   }
 }
 
