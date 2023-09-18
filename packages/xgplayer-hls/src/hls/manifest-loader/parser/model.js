@@ -77,7 +77,15 @@ export class MediaPlaylist {
   endSN = 0
   totalDuration = 0
   targetDuration = 0
+  partTargetDuration = 0
+  canSkipUntil = 0
+  canSkipDateRanges = false
+  skippedSegments = 0
+  canBlockReload = false
+  partHoldBack = 0
   live = true
+  lowLatency = false
+  endPartIndex = 0
   /** @type {Array.<MediaSegment>} */
   segments = []
 }
@@ -98,6 +106,9 @@ export class MediaSegment {
   isLast = false
   hasAudio = false
   hasVideo = false
+
+  independent = false
+  partIndex = 0
 
   get end () {
     return this.start + this.duration

@@ -13,6 +13,7 @@ export function parseMediaPlaylist (lines, parentUrl) {
   let index = 0
   let line
   let endOfList = false
+  let partSegmentIndex = 0
 
 
   // eslint-disable-next-line no-cond-assign
@@ -21,6 +22,11 @@ export function parseMediaPlaylist (lines, parentUrl) {
       break
     }
     if (line[0] !== '#') { // url
+      if (media.lowLatency) {
+        curSN++
+        continue
+      }
+
       curSegment.sn = curSN
       curSegment.cc = curCC
       curSegment.url = getAbsoluteUrl(line, parentUrl)
@@ -35,7 +41,6 @@ export function parseMediaPlaylist (lines, parentUrl) {
     const tag = parseTag(line)
     if (!tag) continue
     const [name, data] = tag
-
     switch (name) {
       case 'VERSION':
         media.version = parseInt(data)
@@ -45,6 +50,22 @@ export function parseMediaPlaylist (lines, parentUrl) {
         break
       case 'TARGETDURATION':
         media.targetDuration = parseFloat(data)
+        break
+      case 'PART-INF': {
+        media.lowLatency = true
+        const attr = parseAttr(data)
+        if (attr['PART-TARGET']) {
+          media.partTargetDuration = parseFloat(attr['PART-TARGET'])
+        }
+      }
+        break
+      case 'SERVER-CONTROL':{
+        const attr = parseAttr(data)
+        media.canBlockReload = attr['CAN-BLOCK-RELOAD'] === 'YES'
+        media.partHoldBack = parseFloat(attr['PART-HOLD-BACK'] || 0)
+        media.canSkipUntil = parseFloat(attr['CAN-SKIP-UNTIL'] || 0)
+        media.canSkipDateRanges = attr['CAN-SKIP-DATERANGES'] === 'YES'
+      }
         break
       case 'ENDLIST': {
         const lastSegment = media.segments[media.segments.length - 1]
@@ -67,7 +88,33 @@ export function parseMediaPlaylist (lines, parentUrl) {
       case 'BYTERANGE':
         curSegment.setByteRange(data, media.segments[media.segments.length - 1])
         break
+      case 'PART': {
+        if (!media.lowLatency) break
+        const attr = parseAttr(data)
+        curSegment.duration = parseFloat(attr['DURATION'])
+        curSegment.independent = attr['INDEPENDENT'] === 'YES'
+        curSegment.sn = curSN
+        curSegment.cc = curCC
+        curSegment.partIndex = partSegmentIndex
+        curSegment.start = totalDuration
+        curSegment.duration = parseFloat(attr['DURATION'])
+        totalDuration += curSegment.duration
+        curSegment.url = getAbsoluteUrl(attr['URI'], parentUrl)
+        if (curKey) curSegment.key = curKey.clone(curSN)
+        if (curInitSegment) curSegment.initSegment = curInitSegment
+        media.segments.push(curSegment)
+        curSegment = new MediaSegment()
+        partSegmentIndex++
+      }
+
+        break
+      case 'PRELOAD-HINT':
+        break
       case 'EXTINF': {
+        if (media.lowLatency) {
+          partSegmentIndex = 0
+          break
+        }
         const [duration, title] = data.split(',')
         curSegment.start = totalDuration
         curSegment.duration = parseFloat(duration)
@@ -117,7 +164,10 @@ export function parseMediaPlaylist (lines, parentUrl) {
   media.segments = media.segments.filter(x => x.duration !== 0)
 
   const lastSegment = media.segments[media.segments.length - 1]
-  if (lastSegment) media.endSN = lastSegment.sn
+  if (lastSegment) {
+    media.endSN = lastSegment.sn
+    media.endPartIndex = lastSegment.partIndex
+  }
 
   media.totalDuration = totalDuration
   media.endCC = curCC
