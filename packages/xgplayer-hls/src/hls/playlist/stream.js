@@ -1,3 +1,7 @@
+import { Logger } from 'xgplayer-streaming-shared'
+
+const logger = new Logger('playlist')
+
 export class Stream {
   live = undefined
   id = 0
@@ -16,6 +20,15 @@ export class Stream {
   endSN = -1
   totalDuration = 0
   targetDuration = 0
+
+  partTargetDuration = 0
+  canSkipUntil = 0
+  canSkipDateRanges = false
+  skippedSegments = 0
+  canBlockReload = false
+  partHoldBack = 0
+  lowLatency = false
+  endPartIndex = 0
 
   snDiff = null // number
 
@@ -63,7 +76,7 @@ export class Stream {
   }
 
   constructor (playlist, audioPlaylist, subtitlePlaylist) {
-    this.update(playlist, audioPlaylist, subtitlePlaylist)
+    this.update(this._setLLPlaybackPoint(playlist), audioPlaylist, subtitlePlaylist)
   }
 
   clearOldSegment (startTime, pointer) {
@@ -93,6 +106,15 @@ export class Stream {
       this.totalDuration = playlist.totalDuration
       this.targetDuration = playlist.targetDuration
       this.live = playlist.live
+
+      this.lowLatency = playlist.lowLatency
+      this.canBlockReload = playlist.canBlockReload
+      this.canSkipDateRanges = playlist.canSkipDateRanges
+      this.canSkipUntil = playlist.canSkipUntil
+      this.partHoldBack = playlist.partHoldBack
+      this.partTargetDuration = playlist.partTargetDuration
+      this.skippedSegments = playlist.skippedSegments
+      this.endPartIndex = playlist.endPartIndex
 
       if (audioPlaylist && this.currentAudioStream && Array.isArray(audioPlaylist.segments)) {
         this._updateSegments(audioPlaylist, this.currentAudioStream)
@@ -155,6 +177,38 @@ export class Stream {
     }
   }
 
+  _setLLPlaybackPoint (playlist) {
+    if (!playlist.lowLatency || !playlist.segments.length) return playlist
+
+    const maxStartPoint = playlist.totalDuration - playlist.partHoldBack
+    const segs = playlist.segments
+    let index = 0
+
+    for (let i = 0, l = segs.length; i < l; i++) {
+      if (segs[i].start <= maxStartPoint && segs[i].independent) {
+        index = i
+      }
+    }
+
+    const usefulSegs = segs.slice(index)
+    let endTime = 0
+
+    usefulSegs.forEach(s => {
+      s.start = endTime
+      endTime = s.end
+    })
+
+    playlist.segments = usefulSegs
+    playlist.totalDuration = endTime
+    playlist.startSN = usefulSegs[0].sn
+    playlist.startCC = usefulSegs[0].cc
+
+    logger.log(`set ll-hls playback point: SN=${playlist.startSN} partIndex=${usefulSegs[0].partIndex}, duration=${endTime}`)
+
+    return playlist
+
+  }
+
   _clearSegments (startTime, pointer) {
     let sliceStart = 0
     const segments = this.segments
@@ -182,18 +236,31 @@ export class Stream {
   _updateSegments (playlist, segObj) {
     const segments = segObj.segments
     if (this.live) {
+      const lowLatency = playlist.lowLatency
       const endSeg = segments[segments.length - 1]
       const endSN = endSeg?.sn || -1
-      if (endSN < playlist.endSN && playlist.segments.length) {
-        const index = playlist.segments.findIndex(x => x.sn === endSN)
+      const endPartIndex = endSeg?.partIndex || 0
+
+      let hasNew = endSN < playlist.endSN && playlist.segments.length
+
+      if (lowLatency) {
+        hasNew = hasNew || endPartIndex < playlist.endPartIndex
+      }
+
+      if (hasNew) {
+        logger.log(`update segments: endSN:${endSN}, partIndex:${endPartIndex} --> endSN:${playlist.endSN}, partIndex:${playlist.endPartIndex}`)
+        const index = playlist.segments.findIndex(x => x.sn === endSN && x.partIndex === endPartIndex)
         const toAppend = index < 0 ? playlist.segments : playlist.segments.slice(index + 1)
 
         if (segments.length && toAppend.length) {
           let endTime = endSeg.end
+          const endTimeBeforeAppend = endTime
           toAppend.forEach(seg => {
             seg.start = endTime
             endTime = seg.end
           })
+
+          logger.log(`liveEdge: ${endTimeBeforeAppend} -> ${endTime}`)
 
           const lastCC = endSeg?.cc || -1
           if (lastCC > toAppend[0].cc) {

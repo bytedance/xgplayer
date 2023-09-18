@@ -420,6 +420,14 @@ export class Hls extends EventEmitter {
    */
   _pollM3U8 (url, audioUrl, subtitleUrl) {
     let isEmpty = this._playlist.isEmpty
+    let pollInterval
+
+    if (this._playlist.lowLatency) {
+      pollInterval = (this._playlist.currentStream.partTargetDuration * 2 || 0) * 1000
+    } else {
+      pollInterval = (this._playlist.lastSegment?.duration || 0) * 1000
+    }
+
     this._manifestLoader.poll(
       url,
       audioUrl,
@@ -436,7 +444,8 @@ export class Hls extends EventEmitter {
         this._emitError(StreamingError.create(err))
       },
       // 刷新时间
-      (this._playlist.lastSegment?.duration || 0) * 1000)
+      pollInterval
+    )
   }
 
   /**
@@ -482,6 +491,7 @@ export class Hls extends EventEmitter {
     let cachedError = null
     try {
       this._segmentProcessing = true
+      logger.log(`load segment, sn:${seg.sn}, partIndex:${seg.partIndex}`)
       appended = await this._reqAndBufferSegment(seg, this._playlist.getAudioSegment(seg))
     } catch (error) {
       // If an exception is thrown here, other reference functions

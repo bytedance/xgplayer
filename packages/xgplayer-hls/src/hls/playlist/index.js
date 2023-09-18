@@ -17,6 +17,10 @@ export class Playlist {
     this.hls = hls
   }
 
+  get lowLatency () {
+    return this.currentStream?.lowLatency
+  }
+
   get lastSegment () {
     return this.currentStream?.lastSegment
   }
