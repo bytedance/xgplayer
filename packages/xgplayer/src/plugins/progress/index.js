@@ -593,7 +593,6 @@ class Progress extends Plugin {
   computeTime (e, x) {
     const { player } = this
     const { width, height, top, left } = this.root.getBoundingClientRect()
-    const { timeSegments } = this.playerConfig
     let rWidth, rLeft
     const clientX = x
     if (player.rotateDeg === 90) {
@@ -608,7 +607,7 @@ class Progress extends Plugin {
     let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
     const currentTime = parseInt(percent * this.offsetDuration * 1000, 10) / 1000
-    const seekTime = Util.getCurrentTimeByOffset(currentTime, timeSegments)
+    const seekTime = Util.getCurrentTimeByOffset(currentTime, player.timeSegments)
     return {
       percent,
       currentTime,

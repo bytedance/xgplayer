@@ -171,6 +171,8 @@ class Player extends MediaProxy {
      */
     this._fullscreenEl = null
 
+    this.timeSegments = []
+
     /**
      * cssfullscreen target Element
      * @type { HTMLElement | null }
@@ -240,8 +242,6 @@ class Player extends MediaProxy {
       currentTime: -1,
       duration: 0
     }
-
-    this.timeOffset = 0
 
     /**
      * @type { null | HTMLElement }

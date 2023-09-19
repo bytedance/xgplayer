@@ -322,7 +322,6 @@ export default class ProgressPreview extends Plugin {
    * @param {number} time
    */
   setTimeContent (time) {
-    // const offTime = Util.getOffsetCurrentTime(time, this.playerConfig.timeSegments)
     this.timeStr = `${Util.format(time)}`
   }
 

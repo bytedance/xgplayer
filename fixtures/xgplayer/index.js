@@ -74,7 +74,11 @@ function init(index = 0, config = {}) {
     mobile: {
       // gestureX: false
     },
-    timeSegments: [], // [{start: 22, end: 80}, {start: 189, end: 200}, {start: 120, end: 150}],
+    // timeSegments: ,
+    TimeSegmentsControls:{
+      disable: false,
+      segments: [{start: 22, end: 80}, {start: 189, end: 200}, {start: 120, end: 150}]
+    },
     progresspreview: {
       ispots: [{
         id: 1,

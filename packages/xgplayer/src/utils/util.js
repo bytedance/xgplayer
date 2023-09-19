@@ -895,7 +895,7 @@ util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
   } else if (currentTime >= start && currentTime <= end) {
     return currentTime - offset
   } else if (currentTime > end && _index >= _len - 1) {
-    return cTime + end - start
+    return end
   }
   return currentTime
 }
