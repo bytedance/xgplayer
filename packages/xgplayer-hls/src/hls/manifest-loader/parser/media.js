@@ -1,7 +1,7 @@
 import { MediaPlaylist, MediaSegment, MediaSegmentKey } from './model'
 import { getAbsoluteUrl, parseAttr, parseTag } from './utils'
 
-export function parseMediaPlaylist (lines, parentUrl) {
+export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
   const media = new MediaPlaylist()
   media.url = parentUrl
   let curSegment = new MediaSegment()
@@ -52,7 +52,9 @@ export function parseMediaPlaylist (lines, parentUrl) {
         media.targetDuration = parseFloat(data)
         break
       case 'PART-INF': {
-        media.lowLatency = true
+        if (useLowLatency) {
+          media.lowLatency = true
+        }
         const attr = parseAttr(data)
         if (attr['PART-TARGET']) {
           media.partTargetDuration = parseFloat(attr['PART-TARGET'])

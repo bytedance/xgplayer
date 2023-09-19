@@ -42,6 +42,7 @@ export function getConfig (cfg) {
     bufferBehind: 10,
     maxJumpDistance: 3,
     startTime: 0,
+    useLowLatency: true,
     targetLatency: 10,
     maxLatency: 20,
     allowedStreamTrackChange: true,

@@ -6,6 +6,7 @@ export class ManifestLoader {
   constructor (hls) {
     this.hls = hls
     this._timer = null
+    this._useLowLatency = hls.config.useLowLatency
 
     const { retryCount, retryDelay, loadTimeout, fetchOptions } = this.hls.config
     this._loader = new NetLoader({
@@ -83,15 +84,15 @@ export class ManifestLoader {
         if (audioText) audioText = onPreM3U8Parse(audioText, true) || audioText
         if (subtitleText) subtitleText = onPreM3U8Parse(subtitleText, true) || subtitleText
       }
-      playlist = M3U8Parser.parse(videoText, url)
+      playlist = M3U8Parser.parse(videoText, url, this._useLowLatency)
       if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
         throw new Error('empty segments list')
       }
       if (audioText) {
-        audioPlaylist = M3U8Parser.parse(audioText, audioUrl)
+        audioPlaylist = M3U8Parser.parse(audioText, audioUrl, this._useLowLatency)
       }
       if (subtitleText) {
-        subtitlePlaylist = M3U8Parser.parse(subtitleText, subtitleUrl)
+        subtitlePlaylist = M3U8Parser.parse(subtitleText, subtitleUrl, this._useLowLatency)
       }
 
     } catch (error) {
@@ -116,7 +117,7 @@ export class ManifestLoader {
       if (onPreM3U8Parse) {
         videoText = onPreM3U8Parse(videoText) || videoText
       }
-      playlist = M3U8Parser.parse(videoText, url)
+      playlist = M3U8Parser.parse(videoText, url, this._useLowLatency)
       if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
         throw new Error('empty segments list')
       }
