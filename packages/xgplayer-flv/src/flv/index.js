@@ -309,16 +309,19 @@ export class Flv extends EventEmitter {
     if (done && !this.media.seeking) {
       this.emit(EVENT.LOAD_COMPLETE)
       logger.debug('load done')
-      return this._end()
-    } else {
-      const { maxReaderInterval } = this._opts
-      if (maxReaderInterval) {
-        clearTimeout(this._maxChunkWaitTimer)
-        this._maxChunkWaitTimer = setTimeout(() => {
-          logger.debug('onMaxChunkWait', maxReaderInterval)
-          this._end()
-        }, maxReaderInterval)
+      this._end()
+      if (!this.isLive && this.media.readyState <= 2) {
+        this._tick()
       }
+      return
+    }
+    const { maxReaderInterval } = this._opts
+    if (maxReaderInterval) {
+      clearTimeout(this._maxChunkWaitTimer)
+      this._maxChunkWaitTimer = setTimeout(() => {
+        logger.debug('onMaxChunkWait', maxReaderInterval)
+        this._end()
+      }, maxReaderInterval)
     }
   }
 
