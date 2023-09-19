@@ -1,10 +1,11 @@
-import Player, { SimplePlayer } from '../../packages/xgplayer/src/index'
+import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
 // import Poster from '../../packages/xgplayer/src/plugins/poster'
 // import Start from '../../packages/xgplayer/src/plugins/start'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
 console.log('vconsole')
+window.Util = Util
 window.POS = {
   "h": 0.40625,
   "y": 0.1899999976158142
@@ -73,7 +74,7 @@ function init(index = 0, config = {}) {
     mobile: {
       // gestureX: false
     },
-    timeSegments: [{start: 22, end: 80}, {start: 189, end: 200}, {start: 120, end: 150}],
+    timeSegments: [], // [{start: 22, end: 80}, {start: 189, end: 200}, {start: 120, end: 150}],
     progresspreview: {
       ispots: [{
         id: 1,
@@ -101,7 +102,7 @@ function init(index = 0, config = {}) {
         duration: 11
       }]
     },
-    seekedStatus: 'pause',
+    // seekedStatus: 'pause',
     texttrack: {
       debugger: false,
       list: [{

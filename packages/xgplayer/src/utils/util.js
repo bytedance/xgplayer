@@ -878,8 +878,13 @@ util.getIndexByTime = function (time, segments) {
   }
   return _index
 }
-util.getOffsetCurrentTime = function (currentTime, segments) {
-  const _index = util.getIndexByTime(currentTime, segments)
+util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
+  let _index = -1
+  if (index >= 0 && index < segments.length) {
+    _index = index
+  } else {
+    _index = util.getIndexByTime(currentTime, segments)
+  }
   if (_index < 0) {
     return currentTime
   }
@@ -887,23 +892,40 @@ util.getOffsetCurrentTime = function (currentTime, segments) {
   const { start, end, cTime, offset } = segments[_index]
   if (currentTime < start) {
     return cTime
+  } else if (currentTime >= start && currentTime <= end) {
+    return currentTime - offset
   } else if (currentTime > end && _index >= _len - 1) {
     return cTime + end - start
-  } else if (currentTime > start) {
-    return currentTime - offset
   }
+  return currentTime
 }
 
+/**
+ *
+ * @param {*} offsetTime
+ * @param {*} segments
+ * @returns
+ */
 util.getCurrentTimeByOffset = function (offsetTime, segments) {
   let _index = -1
+  if (!segments || segments.length < 0) {
+    return offsetTime
+  }
   for (let i = 0; i < segments.length; i++) {
-    if (offsetTime >= segments[i].start && offsetTime <= segments[i].end) {
+    if (offsetTime < segments[i].duration) {
       _index = i
+      break
     }
   }
   if (_index !== -1) {
-    return offsetTime + segments[_index].offset
+    const { start } = segments[_index]
+    if (_index - 1 < 0) {
+      return start + offsetTime
+    } else {
+      return start + (offsetTime - segments[_index - 1].duration)
+    }
   }
+  return offsetTime
 }
 
 function isObject (value) {

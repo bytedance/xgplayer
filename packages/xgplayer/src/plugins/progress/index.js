@@ -381,13 +381,13 @@ class Progress extends Plugin {
 
   _mouseDownHandler = (event, data) => {
     this._state.time = data.currentTime
-    this.updateWidth(data.currentTime, data.percent, 0)
+    this.updateWidth(data.currentTime, data.seekTime, data.percent, 0)
     this._updateInnerFocus(data)
   }
 
   _mouseUpHandler = (e, data) => {
     const { pos } = this
-    pos.moving && this.updateWidth(data.currentTime, data.percent, 2)
+    pos.moving && this.updateWidth(data.currentTime, data.seekTime, data.percent, 2)
   }
 
   _mouseMoveHandler = (e, data) => {
@@ -404,7 +404,7 @@ class Progress extends Plugin {
       this.triggerCallbacks('dragstart', data, e)
       this.emitUserAction('drag', 'dragstart', data)
     }
-    this.updateWidth(data.currentTime, data.percent, 1)
+    this.updateWidth(data.currentTime, data.seekTime, data.percent, 1)
     this.triggerCallbacks('dragmove', data, e)
     this._updateInnerFocus(data)
   }
@@ -566,32 +566,34 @@ class Progress extends Plugin {
   /**
    * @description 根据currenTime和占用百分比更新进度条
    * @param {Number} currentTime 需要更新到的时间
+   * @param {Number} seekTime 实际seek的时间
    * @param {Number} percent 更新时间占比
    * @param {Int} type 触发类型 0-down 1-move 2-up
    */
-  updateWidth (currentTime, percent, type) {
+  updateWidth (currentTime, seekTime, percent, type) {
     const { config, player } = this
-    const { timeSegments } = this.playerConfig
     if (config.isCloseClickSeek && type === 0) {
       return
     }
-    const realTime = currentTime >= player.duration ? player.duration - config.endedDiff : Number(currentTime).toFixed(1)
-    const _offsetTime = Util.getOffsetCurrentTime(currentTime, timeSegments)
-    const _offsetPercent = _offsetTime / this.offsetDuration
-    console.log('>>>updateWidth', currentTime, realTime, percent, _offsetTime, _offsetPercent)
-    this.updatePercent(currentTime)
-    this.updateTime(percent)
+
+    const realTime = seekTime = seekTime >= player.duration ? player.duration - config.endedDiff : Number(seekTime).toFixed(1)
+
+    this.updatePercent(percent)
+    this.updateTime(currentTime)
     if (type === 1 && (!config.isDragingSeek || player.config.mediaType === 'audio')) {
       return
     }
     this._state.now = realTime
     this._state.direc = realTime > player.currentTime ? 0 : 1
+    player.pause()
+    console.log('>>>updateWidth', currentTime, realTime, percent)
     player.seek(realTime)
   }
 
   computeTime (e, x) {
     const { player } = this
     const { width, height, top, left } = this.root.getBoundingClientRect()
+    const { timeSegments } = this.playerConfig
     let rWidth, rLeft
     const clientX = x
     if (player.rotateDeg === 90) {
@@ -606,9 +608,11 @@ class Progress extends Plugin {
     let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
     const currentTime = parseInt(percent * this.offsetDuration * 1000, 10) / 1000
+    const seekTime = Util.getCurrentTimeByOffset(currentTime, timeSegments)
     return {
       percent,
       currentTime,
+      seekTime,
       offset,
       width: rWidth,
       left: rLeft,

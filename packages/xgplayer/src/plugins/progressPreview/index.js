@@ -81,8 +81,8 @@ export default class ProgressPreview extends Plugin {
   afterCreate () {
     this._curDot = null
     this.handlerSpotClick = this.hook('spotClick', (_event, data) => {
-      if (data.currentTime) {
-        this.player.seek(data.currentTime)
+      if (data.seekTime) {
+        this.player.seek(data.seekTime)
       }
     })
     this.transformTimeHook = this.hook('transformTime', (time) => {
