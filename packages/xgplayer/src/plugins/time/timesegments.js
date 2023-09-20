@@ -105,6 +105,7 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onTimeupdate = () => {
     const { currentTime, timeSegments } = this.player
+    this.lastCurrentTime = currentTime
     const _len = timeSegments.length
     if (_len === 0) {
       return
@@ -123,7 +124,6 @@ export default class TimeSegmentsControls extends BasePlugin {
     }
     const { start, end } = this.curPos
     if (currentTime < start) {
-      console.log('>>>_onTimeupdate seek', currentTime, start)
       this.player.currentTime = start
     } else if (currentTime > end && index >= _len - 1) {
       this.player.pause()
@@ -135,13 +135,18 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (timeSegments.length < 1) {
       return
     }
-    console.log('>>>>_onSeeking', this.lastCurrentTime, currentTime, this.lastCurrentTime > currentTime)
     if (currentTime < timeSegments[0].start) {
-      console.log('>>>_onSeeking seek', currentTime, timeSegments[0].start)
-      this.player.seek(timeSegments[0].start)
+      this.player.currentTime = timeSegments[0].start
     } else if (currentTime > timeSegments[timeSegments.length - 1].end) {
-      console.log('>>>_onSeeking seek1', currentTime,timeSegments[timeSegments.length - 1].end)
       this.player.currentTime = timeSegments[timeSegments.length - 1].end
+    } else {
+      const _index = Util.getIndexByTime(currentTime, timeSegments)
+      if (_index >= 0) {
+        const _seekTime = this.getSeekTime(currentTime, this.lastCurrentTime, _index, timeSegments)
+        if (_seekTime >= 0 ) {
+          this.player.currentTime = _seekTime
+        }
+      }
     }
   }
 
@@ -150,6 +155,25 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (timeSegments.length > 0 && currentTime >= timeSegments[timeSegments.length - 1].end) {
       this.player.seek(timeSegments[0].start)
     }
+  }
+
+  getSeekTime (currentTime, lastCurrentTime, index, timeSegments) {
+    let _time = -1
+    const { start, end } = timeSegments[index]
+    if (currentTime >= start && currentTime <= end) {
+      console.log('>>>>_onSeeking noSeek', currentTime, lastCurrentTime, start, end, _time)
+      return _time
+    }
+    const diff = currentTime - lastCurrentTime
+    if (diff < 0) {
+      if (currentTime < start) {
+        const diff2 = lastCurrentTime > start ? lastCurrentTime - start : 0
+        _time = index - 1 >= 0 ? timeSegments[index - 1].end + diff + diff2 : 0
+        console.log('>>>>_onSeeking seek3', currentTime, start, end, _time)
+        return _time
+      }
+    }
+    return -1
   }
 
   changeIndex (index, timeSegments) {

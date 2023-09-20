@@ -106,7 +106,7 @@ function init(index = 0, config = {}) {
         duration: 11
       }]
     },
-    // seekedStatus: 'pause',
+    seekedStatus: 'pause',
     texttrack: {
       debugger: false,
       list: [{
