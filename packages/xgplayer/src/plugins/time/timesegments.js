@@ -28,6 +28,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     const _segs = this.formatTimeSegments(segments)
     this.player.timeSegments = _segs
     this.player.offsetDuration = _segs.length > 0 ? _segs[_segs.length - 1].duration : 0
+    this.player.offsetCurrentTime = -1
 
     this.on(Events.LOADED_DATA, this._onLoadedData)
 
@@ -50,9 +51,10 @@ export default class TimeSegmentsControls extends BasePlugin {
       this.config[key] = newConfig[key]
     })
     const { disable, segments } = this.config
-    if (disable || segments.length === 0) {
+    if (disable || !segments || segments.length === 0) {
       this.player.timeSegments = []
       this.player.offsetDuration = 0
+      this.player.offsetCurrentTime = -1
     } else {
       const _segs = this.formatTimeSegments(segments)
       this.player.timeSegments = _segs
@@ -133,6 +135,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (timeSegments.length < 1) {
       return
     }
+    console.log('>>>>_onSeeking', this.lastCurrentTime, currentTime, this.lastCurrentTime > currentTime)
     if (currentTime < timeSegments[0].start) {
       console.log('>>>_onSeeking seek', currentTime, timeSegments[0].start)
       this.player.seek(timeSegments[0].start)
@@ -140,7 +143,6 @@ export default class TimeSegmentsControls extends BasePlugin {
       console.log('>>>_onSeeking seek1', currentTime,timeSegments[timeSegments.length - 1].end)
       this.player.currentTime = timeSegments[timeSegments.length - 1].end
     }
-    this.lastCurrentTime = currentTime
   }
 
   _onPlay = () => {

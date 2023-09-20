@@ -42,7 +42,7 @@ function init(index = 0, config = {}) {
   DynamicBg: {
       disable: false
     },
-    marginControls: false,
+    marginControls: true,
     loop: false,
     autoplay: true,
     autoplayMuted: true,
@@ -75,12 +75,12 @@ function init(index = 0, config = {}) {
       // gestureX: false
     },
     // timeSegments: ,
-    TimeSegmentsControls:{
+    timeSegmentsControls:{
       disable: false,
       segments: [{start: 22, end: 80}, {start: 189, end: 200}, {start: 120, end: 150}]
     },
     progresspreview: {
-      ispots: [{
+      ispots1: [{
         id: 1,
         time: 22,
         // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(1)>这是点击按钮</button></div>`,

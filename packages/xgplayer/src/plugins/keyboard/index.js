@@ -1,4 +1,4 @@
-import { BasePlugin, Events } from '../../plugin'
+import { BasePlugin, Events, Util } from '../../plugin'
 
 /**
  * @typedef {{
@@ -189,39 +189,43 @@ class Keyboard extends BasePlugin {
   }
 
   seek (event) {
-    const { currentTime, duration } = this.player
-    let _time = currentTime
+    const { currentTime, offsetCurrentTime, duration, offsetDuration, timeSegments } = this.player
+    let _time = offsetCurrentTime > -1 ? offsetCurrentTime : currentTime
+    const _duration = offsetDuration || duration
     const _step = event.repeat && this.seekStep >= 4 ? parseInt(this.seekStep / 2, 10) : this.seekStep
-    if (currentTime + _step <= duration) {
-      _time = currentTime + _step
+    if (_time + _step <= _duration) {
+      _time = _time + _step
     } else {
-      _time = duration
+      _time = _duration
     }
+    const _seekTime = Util.getCurrentTimeByOffset(_time, timeSegments)
     const props = {
       currentTime: {
         from: currentTime,
-        to: _time
+        to: _seekTime
       }
     }
     this.emitUserAction(event, 'seek', { props })
-    this.player.currentTime = _time
+    this.player.currentTime = _seekTime
   }
 
   seekBack (event) {
-    const { currentTime } = this.player
+    const { currentTime, offsetCurrentTime, timeSegments } = this.player
     const _step = event.repeat ? parseInt(this.seekStep / 2, 10) : this.seekStep
-    let _time = 0
-    if (currentTime - _step >= 0) {
-      _time = currentTime - _step
+    const _time = offsetCurrentTime > -1 ? offsetCurrentTime : currentTime
+    let _seekTime = _time - _step
+    if (_seekTime < 0) {
+      _seekTime = 0
     }
+    _seekTime = Util.getCurrentTimeByOffset(_seekTime, timeSegments)
     const props = {
       currentTime: {
         from: currentTime,
-        to: _time
+        to: _seekTime
       }
     }
     this.emitUserAction(event, 'seek', { props })
-    this.player.currentTime = _time
+    this.player.currentTime = _seekTime
   }
 
   changePlaybackRate (event) {
