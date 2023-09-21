@@ -153,7 +153,7 @@ export default class TimeSegmentsControls extends BasePlugin {
   _onPlay = () => {
     const { currentTime, timeSegments } = this.player
     if (timeSegments.length > 0 && currentTime >= timeSegments[timeSegments.length - 1].end) {
-      this.player.seek(timeSegments[0].start)
+      this.player.currentTime = timeSegments[0].start
     }
   }
 
@@ -169,7 +169,7 @@ export default class TimeSegmentsControls extends BasePlugin {
       if (currentTime < start) {
         const diff2 = lastCurrentTime > start ? lastCurrentTime - start : 0
         _time = index - 1 >= 0 ? timeSegments[index - 1].end + diff + diff2 : 0
-        console.log('>>>>_onSeeking seek3', currentTime, start, end, _time)
+        console.log('>>>>_onSeeking seek3', currentTime, lastCurrentTime, diff, start, end, _time)
         return _time
       }
     }

@@ -912,7 +912,7 @@ util.getCurrentTimeByOffset = function (offsetTime, segments) {
     return offsetTime
   }
   for (let i = 0; i < segments.length; i++) {
-    if (offsetTime < segments[i].duration) {
+    if (offsetTime <= segments[i].duration) {
       _index = i
       break
     }
