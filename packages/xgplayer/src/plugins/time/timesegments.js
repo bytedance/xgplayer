@@ -16,20 +16,16 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   afterCreate () {
     console.log('>>>afterCreate, this.config', this.config)
-    const { disable, segments } = this.config
-    if (disable) {
-      return
-    }
     this.curIndex = -1
     this.curPos = null
 
     this.lastCurrentTime = 0
 
-    const _segs = this.formatTimeSegments(segments)
-    this.player.timeSegments = _segs
-    this.player.offsetDuration = _segs.length > 0 ? _segs[_segs.length - 1].duration : 0
+    this.updateSegments()
+
     this.player.offsetCurrentTime = -1
 
+    this.on(Events.DURATION_CHANGE, this._onDurationChange)
     this.on(Events.LOADED_DATA, this._onLoadedData)
 
     this.on(Events.TIME_UPDATE, this._onTimeupdate)
@@ -50,28 +46,37 @@ export default class TimeSegmentsControls extends BasePlugin {
     keys.forEach(key => {
       this.config[key] = newConfig[key]
     })
+    this.updateSegments()
+  }
+
+  updateSegments () {
     const { disable, segments } = this.config
+    const { player } = this
     if (disable || !segments || segments.length === 0) {
-      this.player.timeSegments = []
-      this.player.offsetDuration = 0
-      this.player.offsetCurrentTime = -1
+      player.timeSegments = []
+      player.offsetDuration = 0
+      player.offsetCurrentTime = -1
     } else {
-      const _segs = this.formatTimeSegments(segments)
-      this.player.timeSegments = _segs
-      this.player.offsetDuration = _segs.length > 0 ? _segs[_segs.length - 1].duration : 0
+      const _segs = this.formatTimeSegments(segments, player.duration)
+      player.timeSegments = _segs
+      player.offsetDuration = _segs.length > 0 ? _segs[_segs.length - 1].duration : 0
     }
   }
 
-  formatTimeSegments (timeSegments) {
+  formatTimeSegments (timeSegments, duration) {
     const ret = []
     if (!timeSegments) {
       return []
     }
+    // console.log('>>>formatTimeSegments', duration)
     timeSegments.sort((a,b) =>{ return a.start - b.start })
     timeSegments.forEach((item, index) => {
       const _item = {}
-      _item.start = item.start
-      _item.end = item.end
+      _item.start = item.start < 0 ? 0 : item.start
+      _item.end = item.end > duration ? duration : item.end
+      if (duration > 0 && _item.start > duration) {
+        return
+      }
       ret.push(_item)
       const _segDuration = _item.end - _item.start
       if (index === 0) {
@@ -90,12 +95,21 @@ export default class TimeSegmentsControls extends BasePlugin {
     return ret
   }
 
+  _onDurationChange = () => {
+    this.updateSegments()
+    const { currentTime, timeSegments } = this.player
+    const index = Util.getIndexByTime(currentTime,timeSegments)
+    const time = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
+    this.player.offsetCurrentTime = time
+    this.changeIndex(index, timeSegments)
+  }
+
   _onLoadedData = () => {
     const { timeSegments } = this.player
     if (!timeSegments || timeSegments.length === 0) {
       return
     }
-    const time = Util.getOffsetCurrentTime(this.player.currentTime, timeSegments)
+    const time = Util.getOffsetCurrentTime(0, timeSegments)
     this.player.offsetCurrentTime = time
     this.changeIndex(0, timeSegments)
     if (this.curPos.start > 0){
@@ -105,16 +119,16 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onTimeupdate = () => {
     const { currentTime, timeSegments } = this.player
-    this.lastCurrentTime = currentTime
     const _len = timeSegments.length
     if (_len === 0) {
       return
     }
+    this.lastCurrentTime = currentTime
     const index = Util.getIndexByTime(currentTime, timeSegments)
     if (index !== this.curIndex) {
       this.changeIndex(index, timeSegments)
     }
-    const curTime = Util.getOffsetCurrentTime(currentTime, timeSegments)
+    const curTime = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
 
     this.player.offsetCurrentTime = curTime
 
@@ -161,7 +175,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     let _time = -1
     const { start, end } = timeSegments[index]
     if (currentTime >= start && currentTime <= end) {
-      console.log('>>>>_onSeeking noSeek', currentTime, lastCurrentTime, start, end, _time)
+      // console.log('>>>>_onSeeking noSeek', currentTime, lastCurrentTime, start, end, _time)
       return _time
     }
     const diff = currentTime - lastCurrentTime
@@ -169,7 +183,7 @@ export default class TimeSegmentsControls extends BasePlugin {
       if (currentTime < start) {
         const diff2 = lastCurrentTime > start ? lastCurrentTime - start : 0
         _time = index - 1 >= 0 ? timeSegments[index - 1].end + diff + diff2 : 0
-        console.log('>>>>_onSeeking seek3', currentTime, lastCurrentTime, diff, start, end, _time)
+        // console.log('>>>>_onSeeking seek3', currentTime, lastCurrentTime, diff, start, end, _time)
         return _time
       }
     }
