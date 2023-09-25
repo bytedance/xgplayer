@@ -15,15 +15,11 @@ export default class TimeSegmentsControls extends BasePlugin {
   }
 
   afterCreate () {
-    console.log('>>>afterCreate, this.config', this.config)
     this.curIndex = -1
     this.curPos = null
-
     this.lastCurrentTime = 0
 
     this.updateSegments()
-
-    this.player.offsetCurrentTime = -1
 
     this.on(Events.DURATION_CHANGE, this._onDurationChange)
     this.on(Events.LOADED_DATA, this._onLoadedData)
@@ -98,6 +94,9 @@ export default class TimeSegmentsControls extends BasePlugin {
   _onDurationChange = () => {
     this.updateSegments()
     const { currentTime, timeSegments } = this.player
+    if (!this._checkIfEnabled(timeSegments)) {
+      return
+    }
     const index = Util.getIndexByTime(currentTime,timeSegments)
     const time = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
     this.player.offsetCurrentTime = time
@@ -106,7 +105,7 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onLoadedData = () => {
     const { timeSegments } = this.player
-    if (!timeSegments || timeSegments.length === 0) {
+    if (!this._checkIfEnabled(timeSegments)) {
       return
     }
     const time = Util.getOffsetCurrentTime(0, timeSegments)
@@ -119,10 +118,10 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onTimeupdate = () => {
     const { currentTime, timeSegments } = this.player
-    const _len = timeSegments.length
-    if (_len === 0) {
+    if (!this._checkIfEnabled(timeSegments)) {
       return
     }
+    const _len = timeSegments.length
     this.lastCurrentTime = currentTime
     const index = Util.getIndexByTime(currentTime, timeSegments)
     if (index !== this.curIndex) {
@@ -146,7 +145,7 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onSeeking = () => {
     const { currentTime, timeSegments } = this.player
-    if (timeSegments.length < 1) {
+    if (!this._checkIfEnabled(timeSegments)) {
       return
     }
     if (currentTime < timeSegments[0].start) {
@@ -166,7 +165,7 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onPlay = () => {
     const { currentTime, timeSegments } = this.player
-    if (timeSegments.length > 0 && currentTime >= timeSegments[timeSegments.length - 1].end) {
+    if (this._checkIfEnabled() && currentTime >= timeSegments[timeSegments.length - 1].end) {
       this.player.currentTime = timeSegments[0].start
     }
   }
@@ -188,6 +187,10 @@ export default class TimeSegmentsControls extends BasePlugin {
       }
     }
     return -1
+  }
+
+  _checkIfEnabled (segments) {
+    return !(!segments || segments.length < 1)
   }
 
   changeIndex (index, timeSegments) {
