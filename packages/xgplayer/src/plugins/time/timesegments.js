@@ -69,7 +69,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     timeSegments.forEach((item, index) => {
       const _item = {}
       _item.start = item.start < 0 ? 0 : item.start
-      _item.end = item.end > duration ? duration : item.end
+      _item.end = duration > 0 && item.end > duration ? duration : item.end
       if (duration > 0 && _item.start > duration) {
         return
       }
@@ -165,7 +165,7 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onPlay = () => {
     const { currentTime, timeSegments } = this.player
-    if (this._checkIfEnabled() && currentTime >= timeSegments[timeSegments.length - 1].end) {
+    if (this._checkIfEnabled(timeSegments) && currentTime >= timeSegments[timeSegments.length - 1].end) {
       this.player.currentTime = timeSegments[0].start
     }
   }
