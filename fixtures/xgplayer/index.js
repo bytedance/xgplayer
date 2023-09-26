@@ -126,7 +126,6 @@ function init(index = 0, config = {}) {
         language: 'cn',
         id: '1',
         isDefault: undefined,
-        //url: 'http://tosv.byted.org/obj/tos-cn-o-0004/0edaf77715f44faebe2e348f5157280a'
         url: '../subtitle/vtt/cn.vtt'
         //url: 'http://lf1-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/52ce3882d70941d5b660913cbd83d969'
         //url: './ass/cn.ass'
