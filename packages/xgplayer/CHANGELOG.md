@@ -3,6 +3,12 @@
 >* fix(xgplayer): 播放器销毁mobile插件事件解绑不全问题修复
 >* fix(xgplayer): 初始videoPo.rotate修改为-1
 >* feat(xgplayer): player.focus API增加控制了栏锁定模式
+>* fix(xgplayer): 播放器销毁mobile插件事件解绑不全问题修复;初始videoPo.rotate修改为-1;
+>* feat(xgplayer): 增加TimeSegmentsControls插件, 支持分段时长合并播放能力；增加offsetCurrentTime\offsetDuration计算偏移时长和偏移播放进度
+>* fix(xgplayer): 修复timeupdate中获取cumulateTime计算异常问题
+>* fix(xgplayer): texttrack修复不能更新字幕
+>* fix(xgplayer): 🐛 修复移动浏览器下muted未显示设置在dom内，会导致非静音切换频地
+址后开播失败的问题
 ## 3.0.9
 >* fix(xgplayer):修复sourceList播放类型下safari第一个source节点不触发error导致整体error不触发问题
 >* feat(xgplayer): player.focus API增加控制了栏锁定模式
