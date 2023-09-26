@@ -2091,7 +2091,7 @@ class Player extends MediaProxy {
     const { videoWidth, videoHeight } = this.media
     const { fitVideoSize, videoFillMode } = this.config
 
-    if (videoFillMode === 'fill' || videoFillMode === 'cover' || videoFillMode  === 'contain') {
+    if (videoFillMode === 'fill' || videoFillMode === 'cover' || videoFillMode === 'contain') {
       this.setAttribute('data-xgfill', videoFillMode)
     }
 
@@ -2399,9 +2399,8 @@ class Player extends MediaProxy {
    * @type number
    */
   get cumulateTime () {
-    const { _accPlayed } = this
-    this.updateAcc('get')
-    return _accPlayed.acc
+    const { acc, t } = this._accPlayed
+    return t ? new Date().getTime() - t + acc : acc
   }
 
   /**
