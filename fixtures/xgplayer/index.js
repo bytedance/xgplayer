@@ -44,7 +44,7 @@ function init(index = 0, config = {}) {
     },
     marginControls: true,
     loop: false,
-    autoplay: true,
+    autoplay: false,
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
@@ -77,7 +77,10 @@ function init(index = 0, config = {}) {
     // timeSegments: ,
     timeSegmentsControls:{
       disable: false,
-      segments: [{start: 22, end: 80}, {start: 189, end: 200}, {start: 120, end: 150}]
+      segments: [{start: 0, end: 10}]
+    },
+    keyboard: {
+      seekStep: 2
     },
     progresspreview: {
       ispots1: [{

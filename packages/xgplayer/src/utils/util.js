@@ -863,13 +863,12 @@ util.getIndexByTime = function (time, segments) {
   if (_len < 1) {
     return _index
   }
-  if (time < segments[0].end || _len < 2) {
+  if (time <= segments[0].end || _len < 2) {
     _index = 0
   } else if (time > segments[_len - 1].end) {
     _index = _len - 1
   } else {
     for (let i = 1; i < _len; i++) {
-      // console.log(i, time, segments[i - 1].end, segments[i].end)
       if (time > segments[i - 1].end && time <= segments[i].end){
         _index = i
         break

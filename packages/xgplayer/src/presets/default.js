@@ -44,7 +44,7 @@ export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode === 'mobile'
     const { isLive } = playerConfig
-    const vodPlugins = isLive ? [] : [Progress, MiniProgress, ProgressPreview, TimeIcon, TimeSegments]
+    const vodPlugins = isLive ? [] : [TimeSegments, Progress, MiniProgress, ProgressPreview, TimeIcon]
 
     const contolsIcons = [...vodPlugins, PlayIcon, FullScreen,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
