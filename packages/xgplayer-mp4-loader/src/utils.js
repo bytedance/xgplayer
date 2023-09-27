@@ -132,7 +132,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
       startTime: (segments[segments.length - 1]?.endTime || segFrames[0].startTime / timescale),
       endTime: (lastFrame.startTime + lastFrame.duration) / timescale,
       duration: duration,
-      range: [segFrames[0].offset, lastFrame.offset + lastFrame.size],
+      range: [segFrames[0].offset, lastFrame.offset + lastFrame.size - 1],
       frames: segFrames
     })
     time = 0
