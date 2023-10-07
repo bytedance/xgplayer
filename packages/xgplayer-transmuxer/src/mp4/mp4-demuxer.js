@@ -150,7 +150,7 @@ export class MP4Demuxer {
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
-        if (sample.offset >= dataStart && sample.offset + sample.size <= end) {
+        if (sample.offset >= dataStart && sample.offset + sample.size - 1 <= end) {
           startByte = sample.offset - dataStart
           videoEndByte = startByte + sample.size
           sampleData = data.subarray(startByte, videoEndByte)
@@ -185,7 +185,7 @@ export class MP4Demuxer {
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
-        if (sample.offset >= dataStart && sample.offset + sample.size <= data.byteLength + dataStart) {
+        if (sample.offset >= dataStart && sample.offset + sample.size - 1 <= data.byteLength + dataStart) {
           startByte = sample.offset - dataStart
           audioEndByte = startByte + sample.size
           sampleData = data.subarray(startByte, audioEndByte)
