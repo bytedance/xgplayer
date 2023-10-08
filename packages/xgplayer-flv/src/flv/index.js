@@ -335,9 +335,9 @@ export class Flv extends EventEmitter {
   }
 
   async _clear () {
+    if (this._mediaLoader) await this._mediaLoader.cancel()
     clearTimeout(this._maxChunkWaitTimer)
     clearTimeout(this._tickTimer)
-    if (this._mediaLoader) await this._mediaLoader.cancel()
     this._loading = false
   }
 
