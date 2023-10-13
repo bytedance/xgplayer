@@ -38,8 +38,8 @@ function init(index = 0, config = {}) {
   }
   window[p] = new Player({
     id: 'video' + index,
-    url: "//www.douyin.com/aweme/v1/play/?aid=6383&app_name=aweme&channel=channel_pc_web&device_platform=web&did=0&file_id=04b6b579aaf64942bcc57f6954b811cc&fp=verify_lkkstvaf_kc3S4S8D_vCIm_4Ckn_86WE_emQFw5ALyblC&is_play_url=1&line=0&referer=&sign=99a98a0b93793a736c61fb329a795474&source=PackSourceEnum_FEED&target=7271575282622958904&user_agent=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F116.0.0.0%20Safari%2F537.36&video_id=v0200fg10000cjkt5drc77u07pkv6rlg&webid=7260388078304020026&downgrade_264=1",
-  DynamicBg: {
+    url: "//www.douyin.com/aweme/v1/play/?aid=6383&app_name=aweme&channel=channel_pc_web&device_platform=web&did=0&file_id=97ed815d341b4c4b88f5d264735450cc&fp=verify_lnmx61oz_AneyEmbA_UvI5_4NM1_BLMc_v9cDQxS71aFu&is_play_url=1&line=0&referer=&sign=361458dae299e58346ad40d061e0012e&source=PackSourceEnum_AWEME_DETAIL&target=7282384131110014265&user_agent=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F117.0.0.0%20Safari%2F537.36&video_id=v0200fg10000ck83jpvog65j9apo1ilg&webid=7288986370838726203&downgrade_264=1",
+    DynamicBg: {
       disable: false
     },
     marginControls: true,
@@ -57,7 +57,7 @@ function init(index = 0, config = {}) {
     //   // initShow: true
     // },
     fullscreen: {
-      rotateFullscreen: true
+      // rotateFullscreen: true
     },
     progress: {
       // root: document.getElementById('controls0')
@@ -83,33 +83,19 @@ function init(index = 0, config = {}) {
       seekStep: 2
     },
     progresspreview: {
-      ispots1: [{
-        id: 1,
-        time: 22,
-        // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(1)>这是点击按钮</button></div>`,
-        style: {
-          backgroundColor: 'yellow'
-        },
-        duration: 58
-      },{
-        id: 2,
-        time:120,
-        // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(2)">这是点击按钮</button></div>`,
-        style: {
-          backgroundColor: 'yellow'
-        },
-        duration: 30
-      }, {
-        id: 3,
-        time: 189,
-        // template: `<div class="my-pop"><div>这是我的pop层这是我的pop层这是我的pop层这是我的pop层这是我的pop层</div><button onClick="window._onClick(3)>这是点击按钮</button></div>`,
-        style: {
-          backgroundColor: 'yellow'
-        },
-        duration: 11
-      }]
+      // width: 88.23,
+      // height: 50,
+      mode: 'short'
     },
-    seekedStatus: 'pause',
+    thumbnail: {
+      "urls": ["http://p3-sign.douyinpic.com/tos-cn-p-0015/99a06cef5a744d4cb141011c473bc43e_1695562287~tplv-noop.image?dy_q=1697167718&l=20231013112837AAD52BFD56A173017E9B&x-expires=1697171678&x-signature=1yfeS3TcWmcANU%2BWNRcYeyhs2%2FA%3D"],
+      "pic_num": 361,
+      "row": 37,
+      "col": 10,
+      "height": 136,
+      "width": 240
+    },
+    seekedStatus: 'auto',
     texttrack: {
       debugger: false,
       list: [{
@@ -117,23 +103,16 @@ function init(index = 0, config = {}) {
         language: 'double',
         id: '0',
         isDefault: true,
-        url: '../subtitle/vtt/double.vtt', // [{url: './vtt/cn1.vtt'}, {url: './vtts/1-3.vtt'}, {url: './vtts/1-2.vtt'},{url: './vtts/1.vtt'}, {url: './vtts/2.vtt'}, {url: './vtts/3.vtt'},{url: './vtts/4.vtt'}, {url: './vtts/5.vtt'}, {url: './vtts/6.vtt'},{url: './vtts/7.vtt'},{url: './vtts/8.vtt'}]
-        // url: 'https://sf3-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/bc9bdde6738d4865a69da7f5afaafc87'
-        // url: './textTrack-1.vtt?de3fd3',
-        //url: 'http://lf1-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/52ce3882d70941d5b660913cbd83d969'
+        url: '../subtitle/vtt/double.vtt',
       }, {
         label: '中文',
         language: 'cn',
         id: '1',
         isDefault: undefined,
         url: '../subtitle/vtt/cn.vtt'
-        //url: 'http://lf1-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/52ce3882d70941d5b660913cbd83d969'
-        //url: './ass/cn.ass'
       }, {
         label: '英文',
         url: '../subtitle/vtt/en.vtt',
-        //url: 'http://lf6-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/d04fa4122dac42d69e8233a4dfda82fe',
-        // url: './ass/double.ass',
         id: '2',
         isDefault: false,
         language: 'en'
@@ -144,43 +123,10 @@ function init(index = 0, config = {}) {
     },
     definition: {
       position: 'controlsLeft',
-      list: [
-        {
-          url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-360p.mp4',
-          definition: '360p',
-          text: '标清 360P',
-          iconText: '标清'
-        },
-        {
-          url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-480p.mp4',
-          definition: '480p',
-          text: {
-            zh: '高清 480P',
-            en: '480P'
-          },
-          iconText: '高清'
-        },
-        {
-          url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-720p.mp4',
-          definition: '720p',
-          text: {
-            zh: '超清 720P',
-            en: '720P'
-          },
-          iconText: '超清'
-        }
-      ],
+      list: [],
       defaultDefinition: '360p',
       isItemClickHide: false
     },
-    // 'definition': {
-    //   'text': '清晰度切换插件',
-    //   'type': 'array',
-    //   'checked': true,
-    //   'list': [
-    //     { name: '超清', url: './media/msdv3.mp4' }]
-    // },
-    // width: 300,
     height: 700,
     ...config
   })
