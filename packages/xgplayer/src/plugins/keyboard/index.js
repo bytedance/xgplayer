@@ -277,21 +277,21 @@ class Keyboard extends BasePlugin {
     }
     const e = event || window.event
     const keyCode = e.keyCode
-    const { _keyState } = this
+    const { _keyState, player } = this
+    const { disable, disableBodyTrigger, isIgnoreUserActive } = this.config
+    // 以下条件不响应
+    if (disable || disableBodyTrigger || (!player.isUserActive && !isIgnoreUserActive) || isDisableTag(e.target) || !this.checkIsVisible() || e.metaKey || e.altKey || e.ctrlKey) {
+      _keyState.isBodyKeyDown = false
+      return
+    }
     // 首次进入进行是否生效校验
-    if (!event.repeat) {
-      if (_keyState.isKeyDown || this.config.disable || this.config.disableBodyTrigger || (!this.player.isUserActive && !this.config.isIgnoreUserActive) || !this.checkIsVisible() || e.metaKey || e.altKey || e.ctrlKey) {
-        return
-      }
+    if (!event.repeat && !_keyState.isKeyDown) {
       if ((e.target === document.body || (this.config.isGlobalTrigger && !isDisableTag(e.target))) && this.checkCode(keyCode, true)) {
         _keyState.isBodyKeyDown = true
       }
       document.addEventListener('keyup', this.onBodyKeyUp)
     }
-    if (!_keyState.isBodyKeyDown) {
-      return
-    }
-    this.handleKeyDown(e)
+    _keyState.isBodyKeyDown && this.handleKeyDown(e)
   }
 
   onBodyKeyUp = (event) => {
