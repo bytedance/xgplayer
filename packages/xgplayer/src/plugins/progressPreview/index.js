@@ -263,7 +263,7 @@ export default class ProgressPreview extends Plugin {
     const isflex = mode === 'flex'
     let lwidth = root.getBoundingClientRect().width
     // 如果当前预览图宽度获取不到，无法计算位移，不做渲染
-    if (!lwidth) {
+    if (!lwidth && this._hasThumnail) {
       return
     }
     lwidth = this._hasThumnail && lwidth < config.width ? config.width : lwidth

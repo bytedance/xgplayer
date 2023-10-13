@@ -585,7 +585,6 @@ class Progress extends Plugin {
     }
     this._state.now = realTime
     this._state.direc = realTime > player.currentTime ? 0 : 1
-    player.pause()
     player.seek(realTime)
   }
 
