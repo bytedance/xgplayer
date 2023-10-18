@@ -1,4 +1,7 @@
-## xgplayer-hls@3.0.9
+## xgplayer-hls@3.0.9-alpha.2
+>* feat: llhls支持(ts分片格式)
+>* feat: 增加`useLowLatency`配置参数可以主动关闭低延迟模式
+
 
 ## xgplayer-hls@3.0.8
 >* fix: m3u8文本累计duration与实际视频duration不一致结尾seek不触发end
