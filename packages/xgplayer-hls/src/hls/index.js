@@ -458,7 +458,10 @@ export class Hls extends EventEmitter {
     if (!nextSeg) return
 
     if (!this.isLive) {
-      const bInfo = this.bufferInfo()
+      let bInfo = this.bufferInfo()
+      if (this.media.paused && !this.media.currentTime) {
+        bInfo = this.bufferInfo(bInfo.nextStart || 0.5)
+      }
       const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < 0.1
       if (bInfo.remaining >= this.config.preloadTime || bufferThroughout) {
         if (bufferThroughout && this._bufferService.msIsOpend) {
