@@ -70,7 +70,8 @@ class DynamicBg extends Plugin {
       mode: 'framerate',
       frameRate: 10, // Frame rate when mode=framerate
       filter: 'blur(50px)', // Filter settings
-      startFrameCount: 2,
+      startFrameCount: 2, // 起始连续渲染次数
+      startInterval: 0, // 初始渲染间隔
       addMask: true, // Whether need a mask
       multiple: 1.2, // 画面放大倍数
       maskBg: 'rgba(0,0,0,0.7)' // Mask background color
@@ -146,11 +147,14 @@ class DynamicBg extends Plugin {
 
     this._frameCount = 0
 
+    this._loopType = this.config.mode !== MODES.REAL_TIME && this.interval >= 1000 ? 'timer' : 'animation'
+
     this.once(Events.COMPLETE, () => {
       if (!this.player) {
         return
       }
       this.init()
+      this.renderByPoster()
       if (!this.player.paused) {
         this.start()
       }
@@ -165,7 +169,8 @@ class DynamicBg extends Plugin {
         this.stop()
       })
       this.on(Events.PLAY, () => {
-        this._checkIfCanStart() && this.start()
+        const { startInterval } = this.config
+        this._checkIfCanStart() && this.start(0, startInterval)
       })
       this.on(Events.PAUSE, () => {
         this.stop()
@@ -177,26 +182,52 @@ class DynamicBg extends Plugin {
       this._isLoaded = false
       this.stop()
     })
+    document.addEventListener('visibilitychange', this.onVisibilitychange)
+  }
+
+  setConfig (config) {
+    Object.keys(config).forEach(key => {
+      if (key === 'root' && config[key] !== this.config[key]) {
+        this.reRender(config[key])
+      } else if (key === 'frameRate') {
+        this.interval = parseInt(1000 / config[key], 10)
+      } else if (key === 'disable' && config[key]) {
+        this.stop()
+      }
+      this.config[key] = config[key]
+    })
   }
 
   onLoadedData = (e) => {
     if (!this.player) { return }
     this._frameCount = this.config.startFrameCount
+    this.stop()
     this.renderOnTimeupdate(e)
     this.off(Events.TIME_UPDATE, this.renderOnTimeupdate)
     this.on(Events.TIME_UPDATE, this.renderOnTimeupdate)
+  }
+
+  onVisibilitychange = (e) => {
+    if (document.visibilityState === 'visible') {
+      this._checkIfCanStart() && this.start()
+    } else if (document.visibilityState === 'hidden') {
+      this.stop()
+    }
   }
 
   /**
    * @private
    * 初始化 canvas对象并使用海报图先渲染首帧w11
    */
-  init () {
+  init (_root) {
     const { player, config } = this
     this.canvasFilter = DynamicBg.supportCanvasFilter()
     try {
       // 保证节点插入到video之前
-      const parent = !this.config.isInnerRender ? player.root : (player.innerContainer || player.root)
+      let parent = _root || config.root
+      if (!parent) {
+        parent = !config.isInnerRender ? player.root : (player.innerContainer || player.root)
+      }
       parent.insertAdjacentHTML('afterbegin',
         `<div class="xgplayer-dynamic-bg" data-index="${config.index}"><canvas>
         </canvas><xgmask></xgmask></div>`)
@@ -211,10 +242,29 @@ class DynamicBg extends Plugin {
 
       config.addMask && (this.mask.style.background = config.maskBg)
       this.canvasCtx = this.canvas.getContext('2d')
-      this.renderByPoster()
     } catch (e) {
       XG_DEBUG.logError('plugin:DynamicBg', e)
     }
+  }
+
+  reRender (root) {
+    const { disable } = this.config
+    if (!disable && !this.root) {
+      return
+    }
+    this.stop()
+    const _p = this.root ? this.root.parentElement : null
+    if (_p !== root) {
+      _p.removeChild(this.root)
+    }
+    if (!root) {
+      this.root = null
+      return
+    }
+    this.init(root)
+    this.renderOnce()
+    const { startInterval } = this.config
+    this._checkIfCanStart() && this.start(0, startInterval)
   }
 
   /**
@@ -254,13 +304,14 @@ class DynamicBg extends Plugin {
     } else {
       this._isLoaded = true
       this.off(Events.TIME_UPDATE, this.renderOnTimeupdate)
-      !this.player.paused && this._checkIfCanStart() && this.start()
+      const { startInterval } = this.config
+      !this.player.paused && this._checkIfCanStart() && this.start(0, startInterval)
     }
   }
 
   _checkIfCanStart () {
     const { mode } = this.config
-    return this._isLoaded && mode !== MODES.FIRST_FRAME && mode !== MODES.POSTER
+    return this._isLoaded && !this.player.paused && mode !== MODES.FIRST_FRAME && mode !== MODES.POSTER
   }
 
   /**
@@ -268,21 +319,26 @@ class DynamicBg extends Plugin {
    * @returns
    */
   renderOnce () {
-    const video = this.player.media
+    const video = this.player.video
     if (!video.videoWidth || !video.videoHeight) {
       return
     }
     this.videoPI = parseInt(video.videoWidth / video.videoHeight * 100, 10)
     const _sVideo = this.checkVideoIsSupport(video)
-    _sVideo && video.videoWidth && this.update(_sVideo, this.videoPI)
+    // console.log('>>>renderOnce, update', _sVideo, this.videoPI)
+    _sVideo && this.update(_sVideo, this.videoPI)
   }
 
-  start = () => {
-    const video = this.player.media
+  start = (time, interval) => {
+    const video = this.player.video
     const _now = nowTime()
     const _sVideo = this.checkVideoIsSupport(video)
     if (!_sVideo || !this.canvasCtx) {
       return
+    }
+
+    if (!interval) {
+      interval = this.interval
     }
     this.stop()
     if (video.videoWidth && video.videoHeight) {
@@ -290,17 +346,17 @@ class DynamicBg extends Plugin {
       if (this.config.mode === MODES.REAL_TIME) {
         video && video.videoWidth && this.update(_sVideo, this.videoPI)
         this.preTime = _now
-      } else if (_now - this.preTime >= this.interval) {
+      } else if (_now - this.preTime >= interval) {
         video && video.videoWidth && this.update(_sVideo, this.videoPI)
         this.preTime = _now
       }
     }
-    this.frameId = Util.requestAnimationFrame(this.start)
+    this.frameId = this._loopType === 'timer' ? Util.setTimeout(this, this.start, interval) : Util.requestAnimationFrame(this.start)
   }
 
   stop = () => {
     if (this.frameId) {
-      Util.cancelAnimationFrame(this.frameId)
+      this._loopType === 'timer' ? Util.clearTimeout(this, this.frameId) : Util.cancelAnimationFrame(this.frameId)
       // window.clearTimeout(this.frameId)
       this.frameId = null
     }
@@ -321,6 +377,7 @@ class DynamicBg extends Plugin {
       this.canvas.height = height
       this.canvas.width = width
       const pi = parseInt(width / height * 100, 10)
+      // console.log('>>>updateImg update', image, pi)
       this.update(image, pi)
       image = null
     }
@@ -337,8 +394,8 @@ class DynamicBg extends Plugin {
       if (width !== _pos.width || height !== _pos.height || _pos.pi !== sourcePI) {
         const pi = parseInt(width / height * 100, 10)
         _pos.pi = sourcePI
-        _pos.width = this.canvas.width = width
-        _pos.height = this.canvas.height = height
+        _pos.width !== width && (_pos.width = this.canvas.width = width)
+        _pos.height !== height && (_pos.height = this.canvas.height = height)
         let rheight = height
         let rwidth = width
         if (pi < sourcePI) {
@@ -361,6 +418,7 @@ class DynamicBg extends Plugin {
 
   destroy () {
     this.stop()
+    document.removeEventListener('visibilitychange', this.onVisibilitychange)
     this.canvasCtx = null
     this.canvas = null
   }
