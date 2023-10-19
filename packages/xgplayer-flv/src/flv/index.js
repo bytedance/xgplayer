@@ -60,6 +60,7 @@ export class Flv extends EventEmitter {
       timeout: this._opts.loadTimeout,
       onRetryError: this._onRetryError,
       onProgress: this._onProgress,
+      onPreProcessUrl: opts.preProcessUrl,
       responseType: 'arraybuffer'
     })
 
@@ -93,6 +94,10 @@ export class Flv extends EventEmitter {
 
   get seekable () {
     return !!this._keyframes && this._acceptRanges
+  }
+
+  get loader () {
+    return this._mediaLoader
   }
 
   speedInfo () {

@@ -32,6 +32,10 @@ export class FlvPlugin extends BasePlugin {
     return !!mediaType && mediaType !== 'video' && mediaType !== 'audio'
   }
 
+  get loader () {
+    return this.flv?.loader
+  }
+
   beforePlayerInit () {
     const config = this.player.config
 
@@ -50,6 +54,7 @@ export class FlvPlugin extends BasePlugin {
       softDecode: this.softDecode,
       isLive: config.isLive,
       media: this.player.video,
+      preProcessUrl: (url, ext) => this.player.preProcessUrl?.(url, ext) || {url, ext},
       ...flvOpts
     })
 

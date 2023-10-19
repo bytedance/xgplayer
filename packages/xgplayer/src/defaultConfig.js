@@ -1,8 +1,12 @@
 import { getLang } from './utils/util'
 
 /**
+ * @typedef { string | MediaStream | Array<{src: string, type?:string, [propName: string]: any}> } IUrl
+ */
+
+/**
  * @typedef {{
- *   url: any,
+ *   url: IUrl,
  *   definition: any,
  *   bitrate?: number,
  *   bandwidth?: number,
@@ -16,7 +20,7 @@ import { getLang } from './utils/util'
  * @typedef { {
  *   id?: string,
  *   el?: HTMLElement,
- *   url?: any,
+ *   url?: IUrl,
  *   domEventType?: 'default' | 'touch' | 'mouse',
  *   nullUrlStart?: boolean,
  *   width?: number | string,
@@ -53,6 +57,7 @@ import { getLang } from './utils/util'
  *   miniprogress?: boolean,
  *   disableSwipeHandler?: () => any,
  *   enableSwipeHandler?: () => any,
+ *   preProcessUrl?: (url: IUrl, ext?: { [propName: string]: any }) => { url: IUrl, [propName: string]: any },
  *   ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>,
  *   inactive?: number,
  *   lang?: string,
@@ -144,6 +149,7 @@ export default function getDefaultConfig () {
     },
     enableSwipeHandler: () => {
     },
+    preProcessUrl: null, // url preprocessing callback
     ignores: [], // list of plug-in names to be disabled
     whitelist: [],
     inactive: 3000, // delay time for the control bar to disappear automatically

@@ -778,6 +778,10 @@ util.isMSE = function (video) {
   return /^blob/.test(video.currentSrc) || /^blob/.test(video.src)
 }
 
+util.isBlob = function (url) {
+  return /^blob/.test(url)
+}
+
 /**
  * @param { number } did
  * @returns { string }
