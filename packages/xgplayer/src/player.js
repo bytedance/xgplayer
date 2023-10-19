@@ -24,6 +24,7 @@ import { STATES, STATE_ARRAY } from './state'
 
 /**
  * @typedef { import ('./defaultConfig').IDefinition } IDefinition
+ * @typedef { import ('./defaultConfig').IUrl } IUrl
  */
 
 /* eslint-disable camelcase */
@@ -897,7 +898,8 @@ class Player extends MediaProxy {
         if (!url) {
           url = this.url || this.config.url
         }
-        const ret = this._startInit(url)
+        const _furl = this.preProcessUrl(url)
+        const ret = this._startInit(_furl.url)
         return ret
       })
       .catch((e) => {
@@ -2198,6 +2200,17 @@ class Player extends MediaProxy {
       `state from:${STATE_ARRAY[this.state]} to:${STATE_ARRAY[newState]}`
     )
     this._state = newState
+  }
+
+  /**
+   * @description url preprocessing
+   * @param { IUrl } url
+   * @param { {[propName: string]: any} } [ext]
+   * @returns { url: IUrl, [propName: string]: any }
+   */
+  preProcessUrl (url, ext) {
+    const { preProcessUrl } = this.config
+    return preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
   }
 
   /**
