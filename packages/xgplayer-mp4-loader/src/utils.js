@@ -150,10 +150,10 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   let adjust = 0
   let segMinPts = 0
   let segMaxPtsFrame = 0
-  const pushSegment = (duration) => {
+  const pushSegment = (duration, startGopIdx, endGopIdx) => {
     lastFrame = segFrames[segFrames.length - 1]
-    segMinPts = gopMinPtsArr[segments.length]
-    segMaxPtsFrame = frames[gopMaxPtsFrameIdxArr[segments.length]]
+    segMinPts = gopMinPtsArr[startGopIdx]
+    segMaxPtsFrame = frames[gopMaxPtsFrameIdxArr[endGopIdx]]
     // 因为强制把视频第一帧的pts改为0 ，所以第一个gop的时长可能和endTime - startTime对应不上
     // 需要修正下,不然音频根据视频gop时长截取的第一个关键帧起始的误差较大
     if (segments.length === 0) {
@@ -172,6 +172,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
     segFrames = []
   }
 
+  let segGopStartIdx = 0
   if (stss) {
     const duration = segDuration * timescale
     for (let i = 0, l = gop.length; i < l; i++) {
@@ -179,10 +180,12 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
       segFrames.push(...gop[i])
       if (i + 1 < l) {
         if (i === 0 || time > duration) {
-          pushSegment(time / timescale)
+          pushSegment(time / timescale, segGopStartIdx, i)
+          segGopStartIdx = i + 1
         }
       } else {
-        pushSegment(time / timescale)
+        pushSegment(time / timescale, segGopStartIdx, i)
+        segGopStartIdx = i + 1
       }
     }
   } else {
@@ -198,7 +201,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
         adjust += curTime - duration
         gopMinPtsArr.push(segFrames[0].pts)
         gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
-        pushSegment(curTime)
+        pushSegment(curTime, segments.length, segments.length)
         duration = segmentDurations[segments.length] || segDuration
       }
     }
