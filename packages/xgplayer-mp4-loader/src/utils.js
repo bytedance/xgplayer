@@ -38,6 +38,8 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   const frames = []
   const gop = []
   const gopDuration = []
+  let gopMinPtsArr = [] // 记录每个gop中最小的pts，用于计算每个gop的startTime
+  let gopMaxPtsFrameIdxArr = [] // 记录每个gop中最大的pts，用于计算每个gop的endTime
   const stscEntries = stsc.entries
   const stcoEntries = stco.entries
   const stszEntrySizes = stsz.entrySizes
@@ -60,7 +62,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
 
   let frame
   let duration
-  let startTime = 0
+  // let startTime = 0
   let pos = 0
   let chunkIndex = 0
   let chunkRunIndex = 0
@@ -74,7 +76,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
     for (let i = 0; i < count; i++) {
       frame = {
         dts,
-        startTime,
+        // startTime,
         duration,
         size: stszEntrySizes[pos] || stsz.sampleSize,
         offset: stcoEntries[chunkIndex] + offsetInChunk,
@@ -98,8 +100,29 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
       if (pos === 0) {
         frame.pts = 0
       }
+      // 补足音频的pts
+      if (frame.pts === undefined) {
+        frame.pts = frame.dts
+      }
+      // 更新当前gop中最小的pts
+      if (frame.keyframe) {
+        gopMinPtsArr.push(frame.pts)
+      } else {
+        if (frame.pts < gopMinPtsArr[gop.length - 1]) {
+          gopMinPtsArr[gop.length - 1] = frame.pts
+        }
+      }
+      // 更新当前gop中最大的pts
+      if (frame.keyframe) {
+        gopMaxPtsFrameIdxArr.push(frame.index)
+      } else if (gop.length > 0 && gopMaxPtsFrameIdxArr[gop.length - 1] !== undefined) {
+        const curMaxPts = frames[gopMaxPtsFrameIdxArr[gop.length - 1]]?.pts
+        if (curMaxPts !== undefined && frame.pts > curMaxPts) {
+          gopMaxPtsFrameIdxArr[gop.length - 1] = frame.index
+        }
+      }
       frames.push(frame)
-      startTime += duration
+      // startTime = frame.pts // duration
       dts += delta
       pos++
 
@@ -125,12 +148,22 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   let time = 0
   let lastFrame
   let adjust = 0
+  let segMinPts = 0
+  let segMaxPtsFrame = 0
   const pushSegment = (duration) => {
     lastFrame = segFrames[segFrames.length - 1]
+    segMinPts = gopMinPtsArr[segments.length]
+    segMaxPtsFrame = frames[gopMaxPtsFrameIdxArr[segments.length]]
+    // 因为强制把视频第一帧的pts改为0 ，所以第一个gop的时长可能和endTime - startTime对应不上
+    // 需要修正下,不然音频根据视频gop时长截取的第一个关键帧起始的误差较大
+    if (segments.length === 0) {
+      const diff = (segMaxPtsFrame.pts + segMaxPtsFrame.duration) - segMinPts
+      duration = diff / timescale
+    }
     segments.push({
       index: segments.length,
-      startTime: (segments[segments.length - 1]?.endTime || segFrames[0].startTime / timescale),
-      endTime: (lastFrame.startTime + lastFrame.duration) / timescale,
+      startTime: segMinPts / timescale, // (segments[segments.length - 1]?.endTime || segFrames[0].startTime / timescale),
+      endTime: (segMaxPtsFrame.pts + segMaxPtsFrame.duration) / timescale,
       duration: duration,
       range: [segFrames[0].offset, lastFrame.offset + lastFrame.size - 1],
       frames: segFrames
@@ -153,6 +186,8 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
       }
     }
   } else {
+    gopMinPtsArr = []
+    gopMaxPtsFrameIdxArr = []
     segmentDurations = segmentDurations || []
     let duration = segmentDurations[0] || segDuration
     for (let i = 0; i < l; i++) {
@@ -161,6 +196,8 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
       const curTime = time / timescale
       if (i + 1 >= l || curTime + adjust >= duration) {
         adjust += curTime - duration
+        gopMinPtsArr.push(segFrames[0].pts)
+        gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
         pushSegment(curTime)
         duration = segmentDurations[segments.length] || segDuration
       }
