@@ -227,7 +227,7 @@ class DynamicBg extends Plugin {
       return null
     }
     const _tVideo = video && video instanceof window.HTMLVideoElement ? video : (video.canvas ? video.canvas : (video.flyVideo ? video.flyVideo : null))
-    if (_tVideo && !(Sniffer.browser === 'safari' && (/^blob/.test(_tVideo.currentSrc) || /^blob/.test(_tVideo.src)))) {
+    if (_tVideo && !(Sniffer.browser === 'safari' && Util.isMSE(_tVideo))) {
       return _tVideo
     }
 

@@ -24,6 +24,7 @@ import { STATES, STATE_ARRAY } from './state'
 
 /**
  * @typedef { import ('./defaultConfig').IDefinition } IDefinition
+ * @typedef { import ('./defaultConfig').IUrl } IUrl
  */
 
 /* eslint-disable camelcase */
@@ -580,8 +581,7 @@ class Player extends MediaProxy {
     const { readyState } = this.media
     XG_DEBUG.logInfo('_startInit readyState', readyState)
     if (this.config.autoplay) {
-      !(/^blob/.test(this.media.currentSrc) || /^blob/.test(this.media.src)) &&
-        this.load();
+      !Util.isMSE(this.media) && this.load()
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.mediaPlay()
     }
@@ -897,7 +897,8 @@ class Player extends MediaProxy {
         if (!url) {
           url = this.url || this.config.url
         }
-        const ret = this._startInit(url)
+        const _furl = this.preProcessUrl(url)
+        const ret = this._startInit(_furl.url)
         return ret
       })
       .catch((e) => {
@@ -922,6 +923,7 @@ class Player extends MediaProxy {
     if (Util.typeOf(url) === 'Object') {
       _src = url.url
     }
+    _src = this.preProcessUrl(_src).url
     const curTime = this.currentTime
     const isPaused = this.paused && !this.isError
     this.src = _src
@@ -2198,6 +2200,17 @@ class Player extends MediaProxy {
       `state from:${STATE_ARRAY[this.state]} to:${STATE_ARRAY[newState]}`
     )
     this._state = newState
+  }
+
+  /**
+   * @description url preprocessing
+   * @param { IUrl } url
+   * @param { {[propName: string]: any} } [ext]
+   * @returns { url: IUrl, [propName: string]: any }
+   */
+  preProcessUrl (url, ext) {
+    const { preProcessUrl } = this.config
+    return !Util.isBlob(url) && preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
   }
 
   /**

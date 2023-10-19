@@ -16,7 +16,11 @@
  *  preloadTime?: number,
  *  disconnectTime?: number,
  *  fetchOptions?: RequestInit,
- *  seamlesslyReload: boolean
+ *  seamlesslyReload: boolean,
+*   keepStatusAfterSwitch?: boolean,
+*   onlyVideo?: boolean,
+*   onlyAudio?: boolean,
+*   preProcessUrl?: (url: string, ext?: { [propName: string]: any }) => { url: string, [propName: string]: any }
  * }} FlvOption
  */
 
