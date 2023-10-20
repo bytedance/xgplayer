@@ -51,6 +51,9 @@ export class NetLoader extends EventEmitter {
     }
 
     config = Object.assign({}, this._config, config)
+    if (this._config.onPreProcessUrl) {
+      config.url = this._config.onPreProcessUrl(config.url).url
+    }
     if (config.params) config.params = Object.assign({}, config.params)
     if (config.headers && isPlainObject(config.headers)) config.headers = Object.assign({}, config.headers)
     if (config.body && isPlainObject(config.body)) config.body = Object.assign({}, config.body)

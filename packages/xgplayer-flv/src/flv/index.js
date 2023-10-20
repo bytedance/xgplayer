@@ -60,6 +60,7 @@ export class Flv extends EventEmitter {
       timeout: this._opts.loadTimeout,
       onRetryError: this._onRetryError,
       onProgress: this._onProgress,
+      onPreProcessUrl: opts.preProcessUrl,
       responseType: 'arraybuffer'
     })
 

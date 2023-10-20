@@ -50,6 +50,7 @@ export class FlvPlugin extends BasePlugin {
       softDecode: this.softDecode,
       isLive: config.isLive,
       media: this.player.video,
+      preProcessUrl: (url, ext) => this.player.preProcessUrl(url, ext),
       ...flvOpts
     })
 
