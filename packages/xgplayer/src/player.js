@@ -581,8 +581,7 @@ class Player extends MediaProxy {
     const { readyState } = this.media
     XG_DEBUG.logInfo('_startInit readyState', readyState)
     if (this.config.autoplay) {
-      !(/^blob/.test(this.media.currentSrc) || /^blob/.test(this.media.src)) &&
-        this.load();
+      !Util.isMSE(this.media) && this.load()
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.mediaPlay()
     }
@@ -924,6 +923,7 @@ class Player extends MediaProxy {
     if (Util.typeOf(url) === 'Object') {
       _src = url.url
     }
+    _src = this.preProcessUrl(_src).url
     const curTime = this.currentTime
     const isPaused = this.paused && !this.isError
     this.src = _src
@@ -2210,7 +2210,8 @@ class Player extends MediaProxy {
    */
   preProcessUrl (url, ext) {
     const { preProcessUrl } = this.config
-    return preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
+    console.log('preProcessUrl', url)
+    return !Util.isBlob(url) && preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
   }
 
   /**
