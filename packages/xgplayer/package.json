@@ -13,7 +13,9 @@
   "libd": {
     "umdName": "Player",
     "visualizer": {
-      "title": "XPlayer-Rollup Visualizer",
+      "title": "xgplayer-Rollup Visualizer-treemap",
+      "template": "treemap",
+      "filename": "xgplayer_treemap.html",
       "brotliSize": true,
       "gzipSize": true
     }
