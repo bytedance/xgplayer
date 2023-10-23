@@ -4,7 +4,6 @@ import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
-import FlvPlugin from '../../packages/xgplayer-flv'
 console.log('vconsole')
 window.Util = Util
 window.POS = {
@@ -45,7 +44,7 @@ function init(index = 0, config = {}) {
         url: `${url}&_test=1111`
       }
     },
-    url: 'https://pull-flv-l6.douyincdn.com/stage/stream-690397027603578911_or4.flv?k=058df17bfe1ed26d&t=1698388820&abr_pts=-800&_session_id=037-202310201440198CE1B6BE66B69406971E',
+    url: '',
     // [
     //     {
     //         "src": "//v3-weba.douyinvod.com/2857500552e19f085d24189890ff0165/6530aa8d/video/tos/cn/tos-cn-ve-15c001-alinc2/o0X7ARiEIAgyNpMfjKiCiNN5ld7OPAAKBBQeQ6/?a=6383&ch=54&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=632&bt=632&cs=2&ds=4&ft=XzJ6BM06xxouhL.D1PD12lMg4-iGNbLm-WwaU_4nU5F5JNv7T&mime_type=video_mp4&qs=15&rc=aTZpZDY4ZTM8OjY7O2c6ZUBpajN1O3Q5cjk0azMzNGkzM0AvXmAxMi0vNmIxY2NiLmJjYSNmZm0yMmRzb2VgLS1kLS9zcw%3D%3D&btag=e00030000&dy_q=1697684296&l=20231019105815487318B77115DF00DA47"
@@ -71,7 +70,7 @@ function init(index = 0, config = {}) {
     preloadTime: 20,
     width: '80%',
     ignores:['playbackrate'],
-    plugins: [FlvPlugin],
+    plugins: [],
     rotate: true,
     // controls: {
     //   // mode: 'normal',
