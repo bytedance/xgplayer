@@ -46,6 +46,7 @@
         mode: 'bg', //可选 字幕显示模式，支持bg(背景）和 stroke(字体边框填充)，默认stroke
         line: 'double', // 可选 字幕最大显示行数 默认单行，single, 支持single/double/three、
         updateMode: 'vod' // 字幕更新类型，vod-字幕内容会做缓存，live-字幕内容不做缓存, 渲染完即丢弃， 默认为vod 1.1.0 之后的版本支持
+        renderMode: 'normal', // 渲染方式，step - 逐字渲染 normal或者''- 普通渲染 
         debugger: 'false' // 调试信息输出，默认为false
       }
     const subTitle = new window.XgSubtitle(options)
@@ -65,7 +66,13 @@
         language: any,        //必选, 当前字幕对应的语言,language和id必选其一
         id: any,              //必选, 当前字幕对应的id,language和id必选其一
         isDefault: boolean,   //必选 是否是默认字幕
-        url: string           //必选 字幕链接地址
+        url: string           // url/list/stringContent 必选一个 字幕链接地址
+        list: [{
+            start: number, // 该条字幕开始时间，单位s
+            end: number,   // 该条字幕结束时间，单位s
+            text: Array<string> // 字幕内容
+        }],
+        stringContent: string   // string类型，该string必须是vtt格式
       },
       ...
     ],

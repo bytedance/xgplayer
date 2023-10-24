@@ -337,3 +337,64 @@ export function checkSubtitle (src, dist) {
   }
   return false
 }
+
+export function isEnglish (str) {
+  // 判断字符串是否为空
+  if (str === null || str.trim() === '') {
+    return false
+  }
+  // 判断字符串是否为纯英文
+  return /^[a-zA-Z]+$/.test(str)
+}
+/**
+ * 检测是否是半角标点符号
+ * @param {*} str
+ * @returns
+ */
+export function patchABCbiaodian (str) {
+  const reg = /[\x21-\x2f\x3a-\x40\x5b-\x60\x7B-\x7F]/
+  if (reg.test(str)){
+    return true
+  } else {
+    return false
+  }
+}
+/**
+ * 检测是否是中文标点符号
+ * @param {*} temp
+ * @returns
+ */
+export function patchCn (temp) {
+  const reg = /[\u3002|\uff1f|\uff01|\uff0c|\u3001|\uff1b|\uff1a|\u201c|\u201d|\u2018|\u2019|\uff08|\uff09|\u300a|\u300b|\u3008|\u3009|\u3010|\u3011|\u300e|\u300f|\u300c|\u300d|\ufe43|\ufe44|\u3014|\u3015|\u2026|\u2014|\uff5e|\ufe4f|\uffe5]/
+  if (reg.test(temp)){
+    return true
+  } else {
+    return false
+  }
+}
+
+export function splitWords (str) {
+  const arr = str.split('')
+  const retArr = []
+  let lastIsEn = false
+  for (let i = 0; i < arr.length; i++) {
+    const _str = arr[i]
+    if (isEnglish(_str)) {
+      if (!lastIsEn) {
+        retArr.push(_str)
+        lastIsEn = true
+      } else {
+        const _lIdx = retArr.length - 1
+        retArr[_lIdx] = `${retArr[_lIdx]}${_str}`
+      }
+    } else if (_str.match(/^[ ]*$/) || patchABCbiaodian(_str) || patchCn(_str)){
+      lastIsEn = false
+      const _lIdx = retArr.length - 1
+      retArr[_lIdx] = `${retArr[_lIdx]}${_str}`
+    } else {
+      lastIsEn = false
+      retArr.push(_str)
+    }
+  }
+  return retArr
+}

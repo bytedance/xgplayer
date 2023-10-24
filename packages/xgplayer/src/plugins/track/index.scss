@@ -37,7 +37,7 @@
 }
 
 
-// 外挂字幕的dom样式
+// // 外挂字幕的dom样式
 xg-text-track.xg-text-track {
   font-family: "PingFang SC","SF Pro SC","SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -60,13 +60,15 @@ xg-text-track.xg-text-track {
     opacity: 1;
     visibility: visible;
   }
+
   xg-text-track-inner {
     display: block;
     max-width: 92%;
+    text-align: center;
   }
   xg-text-track-span {
     display: -webkit-box;
-    text-align: center;
+    text-align: left;
     text-overflow: ellipsis;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -85,6 +87,11 @@ xg-text-track.xg-text-track {
     }
     &.text-track-three{
       -webkit-line-clamp: 3;
+    }
+    &.text-track-space {
+      opacity: 0;
+      height: 0;
+      line-height: 0;
     }
   }
 
