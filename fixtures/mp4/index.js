@@ -8,7 +8,7 @@ let player=new Player({
   id: 'vs',
   autoplay: true,
   volume: 0.3,
-  url:'./err.mp4',
+  url:'',
   poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
   playsinline: true,
   thumbnail: {
@@ -19,7 +19,7 @@ let player=new Player({
     row: 10,
     // urls: ['//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-thumbnail.jpg'],
   },
-  height: window.innerHeight,
-  width: window.innerWidth,
+  height: window.innerHeight / 2,
+  width: window.innerWidth / 2,
   plugins: [Mp4Player]
 });

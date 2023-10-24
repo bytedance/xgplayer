@@ -20,12 +20,12 @@
 //       vid: '1',
 //       src: './audio/1.mp3',
 //       title: '11111.mp3',
-//       poster: "https://p9-pc-sign.douyinpic.com/tos-cn-p-0015/ocAY2PfD40Q8Z5SHAdMg7IC8ebbRe7BEBn0CAa~tplv-dy-resize-origshort-autoq-75:330.jpeg?x-expires=1988096400&x-signature=jWrbLPoE8ow7fdCYyyeUWw2Oaf0%3D&from=3213915784&s=PackSourceEnum_FEED&se=false&sc=cover&biz_tag=pcweb_cover&l=20230103173048B1113E7290F15B007F0B"
+//       poster: ""
 //     }, {
 //       vid: '2',
 //       src: './audio/2.mp3',
 //       title: '22222.mp3',
-//       poster: "https://p9-pc-sign.douyinpic.com/image-cut-tos-priv/12f35be1484d36bf1430bb46e4874589~tplv-dy-resize-origshort-autoq-75:330.jpeg?x-expires=1988096400&x-signature=wl1p8fpK09dXkS7uWO1qG1GRSPU%3D&from=3213915784&s=PackSourceEnum_FEED&se=false&sc=cover&biz_tag=pcweb_cover&l=20230103173048B1113E7290F15B007F0B"
+//       poster: ""
 //     }, {
 //       vid: '3',
 //       src: './audio/3.mp3',

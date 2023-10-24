@@ -220,22 +220,14 @@ function initSubtitle(player) {
       label: '中文',
       language: 'cn',
       id: '1',
-      //  list: _lis1,
       isDefault: true,
-      //url: 'http://tosv.byted.org/obj/tos-cn-o-0004/0edaf77715f44faebe2e348f5157280a'
       url: './subtitle/cn1.vtt'
-      //url: 'http://lf1-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/52ce3882d70941d5b660913cbd83d969'
-      //url: './ass/cn.ass'
     }, {
       label: '英文',
       language: 'en',
       id: '1',
-      //  list: _lis1,
       isDefault: false,
-      //url: 'http://tosv.byted.org/obj/tos-cn-o-0004/0edaf77715f44faebe2e348f5157280a'
       url: './subtitle/en2.vtt'
-      //url: 'http://lf1-xgcdn-tos.pstatp.com/obj/tos-cn-o-0004/52ce3882d70941d5b660913cbd83d969'
-      //url: './ass/cn.ass'
     }],
     defaultOpen: true,
     mode: 'stroke',
