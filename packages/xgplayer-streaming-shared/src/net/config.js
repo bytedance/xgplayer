@@ -10,7 +10,6 @@ export function getConfig (cfg) {
     onTimeout: undefined,
     onProgress: undefined,
     onRetryError: undefined,
-    onPreProcessUrl: undefined,
     transformRequest: undefined,
     transformResponse: undefined,
     transformError: undefined,

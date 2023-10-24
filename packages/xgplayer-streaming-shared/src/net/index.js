@@ -41,10 +41,6 @@ export class NetLoader extends EventEmitter {
     return this.type === LoaderType.FETCH
   }
 
-  get finnalUrl () {
-    return this._finnalUrl
-  }
-
   static isFetchSupport () {
     return FetchLoader.isSupported()
   }
@@ -57,12 +53,6 @@ export class NetLoader extends EventEmitter {
     }
 
     config = Object.assign({}, this._config, config)
-
-    if (this._config.onPreProcessUrl) {
-      config.url = this._config.onPreProcessUrl(config.url).url
-    }
-
-    this._finnalUrl = config.url
 
     if (config.params) config.params = Object.assign({}, config.params)
     if (config.headers && isPlainObject(config.headers)) config.headers = Object.assign({}, config.headers)
