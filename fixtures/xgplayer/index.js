@@ -93,14 +93,6 @@ function init(index = 0, config = {}) {
       // height: 50,
       mode: 'short'
     },
-    thumbnail: {
-      "urls": ["http://p3-sign.douyinpic.com/tos-cn-p-0015/99a06cef5a744d4cb141011c473bc43e_1695562287~tplv-noop.image?dy_q=1697167718&l=20231013112837AAD52BFD56A173017E9B&x-expires=1697171678&x-signature=1yfeS3TcWmcANU%2BWNRcYeyhs2%2FA%3D"],
-      "pic_num": 361,
-      "row": 37,
-      "col": 10,
-      "height": 136,
-      "width": 240
-    },
     seekedStatus: 'auto',
     texttrack: {
       debugger: false,

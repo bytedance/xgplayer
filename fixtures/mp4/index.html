@@ -22,12 +22,7 @@
       -webkit-filter: saturate(100%) !important;
     }
   </style>
-  <link
-          rel="stylesheet"
-          href="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.110-18/dist/xgplayer.min.css"
-  />
-<!--  <script src="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.101-7/dist/index.min.js" charset="utf-8"></script>-->
-<!--  <script src="http://unpkg.pstatp.com/xgplayer-mp4/3.0.0-next.3/dist/index.min.js" charset="utf-8"></script>-->
+  <link rel="stylesheet" href="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.110-18/dist/xgplayer.min.css"/>
 </head>
 <button id="btn" onclick="playNext()">播放下一个</button>
 <body>
@@ -78,8 +73,8 @@
   let player = new Player({
     id: 'vs',
     autoplay: true,
-    volume: 0,
-    url: '',
+    volume: 1,
+    url: './output.mp3',
     //url: './video/output.m4a',//'./video/1080p.mp4',
     // url:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
     poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
@@ -94,7 +89,7 @@
     },
     definition: {
       defaultDefinition: '720p',
-      list: videoList
+      // list: videoList
     },
     // TestSpeed: {
     //   url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
