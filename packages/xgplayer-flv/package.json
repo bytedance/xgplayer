@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "3.0.10-alpha.1",
+  "version": "3.0.10-alpha.2",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -23,8 +23,8 @@
   ],
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-transmuxer": "3.0.10-alpha.1",
-    "xgplayer-streaming-shared": "3.0.10-alpha.1"
+    "xgplayer-transmuxer": "3.0.10-alpha.2",
+    "xgplayer-streaming-shared": "3.0.10-alpha.2"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.1",
