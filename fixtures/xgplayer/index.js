@@ -44,21 +44,7 @@ function init(index = 0, config = {}) {
         url: `${url}&_test=1111`
       }
     },
-    url: '',
-    // [
-    //     {
-    //         "src": "//v3-weba.douyinvod.com/2857500552e19f085d24189890ff0165/6530aa8d/video/tos/cn/tos-cn-ve-15c001-alinc2/o0X7ARiEIAgyNpMfjKiCiNN5ld7OPAAKBBQeQ6/?a=6383&ch=54&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=632&bt=632&cs=2&ds=4&ft=XzJ6BM06xxouhL.D1PD12lMg4-iGNbLm-WwaU_4nU5F5JNv7T&mime_type=video_mp4&qs=15&rc=aTZpZDY4ZTM8OjY7O2c6ZUBpajN1O3Q5cjk0azMzNGkzM0AvXmAxMi0vNmIxY2NiLmJjYSNmZm0yMmRzb2VgLS1kLS9zcw%3D%3D&btag=e00030000&dy_q=1697684296&l=20231019105815487318B77115DF00DA47"
-    //     },
-    //     {
-    //         "src": "//v26-web.douyinvod.com/11e2b45b2c9e088a66bde701b0f1fddd/6530aa8d/video/tos/cn/tos-cn-ve-15c001-alinc2/o0X7ARiEIAgyNpMfjKiCiNN5ld7OPAAKBBQeQ6/?a=6383&ch=54&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=632&bt=632&cs=2&ds=4&ft=XzJ6BM06xxouhL.D1PD12lMg4-iGNbLm-WwaU_4nU5F5JNv7T&mime_type=video_mp4&qs=15&rc=aTZpZDY4ZTM8OjY7O2c6ZUBpajN1O3Q5cjk0azMzNGkzM0AvXmAxMi0vNmIxY2NiLmJjYSNmZm0yMmRzb2VgLS1kLS9zcw%3D%3D&btag=e00030000&dy_q=1697684296&l=20231019105815487318B77115DF00DA47"
-    //     },
-    //     {
-    //         "src": "//www.douyin.com/aweme/v1/play/?video_id=v0200fg10000chh1r6vog65q58pri0ig&line=0&file_id=fbe71de8f8f347e9902b05534acfa32f&sign=fa5a42d741ad5527ddf70a7adbca6973&is_play_url=1&source=PackSourceEnum_MIX_AWEME&aid=6383"
-    //     },
-    //     {
-    //         "src": "//www.douyin.com/aweme/v1/play/?aid=6383&app_name=aweme&channel=channel_pc_web&device_platform=web&did=0&file_id=455c603feba54fb1afc21cceac74023b&fp=verify_lnmx61oz_AneyEmbA_UvI5_4NM1_BLMc_v9cDQxS71aFu&is_play_url=1&line=0&referer=&sign=e64285bb554bbb89efb51eadad73322e&source=PackSourceEnum_MIX_AWEME&target=7233376372733775160&user_agent=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F118.0.0.0%20Safari%2F537.36&video_id=v0200fg10000chh1r6vog65q58pri0ig&webid=7288986370838726203&downgrade_264=1"
-    //     }
-    // ],
+    url: '//www.douyin.com/aweme/v1/play/?aid=6383&app_name=aweme&channel=channel_pc_web&device_platform=web&did=0&file_id=97ed815d341b4c4b88f5d264735450cc&fp=verify_lnmx61oz_AneyEmbA_UvI5_4NM1_BLMc_v9cDQxS71aFu&is_play_url=1&line=0&referer=&sign=361458dae299e58346ad40d061e0012e&source=PackSourceEnum_AWEME_DETAIL&target=7282384131110014265&user_agent=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F117.0.0.0%20Safari%2F537.36&video_id=v0200fg10000ck83jpvog65j9apo1ilg&webid=7288986370838726203&downgrade_264=1',
     DynamicBg: {
       disable: false
     },

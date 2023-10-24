@@ -581,7 +581,7 @@ class Player extends MediaProxy {
     const { readyState } = this.media
     XG_DEBUG.logInfo('_startInit readyState', readyState)
     if (this.config.autoplay) {
-      !Util.isMSE(this.media) && this.load()
+      !Util.isMSE(this.media) && this.load();
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.mediaPlay()
     }

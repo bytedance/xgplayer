@@ -58,6 +58,7 @@ import './index.scss'
  *   hidePortrait?: boolean,
  *   isShowIcon?: boolean,
  *   updateMode?: 'live' | 'vod',
+ *   renderMode?: 'normal'
  *   debugger?: boolean
  *   [propName: string]: any
  * }} ITextTrackConfig
@@ -131,6 +132,7 @@ export default class TextTrack extends OptionsIcon {
       className: 'xgplayer-texttrack',
       hidePortrait: false,
       isShowIcon: true,
+      renderMode: 'normal', // 外挂字幕渲染方式
       mode: 'external', // external - 外挂字幕 native - 原生字幕
       debugger: false // 是否开启外挂字幕log
     }
@@ -185,7 +187,7 @@ export default class TextTrack extends OptionsIcon {
    * @param {number} defaultIndex
    */
   _initExtSubTitle (defaultIndex) {
-    const { list, style, isDefaultOpen } = this.config
+    const { list, style, isDefaultOpen, updateMode, renderMode } = this.config
     // 默认开启，但是没有指定开启项的时候, 默认启用第一个字幕
     if (isDefaultOpen && defaultIndex < 0 && list.length > 0) {
       defaultIndex = 0
@@ -194,12 +196,13 @@ export default class TextTrack extends OptionsIcon {
     const config = {
       subTitles: list,
       defaultOpen: isDefaultOpen,
+      updateMode,
+      renderMode,
       debugger: this.config.debugger
     }
     Object.keys(style).map(key => {
       config[key] = style[key]
     })
-    config.updateMode = this.config.updateMode
     // 控制栏分离或者没有控制栏，不做重定位
     const _needPos = !this.playerConfig.marginControls && this.player.controls.root
     if (_needPos) {
