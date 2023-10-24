@@ -65,8 +65,8 @@ export class ManifestLoader {
         audioText && this._emitOnLoaded(audio, audioUrl)
         subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
       } else {
-        subtitleText = subtitle?.data
-        subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
+        subtitleText = audio?.data
+        subtitleText && this._emitOnLoaded(audio, subtitleUrl)
       }
 
     } catch (error) {
