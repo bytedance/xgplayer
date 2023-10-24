@@ -60,7 +60,6 @@ export class Flv extends EventEmitter {
       timeout: this._opts.loadTimeout,
       onRetryError: this._onRetryError,
       onProgress: this._onProgress,
-      onPreProcessUrl: opts.preProcessUrl,
       responseType: 'arraybuffer'
     })
 
@@ -238,17 +237,22 @@ export class Flv extends EventEmitter {
     this._stats.reset()
     await this._clear()
     await this._bufferService.reset(reuseMse)
-    this._firstProgressEmit = false
   }
 
   async _loadData (url, range) {
     if (url) this._opts.url = url
-    url = this._opts.url
+    let finnalUrl = url = this._opts.url
     if (!url) throw new Error('Source url is missing')
 
-    this.emit(EVENT.LOAD_START, { url })
+    if (this._opts.preProcessUrl) {
+      finnalUrl = this._opts.preProcessUrl(url).url
+    }
 
-    logger.debug('load data, loading:', this._loading, url)
+    this._mediaLoader.finnalUrl = finnalUrl
+
+    this.emit(EVENT.LOAD_START, { url: finnalUrl })
+
+    logger.debug('load data, loading:', this._loading, finnalUrl)
 
     if (this._loading) {
       await this._mediaLoader.cancel()
@@ -256,7 +260,7 @@ export class Flv extends EventEmitter {
 
     this._loading = true
     try {
-      await this._mediaLoader.load({ url, range })
+      await this._mediaLoader.load({ url: finnalUrl, range })
     } catch (error) {
       return this._emitError(StreamingError.network(error))
     }
@@ -344,6 +348,7 @@ export class Flv extends EventEmitter {
     clearTimeout(this._maxChunkWaitTimer)
     clearTimeout(this._tickTimer)
     this._loading = false
+    this._firstProgressEmit = false
   }
 
   _end = () => {
