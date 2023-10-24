@@ -89,6 +89,7 @@ export default class Subtitle extends EventEmitter {
       fontColor: '#fff', // 字体颜色
       domRender: true,
       updateMode: 'vod', // 消费模式，vod 点播 live 直播
+      renderMode: '', // step - 逐字渲染
       debugger: false
     }
 
@@ -123,6 +124,9 @@ export default class Subtitle extends EventEmitter {
     this.seiTime = 0
     this.lastSeiTime = 0
     this._curTexts = []
+    this._curRenderTask = []
+    this._renderIntervalId = -1
+    this._lastTimeStamp = -1
     this.setSubTitles(options.subTitles, this.config.defaultOpen)
   }
 
@@ -239,6 +243,8 @@ export default class Subtitle extends EventEmitter {
     }
     this.player.on('destroy', this.destroy)
     this.player.on('timeupdate', this._onTimeupdate)
+    this.player.on('pause', this._onPause)
+    this.player.on('play', this._onPlay)
     this.player.on('core_event', this._onCoreEvents)
     if (this._isOpen) {
       this.switch().catch(e => {
@@ -254,7 +260,9 @@ export default class Subtitle extends EventEmitter {
     }
     player.off('destroy', this.destroy)
     player.off('timeupdate', this._onTimeupdate)
-    player.on('core_event', this._onCoreEvents)
+    player.off('pause', this._onPause)
+    player.off('play', this._onPlay)
+    player.off('core_event', this._onCoreEvents)
     if (config.domRender) {
       if (player.root) {
         unObserver(player.root, this._onResize)
@@ -670,6 +678,16 @@ export default class Subtitle extends EventEmitter {
     return curTime
   }
 
+  _onPause = () => {
+    this.stopRender()
+  }
+
+  _onPlay = () => {
+    if (this._curRenderTask.length > 0) {
+      this.startRender(-1)
+    }
+  }
+
   _onTimeupdate = () => {
     if (!this._isOpen) {
       return
@@ -687,7 +705,6 @@ export default class Subtitle extends EventEmitter {
       this.config.updateMode === 'live' ? this._liveUpdate(curTime) : this._update(curTime)
     }
   }
-  getItemsByIndex
   _onResize = (target) => {
     const { _videoMeta, config } = this
     if (!config.domRender) {
@@ -901,6 +918,7 @@ export default class Subtitle extends EventEmitter {
     if (!ids || ids.length < 1) {
       return
     }
+    this._log('>>>>_renderByWords__remove', ids)
     const children = this.innerRoot.children
     const removeIndex = []
     for (let i = 0; i < children.length; i++) {
@@ -920,10 +938,11 @@ export default class Subtitle extends EventEmitter {
    */
   __render (jsonItems = []) {
     this._log('__render', jsonItems.length, this.config.domRender)
-    if (jsonItems.length > 0 && this.config.domRender) {
-      jsonItems.map(jsonItem => {
+    const { renderMode, domRender } = this.config
+    if (jsonItems.length > 0 && domRender) {
+      jsonItems.forEach(jsonItem => {
         let className = `text-track-${this.config.line}`
-        jsonItem.text.map((item, index) => {
+        jsonItem.text.forEach((itemText, index) => {
           if (index > 0) {
             className += ' text-track-deputy'
           }
@@ -933,9 +952,96 @@ export default class Subtitle extends EventEmitter {
             'data-end': jsonItem.end,
             'data-index': jsonItem.index
           }
-          this.innerRoot.appendChild(Util.createDom('xg-text-track-span', item, attr, className))
+          const _dom = Util.createDom('xg-text-track-span', '', attr, className)
+          this.innerRoot.appendChild(_dom)
+          if (renderMode === 'step') {
+            // 用于宽度占位
+            const _dom1 = Util.createDom('xg-text-track-span', '', attr, `${className} text-track-space`)
+            this.innerRoot.appendChild(_dom1)
+            _dom1.innerHTML = itemText
+            this._renderByWords(_dom, index, jsonItem.start, jsonItem.end, itemText)
+          } else {
+            _dom.innerHTML = itemText
+          }
         })
       })
+    }
+  }
+
+  _renderByWords (_dom, index, start, end, itemText) {
+    const _textNode = document.createTextNode('')
+    _dom.appendChild(_textNode)
+    const _words = Util.splitWords(itemText)
+    // 避免显示不全，缩短时长100ms
+    let duration = parseInt((end - start) * 1000, 10)
+    if (duration > 300) {
+      duration -= 100
+    }
+    const _len = _words.length
+    const _task = {
+      dom: _textNode,
+      ids: index,
+      wordList: _words,
+      interval: duration / _len,
+      start,
+      end,
+      duration,
+      lastTime: 0
+    }
+    this._log('>>>>_renderByWords', duration, _task)
+    const { _curRenderTask } = this
+    let _index = -1
+    for (let i = 0; i < _curRenderTask.length; i++) {
+      if (_curRenderTask[i].ids === index) {
+        _index = i
+        break
+      }
+    }
+    if (_index > -1) {
+      _curRenderTask.slice(_index, 1)
+    }
+    _curRenderTask.push(_task)
+    this.startRender(-1)
+  }
+
+  startRender = (timer) => {
+    if (timer > 0 && this._renderIntervalId) {
+      window.cancelAnimationFrame(this._renderIntervalId)
+      this._renderIntervalId = -1
+    }
+    if (!this.textTrack) {
+      return
+    }
+    const { _curRenderTask } = this
+    this._lastTimeStamp = new Date().getTime()
+    const emptyArr = [] // 单词列表为空需要清空的索引
+    _curRenderTask.forEach((item, index) => {
+      const { lastTime, wordList, interval, dom, ids } = item
+      if (timer < 0 || this._lastTimeStamp < 0 || this._lastTimeStamp - lastTime >= interval) {
+        const _words = wordList.shift()
+        _words && dom.appendData(_words)
+        item.lastTime = this._lastTimeStamp
+      }
+      if (wordList.length < 1) {
+        emptyArr.push({
+          index,
+          ids: ids
+        })
+      }
+    })
+    this._log('>>>>_renderByWords emptyArr', emptyArr.length, _curRenderTask.length)
+    emptyArr.forEach(item => {
+      _curRenderTask.splice(item.index, 1)
+      this._log('>>>_renderByWords remove emptyArr', item.index, _curRenderTask.length)
+    })
+    if (_curRenderTask.length > 0) {
+      this._renderIntervalId = window.requestAnimationFrame(this.startRender)
+    }
+  }
+
+  stopRender () {
+    if (this._renderIntervalId) {
+      window.cancelAnimationFrame(this._renderIntervalId)
     }
   }
 
@@ -959,6 +1065,8 @@ export default class Subtitle extends EventEmitter {
     this.removeAllListeners()
     this.player = null
     this.textTrack = null
+    this._curRenderTask = []
+    this.stopRender()
   }
 
   /**

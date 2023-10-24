@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
+  <script>
+    var ua = navigator.userAgent.toLowerCase()
+    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
+    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
+      var vConsole = new window.VConsole();
+    }
+  </script>
+    <style>
+      .pannel {
+        margin: 20px 0;
+        padding: 20px;
+        background: #72a0c8;
+      }
+      .message-pannel {
+        margin-top: 20px;
+        color: #333a3c;
+      }
+      .message-info {
+        margin-top: 20px;
+        border: 1px solid #728bb8;
+        padding: 10px 10px;
+      }
+      h4 {
+        margin-block-start: 0.2em;
+        margin-block-end: 0.2em;
+      }
+      p {
+        line-height: 18px;
+        display: block;
+        line-height: 16px;
+        /* margin: 10px; */
+        margin-block-start: 0.4em;
+        margin-block-end: 0.4em;
+      }
+      .ext-controls0 {
+        height: 80px !important;
+        background-color: #000;
+      }
+      .xgplayer .my-pop {
+        height: 100px;
+        width: 400px;
+        background-color: #72a0c8;
+        border: 2px solid red;
+        box-sizing: border-box;
+      }
+      body {
+        padding-left: 100px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="video0" style="margin: 0 auto"></div>
+    <div class="pannel">
+      <div class="tool">
+        <button type="submit" class="btn" id="js-destroy0" onclick="window.destroy(0)">
+          销毁
+        </button>
+        <button type="submit" class="btn" id="js-reinit0" onclick="window.init(0)">
+          重新初始化
+        </button>
+        <button type="submit" class="btn" id="js-playnext0" onclick="window.playNext(0)">
+          播放下一个
+        </button>
+        <button
+          type="submit"
+          class="btn"
+          id="js-changelang0"
+          onclick="window.changeLang(0)"
+        >
+          切换语言
+        </button>
+        <button
+          type="submit"
+          class="btn"
+          id="js-changelang0"
+          onclick="window.createDot(0)"
+        >
+          添加预览点
+        </button>
+      </div>
+      <div class="message-pannel">
+        <div class="message-info" id="js-show-lang0">
+          <h4>current lang:</h4>
+        </div>
+
+        <div class="message-info" id="js-show-log0">
+          <h4>log info:</h4>
+        </div>
+      </div>
+    </div>
+    <style>
+      .WorldBookDayQuestionOne__textWrap {
+            /* width: 150px; */
+            margin: 0 auto;
+            margin-top: 100px;
+            background-color: burlywood;
+          }
+        .WorldBookDayQuestionOne__text {
+            opacity: 0;
+            animation: fade-in 1500ms ease-out both  1/*infinite*/;
+            /* @for $idx from 1 through 50 {
+              &:nth-child(#{$idx}) {
+                animation-delay: #{($idx - 1) * $fadeInDur};
+              }
+            } */
+          }
+          .WorldBookDayQuestionOne__text:nth-child(1) {
+            animation-delay: 0ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(2) {
+            animation-delay: 100ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(3) {
+            animation-delay: 200ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(4) {
+            animation-delay: 300ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(5) {
+            animation-delay: 400ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(6) {
+            animation-delay: 500ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(7) {
+            animation-delay: 600ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(8) {
+            animation-delay: 700ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(9) {
+            animation-delay: 800ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(10) {
+            animation-delay: 900ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(11) {
+            animation-delay: 1000ms;
+          }
+
+          .WorldBookDayQuestionOne__text:nth-child(12) {
+            animation-delay: 1100ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(13) {
+            animation-delay: 1200ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(14) {
+            animation-delay: 1300ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(15) {
+            animation-delay: 1400ms;
+          }
+          .WorldBookDayQuestionOne__text:nth-child(16) {
+            animation-delay: 1500ms;
+          }
+
+          @keyframes fade-in {
+          0% {
+            opacity: 0;
+          }
+
+          100%  {
+            opacity: 1;
+          }
+          }
+    </style>
+    <div class="WorldBookDayQuestionOne__textWrap">
+      <span key="0" class="WorldBookDayQuestionOne__text">你</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">好</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">我</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">是</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">布</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">莱</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">恩</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">哈</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">里</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">斯</span>
+      <span key="0" class="WorldBookDayQuestionOne__text"><b>图形技术总监游戏</b></span>
+      <span key="0" class="WorldBookDayQuestionOne__text">。嗨</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">我是</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">杰罗姆</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">请</span>
+      <span key="0" class="WorldBookDayQuestionOne__text">注意</span>
+    </div>
+    <style>
+        @keyframes typing {
+            from { width: 0 }
+            to {width: 100%;}
+        }
+        .my-texts {
+            font-size: 18px;
+            display: inline-block;
+            /* width: 1000px; */
+            white-space: nowrap;
+            overflow: hidden;
+            animation: typing 2s steps(30);
+        }
+    </style>
+    <p class="my-texts">你好，我是布莱恩哈里斯，<b>图形技术总监游戏</b>。嗨，我是杰罗姆请注意目标特别计划的一部分</p>
+    <script></script>
+    <script type="module" defer src="./index.js"></script>
+    <script>
+      // window.onload = function(){
+      //   window.initPlayer()
+      // }
+    </script>
+  </body>
+</html>
