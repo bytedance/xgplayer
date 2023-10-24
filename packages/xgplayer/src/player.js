@@ -1332,7 +1332,9 @@ class Player extends MediaProxy {
     this.addClass(STATE_CLASS.LOADING)
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
-      this.src = this.config.url
+      const { url } = this.config
+      const _srcRet = !Util.isMSE(this.media) ? this.preProcessUrl(url) : { url }
+      this.src = _srcRet.url
       !this.config.isLive && (this.currentTime = cur)
       this.once(Events.CANPLAY, () => {
         this.mediaPlay()
