@@ -663,7 +663,7 @@ export default class Subtitle extends EventEmitter {
         texts.push(textExt)
       })
     }
-
+    this._log('update', texts, currentTime)
     this.emit('update', texts)
     this.__render(texts, currentTime)
   }
