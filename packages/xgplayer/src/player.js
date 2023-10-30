@@ -923,7 +923,6 @@ class Player extends MediaProxy {
     if (Util.typeOf(url) === 'Object') {
       _src = url.url
     }
-    _src = this.preProcessUrl(_src).url
     const curTime = this.currentTime
     const isPaused = this.paused && !this.isError
     this.src = _src
@@ -1333,8 +1332,7 @@ class Player extends MediaProxy {
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
       const { url } = this.config
-      const _srcRet = !Util.isMSE(this.media) ? this.preProcessUrl(url) : { url }
-      this.src = _srcRet.url
+      this.src = url
       !this.config.isLive && (this.currentTime = cur)
       this.once(Events.CANPLAY, () => {
         this.mediaPlay()
@@ -2213,6 +2211,36 @@ class Player extends MediaProxy {
   preProcessUrl (url, ext) {
     const { preProcessUrl } = this.config
     return !Util.isBlob(url) && preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
+  }
+
+  get src () {
+    return this.video ? this.video.src : ''
+  }
+
+  set src (url) {
+    if (!this.media) {
+      return
+    }
+    this.emit(Events.URL_CHANGE, url)
+    this.emit(Events.WAITING)
+    // this.media.pause()
+    this._currentTime = 0
+    this._duration = 0
+    // Some firefox versions firefox Cannot recognize currentSrc of type Blob
+    if (Util.isMSE(this.media)) {
+      this.onWaiting()
+      return
+    }
+    url = this.preProcessUrl(url).url
+    this._detachSourceEvents(this.media)
+    if (Util.typeOf(url) === 'Array') {
+      this._attachSourceEvents(this.media, url)
+    } else if (url) {
+      this.media.src = url
+    } else {
+      this.media.removeAttribute('src')
+    }
+    this.load()
   }
 
   /**

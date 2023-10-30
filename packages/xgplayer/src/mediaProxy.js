@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors, { ERROR_TYPE_MAP } from './error'
-import { URL_CHANGE, WAITING, VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from './events'
+import { VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from './events'
 /**
  * @typedef { import ('eventemitter3') } EventEmitter
  */
@@ -741,28 +741,7 @@ class MediaProxy extends EventEmitter {
   }
 
   set src (url) {
-    if (!this.media) {
-      return
-    }
-    this.emit(URL_CHANGE, url)
-    this.emit(WAITING)
-    // this.media.pause()
-    this._currentTime = 0
-    this._duration = 0
-    // Some firefox versions firefox Cannot recognize currentSrc of type Blob
-    if (Util.isMSE(this.media)) {
-      this.onWaiting()
-      return
-    }
-    this._detachSourceEvents(this.media)
-    if (Util.typeOf(url) === 'Array') {
-      this._attachSourceEvents(this.media, url)
-    } else if (url) {
-      this.media.src = url
-    } else {
-      this.media.removeAttribute('src')
-    }
-    this.load()
+    this.media && (this.media.src = url)
   }
 
   /**
