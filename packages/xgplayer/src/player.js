@@ -2049,7 +2049,7 @@ class Player extends MediaProxy {
       this.media.style.width = `${rWidth}px`
       this.media.style.height = `${rHeight}px`
     }
-    const formStyle = Util.getTransformStyle(_pos)
+    const formStyle = Util.getTransformStyle(_pos, this.media.style.transform || this.media.style.webkitTransform)
     this.media.style.transform = formStyle
     this.media.style.webkitTransform = formStyle
   }
