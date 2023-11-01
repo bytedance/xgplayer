@@ -845,8 +845,26 @@ util.createPositionBar = function (className, root) {
   return dom
 }
 
-util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }) {
-  return `scale(${pos.scale || 1}) translate(${pos.x || 0}%, ${pos.y || 0}%) rotate(${pos.rotate || 0}deg)`
+util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }, transformValue = '') {
+  const styles = {
+    scale: `${pos.scale || 1}`,
+    translate: `${pos.x || 0}%, ${pos.y || 0}%`,
+    rotate: `${pos.rotate || 0}deg`
+  }
+  const stylesKeys = Object.keys(styles)
+
+  // 只复写Transform中已知的函数，对于其他函数不修改。解决全屏或者rotate插件执行时，对于镜像插件的影响
+  stylesKeys.forEach((key) => {
+    const reg = new RegExp(`${key}\\([^\\(]+\\)`, 'g') // reg match: TransformFunc(values)
+    const fn = `${key}(${styles[key]})`
+    if (reg.test(transformValue)) {
+      reg.lastIndex = -1
+      transformValue = transformValue.replace(reg, fn)
+    } else {
+      transformValue += `${fn} `
+    }
+  })
+  return transformValue
 }
 
 /**
