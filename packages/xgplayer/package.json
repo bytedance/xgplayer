@@ -1,6 +1,6 @@
 {
   "name": "xgplayer",
-  "version": "3.0.10-alpha.4",
+  "version": "3.0.10-alpha.5",
   "description": "video player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -43,7 +43,7 @@
     "delegate": "^3.2.0",
     "downloadjs": "1.4.7",
     "eventemitter3": "^4.0.7",
-    "xgplayer-subtitles": "3.0.10-alpha.4"
+    "xgplayer-subtitles": "3.0.10-alpha.5"
   },
   "peerDependencies": {
     "core-js": ">=3.12.1"
