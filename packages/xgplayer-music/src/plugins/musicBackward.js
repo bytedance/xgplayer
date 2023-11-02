@@ -2,7 +2,7 @@ import { Plugin } from 'xgplayer'
 
 export class MusicBackward extends Plugin {
   static get pluginName () {
-    return 'musicbackword'
+    return 'musicbackward'
   }
 
   static get defaultConfig () {
