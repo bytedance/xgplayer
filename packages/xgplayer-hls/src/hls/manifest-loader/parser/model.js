@@ -97,6 +97,7 @@ export class MediaSegment {
   title = ''
   start = 0
   duration = 0
+  dataTime = ''
   /** @type {?MediaSegmentKey} */
   key = null
   byteRange = null // [start, end]

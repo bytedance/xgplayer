@@ -112,6 +112,9 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
         break
       case 'PRELOAD-HINT':
         break
+      case 'PROGRAM-DATE-TIME':
+        curSegment.dataTime = data
+        break
       case 'EXTINF': {
         if (media.lowLatency) {
           partSegmentIndex = 0
