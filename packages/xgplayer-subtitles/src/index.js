@@ -959,7 +959,9 @@ export default class Subtitle extends EventEmitter {
             const _dom1 = Util.createDom('xg-text-track-span', '', attr, `${className} text-track-space`)
             this.innerRoot.appendChild(_dom1)
             _dom1.innerHTML = itemText
-            this._renderByWords(_dom, index, jsonItem.start, jsonItem.end, itemText)
+            setTimeout(() => {
+              this._renderByWords(_dom, index, jsonItem.start, jsonItem.end, itemText)
+            }, 600)
           } else {
             _dom.innerHTML = itemText
           }
@@ -972,10 +974,15 @@ export default class Subtitle extends EventEmitter {
     const _textNode = document.createTextNode('')
     _dom.appendChild(_textNode)
     const _words = Util.splitWords(itemText)
-    // 避免显示不全，缩短时长100ms
-    let duration = parseInt((end - start) * 1000, 10)
+    let curTime = this._getPlayerCurrentTime()
+    let duration = parseInt((end - curTime) * 1000, 10)
+    if (curTime >= end) {
+      return
+    } else if (start >= curTime) {
+      curTime = start
+    }
     if (duration > 300) {
-      duration -= 100
+      duration -= 50
     }
     const _len = _words.length
     const _task = {
@@ -983,7 +990,7 @@ export default class Subtitle extends EventEmitter {
       ids: index,
       wordList: _words,
       interval: duration / _len,
-      start,
+      start: curTime,
       end,
       duration,
       lastTime: 0
