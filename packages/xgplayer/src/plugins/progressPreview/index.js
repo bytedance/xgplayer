@@ -29,7 +29,7 @@ const CALLBACK_MAP = {
   dragend: 'onProgressDragEnd',
   click: 'onProgressClick',
   mouseover: 'onProgressMouseOver',
-  mouseenter: 'onProgressMove'
+  mouseenter: 'onProgressMouseOver'
 }
 
 /** */
