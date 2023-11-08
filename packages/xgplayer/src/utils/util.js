@@ -779,7 +779,7 @@ util.isMSE = function (video) {
 }
 
 util.isBlob = function (url) {
-  return /^blob/.test(url)
+  return typeof url === 'string' && /^blob/.test(url)
 }
 
 /**
