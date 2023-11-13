@@ -320,12 +320,13 @@ export class MSE {
   clearBuffer (startTime, endTime) {
     let p
     Object.keys(this._sourceBuffer).forEach(k => {
-      p = this._enqueueOp(k, () => {
-        if (!this.mediaSource || this.media.error) return
-        const sb = this._sourceBuffer[k]
-        this._logger.debug('MSE clearBuffer START', k, startTime, endTime)
-        sb.remove(startTime, endTime)
-      }, OP_NAME.REMOVE)
+      // p = this._enqueueOp(k, () => {
+      //   if (!this.mediaSource || this.media.error) return
+      //   const sb = this._sourceBuffer[k]
+      //   this._logger.debug('MSE clearBuffer START', k, startTime, endTime)
+      //   sb.remove(startTime, endTime)
+      // }, OP_NAME.REMOVE)
+      p = this.remove(k, startTime, endTime)
     })
     return p || Promise.resolve()
   }
