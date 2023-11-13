@@ -568,6 +568,11 @@ export class Hls extends EventEmitter {
    * @private
    */
   _onPlay = async () => {
+    // fix replay 重复请求问题
+    if (this.media.seeking && this.media.currentTime === 0){
+      logger.debug('replay currentTime 0, return')
+      return
+    }
     clearTimeout(this._disconnectTimer)
     if (this._reloadOnPlay) {
       this._reloadOnPlay = false
