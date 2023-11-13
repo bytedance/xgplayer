@@ -64,6 +64,7 @@ export class Hls extends EventEmitter {
   _reloadOnPlay = false
 
   _switchUrlOpts = null
+  _isProcessQuotaExceeded = false
 
   constructor (cfg) {
     super()
@@ -505,6 +506,13 @@ export class Hls extends EventEmitter {
     }
 
     if (cachedError) {
+      if (this._bufferService.isFull()) {
+        logger.log(`load segment, sn:${seg.sn}, partIndex:${seg.partIndex}`)
+        // if buffer is full, stop request new fragments
+        this._segmentProcessing = true
+        this._isProcessQuotaExceeded = true
+        return false
+      }
       return this._emitError(StreamingError.create(cachedError))
     }
     if (appended) {
@@ -598,7 +606,6 @@ export class Hls extends EventEmitter {
 
     const seekTime = this.media.currentTime
     const seekRange = this._playlist.seekRange
-
     if (seekRange) {
       const newSeekTime = clamp(seekTime, seekRange[0], this.isLive ? seekRange[1] : this.media.duration)
       if (
@@ -627,11 +634,29 @@ export class Hls extends EventEmitter {
 
     this._stopTick()
     await this._segmentLoader.cancel()
+
     this._segmentProcessing = false
     if (!info.end || this.isLive) {
       await this._loadSegmentDirect(true)
     }
     this._startTick()
+  }
+
+  async _onCheckQuotaExceeded (){
+    const seekTime = this.media.currentTime
+    // handle buffer QuotaExceeded when seek
+    const buffered = this.media.buffered
+    let inBuffered = false
+    for (let i = 0; i < buffered.length; i++){
+      if (buffered.start(0) >= seekTime && seekTime < buffered.end(i)){
+        inBuffered = true
+        break
+      }
+    }
+    if (this._bufferService.isFull() ) {
+      const bufferBehind = inBuffered ? this.config.bufferBehind : 5
+      await this._bufferService.evictBuffer(bufferBehind)
+    }
   }
 
   /**
@@ -733,7 +758,14 @@ export class Hls extends EventEmitter {
     const media = this.media
     const buffered = Buffer.get(media)
     const segLoaderError = this._segmentLoader.error
-
+    this._onCheckQuotaExceeded()
+    // change _segmentProcessing to false
+    if (this._isProcessQuotaExceeded){
+      if (!this._bufferService.isFull()){
+        this._isProcessQuotaExceeded = false
+        this._segmentProcessing = false
+      }
+    }
     if (segLoaderError) {
       // Compatible with the case where the buffer does not start from 0
       const bufferMaxHoleTolerance = 0.5

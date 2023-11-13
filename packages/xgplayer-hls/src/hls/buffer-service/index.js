@@ -274,4 +274,8 @@ export class BufferService {
   seamlessSwitch () {
     this._needInitSegment = true
   }
+
+  isFull (mediaType = MSE.VIDEO){
+    return this._mse.isFull(mediaType)
+  }
 }

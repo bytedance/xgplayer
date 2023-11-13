@@ -11,7 +11,7 @@ function defaultOpt() {
     retryCount: 3,
     retryDelay: 1000,
     loadTimeout: 10000,
-    preloadTime: 10,
+    preloadTime: 180,
     bufferBehind: 10,
     maxJumpDistance: 3,
     startTime: 0
