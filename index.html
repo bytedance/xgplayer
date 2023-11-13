@@ -42,6 +42,10 @@
         height: window.innerHeight,
         width: window.innerWidth
       });
+      setTimeout(() => {
+        console.log('>>>>>player destroy')
+        player.destroy()
+      }, 5000)
     </script>
   </body>
 </html>
