@@ -171,33 +171,84 @@ let s_progress = function () {
     // 解决在移动端触发多次seeking问题
     events.pop()
   }
-  events.forEach(item => {
-    container.addEventListener(item, function (e) {
-      if (player.config.disableProgress) return;
+
+  let move = null
+  let up = null
+  let down = function (e) {
+    if (player.config.disableProgress) return;
+    // e.preventDefault()
+    e.stopPropagation()
+    event(e)
+    if (e._target === point || (!player.config.allowSeekAfterEnded && player.ended)) {
+      return true
+    }
+
+    container.focus()
+    let {left} = progress.getBoundingClientRect()
+
+    const isRotate = isRotateFullscreen(player)
+    if (isRotate) {
+      left = progress.getBoundingClientRect().top
+      containerWidth = container.getBoundingClientRect().height
+    } else {
+      containerWidth = container.getBoundingClientRect().width
+      left = progress.getBoundingClientRect().left
+    }
+
+    move = function (e) {
       // e.preventDefault()
       e.stopPropagation()
       event(e)
-      if (e._target === point || (!player.config.allowSeekAfterEnded && player.ended)) {
-        return true
+      player.isProgressMoving = true
+      let w = (isRotate ? e.clientY : e.clientX) - left
+      if (w > containerWidth) {
+        w = containerWidth
+      }
+      let now = w / containerWidth * player.duration
+      if(now < 0) now = 0
+      if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
+      else {
+        progress.style.width = `${w * 100 / containerWidth}%`
+
+        if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+          console.log('trigger touchmove')
+          player.currentTime = Number(now).toFixed(1)
+        } else {
+          let time = findDom(player.controls, '.xgplayer-time')
+          if (time) {
+            time.innerHTML = `<span class="xgplayer-time-current">${format(now || 0)}</span><span>${format(player.duration)}</span>`
+          }
+        }
       }
 
-      container.focus()
-      let {left} = progress.getBoundingClientRect()
+      if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
+        coverPreviewPoint.innerHTML = `<span>${format(now)}</span> / ${format(player.duration || 0)}`
 
-      const isRotate = isRotateFullscreen(player)
-      if (isRotate) {
-        left = progress.getBoundingClientRect().top
-        containerWidth = container.getBoundingClientRect().height
-      } else {
-        containerWidth = container.getBoundingClientRect().width
-        left = progress.getBoundingClientRect().left
+        interval = player.duration / tnailPicNum
+        let index = Math.floor(now / interval)
+        thumbnail.style.backgroundImage = `url(${tnailUrls[Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1]})`
+        let indexInPage = index + 1 - (tnailCol * tnailRow) * (Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1)
+        let tnaiRowIndex = Math.ceil(indexInPage / tnailRow) - 1
+        let tnaiColIndex = indexInPage - tnaiRowIndex * tnailRow - 1
+        thumbnail.style['background-position'] = `-${tnaiColIndex * tnailWidth}px -${tnaiRowIndex * tnailHeight}px`
+        coverPreviewContainer.style.display = 'block'
       }
-
-      let move = function (e) {
-        // e.preventDefault()
-        e.stopPropagation()
-        event(e)
-        player.isProgressMoving = true
+      
+      player.emit('focus')
+    }
+    up = function (e) {
+      console.log('up event', e)
+      // e.preventDefault()
+      e.stopPropagation()
+      event(e)
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('touchmove', move, { passive: false })
+      window.removeEventListener('mouseup', up)
+      window.removeEventListener('touchend', up)
+      if(sniffer.browser.indexOf('ie') < 0) {
+        container.blur()
+      }
+      if (!player.isProgressMoving || (player.videoConfig && player.videoConfig.mediaType === 'audio') || player.dash || player.config.closeMoveSeek) {
         let w = (isRotate ? e.clientY : e.clientX) - left
         if (w > containerWidth) {
           w = containerWidth
@@ -207,78 +258,31 @@ let s_progress = function () {
         if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
         else {
           progress.style.width = `${w * 100 / containerWidth}%`
-
-          if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-            console.log('trigger touchmove')
-            player.currentTime = Number(now).toFixed(1)
-          } else {
-            let time = findDom(player.controls, '.xgplayer-time')
-            if (time) {
-              time.innerHTML = `<span class="xgplayer-time-current">${format(now || 0)}</span><span>${format(player.duration)}</span>`
-            }
-          }
+          console.warn('trigger touchup')
+          player.currentTime = Number(now).toFixed(1)
         }
-
-        if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
-          coverPreviewPoint.innerHTML = `<span>${format(now)}</span> / ${format(player.duration || 0)}`
-
-          interval = player.duration / tnailPicNum
-          let index = Math.floor(now / interval)
-          thumbnail.style.backgroundImage = `url(${tnailUrls[Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1]})`
-          let indexInPage = index + 1 - (tnailCol * tnailRow) * (Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1)
-          let tnaiRowIndex = Math.ceil(indexInPage / tnailRow) - 1
-          let tnaiColIndex = indexInPage - tnaiRowIndex * tnailRow - 1
-          thumbnail.style['background-position'] = `-${tnaiColIndex * tnailWidth}px -${tnaiRowIndex * tnailHeight}px`
-          coverPreviewContainer.style.display = 'block'
-        }
-        
-        player.emit('focus')
       }
-      let up = function (e) {
-        console.log('up event', e)
-        // e.preventDefault()
-        e.stopPropagation()
-        event(e)
-        window.removeEventListener('mousemove', move)
-        window.removeEventListener('touchmove', move, { passive: false })
-        window.removeEventListener('mouseup', up)
-        window.removeEventListener('touchend', up)
-        if(sniffer.browser.indexOf('ie') < 0) {
-          container.blur()
-        }
-        if (!player.isProgressMoving || (player.videoConfig && player.videoConfig.mediaType === 'audio') || player.dash || player.config.closeMoveSeek) {
-          let w = (isRotate ? e.clientY : e.clientX) - left
-          if (w > containerWidth) {
-            w = containerWidth
-          }
-          let now = w / containerWidth * player.duration
-          if(now < 0) now = 0
-          if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
-          else {
-            progress.style.width = `${w * 100 / containerWidth}%`
-            console.warn('trigger touchup')
-            player.currentTime = Number(now).toFixed(1)
-          }
-        }
-        if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
-          coverPreviewContainer.style.display = 'none'
-        }
-        player.emit('focus')
-        player.isProgressMoving = false
+      if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
+        coverPreviewContainer.style.display = 'none'
       }
-      // if (item === 'touchstart') {
-        window.addEventListener('touchmove', move, { passive: false })
-        window.addEventListener('touchend', up)
-      // } else {
-        window.addEventListener('mousemove', move)
-        // console.warn('add envent mouseup')
-        window.addEventListener('mouseup', up)
-      // }
-      return true
-    })
+      player.emit('focus')
+      player.isProgressMoving = false
+    }
+    // if (item === 'touchstart') {
+      window.addEventListener('touchmove', move, { passive: false })
+      window.addEventListener('touchend', up)
+    // } else {
+      window.addEventListener('mousemove', move)
+      // console.warn('add envent mouseup')
+      window.addEventListener('mouseup', up)
+    // }
+    return true
+  }
+  events.forEach(item => {
+    container.addEventListener(item, down)
   })
 
-  container.addEventListener('mouseenter', function (e) {
+  const onMouseEnter = function (e) {
     if (!player.config.allowSeekAfterEnded && player.ended) {
       return true
     }
@@ -333,7 +337,8 @@ let s_progress = function () {
     container.addEventListener('mousemove', move, false)
     container.addEventListener('mouseleave', leave, false)
     compute(e)
-  }, false)
+  }
+  container.addEventListener('mouseenter', onMouseEnter, false)
 
   // let lastBtnLeft = false
   let onTimeupdate = function () {
@@ -393,6 +398,14 @@ let s_progress = function () {
     player.off('currentTimeChange', onCurrentTimeChange)
     player.off('srcChange', onSrcChange)
     player.off('loadedmetadata', onLoadedmetadata);
+    container.removeEventListener('mouseenter', onMouseEnter, false)
+    events.forEach(item => {
+      container.removeEventListener(item, down)
+    })
+    window.removeEventListener('mousemove', move)
+    window.removeEventListener('touchmove', move, { passive: false })
+    window.removeEventListener('mouseup', up)
+    window.removeEventListener('touchend', up)
     cacheUpdateEvents.forEach(item => {
       player.off(item, onCacheUpdate)
     })
