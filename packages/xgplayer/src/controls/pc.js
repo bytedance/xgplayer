@@ -111,6 +111,12 @@ let pc = function () {
   function onDestroy () {
     root.removeEventListener('mouseenter', onMouseEnter)
     root.removeEventListener('mouseleave', onMouseLeave)
+    const controls = player.controls
+    if (controls) {
+      controls.removeEventListener('mouseleave', onControlMouseLeave)
+      controls.removeEventListener('mouseenter', onControlMouseEnter)
+      controls.removeEventListener('click', onControlClick)
+    }
     player.off('ready', onReady)
     player.off('destroy', onDestroy)
   }
