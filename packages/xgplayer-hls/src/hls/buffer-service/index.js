@@ -243,7 +243,7 @@ export class BufferService {
       mse.createSource(MSE.AUDIO, `audio/mp4;codecs=${audioCodec}`)
       this._sourceCreated = true
     }
-    this.hls.emit(EVENT.SOURCEBUFFER_CREATED, { videoCodec, audioCodec })
+    this.hls.emit(EVENT.SOURCEBUFFER_CREATED)
   }
 
   /**
