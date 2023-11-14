@@ -15,6 +15,7 @@ class Stats {
 
   _bitsAccumulateSize = 0
   _bitsAccumulateDuration = 0
+  _startGopId = -1
 
   constructor (timescale) {
     this._timescale = timescale
@@ -78,7 +79,10 @@ class Stats {
       }
     }
     samples.forEach(sample => {
-      if (sample.gopId === 1) {
+      if (this._startGopId === -1) {
+        this._startGopId = sample.gopId
+      }
+      if (sample.gopId === this._startGopId) {
         this.gop++
       }
       this._bitsAccumulateDuration += sample.duration / (this._timescale / 1000)
