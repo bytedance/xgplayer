@@ -39,6 +39,7 @@ export class Flv extends EventEmitter {
 
   _urlSwitching = false
   _seamlessSwitching = false
+  _disconnectRetryCount = 0
 
   _keyframes = null
 
@@ -62,6 +63,8 @@ export class Flv extends EventEmitter {
       onProgress: this._onProgress,
       responseType: 'arraybuffer'
     })
+
+    this._disconnectRetryCount = this._opts.retryCount
 
     this._bufferService = new BufferService(this, this._opts.softDecode ? this.media : undefined, this._opts)
     this._seiService = new SeiService(this)
@@ -318,6 +321,15 @@ export class Flv extends EventEmitter {
     if (done && !this.media.seeking) {
       this.emit(EVENT.LOAD_COMPLETE)
       logger.debug('load done')
+
+      if (this._disconnectRetryCount) {
+        this._disconnectRetryCount--
+        setTimeout(() => {
+          this.load()
+        }, this._opts.retryDelay)
+        return
+      }
+
       this._end()
       if (!this.isLive && this.media.readyState <= 2) {
         this._tick()
@@ -328,6 +340,11 @@ export class Flv extends EventEmitter {
     if (maxReaderInterval) {
       clearTimeout(this._maxChunkWaitTimer)
       this._maxChunkWaitTimer = setTimeout(() => {
+        if (this._disconnectRetryCount) {
+          this._disconnectRetryCount--
+          this.load()
+          return
+        }
         logger.debug('onMaxChunkWait', maxReaderInterval)
         this._end()
       }, maxReaderInterval)
