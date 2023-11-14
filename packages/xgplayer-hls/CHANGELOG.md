@@ -1,3 +1,12 @@
+
+## xgplayer-hls@3.0.10
+>* fix: preloadTime not work for vod stream when start gap meet
+>* fix: subtitle segments not throw
+>* fix: handle buffer full play problem
+>* fix: 修复重播时，同一个请求请求两次问题
+>* feat: add PROGRAM-DATE-TIME tag parse
+
+
 ## xgplayer-hls@3.0.9-alpha.2
 >* feat: llhls支持(ts分片格式)
 >* feat: 增加`useLowLatency`配置参数可以主动关闭低延迟模式
