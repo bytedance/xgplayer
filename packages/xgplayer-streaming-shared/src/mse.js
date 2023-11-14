@@ -328,6 +328,7 @@ export class MSE {
   clearAllBuffer () {
     let p
     Object.keys(this._sourceBuffer).forEach(k => {
+      const sb = this._sourceBuffer[k]
       p = this.remove(k, 0, Buffer.end(Buffer.get(sb)))
     })
     return p

@@ -113,7 +113,7 @@ export class Playlist {
       }
 
       const lastSegment = segments[segments.length - 1]
-      if (Math.abs(time - lastSegment.end) < 0.2) return segments.length - 1
+      if (Math.abs(time - lastSegment?.end) < 0.2) return segments.length - 1
     }
   }
 
