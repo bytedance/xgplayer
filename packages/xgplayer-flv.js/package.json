@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "3.0.10-alpha.8",
+  "version": "3.0.10",
   "description": "web video player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "alpha"
+    "tag": "latest"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,6 @@
   },
   "peerDependencies": {
     "core-js": ">=3.12.1",
-    "xgplayer": "3.0.10-alpha.8"
+    "xgplayer": "3.0.10"
   }
 }
