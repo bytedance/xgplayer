@@ -79,13 +79,13 @@ const sniffer = {
     const isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
     const isAndroid = /(?:Android)/.test(ua)
     const isFireFox = /(?:Firefox)/.test(ua)
+    const isIpad = /(?:iPad|PlayBook)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
     const isTablet =
-      /(?:iPad|PlayBook)/.test(ua) ||
+      isIpad ||
       (isAndroid && !/(?:Mobile)/.test(ua)) ||
       (isFireFox && /(?:Tablet)/.test(ua))
     const isPhone = /(?:iPhone)/.test(ua) && !isTablet
     const isPc = !isPhone && !isAndroid && !isSymbian && !isTablet
-    const isIpad = /(?:iPad|PlayBook)/.test(ua)
     return {
       isTablet,
       isPhone,

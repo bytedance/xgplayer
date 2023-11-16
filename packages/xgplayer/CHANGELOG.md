@@ -1,4 +1,6 @@
 # 版本更新记录
+## 3.0.11-alpha.0
+>* fix(xgplayer): 修复 sniffer 在部分 iPad 中判断错误的问题
 ## 3.0.10
 >* fix(xgplayer): 播放器销毁mobile插件事件解绑不全问题修复
 >* fix(xgplayer): 初始videoPo.rotate修改为-1
