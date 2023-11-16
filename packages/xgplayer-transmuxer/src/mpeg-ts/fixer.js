@@ -154,9 +154,9 @@ export class TsFixer {
       refSampleDurationInt = videoTrack.timescale * (videoTrack.fpsDen / videoTrack.fpsNum)
     } else {
       const first = videoTrack.samples[0]
-      const last = videoTrack.samples[len - 1]
+      const second = videoTrack.samples[1]
       // 100ms default
-      refSampleDurationInt = len === 1 ? 9000 : Math.floor((last.dts - first.dts) / (len - 1))
+      refSampleDurationInt = len === 1 ? 9000 : Math.floor((second.dts - first.dts))
     }
 
     for (let i = 0; i < len; i++) {
