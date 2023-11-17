@@ -64,7 +64,7 @@ export class Flv extends EventEmitter {
       responseType: 'arraybuffer'
     })
 
-    this._disconnectRetryCount = this._opts.retryCount
+    this._disconnectRetryCount = this._opts.disconnectRetryCount
 
     this._bufferService = new BufferService(this, this._opts.softDecode ? this.media : undefined, this._opts)
     this._seiService = new SeiService(this)
@@ -142,6 +142,9 @@ export class Flv extends EventEmitter {
   /** @return {Promise} */
   async replay (seamlesslyReload = this._opts.seamlesslyReload, isPlayEmit) {
     if (!this.media) return
+
+    this._resetDisconnectCount()
+
     if (seamlesslyReload) {
       await this._clear()
 
@@ -167,6 +170,9 @@ export class Flv extends EventEmitter {
    */
   async switchURL (url, seamless) {
     if (!this._bufferService) return
+
+    this._resetDisconnectCount()
+
     if (!seamless || !this._opts.isLive) {
       await this.load(url)
       this._urlSwitching = true
@@ -375,6 +381,10 @@ export class Flv extends EventEmitter {
     }
 
     logger.debug('end stream')
+  }
+
+  _resetDisconnectCount = () => {
+    this._disconnectRetryCount = this._opts.disconnectRetryCount
   }
 
   _tick = () => {

@@ -11,6 +11,7 @@
  *  bufferBehind?: number,
  *  retryCount?: number,
  *  retryDelay?: number,
+ *  disconnectRetryCount?: number
  *  loadTimeout?: number,
  *  maxReaderInterval?: number,
  *  preloadTime?: number,
@@ -32,6 +33,7 @@ export function getOption (opts) {
   const ret = {
     retryCount: 3,
     retryDelay: 1000,
+    disconnectRetryCount: 0,
     loadTimeout: 10000,
     maxReaderInterval: 5000,
     preloadTime: 5,
