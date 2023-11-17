@@ -15,20 +15,19 @@ let rotate = function () {
   player.once('destroy', onDestroy)
 
   player.updateRotateDeg = function () {
-    let player = this;
+    const player = this
+    const {root, video} = player
     if (!player.rotateDeg) {
       player.rotateDeg = 0
     }
 
-    let width = player.root.offsetWidth
-    let height = player.root.offsetHeight
-    let targetWidth = player.video.videoWidth
-    let targetHeight = player.video.videoHeight
+    let width = root.offsetWidth
+    let height = root.offsetHeight
+    let styleWidth = root.style.width || ''
+    let styleHeight = root.style.height || ''
 
-    if (!player.config.rotate.innerRotate && player.config.rotate.controlsFix) {
-      player.root.style.width = height + 'px'
-      player.root.style.height = width + 'px'
-    }
+    let targetWidth = video.videoWidth
+    let targetHeight = video.videoHeight
 
     let scale
     if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
@@ -63,24 +62,43 @@ let rotate = function () {
     }
 
     if (player.config.rotate.innerRotate) {
-      player.video.style.transformOrigin = 'center center'
-      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      video.style.transformOrigin = 'center center'
+      video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
     } else {
       if (player.config.rotate.controlsFix) {
-        player.video.style.transformOrigin = 'center center'
-        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        video.style.transformOrigin = 'center center'
+        video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
       } else {
-        player.root.style.transformOrigin = 'center center'
-        player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
-        player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+        root.style.transformOrigin = 'center center'
+        root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
+        root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      }
+
+      if (!player.config.rotate.innerRotate && player.config.rotate.controlsFix) {
+        root.style.width = height + 'px'
+        root.style.height = width + 'px'
+      } else {
+        if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
+          // 超过视口宽高，则限制旋转后的宽高，以解决控制条不见的问题
+          if (height > window.innerWidth) {
+            root.style.height = window.innerWidth + 'px'
+          }
+          if (width > window.innerHeight) {
+            root.style.width = window.innerHeight + 'px'
+          }
+        } else {
+          // reset
+          root.style.width = styleWidth || ''
+          root.style.height = styleHeight || ''
+        }
       }
     }
   }
 
   player.rotate = function (clockwise = false, innerRotate = true, times = 1) {
-    let player = this;
+    let player = this
     if (!player.rotateDeg) {
       player.rotateDeg = 0
     }

@@ -15,18 +15,16 @@
         height: 100%;
         margin: auto;
         overflow: hidden;
+        display: flex;
       }
       body {
         display: flex;
       }
       #mse {
-        flex: auto;
+        margin: auto;
       }
     </style>
     <script type="text/javascript">
-      window.addEventListener("resize", function () {
-        document.getElementById("mse").style.height = window.innerHeight + "px";
-      });
     </script>
   </head>
   <body>
@@ -40,12 +38,8 @@
         url: "https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4",
         playsinline: true,
         height: window.innerHeight,
-        width: window.innerWidth
+        width: window.innerWidth,
       });
-      setTimeout(() => {
-        console.log('>>>>>player destroy')
-        player.destroy()
-      }, 5000)
     </script>
   </body>
 </html>
