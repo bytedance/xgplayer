@@ -328,7 +328,7 @@ export class Flv extends EventEmitter {
       this.emit(EVENT.LOAD_COMPLETE)
       logger.debug('load done')
 
-      if (this._disconnectRetryCount) {
+      if (this._disconnectRetryCount && this.isLive) {
         this._disconnectRetryCount--
         setTimeout(() => {
           this.load()
@@ -342,6 +342,9 @@ export class Flv extends EventEmitter {
       }
       return
     }
+
+    if (!this.isLive) return
+
     const { maxReaderInterval } = this._opts
     if (maxReaderInterval) {
       clearTimeout(this._maxChunkWaitTimer)
@@ -448,7 +451,7 @@ export class Flv extends EventEmitter {
         this.media.currentTime = bufferEnd - opts.targetLatency
       }
     }
-    this._seiService.throw(currentTime)
+    this._seiService.throw(currentTime, true)
   }
 
   _onFlvScriptData = (sample) => {
