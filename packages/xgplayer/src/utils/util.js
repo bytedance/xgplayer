@@ -31,7 +31,7 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
 /**
  *
  * @param { string } html
- * @param { string } [attrs={}]
+ * @param { {[propName: string]: any} } [attrs={}]
  * @param { string } [classname=""]
  * @returns { HTMLElement | null }
  */
