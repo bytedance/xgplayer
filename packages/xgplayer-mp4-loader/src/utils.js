@@ -1,4 +1,3 @@
-
 export function moovToSegments (moov, duration) {
   const tracks = moov.trak
   if (!tracks || !tracks.length) return
@@ -25,7 +24,17 @@ export function moovToSegments (moov, duration) {
     const timescale = audioTrack.mdia.mdhd?.timescale
     const { stts, stsc, stsz, stco } = audioStbl
     if (!timescale || !stts || !stsc || !stsz || !stco) return
-    audioSegments = getSegments(duration, timescale, stts, stsc, stsz, stco, null, null, segmentDurations)
+    audioSegments = getSegments(
+      duration,
+      timescale,
+      stts,
+      stsc,
+      stsz,
+      stco,
+      null,
+      null,
+      segmentDurations
+    )
   }
 
   return {
@@ -34,7 +43,17 @@ export function moovToSegments (moov, duration) {
   }
 }
 
-function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts, segmentDurations) {
+function getSegments (
+  segDuration,
+  timescale,
+  stts,
+  stsc,
+  stsz,
+  stco,
+  stss,
+  ctts,
+  segmentDurations
+) {
   const frames = []
   const gop = []
   const gopDuration = []
@@ -57,7 +76,9 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   let keyframeMap
   if (stssEntries) {
     keyframeMap = {}
-    stssEntries.forEach(x => { keyframeMap[x - 1] = true })
+    stssEntries.forEach(x => {
+      keyframeMap[x - 1] = true
+    })
   }
 
   let frame
@@ -133,7 +154,9 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
         offsetInChunk = 0
         if (chunkIndex >= lastChunkInRun) {
           chunkRunIndex++
-          lastChunkInRun = stscEntries[chunkRunIndex + 1] ? stscEntries[chunkRunIndex + 1].firstChunk - 1 : Infinity
+          lastChunkInRun = stscEntries[chunkRunIndex + 1]
+            ? stscEntries[chunkRunIndex + 1].firstChunk - 1
+            : Infinity
         }
         lastSampleInChunk += stscEntries[chunkRunIndex].samplesPerChunk
       }
@@ -157,7 +180,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
     // 因为强制把视频第一帧的pts改为0 ，所以第一个gop的时长可能和endTime - startTime对应不上
     // 需要修正下,不然音频根据视频gop时长截取的第一个关键帧起始的误差较大
     if (segments.length === 0) {
-      const diff = (segMaxPtsFrame.pts + segMaxPtsFrame.duration) - segMinPts
+      const diff = segMaxPtsFrame.pts + segMaxPtsFrame.duration - segMinPts
       duration = diff / timescale
     }
     segments.push({
@@ -193,15 +216,23 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
     gopMaxPtsFrameIdxArr = []
     segmentDurations = segmentDurations || []
     let duration = segmentDurations[0] || segDuration
-    for (let i = 0; i < l; i++) {
-      segFrames.push(frames[i])
-      time += frames[i].duration
-      const curTime = time / timescale
-      if (i + 1 >= l || curTime + adjust >= duration) {
-        adjust += curTime - duration
+    for (let i = 0, nextEndTime; i < l; i++) {
+      const curFrame = frames[i]
+      const nextFrame = frames[i + 1]
+      const isFinalFrame = i === l - 1
+      segFrames.push(curFrame)
+      time += curFrame.duration
+      const curEndTime = nextEndTime || time / timescale
+      nextEndTime = (nextFrame ? time + nextFrame.duration : 0) / timescale
+      if (isFinalFrame ||
+        // 这里使用下一帧的目的是将每个分组的起始音频帧应该覆盖或包含GOP的开始时间，
+        // MSE在remove buffer时会将gop结束时间点的那个音频帧删掉，这个策略就是为了
+        // 防止之后再添加新的Coded Frame Group时由于缺少了一帧音频容易产生Buffer gap
+        nextEndTime + adjust >= duration) {
+        adjust += nextEndTime - duration
         gopMinPtsArr.push(segFrames[0].pts)
         gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
-        pushSegment(curTime, segments.length, segments.length)
+        pushSegment(curEndTime, segments.length, segments.length)
         duration = segmentDurations[segments.length] || segDuration
       }
     }
