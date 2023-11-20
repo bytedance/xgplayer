@@ -1,6 +1,4 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
-// import Poster from '../../packages/xgplayer/src/plugins/poster'
-// import Start from '../../packages/xgplayer/src/plugins/start'
 import { TextTrack } from '../../packages/xgplayer/src/index'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
@@ -44,11 +42,11 @@ function init(index = 0, config = {}) {
         url: `${url}&_test=1111`
       }
     },
-    url: '//www.douyin.com/aweme/v1/play/?aid=6383&app_name=aweme&channel=channel_pc_web&device_platform=web&did=0&file_id=97ed815d341b4c4b88f5d264735450cc&fp=verify_lnmx61oz_AneyEmbA_UvI5_4NM1_BLMc_v9cDQxS71aFu&is_play_url=1&line=0&referer=&sign=361458dae299e58346ad40d061e0012e&source=PackSourceEnum_AWEME_DETAIL&target=7282384131110014265&user_agent=Mozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F117.0.0.0%20Safari%2F537.36&video_id=v0200fg10000ck83jpvog65j9apo1ilg&webid=7288986370838726203&downgrade_264=1',
+    url: 'xx',
     DynamicBg: {
       disable: false
     },
-    marginControls: true,
+    // marginControls: true,
     loop: false,
     autoplay: false,
     autoplayMuted: true,
@@ -81,10 +79,10 @@ function init(index = 0, config = {}) {
       // gestureX: false
     },
     // timeSegments: ,
-    timeSegmentsControls:{
-      disable: false,
-      segments: [{start: 0, end: 10}]
-    },
+    // timeSegmentsControls:{
+    //   disable: false,
+    //   segments: [{start: 0, end: 10}]
+    // },
     keyboard: {
       seekStep: 2
     },
@@ -126,6 +124,7 @@ function init(index = 0, config = {}) {
       isItemClickHide: false
     },
     height: 700,
+    miniprogress: true,
     ...config
   })
   window._onClick = function(id) {
@@ -141,8 +140,8 @@ function init(index = 0, config = {}) {
     // window[p].play()
   })
 
-  window[p].on('source_success', (data) => {
-    console.log('source_success', data)
+  window[p].on('timeupdate', (data) => {
+    console.log('cumulateTime', window[p].cumulateTime)
   })
   window[p].on('source_error', (data) => {
     console.error('source_error', data)
