@@ -1903,6 +1903,9 @@ class Player extends MediaProxy {
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
+    if (!this._accPlayed.t && !this.paused && !this.ended) {
+      this._accPlayed.t = new Date().getTime()
+    }
   }
 
   /**
