@@ -346,7 +346,6 @@ class Keyboard extends BasePlugin {
       }
       _keyState.tt = _t
     }
-    preventDefault(e)
     this.handleKeyCode(e.keyCode, e, _keyState.isPress)
   }
 
@@ -382,6 +381,7 @@ class Keyboard extends BasePlugin {
             ...this.keyCodeMap[arr[i]]
           })
         }
+        preventDefault(event)
         break
       }
     }
