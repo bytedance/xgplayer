@@ -608,7 +608,7 @@ export class Hls extends EventEmitter {
    */
   _onSeeking = async () => {
     if (!this.media) return
-
+    this._onCheckQuotaExceeded()
     const seekTime = this.media.currentTime
     const seekRange = this._playlist.seekRange
     if (seekRange) {
@@ -660,7 +660,10 @@ export class Hls extends EventEmitter {
     }
     if (this._bufferService.isFull() ) {
       const bufferBehind = inBuffered ? this.config.bufferBehind : 5
-      await this._bufferService.evictBuffer(bufferBehind)
+      const mediaTime = this.media.currentTime
+      if (mediaTime - bufferBehind > 0){
+        await this._bufferService.removeBuffer(0, mediaTime - bufferBehind)
+      }
     }
   }
 
