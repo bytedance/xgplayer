@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-streaming-shared",
-  "version": "3.0.11-alpha.0",
+  "version": "3.0.11-alpha.1",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
