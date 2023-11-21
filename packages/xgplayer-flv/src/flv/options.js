@@ -42,6 +42,7 @@ export function getOption (opts) {
     bufferBehind: 10,
     maxJumpDistance: 3,
     analyzeDuration: 20000,
+    defaultVodLoadSize: 10000000,
     seamlesslyReload: false,
     keepStatusAfterSwitch: true,
     onlyVideo: false,

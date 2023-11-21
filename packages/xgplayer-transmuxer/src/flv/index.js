@@ -35,7 +35,7 @@ export class FlvDemuxer {
 
   /**
    * @param {Uint8Array} data
-   * @param {boolean} [discontinuity=false]
+   * @param {boolean} [discontinuity=false] 切流
    * @param {boolean} [contiguous=true]
    * @returns {DemuxResult}
    */
@@ -44,6 +44,9 @@ export class FlvDemuxer {
 
     if (discontinuity || !contiguous) {
       this._remainingData = null
+    }
+
+    if (discontinuity) {
       this._headerParsed = false
     }
 

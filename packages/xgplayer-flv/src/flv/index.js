@@ -1,5 +1,18 @@
 import EventEmitter from 'eventemitter3'
-import { NetLoader, Buffer, MSE, EVENT, StreamingError, BandwidthService, SeiService, GapService, MediaStatsService, isMediaPlaying, Logger, getVideoPlaybackQuality } from 'xgplayer-streaming-shared'
+import {
+  NetLoader,
+  Buffer,
+  MSE,
+  EVENT,
+  StreamingError,
+  BandwidthService,
+  SeiService,
+  GapService,
+  MediaStatsService,
+  isMediaPlaying,
+  Logger,
+  getVideoPlaybackQuality
+} from 'xgplayer-streaming-shared'
 import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import { BufferService } from './services'
 import { getOption } from './options'
@@ -7,6 +20,7 @@ import { searchKeyframeIndex } from './utils'
 
 export const logger = new Logger('flv')
 
+const MAX_HOLE = 0.1
 
 /**
  * @typedef {import("../../../xgplayer-streaming-shared/es/services/stats").StatsInfo} Stats
@@ -40,6 +54,7 @@ export class Flv extends EventEmitter {
   _urlSwitching = false
   _seamlessSwitching = false
   _disconnectRetryCount = 0
+  _preLoadEndPoint = 0
 
   _keyframes = null
 
@@ -66,7 +81,11 @@ export class Flv extends EventEmitter {
 
     this._disconnectRetryCount = this._opts.disconnectRetryCount
 
-    this._bufferService = new BufferService(this, this._opts.softDecode ? this.media : undefined, this._opts)
+    this._bufferService = new BufferService(
+      this,
+      this._opts.softDecode ? this.media : undefined,
+      this._opts
+    )
     this._seiService = new SeiService(this)
     this._bandwidthService = new BandwidthService()
     this._stats = new MediaStatsService(this)
@@ -78,6 +97,7 @@ export class Flv extends EventEmitter {
     this.media.addEventListener('play', this._onPlay)
     this.media.addEventListener('seeking', this._onSeeking)
     this.media.addEventListener('timeupdate', this._onTimeupdate)
+    this.media.addEventListener('progress', this._onBufferUpdate)
 
     this.on(EVENT.FLV_SCRIPT_DATA, this._onFlvScriptData)
   }
@@ -116,7 +136,7 @@ export class Flv extends EventEmitter {
     return this._stats.getStats()
   }
 
-  bufferInfo (maxHole = 0.1) {
+  bufferInfo (maxHole = MAX_HOLE) {
     return Buffer.info(Buffer.get(this.media), this.media?.currentTime, maxHole)
   }
 
@@ -133,7 +153,7 @@ export class Flv extends EventEmitter {
     if (!this._bufferService) return
     await this._reset(reuseMse)
 
-    this._loadData(url)
+    this._loadData(url, this._opts.isLive ? [] : [0, this._opts.defaultVodLoadSize])
 
     clearTimeout(this._tickTimer)
     this._tickTimer = setTimeout(this._tick, this._tickInterval)
@@ -156,7 +176,7 @@ export class Flv extends EventEmitter {
     } else {
       await this.load()
     }
-    return this.media.play(!isPlayEmit).catch(()=>{})
+    return this.media.play(!isPlayEmit).catch(() => {})
   }
 
   disconnect () {
@@ -176,7 +196,7 @@ export class Flv extends EventEmitter {
     if (!seamless || !this._opts.isLive) {
       await this.load(url)
       this._urlSwitching = true
-      return this.media.play(true).catch(()=>{})
+      return this.media.play(true).catch(() => {})
     }
 
     await this._clear()
@@ -250,7 +270,7 @@ export class Flv extends EventEmitter {
 
   async _loadData (url, range) {
     if (url) this._opts.url = url
-    let finnalUrl = url = this._opts.url
+    let finnalUrl = (url = this._opts.url)
     if (!url) throw new Error('Source url is missing')
 
     if (this._opts.preProcessUrl) {
@@ -286,18 +306,27 @@ export class Flv extends EventEmitter {
    * firstByteTime: 首字节响应时间
    * @param {Response} response
    */
-  _onProgress = async (chunk, done, { startTime, endTime, st, firstByteTime }, response) => {
+  _onProgress = async (
+    chunk,
+    done,
+    { startTime, endTime, st, firstByteTime },
+    response
+  ) => {
     this._loading = !done
-
     if (!this._firstProgressEmit) {
       if (!this.media) {
         this._mediaLoader?.cancel()
         return
       }
       const headers = response.headers
-      this.emit(EVENT.TTFB, { url: this._opts.url, responseUrl: response.url, elapsed: st ? (firstByteTime - st) : (endTime - startTime) })
+      this.emit(EVENT.TTFB, {
+        url: this._opts.url,
+        responseUrl: response.url,
+        elapsed: st ? firstByteTime - st : endTime - startTime
+      })
       this.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers })
-      this._acceptRanges = !!headers?.get('Accept-Ranges') || !!headers?.get('Content-Range')
+      this._acceptRanges =
+        !!headers?.get('Accept-Ranges') || !!headers?.get('Content-Range')
       this._firstProgressEmit = true
     }
 
@@ -328,17 +357,15 @@ export class Flv extends EventEmitter {
       this.emit(EVENT.LOAD_COMPLETE)
       logger.debug('load done')
 
-      if (this._disconnectRetryCount && this.isLive) {
-        this._disconnectRetryCount--
-        setTimeout(() => {
-          this.load()
-        }, this._opts.retryDelay)
-        return
-      }
-
-      this._end()
-      if (!this.isLive && this.media.readyState <= 2) {
-        this._tick()
+      if (this.isLive) {
+        if (this._disconnectRetryCount) {
+          this._disconnectRetryCount--
+          setTimeout(() => {
+            this.load()
+          }, this._opts.retryDelay)
+          return
+        }
+        this._end()
       }
       return
     }
@@ -398,7 +425,7 @@ export class Flv extends EventEmitter {
 
     const bufferEnd = Buffer.end(Buffer.get(media))
 
-    if (bufferEnd < 0.1 || !media.readyState) return
+    if (bufferEnd < MAX_HOLE || !media.readyState) return
 
     const opts = this._opts
     if (isMediaPlaying(media)) {
@@ -418,23 +445,21 @@ export class Flv extends EventEmitter {
 
   _onPlay = () => {
     const canReplay = this._opts.softDecode || this.media?.buffered?.length
-    if (this.isLive && !this._loading && canReplay) {
-      this.replay(undefined, true)
+    if (this.isLive) {
+      if (!this._loading && canReplay) {
+        this.replay(undefined, true)
+      }
+      return
+    }
+    if (this.bufferInfo().start > MAX_HOLE) {
+      this._tick()
     }
   }
 
   _onSeeking = async () => {
     if (!this.isLive && this.seekable) {
-      const times = this._keyframes.times
-      const filepositions = this._keyframes.filepositions
-      if (!times?.length || !filepositions?.length) return
-      const currentTime = this.media.currentTime
-      const i = searchKeyframeIndex(this._keyframes.times, currentTime)
-      const startByte = filepositions[i]
-      if (startByte === null || startByte === undefined) return
-      await this._mediaLoader.cancel()
-      this._loadData(null, [startByte])
-      this._bufferService.unContiguous(times[i])
+      this._preLoadEndPoint = -1
+      this._checkPreload()
     }
   }
 
@@ -452,9 +477,55 @@ export class Flv extends EventEmitter {
       }
     }
     this._seiService.throw(currentTime, true)
+
+    if (opts.isLive || !this.seekable || this._loading) return
+
+    this._checkPreload()
   }
 
-  _onFlvScriptData = (sample) => {
+  _onBufferUpdate = () => {
+    if (this._opts.isLive) return
+    const { end, nextEnd } = this.bufferInfo()
+    if (Math.abs((end || nextEnd) - this.media.duration) < 1) {
+      this._end()
+      // start with gap and buffer append finished untimely
+      if (this.media.readyState <= 2) {
+        this._tick()
+      }
+    }
+  }
+
+  _checkPreload = async () => {
+    const { remaining: remainingBuffer } = this.bufferInfo()
+    const opts = this._opts
+    const filepositions = this._keyframes.filepositions
+    const times = this._keyframes.times
+    const currentTime = this.media.currentTime
+
+    if (remainingBuffer < opts.preloadTime) {
+      const i = searchKeyframeIndex(
+        this._keyframes.times,
+        currentTime + remainingBuffer + MAX_HOLE
+      )
+      let end = searchKeyframeIndex(
+        this._keyframes.times,
+        currentTime + remainingBuffer + this._opts.preloadTime
+      )
+      if (end === i) {
+        end = i + 1
+      }
+      if (this._preLoadEndPoint === end) return
+
+      const startByte = filepositions[i]
+      if (startByte === null || startByte === undefined) return
+      await this._mediaLoader.cancel()
+      this._loadData(null, [startByte, filepositions[end]])
+      this._preLoadEndPoint = end
+      this._bufferService.unContiguous(times[i])
+    }
+  }
+
+  _onFlvScriptData = sample => {
     const keyframes = sample.data?.onMetaData?.keyframes
     const duration = sample.data?.onMetaData?.duration
     if (keyframes) {
