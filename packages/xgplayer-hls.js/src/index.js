@@ -93,7 +93,9 @@ class HlsJsPlugin extends BasePlugin {
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
-            this.hls.startLoad()
+            if (!(data?.networkDetails?.status === 404)) {
+              this.hls.startLoad()
+            }
             break
           case Hls.ErrorTypes.MEDIA_ERROR:
             this.hls.recoverMediaError()

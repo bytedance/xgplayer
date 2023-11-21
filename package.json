@@ -8,6 +8,7 @@
     "libd": "node ./scripts/cli.js",
     "dev:xgplayer": "yarn libd dev fixtures/xgplayer",
     "dev:hls": "yarn libd dev fixtures/hls",
+    "dev:hlsjs": "yarn libd dev fixtures/hlsjs",
     "dev:flv": "yarn libd dev fixtures/flv",
     "dev:flvjs": "yarn libd dev fixtures/flvjs",
     "dev:mp4": "yarn libd dev fixtures/mp4",
