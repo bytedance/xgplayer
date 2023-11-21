@@ -57,7 +57,6 @@ export class Flv extends EventEmitter {
   _preLoadEndPoint = 0
 
   _keyframes = null
-
   _acceptRanges = true
 
   /**
@@ -98,6 +97,7 @@ export class Flv extends EventEmitter {
     this.media.addEventListener('seeking', this._onSeeking)
     this.media.addEventListener('timeupdate', this._onTimeupdate)
     this.media.addEventListener('progress', this._onBufferUpdate)
+    this.media.addEventListener('waiting', this._onWaiting)
 
     this.on(EVENT.FLV_SCRIPT_DATA, this._onFlvScriptData)
   }
@@ -217,6 +217,8 @@ export class Flv extends EventEmitter {
     this.media.removeEventListener('play', this._onPlay)
     this.media.removeEventListener('seeking', this._onSeeking)
     this.media.removeEventListener('timeupdate', this._onTimeupdate)
+    this.media.removeEventListener('waiting', this._onWaiting)
+    this.media.removeEventListener('progress', this._onBufferUpdate)
     await Promise.all([this._clear(), this._bufferService.destroy()])
     this.media = null
     this._bufferService = null
@@ -291,6 +293,7 @@ export class Flv extends EventEmitter {
     try {
       await this._mediaLoader.load({ url: finnalUrl, range })
     } catch (error) {
+      this._loading = false
       return this._emitError(StreamingError.network(error))
     }
   }
@@ -339,6 +342,14 @@ export class Flv extends EventEmitter {
       await this._bufferService.appendBuffer(chunk)
       this._bufferService?.evictBuffer(this._opts.bufferBehind)
     } catch (error) {
+      if (!this.isLive && this._bufferService.isFull()) {
+        await this._mediaLoader.cancel()
+        this._loading = false
+        // detect the large buffer size can appended
+        const remaining = this.bufferInfo().remaining
+        this._opts.preloadTime = parseInt(remaining) / 2
+        return
+      }
       return this._emitError(StreamingError.create(error))
     }
 
@@ -357,14 +368,7 @@ export class Flv extends EventEmitter {
       this.emit(EVENT.LOAD_COMPLETE)
       logger.debug('load done')
 
-      if (this.isLive) {
-        if (this._disconnectRetryCount) {
-          this._disconnectRetryCount--
-          setTimeout(() => {
-            this.load()
-          }, this._opts.retryDelay)
-          return
-        }
+      if (this.isLive && this._disconnectRetryCount <= 0) {
         this._end()
       }
       return
@@ -483,6 +487,14 @@ export class Flv extends EventEmitter {
     this._checkPreload()
   }
 
+  _onWaiting = () => {
+    // retry for stream disconnect
+    if (this.isLive && !this._loading && this._disconnectRetryCount) {
+      this._disconnectRetryCount--
+      this.load()
+    }
+  }
+
   _onBufferUpdate = () => {
     if (this._opts.isLive) return
     const { end, nextEnd } = this.bufferInfo()
@@ -496,7 +508,7 @@ export class Flv extends EventEmitter {
   }
 
   _checkPreload = async () => {
-    const { remaining: remainingBuffer } = this.bufferInfo()
+    const { remaining: remainingBuffer = 0 } = this.bufferInfo()
     const opts = this._opts
     const filepositions = this._keyframes.filepositions
     const times = this._keyframes.times
@@ -514,6 +526,7 @@ export class Flv extends EventEmitter {
       if (end === i) {
         end = i + 1
       }
+
       if (this._preLoadEndPoint === end) return
 
       const startByte = filepositions[i]
