@@ -39,10 +39,10 @@ function init(index = 0, config = {}) {
     preProcessUrl: (url, ext) => {
       console.log('>>>preProcessUrl', url, ext)
       return {
-        url: `${url}&_test=1111`
+        url: url
       }
     },
-    url: 'xx',
+    url: "xx",
     DynamicBg: {
       disable: false
     },
@@ -74,6 +74,13 @@ function init(index = 0, config = {}) {
     },
     rotate: {
       innerRotate: false
+    },
+    Keyboard: {
+      // isGlobalTrigger: false, // Whether the shortcut key needs to be triggered globally
+      // disableBodyTrigger: false,
+      // disable: false,
+      // playbackRate: 2, // 长按倍速限制
+      isIgnoreUserActive: true // 是否忽略用户激活状态
     },
     mobile: {
       // gestureX: false
@@ -123,7 +130,7 @@ function init(index = 0, config = {}) {
       defaultDefinition: '360p',
       isItemClickHide: false
     },
-    height: 700,
+    height: 300,
     miniprogress: true,
     ...config
   })
@@ -140,9 +147,6 @@ function init(index = 0, config = {}) {
     // window[p].play()
   })
 
-  window[p].on('timeupdate', (data) => {
-    console.log('cumulateTime', window[p].cumulateTime)
-  })
   window[p].on('source_error', (data) => {
     console.error('source_error', data)
   })
@@ -209,6 +213,7 @@ function init(index = 0, config = {}) {
 }
 
 init()
+init(1)
 
 // init(1, {
 //   i18n: [
