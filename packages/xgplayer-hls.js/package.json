@@ -35,7 +35,7 @@
   "dependencies": {
     "deepmerge": "2.0.1",
     "event-emitter": "^0.3.5",
-    "hls.js": "^1.0.7"
+    "hls.js": "^1.4.12"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.0-next.0",
