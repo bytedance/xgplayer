@@ -1,4 +1,10 @@
 
+## xgplayer-hls@3.0.11-alpha.2
+>* fix: m3u8 302 redirect
+
+## xgplayer-hls@3.0.11-alpha.1
+>* fix: 首个分片timestamp breaked case duration large value
+
 ## xgplayer-hls@3.0.10
 >* fix: preloadTime not work for vod stream when start gap meet
 >* fix: subtitle segments not throw
