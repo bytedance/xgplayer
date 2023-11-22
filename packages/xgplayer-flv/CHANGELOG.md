@@ -1,3 +1,8 @@
+
+## xgplayer-flv@3.0.11-alpha.2
+>* feat: 断网、弱网增加重试配置
+>* refact: 点播流播放重构
+
 ## xgplayer-flv@3.0.10
 >* fix: gop statistics
 
