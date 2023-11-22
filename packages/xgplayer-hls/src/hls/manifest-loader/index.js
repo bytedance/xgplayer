@@ -50,6 +50,9 @@ export class ManifestLoader {
     let videoText
     let audioText
     let subtitleText
+    let videoResUrl
+    let audioResUrl
+    let subtitleResUrl
 
     try {
       const [video, audio, subtitle] = await Promise.all(toLoad)
@@ -58,14 +61,18 @@ export class ManifestLoader {
       this._emitOnLoaded(video, url)
 
       videoText = video.data
+      videoResUrl = video.response.url || url
 
       if (audioUrl) {
         audioText = audio?.data
         subtitleText = subtitle?.data
+        audioResUrl = audio?.response?.url || audioUrl
+        subtitleResUrl = subtitle?.response?.url || subtitleUrl
         audioText && this._emitOnLoaded(audio, audioUrl)
         subtitleText && this._emitOnLoaded(subtitle, subtitleUrl)
       } else {
         subtitleText = audio?.data
+        subtitleResUrl = audio?.response?.url || subtitleUrl
         subtitleText && this._emitOnLoaded(audio, subtitleUrl)
       }
 
@@ -84,15 +91,15 @@ export class ManifestLoader {
         if (audioText) audioText = onPreM3U8Parse(audioText, true) || audioText
         if (subtitleText) subtitleText = onPreM3U8Parse(subtitleText, true) || subtitleText
       }
-      playlist = M3U8Parser.parse(videoText, url, this._useLowLatency)
+      playlist = M3U8Parser.parse(videoText, videoResUrl, this._useLowLatency)
       if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
         throw new Error('empty segments list')
       }
       if (audioText) {
-        audioPlaylist = M3U8Parser.parse(audioText, audioUrl, this._useLowLatency)
+        audioPlaylist = M3U8Parser.parse(audioText, audioResUrl, this._useLowLatency)
       }
       if (subtitleText) {
-        subtitlePlaylist = M3U8Parser.parse(subtitleText, subtitleUrl, this._useLowLatency)
+        subtitlePlaylist = M3U8Parser.parse(subtitleText, subtitleResUrl, this._useLowLatency)
       }
 
     } catch (error) {

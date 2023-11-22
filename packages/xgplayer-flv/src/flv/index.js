@@ -455,7 +455,9 @@ export class Flv extends EventEmitter {
       }
       return
     }
-    if (this.bufferInfo().start > MAX_HOLE) {
+
+    const info = this.bufferInfo()
+    if ((info.start || info.nextStart) > MAX_HOLE) {
       this._tick()
     }
   }
