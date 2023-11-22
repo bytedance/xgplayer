@@ -1,6 +1,15 @@
 # 版本更新记录
-## 3.0.11-alpha.0
+## 3.0.11-alpha.1
 >* fix(xgplayer): 修复 sniffer 在部分 iPad 中判断错误的问题
+>* fix(xgplayer): 累计观看时长计时点从onPlaying开始
+>* fix(xgplayer): miniprogress增加颜色配置响应 close https://github.com/bytedance/xgplayer/issues/1179
+>* fix(xgplayer): 全局多实例快捷键同时生效异常问题修复
+## 3.0.11-alpha.0
+>* fix(xgplayer): isBlob判断增加类型判断
+>* feat(xgplayer): dynamicBg插件增加自定义容器渲染, 增加初始渲染间隔
+>* fix(xgplayer): api类型声明修复 close https://github.com/bytedance/xgplayer/issues/1142
+>* fix(xgplayer): api类型声明修复 close https://github.com/bytedance/xgplayer/issues/1142
+>* feat(xgplayer): poster增加填充模式
 ## 3.0.10
 >* fix(xgplayer): 播放器销毁mobile插件事件解绑不全问题修复
 >* fix(xgplayer): 初始videoPo.rotate修改为-1
