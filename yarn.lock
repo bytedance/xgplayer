@@ -3638,7 +3638,7 @@ has@^1.0.3:
 
 hls.js@^1.4.12:
   version "1.4.12"
-  resolved "https://bnpm.byted.org/hls.js/-/hls.js-1.4.12.tgz#2022daa29d10c662387d80a5297f8330f8ef5ee2"
+  resolved "https://registry.npmjs.org/hls.js/-/hls.js-1.4.12.tgz#2022daa29d10c662387d80a5297f8330f8ef5ee2"
   integrity sha512-1RBpx2VihibzE3WE9kGoVCtrhhDWTzydzElk/kyRbEOLnb1WIE+3ZabM/L8BqKFTCL3pUy4QzhXgD1Q6Igr1JA==
 
 hosted-git-info@^2.1.4:

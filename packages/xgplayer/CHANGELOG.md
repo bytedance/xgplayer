@@ -1,5 +1,5 @@
 # 版本更新记录
-## 3.0.11-alpha.1
+## 3.0.11-alpha.2
 >* fix(xgplayer): 修复 sniffer 在部分 iPad 中判断错误的问题
 >* fix(xgplayer): 累计观看时长计时点从onPlaying开始
 >* fix(xgplayer): miniprogress增加颜色配置响应 close https://github.com/bytedance/xgplayer/issues/1179
