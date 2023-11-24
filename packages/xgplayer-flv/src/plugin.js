@@ -134,11 +134,16 @@ export class FlvPlugin extends BasePlugin {
   /**
    *
    * @param {string} url
-   * @param {boolean} seamless
+   * @param {boolean | {seamless: boolean}} seamless
    */
   _onSwitchURL = (url, seamless) => {
     if (this.flv) {
       this.player.config.url = url
+
+      if (typeof seamless === 'object') {
+        seamless = seamless.seamless
+      }
+
       this.flv.switchURL(url, seamless)
 
       if (!seamless && this.player.config?.flv?.keepStatusAfterSwitch) {
