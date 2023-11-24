@@ -1,42 +1,37 @@
 // import { Errors } from 'xgplayer'
 import version from './version'
+import { ERR, ERR_CODE } from 'xgplayer-streaming-shared'
 const ERROR_CODES = {
-  416: -499899,
-  401: -499898,
-  403: -499897,
-  404: -499896,
-  timeout: -499895,
-  '4xx': -499894,
-  '5xx': -499893,
-  networkError: -499892,
-  contentError: -499891,
-  mse: -499971,
-  mseOpen: -499972,
-  mseAppend: -499973,
-  boxsError: -499980, // 盒子解析失败
-  moovError: -499981, // moov获取失败
-  notH264: -499982,
-  mdatError: -499983,
-  mdhdError: -499984,
-  metaError: -499985,
-  muxError: -499986,
-  h265Error:-499987,
-  noneURL: -499988, // 视频播放地址为空
-  other: -499989,
-  other1: -499990,
-  waitTimeout: -499791,
-  onWaitInBufferRange: -499792
+  416: ERR_CODE[ERR.NETWROK_RANGE_NOT_SATISFIABLE], // -499899
+  403: ERR_CODE[ERR.NETWORK_FORBIDDEN], // -499897,
+  404: ERR_CODE[ERR.NETWORK_NOTFOUND], // -499896,
+  timeout: ERR_CODE[ERR.NETWORK_TIMEOUT], // -499895,
+  '4xx': `${ERR_CODE[ERR.NETWORK] }4XX`,// -499894,
+  '5xx': `${ERR_CODE[ERR.NETWORK] }5XX`,// -499893,
+  networkError: ERR_CODE[ERR.NETWORK],// -499892,
+  contentError: `${ERR_CODE[ERR.NETWORK] }contentError`,// -499891,
+  mse: ERR_CODE[ERR.MEDIA][ERR.SUB_TYPES.MSE_OTHER], // -499971,
+  mseOpen: ERR_CODE[ERR.MEDIA][ERR.SUB_TYPES.MSE_ADD_SB], // -499972,
+  mseAppend: ERR_CODE[ERR.MEDIA][ERR.SUB_TYPES.MSE_APPEND_BUFFER], // -499973,
+  mse_hijack: ERR_CODE[ERR.MEDIA][ERR.SUB_TYPES.MSE_HIJACK], // -499974,
+  eme_hijack: ERR_CODE[ERR.MEDIA][ERR.SUB_TYPES.EME_HIJACK], // -499975,
+  metaError: ERR_CODE[ERR.DEMUX][ERR.SUB_TYPES.MP4],// -499985,
+  muxError: ERR_CODE[ERR.REMUX][ERR.SUB_TYPES.FMP4],// -499986,
+  other: ERR_CODE[ERR.OTHER], // -499989,
+  waitTimeout: ERR_CODE[ERR.RUNTIME][ERR.SUB_TYPES.BUFFERBREAK_ERROR],// -499791,
+  waitTimeoutWithHidden : ERR_CODE[ERR.RUNTIME][ERR.SUB_TYPES.WAITING_TIMEOUT_ERROR],
+  drm: ERR_CODE[ERR.DRM][ERR.SUB_TYPES.LICENSE],
 }
+const ERROR_TYPES = ERR
 
-const ERROR_TYPES = {
-  network: 1003,
-  format: 1005,
-  runtime: 1002,
-  other: 9999,
-  demux: 1006,
-  remux: 1007
+/**
+ * 根据httpCode获取对应的错误码
+ * @param { number} httpCode
+ * @returns { number }
+ */
+function getErrorCodeByHttpCode (httpCode) {
+  return ERROR_CODES[httpCode] || httpCode
 }
-
 class NetWorkError {
   constructor (type, httpCode, context) {
     let rangeStart = 0
@@ -45,10 +40,11 @@ class NetWorkError {
       rangeStart = context.range[0]
       rangeEnd = context.range[1]
     }
+    const _errCode = getErrorCodeByHttpCode(httpCode)
     return {
-      errorCode: httpCode,
+      errorCode: _errCode,
       errorType: type,
-      errorTypeCode: ERROR_TYPES[type],
+      // errorTypeCode: ERROR_TYPES[type],
       errorMessage: context?.httpText || context?.message,
       url: context?.url,
       httpCode,
@@ -57,9 +53,9 @@ class NetWorkError {
       rangeEnd,
       ext: context,
       mediaError: {
-        code: httpCode,
-        message: context?.httpText || context?.message
-      }
+        code: _errCode,
+        message: context?.httpText || context?.message,
+      },
     }
   }
 }
@@ -69,14 +65,14 @@ class ParserError {
     return {
       errorCode,
       errorType: type,
-      errorTypeCode: ERROR_TYPES[type],
+      // errorTypeCode: ERROR_TYPES[type],
       version,
       errorMessage: ext.msg,
       ext,
       mediaError: {
         code: errorCode,
-        message: ext.msg
-      }
+        message: ext.msg,
+      },
     }
   }
 }
@@ -86,5 +82,6 @@ export {
   NetWorkError,
   ParserError,
   ERROR_CODES,
-  ERROR_TYPES
+  ERROR_TYPES,
+  getErrorCodeByHttpCode,
 }

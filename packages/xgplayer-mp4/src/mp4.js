@@ -502,7 +502,9 @@ class MP4 extends EventEmitter {
   }
 
   async loadFragment (fragIndex, range) {
-    if (this._isPending || range === [0, 0] || this.timeRange[fragIndex].isLoading /* || this._metaLoading*/) return
+    if (this._isPending || (range.length > 0 && range[0] === 0 && range[1] === 0) || this.timeRange[fragIndex].isLoading) {
+      return
+    }
     this.log('[MP4.loadFragment] ,fragIndex,', fragIndex, ',range ', range, ',len ,', range[1] - range[0],', bufferLoaded_Len,', this.bufferLoaded.byteLength)
     if (range.length >= 2 && range[1] && range[1] > 0 && range[1] <= this.bufferLoaded.byteLength) {
       this.timeRange[fragIndex].isLoading = true
