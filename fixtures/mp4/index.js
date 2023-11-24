@@ -8,7 +8,7 @@ let player=new Player({
   id: 'vs',
   autoplay: true,
   volume: 0.3,
-  url:'',
+  url: 'http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4', //'./douyin111.mp4',
   poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
   playsinline: true,
   thumbnail: {

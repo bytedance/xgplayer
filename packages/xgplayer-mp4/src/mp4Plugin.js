@@ -33,7 +33,8 @@ export default class Mp4Plugin extends BasePlugin {
       waitingInBufferTimeOut: 5000,
       waitJampBufferMaxCnt:3,
       tickInSeconds: 0.1,
-      reqOptions: null
+      reqOptions: null,
+      closeDowngrade: false
     }
   }
 
@@ -71,18 +72,6 @@ export default class Mp4Plugin extends BasePlugin {
 
     this._proxyPlayer()
   }
-
-  // beforePlayerInit () {
-  //   const { config } = this
-  //   if (config.supportHevc === undefined) {
-  //     if (Sniffer?.isHevcSupported && Sniffer.isHevcSupported()) {
-  //       config.supportHevc = true
-  //     }
-  //   }
-  //   this.initMp4()
-  //   this.attachEvents()
-  //   this._startProgress()
-  // }
 
   attachEvents () {
     this.off(Events.SEEKING, this._onSeeking)
@@ -272,6 +261,12 @@ export default class Mp4Plugin extends BasePlugin {
     this.emit('playnext')
   }
 
+  checkDegrade (error) {
+    console.log('>>>checkDegrade', error)
+    const { closeDowngrade } = this.config
+    return !closeDowngrade || error.httpCode === 'networkError'
+  }
+
 
   _onMp4Error = (err) => {
     const { vid } = this.playerConfig
@@ -280,24 +275,59 @@ export default class Mp4Plugin extends BasePlugin {
   }
 
   _errorHandler (err) {
+    console.trace('>>>_errorHandler', err)
     const {player, config} = this
     if (!player || this.useVideoLoad) {
       return
     }
+    if (!err.url && this.mp4?.url) {
+      err.url = this.mp4.url
+    }
+    const preState = player.paused
     console.error('final error !!!!, ', config.vid, err)
     this.player.vtype = 'MP4_2'
     this.player.emit('playCatch', this.player.vtype, err)
-    this.emit('error', err)
-    if (err.errd && typeof err.errd === 'object') {
-      if (this.mp4) {
-        err.errd.url = this.mp4.url
-        err.url = this.mp4.url
+    const isDegrade = this.checkDegrade(err)
+    if (isDegrade) {
+      if (this._initPromise) {
+        this._removeAndRejectInitPromise(err)
+      } else {
+        this._startDegradedPlayback(err, preState)
       }
+    } else {
+      this.player.pause()
+      this._reset()
+      const { currentTime } = player
+      this.destroyMSE()
+      player.currentTime = currentTime
+      this.emit('error', err)
     }
-    this.mp4 && this.mp4.cancelLoading()
-    if (this.mp4 && this.mp4.bufferCache) {
-      this.mp4.bufferCache.clear()
+  }
+
+  /**
+   * @@description 降级到video播放
+   */
+  _startDegradedPlayback (err, preState) {
+    console.log('>>>_startDegradedPlayback')
+    const { player, playerConfig } = this
+    this.useVideoLoad = true
+    this.destroyMSE()
+    this._currentTime = player.currentTime
+    this.__onmetadataHandle = () => {
+      if (this._currentTime) {
+        player.currentTime = this._currentTime
+      }
+      if (preState) {
+        this.player.pause()
+      } else {
+        this.player.play()
+      }
+      player.media.removeEventListener('loadedmetadata', this.__onmetadataHandle)
+      this.__onmetadataHandle = null
     }
+    player.media.addEventListener('loadedmetadata', this.__onmetadataHandle)
+    const _url = playerConfig.url
+    player.media.src = _url
   }
 
   _addPendingPromise (p) {
@@ -319,6 +349,13 @@ export default class Mp4Plugin extends BasePlugin {
       })
     }
     this._pendingPromises = []
+  }
+
+  _removeAndRejectInitPromise (error) {
+    if (this._initPromise) {
+      this._removePendingPromise(this._initPromise)
+      this._initPromise.reject(error)
+    }
   }
 
   /**
@@ -363,6 +400,14 @@ export default class Mp4Plugin extends BasePlugin {
       this._isMseInit = true
       this._onTimeUpdate()
     })
+  }
+
+  /**
+   * 销毁MSE对象 // 在重用MSE的时候，如果降级到video原生播放，单实例复用时，需要重新绑定url.所以降级到video原生的需要删除mse对象
+   */
+  async destroyMSE() {
+    await this.mse?.unbindMedia()
+    this.mse = null
   }
 
   _onTimeUpdate () {
