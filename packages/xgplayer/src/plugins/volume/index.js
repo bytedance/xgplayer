@@ -1,4 +1,5 @@
-import Plugin, { Util, Events, Sniffer, POSITIONS } from '../../plugin'
+import Plugin, { Events, Sniffer, POSITIONS } from '../../plugin'
+import { typeOf, getEventPos, clearTimeout, setTimeout, addClass, removeClass } from '../../utils/util'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
@@ -86,7 +87,7 @@ class Volume extends Plugin {
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange)
     this.once(Events.LOADED_DATA, this.onVolumeChange)
 
-    if (Util.typeOf(volume) !== 'Number') {
+    if (typeOf(volume) !== 'Number') {
       this.player.volume = this.config.default
     }
 
@@ -96,10 +97,10 @@ class Volume extends Plugin {
   onBarMousedown = (e) => {
     const { player } = this
     const bar = this.find('.xgplayer-bar')
-    Util.event(e)
+    event(e)
 
     const barRect = bar.getBoundingClientRect()
-    const pos = Util.getEventPos(e, player.zoom)
+    const pos = getEventPos(e, player.zoom)
     const height = barRect.height - (pos.clientY - barRect.top)
     pos.h = height
     pos.barH = barRect.height
@@ -122,8 +123,8 @@ class Volume extends Plugin {
     const { pos, player } = this
     e.preventDefault()
     e.stopPropagation()
-    Util.event(e)
-    const _ePos = Util.getEventPos(e, player.zoom)
+    event(e)
+    const _ePos = getEventPos(e, player.zoom)
     _d.isMoving = true
     const w = pos.h - _ePos.clientY + pos.clientY
     if (w > pos.barH) {
@@ -133,7 +134,7 @@ class Volume extends Plugin {
   }
 
   onBarMouseUp = (e) => {
-    Util.event(e)
+    event(e)
     document.removeEventListener('mouseup', this.onBarMouseUp)
     const { _d } = this
     _d.isStart = false
@@ -191,10 +192,10 @@ class Volume extends Plugin {
     const { player } = this
     player.focus({ autoHide: false })
     if (this._timerId) {
-      Util.clearTimeout(this, this._timerId)
+      clearTimeout(this, this._timerId)
       this._timerId = null
     }
-    Util.addClass(this.root, 'slide-show')
+    addClass(this.root, 'slide-show')
   }
 
   /**
@@ -210,13 +211,13 @@ class Volume extends Plugin {
       return
     }
     if (this._timerId) {
-      Util.clearTimeout(this, this._timerId)
+      clearTimeout(this, this._timerId)
       this._timerId = null
     }
-    this._timerId = Util.setTimeout(this, () => {
+    this._timerId = setTimeout(this, () => {
       if (!_d.isActive) {
         isForce ? player.blur() : player.focus()
-        Util.removeClass(this.root, 'slide-show')
+        removeClass(this.root, 'slide-show')
         _d.isStart && this.onBarMouseUp(e)
       }
       this._timerId = null
@@ -296,7 +297,7 @@ class Volume extends Plugin {
 
   destroy () {
     if (this._timerId) {
-      Util.clearTimeout(this, this._timerId)
+      clearTimeout(this, this._timerId)
       this._timerId = null
     }
     this.unbind('mouseenter', this.onMouseenter)

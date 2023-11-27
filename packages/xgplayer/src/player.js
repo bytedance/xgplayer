@@ -1,5 +1,5 @@
 import MediaProxy from './mediaProxy'
-import Util, { checkIsCurrentVideo } from './utils/util'
+import { addClass, hasClass, removeClass, checkIsCurrentVideo, typeOf, isMSE, setTimeout, clearTimeout, clearAllTimers, createPositionBar, createDom, deepMerge, generateSessionId, filterStyleFromText, getTransformStyle, setStyleFromCsstext, scrollTop, scrollLeft, getFullScreenEl, isBlob, convertDeg } from './utils/util'
 import Sniffer from './utils/sniffer'
 import Database from './utils/database'
 import Errors from './error'
@@ -69,7 +69,7 @@ class Player extends MediaProxy {
    * @param { IPlayerOptions } options
    */
   constructor (options) {
-    const config = Util.deepMerge(getDefaultConfig(), options)
+    const config = deepMerge(getDefaultConfig(), options)
     super(config)
     hooksDescriptor(this, PlAYER_HOOKS)
 
@@ -83,7 +83,7 @@ class Player extends MediaProxy {
      * @type { string }
      * @private
      */
-    this._pluginInfoId = Util.generateSessionId()
+    this._pluginInfoId = generateSessionId()
 
     bindDebug(this)
     // resolve default preset
@@ -355,7 +355,7 @@ class Player extends MediaProxy {
     this.getInitDefinition()
 
     this.setState(STATES.READY)
-    Util.setTimeout(this, () => {
+    setTimeout(this, () => {
       this.emit(Events.READY)
     }, 0)
     this.onReady && this.onReady()
@@ -486,7 +486,7 @@ class Player extends MediaProxy {
     this.rightBar = null
 
     if (this.config.marginControls) {
-      this.innerContainer = Util.createDom(
+      this.innerContainer = createDom(
         'xg-video-container',
         '',
         { 'data-index': -1 },
@@ -549,7 +549,7 @@ class Player extends MediaProxy {
     if (
       !url ||
       url === '' ||
-      (Util.typeOf(url) === 'Array' && url.length === 0)
+      (typeOf(url) === 'Array' && url.length === 0)
     ) {
       url = ''
       this.emit(Events.URL_NULL)
@@ -561,7 +561,7 @@ class Player extends MediaProxy {
       }
     }
     this._detachSourceEvents(this.media)
-    if (Util.typeOf(url) === 'Array' && url.length > 0) {
+    if (typeOf(url) === 'Array' && url.length > 0) {
       this._attachSourceEvents(this.media, url)
     } else if (!this.media.src || this.media.src !== url) {
       this.media.src = url
@@ -569,7 +569,7 @@ class Player extends MediaProxy {
       this.media.removeAttribute('src')
     }
 
-    if (Util.typeOf(this.config.volume) === 'Number') {
+    if (typeOf(this.config.volume) === 'Number') {
       this.volume = this.config.volume
     }
 
@@ -581,7 +581,7 @@ class Player extends MediaProxy {
     const { readyState } = this.media
     XG_DEBUG.logInfo('_startInit readyState', readyState)
     if (this.config.autoplay) {
-      !Util.isMSE(this.media) && this.load();
+      !isMSE(this.media) && this.load();
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.mediaPlay()
     }
@@ -596,7 +596,7 @@ class Player extends MediaProxy {
     }
     this.hasStart = true
     this.setState(STATES.ATTACHED)
-    Util.setTimeout(this, () => {
+    setTimeout(this, () => {
       this.emit(Events.COMPLETE)
     }, 0)
   }
@@ -679,21 +679,21 @@ class Player extends MediaProxy {
     switch (position) {
       case POSITIONS.ROOT_RIGHT:
         if (!this.rightBar) {
-          this.rightBar = Util.createPositionBar('xg-right-bar', this.root)
+          this.rightBar = createPositionBar('xg-right-bar', this.root)
         }
         _root = this.rightBar
         break
       case POSITIONS.ROOT_LEFT:
         if (!this.leftBar) {
-          this.leftBar = Util.createPositionBar('xg-left-bar', this.root)
+          this.leftBar = createPositionBar('xg-left-bar', this.root)
         }
         _root = this.leftBar
         break
       case POSITIONS.ROOT_TOP:
         if (!this.topBar) {
-          this.topBar = Util.createPositionBar('xg-top-bar', this.root)
+          this.topBar = createPositionBar('xg-top-bar', this.root)
           if (this.config.topBarAutoHide) {
-            Util.addClass(this.topBar, STATE_CLASS.TOP_BAR_AUTOHIDE)
+            addClass(this.topBar, STATE_CLASS.TOP_BAR_AUTOHIDE)
           }
         }
         _root = this.topBar
@@ -814,8 +814,8 @@ class Player extends MediaProxy {
     if (!this.root) {
       return
     }
-    if (!Util.hasClass(this.root, className)) {
-      Util.addClass(this.root, className)
+    if (!hasClass(this.root, className)) {
+      addClass(this.root, className)
     }
   }
 
@@ -828,7 +828,7 @@ class Player extends MediaProxy {
     if (!this.root) {
       return
     }
-    Util.removeClass(this.root, className)
+    removeClass(this.root, className)
   }
 
   /**
@@ -840,7 +840,7 @@ class Player extends MediaProxy {
     if (!this.root) {
       return
     }
-    return Util.hasClass(this.root, className)
+    return hasClass(this.root, className)
   }
 
   /**
@@ -920,7 +920,7 @@ class Player extends MediaProxy {
    */
   switchURL (url, options) {
     let _src = url
-    if (Util.typeOf(url) === 'Object') {
+    if (typeOf(url) === 'Object') {
       _src = url.url
     }
     _src = this.preProcessUrl(_src).url
@@ -1004,7 +1004,7 @@ class Player extends MediaProxy {
             /**
              * @private
              */
-            this._errorTimer = Util.setTimeout(
+            this._errorTimer = setTimeout(
               this,
               () => {
                 this._errorTimer = null
@@ -1263,7 +1263,7 @@ class Player extends MediaProxy {
     this.updateAcc('destroy')
     this._unbindEvents()
     this._detachSourceEvents(this.media)
-    Util.clearAllTimers(this)
+    clearAllTimers(this)
     this.emit(Events.DESTROY)
     pluginsManager.destroy(this)
     delHooksDescriptor(this)
@@ -1333,7 +1333,7 @@ class Player extends MediaProxy {
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
       const { url } = this.config
-      const _srcRet = !Util.isMSE(this.media) ? this.preProcessUrl(url) : { url }
+      const _srcRet = !isMSE(this.media) ? this.preProcessUrl(url) : { url }
       this.src = _srcRet.url
       !this.config.isLive && (this.currentTime = cur)
       this.once(Events.CANPLAY, () => {
@@ -1357,15 +1357,15 @@ class Player extends MediaProxy {
       pClassName = STATE_CLASS.PARENT_FULLSCREEN
     }
     if (!this._orgCss) {
-      this._orgCss = Util.filterStyleFromText(root)
+      this._orgCss = filterStyleFromText(root)
     }
-    Util.addClass(root, rootClass)
+    addClass(root, rootClass)
     if (el && el !== root && !this._orgPCss) {
       /**
        * @private
        */
-      this._orgPCss = Util.filterStyleFromText(el)
-      Util.addClass(el, pClassName)
+      this._orgPCss = filterStyleFromText(el)
+      addClass(el, pClassName)
       el.setAttribute(PLATER_ID, this.playerId)
     }
   }
@@ -1382,14 +1382,14 @@ class Player extends MediaProxy {
       pClassName = STATE_CLASS.PARENT_FULLSCREEN
     }
     if (this._orgCss) {
-      Util.setStyleFromCsstext(root, this._orgCss)
+      setStyleFromCsstext(root, this._orgCss)
       this._orgCss = ''
     }
-    Util.removeClass(root, rootClass)
+    removeClass(root, rootClass)
     if (el && el !== root && this._orgPCss) {
-      Util.setStyleFromCsstext(el, this._orgPCss)
+      setStyleFromCsstext(el, this._orgPCss)
       this._orgPCss = ''
-      Util.removeClass(el, pClassName)
+      removeClass(el, pClassName)
       el.removeAttribute(PLATER_ID)
     }
   }
@@ -1404,8 +1404,8 @@ class Player extends MediaProxy {
       el = root
     }
     this._fullScreenOffset = {
-      top: Util.scrollTop(),
-      left: Util.scrollLeft()
+      top: scrollTop(),
+      left: scrollLeft()
     }
 
     this._fullscreenEl = el
@@ -1413,7 +1413,7 @@ class Player extends MediaProxy {
      * @private
      */
     this._fullActionFrom = 'get'
-    const fullEl = Util.getFullScreenEl()
+    const fullEl = getFullScreenEl()
     if (fullEl === this._fullscreenEl) {
       this.onFullscreenChange()
       return Promise.resolve()
@@ -1451,7 +1451,7 @@ class Player extends MediaProxy {
     if (this.isRotateFullscreen) {
       this.exitRotateFullscreen()
     }
-    if (!this._fullscreenEl && !Util.getFullScreenEl()) {
+    if (!this._fullscreenEl && !getFullScreenEl()) {
       return
     }
     const { root, media } = this
@@ -1648,7 +1648,7 @@ class Player extends MediaProxy {
     this.isActive = true
     this.removeClass(STATE_CLASS.INACTIVE)
     if (this.userTimer) {
-      Util.clearTimeout(this, this.userTimer)
+      clearTimeout(this, this.userTimer)
       this.userTimer = null
     }
     if (data.isLock !== undefined) {
@@ -1656,13 +1656,13 @@ class Player extends MediaProxy {
     }
     if (data.autoHide === false || data.isLock === true || innerStates.isActiveLocked) {
       if (this.userTimer) {
-        Util.clearTimeout(this, this.userTimer)
+        clearTimeout(this, this.userTimer)
         this.userTimer = null
       }
       return
     }
     const time = data && data.delay ? data.delay : this.config.inactive
-    this.userTimer = Util.setTimeout(this, () => {
+    this.userTimer = setTimeout(this, () => {
       this.userTimer = null
       this.blur()
     }, time)
@@ -1709,11 +1709,11 @@ class Player extends MediaProxy {
    */
   onFullscreenChange = (event, isFullScreen) => {
     const delayResize = () => {
-      Util.setTimeout(this, () => {
+      setTimeout(this, () => {
         this.resize()
       }, 100)
     }
-    const fullEl = Util.getFullScreenEl()
+    const fullEl = getFullScreenEl()
     if (this._fullActionFrom) {
       this._fullActionFrom = ''
     } else {
@@ -1748,7 +1748,7 @@ class Player extends MediaProxy {
       if (config.needFullscreenScroll) {
         // 保证页面scroll的情况下退出全屏 页面回到原位置
         window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
-        Util.setTimeout( this, () => {
+        setTimeout( this, () => {
           this.fullscreen = false
           this._fullScreenOffset = null
         }, 100)
@@ -1790,7 +1790,7 @@ class Player extends MediaProxy {
     this.removeClass(STATE_CLASS.ERROR)
     this.removeClass(STATE_CLASS.LOADING)
     this.isCanplay = true
-    this.waitTimer && Util.clearTimeout(this, this.waitTimer)
+    this.waitTimer && clearTimeout(this, this.waitTimer)
   }
 
   onLoadeddata () {
@@ -1823,7 +1823,7 @@ class Player extends MediaProxy {
     this.updateAcc('pause')
     if (!this.config.closePauseVideoFocus) {
       if (this.userTimer) {
-        Util.clearTimeout(this, this.userTimer)
+        clearTimeout(this, this.userTimer)
         this.userTimer = null
       }
       this.focus()
@@ -1872,7 +1872,7 @@ class Player extends MediaProxy {
     this.isSeeking = false
     // for ie,playing fired before waiting
     if (this.waitTimer) {
-      Util.clearTimeout(this, this.waitTimer)
+      clearTimeout(this, this.waitTimer)
     }
     this.removeClass(STATE_CLASS.LOADING)
     this.removeClass(STATE_CLASS.SEEKING)
@@ -1883,12 +1883,12 @@ class Player extends MediaProxy {
    */
   onWaiting () {
     if (this.waitTimer) {
-      Util.clearTimeout(this, this.waitTimer)
+      clearTimeout(this, this.waitTimer)
     }
     this.updateAcc('waiting')
-    this.waitTimer = Util.setTimeout(this, () => {
+    this.waitTimer = setTimeout(this, () => {
       this.addClass(STATE_CLASS.LOADING)
-      Util.clearTimeout(this, this.waitTimer)
+      clearTimeout(this, this.waitTimer)
       this.waitTimer = null
     }, this.config.minWaitDelay)
   }
@@ -1917,7 +1917,7 @@ class Player extends MediaProxy {
       this.media.readyState > 2
     ) {
       this.removeClass(STATE_CLASS.LOADING)
-      Util.clearTimeout(this, this.waitTimer)
+      clearTimeout(this, this.waitTimer)
       this.waitTimer = null
     }
 
@@ -1933,7 +1933,7 @@ class Player extends MediaProxy {
   }
 
   onVolumechange () {
-    Util.typeOf(this.config.volume) === 'Number' &&
+    typeOf(this.config.volume) === 'Number' &&
       (this.config.volume = this.volume)
   }
 
@@ -1953,14 +1953,14 @@ class Player extends MediaProxy {
       return
     }
     const eventType =
-      Util.typeOf(event) === 'String' ? event : event.type || ''
+      typeOf(event) === 'String' ? event : event.type || ''
 
     // if (action === 'switch_play_pause') {
-    //   Util.typeOf(params.paused) === 'Undefined' && (params.paused = this.paused)
+    //   typeOf(params.paused) === 'Undefined' && (params.paused = this.paused)
     //   params.isFirstStart = !this.playing
     // }
 
-    if (params.props && Util.typeOf(params.props) !== 'Array') {
+    if (params.props && typeOf(params.props) !== 'Array') {
       params.props = [params.props]
     }
     this.emit(Events.USER_ACTION, {
@@ -2052,7 +2052,7 @@ class Player extends MediaProxy {
       this.media.style.width = `${rWidth}px`
       this.media.style.height = `${rHeight}px`
     }
-    const formStyle = Util.getTransformStyle(_pos, this.media.style.transform || this.media.style.webkitTransform)
+    const formStyle = getTransformStyle(_pos, this.media.style.transform || this.media.style.webkitTransform)
     this.media.style.transform = formStyle
     this.media.style.webkitTransform = formStyle
   }
@@ -2086,7 +2086,7 @@ class Player extends MediaProxy {
       if (key !== 'plugins') {
         this.config[key] = config[key]
         const plugin = this.plugins[key.toLowerCase()]
-        if (plugin && Util.typeOf(plugin.setConfig) === 'Function') {
+        if (plugin && typeOf(plugin.setConfig) === 'Function') {
           plugin.setConfig(config[key])
         }
       }
@@ -2215,7 +2215,7 @@ class Player extends MediaProxy {
    */
   preProcessUrl (url, ext) {
     const { preProcessUrl } = this.config
-    return !Util.isBlob(url) && preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
+    return !isBlob(url) && preProcessUrl && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
   }
 
   /**
@@ -2462,7 +2462,7 @@ class Player extends MediaProxy {
    * @description Media element rotation angle, Only multiples of 90 degrees are supported
    */
   set videoRotateDeg (val) {
-    val = Util.convertDeg(val)
+    val = convertDeg(val)
     if (val % 90 !== 0 || val === this.videoPos.rotate) {
       return
     }
@@ -2638,7 +2638,6 @@ export {
   Events,
   Errors,
   Sniffer,
-  Util,
   STATE_CLASS,
   I18N
 }

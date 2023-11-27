@@ -1,7 +1,4 @@
 import XG_DEBUG from './debug'
-import XgplayerTimeRange from './xgplayerTimeRange'
-const util = {}
-
 /**
  *
  * @param { string } el
@@ -10,7 +7,7 @@ const util = {}
  * @param { string } [cname='']
  * @returns { HTMLElement | null }
  */
-util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
+export function createDom (el = 'div', tpl = '', attrs = {}, cname = '') {
   const dom = document.createElement(el)
   dom.className = cname
   dom.innerHTML = tpl
@@ -31,11 +28,11 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
 /**
  *
  * @param { string } html
- * @param { {[propName: string]: any} } [attrs={}]
+ * @param { { [propName: string]: any } } [attrs={}]
  * @param { string } [classname=""]
  * @returns { HTMLElement | null }
  */
-util.createDomFromHtml = function (html, attrs = {}, classname = '') {
+export function createDomFromHtml (html, attrs = {}, classname = '') {
   try {
     let doc = document.createElement('div')
     doc.innerHTML = html
@@ -43,7 +40,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
     doc = null
     if (dom.length > 0) {
       dom = dom[0]
-      classname && util.addClass(dom, classname)
+      classname && addClass(dom, classname)
       if (attrs) {
         Object.keys(attrs).forEach(key => {
           dom.setAttribute(key, attrs[key])
@@ -53,7 +50,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
     }
     return null
   } catch (err) {
-    XG_DEBUG.logError('util.createDomFromHtml', err)
+    XG_DEBUG.logError('createDomFromHtml', err)
     return null
   }
 }
@@ -64,7 +61,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
  * @param { string } className
  * @returns { boolean }
  */
-util.hasClass = function (el, className) {
+export function hasClass (el, className) {
   if (!el || !className) {
     return false
   }
@@ -82,7 +79,7 @@ util.hasClass = function (el, className) {
  * @param { string } className
  * @returns { void }
  */
-util.addClass = function (el, className) {
+export function addClass (el, className) {
   if (!el || !className) {
     return
   }
@@ -91,7 +88,7 @@ util.addClass = function (el, className) {
       item && el.classList.add(item)
     })
   } catch (e) {
-    if (!util.hasClass(el, className)) {
+    if (!hasClass(el, className)) {
       if (el.className && typeof el.className === 'object') {
         el.setAttribute('class', el.getAttribute('class') + ' ' + className)
       } else {
@@ -107,7 +104,7 @@ util.addClass = function (el, className) {
  * @param { string } className
  * @returns { void }
  */
-util.removeClass = function (el, className) {
+export function removeClass (el, className) {
   if (!el || !className) {
     return
   }
@@ -116,7 +113,7 @@ util.removeClass = function (el, className) {
       item && el.classList.remove(item)
     })
   } catch (e) {
-    if (util.hasClass(el, className)) {
+    if (hasClass(el, className)) {
       className.split(/\s+/g).forEach(item => {
         const reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
         if (el.className && typeof el.className === 'object') {
@@ -135,16 +132,16 @@ util.removeClass = function (el, className) {
  * @param { string } className
  * @returns { void }
  */
-util.toggleClass = function (el, className) {
+export function toggleClass (el, className) {
   if (!el) {
     return
   }
 
   className.split(/\s+/g).forEach(item => {
-    if (util.hasClass(el, item)) {
-      util.removeClass(el, item)
+    if (hasClass(el, item)) {
+      removeClass(el, item)
     } else {
-      util.addClass(el, item)
+      addClass(el, item)
     }
   })
 }
@@ -155,13 +152,13 @@ util.toggleClass = function (el, className) {
  * @param { string } [className]
  * @returns { string }
  */
-util.classNames = function () {
+export function classNames () {
   const classname = []
   for (let i = 0; i < arguments.length; i++) {
-    if (util.typeOf(arguments[i]) === 'String') {
+    if (typeOf(arguments[i]) === 'String') {
       // classname += `${arguments[i]}`
       classname.push(arguments[i])
-    } else if (util.typeOf(arguments[i]) === 'Object') {
+    } else if (typeOf(arguments[i]) === 'Object') {
       Object.keys(arguments[i]).map(key => {
         if (arguments[i][key]) {
           // classname += key
@@ -182,14 +179,14 @@ util.classNames = function () {
  * @param { string } sel
  * @returns { HTMLElement }
  */
-util.findDom = function (el = document, sel) {
+export function findDom (el = document, sel) {
   let dom
   // fix querySelector IDs that start with a digit
   // https://stackoverflow.com/questions/37270787/uncaught-syntaxerror-failed-to-execute-queryselector-on-document
   try {
     dom = el.querySelector(sel)
   } catch (e) {
-    XG_DEBUG.logError('util.findDom', e)
+    XG_DEBUG.logError('export function findDom', e)
     if (sel.indexOf('#') === 0) {
       dom = el.getElementById(sel.slice(1))
     }
@@ -203,11 +200,11 @@ util.findDom = function (el = document, sel) {
  * @param { string } key
  * @returns { any }
  */
-util.getCss = function (dom, key) {
+export function getCss (dom, key) {
   return dom.currentStyle ? dom.currentStyle[key] : document.defaultView.getComputedStyle(dom, false)[key]
 }
 
-util.padStart = function (str, length, pad) {
+export function padStart (str, length, pad) {
   const charstr = String(pad)
   const len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
@@ -224,14 +221,14 @@ util.padStart = function (str, length, pad) {
  * @param { number } time
  * @returns { string }
  */
-util.format = function (time) {
+export function format (time) {
   if (window.isNaN(time)) {
     return ''
   }
   time = Math.round(time)
-  const hour = util.padStart(Math.floor(time / 3600), 2, 0)
-  const minute = util.padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
-  const second = util.padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
+  const hour = padStart(Math.floor(time / 3600), 2, 0)
+  const minute = padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
+  const second = padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
   return (hour === '00' ? [minute, second] : [hour, minute, second]).join(':')
 }
 
@@ -240,7 +237,7 @@ util.format = function (time) {
  * @param { Object } e
  * @returns { Object }
  */
-util.event = function (e) {
+export function event (e) {
   if (e.touches) {
     const touch = e.touches[0] || e.changedTouches[0]
     e.clientX = touch.clientX || 0
@@ -256,7 +253,7 @@ util.event = function (e) {
  * @param { any } obj
  * @returns { string }
  */
-util.typeOf = function (obj) {
+export function typeOf (obj) {
   // eslint-disable-next-line no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
@@ -267,18 +264,18 @@ util.typeOf = function (obj) {
  * @param { any } src
  * @returns { any }
  */
-util.deepCopy = function (dst, src) {
-  if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
+export function deepCopy (dst, src) {
+  if (typeOf(src) === 'Object' && typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
       // eslint-disable-next-line no-undef
-      if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
+      if (typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
         if (dst[key] === undefined || dst[key] === undefined) {
           dst[key] = src[key]
         } else {
-          util.deepCopy(dst[key], src[key])
+          deepCopy(dst[key], src[key])
         }
-      } else if (util.typeOf(src[key]) === 'Array') {
-        dst[key] = util.typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : src[key]
+      } else if (typeOf(src[key]) === 'Array') {
+        dst[key] = typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : src[key]
       } else {
         dst[key] = src[key]
       }
@@ -293,14 +290,14 @@ util.deepCopy = function (dst, src) {
  * @param { any } src
  * @returns { any }
  */
-util.deepMerge = function (dst, src) {
+export function deepMerge (dst, src) {
   Object.keys(src).map(key => {
-    if (util.typeOf(src[key]) === 'Array' && util.typeOf(dst[key]) === 'Array') {
-      if (util.typeOf(dst[key]) === 'Array') {
+    if (typeOf(src[key]) === 'Array' && typeOf(dst[key]) === 'Array') {
+      if (typeOf(dst[key]) === 'Array') {
         dst[key].push(...src[key])
       }
-    } else if (util.typeOf(dst[key]) === util.typeOf(src[key]) && dst[key] !== null && util.typeOf(dst[key]) === 'Object' && !(src[key] instanceof window.Node)) {
-      util.deepMerge(dst[key], src[key])
+    } else if (typeOf(dst[key]) === typeOf(src[key]) && dst[key] !== null && typeOf(dst[key]) === 'Object' && !(src[key] instanceof window.Node)) {
+      deepMerge(dst[key], src[key])
     } else {
       src[key] !== null && (dst[key] = src[key])
     }
@@ -308,7 +305,7 @@ util.deepMerge = function (dst, src) {
   return dst
 }
 
-util.getBgImage = function (el) {
+export function getBgImage (el) {
   // fix: return current page url when url is none
   const url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
   if (!url || url === 'none') {
@@ -324,7 +321,7 @@ util.getBgImage = function (el) {
  * @param {  HTMLElement } dom
  * @returns { HTMLElement | null }
  */
-util.copyDom = function (dom) {
+export function copyDom (dom) {
   if (dom && dom.nodeType === 1) {
     const back = document.createElement(dom.tagName)
     Array.prototype.forEach.call(dom.attributes, (node) => {
@@ -346,7 +343,7 @@ util.copyDom = function (dom) {
  * @param { function } intervalFunc
  * @param { number } frequency
  */
-util.setInterval = function (context, eventName, intervalFunc, frequency) {
+export function setInterval (context, eventName, intervalFunc, frequency) {
   if (!context._interval[eventName]) {
     context._interval[eventName] = window.setInterval(intervalFunc.bind(context), frequency)
   }
@@ -358,7 +355,7 @@ util.setInterval = function (context, eventName, intervalFunc, frequency) {
  * @param { string } eventName
  * @returns { void }
  */
-util.clearInterval = function (context, eventName) {
+export function clearInterval (context, eventName) {
   clearInterval(context._interval[eventName])
   context._interval[eventName] = null
 }
@@ -370,13 +367,13 @@ util.clearInterval = function (context, eventName) {
  * @param { number } time
  * @returns { number }
  */
-util.setTimeout = function (context, fun, time) {
+export function setTimeout (context, fun, time) {
   if (!context._timers) {
     context._timers = []
   }
-  const id = setTimeout(() => {
+  const id = window.setTimeout(() => {
     fun()
-    util.clearTimeout(context, id)
+    clearTimeout(context, id)
   }, time)
   context._timers.push(id)
   return id
@@ -387,18 +384,18 @@ util.setTimeout = function (context, fun, time) {
  * @param { any } context
  * @param { number } id
  */
-util.clearTimeout = function (context, id) {
+export function clearTimeout (context, id) {
   const { _timers } = context
-  if (util.typeOf(_timers) === 'Array') {
+  if (typeOf(_timers) === 'Array') {
     for (let i = 0; i < _timers.length; i++) {
       if (_timers[i] === id) {
         _timers.splice(i, 1)
-        clearTimeout(id)
+        window.clearTimeout(id)
         break
       }
     }
   } else {
-    clearTimeout(id)
+    window.clearTimeout(id)
   }
 }
 
@@ -406,9 +403,9 @@ util.clearTimeout = function (context, id) {
  *
  * @param { any } context
  */
-util.clearAllTimers = function (context) {
+export function clearAllTimers (context) {
   const { _timers } = context
-  if (util.typeOf(_timers) === 'Array') {
+  if (typeOf(_timers) === 'Array') {
     _timers.map(item => {
       clearTimeout(item)
     })
@@ -424,8 +421,8 @@ util.clearAllTimers = function (context) {
  * @param { number } [height]
  * @returns { HTMLElement }
  */
-util.createImgBtn = function (name, imgUrl, width, height) {
-  const btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
+export function createImgBtn (name, imgUrl, width, height) {
+  const btn = createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
   btn.style.backgroundImage = `url("${imgUrl}")`
   if (width && height) {
     let w, h, unit
@@ -457,7 +454,7 @@ util.createImgBtn = function (name, imgUrl, width, height) {
  * @param { string | number } alpha
  * @returns { string }
  */
-util.Hex2RGBA = function (hex, alpha) {
+export function Hex2RGBA (hex, alpha) {
   const rgb = [] // 定义rgb数组
   // eslint-disable-next-line no-useless-escape
   if (/^\#[0-9A-F]{3}$/i.test(hex)) {
@@ -481,7 +478,7 @@ util.Hex2RGBA = function (hex, alpha) {
  *
  * @returns { HTMLElement | null }
  */
-util.getFullScreenEl = function () {
+export function getFullScreenEl () {
   return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
 }
 
@@ -489,7 +486,7 @@ util.getFullScreenEl = function () {
  * @param { any }
  * @returns { boolean }
  */
-util.checkIsFunction = function (fun) {
+export function checkIsFunction (fun) {
   return fun && typeof fun === 'function'
 }
 
@@ -497,14 +494,14 @@ util.checkIsFunction = function (fun) {
  * @param { any }
  * @returns { boolean }
  */
-util.checkIsObject = function (obj) {
+export function checkIsObject (obj) {
   return obj !== null && typeof obj === 'object'
 }
 
 /**
  * @param { HTMLElement }
  */
-util.hide = function (dom) {
+export function hide (dom) {
   dom.style.display = 'none'
 }
 
@@ -512,7 +509,7 @@ util.hide = function (dom) {
  * @param { HTMLElement }
  * @param { block | flex | inline-block | inline-flex } [display]
  */
-util.show = function (dom, display) {
+export function show (dom, display) {
   dom.style.display = display || 'block'
 }
 
@@ -521,13 +518,13 @@ util.show = function (dom, display) {
  * @param { any } val
  * @returns { boolean }
  */
-util.isUndefined = function (val) {
+export function isUndefined (val) {
   if (typeof val === 'undefined' || val === null) {
     return true
   }
 }
 
-util.isNotNull = function (val) {
+export function isNotNull (val) {
   return !(val === undefined || val === null)
 }
 
@@ -537,12 +534,12 @@ util.isNotNull = function (val) {
  * @param { string } [text]
  * @returns
  */
-util.setStyleFromCsstext = function (dom, text) {
+export function setStyleFromCsstext (dom, text) {
   // dom.setAttribute(style, text)
   if (!text) {
     return
   }
-  if (util.typeOf(text) === 'String') {
+  if (typeOf(text) === 'String') {
     const styleArr = text.replace(/\s+/g, '').split(';')
     styleArr.map(item => {
       if (item) {
@@ -580,7 +577,7 @@ function checkIsIn (key, list) {
  * @param { Array<string> } [list] attribute names to filter
  * @returns { {} | {[propName: string]: any;} }
  */
-util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'left', 'bottom', 'right', 'position', 'z-index', 'padding', 'margin', 'transform']) {
+export function filterStyleFromText (dom, list = ['width', 'height', 'top', 'left', 'bottom', 'right', 'position', 'z-index', 'padding', 'margin', 'transform']) {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
@@ -614,7 +611,7 @@ util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'lef
  * @param { HTMLElement } dom
  * @returns { {} | {[propName: string]: any;} }
  */
-util.getStyleFromCsstext = function (dom) {
+export function getStyleFromCsstext (dom) {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
@@ -632,7 +629,7 @@ util.getStyleFromCsstext = function (dom) {
   return ret
 }
 
-util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
+export function preloadImg (url, onload = () => {}, onerror = () => {}) {
   if (!url) {
     return
   }
@@ -648,64 +645,28 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
   img.src = url
 }
 
-util.stopPropagation = (e) => {
+export function stopPropagation (e){
   if (e) {
     e.stopPropagation()
   }
 }
 
-util.scrollTop = function () {
+export function scrollTop () {
   return window.pageYOffset ||
   document.documentElement.scrollTop ||
   document.body.scrollTop ||
   0
 }
 
-util.scrollLeft = function () {
+export function scrollLeft () {
   return window.pageXOffset ||
   document.documentElement.scrollLeft ||
   document.body.scrollLeft ||
   0
 }
 
-util.checkTouchSupport = function () {
+export function checkTouchSupport () {
   return 'ontouchstart' in window
-}
-
-util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
-  const buffered = []
-  for (let i = 0; i < vbuffered.length; i++) {
-    buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) })
-  }
-  buffered.sort(function (a, b) {
-    const diff = a.start - b.start
-    if (diff) {
-      return diff
-    } else {
-      return b.end - a.end
-    }
-  })
-  let buffered2 = []
-  if (maxHoleDuration) {
-    for (let i = 0; i < buffered.length; i++) {
-      const buf2len = buffered2.length
-      if (buf2len) {
-        const buf2end = buffered2[buf2len - 1].end
-        if ((buffered[i].start - buf2end) < maxHoleDuration) {
-          if (buffered[i].end > buf2end) {
-            buffered2[buf2len - 1].end = buffered[i].end
-          }
-        } else {
-          buffered2.push(buffered[i])
-        }
-      } else {
-        buffered2.push(buffered[i])
-      }
-    }
-  } else {
-    buffered2 = buffered
-  }
-  return new XgplayerTimeRange(buffered2)
 }
 
 /**
@@ -715,7 +676,7 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
  * @param {number} zoom
  * @returns
  */
-util.getEventPos = function (e, zoom = 1) {
+export function getEventPos (e, zoom = 1) {
   if (e.touches && e.touches.length > 0) {
     e = e.touches[0]
   }
@@ -731,7 +692,7 @@ util.getEventPos = function (e, zoom = 1) {
   }
 }
 
-util.requestAnimationFrame = function (callback) {
+export function requestAnimationFrame (callback) {
   const _fun = window.requestAnimationFrame ||
   // Older versions Chrome/Webkit
   window.webkitRequestAnimationFrame ||
@@ -749,8 +710,8 @@ util.requestAnimationFrame = function (callback) {
   }
 }
 
-util.getHostFromUrl = function (url) {
-  if (util.typeOf(url) !== 'String') {
+export function getHostFromUrl (url) {
+  if (typeOf(url) !== 'String') {
     return ''
   }
   const results = url.split('/') // 以“/”进行分割
@@ -761,7 +722,7 @@ util.getHostFromUrl = function (url) {
   return domain
 }
 
-util.cancelAnimationFrame = function (frameId) {
+export function cancelAnimationFrame (frameId) {
   const _fun = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.cancelRequestAnimationFrame
   _fun && _fun(frameId)
 }
@@ -771,14 +732,14 @@ util.cancelAnimationFrame = function (frameId) {
  * @param { HTMLVideoElement | HTMLAudioElement | HTMLElement } video
  * @returns { Boolean }
  */
-util.isMSE = function (video) {
+export function isMSE (video) {
   if (!video || !(video instanceof HTMLMediaElement)) {
     return false
   }
   return /^blob/.test(video.currentSrc) || /^blob/.test(video.src)
 }
 
-util.isBlob = function (url) {
+export function isBlob (url) {
   return typeof url === 'string' && /^blob/.test(url)
 }
 
@@ -786,7 +747,7 @@ util.isBlob = function (url) {
  * @param { number } did
  * @returns { string }
  */
-util.generateSessionId = function (did = 0) {
+export function generateSessionId (did = 0) {
   let d = new Date().getTime()
   try {
     did = parseInt(did)
@@ -805,7 +766,7 @@ util.generateSessionId = function (did = 0) {
   return uuid
 }
 
-util.createEvent = function (eventName) {
+export function createEvent (eventName) {
   let event
   if (typeof window.Event === 'function') {
     event = new Event(eventName)
@@ -824,7 +785,7 @@ util.createEvent = function (eventName) {
  * @param { boolean } isEnded
  * @returns { number } Adjusted time
  */
-util.adjustTimeByDuration = function (time, duration, isEnded) {
+export function adjustTimeByDuration (time, duration, isEnded) {
   if (!duration || !time) {
     return time
   }
@@ -834,8 +795,8 @@ util.adjustTimeByDuration = function (time, duration, isEnded) {
   return time
 }
 
-util.createPositionBar = function (className, root) {
-  const dom = util.createDom(
+export function createPositionBar (className, root) {
+  const dom = createDom(
     'xg-bar',
     '',
     { 'data-index': -1 },
@@ -845,26 +806,8 @@ util.createPositionBar = function (className, root) {
   return dom
 }
 
-util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }, transformValue = '') {
-  const styles = {
-    scale: `${pos.scale || 1}`,
-    translate: `${pos.x || 0}%, ${pos.y || 0}%`,
-    rotate: `${pos.rotate || 0}deg`
-  }
-  const stylesKeys = Object.keys(styles)
-
-  // 只复写Transform中已知的函数，对于其他函数不修改。解决全屏或者rotate插件执行时，对于镜像插件的影响
-  stylesKeys.forEach((key) => {
-    const reg = new RegExp(`${key}\\([^\\(]+\\)`, 'g') // reg match: TransformFunc(values)
-    const fn = `${key}(${styles[key]})`
-    if (reg.test(transformValue)) {
-      reg.lastIndex = -1
-      transformValue = transformValue.replace(reg, fn)
-    } else {
-      transformValue += `${fn} `
-    }
-  })
-  return transformValue
+export function getTransformStyle (pos = { x: 0, y: 0, scale: 1, rotate: 0 }) {
+  return `scale(${pos.scale || 1}) translate(${pos.x || 0}%, ${pos.y || 0}%) rotate(${pos.rotate || 0}deg)`
 }
 
 /**
@@ -872,14 +815,14 @@ util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }, tr
  * @param {number} val
  * @returns {number}
  */
-util.convertDeg = function (val) {
+export function convertDeg (val) {
   if (Math.abs(val) <= 1) {
     return val * 360
   }
   return val % 360
 }
 
-util.getIndexByTime = function (time, segments) {
+export function getIndexByTime (time, segments) {
   const _len = segments.length
   let _index = -1
   if (_len < 1) {
@@ -899,12 +842,12 @@ util.getIndexByTime = function (time, segments) {
   }
   return _index
 }
-util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
+export function getOffsetCurrentTime (currentTime, segments, index = -1) {
   let _index = -1
   if (index >= 0 && index < segments.length) {
     _index = index
   } else {
-    _index = util.getIndexByTime(currentTime, segments)
+    _index = getIndexByTime(currentTime, segments)
   }
   if (_index < 0) {
     return -1
@@ -927,7 +870,7 @@ util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
  * @param {*} segments
  * @returns
  */
-util.getCurrentTimeByOffset = function (offsetTime, segments) {
+export function getCurrentTimeByOffset (offsetTime, segments) {
   let _index = -1
   if (!segments || segments.length < 0) {
     return offsetTime
@@ -949,181 +892,10 @@ util.getCurrentTimeByOffset = function (offsetTime, segments) {
   return offsetTime
 }
 
-function isObject (value) {
-  const type = typeof value
-  return value !== null && (type === 'object' || type === 'function')
-}
-
-function debounce (func, wait, options) {
-  let lastArgs,
-    lastThis,
-    maxWait,
-    result,
-    timerId,
-    lastCallTime
-
-  let lastInvokeTime = 0
-  let leading = false
-  let maxing = false
-  let trailing = true
-
-  // Bypass `requestAnimationFrame` by explicitly setting `wait=0`.
-  const useRAF = (!wait && wait !== 0 && typeof window.requestAnimationFrame === 'function')
-
-  if (typeof func !== 'function') {
-    throw new TypeError('Expected a function')
-  }
-  wait = +wait || 0
-  if (isObject(options)) {
-    leading = !!options.leading
-    maxing = 'maxWait' in options
-    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
-    trailing = 'trailing' in options ? !!options.trailing : trailing
-  }
-
-  function invokeFunc (time) {
-    const args = lastArgs
-    const thisArg = lastThis
-
-    lastArgs = lastThis = undefined
-    lastInvokeTime = time
-    result = func.apply(thisArg, args)
-    return result
-  }
-
-  function startTimer (pendingFunc, wait) {
-    if (useRAF) {
-      window.cancelAnimationFrame(timerId)
-      return window.requestAnimationFrame(pendingFunc)
-    }
-    return setTimeout(pendingFunc, wait)
-  }
-
-  function cancelTimer (id) {
-    if (useRAF) {
-      return window.cancelAnimationFrame(id)
-    }
-    clearTimeout(id)
-  }
-
-  function leadingEdge (time) {
-    // Reset any `maxWait` timer.
-    lastInvokeTime = time
-    // Start the timer for the trailing edge.
-    timerId = startTimer(timerExpired, wait)
-    // Invoke the leading edge.
-    return leading ? invokeFunc(time) : result
-  }
-
-  function remainingWait (time) {
-    const timeSinceLastCall = time - lastCallTime
-    const timeSinceLastInvoke = time - lastInvokeTime
-    const timeWaiting = wait - timeSinceLastCall
-
-    return maxing
-      ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
-      : timeWaiting
-  }
-
-  function shouldInvoke (time) {
-    const timeSinceLastCall = time - lastCallTime
-    const timeSinceLastInvoke = time - lastInvokeTime
-
-    // Either this is the first call, activity has stopped and we're at the
-    // trailing edge, the system time has gone backwards and we're treating
-    // it as the trailing edge, or we've hit the `maxWait` limit.
-    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
-      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
-  }
-
-  function timerExpired () {
-    const time = Date.now()
-    if (shouldInvoke(time)) {
-      return trailingEdge(time)
-    }
-    // Restart the timer.
-    timerId = startTimer(timerExpired, remainingWait(time))
-  }
-
-  function trailingEdge (time) {
-    timerId = undefined
-
-    // Only invoke if we have `lastArgs` which means `func` has been
-    // debounced at least once.
-    if (trailing && lastArgs) {
-      return invokeFunc(time)
-    }
-    lastArgs = lastThis = undefined
-    return result
-  }
-
-  function cancel () {
-    if (timerId !== undefined) {
-      cancelTimer(timerId)
-    }
-    lastInvokeTime = 0
-    lastArgs = lastCallTime = lastThis = timerId = undefined
-  }
-
-  function flush () {
-    return timerId === undefined ? result : trailingEdge(Date.now())
-  }
-
-  function pending () {
-    return timerId !== undefined
-  }
-
-  function debounced (...args) {
-    const time = Date.now()
-    const isInvoking = shouldInvoke(time)
-
-    lastArgs = args
-    lastThis = this
-    lastCallTime = time
-
-    if (isInvoking) {
-      if (timerId === undefined) {
-        return leadingEdge(lastCallTime)
-      }
-      if (maxing) {
-        // Handle invocations in a tight loop.
-        timerId = startTimer(timerExpired, wait)
-        return invokeFunc(lastCallTime)
-      }
-    }
-    if (timerId === undefined) {
-      timerId = startTimer(timerExpired, wait)
-    }
-    return result
-  }
-  debounced.cancel = cancel
-  debounced.flush = flush
-  debounced.pending = pending
-  return debounced
-}
-
-function throttle (func, wait, options) {
-  let leading = true
-  let trailing = true
-
-  if (typeof func !== 'function') {
-    throw new TypeError('Expected a function')
-  }
-  if (isObject(options)) {
-    leading = 'leading' in options ? !!options.leading : leading
-    trailing = 'trailing' in options ? !!options.trailing : trailing
-  }
-  return debounce(func, wait, {
-    leading,
-    trailing,
-    maxWait: wait
-  })
-}
-
 /**
  * @returns { string }
  */
-function getLang () {
+export function getLang () {
   let lang = (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase()
   if (lang === 'zh-cn') {
     lang = 'zh'
@@ -1131,7 +903,7 @@ function getLang () {
   return lang
 }
 
-function checkIsCurrentVideo (element, playerId, key) {
+export function checkIsCurrentVideo (element, playerId, key) {
   if (!element) {
     return
   }
@@ -1140,12 +912,4 @@ function checkIsCurrentVideo (element, playerId, key) {
     return true
   }
   return false
-}
-
-export {
-  util as default,
-  checkIsCurrentVideo,
-  debounce,
-  throttle,
-  getLang
 }

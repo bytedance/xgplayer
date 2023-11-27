@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-undef
 import version from './version'
-import Util from './utils/util'
+import { getHostFromUrl } from './utils/util'
 /**
  * @typedef { import ('./player').default } Player
  */
@@ -112,7 +112,7 @@ class Errors {
         message: errorInfo.errorMessage || mediaError.message,
         mediaError,
         originError: errorInfo.originError ? errorInfo.originError.stack : '',
-        host: Util.getHostFromUrl(src || currentSrc)
+        host: getHostFromUrl(src || currentSrc)
       }
       errorInfo.ext && Object.keys(errorInfo.ext).map(key => {
         r[key] = errorInfo.ext[key]

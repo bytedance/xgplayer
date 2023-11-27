@@ -1,4 +1,5 @@
-import Plugin, { STATE_CLASS, Util } from '../../plugin'
+import Plugin, { STATE_CLASS } from '../../plugin'
+import { addClass, removeClass } from '../../utils/util'
 import './index.scss'
 
 /**
@@ -60,8 +61,8 @@ class Prompt extends Plugin {
       clearTimeout(this.intervalId)
       this.intervalId = null
     }
-    Util.addClass(this.root, 'show')
-    config.mode === 'arrow' && Util.addClass(this.root, 'arrow')
+    addClass(this.root, 'show')
+    config.mode === 'arrow' && addClass(this.root, 'arrow')
     if (typeof detail === 'string') {
       this.find('.xgplayer-prompt-detail').innerHTML = detail
     } else {
@@ -80,8 +81,8 @@ class Prompt extends Plugin {
   }
 
   hide () {
-    Util.removeClass(this.root, 'show')
-    Util.removeClass(this.root, 'arrow')
+    removeClass(this.root, 'show')
+    removeClass(this.root, 'arrow')
     this.root.removeAttribute('style')
     this.customOnClick = null
   }

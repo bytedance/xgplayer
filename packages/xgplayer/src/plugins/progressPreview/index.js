@@ -1,4 +1,5 @@
-import Plugin, { Util, Sniffer, Events } from '../../plugin'
+import Plugin, { Sniffer, Events } from '../../plugin'
+import { hasClass, addClass, removeClass, format, createDom } from '../../utils/util'
 import initDotsAPI from './dotsApi'
 import './index.scss'
 /**
@@ -160,12 +161,12 @@ export default class ProgressPreview extends Plugin {
     if (this.config.disable) {
       return
     }
-    if (Util.hasClass(e.target, 'xg-spot-content') && this.config.isHideThumbnailHover) {
+    if (hasClass(e.target, 'xg-spot-content') && this.config.isHideThumbnailHover) {
       this.player.plugins.progress.onMouseLeave(e)
       return
     }
-    if (this._state.f || Util.hasClass(e.target, 'xg-spot-content')) {
-      Util.event(e)
+    if (this._state.f || hasClass(e.target, 'xg-spot-content')) {
+      event(e)
       e.stopPropagation()
     }
   }
@@ -174,8 +175,8 @@ export default class ProgressPreview extends Plugin {
     if (this.config.disable) {
       return
     }
-    if (this._state.f || Util.hasClass(e.target, 'xg-spot-content')) {
-      Util.event(e)
+    if (this._state.f || hasClass(e.target, 'xg-spot-content')) {
+      event(e)
       e.stopPropagation()
     }
   }
@@ -207,7 +208,7 @@ export default class ProgressPreview extends Plugin {
     if (this.config.disable) {
       return
     }
-    if (Util.hasClass(e.target, 'xgplayer-spot') && !this._curDot) {
+    if (hasClass(e.target, 'xgplayer-spot') && !this._curDot) {
       this._curDot = e.target
       this.focusDot(e.target)
       if (this._curDot.children.length > 0) {
@@ -231,7 +232,7 @@ export default class ProgressPreview extends Plugin {
       return
     }
     this.isDrag = true
-    this.videoPreview && Util.addClass(this.videoPreview, 'show')
+    this.videoPreview && addClass(this.videoPreview, 'show')
   }
 
   onProgressDragEnd (data) {
@@ -239,14 +240,14 @@ export default class ProgressPreview extends Plugin {
       return
     }
     this.isDrag = false
-    this.videoPreview && Util.removeClass(this.videoPreview, 'show')
+    this.videoPreview && removeClass(this.videoPreview, 'show')
   }
 
   onProgressClick (data, e) {
     if (this.config.disable) {
       return
     }
-    if (Util.hasClass(e.target, 'xgplayer-spot')) {
+    if (hasClass(e.target, 'xgplayer-spot')) {
       e.stopPropagation()
       e.preventDefault();
       ['time', 'id', 'text'].map(key => {
@@ -299,7 +300,7 @@ export default class ProgressPreview extends Plugin {
     _state.now = time
     this.transformTimeHook(time)
     const timeStr = this.timeStr
-    if (e && e.target && Util.hasClass(e.target, 'xgplayer-spot')) {
+    if (e && e.target && hasClass(e.target, 'xgplayer-spot')) {
       this.showTips(e.target.getAttribute('data-text'), false, timeStr)
       this.focusDot(e.target)
       _state.f = true
@@ -322,7 +323,7 @@ export default class ProgressPreview extends Plugin {
    * @param {number} time
    */
   setTimeContent (time) {
-    this.timeStr = `${Util.format(time)}`
+    this.timeStr = `${format(time)}`
   }
 
   updateThumbnails (time) {
@@ -345,19 +346,19 @@ export default class ProgressPreview extends Plugin {
       thumbnail.setConfig(thumbnailConfig)
     }
     if (!thumbnail || !thumbnail.usable || !config.isShowThumbnail) {
-      Util.addClass(this.root, 'short-line no-thumbnail')
+      addClass(this.root, 'short-line no-thumbnail')
       return
     } else {
-      Util.removeClass(this.root, 'short-line no-thumbnail')
+      removeClass(this.root, 'short-line no-thumbnail')
     }
     if (config.mode === 'short') {
-      Util.addClass(this.root, 'short-line')
+      addClass(this.root, 'short-line')
     }
     this._hasThumnail = true
     const tRoot = this.find('.xg-spot-thumbnail')
     this.thumbnail = thumbnail.createThumbnail(tRoot, 'progress-thumbnail')
     if (config.isShowCoverPreview) {
-      this.videoPreview = Util.createDom('xg-video-preview', '', {}, 'xgvideo-preview')
+      this.videoPreview = createDom('xg-video-preview', '', {}, 'xgvideo-preview')
       player.root.appendChild(this.videoPreview)
       this.videothumbnail = thumbnail.createThumbnail(this.videoPreview, 'xgvideo-thumbnail')
     }
@@ -400,7 +401,7 @@ export default class ProgressPreview extends Plugin {
     if (!id) {
       id = target.getAttribute('data-id')
     }
-    Util.addClass(target, 'active')
+    addClass(target, 'active')
     this._activeDotId = id
   }
 
@@ -412,38 +413,38 @@ export default class ProgressPreview extends Plugin {
     if (!target) {
       return
     }
-    Util.removeClass(target, 'active')
+    removeClass(target, 'active')
     this._activeDotId = null
   }
 
   showTips (text, isDefault, timeStr = '') {
-    Util.addClass(this.root, 'no-timepoint')
+    addClass(this.root, 'no-timepoint')
     if (!text) {
       return
     }
-    Util.addClass(this.find('.xg-spot-content'), 'show-text')
+    addClass(this.find('.xg-spot-content'), 'show-text')
     if (isDefault && this.config.mode === 'production') {
-      Util.addClass(this.root, 'product')
+      addClass(this.root, 'product')
       this.tipText.textContent = text
     } else {
-      Util.removeClass(this.root, 'product')
+      removeClass(this.root, 'product')
       this.tipText.textContent = this._hasThumnail ? text : `${timeStr} ${text}`
     }
   }
 
   hideTips () {
-    Util.removeClass(this.root, 'no-timepoint')
+    removeClass(this.root, 'no-timepoint')
     this.tipText.textContent = ''
-    Util.removeClass(this.find('.xg-spot-content'), 'show-text')
-    Util.removeClass(this.root, 'product')
+    removeClass(this.find('.xg-spot-content'), 'show-text')
+    removeClass(this.root, 'product')
   }
 
   hide () {
-    Util.addClass(this.root, 'hide')
+    addClass(this.root, 'hide')
   }
 
   show () {
-    Util.removeClass(this.root, 'hide')
+    removeClass(this.root, 'hide')
   }
 
   enable () {

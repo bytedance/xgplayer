@@ -1,4 +1,6 @@
-import Plugin, { Events, Util, POSITIONS, Sniffer } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer } from '../../plugin'
+import { addClass, removeClass, checkIsFunction, event, getEventPos, setTimeout, checkTouchSupport,
+  stopPropagation, getCurrentTimeByOffset, adjustTimeByDuration } from '../../utils/util'
 import InnerList from './innerList'
 import './index.scss'
 
@@ -311,8 +313,8 @@ class Progress extends Plugin {
     if (this.domEventType === 'touch' || this.domEventType === 'compatible') {
       this.root.addEventListener('touchstart', this.onMouseDown)
       if (controls) {
-        controls.root && controls.root.addEventListener('touchmove', Util.stopPropagation)
-        controls.center && controls.center.addEventListener('touchend', Util.stopPropagation)
+        controls.root && controls.root.addEventListener('touchmove', stopPropagation)
+        controls.center && controls.center.addEventListener('touchend', stopPropagation)
       }
     }
 
@@ -328,7 +330,7 @@ class Progress extends Plugin {
 
   focus () {
     this.player.controls.pauseAutoHide()
-    Util.addClass(this.root, 'active')
+    addClass(this.root, 'active')
   }
 
   blur () {
@@ -336,7 +338,7 @@ class Progress extends Plugin {
       return
     }
     this.player.controls.recoverAutoHide()
-    Util.removeClass(this.root, 'active')
+    removeClass(this.root, 'active')
   }
 
   disableBlur () {
@@ -351,8 +353,8 @@ class Progress extends Plugin {
     const { pos, config, player } = this
     let ret = data
     if (e) {
-      Util.event(e)
-      const _ePos = Util.getEventPos(e, player.zoom)
+      event(e)
+      const _ePos = getEventPos(e, player.zoom)
       const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
       if (pos.moving && Math.abs(pos.x - x) < config.miniMoveStep) {
         return
@@ -411,7 +413,7 @@ class Progress extends Plugin {
 
   onMouseDown = (e) => {
     const { _state, player, pos, config, playerConfig } = this
-    const _ePos = Util.getEventPos(e, player.zoom)
+    const _ePos = getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
@@ -424,9 +426,9 @@ class Progress extends Plugin {
     e.stopPropagation()
     // e.preventDefault()
     this.focus()
-    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
-    Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
-    Util.event(e)
+    checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
+    checkIsFunction(config.onMoveStart) && config.onMoveStart()
+    event(e)
     pos.x = x
     pos.isDown = true
     pos.moving = false
@@ -435,7 +437,7 @@ class Progress extends Plugin {
     // 交互开始 禁止控制栏的自动隐藏功能
     player.focus({ autoHide: false })
     this.isProgressMoving = true
-    Util.addClass(this.progressBtn, 'active')
+    addClass(this.progressBtn, 'active')
 
     const ret = this.computeTime(e, x)
     ret.prePlayTime = _state.prePlayTime
@@ -459,10 +461,10 @@ class Progress extends Plugin {
     const { player, config, pos, playerConfig, _state } = this
     e.stopPropagation()
     e.preventDefault()
-    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
-    Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
-    Util.event(e)
-    Util.removeClass(this.progressBtn, 'active')
+    checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
+    event(e)
+    removeClass(this.progressBtn, 'active')
 
     const ret = this.computeTime(e, pos.x)
     ret.prePlayTime = _state.prePlayTime
@@ -498,7 +500,7 @@ class Progress extends Plugin {
       }
     }
     // 延迟复位，状态复位要在dom相关时间回调执行之后
-    Util.setTimeout(this, () => {
+    setTimeout(this, () => {
       this.resetSeekState()
     }, 10)
     // 交互结束 恢复控制栏的隐藏流程
@@ -507,12 +509,12 @@ class Progress extends Plugin {
 
   onMouseMove = (e) => {
     const { _state, pos, player, config } = this
-    if (Util.checkTouchSupport()) {
+    if (checkTouchSupport()) {
       // e.stopPropagation()
       e.preventDefault()
     }
-    Util.event(e)
-    const _ePos = Util.getEventPos(e, player.zoom)
+    event(e)
+    const _ePos = getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     const diff = Math.abs(pos.x - x)
     if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
@@ -541,8 +543,8 @@ class Progress extends Plugin {
     this.bind('mousemove', this.onMoveOnly)
     this.bind('mouseleave', this.onMouseLeave)
     // 计算预览位置
-    Util.event(e)
-    const _ePos = Util.getEventPos(e, player.zoom)
+    event(e)
+    const _ePos = getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     const ret = this.computeTime(e, x)
     this.triggerCallbacks('mouseenter', ret, e)
@@ -605,7 +607,7 @@ class Progress extends Plugin {
     let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
     const currentTime = parseInt(percent * this.offsetDuration * 1000, 10) / 1000
-    const seekTime = Util.getCurrentTimeByOffset(currentTime, player.timeSegments)
+    const seekTime = getCurrentTimeByOffset(currentTime, player.timeSegments)
     return {
       percent,
       currentTime,
@@ -681,7 +683,7 @@ class Progress extends Plugin {
       }
     }
     let time = this.currentTime // this.timeOffset + player.currentTime
-    time = Util.adjustTimeByDuration(time, offsetDuration, isEnded)
+    time = adjustTimeByDuration(time, offsetDuration, isEnded)
     this.innerList.update({ played: time }, offsetDuration)
     this.progressBtn.style.left = `${time / offsetDuration * 100}%`
     const { miniprogress } = this.player.plugins
@@ -700,7 +702,7 @@ class Progress extends Plugin {
     }
     // 兼容设置了customDuration, 实际时长和要显示的时不一致问题
     let _end = player.bufferedPoint.end
-    _end = Util.adjustTimeByDuration(_end, duration, isEnded)
+    _end = adjustTimeByDuration(_end, duration, isEnded)
     this.innerList.update({ cached: _end }, duration)
     const { miniprogress } = this.player.plugins
     miniprogress && miniprogress.update({ cached: _end }, duration)
@@ -724,8 +726,8 @@ class Progress extends Plugin {
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
       if (controls) {
-        controls.root && controls.root.removeEventListener('touchmove', Util.stopPropagation)
-        controls.center && controls.center.removeEventListener('touchend', Util.stopPropagation)
+        controls.root && controls.root.removeEventListener('touchmove', stopPropagation)
+        controls.center && controls.center.removeEventListener('touchend', stopPropagation)
       }
     }
     if (domEventType === 'mouse' || domEventType === 'compatible') {

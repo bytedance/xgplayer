@@ -1,4 +1,5 @@
-import Plugin, { Util, Events, POSITIONS } from '../../plugin'
+import Plugin, { Events, POSITIONS } from '../../plugin'
+import { adjustTimeByDuration, hide, show, format, createDom } from '../../utils/util'
 import './index.scss'
 
 class Time extends Plugin {
@@ -83,27 +84,27 @@ class Time extends Plugin {
       return
     }
     let current = this.currentTime + this.timeOffset
-    current = Util.adjustTimeByDuration(current, duration, isEnded)
+    current = adjustTimeByDuration(current, duration, isEnded)
     if (this.mode === 'flex') {
-      this.centerCurDom.innerHTML = this.minWidthTime(Util.format(current))
+      this.centerCurDom.innerHTML = this.minWidthTime(format(current))
       if (duration !== Infinity && duration > 0) {
-        this.centerDurDom.innerHTML = Util.format(duration)
+        this.centerDurDom.innerHTML = format(duration)
       }
     } else {
-      this.timeDom.innerHTML = this.minWidthTime(Util.format(current))
+      this.timeDom.innerHTML = this.minWidthTime(format(current))
       if (duration !== Infinity && duration > 0) {
-        this.durationDom.innerHTML = Util.format(duration)
+        this.durationDom.innerHTML = format(duration)
       }
     }
   }
 
   onReset () {
     if (this.mode === 'flex') {
-      this.centerCurDom.innerHTML = this.minWidthTime(Util.format(0))
-      this.centerDurDom.innerHTML = Util.format(0)
+      this.centerCurDom.innerHTML = this.minWidthTime(format(0))
+      this.centerDurDom.innerHTML = format(0)
     } else {
-      this.timeDom.innerHTML = this.minWidthTime(Util.format(0))
-      this.durationDom.innerHTML = Util.format(0)
+      this.timeDom.innerHTML = this.minWidthTime(format(0))
+      this.durationDom.innerHTML = format(0)
     }
   }
 
@@ -113,13 +114,13 @@ class Time extends Plugin {
       return
     }
     const center = player.controls.center
-    this.centerCurDom = Util.createDom(
+    this.centerCurDom = createDom(
       'xg-icon',
       '00:00',
       {},
       'xgplayer-time xg-time-left'
     )
-    this.centerDurDom = Util.createDom(
+    this.centerDurDom = createDom(
       'xg-icon',
       '00:00',
       {},
@@ -134,12 +135,12 @@ class Time extends Plugin {
   afterPlayerInit () {
     const { config } = this
     if (this.duration === Infinity || this.playerConfig.isLive) {
-      Util.hide(this.durationDom)
-      Util.hide(this.timeDom)
-      Util.hide(this.find('.time-separator'))
-      Util.show(this.find('.time-live-tag'))
+      hide(this.durationDom)
+      hide(this.timeDom)
+      hide(this.find('.time-separator'))
+      show(this.find('.time-live-tag'))
     } else {
-      Util.hide(this.find('.time-live-tag'))
+      hide(this.find('.time-live-tag'))
     }
     if (config.hide) {
       this.hide()
@@ -150,15 +151,15 @@ class Time extends Plugin {
 
   changeLiveState (isLive) {
     if (isLive) {
-      Util.hide(this.durationDom)
-      Util.hide(this.timeDom)
-      Util.hide(this.find('.time-separator'))
-      Util.show(this.find('.time-live-tag'))
+      hide(this.durationDom)
+      hide(this.timeDom)
+      hide(this.find('.time-separator'))
+      show(this.find('.time-live-tag'))
     } else {
-      Util.hide(this.find('.time-live-tag'))
-      Util.show(this.find('.time-separator'))
-      Util.show(this.durationDom)
-      Util.show(this.timeDom)
+      hide(this.find('.time-live-tag'))
+      show(this.find('.time-separator'))
+      show(this.durationDom)
+      show(this.timeDom)
     }
   }
 
@@ -168,10 +169,10 @@ class Time extends Plugin {
       return
     }
     if (this.mode === 'flex') {
-      this.centerCurDom.innerHTML = this.minWidthTime(Util.format(time))
+      this.centerCurDom.innerHTML = this.minWidthTime(format(time))
       return
     }
-    this.timeDom.innerHTML = this.minWidthTime(Util.format(time))
+    this.timeDom.innerHTML = this.minWidthTime(format(time))
   }
 
   minWidthTime (timeStr) {

@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
-import BasePlugin, { Util, Events } from '../../plugin'
+import BasePlugin, { Events } from '../../plugin'
+import { preloadImg, createDom } from '../../utils/util'
 /**
  * @typedef {{
  *   isShow?: boolean,
@@ -83,8 +84,8 @@ export default class Thumbnail extends BasePlugin {
     // this.preIndex = new Array(urls.length)
     // this.interval = interval || Math.round(this.player.duration / pic_num)
     // this.ratio = width / height * 100
-    // className && Util.addClass(this.root, className)
-    // hidePortrait && Util.addClass(this.root, 'portrait')
+    // className && addClass(this.root, className)
+    // hidePortrait && addClass(this.root, 'portrait')
     // width && (this.root.style.width = `${width}px`)
     // height && (this.root.style.height = `${height}px`)
     // this.root.style.backgroundSize = `${width * col}px auto`
@@ -107,7 +108,7 @@ export default class Thumbnail extends BasePlugin {
     arr.map(item => {
       if (!this._preloadMark[item] && item >= 0 && item < len) {
         this._preloadMark[item] = 1
-        Util.preloadImg(urls[item], () => {
+        preloadImg(urls[item], () => {
           this._preloadMark[item] = 2
         })
       }
@@ -185,7 +186,7 @@ export default class Thumbnail extends BasePlugin {
   }
 
   createThumbnail (root, className) {
-    const dom = Util.createDom('xg-thumbnail', '', {}, `thumbnail ${className}`)
+    const dom = createDom('xg-thumbnail', '', {}, `thumbnail ${className}`)
     root && root.appendChild(dom)
     return dom
   }

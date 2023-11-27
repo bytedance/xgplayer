@@ -1,4 +1,4 @@
-import { Util } from '../../plugin'
+import { typeOf, hasClass, addClass, removeClass, createDom } from '../../utils/util'
 
 const TPL = [
   { tag: 'xg-cache', className: 'xgplayer-progress-cache', styleKey: 'cachedColor' },
@@ -101,7 +101,7 @@ export default class InnerList {
       this.updateDuration(parseInt(duration * 1000, 10))
     }
     const { playedIndex, cachedIndex } = this
-    if (Util.typeOf(data.played) !== 'Undefined') {
+    if (typeOf(data.played) !== 'Undefined') {
       const newPIndex = this.findIndex(data.played * 1000, playedIndex)
       if (newPIndex < 0) {
         return
@@ -114,7 +114,7 @@ export default class InnerList {
       this.playedIndex = newPIndex
     }
 
-    if (Util.typeOf(data.cached) !== 'Undefined') {
+    if (typeOf(data.cached) !== 'Undefined') {
       const newCIndex = this.findIndex(data.cached * 1000, cachedIndex)
       if (newCIndex < 0) {
         return
@@ -155,7 +155,7 @@ export default class InnerList {
   findHightLight () {
     const children = this.root.children
     for (let i = 0; i < children.length; i++) {
-      if (Util.hasClass(children[i], this.fragConfig.fragFocusClass)) {
+      if (hasClass(children[i], this.fragConfig.fragFocusClass)) {
         return {
           dom: children[i],
           pos: children[i].getBoundingClientRect()
@@ -179,14 +179,14 @@ export default class InnerList {
   unHightLight () {
     const children = this.root.children
     for (let i = 0; i < children.length; i++) {
-      Util.removeClass(children[i], this.fragConfig.fragFocusClass)
+      removeClass(children[i], this.fragConfig.fragFocusClass)
     }
   }
 
   setHightLight (index) {
     const children = this.root.children
     if (index < children.length) {
-      Util.addClass(children[index], this.fragConfig.fragFocusClass)
+      addClass(children[index], this.fragConfig.fragFocusClass)
       return {
         dom: children[index],
         pos: children[index].getBoundingClientRect()
@@ -231,19 +231,19 @@ export default class InnerList {
   render () {
     const { progressColor } = this.style
     if (!this.root) {
-      this.root = Util.createDom('xg-inners', '', {}, 'progress-list')
+      this.root = createDom('xg-inners', '', {}, 'progress-list')
     }
     if (this.fragments) {
       const { fragClass, fragFocusClass } = this.fragConfig
       this.progressList = this.fragments.map((item) => {
-        const inner = Util.createDom('xg-inner', '', {
+        const inner = createDom('xg-inner', '', {
           style: progressColor ? `background:${progressColor}; flex: ${item.percent}` : `flex: ${item.percent}`
         }, `${item.isFocus ? fragFocusClass : ''} xgplayer-progress-inner ${fragClass}`)
 
         this.root.appendChild(inner)
 
         TPL.forEach(item => {
-          inner.appendChild(Util.createDom(item.tag, '', {
+          inner.appendChild(createDom(item.tag, '', {
             style: item.styleKey ? `background: ${this.style[item.styleKey]}; width:0;` : 'width:0;'
           }, item.className))
         })

@@ -1,5 +1,6 @@
 import DanmuJs from 'danmu.js'
-import Plugin, { Events, Util } from '../../plugin'
+import Plugin, { Events } from '../../plugin'
+import { clearTimeout, setTimeout } from '../../utils/util'
 import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
 import './index.scss'
@@ -112,14 +113,14 @@ class Danmu extends Plugin {
         return
       }
       if (this.intervalId) {
-        Util.clearTimeout(this, this.intervalId)
+        clearTimeout(this, this.intervalId)
         this.intervalId = null
       }
       const now = window.performance.now()
       if (now - this.seekCost > MIN_INTERVAL) {
         this.danmujs.start()
       } else {
-        this.intervalId = Util.setTimeout(this, () => {
+        this.intervalId = setTimeout(this, () => {
           this.danmujs.start()
           // clearTimeout(this.intervalId)
           this.intervalId = null
@@ -217,7 +218,7 @@ class Danmu extends Plugin {
     this.show()
     this.resize()
     // 避免弹幕弹层还没展开 导致轨道计算异常
-    Util.setTimeout(this, () => {
+    setTimeout(this, () => {
       this.danmujs.start()
       if (this.player.paused) {
         this.danmujs.pause()

@@ -1,4 +1,3 @@
-import Util from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
@@ -18,7 +17,6 @@ export {
   ROOT_TYPES,
   Sniffer,
   Errors,
-  Util,
   Events,
   STATES,
   Plugin as default

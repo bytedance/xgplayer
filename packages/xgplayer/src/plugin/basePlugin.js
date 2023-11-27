@@ -1,4 +1,4 @@
-import Util from '../utils/util'
+import { checkIsFunction, checkTouchSupport, clearAllTimers } from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
@@ -55,7 +55,7 @@ class BasePlugin {
    * @param { IBasePluginOptions } args
    */
   constructor (args) {
-    if (Util.checkIsFunction(this.beforeCreate)) {
+    if (checkIsFunction(this.beforeCreate)) {
       this.beforeCreate(args)
     }
     hooksDescriptor(this)
@@ -169,7 +169,7 @@ class BasePlugin {
    * @type { 'touch' | 'mouse' }
    */
   get domEventType () {
-    let _e = Util.checkTouchSupport() ? 'touch' : 'mouse'
+    let _e = checkTouchSupport() ? 'touch' : 'mouse'
     if (this.playerConfig && (this.playerConfig.domEventType === 'touch' || this.playerConfig.domEventType === 'mouse')) {
       _e = this.playerConfig.domEventType
     }
@@ -336,8 +336,8 @@ class BasePlugin {
     const player = this.player
     const pluginName = this.pluginName
     this.offAll()
-    Util.clearAllTimers(this)
-    if (Util.checkIsFunction(this.destroy)) {
+    clearAllTimers(this)
+    if (checkIsFunction(this.destroy)) {
       this.destroy()
     }
 
@@ -350,7 +350,6 @@ class BasePlugin {
 }
 export {
   BasePlugin as default,
-  Util,
   Sniffer,
   Errors,
   Events,

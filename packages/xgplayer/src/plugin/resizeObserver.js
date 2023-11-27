@@ -1,4 +1,4 @@
-import { throttle } from '../utils/util'
+import { throttle } from '../utils/throttle'
 import { PLATER_ID } from '../constant'
 /**
  * 添加

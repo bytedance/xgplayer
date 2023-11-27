@@ -1,5 +1,6 @@
 import downloadUtil from 'downloadjs'
-import { POSITIONS, Util } from '../../plugin'
+import { POSITIONS } from '../../plugin'
+import { typeOf } from '../../utils/util'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
 import DownloadSvg from '../assets/download.svg'
@@ -61,9 +62,9 @@ export default class Download extends IconPlugin {
     this.emitUserAction(e, 'download')
     const { url } = this.playerConfig
     let dUrl = ''
-    if (Util.typeOf(url) === 'String') {
+    if (typeOf(url) === 'String') {
       dUrl = url
-    } else if (Util.typeOf(url) === 'Array' && url.length > 0) {
+    } else if (typeOf(url) === 'Array' && url.length > 0) {
       dUrl = url[0].src
     }
     const newUrl = this.getAbsoluteURL(dUrl)

@@ -1,4 +1,4 @@
-import Util from '../utils/util'
+import { typeOf } from '../utils/util'
 import EN from './en'
 /**
  * @typedef { {
@@ -25,8 +25,8 @@ const XGI18nLang = {
 
 function deepMerge (dst, src) {
   Object.keys(src).forEach(key => {
-    const _s = Util.typeOf(src[key])
-    const _t = Util.typeOf(dst[key])
+    const _s = typeOf(src[key])
+    const _t = typeOf(dst[key])
     if (_s === 'Array') {
       if (_t !== 'Array') {
         dst[key] = []
@@ -62,7 +62,7 @@ function extend (i18nTextList, i18nLangs) {
   if (!i18nLangs.lang) {
     return
   }
-  if (Util.typeOf(i18nTextList) !== 'Array') {
+  if (typeOf(i18nTextList) !== 'Array') {
     ext = Object.keys(i18nTextList).map(lang => {
       const keyLang = lang === 'zh' ? 'zh-cn' : lang
       return {

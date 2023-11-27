@@ -1,10 +1,10 @@
-import Plugin, { Util, Sniffer } from '../../plugin'
-
+import Plugin, { Sniffer } from '../../plugin'
+import { createDom, hasClass, addClass, removeClass } from '../../utils/util'
 export default class OptionList {
   constructor (args) {
     this.config = args.config
     this.parent = args.root
-    this.root = Util.createDom('ul', '', {}, `xg-options-list xg-list-slide-scroll ${this.config.className}`)
+    this.root = createDom('ul', '', {}, `xg-options-list xg-list-slide-scroll ${this.config.className}`)
     args.root.appendChild(this.root)
     const { maxHeight } = this.config
     if (maxHeight) {
@@ -39,7 +39,7 @@ export default class OptionList {
     data.map((item, index) => {
       const className = item.selected ? 'option-item selected' : 'option-item'
       item['data-index'] = index
-      this.root.appendChild(Util.createDom('li', `<span>${item.showText}</span>`, item, className))
+      this.root.appendChild(createDom('li', `<span>${item.showText}</span>`, item, className))
     })
   }
 
@@ -48,13 +48,13 @@ export default class OptionList {
       e.delegateTarget = e.target
     }
     const target = e.delegateTarget
-    if (target && Util.hasClass(target, 'selected')) {
+    if (target && hasClass(target, 'selected')) {
       return false
     }
     const changeCallback = typeof this.config.onItemClick === 'function' ? this.config.onItemClick : null
     const curSelected = this.root.querySelector('.selected')
-    Util.addClass(target, 'selected')
-    curSelected && Util.removeClass(curSelected, 'selected')
+    addClass(target, 'selected')
+    curSelected && removeClass(curSelected, 'selected')
     changeCallback(e, {
       from: curSelected ? this.getAttrObj(curSelected, this.attrKeys) : null,
       to: this.getAttrObj(target, this.attrKeys)
@@ -77,13 +77,13 @@ export default class OptionList {
   }
 
   show () {
-    Util.removeClass(this.root, 'hide')
-    Util.addClass(this.root, 'active')
+    removeClass(this.root, 'hide')
+    addClass(this.root, 'active')
   }
 
   hide () {
-    Util.removeClass(this.root, 'active')
-    Util.addClass(this.root, 'hide')
+    removeClass(this.root, 'active')
+    addClass(this.root, 'hide')
   }
 
   setStyle (style) {

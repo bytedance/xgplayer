@@ -2,7 +2,8 @@
 * an ui Plugin class
 *
 **/
-import BasePlugin, { Util, XG_DEBUG } from './basePlugin'
+import BasePlugin, { XG_DEBUG } from './basePlugin'
+import { addClass, typeOf, createDomFromHtml, createDom, deepCopy } from '../utils/util'
 import delegate from 'delegate'
 
 const ROOT_TYPES = {
@@ -52,7 +53,7 @@ function mergeIconAttr (icon, attr) {
 function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
   let newIcon = null
   if (icon instanceof window.Element) {
-    Util.addClass(icon, classname)
+    addClass(icon, classname)
     Object.keys(attr).map(key => {
       icon.setAttribute(key, attr[key])
     })
@@ -61,7 +62,7 @@ function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
 
   if (isUrl(icon) || isUrl(icon.url)) {
     attr.src = isUrl(icon) ? icon : (icon.url || '')
-    newIcon = Util.createDom(icon.tag || 'img', '', attr, `xg-img ${classname}`)
+    newIcon = createDom(icon.tag || 'img', '', attr, `xg-img ${classname}`)
     return newIcon
   }
 
@@ -69,7 +70,7 @@ function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
     try {
       newIcon = icon()
       if (newIcon instanceof window.Element) {
-        Util.addClass(newIcon, classname)
+        addClass(newIcon, classname)
         Object.keys(attr).map(key => {
           newIcon.setAttribute(key, attr[key])
         })
@@ -85,7 +86,7 @@ function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
   }
 
   if (typeof icon === 'string') {
-    return Util.createDomFromHtml(icon, attr, classname)
+    return createDomFromHtml(icon, attr, classname)
   }
   XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is invalid`)
   return null
@@ -280,7 +281,7 @@ class Plugin extends BasePlugin {
       _el = Plugin.insert(renderStr, _parent, args.index)
       _el.setAttribute('data-index', args.index)
     } else if (args.tag) {
-      _el = Util.createDom(args.tag, '', args.attr, args.name)
+      _el = createDom(args.tag, '', args.attr, args.name)
       _el.setAttribute('data-index', args.index)
       _parent.appendChild(_el)
     } else {
@@ -350,7 +351,7 @@ class Plugin extends BasePlugin {
             config = this.config[name] || {}
             Plugin = _plugin
           } else if (typeof _plugin === 'object' && typeof _plugin.plugin === 'function') {
-            config = _plugin.options ? Util.deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
+            config = _plugin.options ? deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
             Plugin = _plugin.plugin
           }
           options.config = config
@@ -496,9 +497,9 @@ class Plugin extends BasePlugin {
     if (!this.root) {
       return
     }
-    if (Util.typeOf(name) === 'String') {
+    if (typeOf(name) === 'String') {
       return (this.root.style[name] = value)
-    } else if (Util.typeOf(name) === 'Object') {
+    } else if (typeOf(name) === 'Object') {
       Object.keys(name).map(key => {
         this.root.style[key] = name[key]
       })
@@ -515,9 +516,9 @@ class Plugin extends BasePlugin {
     if (!this.root) {
       return
     }
-    if (Util.typeOf(name) === 'String') {
+    if (typeOf(name) === 'String') {
       return this.root.setAttribute(name, value)
-    } else if (Util.typeOf(name) === 'Object') {
+    } else if (typeOf(name) === 'Object') {
       Object.keys(name).map(key => {
         this.root.setAttribute(key, name[key])
       })

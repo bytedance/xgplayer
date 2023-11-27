@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3'
-import Util from './utils/util'
+import { getHostFromUrl, isMSE, typeOf, createDom } from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors, { ERROR_TYPE_MAP } from './error'
 import { URL_CHANGE, WAITING, VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from './events'
@@ -54,7 +54,7 @@ function getVideoEventHandler (eventKey, player) {
       isInternalOp: !!player._internalOp[e.type], // 是否是内部操作，不反应到UI上
       muted: player.muted,
       volume: player.volume,
-      host: Util.getHostFromUrl(player.currentSrc),
+      host: getHostFromUrl(player.currentSrc),
       vtype: player.vtype
     }
     player.removeInnerOP(e.type)
@@ -180,13 +180,13 @@ class MediaProxy extends EventEmitter {
     /**
      * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IMediaProxy | null }
      */
-    this.media = Util.createDom(this.mediaConfig.mediaType, '', this.mediaConfig, '')
+    this.media = createDom(this.mediaConfig.mediaType, '', this.mediaConfig, '')
 
     if (options.defaultPlaybackRate) {
       this.media.defaultPlaybackRate = this.media.playbackRate = options.defaultPlaybackRate
     }
 
-    if (Util.typeOf(options.volume) === 'Number') {
+    if (typeOf(options.volume) === 'Number') {
       this.volume = options.volume
     }
 
@@ -288,7 +288,7 @@ class MediaProxy extends EventEmitter {
     video.removeAttribute('src')
     video.load()
     urls.forEach((item, index) => {
-      this.media.appendChild(Util.createDom('source', '', {
+      this.media.appendChild(createDom('source', '', {
         src: `${item.src}`,
         type: `${item.type || ''}`,
         'data-index': index + 1
@@ -306,7 +306,7 @@ class MediaProxy extends EventEmitter {
     this._videoSourceIndex = _c.length
 
     this._vLoadeddata = (e) => {
-      this.emit(SOURCE_SUCCESS, { src: e.target.currentSrc, host: Util.getHostFromUrl(e.target.currentSrc) })
+      this.emit(SOURCE_SUCCESS, { src: e.target.currentSrc, host: getHostFromUrl(e.target.currentSrc) })
     }
 
     /**
@@ -501,14 +501,6 @@ class MediaProxy extends EventEmitter {
    */
   get buffered () {
     return this.media ? this.media.buffered : null
-  }
-
-  /**
-   * @type { Array<{start: number, end: number}> | null}
-   * @description  返回当前自定义的缓存列表
-   */
-  get buffered2 () {
-    return this.media && this.media.buffered ? Util.getBuffered2(this.media.buffered) : null
   }
 
   /**
@@ -750,12 +742,12 @@ class MediaProxy extends EventEmitter {
     this._currentTime = 0
     this._duration = 0
     // Some firefox versions firefox Cannot recognize currentSrc of type Blob
-    if (Util.isMSE(this.media)) {
+    if (isMSE(this.media)) {
       this.onWaiting()
       return
     }
     this._detachSourceEvents(this.media)
-    if (Util.typeOf(url) === 'Array') {
+    if (typeOf(url) === 'Array') {
       this._attachSourceEvents(this.media, url)
     } else if (url) {
       this.media.src = url

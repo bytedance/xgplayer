@@ -1,4 +1,5 @@
-import Plugin, { Util, Events, STATES } from '../../plugin'
+import Plugin, { Events, STATES } from '../../plugin'
+import { addClass, removeClass } from '../../utils/util'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 import './index.scss'
@@ -69,9 +70,9 @@ class Start extends Plugin {
     this.once(Events.READY, () => {
       if (playerConfig) {
         if (playerConfig.lang && playerConfig.lang === 'en') {
-          Util.addClass(player.root, 'lang-is-en')
+          addClass(player.root, 'lang-is-en')
         } else if (playerConfig.lang === 'jp') {
-          Util.addClass(player.root, 'lang-is-jp')
+          addClass(player.root, 'lang-is-jp')
         }
       }
     })
@@ -85,7 +86,7 @@ class Start extends Plugin {
     this.on(Events.AUTOPLAY_PREVENTED, () => {
       const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
       this.setAttr('data-state', 'play')
-      Util.removeClass(this.root, className)
+      removeClass(this.root, className)
       this.show()
     })
 
@@ -117,7 +118,7 @@ class Start extends Plugin {
     this.autoPlayStart = false
     const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
     this.setAttr('data-state', 'play')
-    Util.removeClass(this.root, className)
+    removeClass(this.root, className)
     this.show()
   }
 
@@ -126,7 +127,7 @@ class Start extends Plugin {
       return
     }
     const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
-    Util.addClass(this.root, className)
+    addClass(this.root, className)
     this.autoPlayStart = true
     this.onPlayPause('play')
   }
@@ -145,19 +146,19 @@ class Start extends Plugin {
   }
 
   hide () {
-    Util.addClass(this.root, 'hide')
+    addClass(this.root, 'hide')
   }
 
   show () {
-    Util.removeClass(this.root, 'hide')
+    removeClass(this.root, 'hide')
   }
 
   focusHide () {
-    Util.addClass(this.root, 'focus-hide')
+    addClass(this.root, 'focus-hide')
   }
 
   recover () {
-    Util.removeClass(this.root, 'focus-hide')
+    removeClass(this.root, 'focus-hide')
   }
 
   switchStatus (isAnimate) {
@@ -171,12 +172,12 @@ class Start extends Plugin {
   animate (endShow) {
     this._animateId = addAnimate('pauseplay', 400, {
       start: () => {
-        Util.addClass(this.root, 'interact')
+        addClass(this.root, 'interact')
         this.show()
         this.switchStatus(true)
       },
       end: () => {
-        Util.removeClass(this.root, 'interact')
+        removeClass(this.root, 'interact')
         !endShow && this.hide()
         this._animateId = null
       }
@@ -184,7 +185,7 @@ class Start extends Plugin {
   }
 
   endAnimate () {
-    Util.removeClass(this.root, 'interact')
+    removeClass(this.root, 'interact')
     clearAnimation(this._animateId)
     this._animateId = null
   }

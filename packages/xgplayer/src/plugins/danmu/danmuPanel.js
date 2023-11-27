@@ -1,4 +1,5 @@
-import Plugin, { Sniffer, Util, POSITIONS } from '../../plugin'
+import Plugin, { Sniffer, POSITIONS } from '../../plugin'
+import { removeClass, addClass, hasClass } from '../../utils/util'
 import PanelIcon from '../assets/panel.svg'
 
 /**
@@ -66,7 +67,7 @@ class DanmuPanel extends Plugin {
   onToggle (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.root, 'slider-show') ? Util.removeClass(this.root, 'slider-show') : Util.addClass(this.root, 'slider-show')
+    hasClass(this.root, 'slider-show') ? removeClass(this.root, 'slider-show') : addClass(this.root, 'slider-show')
   }
 
   destroy () {

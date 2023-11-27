@@ -1,4 +1,5 @@
-import { Util, Events } from '../../plugin'
+import { Events } from '../../plugin'
+import { addClass, removeClass, findDom, createDom } from '../../utils/util'
 
 const ISPOT = {
   time: 0, // 进度条在此时间戳打点 单位为s
@@ -31,9 +32,9 @@ const APIS = {
     dotDom.setAttribute('data-text', iSpot.text)
     dotDom.setAttribute('data-time', iSpot.time)
     if (ret.isMini) {
-      Util.addClass(dotDom, 'mini')
+      addClass(dotDom, 'mini')
     } else {
-      Util.removeClass(dotDom, 'mini')
+      removeClass(dotDom, 'mini')
     }
     Object.keys(style).map(key => {
       dotDom.style[key] = style[key]
@@ -70,7 +71,7 @@ const APIS = {
     let className = `xgspot_${iSpot.id} xgplayer-spot`
     ret.isMini && (className += ' mini')
     const _t = iSpot.template ? `<div class="xgplayer-spot-pop">${iSpot.template}</div>` : ''
-    const dotDom = Util.createDom('xg-spot', _t, {
+    const dotDom = createDom('xg-spot', _t, {
       'data-text': iSpot.text,
       'data-time': iSpot.time,
       'data-id': iSpot.id
@@ -219,7 +220,7 @@ const APIS = {
   },
 
   positionDot (dotDom, id) {
-    const _pop = Util.findDom(dotDom, '.xgplayer-spot-pop')
+    const _pop = findDom(dotDom, '.xgplayer-spot-pop')
     if (!_pop) {
       return
     }

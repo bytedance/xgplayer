@@ -1,4 +1,5 @@
-import { Events, POSITIONS, Sniffer, Util } from '../../plugin'
+import { Events, POSITIONS, Sniffer } from '../../plugin'
+import { getFullScreenEl } from '../../utils/util'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
 import TopBackIcon from './backicon'
@@ -54,7 +55,7 @@ export default class Fullscreen extends IconPlugin {
       this.playerConfig.fullscreenTarget = this.config.target
     }
 
-    const fullEl = Util.getFullScreenEl()
+    const fullEl = getFullScreenEl()
 
     if (playerConfig.fullscreenTarget === fullEl) {
       this.player.getFullscreen().catch(e=>{})

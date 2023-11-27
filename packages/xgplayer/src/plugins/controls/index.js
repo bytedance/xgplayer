@@ -1,4 +1,5 @@
-import Plugin, { Events, Util, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
+import { addClass, removeClass, classNames } from '../../utils/util'
 import './index.scss'
 
 /**
@@ -73,7 +74,7 @@ class Controls extends Plugin {
 
     // The progress bar is switched synchronously when switching to the small window state
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
-      isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
+      isMini ? addClass(this.root, 'mini-controls') : removeClass(this.root, 'mini-controls')
     })
 
     const { isMobileSimulateMode } = this.playerConfig
@@ -106,13 +107,13 @@ class Controls extends Plugin {
   }
 
   recoverAutoHide () {
-    // this.config.autoHide && Util.addClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
-    this.config.autoHide && Util.addClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
+    // this.config.autoHide && addClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
+    this.config.autoHide && addClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
   }
 
   pauseAutoHide () {
-    // Util.removeClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
-    Util.removeClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
+    // removeClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
+    removeClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
   }
 
   show () {
@@ -178,8 +179,8 @@ class Controls extends Plugin {
       return
     }
 
-    // autoHide && Util.addClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
-    const className = Util.classNames(
+    // autoHide && addClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
+    const className = classNames(
       { 'xgplayer-controls': true },
       { 'flex-controls': mode === 'flex' },
       { 'bottom-controls': mode === 'bottom' },

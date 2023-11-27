@@ -1,4 +1,5 @@
-import { POSITIONS, Util } from '../../plugin'
+import { POSITIONS } from '../../plugin'
+import { setTimeout } from '../../utils/util'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
 import { Events } from '../../plugin/basePlugin'
@@ -37,7 +38,7 @@ export default class Rotate extends IconPlugin {
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on(Events.VIDEO_RESIZE, () => {
       if (this.rotateDeg && this.config.innerRotate) {
-        Util.setTimeout(this, () => {
+        setTimeout(this, () => {
           this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
         }, 100)
       }

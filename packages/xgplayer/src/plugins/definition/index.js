@@ -1,4 +1,5 @@
-import { Events, POSITIONS, Util } from '../../plugin'
+import { Events, POSITIONS } from '../../plugin'
+import { addClass } from '../../utils/util'
 import OptionsIcon from '../common/optionsIcon'
 import './index.scss'
 
@@ -79,7 +80,7 @@ export default class DefinitionIcon extends OptionsIcon {
     if (!this.config.list || this.config.list.length < 2){
       return
     }
-    Util.addClass(this.root, 'show')
+    addClass(this.root, 'show')
   }
 
   initDefinition () {

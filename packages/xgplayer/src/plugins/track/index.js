@@ -1,5 +1,6 @@
 import SubTitles from 'xgplayer-subtitles'
-import { Util, POSITIONS, Events } from '../../plugin'
+import { POSITIONS, Events } from '../../plugin'
+import { isNotNull, addClass, typeOf } from '../../utils/util'
 import OptionsIcon from '../common/optionsIcon'
 import NativeSubTitle from './nativeSubTitle'
 import './index.scss'
@@ -94,8 +95,8 @@ function formatList (list) {
 }
 
 function checkIsSame (src, dist) {
-  const isIdS = Util.isNotNull(src.id) && Util.isNotNull(dist.id) && src.id === dist.id
-  const isLS = Util.isNotNull(src.language) && Util.isNotNull(dist.language) && src.language === dist.language
+  const isIdS = isNotNull(src.id) && isNotNull(dist.id) && src.id === dist.id
+  const isLS = isNotNull(src.language) && isNotNull(dist.language) && src.language === dist.language
   return isIdS || isLS
 }
 
@@ -140,7 +141,7 @@ export default class TextTrack extends OptionsIcon {
 
   beforeCreate (args) {
     const texttrack = args.player.config.texttrack || args.player.config.textTrack
-    if (Util.typeOf(texttrack) === 'Array') {
+    if (typeOf(texttrack) === 'Array') {
       args.config.list = texttrack
     }
   }
@@ -228,7 +229,7 @@ export default class TextTrack extends OptionsIcon {
     this.subTitles.on('reset', this._onListReset)
 
     if (style.follow && this.subTitles.root) {
-      Util.addClass(this.subTitles.root, 'follow-control')
+      addClass(this.subTitles.root, 'follow-control')
     }
 
     this._renderList(list, isDefaultOpen, defaultIndex)
@@ -267,7 +268,7 @@ export default class TextTrack extends OptionsIcon {
     if (!this.config.list || this.config.list.length < 1){
       return
     }
-    Util.addClass(this.root, 'show')
+    addClass(this.root, 'show')
   }
 
   _onOff = () => {

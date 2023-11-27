@@ -1,4 +1,5 @@
-import Plugin, { Events, Util, Sniffer, STATES } from '../../plugin'
+import Plugin, { Events, Sniffer, STATES } from '../../plugin'
+import { isUndefined, createDom, addClass, removeClass, format, checkIsFunction, createEvent } from '../../utils/util'
 import Touche from './touch'
 import SeekTipIcon from '../assets/seekicon.svg'
 import { runHooks } from '../../plugin/hooksDescriptor'
@@ -132,12 +133,12 @@ class MobilePlugin extends Plugin {
       config.closedbClick = true
     }
     this.resetPos()
-    if (!Util.isUndefined(playerConfig.disableGesture)) {
+    if (!isUndefined(playerConfig.disableGesture)) {
       config.disableGesture = !!playerConfig.disableGesture
     }
     this.appendChild('.xg-seek-icon', this.icons.seekTipIcon)
 
-    this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
+    this.xgMask = createDom('xg-mask', '', {}, 'xgmask')
     player.root.appendChild(this.xgMask)
 
     this.initCustomStyle()
@@ -221,7 +222,7 @@ class MobilePlugin extends Plugin {
       this.find('.xg-bar').style.backgroundColor = progressColor
       this.find('.time-preview').style.color = progressColor
     }
-    this.config.disableTimeProgress && Util.addClass(this.find('.xg-timebar'), 'hide')
+    this.config.disableTimeProgress && addClass(this.find('.xg-timebar'), 'hide')
   }
 
   resetPos (time = 0) {
@@ -366,8 +367,8 @@ class MobilePlugin extends Plugin {
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
       // e.cancelable && e.preventDefault()
-      Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
-      this.find('.xg-dur').innerHTML = Util.format(this.duration)
+      checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
+      this.find('.xg-dur').innerHTML = format(this.duration)
       // pos.volume = player.volume * 100
       const rect = this.root.getBoundingClientRect()
       if (player.rotateDeg === 90) {
@@ -452,7 +453,7 @@ class MobilePlugin extends Plugin {
     }
     pos.scope = -1
     this.resetPos()
-    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     this.changeAction(ACTIONS.AUTO)
   }
 
@@ -500,7 +501,7 @@ class MobilePlugin extends Plugin {
     const { player, config, playerConfig } = this
     if (player.state < STATES.RUNNING) {
       if (!playerConfig.closeVideoClick) {
-        this.sendUseAction(Util.createEvent('click'))
+        this.sendUseAction(createEvent('click'))
         player.play()
       }
       return
@@ -510,7 +511,7 @@ class MobilePlugin extends Plugin {
       player.isActive ? player.blur() : player.focus()
     } else if (!playerConfig.closeVideoClick) {
       if (player.isActive || config.focusVideoClick) {
-        this.sendUseAction(Util.createEvent('click'))
+        this.sendUseAction(createEvent('click'))
         this.switchPlayPause()
       }
       player.focus()
@@ -520,7 +521,7 @@ class MobilePlugin extends Plugin {
   dbClickHandler (e) {
     const { config, player } = this
     if (!config.closedbClick && player.state >= STATES.RUNNING) {
-      this.sendUseAction(Util.createEvent('dblclick'))
+      this.sendUseAction(createEvent('dblclick'))
       this.switchPlayPause()
     }
   }
@@ -628,13 +629,13 @@ class MobilePlugin extends Plugin {
     const startPlugin = player.plugins.start
     startPlugin && startPlugin.focusHide()
 
-    this.find('.xg-dur').innerHTML = Util.format(this.duration)
-    this.find('.xg-cur').innerHTML = Util.format(time)
+    this.find('.xg-dur').innerHTML = format(this.duration)
+    this.find('.xg-cur').innerHTML = format(time)
     this.find('.xg-curbar').style.width = `${time / this.duration * 100}%`
     if (isForward) {
-      Util.removeClass(this.find('.xg-seek-show'), 'xg-back')
+      removeClass(this.find('.xg-seek-show'), 'xg-back')
     } else {
-      Util.addClass(this.find('.xg-seek-show'), 'xg-back')
+      addClass(this.find('.xg-seek-show'), 'xg-back')
     }
     this.updateThumbnails(time)
     // const {thumbnail} = player.plugins

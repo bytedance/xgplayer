@@ -1,5 +1,6 @@
-import BasePlugin, { Events, Util } from '../../plugin'
+import BasePlugin, { Events } from '../../plugin'
 import XG_DEBUG from '../../utils/debug'
+import { clearTimeout, getHostFromUrl, setTimeout } from '../../utils/util'
 function now () {
   return new Date().getTime()
 }
@@ -147,8 +148,8 @@ class XGLogger extends BasePlugin {
     this.waitingStart = 0
     this.fixedWaitingStart = 0
     this._isWaiting = false
-    this._waitTimer && Util.clearTimeout(this, this._waitTimer)
-    this._waittTimer && Util.clearTimeout(this, this._waittTimer)
+    this._waitTimer && clearTimeout(this, this._waitTimer)
+    this._waittTimer && clearTimeout(this, this._waittTimer)
     this._waitTimer = null
     this._waittTimer = null
     this._waitType = 0 // 0 - 普通卡顿 1-起播卡顿 2-seek卡顿
@@ -194,10 +195,10 @@ class XGLogger extends BasePlugin {
     }
     // 原始卡顿耗时起始时间
     this.fixedWaitingStart = now()
-    this._waitTimer = Util.setTimeout(this, () => {
+    this._waitTimer = setTimeout(this, () => {
       if (this._isWaiting) {
         this.waitingStart = now()
-        Util.clearTimeout(this, this._waitTimer)
+        clearTimeout(this, this._waitTimer)
         this._waitTimer = null
         this._startWaitTimeout()
         this.emitLog(LOG_TYPES.WAIT_START, { fixedStart: this.fixedWaitingStart, start: this.waitingStart, type: this._waitType, endType: this._waitType === 2 ? 'seek' : 'playing' })
@@ -212,11 +213,11 @@ class XGLogger extends BasePlugin {
 
   _startWaitTimeout () {
     if (this._waittTimer) {
-      Util.clearTimeout(this, this._waittTimer)
+      clearTimeout(this, this._waittTimer)
     }
-    this._waittTimer = Util.setTimeout(this, () => {
+    this._waittTimer = setTimeout(this, () => {
       this.suspendWaitingStatus('timeout')
-      Util.clearTimeout(this, this._waittTimer)
+      clearTimeout(this, this._waittTimer)
       this._waittTimer = null
     }, this.config.waitTimeout)
   }
@@ -242,11 +243,11 @@ class XGLogger extends BasePlugin {
 
   suspendWaitingStatus (endType) {
     if (this._waitTimer) {
-      Util.clearTimeout(this, this._waitTimer)
+      clearTimeout(this, this._waitTimer)
       this._waitTimer = null
     }
     if (this._waittTimer) {
-      Util.clearTimeout(this, this._waittTimer)
+      clearTimeout(this, this._waittTimer)
       this._waittTimer = null
     }
     this._isWaiting = false
@@ -272,7 +273,7 @@ class XGLogger extends BasePlugin {
     const { player } = this
     this.emit(Events.XGLOG, {
       t: now(),
-      host: Util.getHostFromUrl(player.currentSrc),
+      host: getHostFromUrl(player.currentSrc),
       vtype: player.vtype,
       eventType,
       currentTime: this.player.currentTime,

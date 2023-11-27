@@ -6,7 +6,7 @@ import STATE_CLASS from './stateClassMap'
 import I18N from './lang/i18n'
 import Errors from './error'
 import Sniffer from './utils/sniffer'
-import Util from './utils/util'
+import * as Util from './utils/util'
 import './index.scss'
 
 import defaultPreset from './presets/default'

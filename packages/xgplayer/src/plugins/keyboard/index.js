@@ -1,4 +1,5 @@
-import { BasePlugin, Events, Util } from '../../plugin'
+import { BasePlugin, Events } from '../../plugin'
+import { getCurrentTimeByOffset } from '../../utils/util'
 
 /**
  * @typedef {{
@@ -198,7 +199,7 @@ class Keyboard extends BasePlugin {
     } else {
       _time = _duration
     }
-    const _seekTime = Util.getCurrentTimeByOffset(_time, timeSegments)
+    const _seekTime = getCurrentTimeByOffset(_time, timeSegments)
     const props = {
       currentTime: {
         from: currentTime,
@@ -217,7 +218,7 @@ class Keyboard extends BasePlugin {
     if (_seekTime < 0) {
       _seekTime = 0
     }
-    _seekTime = Util.getCurrentTimeByOffset(_seekTime, timeSegments)
+    _seekTime = getCurrentTimeByOffset(_seekTime, timeSegments)
     const props = {
       currentTime: {
         from: currentTime,

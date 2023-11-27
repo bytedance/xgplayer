@@ -1,5 +1,6 @@
-import Plugin, { Events, Util, Sniffer } from '../../plugin'
+import Plugin, { Events, Sniffer } from '../../plugin'
 import XG_DEBUG from '../../utils/debug'
+import { isMSE, typeOf, setTimeout, clearTimeout, cancelAnimationFrame, requestAnimationFrame } from '../../utils/util'
 import './index.scss'
 
 const MODES = {
@@ -277,7 +278,7 @@ class DynamicBg extends Plugin {
       return null
     }
     const _tVideo = video && video instanceof window.HTMLVideoElement ? video : (video.canvas ? video.canvas : (video.flyVideo ? video.flyVideo : null))
-    if (_tVideo && !(Sniffer.browser === 'safari' && Util.isMSE(_tVideo))) {
+    if (_tVideo && !(Sniffer.browser === 'safari' && isMSE(_tVideo))) {
       return _tVideo
     }
 
@@ -292,7 +293,7 @@ class DynamicBg extends Plugin {
   renderByPoster () {
     const { poster } = this.playerConfig
     if (poster) {
-      const url = Util.typeOf(poster) === 'String' ? poster : (Util.typeOf(poster.poster) === 'String' ? poster.poster : null)
+      const url = typeOf(poster) === 'String' ? poster : (typeOf(poster.poster) === 'String' ? poster.poster : null)
       this.updateImg(url)
     }
   }
@@ -351,12 +352,12 @@ class DynamicBg extends Plugin {
         this.preTime = _now
       }
     }
-    this.frameId = this._loopType === 'timer' ? Util.setTimeout(this, this.start, interval) : Util.requestAnimationFrame(this.start)
+    this.frameId = this._loopType === 'timer' ? setTimeout(this, this.start, interval) : requestAnimationFrame(this.start)
   }
 
   stop = () => {
     if (this.frameId) {
-      this._loopType === 'timer' ? Util.clearTimeout(this, this.frameId) : Util.cancelAnimationFrame(this.frameId)
+      this._loopType === 'timer' ? clearTimeout(this, this.frameId) : cancelAnimationFrame(this.frameId)
       // window.clearTimeout(this.frameId)
       this.frameId = null
     }

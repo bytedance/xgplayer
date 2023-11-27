@@ -5,3 +5,8 @@ export const GET_FULLSCREEN_API = ['requestFullscreen', 'webkitRequestFullscreen
 export const EXIT_FULLSCREEN_API = ['exitFullscreen', 'webkitExitFullscreen', 'mozCancelFullScreen', 'msExitFullscreen']
 
 export const PLATER_ID = 'data-xgplayerid'
+
+export const FULL_EVENTS = {
+  webkitbeginfullscreen: '_onWebkitbeginfullscreen',
+  webkitendfullscreen: '_onWebkitendfullscreen'
+}

@@ -1,4 +1,5 @@
-import Plugin, { Util, Events } from '../../plugin'
+import Plugin, { Events } from '../../plugin'
+import { getCss, addClass, removeClass, checkTouchSupport } from '../../utils/util'
 import { xgIconTips } from '../common/iconTools'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
@@ -90,7 +91,7 @@ class MiniScreen extends Plugin {
       }
       player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
     }
-    const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
+    const eventName = checkTouchSupport() ? 'touchend' : 'click'
     this.bind('.mini-cancel-btn', eventName, this.onCancelClick)
     this.bind('.play-icon', eventName, this.onCenterClick)
     if (!this.config.disableDrag) {
@@ -132,7 +133,7 @@ class MiniScreen extends Plugin {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
       return
     }
-    let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
+    let scrollHeight = parseInt(getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
     this.pos.scrollY = window.scrollY
     if (window.scrollY > scrollHeight + 5) {
@@ -150,7 +151,7 @@ class MiniScreen extends Plugin {
     const { player, playerConfig } = this
     const target = this.config.target || this.player.root
     this.lastStyle = {}
-    Util.addClass(player.root, 'xgplayer-mini');
+    addClass(player.root, 'xgplayer-mini');
     ['width', 'height', 'top', 'left'].map(key => {
       this.lastStyle[key] = target.style[key]
       target.style[key] = `${this.pos[key]}px`
@@ -168,7 +169,7 @@ class MiniScreen extends Plugin {
     }
     const { player, playerConfig } = this
     const target = this.config.target || this.player.root
-    Util.removeClass(player.root, 'xgplayer-mini')
+    removeClass(player.root, 'xgplayer-mini')
     if (this.lastStyle) {
       Object.keys(this.lastStyle).map(key => {
         target.style[key] = this.lastStyle[key]
@@ -186,7 +187,7 @@ class MiniScreen extends Plugin {
 
   destroy () {
     window.removeEventListener('scroll', this.onScroll)
-    const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
+    const eventName = checkTouchSupport() ? 'touchend' : 'click'
     this.unbind('.mini-cancel-btn', eventName, this.onCancelClick)
     this.unbind('.play-icon', eventName, this.onCenterClick)
     this._draggabilly && this._draggabilly.destroy()

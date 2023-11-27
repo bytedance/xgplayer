@@ -1,4 +1,5 @@
-import BasePlugin, { Events, Util } from '../../plugin'
+import BasePlugin, { Events } from '../../plugin'
+import { isMSE } from '../../utils/util'
 const DEFAULT_SPEED_TYPE = 'cdn'
 const SPEED_TYPE = ['cdn'] // 默认的速度的种类，可以通过addSpeedTypeList再继续增加
 export default class TestSpeed extends BasePlugin {
@@ -44,7 +45,7 @@ export default class TestSpeed extends BasePlugin {
     this.on([Events.LOADED_DATA, Events.REPLAY], this.startTimer)
   }
   startTimer = () => {
-    if (Util.isMSE(this.player.video)) {
+    if (isMSE(this.player.video)) {
       return
     }
     this.initSpeedList()

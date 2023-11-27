@@ -1,4 +1,5 @@
-import Plugin, { POSITIONS, Util } from '../../plugin'
+import Plugin, { POSITIONS } from '../../plugin'
+import { addClass, removeClass } from '../../utils/util'
 import BackSVG from '../assets/back.svg'
 
 export default class TopBackIcon extends Plugin {
@@ -36,11 +37,11 @@ export default class TopBackIcon extends Plugin {
   }
 
   show () {
-    Util.addClass(this.root, 'show')
+    addClass(this.root, 'show')
   }
 
   hide () {
-    Util.removeClass(this.root, 'show')
+    removeClass(this.root, 'show')
   }
 
   render () {

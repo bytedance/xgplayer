@@ -1,6 +1,7 @@
 
-import Plugin, { Events, Util, Sniffer, POSITIONS } from '../../plugin'
+import Plugin, { Events, Sniffer, POSITIONS } from '../../plugin'
 import OptionList from './optionList'
+import { addClass, removeClass, isUndefined, createDom } from '../../utils/util'
 // import './optionsIcon.scss'
 
 const LIST_TYPES = {
@@ -75,7 +76,7 @@ export default class OptionsIcon extends Plugin {
       config.listType = LIST_TYPES.SIDE
     }
 
-    config.hidePortrait && Util.addClass(this.root, 'portrait')
+    config.hidePortrait && addClass(this.root, 'portrait')
 
     this.on([Events.VIDEO_RESIZE, Events.FULLSCREEN_CHANGE], () => {
       this._resizeList()
@@ -126,19 +127,19 @@ export default class OptionsIcon extends Plugin {
     if (_isIcons) {
       return
     }
-    this.appendChild('.xgplayer-icon', Util.createDom('span', '', {}, 'icon-text'))
-    Util.addClass(this.find('.xgplayer-icon'), 'btn-text')
+    this.appendChild('.xgplayer-icon', createDom('span', '', {}, 'icon-text'))
+    addClass(this.find('.xgplayer-icon'), 'btn-text')
   }
 
   show () {
     if (!this.config.list || this.config.list.length < 2) {
       return
     }
-    Util.addClass(this.root, 'show')
+    addClass(this.root, 'show')
   }
 
   hide () {
-    Util.removeClass(this.root, 'show')
+    removeClass(this.root, 'show')
   }
 
   getTextByLang (item, key, lang) {
@@ -147,7 +148,7 @@ export default class OptionsIcon extends Plugin {
     }
     const { list } = this.config
     !lang && (lang = this.player.lang)
-    key = (!key || Util.isUndefined(item[key])) ? 'text' : key
+    key = (!key || isUndefined(item[key])) ? 'text' : key
     typeof item === 'number' && (item = list[item])
     try {
       if (typeof item[key] === 'object') {

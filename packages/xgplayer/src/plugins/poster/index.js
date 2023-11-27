@@ -1,4 +1,5 @@
-import Plugin, { Events, Util } from '../../plugin'
+import Plugin, { Events } from '../../plugin'
+import { addClass, removeClass } from '../../utils/util'
 import './index.scss'
 
 /**
@@ -34,11 +35,11 @@ class Poster extends Plugin {
   }
 
   hide () {
-    Util.addClass(this.root, 'hide')
+    addClass(this.root, 'hide')
   }
 
   show () {
-    Util.removeClass(this.root, 'hide')
+    removeClass(this.root, 'hide')
   }
 
   beforeCreate (args) {
@@ -50,7 +51,7 @@ class Poster extends Plugin {
   afterCreate () {
     this.on(Events.ENDED, () => {
       if (this.isEndedShow) {
-        Util.removeClass(this.root, 'hide')
+        removeClass(this.root, 'hide')
       }
     })
 
@@ -59,15 +60,15 @@ class Poster extends Plugin {
         this.onTimeUpdate()
       })
       this.on(Events.URL_CHANGE, () => {
-        Util.removeClass(this.root, 'hide')
-        Util.addClass(this.root, 'xg-showplay')
+        removeClass(this.root, 'hide')
+        addClass(this.root, 'xg-showplay')
         this.once(Events.TIME_UPDATE, () => {
           this.onTimeUpdate()
         })
       })
     } else {
       this.on(Events.PLAY, () => {
-        Util.addClass(this.root, 'hide')
+        addClass(this.root, 'hide')
       })
     }
   }
@@ -78,7 +79,7 @@ class Poster extends Plugin {
         this.onTimeUpdate()
       })
     } else {
-      Util.removeClass(this.root, 'xg-showplay')
+      removeClass(this.root, 'xg-showplay')
     }
   }
 

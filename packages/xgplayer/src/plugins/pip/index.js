@@ -1,4 +1,5 @@
-import { Events, Util, POSITIONS } from '../../plugin'
+import { Events, POSITIONS } from '../../plugin'
+import { removeClass, typeOf, setTimeout } from '../../utils/util'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
 import PipIcon from '../assets/pipIcon.svg'
@@ -55,7 +56,7 @@ class PIP extends IconPlugin {
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
       if (this.config.showIcon) {
-        Util.removeClass(this.find('.xgplayer-icon'), 'xg-icon-disable')
+        removeClass(this.find('.xgplayer-icon'), 'xg-icon-disable')
         this.bind('click', this.switchPIP)
       }
     })
@@ -79,7 +80,7 @@ class PIP extends IconPlugin {
     this.leavePIPCallback = () => {
       // 处理点击x关闭画中画的时候暂停问题
       const paused = player.paused
-      Util.setTimeout(this, () => {
+      setTimeout(this, () => {
         // 使用mediaPlay避免多次触发 playhooks
         !paused && player.mediaPlay()
       }, 0)
@@ -142,7 +143,7 @@ class PIP extends IconPlugin {
     try {
       const { poster } = playerConfig
       if (poster) {
-        player.media.poster = Util.typeOf(poster) === 'String' ? poster : poster.poster
+        player.media.poster = typeOf(poster) === 'String' ? poster : poster.poster
       }
       PIP.checkWebkitSetPresentationMode(player.media) ? player.media.webkitSetPresentationMode('picture-in-picture') : player.media.requestPictureInPicture()
       return true
@@ -175,10 +176,10 @@ class PIP extends IconPlugin {
 
   isPIPAvailable () {
     const video = this.player.media
-    const _isEnabled = Util.typeOf(document.pictureInPictureEnabled) === 'Boolean' ? document.pictureInPictureEnabled : true
+    const _isEnabled = typeOf(document.pictureInPictureEnabled) === 'Boolean' ? document.pictureInPictureEnabled : true
     return _isEnabled &&
-    ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
-     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function'))
+    ((typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
+     (video.webkitSupportsPresentationMode && typeOf(video.webkitSetPresentationMode) === 'Function'))
   }
 
   destroy () {

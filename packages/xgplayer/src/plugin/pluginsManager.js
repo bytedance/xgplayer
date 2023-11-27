@@ -1,5 +1,5 @@
 import { addObserver, unObserver } from './resizeObserver'
-import Util from '../utils/util'
+import { typeOf } from '../utils/util'
 
 /**
 * a plugins manager to register and search
@@ -100,7 +100,7 @@ const pluginsManager = {
       }
     }
 
-    if (Util.typeOf(_pConfig) === 'Object') {
+    if (typeOf(_pConfig) === 'Object') {
       return {
         root: _pConfig.root,
         position: _pConfig.position
@@ -175,9 +175,9 @@ const pluginsManager = {
     for (let i = 0; i < keys.length; i++) {
       if (pluginName.toLowerCase() === keys[i].toLowerCase()) {
         const config = originalOptions[keys[i]]
-        if (Util.typeOf(config) === 'Object') {
+        if (typeOf(config) === 'Object') {
           options.config = Object.assign({}, options.config, originalOptions[keys[i]])
-        } else if (Util.typeOf(config) === 'Boolean') {
+        } else if (typeOf(config) === 'Boolean') {
           options.config.disable = !config
         }
         break

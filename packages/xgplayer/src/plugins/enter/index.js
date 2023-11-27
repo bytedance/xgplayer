@@ -1,4 +1,5 @@
-import Plugin, { Util } from '../../plugin'
+import Plugin from '../../plugin'
+import { createDom } from '../../utils/util'
 import './index.scss'
 
 /**
@@ -25,7 +26,7 @@ class Enter extends Plugin {
 
   render () {
     const { innerHtml } = this.config
-    const root = Util.createDom('xg-enter', '', {}, 'xgplayer-enter')
+    const root = createDom('xg-enter', '', {}, 'xgplayer-enter')
 
     if (innerHtml && innerHtml instanceof window.HTMLElement) {
       root.appendChild(innerHtml)

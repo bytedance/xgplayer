@@ -1,4 +1,5 @@
-import Plugin, { Events, Util } from '../../plugin'
+import Plugin, { Events } from '../../plugin'
+import { addClass, removeClass } from '../../utils/util'
 import ReplaySvg from '../assets/replay.svg'
 import './index.scss'
 
@@ -36,7 +37,7 @@ class Replay extends Plugin {
 
     this.on(Events.ENDED, () => {
       if (!this.playerConfig.loop) {
-        Util.addClass(this.player.root, 'replay')
+        addClass(this.player.root, 'replay')
       }
       if (this.config.disable) {
         return
@@ -62,7 +63,7 @@ class Replay extends Plugin {
     e.preventDefault()
     e.stopPropagation()
     this.player.replay()
-    Util.removeClass(this.player.root, 'replay')
+    removeClass(this.player.root, 'replay')
   }
 
   show () {

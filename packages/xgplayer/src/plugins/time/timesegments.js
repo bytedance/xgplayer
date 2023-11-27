@@ -1,4 +1,5 @@
-import { BasePlugin, Events, Util } from '../../plugin'
+import { BasePlugin, Events } from '../../plugin'
+import { getOffsetCurrentTime, getIndexByTime } from '../../utils/util'
 /**
  * 进行事件分段控制
  */
@@ -97,8 +98,8 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (!this._checkIfEnabled(timeSegments)) {
       return
     }
-    const index = Util.getIndexByTime(currentTime,timeSegments)
-    const time = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
+    const index = getIndexByTime(currentTime,timeSegments)
+    const time = getOffsetCurrentTime(currentTime, timeSegments, index)
     this.player.offsetCurrentTime = time
     this.changeIndex(index, timeSegments)
   }
@@ -108,7 +109,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (!this._checkIfEnabled(timeSegments)) {
       return
     }
-    const time = Util.getOffsetCurrentTime(0, timeSegments)
+    const time = getOffsetCurrentTime(0, timeSegments)
     this.player.offsetCurrentTime = time
     this.changeIndex(0, timeSegments)
     if (this.curPos.start > 0){
@@ -123,11 +124,11 @@ export default class TimeSegmentsControls extends BasePlugin {
     }
     const _len = timeSegments.length
     this.lastCurrentTime = currentTime
-    const index = Util.getIndexByTime(currentTime, timeSegments)
+    const index = getIndexByTime(currentTime, timeSegments)
     if (index !== this.curIndex) {
       this.changeIndex(index, timeSegments)
     }
-    const curTime = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
+    const curTime = getOffsetCurrentTime(currentTime, timeSegments, index)
 
     this.player.offsetCurrentTime = curTime
 
@@ -153,7 +154,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     } else if (currentTime > timeSegments[timeSegments.length - 1].end) {
       this.player.currentTime = timeSegments[timeSegments.length - 1].end
     } else {
-      const _index = Util.getIndexByTime(currentTime, timeSegments)
+      const _index = getIndexByTime(currentTime, timeSegments)
       if (_index >= 0) {
         const _seekTime = this.getSeekTime(currentTime, this.lastCurrentTime, _index, timeSegments)
         if (_seekTime >= 0 ) {
