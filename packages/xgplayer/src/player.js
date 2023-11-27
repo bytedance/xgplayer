@@ -1,7 +1,6 @@
 import MediaProxy from './mediaProxy'
 import { addClass, hasClass, removeClass, checkIsCurrentVideo, typeOf, isMSE, setTimeout, clearTimeout, clearAllTimers, createPositionBar, createDom, deepMerge, generateSessionId, filterStyleFromText, getTransformStyle, setStyleFromCsstext, scrollTop, scrollLeft, getFullScreenEl, isBlob, convertDeg } from './utils/util'
 import Sniffer from './utils/sniffer'
-import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
 import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API, PLATER_ID } from './constant'
@@ -281,12 +280,6 @@ class Player extends MediaProxy {
     ) {
       this.config.autoplay = false
     }
-
-    /**
-     * @readonly
-     * @type {any}
-     */
-    this.database = new Database()
 
     /**
      * @readonly
@@ -2597,30 +2590,6 @@ class Player extends MediaProxy {
    */
   static probeConfigSupported (info) {
     return Sniffer.probeConfigSupported(info)
-  }
-
-  /**
-   * @deprecated
-   * 插件全部迁移完成再做删除
-   */
-  static install (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    if (!Player.plugins[name]) {
-      Player.plugins[name] = descriptor
-    }
-  }
-
-  /**
-   * @deprecated
-   * 插件全部迁移完成再做删除
-   */
-  static use (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    Player.plugins[name] = descriptor
   }
 
   static defaultPreset = null;
