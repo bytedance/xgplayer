@@ -629,22 +629,6 @@ export function getStyleFromCsstext (dom) {
   return ret
 }
 
-export function preloadImg (url, onload = () => {}, onerror = () => {}) {
-  if (!url) {
-    return
-  }
-  let img = new window.Image()
-  img.onload = (e) => {
-    img = null
-    onload && onload(e)
-  }
-  img.onerror = (e) => {
-    img = null
-    onerror && onerror(e)
-  }
-  img.src = url
-}
-
 export function stopPropagation (e){
   if (e) {
     e.stopPropagation()
@@ -842,6 +826,7 @@ export function getIndexByTime (time, segments) {
   }
   return _index
 }
+
 export function getOffsetCurrentTime (currentTime, segments, index = -1) {
   let _index = -1
   if (index >= 0 && index < segments.length) {

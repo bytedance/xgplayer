@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import BasePlugin, { Events } from '../../plugin'
-import { preloadImg, createDom } from '../../utils/util'
+import { createDom } from '../../utils/util'
 /**
  * @typedef {{
  *   isShow?: boolean,
@@ -95,6 +95,22 @@ export default class Thumbnail extends BasePlugin {
     return index >= 0 && index < this.config.urls.length ? this.config.urls[index] : ''
   }
 
+  preloadImg (url, onload = () => {}, onerror = () => {}) {
+    if (!url) {
+      return
+    }
+    let img = new window.Image()
+    img.onload = (e) => {
+      img = null
+      onload && onload(e)
+    }
+    img.onerror = (e) => {
+      img = null
+      onerror && onerror(e)
+    }
+    img.src = url
+  }
+
   preload (index) {
     if (this._preloadMark[index]) {
       return
@@ -108,7 +124,7 @@ export default class Thumbnail extends BasePlugin {
     arr.map(item => {
       if (!this._preloadMark[item] && item >= 0 && item < len) {
         this._preloadMark[item] = 1
-        preloadImg(urls[item], () => {
+        this.preloadImg(urls[item], () => {
           this._preloadMark[item] = 2
         })
       }
