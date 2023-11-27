@@ -741,12 +741,16 @@ class Player extends MediaProxy {
   /**
    *
    * @param { any } plugin
+   * @param { boolean } removedFromConfig
    */
-  deregister (plugin) {
+  deregister (plugin, removedFromConfig) {
     if (typeof plugin === 'string') {
       pluginsManager.unRegister(this, plugin)
     } else if (plugin instanceof BasePlugin) {
       pluginsManager.unRegister(this, plugin.pluginName)
+    }
+    if (removedFromConfig) {
+      this.removePluginFromConfig(plugin)
     }
   }
 
@@ -757,11 +761,13 @@ class Player extends MediaProxy {
    */
   unRegisterPlugin (plugin, removedFromConfig = false) {
     this.deregister(plugin)
-    if (removedFromConfig) {
-      this.removePluginFromConfig(plugin)
-    }
   }
 
+  /**
+   * @description 从当前config.plugins中移除插件
+   * @param {*} plugin
+   * @returns
+   */
   removePluginFromConfig (plugin) {
     let pluginName
     if (typeof plugin === 'string') {
