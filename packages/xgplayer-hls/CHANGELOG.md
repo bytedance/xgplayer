@@ -1,4 +1,6 @@
 
+## xgplayer-hls@3.0.11-alpha.3
+>* feat: support m3u8 manifest loadtimeout
 ## xgplayer-hls@3.0.11-alpha.2
 >* fix: m3u8 302 redirect
 

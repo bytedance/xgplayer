@@ -8,13 +8,13 @@ export class ManifestLoader {
     this._timer = null
     this._useLowLatency = hls.config.useLowLatency
 
-    const { retryCount, retryDelay, loadTimeout, fetchOptions } = this.hls.config
+    const { retryCount, retryDelay, manifestLoadTimeout, loadTimeout, fetchOptions } = this.hls.config
     this._loader = new NetLoader({
       ...fetchOptions,
       responseType: 'text',
       retry: retryCount,
       retryDelay: retryDelay,
-      timeout: loadTimeout,
+      timeout: manifestLoadTimeout,
       onRetryError: this._onLoaderRetry
     })
     this._audioLoader = new NetLoader({
