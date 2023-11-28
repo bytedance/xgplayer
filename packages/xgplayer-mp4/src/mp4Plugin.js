@@ -262,7 +262,6 @@ export default class Mp4Plugin extends BasePlugin {
   }
 
   checkDegrade (error) {
-    console.log('>>>checkDegrade', error)
     const { closeDowngrade } = this.config
     return !closeDowngrade || error.httpCode === 'networkError'
   }
@@ -275,7 +274,6 @@ export default class Mp4Plugin extends BasePlugin {
   }
 
   _errorHandler (err) {
-    console.trace('>>>_errorHandler', err)
     const {player, config} = this
     if (!player || this.useVideoLoad) {
       return
