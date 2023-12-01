@@ -52,7 +52,8 @@ export default class OptionsIcon extends Plugin {
       hidePortrait: true,
       isShowIcon: false,
       isItemClickHide: true, // 列表点击之后是否隐藏列表
-      toggleMode: TOGGLE_MODES.HOVER // 激活状态切换模式
+      toggleMode: TOGGLE_MODES.HOVER, // 激活状态切换模式
+      heightLimit: true
     }
   }
 
@@ -268,7 +269,7 @@ export default class OptionsIcon extends Plugin {
     if (this.config.isShowIcon) {
       const { height } = this.player.root.getBoundingClientRect()
       const _maxH = config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
-      if (_maxH) {
+      if (_maxH && config.heightLimit) {
         options.config.maxHeight = `${_maxH}px`
       }
       this.optionsList = new OptionList(options)
@@ -279,6 +280,9 @@ export default class OptionsIcon extends Plugin {
   }
 
   _resizeList () {
+    if (!this.config.heightLimit) {
+      return
+    }
     const { height } = this.player.root.getBoundingClientRect()
     const _maxH = this.config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
     this.optionsList && this.optionsList.setStyle({ maxHeight: `${_maxH}px` })
