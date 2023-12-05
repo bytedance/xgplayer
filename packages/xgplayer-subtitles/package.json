@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-subtitles",
-  "version": "3.0.11-alpha.7",
+  "version": "3.0.11-alpha.8",
   "description": "",
   "main": "dist/index.min.js",
   "module": "es/index.js",
