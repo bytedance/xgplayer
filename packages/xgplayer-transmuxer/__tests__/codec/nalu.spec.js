@@ -41,9 +41,11 @@ describe('NALu', () => {
   })
 
   test('parseSEI', () => {
+    const payload = [...Array(256).keys()]
     const data = new Uint8Array([
-      6, 5, 255, 255, 255, 10, 
+      6, 5, 255, 4,
       220, 69, 233, 189, 230, 217, 72, 183, 150, 44, 216, 32, 217, 35, 238, 239, // dc45e9bde6d948b7962cd820d923eeef
+      ...payload,
       1, 2, 3, 128 // payload
     ])
 
@@ -51,7 +53,8 @@ describe('NALu', () => {
 
     expect(result.type).toBe(5)
     expect(result.uuid).toBe('dc45e9bde6d948b7962cd820d923eeef')
-    expect(result.payload).toEqual(new Uint8Array([1, 2, 3]))
+    expect(result.payload).toEqual(new Uint8Array([...payload, 1, 2, 3]))
+    expect(result.size).toBe(256 + 3)
   })
 
   test('removeEPB', () => {
