@@ -44,7 +44,7 @@ describe('NALu', () => {
     const data = new Uint8Array([
       6, 5, 255, 255, 255, 10, 
       220, 69, 233, 189, 230, 217, 72, 183, 150, 44, 216, 32, 217, 35, 238, 239, // dc45e9bde6d948b7962cd820d923eeef
-      1, 2, 3 // payload 
+      1, 2, 3, 128 // payload
     ])
 
     const result = NALu.parseSEI(data)
