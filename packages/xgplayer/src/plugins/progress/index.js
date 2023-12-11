@@ -668,7 +668,7 @@ class Progress extends Plugin {
    */
   onTimeupdate (isEnded) {
     const { player, _state, offsetDuration } = this
-    if (player.isSeeking || this.isProgressMoving) {
+    if ((player.isSeeking && player.media.seeking) || this.isProgressMoving || !player.hasStart) {
       return
     }
     if (_state.now > -1) {

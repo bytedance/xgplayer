@@ -45,7 +45,10 @@ class Time extends Plugin {
     }
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
-    this.on([Events.DURATION_CHANGE, Events.SEEKED, Events.TIME_UPDATE], () => {
+    this.on([Events.DURATION_CHANGE, Events.SEEKED, Events.TIME_UPDATE], (e) => {
+      if (e.eventName === 'durationchange') {
+        this.isActiving = false
+      }
       this.onTimeUpdate()
     })
 
@@ -187,7 +190,7 @@ class Time extends Plugin {
       this.isActiving = false
     }
     this.off(Events.SEEKED, updateState)
-    if (player.isSeeking) {
+    if (player.isSeeking && player.media.seeking) {
       this.once(Events.SEEKED, updateState)
     } else {
       this.isActiving = false
