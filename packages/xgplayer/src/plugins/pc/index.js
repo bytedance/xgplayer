@@ -33,7 +33,7 @@ export default class PCPlugin extends BasePlugin {
   }
 
   initEvents () {
-    const { video, root } = this.player
+    const { media, root } = this.player
     const { enableContextmenu } = this.playerConfig
 
     root && root.addEventListener('click', this.onVideoClick, false)
@@ -41,7 +41,7 @@ export default class PCPlugin extends BasePlugin {
     Object.keys(MOUSE_EVENTS).map(item => {
       root.addEventListener(item, this[MOUSE_EVENTS[item]], false)
     })
-    enableContextmenu && video && video.addEventListener('contextmenu', this.onContextmenu, false)
+    !enableContextmenu && media && media.addEventListener('contextmenu', this.onContextmenu, false)
   }
 
   switchPlayPause (e) {
