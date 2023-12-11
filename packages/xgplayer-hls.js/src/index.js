@@ -80,7 +80,6 @@ class HlsJsPlugin extends BasePlugin {
     }
     this.hls = new Hls(this.hlsOpts)
     this.hls.once(Hls.Events.MEDIA_ATTACHED, () => {
-      console.log('Hls.Events.MEDIA_ATTACHED', url)
       this.hls.loadSource(url)
     })
 
