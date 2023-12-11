@@ -2025,7 +2025,7 @@ class Player extends MediaProxy {
     let offsetY = 0
     let offsetX = 0
     let scale = 1
-    const _t = Math.abs(rotate / 90)
+    const _t = rotate < 0 ? 0 : Math.abs(rotate / 90)
     const { root, innerContainer } = this
     const width = root.offsetWidth
     const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
