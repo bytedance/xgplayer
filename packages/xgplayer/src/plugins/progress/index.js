@@ -711,6 +711,7 @@ class Progress extends Plugin {
     this.progressBtn.style.left = '0%'
     const { miniprogress } = this.player.plugins
     miniprogress && miniprogress.update({ cached: 0, played: 0 }, 0)
+    this.progressBtn.style.left = '0%'
   }
 
   destroy () {

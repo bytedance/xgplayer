@@ -112,7 +112,8 @@ class Errors {
         message: errorInfo.errorMessage || mediaError.message,
         mediaError,
         originError: errorInfo.originError ? errorInfo.originError.stack : '',
-        host: Util.getHostFromUrl(src || currentSrc)
+        host: Util.getHostFromUrl(src || currentSrc),
+        mediaSrc: player.media.src
       }
       errorInfo.ext && Object.keys(errorInfo.ext).map(key => {
         r[key] = errorInfo.ext[key]
