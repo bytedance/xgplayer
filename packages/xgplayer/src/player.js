@@ -138,6 +138,12 @@ class Player extends MediaProxy {
      */
     this._useAutoplay = false
     /**
+     * @description 记录起播需要seek的时间点
+     * @private
+     * @readonly
+     */
+    this.__startTime = -1
+    /**
      *  @type { number }
      */
     this.rotateDeg = 0
@@ -586,10 +592,13 @@ class Player extends MediaProxy {
       (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.mediaPlay()
     }
 
-    if (readyState >= 2) {
+    const { startTime } = this.config
+    this.__startTime = startTime > 0 ? startTime : -1
+    this.config.startTime = 0
+    if (readyState >= 2 && this.duration > 0) {
       this.canPlayFunc()
     } else {
-      this.once(Events.CANPLAY, this.canPlayFunc)
+      this.on(Events.CANPLAY, this.canPlayFunc)
     }
     if (!this.hasStart || this.state < STATES.ATTACHED) {
       pluginsManager.afterInit(this)
@@ -925,6 +934,7 @@ class Player extends MediaProxy {
     }
     _src = this.preProcessUrl(_src).url
     const curTime = this.currentTime
+    this.__startTime = curTime
     const isPaused = this.paused && !this.isError
     this.src = _src
     return new Promise((resolve, reject) => {
@@ -934,7 +944,10 @@ class Player extends MediaProxy {
         reject(e)
       }
       const _canplay = () => {
-        this.currentTime = curTime
+        if (this.duration > 0 && this.__startTime > 0) {
+          this.currentTime = this.__startTime
+          this.__startTime = -1
+        }
         if (isPaused) {
           this.pause()
         }
@@ -1688,12 +1701,12 @@ class Player extends MediaProxy {
     if (!this.config) {
       return
     }
-    const { autoplay, startTime, defaultPlaybackRate } = this.config
+    const { autoplay, defaultPlaybackRate } = this.config
 
-    XG_DEBUG.logInfo('player', 'canPlayFunc, startTime', startTime)
-    if (startTime) {
-      this.currentTime = startTime > this.duration ? this.duration : startTime
-      this.config.startTime = 0 // 仅仅使用一次
+    XG_DEBUG.logInfo('player', 'canPlayFunc, startTime', this.__startTime)
+    if (this.__startTime > 0 && this.duration > 0) {
+      this.currentTime = this.__startTime > this.duration ? this.duration : this.__startTime
+      this.__startTime = -1
     }
 
     // 解决浏览器安装了一些倍速扩展插件的情况下，倍速设置失效问题
@@ -1791,6 +1804,13 @@ class Player extends MediaProxy {
     this.removeClass(STATE_CLASS.LOADING)
     this.isCanplay = true
     this.waitTimer && Util.clearTimeout(this, this.waitTimer)
+  }
+
+  onDurationchange () {
+    if (this.__startTime > 0 && this.duration > 0) {
+      this.currentTime = this.__startTime
+      this.__startTime = -1
+    }
   }
 
   onLoadeddata () {
