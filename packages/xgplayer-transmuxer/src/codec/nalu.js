@@ -106,7 +106,7 @@ export class NALu {
     }
 
     return {
-      payload: unit.subarray(i, size-16), type, size, uuid
+      payload: unit.subarray(i, i + size), type, size, uuid
     }
   }
 
