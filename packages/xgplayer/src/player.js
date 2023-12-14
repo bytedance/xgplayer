@@ -1226,7 +1226,7 @@ class Player extends MediaProxy {
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
-    this.addClass(STATE_CLASS.ENTER)
+    this.addClass(STATE_CLASS.NO_START)
     this.emit(Events.RESET)
   }
 

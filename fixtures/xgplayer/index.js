@@ -37,12 +37,11 @@ function init(index = 0, config = {}) {
   window[p] = new Player({
     id: 'video' + index,
     preProcessUrl: (url, ext) => {
-      console.log('>>>preProcessUrl', url, ext)
       return {
         url: url
       }
     },
-    url: "xx",
+    url: "",
     DynamicBg: {
       disable: false
     },
@@ -52,7 +51,7 @@ function init(index = 0, config = {}) {
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
-    width: '80%',
+    width: '96%',
     ignores:['playbackrate'],
     plugins: [],
     rotate: true,
@@ -213,7 +212,6 @@ function init(index = 0, config = {}) {
 }
 
 init()
-init(1)
 
 // init(1, {
 //   i18n: [
@@ -278,7 +276,12 @@ function changeLang(index) {
 function playNext(index) {
   console.log('playNext', index)
   const p = `player${index}`
-  const config = {}
+  const config = {
+    autoplay: true,
+    url: ""
+  }
+  window[p].playNext(config)
+  // window[p].play()
 }
 
 function destroy(index) {
