@@ -1,9 +1,9 @@
 import MediaProxy from './mediaProxy'
-import { addClass, hasClass, removeClass, checkIsCurrentVideo, typeOf, isMSE, setTimeout, clearTimeout, clearAllTimers, createPositionBar, createDom, deepMerge, generateSessionId, filterStyleFromText, getTransformStyle, setStyleFromCsstext, scrollTop, scrollLeft, getFullScreenEl, isBlob, convertDeg } from './utils/util'
+import { addClass, hasClass, removeClass, typeOf, isMSE, setTimeout, clearTimeout, clearAllTimers, createPositionBar, createDom, deepMerge, generateSessionId,isBlob } from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors from './error'
 import * as Events from './events'
-import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API, PLATER_ID } from './constant'
+import { PLATER_ID } from './constant'
 import Plugin, { POSITIONS } from './plugin/plugin'
 import BasePlugin from './plugin/basePlugin'
 import pluginsManager from './plugin/pluginsManager'
@@ -11,9 +11,9 @@ import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
 import hooksDescriptor, { runHooks, useHooks, removeHooks, delHooksDescriptor, usePluginHooks, removePluginHooks, hook } from './plugin/hooksDescriptor'
-import Controls from './plugins/controls/index'
+// import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
-import I18N from './lang/i18n'
+// import I18N from './lang/i18n'
 import version from './version'
 import { STATES, STATE_ARRAY } from './state'
 
@@ -270,7 +270,7 @@ class Player extends MediaProxy {
      */
     this.root = null
 
-    this.__i18n = I18N.init(this._pluginInfoId)
+    // this.__i18n = I18N.init(this._pluginInfoId)
 
     // android 6以下不支持自动播放
     if (
@@ -404,11 +404,11 @@ class Player extends MediaProxy {
       this.media = _nVideo
     }
     this.media.setAttribute(PLATER_ID, this.playerId)
-    if (this.config.controls) {
-      const _root = this.config.controls.root || null
-      const controls = pluginsManager.register(this, Controls, { root: _root })
-      this.controls = controls
-    }
+    // if (this.config.controls) {
+    //   const _root = this.config.controls.root || null
+    //   const controls = pluginsManager.register(this, Controls, { root: _root })
+    //   this.controls = controls
+    // }
     const device =
       this.config.isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
     this.addClass(
@@ -496,16 +496,6 @@ class Player extends MediaProxy {
     ['focus', 'blur'].forEach((item) => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
-
-    FULLSCREEN_EVENTS.forEach((item) => {
-      document && document.addEventListener(item, this.onFullscreenChange)
-    })
-
-    if (Sniffer.os.isIos) {
-      this.media.addEventListener( 'webkitbeginfullscreen', this._onWebkitbeginfullscreen)
-      this.media.addEventListener( 'webkitendfullscreen', this._onWebkitendfullscreen)
-    }
-
     this.once(Events.LOADED_DATA, this.resize)
 
     this.playFunc = () => {
@@ -521,13 +511,8 @@ class Player extends MediaProxy {
    */
   _unbindEvents () {
     this.root.removeEventListener('mousemove', this.mousemoveFunc)
-    FULLSCREEN_EVENTS.forEach((item) => {
-      document.removeEventListener(item, this.onFullscreenChange)
-    })
     this.playFunc && this.off(Events.PLAY, this.playFunc)
     this.off(Events.CANPLAY, this.canPlayFunc)
-    this.media.removeEventListener( 'webkitbeginfullscreen', this._onWebkitbeginfullscreen)
-    this.media.removeEventListener('webkitendfullscreen', this._onWebkitendfullscreen)
   }
 
   /**
@@ -606,8 +591,8 @@ class Player extends MediaProxy {
     this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
-    const i18n = this.config.i18n || []
-    isInit && I18N.extend(i18n, this.__i18n)
+    // const i18n = this.config.i18n || []
+    // isInit && I18N.extend(i18n, this.__i18n)
     const ignoresStr = ignores.join('||').toLowerCase().split('||')
     const cuPlugins = this.plugins
     plugins.forEach((plugin) => {
@@ -621,29 +606,6 @@ class Player extends MediaProxy {
         }
 
         if (!isInit && cuPlugins[pluginName.toLowerCase()]) {
-          return
-        }
-
-        if (plugin.lazy && plugin.loader) {
-          const loadingPlugin = pluginsManager.lazyRegister(this, plugin)
-          if (plugin.forceBeforeInit) {
-            loadingPlugin
-              .then(() => {
-                this._loadingPlugins.splice(
-                  this._loadingPlugins.indexOf(loadingPlugin),
-                  1
-                )
-              })
-              .catch((e) => {
-                XG_DEBUG.logError('_registerPlugins:loadingPlugin', e)
-                this._loadingPlugins.splice(
-                  this._loadingPlugins.indexOf(loadingPlugin),
-                  1
-                )
-              })
-            this._loadingPlugins.push(loadingPlugin)
-          }
-
           return
         }
         return this.registerPlugin(plugin)
@@ -1342,261 +1304,6 @@ class Player extends MediaProxy {
   }
 
   /**
-   *
-   * @param { HTMLElement } root
-   * @param { HTMLElement } [el]
-   * @param { string } [rootClass]
-   * @param { string } [pClassName]
-   */
-  changeFullStyle (root, el, rootClass, pClassName) {
-    if (!root) {
-      return
-    }
-    if (!pClassName) {
-      pClassName = STATE_CLASS.PARENT_FULLSCREEN
-    }
-    if (!this._orgCss) {
-      this._orgCss = filterStyleFromText(root)
-    }
-    addClass(root, rootClass)
-    if (el && el !== root && !this._orgPCss) {
-      /**
-       * @private
-       */
-      this._orgPCss = filterStyleFromText(el)
-      addClass(el, pClassName)
-      el.setAttribute(PLATER_ID, this.playerId)
-    }
-  }
-
-  /**
-   *
-   * @param { HTMLElement } root
-   * @param { HTMLElement } [el]
-   * @param { string } [rootClass]
-   * @param { string } [pClassName]
-   */
-  recoverFullStyle (root, el, rootClass, pClassName) {
-    if (!pClassName) {
-      pClassName = STATE_CLASS.PARENT_FULLSCREEN
-    }
-    if (this._orgCss) {
-      setStyleFromCsstext(root, this._orgCss)
-      this._orgCss = ''
-    }
-    removeClass(root, rootClass)
-    if (el && el !== root && this._orgPCss) {
-      setStyleFromCsstext(el, this._orgPCss)
-      this._orgPCss = ''
-      removeClass(el, pClassName)
-      el.removeAttribute(PLATER_ID)
-    }
-  }
-
-  /**
-   * @param { HTMLElement } [el]
-   * @returns { Promise<void> }
-   */
-  getFullscreen (el = this.config.fullscreenTarget) {
-    const { root, media } = this
-    if (!el) {
-      el = root
-    }
-    this._fullScreenOffset = {
-      top: scrollTop(),
-      left: scrollLeft()
-    }
-
-    this._fullscreenEl = el
-    /**
-     * @private
-     */
-    this._fullActionFrom = 'get'
-    const fullEl = getFullScreenEl()
-    if (fullEl === this._fullscreenEl) {
-      this.onFullscreenChange()
-      return Promise.resolve()
-    }
-    try {
-      for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
-        const key = GET_FULLSCREEN_API[i]
-        if (el[key]) {
-          const ret =
-            key === 'webkitRequestFullscreen'
-              ? el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
-              : el[key]()
-          if (ret && ret.then) {
-            return ret
-          } else {
-            return Promise.resolve()
-          }
-        }
-      }
-      if (media.fullscreenEnabled || media.webkitSupportsFullscreen) {
-        media.webkitEnterFullscreen()
-        return Promise.resolve()
-      }
-      return Promise.reject(new Error('call getFullscreen fail'))
-    } catch (err) {
-      return Promise.reject(new Error('call getFullscreen fail'))
-    }
-  }
-
-  /**
-   * @param { HTMLElement } [el]
-   * @returns { Promise<void> }
-   */
-  exitFullscreen (el) {
-    if (this.isRotateFullscreen) {
-      this.exitRotateFullscreen()
-    }
-    if (!this._fullscreenEl && !getFullScreenEl()) {
-      return
-    }
-    const { root, media } = this
-    if (el) {
-      el = root
-    }
-    this._fullActionFrom = 'exit'
-    try {
-      for (let i = 0; i < EXIT_FULLSCREEN_API.length; i++) {
-        const key = EXIT_FULLSCREEN_API[i]
-        if (document[key]) {
-          const ret = document[key]()
-          if (ret && ret.then) {
-            return ret
-          } else {
-            return Promise.resolve()
-          }
-        }
-      }
-      if (media && media.webkitSupportsFullscreen) {
-        media.webkitExitFullScreen()
-        return Promise.resolve()
-      }
-      return Promise.reject(new Error('call exitFullscreen fail'))
-    } catch (err) {
-      return Promise.reject(new Error('call exitFullscreen fail'))
-    }
-  }
-
-  /**
-   * @param { HTMLElement } [el]
-   * @returns
-   */
-  getCssFullscreen (el = this.config.fullscreenTarget) {
-    if (this.isRotateFullscreen) {
-      this.exitRotateFullscreen()
-    } else if (this.fullscreen) {
-      this.exitFullscreen()
-    }
-    const _class = el
-      ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.CSS_FULLSCREEN}`
-      : STATE_CLASS.CSS_FULLSCREEN
-    this.changeFullStyle(this.root, el, _class)
-    const { fullscreen = {} } = this.config
-    const useCssFullscreen =
-      fullscreen.useCssFullscreen === true ||
-      (typeof fullscreen.useCssFullscreen === 'function' &&
-        fullscreen.useCssFullscreen())
-    if (useCssFullscreen) {
-      this.fullscreen = true
-      this.emit(Events.FULLSCREEN_CHANGE, true)
-    }
-    this._cssfullscreenEl = el
-    this.cssfullscreen = true
-    this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
-  }
-
-  /**
-   * @param { HTMLElement } [el]
-   * @returns
-   */
-  exitCssFullscreen () {
-    const _class = this._cssfullscreenEl
-      ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.CSS_FULLSCREEN}`
-      : STATE_CLASS.CSS_FULLSCREEN
-    if (!this.fullscreen) {
-      this.recoverFullStyle(this.root, this._cssfullscreenEl, _class)
-    } else {
-      const { fullscreen = {} } = this.config
-      const useCssFullscreen =
-        fullscreen.useCssFullscreen === true ||
-        (typeof fullscreen.useCssFullscreen === 'function' &&
-          fullscreen.useCssFullscreen())
-      if (useCssFullscreen) {
-        this.recoverFullStyle(this.root, this._cssfullscreenEl, _class)
-        this.fullscreen = false
-        this.emit(Events.FULLSCREEN_CHANGE, false)
-      } else {
-        this.removeClass(_class)
-      }
-    }
-    this._cssfullscreenEl = null
-    this.cssfullscreen = false
-    this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
-  }
-
-  /**
-   * 进入旋转全屏
-   * @param { HTMLElement } [el]
-   */
-  getRotateFullscreen (el = this.config.fullscreenTarget) {
-    if (this.cssfullscreen) {
-      this.exitCssFullscreen(el)
-    }
-    const _class = el
-      ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.ROTATE_FULLSCREEN}`
-      : STATE_CLASS.ROTATE_FULLSCREEN
-    this._fullscreenEl = el || this.root
-    this.changeFullStyle(
-      this.root,
-      el,
-      _class,
-      STATE_CLASS.PARENT_ROTATE_FULLSCREEN
-    )
-    this.isRotateFullscreen = true
-    this.fullscreen = true
-    this.setRotateDeg(90)
-    this._rootStyle = this.root.getAttribute('style')
-    this.root.style.width = `${window.innerHeight}px`
-    this.emit(Events.FULLSCREEN_CHANGE, true)
-  }
-
-  /**
-   * 退出旋转全屏
-   * @param { HTMLElement } [el]
-   */
-  exitRotateFullscreen (el) {
-    const _class =
-      this._fullscreenEl !== this.root
-        ? `${STATE_CLASS.INNER_FULLSCREEN} ${STATE_CLASS.ROTATE_FULLSCREEN}`
-        : STATE_CLASS.ROTATE_FULLSCREEN
-    this.recoverFullStyle(
-      this.root,
-      this._fullscreenEl,
-      _class,
-      STATE_CLASS.PARENT_ROTATE_FULLSCREEN
-    )
-    this.isRotateFullscreen = false
-    this.fullscreen = false
-    this.setRotateDeg(0)
-    this.emit(Events.FULLSCREEN_CHANGE, false)
-    if (this._rootStyle) {
-      this.root.style.style = this._rootStyle
-      this._rootStyle = false
-    }
-  }
-
-  setRotateDeg (deg) {
-    if (window.orientation === 90 || window.orientation === -90) {
-      this.rotateDeg = 0
-    } else {
-      this.rotateDeg = deg
-    }
-  }
-
-  /**
    * @description 播放器焦点状态，控制栏显示
    * @param { {
    *   autoHide?: boolean, // 是否可以自动隐藏
@@ -1703,80 +1410,6 @@ class Player extends MediaProxy {
     this.removeClass(STATE_CLASS.ENTER)
   }
 
-  /**
-   *
-   */
-  onFullscreenChange = (event, isFullScreen) => {
-    const delayResize = () => {
-      setTimeout(this, () => {
-        this.resize()
-      }, 100)
-    }
-    const fullEl = getFullScreenEl()
-    if (this._fullActionFrom) {
-      this._fullActionFrom = ''
-    } else {
-      // 快捷键触发
-      this.emit(Events.USER_ACTION, {
-        eventType: 'system',
-        action: 'switch_fullscreen',
-        pluginName: 'player',
-        currentTime: this.currentTime,
-        duration: this.duration,
-        props: [{
-          prop: 'fullscreen',
-          from: true,
-          to: false
-        }]
-      })
-    }
-    const isVideo = checkIsCurrentVideo(fullEl, this.playerId, PLATER_ID)
-    if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || isVideo))) {
-      delayResize()
-      !this.config.closeFocusVideoFocus && this.media.focus()
-      this.fullscreen = true
-      // this.addClass(STATE_CLASS.FULLSCREEN)
-      this.changeFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)
-      this.emit(Events.FULLSCREEN_CHANGE, true, this._fullScreenOffset)
-      if (this.cssfullscreen) {
-        this.exitCssFullscreen()
-      }
-    } else if (this.fullscreen) {
-      delayResize()
-      const { _fullScreenOffset, config } = this
-      if (config.needFullscreenScroll) {
-        // 保证页面scroll的情况下退出全屏 页面回到原位置
-        window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
-        setTimeout( this, () => {
-          this.fullscreen = false
-          this._fullScreenOffset = null
-        }, 100)
-      } else {
-        // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
-        !this.config.closeFocusVideoFocus && this.media.focus()
-        this.fullscreen = false
-        this._fullScreenOffset = null
-      }
-      if (!this.cssfullscreen) {
-        this.recoverFullStyle( this.root,this._fullscreenEl, STATE_CLASS.FULLSCREEN)
-      } else {
-        this.removeClass(STATE_CLASS.FULLSCREEN)
-      }
-      this._fullscreenEl = null
-      // this.removeClass(STATE_CLASS.FULLSCREEN)
-      this.emit(Events.FULLSCREEN_CHANGE, false)
-    }
-  }
-
-  _onWebkitbeginfullscreen = (e) => {
-    this._fullscreenEl = this.media
-    this.onFullscreenChange(e, true)
-  }
-
-  _onWebkitendfullscreen = (e) => {
-    this.onFullscreenChange(e, false)
-  }
-
   onEmptied () {
     this.updateAcc('emptied')
   }
@@ -1845,11 +1478,10 @@ class Player extends MediaProxy {
   onError () {
     // this.setState(STATES.ERROR)
     this.isError = true
-    this.updateAcc('error')
-    this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
-    this.removeClass(STATE_CLASS.NO_START)
-    this.removeClass(STATE_CLASS.ENTER)
-    this.removeClass(STATE_CLASS.LOADING)
+    this.updateAcc('error');
+    [STATE_CLASS.NOT_ALLOW_AUTOPLAY,STATE_CLASS.NO_START,STATE_CLASS.ENTER, STATE_CLASS.LOADING].forEach(item=>{
+      this.removeClass(item)
+    })
     this.addClass(STATE_CLASS.ERROR)
   }
 
@@ -2005,74 +1637,6 @@ class Player extends MediaProxy {
     return false
   }
 
-  resizePosition () {
-    const { rotate, vy, vx, h, w } = this.videoPos
-    if (rotate < 0 && !vy && !vx) {
-      return
-    }
-    let _pi = this.videoPos._pi
-    if (!_pi && this.media.videoHeight) {
-      _pi = this.media.videoWidth / this.media.videoHeight * 100
-    }
-    if (!_pi) {
-      return
-    }
-    this.videoPos.pi = _pi
-    const _pos = {
-      rotate: rotate
-    }
-    let offsetY = 0
-    let offsetX = 0
-    let scale = 1
-    const _t = Math.abs(rotate / 90)
-    const { root, innerContainer } = this
-    const width = root.offsetWidth
-    const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
-    let rHeight = height
-    let rWidth = width
-    if (_t % 2 === 0) {
-      scale = h > 0 ? 100 / h : (w > 0 ? 100 / w : 1)
-      _pos.scale = scale
-      offsetY = vy > 0 ? (100 - h) / 2 - vy : 0
-      _pos.y = _t === 2 ? 0 - offsetY : offsetY
-      offsetX = vx > 0 ? (100 - w) / 2 - vx : 0
-      _pos.x = _t === 2 ? 0 - offsetX : offsetX
-      this.media.style.width = `${rWidth}px`
-      this.media.style.height = `${rHeight}px`
-    } else if (_t % 2 === 1) {
-      rWidth = height
-      rHeight = width
-      const offset = height - width
-      offsetX = -offset / 2 / rWidth * 100
-      _pos.x = _t === 3 ? offsetX + vy / 2 : offsetX - vy / 2
-      offsetY = offset / 2 / rHeight * 100
-      _pos.y = _t === 3 ? offsetY + vx / 2 : offsetY - vx / 2
-      _pos.scale = scale
-      this.media.style.width = `${rWidth}px`
-      this.media.style.height = `${rHeight}px`
-    }
-    const formStyle = getTransformStyle(_pos, this.media.style.transform || this.media.style.webkitTransform)
-    this.media.style.transform = formStyle
-    this.media.style.webkitTransform = formStyle
-  }
-
-  /**
-   * @description position video/audio according to height ratio and y coordinate
-   * @param { { h: number, y?: number, x?:number, w?:number} } pos
-   * @returns
-   */
-  position (pos = { h: 0, y: 0, x: 0, w: 0 }) {
-    if (!this.media || !pos || !pos.h) {
-      return
-    }
-    const { videoPos } = this
-    videoPos.h = pos.h * 100 || 0
-    videoPos.w = pos.w * 100 || 0
-    videoPos.vx = pos.x * 100 || 0
-    videoPos.vy = pos.y * 100 || 0
-    this.resizePosition()
-  }
-
   /**
    * @description Update configuration parameters
    * @param { IPlayerOptions } config
@@ -2108,76 +1672,6 @@ class Player extends MediaProxy {
   }
 
   resize () {
-    if (!this.media) {
-      return
-    }
-    const containerSize = this.root.getBoundingClientRect()
-    this.sizeInfo.width = containerSize.width
-    this.sizeInfo.height = containerSize.height
-    this.sizeInfo.left = containerSize.left
-    this.sizeInfo.top = containerSize.top
-    const { videoWidth, videoHeight } = this.media
-    const { fitVideoSize, videoFillMode } = this.config
-
-    if (videoFillMode === 'fill' || videoFillMode === 'cover' || videoFillMode === 'contain') {
-      this.setAttribute('data-xgfill', videoFillMode)
-    }
-
-    if (!videoHeight || !videoWidth) {
-      return
-    }
-    this._videoHeight = videoHeight
-    this._videoWidth = videoWidth
-    const controlsHeight =
-      this.controls && this.innerContainer
-        ? this.controls.root.getBoundingClientRect().height
-        : 0
-    const width = containerSize.width
-    const height = containerSize.height - controlsHeight
-    const videoFit = parseInt((videoWidth / videoHeight) * 1000, 10)
-    const fit = parseInt((width / height) * 1000, 10)
-    let rWidth = width
-    let rHeight = height
-    const _style = {}
-    if (
-      (fitVideoSize === 'auto' && fit > videoFit) ||
-      fitVideoSize === 'fixWidth'
-    ) {
-      rHeight = (width / videoFit) * 1000
-      if (this.config.fluid) {
-        _style.paddingTop = `${(rHeight * 100) / rWidth}%`
-      } else {
-        _style.height = `${rHeight + controlsHeight}px`
-      }
-    } else if (
-      (fitVideoSize === 'auto' && fit < videoFit) ||
-      fitVideoSize === 'fixHeight'
-    ) {
-      rWidth = (videoFit * height) / 1000
-      _style.width = `${rWidth}px`
-    }
-    // 全屏不做行间css设置
-    if (!this.fullscreen && !this.cssfullscreen) {
-      Object.keys(_style).forEach((key) => {
-        this.root.style[key] = _style[key]
-      })
-    }
-    // video填充模式
-    if (
-      (videoFillMode === 'fillHeight' && fit < videoFit) ||
-      (videoFillMode === 'fillWidth' && fit > videoFit)
-    ) {
-      this.setAttribute('data-xgfill', 'cover')
-    }
-    const data = {
-      videoScale: videoFit,
-      vWidth: rWidth,
-      vHeight: rHeight,
-      cWidth: rWidth,
-      cHeight: rHeight + controlsHeight
-    }
-    this.resizePosition()
-    this.emit(Events.VIDEO_RESIZE, data)
   }
 
   /**
@@ -2344,33 +1838,33 @@ class Player extends MediaProxy {
   /**
    * @type { string }
    */
-  set lang (lang) {
-    const result = I18N.langKeys.filter((key) => key === lang)
-    if (result.length === 0 && lang !== 'zh') {
-      console.error(
-        `Sorry, set lang fail, because the language [${lang}] is not supported now, list of all supported languages is [${I18N.langKeys.join()}] `
-      )
-      return
-    }
-    this.config.lang = lang
-    pluginsManager.setLang(lang, this)
-  }
+  // set lang (lang) {
+  //   const result = I18N.langKeys.filter((key) => key === lang)
+  //   if (result.length === 0 && lang !== 'zh') {
+  //     console.error(
+  //       `Sorry, set lang fail, because the language [${lang}] is not supported now, list of all supported languages is [${I18N.langKeys.join()}] `
+  //     )
+  //     return
+  //   }
+  //   this.config.lang = lang
+  //   pluginsManager.setLang(lang, this)
+  // }
 
-  get lang () {
-    return this.config.lang
-  }
+  // get lang () {
+  //   return this.config.lang
+  // }
 
-  get i18n () {
-    let _l = this.config.lang
-    if (_l === 'zh') {
-      _l = 'zh-cn'
-    }
-    return this.__i18n.lang[_l] || this.__i18n.lang.en
-  }
+  // get i18n () {
+  //   let _l = this.config.lang
+  //   if (_l === 'zh') {
+  //     _l = 'zh-cn'
+  //   }
+  //   return this.__i18n.lang[_l] || this.__i18n.lang.en
+  // }
 
-  get i18nKeys () {
-    return this.__i18n.textKeys || {}
-  }
+  // get i18nKeys () {
+  //   return this.__i18n.textKeys || {}
+  // }
 
   /**
    * @type { string }
@@ -2455,24 +1949,6 @@ class Player extends MediaProxy {
   set zoom (value) {
     this.config.zoom = value
   }
-
-  /**
-   * @type {number}
-   * @description Media element rotation angle, Only multiples of 90 degrees are supported
-   */
-  set videoRotateDeg (val) {
-    val = convertDeg(val)
-    if (val % 90 !== 0 || val === this.videoPos.rotate) {
-      return
-    }
-    this.videoPos.rotate = val
-    this.resizePosition()
-  }
-
-  get videoRotateDeg () {
-    return this.videoPos.rotate
-  }
-
   /**
    * @description 均衡下载速度，单位kb/s, 根据10条最新下载速度计算出来的加权值，如果没有测速能力则默认是0
    * @type { number }
@@ -2613,6 +2089,6 @@ export {
   Events,
   Errors,
   Sniffer,
-  STATE_CLASS,
-  I18N
+  STATE_CLASS
+  // I18N
 }

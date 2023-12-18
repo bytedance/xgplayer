@@ -110,31 +110,6 @@ const pluginsManager = {
   },
 
   /**
-   * register a lazy plugin
-   * @param { any } player instance
-   * @param { any } lazyPlugin config
-   *
-   */
-  lazyRegister (player, lazyPlugin) {
-    const timeout = lazyPlugin.timeout || 1500
-    return Promise.race([
-      lazyPlugin.loader().then((plugin) => {
-        let result
-        if (plugin && plugin.__esModule) {
-          result = plugin.default
-        } else {
-          result = plugin
-        }
-        this.register(player, result, plugin.options)
-      }),
-      new Promise((resolve, reject) => {
-        setTimeout(() => {
-          reject(new Error('timeout'))
-        }, timeout)
-      })
-    ])
-  },
-  /**
   * register a Plugin
   * @param { any } player the plugins register
   * @param { any } plugin the plugin contructor
@@ -203,14 +178,15 @@ const pluginsManager = {
     options.index = options.config.index || 0
     try {
       // if there is already a plugin instance with the same pluginName, destroy it
-      if (plugins[pluginName.toLowerCase()]) {
-        this.unRegister(cgid, pluginName.toLowerCase())
+      const pluginNameL = pluginName.toLowerCase()
+      if (plugins[pluginNameL]) {
+        this.unRegister(cgid,pluginNameL)
         console.warn(`the is one plugin with same pluginName [${pluginName}] exist, destroy the old instance`)
       }
       // eslint-disable-next-line new-cap
       const _instance = new plugin(options)
-      plugins[pluginName.toLowerCase()] = _instance
-      plugins[pluginName.toLowerCase()].func = plugin
+      plugins[pluginNameL] = _instance
+      plugins[pluginNameL].func = plugin
       if (_instance && typeof _instance.afterCreate === 'function') {
         _instance.afterCreate()
       }
