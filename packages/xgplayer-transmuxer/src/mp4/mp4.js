@@ -12,6 +12,8 @@ export class MP4 {
     'hvcC',
     'dinf',
     'dref',
+    'edts',
+    'elst',
     'esds',
     'ftyp',
     'hdlr',
@@ -167,6 +169,15 @@ export class MP4 {
     return ret
   }
 
+  static FullBox (type, version, flags, ...payload) {
+    return MP4.box(type, new Uint8Array([
+      version,
+      (flags >> 16) & 0xff,
+      (flags >> 8) & 0xff,
+      flags & 0xff
+    ]), ...payload)
+  }
+
   static ftyp (tracks) {
     const isHevc = tracks.find(t => t.type === TrackType.VIDEO && t.codecType === VideoCodecType.HEVC)
     return isHevc ? MP4.FTYPHEV1 : MP4.FTYPAVC1
@@ -261,6 +272,7 @@ export class MP4 {
     const trak = MP4.box(
       MP4.types.trak,
       MP4.tkhd(track.id, track.tkhdDuration || 0, track.width, track.height),
+      track.editList ? MP4.edts(track.editList) : undefined,
       MP4.mdia(track)
     )
     // console.log('[remux],trak, len,', trak.byteLength, track.id, hashVal(trak.toString()))
@@ -295,6 +307,14 @@ export class MP4 {
     ]))
     // console.log('[remux],tkhd, len,', tkhd.byteLength, hashVal(tkhd.toString()))
     return tkhd
+  }
+
+  static edts (elstData) {
+    return MP4.box(MP4.types.edts, MP4.elst(elstData))
+  }
+
+  static elst ({entries, entriesData, version}) {
+    return MP4.FullBox(MP4.types.elst, version, 0, entriesData)
   }
 
   static mdia (track) {
