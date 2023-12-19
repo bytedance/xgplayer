@@ -1,0 +1,28 @@
+
+.xg-heatmap {
+  position: absolute;
+  // background-color: rgb(113, 124, 113);
+  height: 40px;
+  width: 100%;
+  // top: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  .xg-heatmap-canvas {
+    height: 100%;
+    width: 100%;
+  }
+  &.xg-heatmap-active-show {
+    opacity: 0;
+  }
+  &.xg-heatmap-normal {
+    opacity: 1;
+  }
+}
+
+.xgplayer-progress.active .xg-heatmap-active-show {
+  opacity: 1;
+}
