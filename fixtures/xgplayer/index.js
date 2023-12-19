@@ -1,7 +1,9 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
 import { TextTrack } from '../../packages/xgplayer/src/index'
+// import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
+import {data0, data2, formatData1} from './heatmap_data'
 console.log('vconsole')
 window.Util = Util
 window.POS = {
@@ -41,11 +43,11 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "",
+    url: "./heatmap.mp4",
     DynamicBg: {
       disable: false
     },
-    // marginControls: true,
+    marginControls: true,
     loop: false,
     autoplay: false,
     autoplayMuted: true,
@@ -55,6 +57,13 @@ function init(index = 0, config = {}) {
     ignores:['playbackrate'],
     plugins: [],
     rotate: true,
+    heatmap: {
+      data: data2,
+      minValue: 0.35,
+      maxValue: 1,
+      mapColor: '#ddd',
+      mode: 'normal'
+    },
     // controls: {
     //   // mode: 'normal',
     //   // initShow: true

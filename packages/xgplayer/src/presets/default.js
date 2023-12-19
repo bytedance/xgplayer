@@ -37,6 +37,7 @@ import WaitingTimeoutJump from '../plugins/waitingTimeoutJump'
 import TestSpeed from '../plugins/testspeed'
 import I18N from '../lang/i18n'
 import FpsDetect from '../plugins/fpsDetect'
+import Heatmap from '../plugins/heatmap'
 
 I18N.use(ZH)
 
@@ -51,7 +52,7 @@ export default class DefaultPreset {
 
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, Miniscreen]
 
-    this.plugins = [Stats, Xglogger, ...contolsIcons, ...layers, GapJump, WaitingTimeoutJump]
+    this.plugins = [Stats, Xglogger, ...contolsIcons, ...layers, GapJump, WaitingTimeoutJump, Heatmap]
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':
