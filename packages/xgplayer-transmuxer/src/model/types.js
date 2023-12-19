@@ -8,7 +8,8 @@ export const TrackType = {
 /** @enum {string} */
 export const VideoCodecType = {
   AVC: 'avc',
-  HEVC: 'hevc'
+  HEVC: 'hevc',
+  VVCC: 'vvcC'
 }
 
 /** @enum {string} */

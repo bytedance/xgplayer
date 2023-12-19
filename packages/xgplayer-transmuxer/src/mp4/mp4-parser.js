@@ -1,6 +1,6 @@
 import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64 } from '../utils'
-import { AAC } from '../codec'
+import { AAC, VVC } from '../codec'
 export class MP4Parser {
   static findBox (data, names, start = 0) {
     const ret = []
@@ -142,6 +142,7 @@ export class MP4Parser {
     return parseBox(box, false, (ret, data, start) => {
       ret.tkhd = MP4Parser.tkhd(MP4Parser.findBox(data, ['tkhd'], start)[0])
       ret.mdia = MP4Parser.mdia(MP4Parser.findBox(data, ['mdia'], start)[0])
+      ret.edts = MP4Parser.edts(MP4Parser.findBox(data, ['edts'], start)[0])
     })
   }
 
@@ -167,6 +168,41 @@ export class MP4Parser {
       ret.mdhd = MP4Parser.mdhd(MP4Parser.findBox(data, ['mdhd'], start)[0])
       ret.hdlr = MP4Parser.hdlr(MP4Parser.findBox(data, ['hdlr'], start)[0])
       ret.minf = MP4Parser.minf(MP4Parser.findBox(data, ['minf'], start)[0])
+    })
+  }
+
+  static edts (box) {
+    return parseBox(box, false, (ret, data, start) => {
+      ret.elst = MP4Parser.elst(MP4Parser.findBox(data, ['elst'], start)[0])
+    })
+  }
+
+  static elst (box) {
+    return parseBox(box, true, (ret, data, start) => {
+      ret.entries = []
+      ret.entriesData = data
+      let offset = 0
+      const entry_count = readBig32(data, offset)
+      offset += 4
+      for (let i = 0; i < entry_count; i++) {
+        const entry = {}
+        ret.entries.push(entry)
+        if (ret.version === 1) {
+          entry.segment_duration = readBig64(data, offset)
+          offset += 8
+          entry.media_time = readBig64(data, offset)
+          offset += 8
+        } else {
+          entry.segment_duration = readBig32(data, offset)
+          offset += 4
+          entry.media_time = readBig32(data, offset)
+          offset += 4
+        }
+        entry.media_rate_integer = readBig16(data, offset)
+        offset += 2
+        entry.media_rate_fraction = readBig16(data, start)
+        offset += 2
+      }
     })
   }
 
@@ -294,6 +330,28 @@ export class MP4Parser {
     })
   }
 
+
+  static bvc2 (box) {
+    return parseBox(box, false, (ret, data, start) => {
+      const bodyStart = parseVisualSampleEntry(ret, data)
+      const bodyData = data.subarray(bodyStart)
+      start += bodyStart
+      ret.vvcC = MP4Parser.bv2C(MP4Parser.findBox(bodyData, ['bv2C'], start)[0])
+      ret.pasp = MP4Parser.pasp(MP4Parser.findBox(bodyData, ['pasp'], start)[0])
+    })
+  }
+
+  static bv2C (box) {
+    return parseBox(box, false, (ret, data, start) => {
+      const record = VVC.parseVVCDecoderConfigurationRecord(data)
+      for (const key in record) {
+        if (Object.prototype.hasOwnProperty.call(record, key)) {
+          ret[key] = record[key]
+        }
+      }
+    })
+  }
+
   static stsd (box) {
     return parseBox(box, true, (ret, data, start) => {
       ret.entryCount = readBig32(data)
@@ -307,6 +365,9 @@ export class MP4Parser {
           case 'hvc1':
           case 'hev1':
             return MP4Parser.hvc1(b)
+          // 266
+          case 'bvc2':
+            return MP4Parser.bvc2(b)
           case 'mp4a':
             return MP4Parser.mp4a(b)
           case 'alaw':
@@ -766,6 +827,9 @@ export class MP4Parser {
       v.mvhdTimecale = moov.mvhd.timescale
       v.timescale = v.formatTimescale = vTrack.mdia.mdhd.timescale
       v.duration = vTrack.mdia.mdhd.duration || (v.mvhdDurtion / v.mvhdTimecale * v.timescale)
+      if (vTrack.edts?.elst) {
+        v.editList = vTrack.edts.elst
+      }
       const e1 = vTrack.mdia.minf.stbl.stsd.entries[0]
       v.width = e1.width
       v.height = e1.height
@@ -783,6 +847,13 @@ export class MP4Parser {
         v.codec = e1.avcC.codec
         v.sps = e1.avcC.sps
         v.pps = e1.avcC.pps
+      } else if (e1.vvcC) {
+        v.codecType = VideoCodecType.VVCC
+        v.codec = e1.vvcC.codec
+        v.sps = e1.vvcC.sps
+        v.pps = e1.vvcC.pps
+        v.vps = e1.vvcC.vps
+        v.vvcC = e1.vvcC.data
       } else {
         throw new Error('unknown video stsd entry')
       }
@@ -814,6 +885,9 @@ export class MP4Parser {
       a.mvhdTimecale = moov.mvhd.timescale
       a.timescale = a.formatTimescale = aTrack.mdia.mdhd.timescale
       a.duration = aTrack.mdia.mdhd.duration || (a.mvhdDurtion / a.mvhdTimecale * a.timescale)
+      if (aTrack.edts?.elst) {
+        a.editList = aTrack.edts.elst
+      }
       const e1 = aTrack.mdia.minf.stbl.stsd.entries[0]
       a.sampleSize = e1.sampleSize
       a.sampleRate = e1.sampleRate
