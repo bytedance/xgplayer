@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-dash",
-  "version": "3.0.11-alpha.11",
+  "version": "3.0.11",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -16,7 +16,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "alpha"
+    "tag": "latest"
   },
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
     "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.11-alpha.11",
+    "xgplayer": "3.0.11",
     "core-js": ">=3.12.1"
   }
 }
