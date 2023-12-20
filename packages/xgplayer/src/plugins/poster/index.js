@@ -20,6 +20,7 @@ class Poster extends Plugin {
     return {
       isEndedShow: true, // 是否在播放结束之后显示
       hideCanplay: false, // cnaplay 时间大于1的时候才隐藏
+      notHidden: false, // 是否一直显示
       poster: '', // 封面图地址
       fillMode: 'fixWidth', // fixWidth / fixHeight / cover / container
     }
@@ -109,10 +110,11 @@ class Poster extends Plugin {
   }
 
   render () {
-    const { poster, hideCanplay, fillMode } = this.config
+    const { poster, hideCanplay, fillMode, notHidden } = this.config
     const _bg = this.getBgSize(fillMode)
     const style = poster ? `background-image:url(${poster});${_bg}` : _bg
-    return `<xg-poster class="xgplayer-poster ${hideCanplay ? 'xg-showplay' : ''}" style="${style}">
+    const className = notHidden ? 'xg-not-hidden' : (hideCanplay ? 'xg-showplay' : '')
+    return `<xg-poster class="xgplayer-poster ${className}" style="${style}">
     </xg-poster>`
   }
 }

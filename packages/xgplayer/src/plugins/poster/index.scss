@@ -26,6 +26,10 @@
     opacity: 0;
     visibility: hidden;
   }
+  .xg-not-hidden {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .xgplayer {
