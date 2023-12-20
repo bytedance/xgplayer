@@ -1,6 +1,14 @@
 # 版本更新记录
-## 3.0.11-alpha.2
+## 3.0.11
+>* fix(xgplayer): 修复android端播放hls起播时长设置异常问题
+>* fix(xgplayer): 1. fix progress dot position 2. add mediaSrc attribute when report error
+>* fix(xgplayer): rset progress btn position when playnext
+>* fix(xgplayer): resizePosition在rotate为-1时兼容
 >* fix(xgplayer): 修复 sniffer 在部分 iPad 中判断错误的问题
+>* fix(xgplayer): enableContextmenu配置和文档相反问题修复 close https://github.com/bytedance/xgplayer/issues/1232
+>* fix(xgplayer): 修复seek状态下切换播放源时间不更新问题
+>* feat(xgplayer): 带列表的按钮增加高度控制
+>* fix(xgplayer): progresspreview插件transformTime 不生效问题修复
 >* fix(xgplayer): 累计观看时长计时点从onPlaying开始
 >* fix(xgplayer): miniprogress增加颜色配置响应 close https://github.com/bytedance/xgplayer/issues/1179
 >* fix(xgplayer): 全局多实例快捷键同时生效异常问题修复
