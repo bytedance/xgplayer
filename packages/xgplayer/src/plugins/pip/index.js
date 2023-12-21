@@ -1,3 +1,4 @@
+/* global documentPictureInPicture */
 import { Events, Util, POSITIONS } from '../../plugin'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
@@ -9,6 +10,7 @@ import './index.scss'
  * @description picture-in-picture plugin
  * @doc https://www.w3.org/TR/picture-in-picture/
  * @doc https://developer.apple.com/documentation/webkitjs/adding_picture_in_picture_to_your_safari_media_controls
+ * @doc https://wicg.github.io/document-picture-in-picture/
  */
 
 const PresentationMode = {
@@ -26,7 +28,12 @@ class PIP extends IconPlugin {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 6,
-      showIcon: false
+      showIcon: false,
+      preferDocument: false,
+      width: undefined,
+      height: undefined,
+      docPiPNode: undefined,
+      docPiPStyle: undefined
     }
   }
 
@@ -85,12 +92,15 @@ class PIP extends IconPlugin {
       }, 0)
       !paused && player.mediaPlay()
       this.setAttr('data-state', 'normal')
+      this.pipWindow = null
       player.emit(Events.PIP_CHANGE, false)
     }
 
     this.enterPIPCallback = (e) => {
       player.emit(Events.PIP_CHANGE, true)
-      this.pipWindow = e.pictureInPictureWindow
+      if (e?.pictureInPictureWindow) {
+        this.pipWindow = e.pictureInPictureWindow
+      }
       this.setAttr('data-state', 'pip')
     }
 
@@ -131,11 +141,34 @@ class PIP extends IconPlugin {
     }
   }
 
+  copyStyleIntoPiPWindow (pipWin) {
+    const textContent = [...document.styleSheets]
+      .map((style) => {
+        try {
+          return [...style.cssRules].map((rule) => rule.cssText).join('')
+        } catch (e) {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.type = style.type
+          link.media = style.media
+          link.href = style.href
+          pipWin.document.head.appendChild(link)
+        }
+        return ''
+      })
+      .filter(Boolean)
+      .join('\n')
+    const style = document.createElement('style')
+
+    style.textContent = textContent
+    pipWin.document.head.appendChild(style)
+  }
+
   /*
    * 进入画中画
   */
   requestPIP () {
-    const { player, playerConfig } = this
+    const { player, playerConfig, config } = this
     if (!this.isPIPAvailable() || this.isPip) {
       return
     }
@@ -144,7 +177,80 @@ class PIP extends IconPlugin {
       if (poster) {
         player.media.poster = Util.typeOf(poster) === 'String' ? poster : poster.poster
       }
-      PIP.checkWebkitSetPresentationMode(player.media) ? player.media.webkitSetPresentationMode('picture-in-picture') : player.media.requestPictureInPicture()
+
+      if (config.preferDocument && this.isDocPIPAvailable()) {
+        const pipOptions = {}
+
+        if (config.width && config.height) {
+          pipOptions.width = config.width
+          pipOptions.height = config.height
+        } else {
+          const playerRect = player.root.getBoundingClientRect()
+          pipOptions.width = playerRect.width
+          pipOptions.height = playerRect.height
+        }
+
+        documentPictureInPicture.requestWindow(pipOptions).then((pipWin) => {
+          const { docPiPNode, docPiPStyle } = config
+
+          this.enterPIPCallback()
+
+          // record original position
+          const pipRoot = docPiPNode || player.root
+          const parentNode = pipRoot.parentElement
+          const previousSibling = pipRoot.previousSibling
+          const nextSibling = pipRoot.nextSibling
+
+          this.copyStyleIntoPiPWindow(pipWin)
+
+          // Make sure player fits in the Picture-in-Picture window.
+          const styles = document.createElement('style')
+          styles.append('body{padding:0; margin:0;}')
+          if (docPiPStyle) {
+            let cssContent = ''
+            if (typeof docPiPStyle === 'string') {
+              cssContent = docPiPStyle
+            } else if (typeof docPiPStyle === 'function') {
+              cssContent = docPiPStyle.call(config)
+            }
+            if (cssContent) {
+              styles.append(cssContent)
+            }
+          } else if (pipRoot === player.root) {
+            styles.append(`
+              .xgplayer{width: 100%!important; height: 100%!important;}
+            `)
+          }
+          pipWin.document.head.append(styles)
+
+          // Add player to the PiP window.
+          pipWin.document.body.append(pipRoot)
+
+          // Listen for the PiP closing event to put the video back.
+          pipWin.addEventListener('pagehide', (event) => {
+            // Restore nodes to their original location
+            if (parentNode) {
+              if (nextSibling) {
+                parentNode.insertBefore(pipRoot, nextSibling)
+              } else if (previousSibling) {
+                parentNode.insertBefore(pipRoot, previousSibling.nextSibling)
+              } else {
+                parentNode.appendChild(pipRoot)
+              }
+            } else {
+              // console.log('无法找到原始父节点')
+            }
+
+            this.leavePIPCallback()
+          }, { once: true })
+        })
+      } else if (PIP.checkWebkitSetPresentationMode(player.media)) {
+        player.media.webkitSetPresentationMode('picture-in-picture')
+      } else {
+        player.media.requestPictureInPicture()
+      }
+
+
       return true
     } catch (reason) {
       console.error('requestPiP', reason)
@@ -159,7 +265,13 @@ class PIP extends IconPlugin {
     const { player } = this
     try {
       if (this.isPIPAvailable() && this.isPip) {
-        PIP.checkWebkitSetPresentationMode(player.media) ? player.media.webkitSetPresentationMode('inline') : document.exitPictureInPicture()
+        if (this.isDocPIPAvailable() && documentPictureInPicture?.window) {
+          documentPictureInPicture.window.close()
+        } else if (PIP.checkWebkitSetPresentationMode(player.media)) {
+          player.media.webkitSetPresentationMode('inline')
+        } else {
+          document.exitPictureInPicture()
+        }
       }
       return true
     } catch (reason) {
@@ -168,9 +280,17 @@ class PIP extends IconPlugin {
     }
   }
 
+  /**
+   * 处于画中画状态
+   */
   get isPip () {
     const { player } = this
-    return (document.pictureInPictureElement && document.pictureInPictureElement === player.media) || player.media.webkitPresentationMode === PresentationMode.PIP
+    return (
+      !!(this.isDocPIPAvailable() && documentPictureInPicture?.window) ||
+      (document.pictureInPictureElement &&
+        document.pictureInPictureElement === player.media) ||
+      player.media.webkitPresentationMode === PresentationMode.PIP
+    )
   }
 
   isPIPAvailable () {
@@ -178,7 +298,12 @@ class PIP extends IconPlugin {
     const _isEnabled = Util.typeOf(document.pictureInPictureEnabled) === 'Boolean' ? document.pictureInPictureEnabled : true
     return _isEnabled &&
     ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
-     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function'))
+     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function')) ||
+     this.isDocPIPAvailable()
+  }
+
+  isDocPIPAvailable () {
+    return 'documentPictureInPicture' in window && /^(https|file)/.test(location.protocol)
   }
 
   destroy () {
