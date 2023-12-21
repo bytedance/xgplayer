@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-undef
 import version from './version'
 import Util from './utils/util'
+import { transformErrorCode } from './utils/errorUtil'
 /**
  * @typedef { import ('./player').default } Player
  */
@@ -99,6 +100,8 @@ class Errors {
       if (ERROR_MAP[_errc]) {
         _errc = ERROR_MAP[_errc]
       }
+      const errorMsg = errorInfo.errorMessage || mediaError.message
+      _errc = transformErrorCode(_errc, errorMsg)
       const r = {
         playerVersion: version,
         currentTime,
@@ -109,7 +112,7 @@ class Errors {
         src: src || currentSrc,
         errorType: errorInfo.errorType,
         errorCode: _errc,
-        message: errorInfo.errorMessage || mediaError.message,
+        message: errorMsg,
         mediaError,
         originError: errorInfo.originError ? errorInfo.originError.stack : '',
         host: Util.getHostFromUrl(src || currentSrc)
