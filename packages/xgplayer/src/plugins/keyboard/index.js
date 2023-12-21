@@ -42,11 +42,11 @@ class Keyboard extends BasePlugin {
       checkVisible: false, // Whether to check the visibility when the shortcut key takes effect
       disableBodyTrigger: false, // Whether to monitor the shortcut keys on the body
       disableRootTrigger: false, // 是否在player.root上做快捷键监听
-      isGlobalTrigger: true, // Whether the shortcut key needs to be triggered globally
+      isGlobalTrigger: false, // Whether the shortcut key needs to be triggered globally
       keyCodeMap: {},
       disable: false,
       playbackRate: 2, // 长按倍速限制
-      isIgnoreUserActive: true // 是否忽略用户激活状态
+      isIgnoreUserActive: false // 是否忽略用户激活状态
     }
   }
 
@@ -280,7 +280,7 @@ class Keyboard extends BasePlugin {
     const { _keyState, player } = this
     const { disable, disableBodyTrigger, isIgnoreUserActive } = this.config
     // 以下条件不响应
-    if (disable || disableBodyTrigger || !(player.isUserActive || isIgnoreUserActive) || isDisableTag(e.target) || !this.checkIsVisible() || e.metaKey || e.altKey || e.ctrlKey) {
+    if (disable || disableBodyTrigger || (!player.isUserActive && !isIgnoreUserActive) || isDisableTag(e.target) || !this.checkIsVisible() || e.metaKey || e.altKey || e.ctrlKey) {
       _keyState.isBodyKeyDown = false
       return
     }
@@ -313,6 +313,9 @@ class Keyboard extends BasePlugin {
       if (this.config.disable || this.config.disableRootTrigger || e.metaKey || e.altKey || e.ctrlKey) {
         return
       }
+      if (!this.player.isUserActive && !this.config.isIgnoreUserActive) {
+        return
+      }
       if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
         _keyState.isKeyDown = true
       }
@@ -343,6 +346,7 @@ class Keyboard extends BasePlugin {
       }
       _keyState.tt = _t
     }
+    preventDefault(e)
     this.handleKeyCode(e.keyCode, e, _keyState.isPress)
   }
 
@@ -378,7 +382,6 @@ class Keyboard extends BasePlugin {
             ...this.keyCodeMap[arr[i]]
           })
         }
-        preventDefault(event)
         break
       }
     }
