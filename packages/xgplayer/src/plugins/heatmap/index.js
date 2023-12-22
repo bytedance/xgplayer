@@ -1,18 +1,42 @@
 import Plugin, { Events, Util } from '../../plugin'
 import './index.scss'
+
+/**
+ * @typedef {{
+*   lineWidth?: number,
+*   dpi?: number,
+*   alpha?: number,
+*   gradient?: Array<number>,
+*   gradientColors?: Array<{ start: number, color:number }>,
+*   strokeStyle?: string,
+*   fillColor?: string,
+*   height?: number,
+*   data?: Array<number>,
+*   maxValue?: number,
+*   minValue?: number,
+*   maxLength?: number,
+*   mode?: string,
+*   [propName: string]: any
+* }} IHeatMapConfig
+*/
+
 export default class HeatMap extends Plugin {
   static get pluginName () {
     return 'heatmap'
   }
 
+  /**
+   * @type IHeatMapConfig
+   */
   static get defaultConfig () {
     return {
-      lineWidth: 1,
-      dpi: 1.5, // 分辨率
+      lineWidth: 0,
+      dpi: 2, // 分辨率
       alpha: 0.7, // 透明度
-      lineStyle: '#ff0000',
-      strokeStyle: '#000000',
-      mapColor: '#FA1F41',
+      gradient: [], // 渐变配置
+      gradientColors: [], // 渐变颜色配置
+      strokeStyle: '', // 描边颜色
+      fillColor: '#FA1F41', // 填充颜色
       height: 20, // 高度
       data: [], // 数据
       maxValue: 100, // 数据最小值
@@ -184,33 +208,50 @@ export default class HeatMap extends Plugin {
     this.yData.push(y)
   }
 
+  _getFillStyle (ctx) {
+    const {gradient, gradientColors, fillStyle } = this.config
+    let fStyle = fillStyle
+    if (gradient && gradient.length === 4) {
+      const gradientStyle = ctx.createLinearGradient(gradient[0], gradient[1], gradient[2], gradient[3])
+      if (gradientColors.length < 2) {
+        console.warn(this.pluginName, '渐变颜色配置gradientColors异常')
+      } else {
+        gradientColors.forEach(item => {
+          gradientStyle.addColorStop(item.start, item.color)
+        })
+        fStyle = gradientStyle
+      }
+    }
+    return fStyle
+  }
+
   drawLinePath () {
     this.clearCanvas()
-    const ct = this.canvas.getContext('2d')
+    const ctx = this.canvas.getContext('2d')
     const { xData, yData } = this
     let x, y
     let i = 0
-    const { lineWidth, alpha, strokeStyle, lineStyle, mapColor } = this.config
+    const { lineWidth, alpha, strokeStyle } = this.config
+    const fillStyle = this._getFillStyle(ctx)
     // 画热图
-    ct.beginPath()
-    ct.lineWidth = lineWidth
-    ct.globalAlpha = alpha
-    ct.strokeStyle = strokeStyle
-    ct.fillStyle = mapColor
-    ct.lineStyle = lineStyle
-    ct.moveTo(0, this.canvasHeight)
+    ctx.beginPath()
+    ctx.lineWidth = lineWidth
+    ctx.globalAlpha = alpha
+    ctx.strokeStyle = strokeStyle || fillStyle
+    ctx.fillStyle = fillStyle
+    ctx.moveTo(0, this.canvasHeight)
     x = xData[i]
     y = yData[i]
     while (x !== undefined && y !== undefined) {
-      ct.lineTo(x, y)
+      ctx.lineTo(x, y)
       i++
       x = xData[i]
       y = yData[i]
     }
-    ct.lineTo(this.canvasWidth, this.canvasHeight)
-    ct.closePath()
-    ct.stroke()
-    ct.fill()
+    ctx.lineTo(this.canvasWidth, this.canvasHeight)
+    ctx.closePath()
+    ctx.stroke()
+    ctx.fill()
   }
 
   clearCanvas () {
