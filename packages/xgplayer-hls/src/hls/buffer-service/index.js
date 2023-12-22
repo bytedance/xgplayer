@@ -276,6 +276,6 @@ export class BufferService {
   }
 
   isFull (mediaType = MSE.VIDEO){
-    return this._mse.isFull(mediaType)
+    return this._mse?.isFull(mediaType)
   }
 }
