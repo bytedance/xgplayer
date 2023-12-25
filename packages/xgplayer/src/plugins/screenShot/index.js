@@ -16,6 +16,7 @@ export default class ScreenShot extends IconPlugin {
       format: '.png',
       width: 600,
       height: 337,
+      saveImg: true,
       fitVideo: true,
       disable: false,
       name: 'screenshot'
@@ -78,9 +79,12 @@ export default class ScreenShot extends IconPlugin {
     e.preventDefault()
     e.stopPropagation()
     this.emitUserAction(e, 'shot')
-    this.shot().then((data) => {
+    const { config } = this
+    this.shot(config.width, config.height).then((data) => {
       this.emit(Events.SCREEN_SHOT, data)
-      this.saveScreenShot(data, this.config.name + this.config.format)
+      if (config.saveImg) {
+        this.saveScreenShot(data, config.name + config.format)
+      }
     })
   }
 
