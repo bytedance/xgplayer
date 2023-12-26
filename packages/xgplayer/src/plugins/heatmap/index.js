@@ -62,6 +62,7 @@ export default class HeatMap extends Plugin {
     this.yData = []
     // Y轴数据最大值
     this.yMax = 0
+    this._duration = 0
     // 本次热图数据
     this.curData = []
   }
@@ -70,11 +71,16 @@ export default class HeatMap extends Plugin {
       return
     }
     this.createRoot()
-    const {data} = this.config
-    this.setData(data)
-    this.resize()
+    this.reset()
+  }
+
+  afterCreate () {
     this.on(Events.VIDEO_RESIZE, () => {
       this.resize()
+    })
+    this.on(Events.DURATION_CHANGE, () => {
+      this._duration = this.player.duration
+      this.reset()
     })
   }
 
@@ -82,8 +88,13 @@ export default class HeatMap extends Plugin {
     Object.keys(config).forEach(key => {
       this.config[key] = config[key]
     })
-    this.setData(this.config.data)
-    this.drawLinePath()
+    this.reset()
+  }
+
+  reset () {
+    const {data} = this.config
+    this.setData(data)
+    this.resize()
   }
 
   createRoot () {
@@ -121,25 +132,60 @@ export default class HeatMap extends Plugin {
     }
   }
 
-  formatData (data) {
+  formatData (data, duration, minValue) {
     const nData = []
     if (data.length < 1) {
       return nData
     }
-    const totalDur = parseInt(data[data.length - 1].time * 1000, 10)
+    const totalDur = parseInt(duration * 1000, 10)
     if (Util.typeOf(data[0]) === 'Object' && data[0].time !== undefined) {
+      if (!totalDur) {
+        return nData
+      }
+      let step = 1
+      let lastTime = 0
       data.forEach(item => {
         const dur = parseInt(item.time * 1000, 10)
+        if (lastTime && (step < 0 || item.time - lastTime < step)) {
+          step = item.time - lastTime
+        }
+        lastTime = item.time
         nData.push({
           ...item,
-          dur: dur,
           percent: dur / totalDur
         })
       })
-      return nData
+      // 开始的时间点不是0，插入一条数据,从0开始
+      const fTime = nData[0].time
+      if (fTime > 0) {
+        const arr = fTime - step > 0 ? [fTime - step, 0] : [0]
+        arr.forEach(time => {
+          const dur = parseInt(time * 1000, 10)
+          nData.unshift({
+            time,
+            score: minValue,
+            percent: dur / totalDur
+          })
+        })
+      }
+      // 结束的时间不是duration则插入最小值
+      const last = nData[nData.length - 1]
+      if (duration - last.time > step) {
+        [last.time + step, duration].forEach(item => {
+          const dur = parseInt(item * 1000, 10)
+          nData.push({
+            time: item,
+            score: minValue,
+            percent: dur / totalDur
+          })
+        })
+      }
     } else {
-      return data
+      data.forEach(item => {
+        nData.push(item)
+      })
     }
+    return nData
   }
 
   _getX (index, stepX, item, width) {
@@ -150,22 +196,41 @@ export default class HeatMap extends Plugin {
     }
   }
 
+  _getY(item, stepY, maxY) {
+    const { maxValue, minValue } = this.config
+    let y = minValue
+    y = item.score !==undefined ? item.score : item
+    // y值只能在[minValue, maxValue]之间
+    y = Math.min(y, maxValue)
+    y = Math.max(y, minValue)
+    // 计算y值百分比
+    y = y / stepY
+    // 由于canvas是笛卡尔坐标系, 所以y值要翻转下（canvas翻转暂时没找到正确用法）
+    y = 1 - y
+    // 最后从百分比转为真实的y坐标
+    y = this.fixFloat(y * maxY, this.dataFloatLen)
+    return y
+  }
+
   setData (data) {
+    const { maxValue, minValue, maxLength } = this.config
     if (data && data.length) {
-      this.curData = this.formatData(data)
+      this.curData = this.formatData(data, this._duration, minValue)
     }
     data = this.curData
+    if (data.length < 1) {
+      return
+    }
     this.xData = []
-    this.xData2 = []
     this.yData = []
     this.yMax = 0
-    const { maxValue, minValue, maxLength } = this.config
     const max = maxValue
     const min = minValue
     const step_V = max - min
     const step_Y = this.canvasHeight
     // 取值间隔（原始数据一秒一个点）
     let curDataLength = data.length
+    // 采样率, 大于最大数据量需要做采样
     const step_D = curDataLength > maxLength ? this.fixFloat(curDataLength / maxLength, this.dataFloatLen) : 1
     // 由于数据是1秒一个点，防止数据过多导致性能下降，所以要挑数据
     curDataLength = parseInt(curDataLength / step_D)
@@ -179,24 +244,13 @@ export default class HeatMap extends Plugin {
       // 数据有问题，停止
       return
     }
-
     // 遍历数据生成X,Y轴数据
-    let y = min
-    let i = parseInt(this.fixFloat(step_D, 0))
-    let j = 1
+    let i = parseInt(this.fixFloat(step_D - 1, 0))
+    let j = 0
     while (j < curDataLength) {
       const x = this._getX(j, step_X, data[i], this.canvasWidth)
       this.xData.push(x)
-      y = data[i].score || data[i]
-      // y值只能在[minValue, maxValue]之间
-      y = Math.min(y, max)
-      y = Math.max(y, min)
-      // 计算y值百分比
-      y = y / step_V
-      // 由于canvas是笛卡尔坐标系, 所以y值要翻转下（canvas翻转暂时没找到正确用法）
-      y = 1 - y
-      // 最后从百分比转为真实的y坐标
-      y = this.fixFloat(y * step_Y, this.dataFloatLen)
+      let y = this._getY(data[i], step_V, step_Y)
       this.yMax = Math.max(this.yMax, step_Y - y)
       this.yData.push(y)
 
@@ -204,8 +258,8 @@ export default class HeatMap extends Plugin {
       i = parseInt(this.fixFloat(j * step_D, 0))
     }
     // 最后添加以后最后最边缘的值
-    this.xData.push(this.canvasWidth)
-    this.yData.push(y)
+    // this.xData.push(this.canvasWidth)
+    // this.yData.push(minValue)
   }
 
   _getFillStyle (ctx) {
