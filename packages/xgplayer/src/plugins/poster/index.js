@@ -22,7 +22,7 @@ class Poster extends Plugin {
       hideCanplay: false, // cnaplay 时间大于1的时候才隐藏
       notHidden: false, // 是否一直显示
       poster: '', // 封面图地址
-      fillMode: 'fixWidth', // fixWidth / fixHeight / cover / container
+      fillMode: 'fixWidth' // fixWidth / fixHeight / cover / container
     }
   }
 
