@@ -1,4 +1,7 @@
 export function getConfig (cfg) {
+  if (typeof cfg.fixEditListOffset !== 'boolean') {
+    delete cfg.fixEditListOffset
+  }
   return {
     vid: '',
     moovEnd: 80000,
