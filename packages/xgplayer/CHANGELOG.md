@@ -1,4 +1,6 @@
 # 版本更新记录
+## 3.0.12
+>* fix(xgplayer): PIP插件支持文档画中画能力 [Document Picture-in-Picture](https://wicg.github.io/document-picture-in-picture/)
 ## 3.0.11
 >* fix(xgplayer): 修复android端播放hls起播时长设置异常问题
 >* fix(xgplayer): 1. fix progress dot position 2. add mediaSrc attribute when report error
