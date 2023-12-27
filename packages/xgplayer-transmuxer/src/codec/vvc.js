@@ -171,19 +171,22 @@ export class VVC {
         const len = reader.readUint16()
 
         switch (naluType) {
-          case 14:
+          case 14: {
             vpsArr.push(reader.readUint8Array(len))
             break
-          case 15:
+          }
+          case 15: {
             const sps = reader.readUint8Array(len)
             if (!spsParsed) {
               spsParsed = VVC.parseSPS(VVC.removeEPB(sps))
             }
             spsArr.push(sps)
             break
-          case 16:
+          }
+          case 16: {
             ppsArr.push(reader.readUint8Array(len))
             break
+          }
           default:
         }
       }
@@ -473,7 +476,7 @@ export class VVC {
     const zeroBits = 8 - eg.bitsPos() % 8
     eg.skipBits(zeroBits)
 
-    return{
+    return {
       gciPresentFlag
     }
   }
