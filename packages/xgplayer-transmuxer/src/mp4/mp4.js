@@ -272,7 +272,7 @@ export class MP4 {
     const trak = MP4.box(
       MP4.types.trak,
       MP4.tkhd(track.id, track.tkhdDuration || 0, track.width, track.height),
-      track.editList ? MP4.edts(track.editList) : undefined,
+      // track.editList ? MP4.edts(track.editList) : undefined,
       MP4.mdia(track)
     )
     // console.log('[remux],trak, len,', trak.byteLength, track.id, hashVal(trak.toString()))
