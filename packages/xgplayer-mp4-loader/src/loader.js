@@ -124,7 +124,7 @@ export class MP4Loader extends EventEmitter {
             // throw new MediaError('cannot parse moov box', moov.data)
           }
 
-          const segments = moovToSegments(parsedMoov, this._config.segmentDuration)
+          const segments = moovToSegments(parsedMoov, this._config)
           if (!segments) {
             this._error = true
             onProgress(null, state, options, {err:'cannot parse segments'},response)
@@ -182,7 +182,7 @@ export class MP4Loader extends EventEmitter {
       throw new MediaError('cannot parse moov box', moov.data)
     }
 
-    const segments = moovToSegments(parsedMoov, this._config.segmentDuration)
+    const segments = moovToSegments(parsedMoov, this._config)
     if (!segments) {
       throw new MediaError('cannot parse segments', moov.data)
     }
@@ -202,7 +202,7 @@ export class MP4Loader extends EventEmitter {
 
   loadCacheMeta (meta, segmentIndex){
     const { moov } = meta
-    const segments = moovToSegments(moov, this._config.segmentDuration)
+    const segments = moovToSegments(moov, this._config)
     const { videoSegments, audioSegments } = segments
     this.videoSegments = videoSegments
     this.audioSegments = audioSegments
