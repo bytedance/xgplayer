@@ -1,4 +1,5 @@
-export function moovToSegments (moov, duration) {
+export function moovToSegments (moov, config) {
+  const { segmentDuration, fixEditListOffset } = config
   const tracks = moov.trak
   if (!tracks || !tracks.length) return
   const videoTrack = tracks.find(t => t.mdia?.hdlr?.handlerType === 'vide')
@@ -10,31 +11,11 @@ export function moovToSegments (moov, duration) {
 
   let segmentDurations
   if (videoTrack) {
-    const videoStbl = videoTrack.mdia?.minf?.stbl
-    if (!videoStbl) return
-    const timescale = videoTrack.mdia.mdhd?.timescale
-    const { stts, stsc, stsz, stco, stss, ctts } = videoStbl
-    if (!timescale || !stts || !stsc || !stsz || !stco || !stss) return
-    videoSegments = getSegments(duration, timescale, stts, stsc, stsz, stco, stss, ctts)
+    videoSegments = getSegments('video', videoTrack, segmentDuration, fixEditListOffset)
     segmentDurations = videoSegments.map(x => x.duration)
   }
   if (audioTrack) {
-    const audioStbl = audioTrack.mdia?.minf?.stbl
-    if (!audioStbl) return
-    const timescale = audioTrack.mdia.mdhd?.timescale
-    const { stts, stsc, stsz, stco } = audioStbl
-    if (!timescale || !stts || !stsc || !stsz || !stco) return
-    audioSegments = getSegments(
-      duration,
-      timescale,
-      stts,
-      stsc,
-      stsz,
-      stco,
-      null,
-      null,
-      segmentDurations
-    )
+    audioSegments = getSegments('audio', audioTrack, segmentDuration, fixEditListOffset, segmentDurations)
   }
 
   return {
@@ -43,17 +24,30 @@ export function moovToSegments (moov, duration) {
   }
 }
 
-function getSegments (
-  segDuration,
-  timescale,
-  stts,
-  stsc,
-  stsz,
-  stco,
-  stss,
-  ctts,
-  segmentDurations
-) {
+function getSegments (type, track, segDuration, fixEditListOffset, segmentDurations = []) {
+  const stbl = track.mdia?.minf?.stbl
+  if (!stbl) {
+    return []
+  }
+
+  // chrome等浏览器内核为了修复B帧引入的CTS偏移时间，对于edts->elst box中的media_time进行了参考
+  // 目前chrome仅读取media_time，不支持编辑列表的其他用途，因为它们不常见并且由更高级的协议提供更好的服务。
+  // 如果不参考editList信息，一些视频会有音画不同步问题
+  let editListOffset = 0
+  const editList = track.edts?.elst?.entries
+  if (fixEditListOffset && Array.isArray(editList) && editList.length > 0) {
+    const media_time = editList[0].media_time
+    if (media_time > 0) {
+      editListOffset = media_time
+    }
+  }
+
+  const timescale = track.mdia.mdhd?.timescale
+  const { stts, stsc, stsz, stco, stss, ctts } = stbl
+  if (!timescale || !stts || !stsc || !stsz || !stco || (type === 'video' && !stss)) {
+    return []
+  }
+
   const frames = []
   const gop = []
   const gopDuration = []
@@ -116,9 +110,9 @@ function getSegments (
         frame.gopId = gopId
       }
       if (cttsArr && pos < cttsArr.length) {
-        frame.pts = dts + cttsArr[pos]
+        frame.pts = dts + cttsArr[pos] - editListOffset
       }
-      if (pos === 0) {
+      if (editListOffset === 0 && pos === 0) {
         frame.pts = 0
       }
       // 补足音频的pts
@@ -214,7 +208,6 @@ function getSegments (
   } else {
     gopMinPtsArr = []
     gopMaxPtsFrameIdxArr = []
-    segmentDurations = segmentDurations || []
     let duration = segmentDurations[0] || segDuration
     for (let i = 0, nextEndTime; i < l; i++) {
       const curFrame = frames[i]
@@ -224,11 +217,13 @@ function getSegments (
       time += curFrame.duration
       const curEndTime = nextEndTime || time / timescale
       nextEndTime = (nextFrame ? time + nextFrame.duration : 0) / timescale
-      if (isFinalFrame ||
+      if (
+        isFinalFrame ||
         // 这里使用下一帧的目的是将每个分组的起始音频帧应该覆盖或包含GOP的开始时间，
         // MSE在remove buffer时会将gop结束时间点的那个音频帧删掉，这个策略就是为了
         // 防止之后再添加新的Coded Frame Group时由于缺少了一帧音频容易产生Buffer gap
-        nextEndTime + adjust >= duration) {
+        nextEndTime + adjust >= duration
+      ) {
         adjust += nextEndTime - duration
         gopMinPtsArr.push(segFrames[0].pts)
         gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
