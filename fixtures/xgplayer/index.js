@@ -53,7 +53,6 @@ function init(index = 0, config = {}) {
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
-    width: '96%',
     ignores:['playbackrate'],
     plugins: [],
     rotate: true,
@@ -83,6 +82,7 @@ function init(index = 0, config = {}) {
     rotate: {
       innerRotate: false
     },
+    isCustomRoot: false,
     Keyboard: {
       // isGlobalTrigger: false, // Whether the shortcut key needs to be triggered globally
       // disableBodyTrigger: false,
@@ -138,10 +138,12 @@ function init(index = 0, config = {}) {
       defaultDefinition: '360p',
       isItemClickHide: false
     },
-    height: 300,
+    width: '100%',
+    height: '100%',
     miniprogress: true,
     ...config
   })
+  document.getElementById('video').appendChild(window[p].root)
   window._onClick = function(id) {
     console.log(id)
   }
