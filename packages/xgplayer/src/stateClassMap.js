@@ -26,6 +26,7 @@ export default {
   NOT_ALLOW_AUTOPLAY: 'not-allow-autoplay',
   SEEKING: 'seeking',
   PC: 'xgplayer-pc',
+  BUILTIN_CLASS: 'xgplayer-built-in',
   MOBILE: 'xgplayer-mobile',
   MINI: 'xgplayer-mini' // mini screen play status
 }
