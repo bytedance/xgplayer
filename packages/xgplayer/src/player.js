@@ -107,13 +107,14 @@ class Player extends MediaProxy {
     bindDebug(this)
     // resolve default preset
     const defaultPreset = this.constructor.defaultPreset
-    if (this.config.presets.length) {
-      const defaultIdx = this.config.presets.indexOf('default')
+    const { presets } = this.config
+    if (presets.length) {
+      const defaultIdx = presets.indexOf('default')
       if (defaultIdx >= 0 && defaultPreset) {
-        this.config.presets[defaultIdx] = defaultPreset
+        presets[defaultIdx] = defaultPreset
       }
     } else if (defaultPreset) {
-      this.config.presets.push(defaultPreset)
+      presets.push(defaultPreset)
     }
 
     // timer and flags
@@ -409,12 +410,12 @@ class Player extends MediaProxy {
    * @private
    */
   _initDOM () {
-    this.root = this.config.id ? document.getElementById(this.config.id) : null
+    const { id, el, isCustomRoot, controls, autoplay, isMobileSimulateMode } = this.config
+    this.root = id ? document.getElementById(id) : null
     if (!this.root) {
-      const el = this.config.el
       if (el && el.nodeType === 1) {
         this.root = el
-      } else {
+      } else if (isCustomRoot) {
         this.emit(
           Events.ERROR,
           new Errors('use', this.config.vid, {
@@ -425,6 +426,8 @@ class Player extends MediaProxy {
         )
         console.error('this.confg.id or this.config.el can\'t be empty')
         return false
+      } else {
+        this.root = Util.createDom('div', '', { id, class: STATE_CLASS.BUILTIN_CLASS })
       }
     }
     const ret = checkPlayerRoot(this.root)
@@ -449,19 +452,18 @@ class Player extends MediaProxy {
       this.media = _nVideo
     }
     this.media.setAttribute(PLATER_ID, this.playerId)
-    if (this.config.controls) {
-      const _root = this.config.controls.root || null
-      const controls = pluginsManager.register(this, Controls, { root: _root })
-      this.controls = controls
+    if (controls) {
+      const _root = controls.root || null
+      const _pControls = pluginsManager.register(this, Controls, { root: _root })
+      this.controls = _pControls
     }
-    const device =
-      this.config.isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
+    const device = isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
     this.addClass(
       `${STATE_CLASS.DEFAULT} ${STATE_CLASS.INACTIVE} xgplayer-${device} ${
-        this.config.controls ? '' : STATE_CLASS.NO_CONTROLS
+        controls ? '' : STATE_CLASS.NO_CONTROLS
       }`
     )
-    if (this.config.autoplay) {
+    if (autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
       this.addClass(STATE_CLASS.NO_START)
@@ -1348,6 +1350,7 @@ class Player extends MediaProxy {
       this[item] = null
     })
     const cList = root.className.split(' ')
+    const isBuildIn = Util.hasClass(this.root, STATE_CLASS.BUILTIN_CLASS)
     if (cList.length > 0) {
       root.className = cList
         .filter((name) => name.indexOf('xgplayer') < 0)
@@ -1366,6 +1369,8 @@ class Player extends MediaProxy {
     ].forEach((key) => {
       this[key] = false
     })
+    // 内建的root，在销毁的时候需要移除
+    isBuildIn && this.root.parentNode && this.root.parentNode.removeChild(this.root)
   }
 
   replay () {
