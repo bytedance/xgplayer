@@ -350,8 +350,9 @@ class Player extends MediaProxy {
      * @type {InstManager}
      */
     this.instManager = instManager
-    const rootInit = this._initDOM()
-    if (!rootInit) {
+    const {isNoRoot} = this.config
+    const rootInit = !isNoRoot && this._initDOM()
+    if (!isNoRoot && !rootInit) {
       console.error(
         new Error(
           `can't find the dom which id is ${this.config.id} or this.config.el does not exist`
@@ -554,7 +555,7 @@ class Player extends MediaProxy {
    * @private
    */
   _unbindEvents () {
-    this.root.removeEventListener('mousemove', this.mousemoveFunc)
+    this.root && this.root.removeEventListener('mousemove', this.mousemoveFunc)
     FULLSCREEN_EVENTS.forEach((item) => {
       document.removeEventListener(item, this.onFullscreenChange)
     })
@@ -612,7 +613,7 @@ class Player extends MediaProxy {
     }
 
     const _root = this.innerContainer ? this.innerContainer : this.root
-    if (this.media instanceof window.Element && !_root.contains(this.media)) {
+    if (_root && this.media instanceof window.Element && !_root.contains(this.media)) {
       _root.insertBefore(this.media, _root.firstChild)
     }
 
@@ -2162,7 +2163,7 @@ class Player extends MediaProxy {
   }
 
   resize () {
-    if (!this.media) {
+    if (!this.media || !this.root) {
       return
     }
     const containerSize = this.root.getBoundingClientRect()

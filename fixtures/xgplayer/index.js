@@ -332,6 +332,7 @@ function init(index = 0, config = {}) {
       innerRotate: false
     },
     isCustomRoot: false,
+    isNoRoot: true,
     Keyboard: {
       // isGlobalTrigger: false, // Whether the shortcut key needs to be triggered globally
       // disableBodyTrigger: false,
@@ -392,7 +393,7 @@ function init(index = 0, config = {}) {
     miniprogress: true,
     ...config
   })
-  document.getElementById('video').appendChild(window[p].root)
+  document.getElementById('video').appendChild(window[p].media)
   window._onClick = function(id) {
     console.log(id)
   }
