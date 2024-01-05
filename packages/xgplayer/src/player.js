@@ -12,7 +12,6 @@ import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
 import hooksDescriptor, { runHooks, useHooks, removeHooks, delHooksDescriptor, usePluginHooks, removePluginHooks, hook } from './plugin/hooksDescriptor'
-import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 import I18N from './lang/i18n'
 import version from './version'
@@ -286,13 +285,6 @@ class Player extends MediaProxy {
     this.innerContainer = null
 
     /**
-     * @type { null | Object }
-     * @readonly
-     * @description 控制栏插件
-     */
-    this.controls = null
-
-    /**
      * @type { null | HTMLElement }
      * @readonly
      */
@@ -452,11 +444,6 @@ class Player extends MediaProxy {
       this.media = _nVideo
     }
     this.media.setAttribute(PLATER_ID, this.playerId)
-    if (controls) {
-      const _root = controls.root || null
-      const _pControls = pluginsManager.register(this, Controls, { root: _root })
-      this.controls = _pControls
-    }
     const device = isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
     this.addClass(
       `${STATE_CLASS.DEFAULT} ${STATE_CLASS.INACTIVE} xgplayer-${device} ${
@@ -794,7 +781,7 @@ class Player extends MediaProxy {
       )
     }
     if (!options.root) {
-      options.root = this._getRootByPosition(position)
+      options.root = PLUFGIN.pluginName === 'controls' ? this.root : this._getRootByPosition(position)
     }
     return pluginsManager.register(this, PLUFGIN, options)
   }
@@ -2406,6 +2393,15 @@ class Player extends MediaProxy {
       )
     }
     return ret
+  }
+
+  /**
+   * @type { null | Object }
+   * @readonly
+   * @description 控制栏插件
+   */
+  get controls () {
+    return this.plugins.controls
   }
 
   /**
