@@ -2027,8 +2027,9 @@ class Player extends MediaProxy {
   }
 
   resizePosition () {
-    const { rotate, vy, vx, h, w } = this.videoPos
-    if (rotate < 0 && !vy && !vx) {
+    const { vy, vx, h, w } = this.videoPos
+    let rotate = this.videoPos.rotate
+    if (rotate < 0 && h < 0 && w < 0) {
       return
     }
     let _pi = this.videoPos._pi
@@ -2039,13 +2040,14 @@ class Player extends MediaProxy {
       return
     }
     this.videoPos.pi = _pi
+    rotate = rotate < 0 ? 0 : rotate
     const _pos = {
-      rotate: rotate
+      rotate
     }
     let offsetY = 0
     let offsetX = 0
     let scale = 1
-    const _t = rotate < 0 ? 0 : Math.abs(rotate / 90)
+    const _t = Math.abs(rotate / 90)
     const { root, innerContainer } = this
     const width = root.offsetWidth
     const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
