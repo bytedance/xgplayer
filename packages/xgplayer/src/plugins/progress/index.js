@@ -291,6 +291,7 @@ class Progress extends Plugin {
   unlock () {
     const { player, pos } = this
     pos.isEnter = false
+    pos.isLocked = false
     if (player.isMini) {
       return
     }
