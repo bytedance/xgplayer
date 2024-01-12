@@ -361,6 +361,8 @@ class Player extends MediaProxy {
       return
     }
 
+    pluginsManager.init(this)
+
     // url为空的情况下 根据definition或playnext.urlList设置播放地址
     // 若未配置definition.defaultDefinition，默认将配置为definition.list[0].definition
     const { definition = {}, url } = this.config
@@ -432,7 +434,6 @@ class Player extends MediaProxy {
     }
     this.root.setAttribute(PLATER_ID, this.playerId)
     instManager?.add(this)
-    pluginsManager.init(this)
     this._initBaseDoms()
 
     // 允许自定义video对象的构造
