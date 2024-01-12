@@ -12,7 +12,6 @@ import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset'
 import hooksDescriptor, { runHooks, useHooks, removeHooks, delHooksDescriptor, usePluginHooks, removePluginHooks, hook } from './plugin/hooksDescriptor'
-import Controls from './plugins/controls/index'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 import I18N from './lang/i18n'
 import version from './version'
@@ -88,13 +87,14 @@ class Player extends MediaProxy {
     bindDebug(this)
     // resolve default preset
     const defaultPreset = this.constructor.defaultPreset
-    if (this.config.presets.length) {
-      const defaultIdx = this.config.presets.indexOf('default')
+    const { presets } = this.config
+    if (presets.length) {
+      const defaultIdx = presets.indexOf('default')
       if (defaultIdx >= 0 && defaultPreset) {
-        this.config.presets[defaultIdx] = defaultPreset
+        presets[defaultIdx] = defaultPreset
       }
     } else if (defaultPreset) {
-      this.config.presets.push(defaultPreset)
+      presets.push(defaultPreset)
     }
 
     // timer and flags
@@ -258,13 +258,6 @@ class Player extends MediaProxy {
     this.innerContainer = null
 
     /**
-     * @type { null | Object }
-     * @readonly
-     * @description 控制栏插件
-     */
-    this.controls = null
-
-    /**
      * @type { null | HTMLElement }
      * @readonly
      */
@@ -326,8 +319,9 @@ class Player extends MediaProxy {
       isActiveLocked: false
     }
 
-    const rootInit = this._initDOM()
-    if (!rootInit) {
+    const {isNoRoot} = this.config
+    const rootInit = !isNoRoot && this._initDOM()
+    if (!isNoRoot && !rootInit) {
       console.error(
         new Error(
           `can't find the dom which id is ${this.config.id} or this.config.el does not exist`
@@ -335,6 +329,8 @@ class Player extends MediaProxy {
       )
       return
     }
+
+    pluginsManager.init(this)
 
     // url为空的情况下 根据definition或playnext.urlList设置播放地址
     // 若未配置definition.defaultDefinition，默认将配置为definition.list[0].definition
@@ -378,12 +374,12 @@ class Player extends MediaProxy {
    * @private
    */
   _initDOM () {
-    this.root = this.config.id ? document.getElementById(this.config.id) : null
+    const { id, el, isCustomRoot, controls, autoplay, isMobileSimulateMode } = this.config
+    this.root = id ? document.getElementById(id) : null
     if (!this.root) {
-      const el = this.config.el
       if (el && el.nodeType === 1) {
         this.root = el
-      } else {
+      } else if (isCustomRoot) {
         this.emit(
           Events.ERROR,
           new Errors('use', this.config.vid, {
@@ -394,6 +390,8 @@ class Player extends MediaProxy {
         )
         console.error('this.confg.id or this.config.el can\'t be empty')
         return false
+      } else {
+        this.root = Util.createDom('div', '', { id, class: STATE_CLASS.BUILTIN_CLASS })
       }
     }
     const ret = pluginsManager.checkPlayerRoot(this.root)
@@ -404,7 +402,6 @@ class Player extends MediaProxy {
       ret.destroy()
     }
     this.root.setAttribute(PLATER_ID, this.playerId)
-    pluginsManager.init(this)
     this._initBaseDoms()
 
     // 允许自定义video对象的构造
@@ -417,19 +414,13 @@ class Player extends MediaProxy {
       this.media = _nVideo
     }
     this.media.setAttribute(PLATER_ID, this.playerId)
-    if (this.config.controls) {
-      const _root = this.config.controls.root || null
-      const controls = pluginsManager.register(this, Controls, { root: _root })
-      this.controls = controls
-    }
-    const device =
-      this.config.isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
+    const device = isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
     this.addClass(
       `${STATE_CLASS.DEFAULT} ${STATE_CLASS.INACTIVE} xgplayer-${device} ${
-        this.config.controls ? '' : STATE_CLASS.NO_CONTROLS
+        controls ? '' : STATE_CLASS.NO_CONTROLS
       }`
     )
-    if (this.config.autoplay) {
+    if (autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
       this.addClass(STATE_CLASS.NO_START)
@@ -533,7 +524,7 @@ class Player extends MediaProxy {
    * @private
    */
   _unbindEvents () {
-    this.root.removeEventListener('mousemove', this.mousemoveFunc)
+    this.root && this.root.removeEventListener('mousemove', this.mousemoveFunc)
     FULLSCREEN_EVENTS.forEach((item) => {
       document.removeEventListener(item, this.onFullscreenChange)
     })
@@ -580,7 +571,7 @@ class Player extends MediaProxy {
     }
 
     const _root = this.innerContainer ? this.innerContainer : this.root
-    if (this.media instanceof window.Element && !_root.contains(this.media)) {
+    if (_root && this.media instanceof window.Element && !_root.contains(this.media)) {
       _root.insertBefore(this.media, _root.firstChild)
     }
 
@@ -749,7 +740,7 @@ class Player extends MediaProxy {
       )
     }
     if (!options.root) {
-      options.root = this._getRootByPosition(position)
+      options.root = PLUFGIN.pluginName === 'controls' ? this.root : this._getRootByPosition(position)
     }
     return pluginsManager.register(this, PLUFGIN, options)
   }
@@ -1301,6 +1292,7 @@ class Player extends MediaProxy {
       this[item] = null
     })
     const cList = root.className.split(' ')
+    const isBuildIn = Util.hasClass(this.root, STATE_CLASS.BUILTIN_CLASS)
     if (cList.length > 0) {
       root.className = cList
         .filter((name) => name.indexOf('xgplayer') < 0)
@@ -1319,6 +1311,8 @@ class Player extends MediaProxy {
     ].forEach((key) => {
       this[key] = false
     })
+    // 内建的root，在销毁的时候需要移除
+    isBuildIn && this.root.parentNode && this.root.parentNode.removeChild(this.root)
   }
 
   replay () {
@@ -2027,8 +2021,9 @@ class Player extends MediaProxy {
   }
 
   resizePosition () {
-    const { rotate, vy, vx, h, w } = this.videoPos
-    if (rotate < 0 && !vy && !vx) {
+    const { vy, vx, h, w } = this.videoPos
+    let rotate = this.videoPos.rotate
+    if (rotate < 0 && h < 0 && w < 0) {
       return
     }
     let _pi = this.videoPos._pi
@@ -2039,13 +2034,14 @@ class Player extends MediaProxy {
       return
     }
     this.videoPos.pi = _pi
+    rotate = rotate < 0 ? 0 : rotate
     const _pos = {
-      rotate: rotate
+      rotate
     }
     let offsetY = 0
     let offsetX = 0
     let scale = 1
-    const _t = rotate < 0 ? 0 : Math.abs(rotate / 90)
+    const _t = Math.abs(rotate / 90)
     const { root, innerContainer } = this
     const width = root.offsetWidth
     const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
@@ -2129,7 +2125,7 @@ class Player extends MediaProxy {
   }
 
   resize () {
-    if (!this.media) {
+    if (!this.media || !this.root) {
       return
     }
     const containerSize = this.root.getBoundingClientRect()
@@ -2360,6 +2356,15 @@ class Player extends MediaProxy {
       )
     }
     return ret
+  }
+
+  /**
+   * @type { null | Object }
+   * @readonly
+   * @description 控制栏插件
+   */
+  get controls () {
+    return this.plugins.controls
   }
 
   /**

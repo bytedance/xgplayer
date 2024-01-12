@@ -11,11 +11,11 @@ const pluginsManager = {
     // mark every player instance by _pluginInfoId
     let cgid = player._pluginInfoId
     if (!cgid) {
-      cgid = new Date().getTime()
+      cgid = Util.generateSessionId()
       player._pluginInfoId = cgid
     }
 
-    !player.config.closeResizeObserver && addObserver(player.root, () => {
+    !player.config.closeResizeObserver && player.root && addObserver(player.root, () => {
       player.resize()
     })
 

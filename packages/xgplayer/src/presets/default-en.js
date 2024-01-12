@@ -1,4 +1,5 @@
 import sniffer from '../utils/sniffer'
+import Controls from '../plugins/controls'
 // import Danmu from '../plugins/danmu'
 import Xglogger from '../plugins/logger'
 import Replay from '../plugins/replay'
@@ -38,15 +39,16 @@ import FpsDetect from '../plugins/fpsDetect'
 export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode === 'mobile'
-    const { isLive } = playerConfig
-    const vodPlugins = isLive ? [] : [Progress, MiniProgress, ProgressPreview, TimeIcon]
+    const { isLive, controls } = playerConfig
+    const basePlugin = controls ? [Controls] : []
+    const vodPlugins = isLive ? basePlugin : [...basePlugin, Progress, MiniProgress, ProgressPreview, TimeIcon]
 
     const contolsIcons = [...vodPlugins, PlayIcon, FullScreen,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
 
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, Miniscreen]
 
-    this.plugins = [Stats, Xglogger, ...contolsIcons, ...layers, GapJump, WaitingTimeoutJump]
+    this.plugins = [...contolsIcons, Stats, Xglogger, ...layers, GapJump, WaitingTimeoutJump]
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':
