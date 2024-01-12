@@ -154,7 +154,8 @@ export default class TextTrackParse extends BasePlugin{
       config[key] = style[key]
     })
     // 控制栏分离或者没有控制栏，不做重定位
-    const _needPos = !this.playerConfig.marginControls && this.player.controls.root
+    const {controls} = this.player
+    const _needPos = !this.playerConfig.marginControls && controls && controls.root
     if (_needPos) {
       this.on(Events.PLAYER_FOCUS, this.onPlayerFocus)
       this.on(Events.PLAYER_BLUR, this.onPlayerBlur)
