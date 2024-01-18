@@ -112,23 +112,9 @@
     })
   }
   window.playNext = playNext
-  // player.on('ended', () => {
-  //   player.replay()
-  // })
-  player.on('pause', () => {
-    console.log('>>>>pause')
-  })
-  player.on('play', () => {
-    console.log('>>>>play')
-  })
-  player.on('seeking', () => {
-    console.log('>>>>seeking')
-  })
-  player.on('seeked', () => {
-    console.log('>>>>seeked')
-  })
-  player.usePluginHooks('replay','replayClick', () => {
-    console.log('>>>>replayClick')
+  player.on('ended', () => {
+    console.log('duration:', player.duration)
+    // player.replay()
   })
 </script>
 <!--<script type="module" src="./index.js"></script>-->
