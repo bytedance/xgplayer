@@ -63,7 +63,7 @@ export class MP4Demuxer {
         }
         startByte = sample.offset - dataStart
         sampleData = data.subarray(startByte, startByte + sample.size)
-        frame = new VideoSample(sample.pts || sample.dts, sample.dts)
+        frame = new VideoSample(typeof sample.pts === 'number' ? sample.pts : sample.dts, sample.dts)
         frame.duration = sample.duration
         frame.gopId = sample.gopId
         if (sample.keyframe) frame.setToKeyframe()
@@ -154,7 +154,7 @@ export class MP4Demuxer {
           startByte = sample.offset - dataStart
           videoEndByte = startByte + sample.size
           sampleData = data.subarray(startByte, videoEndByte)
-          frame = new VideoSample(sample.pts || sample.dts, sample.dts)
+          frame = new VideoSample(typeof sample.pts === 'number' ? sample.pts : sample.dts, sample.dts)
           frame.duration = sample.duration
           // this.log.debug('[video !!!!!!!!],frame,index，', sample.index, ',segmentIdx', segmentIdx, ', dataStart,', dataStart, ',dataEnd', end, ',Samplestart,', sample.offset, ', SampleEnd,', sample.offset + sample.size, ',size,', sample.size, 'dts,', sample.dts, ',pts,', sample.pts, ', keyframe', sample.keyframe)
           frame.gopId = sample.gopId
