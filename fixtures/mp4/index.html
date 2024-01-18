@@ -116,7 +116,8 @@
   }
   window.playNext = playNext
   player.on('ended', () => {
-    player.replay()
+    console.log('duration:', player.duration)
+    // player.replay()
   })
 </script>
 <!--<script type="module" src="./index.js"></script>-->
