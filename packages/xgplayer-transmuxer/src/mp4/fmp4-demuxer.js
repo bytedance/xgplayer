@@ -55,7 +55,7 @@ export class FMP4Demuxer {
           if (videoTrack.id == k) {
             tracks[k].map(x => {
               x.offset += baseOffset
-              const sample = new VideoSample((x.pts || x.dts) + videoBaseMediaDecodeTime, x.dts + videoBaseMediaDecodeTime)
+              const sample = new VideoSample((typeof x.pts === 'number' ? x.pts : x.dts) + videoBaseMediaDecodeTime, x.dts + videoBaseMediaDecodeTime)
               sample.duration = x.duration
               sample.gopId = x.gopId
               if (x.keyframe) sample.setToKeyframe()
