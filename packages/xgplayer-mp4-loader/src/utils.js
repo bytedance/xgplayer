@@ -86,12 +86,20 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
   let lastChunkInRun = stscEntries[1] ? stscEntries[1].firstChunk - 1 : Infinity
   let dts = 0
   let gopId = -1
+
+  if (cttsArr?.length > 0) {
+    // 参考chromium原生播放时，ffmpeg_demuxer处理edts后的逻辑：
+    // FFmpeg将所有AVPacket dts值根据editListOffset进行偏移，以确保解码器有足够的解码时间(即保持cts不变，dts从负值开始)
+    // FFmpeg对于音频的AVPacket dts/pts虽然也进行了偏移，但在chromium中最后给到decoder时又将其偏移修正回0
+    // 因此，这里的逻辑是为了触发baseMediaDecodeTime变化，并且只修正视频，不处理音频
+    dts = 0 - editListOffset
+  }
+
   stts.entries.forEach(({ count, delta }) => {
-    duration = delta //   / timescale
+    duration = delta // in timescale
     for (let i = 0; i < count; i++) {
       frame = {
         dts,
-        // startTime,
         duration,
         size: stszEntrySizes[pos] || stsz.sampleSize,
         offset: stcoEntries[chunkIndex] + offsetInChunk,
@@ -110,7 +118,7 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
         frame.gopId = gopId
       }
       if (cttsArr && pos < cttsArr.length) {
-        frame.pts = dts + cttsArr[pos] - editListOffset
+        frame.pts = dts + cttsArr[pos]
       }
       if (editListOffset === 0 && pos === 0) {
         frame.pts = 0
@@ -137,7 +145,7 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
         }
       }
       frames.push(frame)
-      // startTime = frame.pts // duration
+
       dts += delta
       pos++
 
