@@ -84,14 +84,14 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
   let offsetInChunk = 0
   let lastSampleInChunk = stscEntries[0].samplesPerChunk
   let lastChunkInRun = stscEntries[1] ? stscEntries[1].firstChunk - 1 : Infinity
-  let dts = 0
+  let dts = 0 - (cttsArr?.length > 0 ? editListOffset : 0)
   let gopId = -1
+
   stts.entries.forEach(({ count, delta }) => {
-    duration = delta //   / timescale
+    duration = delta // in timescale
     for (let i = 0; i < count; i++) {
       frame = {
         dts,
-        // startTime,
         duration,
         size: stszEntrySizes[pos] || stsz.sampleSize,
         offset: stcoEntries[chunkIndex] + offsetInChunk,
@@ -110,7 +110,7 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
         frame.gopId = gopId
       }
       if (cttsArr && pos < cttsArr.length) {
-        frame.pts = dts + cttsArr[pos] - editListOffset
+        frame.pts = dts + cttsArr[pos]
       }
       if (editListOffset === 0 && pos === 0) {
         frame.pts = 0
@@ -137,7 +137,7 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
         }
       }
       frames.push(frame)
-      // startTime = frame.pts // duration
+
       dts += delta
       pos++
 
