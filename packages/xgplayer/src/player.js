@@ -17,6 +17,7 @@ import XG_DEBUG, { bindDebug } from './utils/debug'
 import I18N from './lang/i18n'
 import version from './version'
 import { STATES, STATE_ARRAY } from './state'
+import { InstManager, checkPlayerRoot } from './instManager'
 
 /**
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
@@ -31,6 +32,8 @@ import { STATES, STATE_ARRAY } from './state'
 const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 let REAL_TIME_SPEED = 0 // 实时下载速率, kb/s
 let AVG_SPEED = 0 // 平均下载速率, kb/s
+/** @type { InstManager } */
+let instManager = null
 
 class Player extends MediaProxy {
   /**
@@ -49,20 +52,36 @@ class Player extends MediaProxy {
   }
 
   /**
+   * @param {import('./instManager').InstManager} value
+   */
+  static set instManager (value) {
+    instManager = value
+  }
+
+  /**
+   * @param {import('./instManager').InstManager} value
+   */
+  static get instManager () {
+    return instManager
+  }
+
+  /**
    * 获取当前处理激活态的实例id
    * @returns { number | string | null }
+   * @deprecated 该方法转移到 InstManager 上去使用: player.instManager.getActiveId()
    */
   static getCurrentUserActivePlayerId () {
-    return pluginsManager.getCurrentUseActiveId()
+    return instManager?.getActiveId()
   }
 
   /**
    * 设置实例的用户行为激活状态
    * @param { number | string } playerId
    * @param { boolean } isActive
+   * @deprecated 该方法转移到 InstManager 上去使用: player.instManager.setActive()
    */
   static setCurrentUserActive (playerId, isActive) {
-    pluginsManager.setCurrentUserActive(playerId, isActive)
+    instManager?.setActive(playerId, isActive)
   }
 
   /**
@@ -326,6 +345,10 @@ class Player extends MediaProxy {
       isActiveLocked: false
     }
 
+    /**
+     * @type {InstManager}
+     */
+    this.instManager = instManager
     const rootInit = this._initDOM()
     if (!rootInit) {
       console.error(
@@ -396,7 +419,7 @@ class Player extends MediaProxy {
         return false
       }
     }
-    const ret = pluginsManager.checkPlayerRoot(this.root)
+    const ret = checkPlayerRoot(this.root)
     if (ret) {
       XG_DEBUG.logWarn(
         'The is an Player instance already exists in this.root, destroy it and reinitialize'
@@ -404,6 +427,7 @@ class Player extends MediaProxy {
       ret.destroy()
     }
     this.root.setAttribute(PLATER_ID, this.playerId)
+    instManager?.add(this)
     pluginsManager.init(this)
     this._initBaseDoms()
 
@@ -1278,6 +1302,7 @@ class Player extends MediaProxy {
     this._detachSourceEvents(this.media)
     Util.clearAllTimers(this)
     this.emit(Events.DESTROY)
+    instManager?.remove(this)
     pluginsManager.destroy(this)
     delHooksDescriptor(this)
     super.destroy()
@@ -2650,6 +2675,9 @@ class Player extends MediaProxy {
    */
   static XgVideoProxy = null;
 }
+
+// use the default instance manager.
+Player.instManager = InstManager.getInstance()
 
 export {
   Player as default,
