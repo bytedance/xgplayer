@@ -7,6 +7,7 @@ import I18N from './lang/i18n'
 import Errors from './error'
 import Sniffer from './utils/sniffer'
 import Util from './utils/util'
+import { InstManager } from './instManager'
 import PresetPlayer from './index.umd'
 import { STATES } from './state'
 
@@ -84,5 +85,6 @@ export {
   Util,
   STATE_CLASS,
   I18N,
-  STATES
+  STATES,
+  InstManager
 }
