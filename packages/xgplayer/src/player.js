@@ -139,6 +139,7 @@ class Player extends MediaProxy {
     this._useAutoplay = false
     /**
      * @description 记录起播需要seek的时间点
+     * @type { number }
      * @private
      * @readonly
      */
@@ -880,7 +881,7 @@ class Player extends MediaProxy {
 
   /**
    *
-   * @param { any } url
+   * @param { any } [url]
    * @returns { Promise<void> | void }
    * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
    */
@@ -945,6 +946,9 @@ class Player extends MediaProxy {
       }
       const _canplay = () => {
         if (this.duration > 0 && this.__startTime > 0) {
+          /**
+           * @type {number}
+           */
           this.currentTime = this.__startTime
           this.__startTime = -1
         }
@@ -2593,9 +2597,12 @@ class Player extends MediaProxy {
    * @param { boolean } isActive
    * @param { boolean } [isMuted]
    */
-  setUserActive (isActive, isMuted) {
+  setUserActive (isActive, isMuted = false) {
     if (typeof isMuted === 'boolean' && isMuted !== this.muted) {
       this.addInnerOP('volumechange')
+      /**
+       * @type {boolean}
+       */
       this.muted = isMuted
     }
     pluginsManager.setCurrentUserActive(this.playerId, isActive)

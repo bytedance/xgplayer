@@ -237,7 +237,7 @@ class Plugin extends BasePlugin {
   }
 
   /**
-   * @private
+   * @protected
    */
   __init (args) {
     super.__init(args)
