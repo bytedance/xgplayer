@@ -38,7 +38,11 @@ class Poster extends Plugin {
     Util.addClass(this.root, 'hide')
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     Util.removeClass(this.root, 'hide')
   }
 

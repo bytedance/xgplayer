@@ -115,7 +115,11 @@ class Controls extends Plugin {
     Util.removeClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     this.root.style.display = ''
     this.player.focus()
   }

@@ -711,7 +711,7 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
 /**
  * @description css中有zoom的时候，位移会等比缩放，但是元素的宽高不会等比缩放，所以通过该api做统一
  * https://bugs.chromium.org/p/chromium/issues/detail?id=429140#c8
- * @param {Events} e
+ * @param {Event} e
  * @param {number} zoom
  * @returns
  */
@@ -769,7 +769,7 @@ util.cancelAnimationFrame = function (frameId) {
 /**
  * @desc Check whether it is MediaSource start
  * @param { HTMLVideoElement | HTMLAudioElement | HTMLElement } video
- * @returns { Boolean }
+ * @returns { boolean }
  */
 util.isMSE = function (video) {
   if (!video || !(video instanceof HTMLMediaElement)) {

@@ -25,6 +25,9 @@ class Prompt extends Plugin {
   }
 
   afterCreate () {
+    /**
+     * @type {number}
+     */
     this.intervalId = 0
     this.customConfig = null
     this.bind('.highlight', ['click', 'touchend'], (e) => {
@@ -36,7 +39,7 @@ class Prompt extends Plugin {
     })
 
     this.player.showPrompt = (...args) => {
-      this.show(...args)
+      this.showPrompt(...args)
     }
 
     this.player.hidePrompt = () => {
@@ -50,7 +53,7 @@ class Prompt extends Plugin {
     })
   }
 
-  show (detail, config = {}, onClick = () => {}) {
+  showPrompt (detail, config = {}, onClick = () => {}) {
     if (!detail) {
       return
     }

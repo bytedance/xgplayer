@@ -263,7 +263,11 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (!this.config.list || this.config.list.length < 1){
       return
     }

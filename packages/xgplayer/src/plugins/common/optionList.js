@@ -76,6 +76,7 @@ export default class OptionList {
     return obj
   }
 
+
   show () {
     Util.removeClass(this.root, 'hide')
     Util.addClass(this.root, 'active')

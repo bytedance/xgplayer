@@ -37,6 +37,7 @@ class Danmu extends Plugin {
     this.seekCost = 0
     /**
      * @readonly
+     * @type {number}
      */
     this.intervalId = 0
     /**

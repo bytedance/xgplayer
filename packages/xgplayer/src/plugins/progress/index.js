@@ -113,7 +113,11 @@ class Progress extends Plugin {
     this.useable = useable
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     this.root && (this.root.style.display = 'flex')
   }
   /**
@@ -566,10 +570,10 @@ class Progress extends Plugin {
 
   /**
    * @description 根据currenTime和占用百分比更新进度条
-   * @param {Number} currentTime 需要更新到的时间
-   * @param {Number} seekTime 实际seek的时间
-   * @param {Number} percent 更新时间占比
-   * @param {Int} type 触发类型 0-down 1-move 2-up
+   * @param {number} currentTime 需要更新到的时间
+   * @param {number} seekTime 实际seek的时间
+   * @param {number} percent 更新时间占比
+   * @param {int} type 触发类型 0-down 1-move 2-up
    */
   updateWidth (currentTime, seekTime, percent, type) {
     const { config, player } = this

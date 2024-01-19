@@ -24,6 +24,9 @@ export default class FpsDetect extends BasePlugin {
 
   afterCreate () {
     const { player, config } = this
+    /**
+     * @type {null | number}
+     */
     this.timer = null
     this._lastDecodedFrames = 0
     this._currentStuckCount = 0

@@ -144,7 +144,7 @@ function registerTextObj (textConfig, plugin) {
 class Plugin extends BasePlugin {
   /**
     * 插入dom结构
-    * @param { String | HTMLElement } html html字符串或者dom
+    * @param { string | HTMLElement } html html字符串或者dom
     * @param { HTMLElement } parent
     * @param { number } index
     * @returns { HTMLElement }
@@ -193,8 +193,8 @@ class Plugin extends BasePlugin {
   /**
    *
    * @param { HTMLElement } root
-   * @param { String } querySelector
-   * @param { String | Array<String> } eventType
+   * @param { string } querySelector
+   * @param { string | Array<string> } eventType
    * @param { Function } callback
    * @param { boolean } [capture=false]
    * @returns
@@ -573,7 +573,6 @@ class Plugin extends BasePlugin {
   }
 
   /**
-   *
    * @param { string } [value]
    * @returns
    */
@@ -585,7 +584,7 @@ class Plugin extends BasePlugin {
     const cs = window.getComputedStyle(this.root, null)
     const cssDisplayValue = cs.getPropertyValue('display')
     if (cssDisplayValue === 'none') {
-      return (this.root.style.display = 'block')
+      this.root.style.display = 'block'
     }
   }
 
