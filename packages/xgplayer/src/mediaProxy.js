@@ -106,22 +106,27 @@ class MediaProxy extends EventEmitter {
   constructor (options) {
     super(options)
     /**
+     * @type { boolean }
      * @private
      */
     this._hasStart = false
     /**
+     * @type { number }
      * @private
      */
     this._currentTime = 0
     /**
+     * @type { number }
      * @private
      */
     this._duration = 0
     /**
+     * @type {{[propName: string]: any}}
      * @private
      */
     this._internalOp = {}
     /**
+     * @type { boolean }
      * @private
      */
     this._lastMuted = false

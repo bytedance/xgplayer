@@ -113,10 +113,6 @@ class MobilePlugin extends Plugin {
     return this.playerConfig.timeOffset || 0
   }
 
-  /**
-   * @private
-   * @returns {[propName: string]: any}
-   */
   registerIcons () {
     return {
       seekTipIcon: { icon: SeekTipIcon, class: 'xg-seek-pre' }

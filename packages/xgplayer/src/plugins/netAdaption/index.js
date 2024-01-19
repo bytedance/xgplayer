@@ -7,6 +7,9 @@ export default class NetAdaption extends BasePlugin {
   }
 
   afterCreate () {
+    /**
+     * @type {null | number}
+     */
     this._timer = setInterval(this._checkStatus.bind(this), 300)
   }
 

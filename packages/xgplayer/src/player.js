@@ -545,7 +545,7 @@ class Player extends MediaProxy {
 
   /**
    *
-   * @param { any } url
+   * @param { any } [url]
    * @returns
    */
   _startInit (url) {
@@ -2456,7 +2456,7 @@ class Player extends MediaProxy {
 
   /**
    * 累计观看时长
-   * @type number
+   * @type { number }
    */
   get cumulateTime () {
     const { acc, t } = this._accPlayed

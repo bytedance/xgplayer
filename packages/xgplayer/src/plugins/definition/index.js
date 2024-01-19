@@ -75,7 +75,11 @@ export default class DefinitionIcon extends OptionsIcon {
     }
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (!this.config.list || this.config.list.length < 2){
       return
     }

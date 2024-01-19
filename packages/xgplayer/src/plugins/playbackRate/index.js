@@ -67,7 +67,11 @@ export default class PlaybackRate extends OptionsIcon {
     this.renderItemList()
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (!this.config.list || this.config.list.length === 0) {
       return
     }

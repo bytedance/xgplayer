@@ -35,6 +35,9 @@ export default class TestSpeed extends BasePlugin {
     }
     this.initSpeedList()
     this.on('real_time_speed', this._onRealSpeedChange)
+    /**
+     * @type {null || number }
+     */
     this.timer = null
     this.cnt = 0
     this.xhr = null

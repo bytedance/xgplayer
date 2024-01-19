@@ -40,9 +40,6 @@ export default class Fullscreen extends IconPlugin {
     }
   }
 
-  /**
-   * @private
-   */
   afterCreate () {
     super.afterCreate()
     const { config, playerConfig } = this
@@ -110,9 +107,6 @@ export default class Fullscreen extends IconPlugin {
     }
   }
 
-  /**
-   * @private
-   */
   registerIcons () {
     return {
       fullscreen: { icon: FullScreenSvg, class: 'xg-get-fullscreen' },
@@ -187,16 +181,7 @@ export default class Fullscreen extends IconPlugin {
     }
   }
 
-  show () {
-    super.show()
-  }
-
-  hide () {
-    super.hide()
-  }
-
   /**
-   * @private
    * @returns
    */
   render () {
