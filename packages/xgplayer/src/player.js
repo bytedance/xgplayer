@@ -904,7 +904,7 @@ class Player extends MediaProxy {
 
   /**
    *
-   * @param { any } url
+   * @param { any } [url]
    * @returns { Promise<void> | void }
    * @description 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
    */
