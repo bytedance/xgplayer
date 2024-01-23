@@ -830,6 +830,7 @@ export class MP4Parser {
       v.duration = vTrack.mdia.mdhd.duration || (v.mvhdDurtion / v.mvhdTimecale * v.timescale)
       if (vTrack.edts?.elst) {
         v.editList = vTrack.edts.elst
+        v.editListApplied = vTrack.editListApplied
       }
       const e1 = vTrack.mdia.minf.stbl.stsd.entries[0]
       v.width = e1.width
@@ -888,6 +889,7 @@ export class MP4Parser {
       a.duration = aTrack.mdia.mdhd.duration || (a.mvhdDurtion / a.mvhdTimecale * a.timescale)
       if (aTrack.edts?.elst) {
         a.editList = aTrack.edts.elst
+        a.editListApplied = aTrack.editListApplied
       }
       const e1 = aTrack.mdia.minf.stbl.stsd.entries[0]
       a.sampleSize = e1.sampleSize
