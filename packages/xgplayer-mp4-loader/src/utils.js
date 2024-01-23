@@ -1,3 +1,18 @@
+function isEdtsApplicable () {
+  let flag = true
+  const userAgent = navigator.userAgent || ''
+  const isChrome = /Chrome/ig.test(userAgent) && !/Edge\//ig.test(userAgent)
+
+  // M75+ 开始支持负的 dts
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=398141
+  if (isChrome) {
+    const result = userAgent.match(/Chrome\/(\d+)/i)
+    const chromeVersion = result ? parseInt(result[1], 10) : 0
+    flag = !!chromeVersion && chromeVersion >= 75
+  }
+  return flag
+}
+
 export function moovToSegments (moov, config) {
   const { segmentDuration, fixEditListOffset } = config
   const tracks = moov.trak
@@ -35,7 +50,7 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
   // 如果不参考editList信息，一些视频会有音画不同步问题
   let editListOffset = 0
   const editList = track.edts?.elst?.entries
-  if (fixEditListOffset && Array.isArray(editList) && editList.length > 0) {
+  if (fixEditListOffset && isEdtsApplicable() && Array.isArray(editList) && editList.length > 0) {
     const media_time = editList[0].media_time
     if (media_time > 0) {
       editListOffset = media_time
@@ -86,14 +101,18 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
   let lastChunkInRun = stscEntries[1] ? stscEntries[1].firstChunk - 1 : Infinity
   let dts = 0
   let gopId = -1
+  let editListApplied = false
 
-  if (cttsArr?.length > 0) {
+  if (cttsArr?.length > 0 && editListOffset > 0) {
     // 参考chromium原生播放时，ffmpeg_demuxer处理edts后的逻辑：
     // FFmpeg将所有AVPacket dts值根据editListOffset进行偏移，以确保解码器有足够的解码时间(即保持cts不变，dts从负值开始)
     // FFmpeg对于音频的AVPacket dts/pts虽然也进行了偏移，但在chromium中最后给到decoder时又将其偏移修正回0
     // 因此，这里的逻辑是为了触发baseMediaDecodeTime变化，并且只修正视频，不处理音频
-    dts = 0 - editListOffset
+    dts -= editListOffset
+    editListApplied = true
   }
+
+  track.editListApplied = editListApplied
 
   stts.entries.forEach(({ count, delta }) => {
     duration = delta // in timescale
