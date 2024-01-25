@@ -151,6 +151,11 @@ export class HEVC {
 
     const subLayerProfilePresentFlag = []
     const subLayerLevelPresentFlag = []
+
+    if (maxSubLayersMinus1 > eg.bitsAvailable) {
+      throw new Error(`maxSubLayersMinus inavlid size ${maxSubLayersMinus1}`)
+    }
+
     for (let j = 0; j < maxSubLayersMinus1; j++) {
       subLayerProfilePresentFlag[j] = eg.readBits(1)
       subLayerLevelPresentFlag[j] = eg.readBits(1)
