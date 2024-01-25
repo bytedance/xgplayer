@@ -12,6 +12,10 @@ export class ExpGolomb {
     if (this._bytesAvailable) this._loadWord()
   }
 
+  get bitsAvailable () {
+    return this._bitsAvailable
+  }
+
   _loadWord () {
     const position = this._data.byteLength - this._bytesAvailable
     const availableBytes = Math.min(4, this._bytesAvailable)
