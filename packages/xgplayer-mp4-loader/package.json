@@ -22,7 +22,7 @@
     "dist"
   ],
   "dependencies": {
-    "xgplayer-transmuxer": "3.0.9-alpha.6",
+    "xgplayer-transmuxer": "3.0.9-alpha.7",
     "xgplayer-streaming-shared": "3.0.11-alpha.10",
     "eventemitter3": "^4.0.7"
   },
