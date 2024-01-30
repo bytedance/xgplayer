@@ -1,6 +1,7 @@
-import { AudioCodecType, VideoCodecType } from '../model'
-import { getAvcCodec, readBig16, readBig24, readBig32, readBig64 } from '../utils'
 import { AAC, VVC } from '../codec'
+import { AudioCodecType, VideoCodecType } from '../model'
+import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, readInt32, readInt64 } from '../utils'
+
 export class MP4Parser {
   static findBox (data, names, start = 0) {
     const ret = []
@@ -190,12 +191,12 @@ export class MP4Parser {
         if (ret.version === 1) {
           entry.segment_duration = readBig64(data, offset)
           offset += 8
-          entry.media_time = readBig64(data, offset)
+          entry.media_time = readInt64(data, offset)
           offset += 8
         } else {
           entry.segment_duration = readBig32(data, offset)
           offset += 4
-          entry.media_time = readBig32(data, offset)
+          entry.media_time = readInt32(data, offset)
           offset += 4
         }
         entry.media_rate_integer = readBig16(data, offset)

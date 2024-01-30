@@ -14,7 +14,7 @@ function isEdtsApplicable () {
 }
 
 export function moovToSegments (moov, config) {
-  const { segmentDuration, fixEditListOffset } = config
+  const { segmentDuration } = config
   const tracks = moov.trak
   if (!tracks || !tracks.length) return
   const videoTrack = tracks.find(t => t.mdia?.hdlr?.handlerType === 'vide')
@@ -26,11 +26,11 @@ export function moovToSegments (moov, config) {
 
   let segmentDurations
   if (videoTrack) {
-    videoSegments = getSegments('video', videoTrack, segmentDuration, fixEditListOffset)
+    videoSegments = getSegments('video', videoTrack, segmentDuration, config)
     segmentDurations = videoSegments.map(x => x.duration)
   }
   if (audioTrack) {
-    audioSegments = getSegments('audio', audioTrack, segmentDuration, fixEditListOffset, segmentDurations)
+    audioSegments = getSegments('audio', audioTrack, segmentDuration, config, segmentDurations)
   }
 
   return {
@@ -39,9 +39,16 @@ export function moovToSegments (moov, config) {
   }
 }
 
-function getSegments (type, track, segDuration, fixEditListOffset, segmentDurations = []) {
+function getSegments (type, track, segDuration, config, segmentDurations = []) {
+  const { fixEditListOffset, fixEditListOffsetThreshold } = config
   const stbl = track.mdia?.minf?.stbl
   if (!stbl) {
+    return []
+  }
+
+  const timescale = track.mdia.mdhd?.timescale
+  const { stts, stsc, stsz, stco, stss, ctts } = stbl
+  if (!timescale || !stts || !stsc || !stsz || !stco || (type === 'video' && !stss)) {
     return []
   }
 
@@ -52,15 +59,10 @@ function getSegments (type, track, segDuration, fixEditListOffset, segmentDurati
   const editList = track.edts?.elst?.entries
   if (fixEditListOffset && isEdtsApplicable() && Array.isArray(editList) && editList.length > 0) {
     const media_time = editList[0].media_time
-    if (media_time > 0) {
+    const maxAllowedTime = fixEditListOffsetThreshold ? fixEditListOffsetThreshold * timescale : 5 * timescale
+    if (media_time > 0 && media_time < maxAllowedTime) {
       editListOffset = media_time
     }
-  }
-
-  const timescale = track.mdia.mdhd?.timescale
-  const { stts, stsc, stsz, stco, stss, ctts } = stbl
-  if (!timescale || !stts || !stsc || !stsz || !stco || (type === 'video' && !stss)) {
-    return []
   }
 
   const frames = []
