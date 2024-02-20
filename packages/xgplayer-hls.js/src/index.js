@@ -22,6 +22,7 @@ class HlsJsPlugin extends BasePlugin {
     this.browser = utils.getBrowserVersion()
     this.hls = null
     this.hlsOpts = {}
+    this.player.handleSource = false // 关闭player源处理
   }
 
   afterCreate () {
@@ -104,7 +105,7 @@ class HlsJsPlugin extends BasePlugin {
         }
       }
     })
-    this.hls.attachMedia(this.player.video)
+    this.hls.attachMedia(this.player.media || this.player.video)
     this._statistics()
   }
 
