@@ -378,17 +378,8 @@ const pluginsManager = {
     for (const item of Object.keys(plugins)) {
       this.unRegister(cgid, item)
     }
-
-    const _isUseActive = player.isUseActive
     delete this.pluginGroup[cgid]
     delete player._pluginInfoId
-
-    if (_isUseActive) {
-      const keys = Object.keys(this.pluginGroup)
-      if (keys.length > 0) {
-        this.setCurrentUserActive(keys[keys.length - 1], true)
-      }
-    }
   }
 }
 
