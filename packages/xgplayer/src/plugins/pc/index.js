@@ -80,7 +80,7 @@ export default class PCPlugin extends BasePlugin {
       if (leavePlayerTime) {
         this.player.focus({ autoHide: true, delay: leavePlayerTime })
       } else {
-        this.player.blur()
+        this.player.blur({ignorePaused: true})
       }
     }
     this.emit(LEAVE_PLAYER)
