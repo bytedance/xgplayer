@@ -2634,15 +2634,17 @@ class Player extends MediaProxy {
    * @param { boolean } isActive
    * @param { boolean } [isMuted]
    */
-  setUserActive (isActive, isMuted = false) {
+  setUserActive (isActive, isMuted) {
     if (typeof isMuted === 'boolean' && isMuted !== this.muted) {
       this.addInnerOP('volumechange')
-      /**
-       * @type {boolean}
-       */
-      this.muted = isMuted
+      if (Util.typeOf(isMuted) === Boolean) {
+        /**
+         * @type {boolean}
+         */
+        this.muted = isMuted
+      }
     }
-    pluginsManager.setCurrentUserActive(this.playerId, isActive)
+    instManager?.setActive(this.playerId, isActive)
   }
 
   /**
