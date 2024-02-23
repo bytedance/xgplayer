@@ -1,5 +1,6 @@
 import { BasePlugin, Sniffer } from '../../plugin'
 import { runHooks } from '../../plugin/hooksDescriptor'
+import { LEAVE_PLAYER, ENTER_PLAYER } from '../../events'
 import './index.scss'
 
 const MOUSE_EVENTS = {
@@ -70,6 +71,7 @@ export default class PCPlugin extends BasePlugin {
     } else {
       player.focus()
     }
+    this.emit(ENTER_PLAYER)
   }
 
   onMouseLeave = (e) => {
@@ -81,6 +83,7 @@ export default class PCPlugin extends BasePlugin {
         this.player.blur()
       }
     }
+    this.emit(LEAVE_PLAYER)
   }
 
   onContextmenu (e) {
