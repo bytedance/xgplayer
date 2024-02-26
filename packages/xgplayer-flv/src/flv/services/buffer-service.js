@@ -29,6 +29,10 @@ export class BufferService {
     return this._demuxer?._fixer?._baseDts
   }
 
+  get blobUrl () {
+    return this._mse?.url
+  }
+
   /**
    * @param {import('../index').Flv} flv
    * @param {Object} [softVideo]
@@ -41,7 +45,7 @@ export class BufferService {
       this._softVideo = softVideo
     } else {
       this._remuxer = new FMP4Remuxer(this._demuxer.videoTrack, this._demuxer.audioTrack)
-      this._mse = new MSE()
+      this._mse = new MSE(null, {perferMMS: !!opts.perferMMS})
       this._mse.bindMedia(flv.media)
     }
   }

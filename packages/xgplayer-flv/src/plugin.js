@@ -59,9 +59,16 @@ export class FlvPlugin extends BasePlugin {
     })
 
     if (!this.softDecode) {
+
+      if (flvOpts.perferMMS && FlvPlugin.isSupportedMMS()) {
+        this.player.video.disableRemotePlayback = true
+      }
+
       BasePlugin.defineGetterOrSetter(this.player, {
         url: {
-          get: () => this.flv?.media?.src,
+          get: () => {
+            return this.flv?.blobUrl
+          },
           configurable: true
         }
       })
@@ -129,6 +136,10 @@ export class FlvPlugin extends BasePlugin {
    */
   static isSupported (mediaType, codec) {
     return Flv.isSupported(mediaType, codec)
+  }
+
+  static isSupportedMMS () {
+    return typeof ManagedMediaSource !== 'undefined'
   }
 
   /**

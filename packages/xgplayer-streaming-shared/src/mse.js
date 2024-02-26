@@ -5,13 +5,15 @@ import { StreamingError, ERR } from './error'
 import { isBrowser } from './env'
 import { Logger } from './logger'
 
-function getMediaSource () {
+function getMediaSource (preferMMS = true) {
   try {
-    return isBrowser ? window.MediaSource : null
+    if (!isBrowser) return null
+
+    if (preferMMS && typeof ManagedMediaSource !== 'undefined') return ManagedMediaSource
+
+    return window.MediaSource
   } catch (e) {}
 }
-
-const MediaSource = getMediaSource()
 
 /** @enum {string} */
 export const MSEErrorType = {
@@ -67,7 +69,8 @@ export class MSE {
 
   static getDefaultConfig () {
     return {
-      openLog: false
+      openLog: false,
+      perferMMS: false
     }
   }
 
@@ -159,6 +162,9 @@ export class MSE {
    */
   async bindMedia (media) {
     if (this.mediaSource || this.media) await this.unbindMedia()
+
+    const MediaSource = getMediaSource(this._config.perferMMS)
+
     if (!media || !MediaSource) throw new Error('Param media or MediaSource does not exist')
     this.media = media
     const ms = this.mediaSource = new MediaSource()
@@ -172,8 +178,10 @@ export class MSE {
       this._openPromise.resolve({costtime})
     }
     ms.addEventListener('sourceopen', onOpen)
+
     this._url = URL.createObjectURL(ms)
     media.src = this._url
+
     return this._openPromise
   }
 
@@ -533,6 +541,7 @@ export class MSE {
    * @returns {boolean}
    */
   static isSupported (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"') {
+    const MediaSource = getMediaSource()
     if (!MediaSource) return false
     try {
       return MediaSource.isTypeSupported(mime)
