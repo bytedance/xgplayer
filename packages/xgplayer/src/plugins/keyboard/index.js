@@ -385,6 +385,7 @@ class Keyboard extends BasePlugin {
           })
         }
         preventDefault(event)
+        event.stopPropagation()
         break
       }
     }
