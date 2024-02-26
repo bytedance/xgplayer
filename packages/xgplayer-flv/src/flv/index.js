@@ -122,6 +122,10 @@ export class Flv extends EventEmitter {
     return this._mediaLoader
   }
 
+  get blobUrl () {
+    return this._bufferService?.blobUrl
+  }
+
   speedInfo () {
     return {
       speed: this._bandwidthService.getLatestSpeed(),

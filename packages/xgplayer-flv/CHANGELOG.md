@@ -1,3 +1,22 @@
+## xgplayer-flv@3.0.14-alpha.2
+>* feat: support mms on safari 17.1+
+>* feat: newly increased api and props
+
+```
+import FlvPlugin from "xgplayer-flv"
+
+FlvPlugin.isSupportedMMS(): boolean // 环境是否支持ManagedMediaSource
+
+new Player({
+    plugins: [FlvPlugin],
+    flv: {
+        perferMMS: true // default:false, 对于支持MMS的环境优先使用MMS
+    }
+})
+
+
+```
+
 
 ## xgplayer-flv@3.0.11-alpha.2
 >* feat: 断网、弱网增加重试配置
