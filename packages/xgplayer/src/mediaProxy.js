@@ -785,6 +785,14 @@ class MediaProxy extends EventEmitter {
     this.media.volume = vol
   }
 
+  /**
+   * @type { number }
+   * @description 返回视频的纵横比
+   */
+  get aspectRatio () {
+    return this.media ? this.media.videoWidth / this.media.videoHeight : 0
+  }
+
   addInnerOP (event) {
     this._internalOp[event] = true
   }
