@@ -20,7 +20,7 @@ const ERROR_CODES = {
   other: ERR_CODE[ERR.OTHER], // -499989,
   waitTimeout: ERR_CODE[ERR.RUNTIME][ERR.SUB_TYPES.BUFFERBREAK_ERROR],// -499791,
   waitTimeoutWithHidden : ERR_CODE[ERR.RUNTIME][ERR.SUB_TYPES.WAITING_TIMEOUT_ERROR],
-  drm: ERR_CODE[ERR.DRM][ERR.SUB_TYPES.LICENSE],
+  drm: ERR_CODE[ERR.DRM][ERR.SUB_TYPES.LICENSE]
 }
 const ERROR_TYPES = ERR
 
@@ -54,8 +54,8 @@ class NetWorkError {
       ext: context,
       mediaError: {
         code: _errCode,
-        message: context?.httpText || context?.message,
-      },
+        message: context?.httpText || context?.message
+      }
     }
   }
 }
@@ -71,8 +71,8 @@ class ParserError {
       ext,
       mediaError: {
         code: errorCode,
-        message: ext.msg,
-      },
+        message: ext.msg
+      }
     }
   }
 }
@@ -83,5 +83,5 @@ export {
   ParserError,
   ERROR_CODES,
   ERROR_TYPES,
-  getErrorCodeByHttpCode,
+  getErrorCodeByHttpCode
 }
