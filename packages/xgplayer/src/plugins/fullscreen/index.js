@@ -12,6 +12,8 @@ import './index.scss'
  *   index?: number,
  *   useCssFullscreen?: boolean,
  *   rotateFullscreen?: boolean,
+ *   useScreenOrientation?: boolean,
+ *   lockOrientationType?: OrientationType,
  *   switchCallback?: () => any,
  *   target?: null | HTMLElement,
  *   disable?: boolean,
@@ -33,6 +35,8 @@ export default class Fullscreen extends IconPlugin {
       index: 0,
       useCssFullscreen: false, // Whether to use the page full screen
       rotateFullscreen: false, // Whether to enable rotating full screen
+      useScreenOrientation: false, // Whether to use ScreenOrientation lock after requestFullScreen if ScreenOrientation available
+      lockOrientationType: 'landscape', // Whether to lock screen if video width is greater than height
       switchCallback: null, // Custom switch function
       target: null, // Trigger Dom element
       disable: false,
@@ -158,8 +162,16 @@ export default class Fullscreen extends IconPlugin {
     } else {
       if (player.fullscreen) {
         player.exitFullscreen()
+
+        if (config.useScreenOrientation) {
+          this.unlockScreen()
+        }
       } else {
-        player.getFullscreen().catch(e=>{})
+        player.getFullscreen().catch(e => {})
+
+        if (config.useScreenOrientation && player.aspectRatio > 1) {
+          this.lockScreen(config.lockOrientationType)
+        }
       }
     }
   }
@@ -194,5 +206,27 @@ export default class Fullscreen extends IconPlugin {
     </div>
     ${xgIconTips(this, langKey, this.playerConfig.isHideTips)}
     </xg-icon>`
+  }
+
+  /**
+   * 锁定屏幕方向，只有部分移动端浏览器支持
+   * 兼容性参考：https://caniuse.com/mdn-api_screenorientation_lock
+   * @param {OrientationType} orientation
+   */
+  lockScreen (orientation) {
+    try {
+      screen.orientation.lock(orientation).catch(e => {})
+    } catch (e) {
+    }
+  }
+
+  /**
+   * 解锁屏幕方向锁定，只有部分移动端浏览器支持
+   */
+  unlockScreen () {
+    try {
+      screen.orientation.unlock().catch(e => {})
+    } catch (e) {
+    }
   }
 }
