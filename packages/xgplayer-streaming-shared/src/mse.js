@@ -182,6 +182,12 @@ export class MSE {
     this._url = URL.createObjectURL(ms)
     media.src = this._url
 
+    if (MediaSource.name === 'ManagedMediaSource') {
+      media.disableRemotePlayback = true
+    } else {
+      media.disableRemotePlayback = false
+    }
+
     return this._openPromise
   }
 
@@ -219,6 +225,7 @@ export class MSE {
     }
 
     if (this.media) {
+      this.media.disableRemotePlayback = false
       this.media.removeAttribute('src')
       try {
         this.media.load()
