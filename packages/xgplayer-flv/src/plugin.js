@@ -59,11 +59,6 @@ export class FlvPlugin extends BasePlugin {
     })
 
     if (!this.softDecode) {
-
-      if (flvOpts.perferMMS && FlvPlugin.isSupportedMMS()) {
-        this.player.video.disableRemotePlayback = true
-      }
-
       BasePlugin.defineGetterOrSetter(this.player, {
         url: {
           get: () => {
