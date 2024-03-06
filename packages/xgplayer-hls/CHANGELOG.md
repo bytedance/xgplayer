@@ -1,3 +1,15 @@
+## 3.0.14
+>* feat: 🎸 (xgplayer-hls) 加密hls支持更多的Key System
+
+## 3.0.13
+-
+
+## 3.0.12
+-
+
+## 3.0.11
+>* feat(xgplayer-hls): update manifestLoadTimeout to audio\subtitle manifest
+>* feat(xgplayer-hls):新增参数支持单独设置m3u8文件请求超时时间
 
 ## xgplayer-hls@3.0.11-alpha.3
 >* feat: support m3u8 manifest loadtimeout
