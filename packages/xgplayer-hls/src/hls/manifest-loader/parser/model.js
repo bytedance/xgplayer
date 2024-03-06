@@ -7,12 +7,19 @@ export class MasterPlaylist {
   isMaster = true
 }
 
-
 const MediaType = {
   Audio: 'AUDIO',
   Video: 'VIDEO',
   SubTitle: 'SUBTITLE',
   ClosedCaptions: 'CLOSED-CAPTIONS'
+}
+
+// #EXT-X-KEY KEYFORMAT values
+const KeySystems = {
+  CLEAR_KEY: 'org.w3.clearkey',
+  FAIRPLAY: 'com.apple.streamingkeydelivery',
+  WIDEVINE: 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed',
+  PLAYREADY: 'com.microsoft.playready'
 }
 
 export class MediaStream {
@@ -164,5 +171,42 @@ export class MediaSegmentKey {
         this.iv[i] = (sn >> (8 * (15 - i))) & 0xff
       }
     }
+  }
+
+  isSegmentEncrypted () {
+    const { method } = this.method
+    return method === 'AES-128' // || method === 'AES-256' || method === 'AES-256-CTR'
+  }
+
+  isValidKeySystem () {
+    const isKeyFormatValid =
+      [
+        KeySystems.CLEAR_KEY,
+        KeySystems.FAIRPLAY,
+        KeySystems.WIDEVINE,
+        KeySystems.PLAYREADY
+      ].indexOf(this.keyFormat) > -1
+    if (!isKeyFormatValid) {
+      return false
+    }
+
+    const isMethodValid =
+      ['SAMPLE-AES', 'SAMPLE-AES-CENC', 'SAMPLE-AES-CTR'].indexOf(this.method) > -1
+    if (!isMethodValid) {
+      return false
+    }
+    return true
+  }
+
+  isSupported () {
+    if (!this.method) {
+      return false
+    }
+    if (this.isSegmentEncrypted()) {
+      return true
+    } else if (this.isValidKeySystem()) {
+      return true
+    }
+    return false
   }
 }

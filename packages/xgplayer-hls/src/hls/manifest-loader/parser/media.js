@@ -133,12 +133,14 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
           curKey = null
           break
         }
-        if (attr.METHOD !== 'AES-128') throw new Error(`encrypt ${attr.METHOD}/${attr.KEYFORMAT} is not supported`)
         curKey = new MediaSegmentKey()
         curKey.method = attr.METHOD
         curKey.url = /^blob:/.test(attr.URI) ? attr.URI : getAbsoluteUrl(attr.URI, parentUrl)
         curKey.keyFormat = attr.KEYFORMAT || 'identity'
         curKey.keyFormatVersions = attr.KEYFORMATVERSIONS
+        if (!curKey.isSupported()) {
+          throw new Error(`encrypt ${attr.METHOD}/${attr.KEYFORMAT} is not supported`)
+        }
         if (attr.IV) {
           let str = attr.IV.slice(2)
           str = (str.length & 1 ? '0' : '') + str
