@@ -124,7 +124,7 @@ export class SegmentLoader {
     }
 
     const keyUrl = seg.key?.url
-    if (keyUrl) {
+    if (keyUrl && seg.key.isSegmentEncrypted()) {
       keyIv = seg.key.iv
       key = this._keyCache[keyUrl]
       if (!key) {

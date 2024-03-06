@@ -64,6 +64,7 @@ export class HlsPlugin extends BasePlugin {
 
     if (this.hls) this.hls.destroy()
     this.player.switchURL = this._onSwitchURL
+    this.player.handleSource = false // disable player source handle
 
     const hlsOpts = config.hls || {}
     hlsOpts.innerDegrade = hlsOpts.innerDegrade || config.innerDegrade
