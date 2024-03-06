@@ -238,7 +238,7 @@ export class Stream {
     if (this.live) {
       const lowLatency = playlist.lowLatency
       const endSeg = segments[segments.length - 1]
-      const endSN = endSeg?.sn || -1
+      const endSN = endSeg?.sn ?? -1
       const endPartIndex = endSeg?.partIndex || 0
 
       let hasNew = endSN < playlist.endSN && playlist.segments.length
