@@ -17,23 +17,21 @@ export default class FpsDetect extends BasePlugin {
     return {
       disabled: false,
       tick: 1000, // tick时间，默认1000 ms
-      stuckCount: 3, // 三次
+      stuckCount: 3, // 卡住次数
       reportFrame: 0 // 每次解码帧率小于多少时统计
     }
   }
 
   afterCreate () {
     const { player, config } = this
-    /**
-     * @type {null | number}
-     */
+    const media = player.media || player.video
     this.timer = null
     this._lastDecodedFrames = 0
     this._currentStuckCount = 0
     this._lastCheckPoint = null
     this._payload = []
     if (config.disabled) return
-    const getVideoPlaybackQuality = player.media.getVideoPlaybackQuality
+    const getVideoPlaybackQuality = media.getVideoPlaybackQuality
     if (!getVideoPlaybackQuality) return
     this.on(Events.PLAY, () => {
       this._startTick()
@@ -65,37 +63,47 @@ export default class FpsDetect extends BasePlugin {
     this._timer = null
   }
 
+  _checkBuffer (curTime, buffered) {
+    let enoughBuffer = false
+    const buffers = []
+    for (let i = 0; i < buffered.length; i++) {
+      const start = buffered.start(i)
+      const end = buffered.end(i)
+      buffers.push({ start, end })
+      if (start <= curTime && curTime <= end - 1) {
+        enoughBuffer = true
+        break
+      }
+    }
+    return {
+      enoughBuffer,
+      buffers
+    }
+  }
+
   _checkStuck (curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval) {
-    const { media } = this.player
+    const media = this.player.media || this.player.video
     const hidden = document.hidden
-    const paused = media.paused
-    if (typeof hidden === 'boolean' && !hidden && !paused) {
-      const curTime = media.currentTime
-      const buffered = media.buffered
-      let enoughBuffer = false
-      const bufs = []
-      for (let i = 0; i < buffered.length; i++) {
-        const start = buffered.start(i)
-        const end = buffered.end(i)
-        bufs.push({ start, end })
-        if (start <= curTime && curTime <= end - 1) {
-          enoughBuffer = true
-          break
-        }
+    const { paused, readyState, currentTime, buffered } = media
+
+    if (hidden || paused || readyState < 4) {
+      return
+    }
+    const { enoughBuffer, buffers } = this._checkBuffer(currentTime, buffered)
+    if (!enoughBuffer) {
+      return
+    }
+
+    if (curDecodedFrames <= this.config.reportFrame) {
+      this._currentStuckCount++
+      this._payload.push({ currentTime, buffers, curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval })
+
+      if (this._currentStuckCount >= this.config.stuckCount) {
+        this.emit(Events.FPS_STUCK, this._payload)
+        this._reset()
       }
-      if (media.readyState === 4 && enoughBuffer) {
-        if (this._currentStuckCount > this.config.stuckCount) {
-          this.emit(Events.FPS_STUCK, this._payload)
-          this._reset()
-        } else {
-          if (curDecodedFrames <= this.config.reportFrame) {
-            this._currentStuckCount++
-            this._payload.push({ bufs, currentTime: media.currentTime, curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval })
-          } else {
-            this._reset()
-          }
-        }
-      }
+    } else {
+      this._reset()
     }
   }
 
@@ -105,10 +113,12 @@ export default class FpsDetect extends BasePlugin {
   }
 
   _checkDecodeFPS () {
-    if (!this.player.media) {
+    const media = this.player.media || this.player.video
+    if (!media) {
       return
     }
-    const { totalVideoFrames, droppedVideoFrames } = this.player.media.getVideoPlaybackQuality()
+    const { totalVideoFrames, droppedVideoFrames } = media.getVideoPlaybackQuality()
+
     const currTime = performance.now()
     if (totalVideoFrames) {
       if (this._lastCheckPoint) {
