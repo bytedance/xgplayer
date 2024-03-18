@@ -1,36 +1,40 @@
 import { BasePlugin, Errors, Events } from 'xgplayer'
 import Flv from 'flv.js'
 
+try {
+  Flv.LoggingControl.enableAll = false
+} catch (e) {}
+
 class FlvJsPlugin extends BasePlugin {
-  static get isSupported () {
+  static get isSupported() {
     return Flv.isSupported
   }
 
-  static get pluginName () {
+  static get pluginName() {
     return 'FlvJsPlugin'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       mediaDataSource: { type: 'flv' },
       flvConfig: {}
     }
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     if (this.playerConfig.url) {
       this.flvLoad(this.playerConfig.url)
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     const { player } = this
     this.flv = null
     player.video.addEventListener('contextmenu', function (e) {
       e.preventDefault()
     })
 
-    this.on(Events.URL_CHANGE, (url) => {
+    this.on(Events.URL_CHANGE, url => {
       if (/^blob/.test(url)) {
         return
       }
@@ -58,7 +62,7 @@ class FlvJsPlugin extends BasePlugin {
     }
   }
 
-  destroy () {
+  destroy() {
     const { player } = this
     this.destroyInstance()
     BasePlugin.defineGetterOrSetter(player, {
@@ -75,7 +79,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 
-  destroyInstance () {
+  destroyInstance() {
     if (!this.flv) {
       return
     }
@@ -87,31 +91,27 @@ class FlvJsPlugin extends BasePlugin {
     this.flv = null
   }
 
-  createInstance (flv) {
+  createInstance(flv) {
     const { player } = this
     if (!flv) {
       return
     }
-    console.log('createInstance', flv)
     flv.attachMediaElement(player.video)
     flv.load()
     flv.play()
 
-    flv.on(Flv.Events.ERROR, (e) => {
+    flv.on(Flv.Events.ERROR, e => {
       player.emit('error', new Errors('other', player.config.url))
     })
     flv.on(Flv.Events.LOADED_SEI, (timestamp, data) => {
-      console.log('Flv.Events.LOADED_SEI')
       player.emit('loaded_sei', timestamp, data)
     })
-    flv.on(Flv.Events.STATISTICS_INFO, (data) => {
-      console.log('Flv.Events.STATISTICS_INFO')
+    flv.on(Flv.Events.STATISTICS_INFO, data => {
       player.emit('statistics_info', data)
     })
-    flv.on(Flv.Events.MEDIA_INFO, (data) => {
+    flv.on(Flv.Events.MEDIA_INFO, data => {
       player.mediainfo = data
       player.emit('MEDIA_INFO', data)
-      // console.log('player.autoplay', player.autoplay, player.paused)
       // if (player.autoplay) {
       //   player.once('canplay', () => {
       //     console.log('canplay')
@@ -123,8 +123,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 
-  flvLoad (newUrl) {
-    console.log('flvLoad', newUrl)
+  flvLoad(newUrl) {
     const mediaDataSource = this.config.mediaDataSource
     mediaDataSource.segments = [
       {
@@ -146,7 +145,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flvLoadMds(mediaDataSource)
   }
 
-  flvLoadMds (mediaDataSource) {
+  flvLoadMds(mediaDataSource) {
     const { player } = this
     if (typeof this.flv !== 'undefined') {
       this.destroyInstance()
@@ -157,7 +156,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flv.load()
   }
 
-  switchURL (url) {
+  switchURL(url) {
     const { player, playerConfig } = this
     let curTime = 0
     if (!playerConfig.isLive) {
@@ -179,5 +178,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 }
+
+export { Flv }
 
 export default FlvJsPlugin
