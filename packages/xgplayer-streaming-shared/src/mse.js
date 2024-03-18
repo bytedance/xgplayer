@@ -545,10 +545,11 @@ export class MSE {
 
   /**
    * @param {string} [mime='video/mp4; codecs="avc1.42E01E,mp4a.40.2"']
+   * @param { boolean} preferMMS
    * @returns {boolean}
    */
-  static isSupported (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"') {
-    const MediaSource = getMediaSource()
+  static isSupported (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"', preferMMS = true) {
+    const MediaSource = getMediaSource(preferMMS)
     if (!MediaSource) return false
     try {
       return MediaSource.isTypeSupported(mime)

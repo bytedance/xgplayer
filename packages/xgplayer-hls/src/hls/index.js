@@ -352,7 +352,7 @@ export class Hls extends EventEmitter {
    */
   static isSupported (mediaType) {
     if (!mediaType || mediaType === 'video' || mediaType === 'audio') {
-      return MSE.isSupported()
+      return MSE.isSupported(undefined, false)
     }
 
     return typeof WebAssembly !== 'undefined'
