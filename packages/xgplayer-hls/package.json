@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls",
-  "version": "3.0.15-alpha.0",
+  "version": "3.0.15-alpha.1",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -23,11 +23,11 @@
   ],
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-transmuxer": "3.0.15-alpha.0",
-    "xgplayer-streaming-shared": "3.0.15-alpha.0"
+    "xgplayer-transmuxer": "3.0.15-alpha.1",
+    "xgplayer-streaming-shared": "3.0.15-alpha.1"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.15-alpha.0",
+    "xgplayer": "3.0.15-alpha.1",
     "core-js": ">=3.12.1"
   }
 }
