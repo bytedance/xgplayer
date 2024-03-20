@@ -689,8 +689,6 @@ class Progress extends Plugin {
     time = Util.adjustTimeByDuration(time, offsetDuration, isEnded)
     this.innerList.update({ played: time }, offsetDuration)
     this.progressBtn.style.left = `${time / offsetDuration * 100}%`
-    const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ played: time }, offsetDuration)
   }
 
   /**
@@ -707,15 +705,10 @@ class Progress extends Plugin {
     let _end = player.bufferedPoint.end
     _end = Util.adjustTimeByDuration(_end, duration, isEnded)
     this.innerList.update({ cached: _end }, duration)
-    const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ cached: _end }, duration)
   }
 
   onReset () {
     this.innerList.update({ played: 0, cached: 0 }, 0)
-    this.progressBtn.style.left = '0%'
-    const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ cached: 0, played: 0 }, 0)
     this.progressBtn.style.left = '0%'
   }
 
