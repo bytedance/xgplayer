@@ -1947,6 +1947,7 @@ class Player extends MediaProxy {
     this.updateAcc('waiting')
     this.waitTimer = Util.setTimeout(this, () => {
       this.addClass(STATE_CLASS.LOADING)
+      this.emit(Events.LOADING)
       Util.clearTimeout(this, this.waitTimer)
       this.waitTimer = null
     }, this.config.minWaitDelay)
