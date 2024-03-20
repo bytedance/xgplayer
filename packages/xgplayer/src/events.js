@@ -36,6 +36,7 @@ export const URL_CHANGE = 'urlchange'
 export const DOWNLOAD_SPEED_CHANGE = 'download_speed_change'
 export const LEAVE_PLAYER = 'leaveplayer'
 export const ENTER_PLAYER = 'enterplayer'
+export const LOADING = 'loading'
 
 // screen change evnets
 export const FULLSCREEN_CHANGE = 'fullscreen_change'

@@ -30,7 +30,9 @@ class MiniProgress extends Plugin {
       return
     }
     this.on(Events.TIME_UPDATE, this.onTimeupdate)
-    this.on(Events.EMPTIED, this.reset)
+    this.on(Events.EMPTIED, () => {
+      this.reset()
+    })
   }
 
   onTimeupdate = () => {
