@@ -1,0 +1,42 @@
+{
+  "name": "xgplayer-mpegts.js",
+  "version": "3.0.14",
+  "description": "web video player",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "libd": {
+    "umdName": "MpegTsJSPlugin"
+  },
+  "files": [
+    "dist",
+    "es"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
+  "unpkgFiles": [
+    "dist"
+  ],
+  "author": "cuc_ygh@163.com",
+  "license": "MIT",
+  "peerDependency": {
+    "xgplayer": "^0.1.0"
+  },
+  "dependencies": {
+    "es6-promise": "^4.2.4",
+    "mpegts.js": "^1.7.3",
+    "glob": "^7.1.2",
+    "webworkify": "^1.5.0"
+  },
+  "peerDependencies": {
+    "core-js": ">=3.12.1",
+    "xgplayer": "3.0.14"
+  }
+}
