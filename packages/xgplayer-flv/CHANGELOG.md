@@ -10,7 +10,7 @@ FlvPlugin.isSupportedMMS(): boolean // 环境是否支持ManagedMediaSource
 new Player({
     plugins: [FlvPlugin],
     flv: {
-        perferMMS: true // default:false, 对于支持MMS的环境优先使用MMS
+        preferMMS: true // default:false, 对于支持MMS的环境优先使用MMS
     }
 })
 

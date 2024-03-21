@@ -22,7 +22,9 @@ export class BufferService {
     if (hls.config.softDecode) { // soft decode
       this._softVideo = hls.media
     } else {
-      this._mse = new MSE()
+      this._mse = new MSE(null, {
+        preferMMS: hls.config.preferMMS
+      })
 
       if (hls.config.url) {
         this._mse.bindMedia(hls.media)
@@ -47,6 +49,10 @@ export class BufferService {
 
   get msIsOpend () {
     return this._mse?.isOpened
+  }
+
+  get msStreaming () {
+    return this._mse?.streaming
   }
 
   async updateDuration (duration) {

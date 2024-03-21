@@ -352,7 +352,7 @@ export class Hls extends EventEmitter {
    */
   static isSupported (mediaType) {
     if (!mediaType || mediaType === 'video' || mediaType === 'audio') {
-      return MSE.isSupported(undefined, false)
+      return MSE.isSupported()
     }
 
     return typeof WebAssembly !== 'undefined'
@@ -455,6 +455,7 @@ export class Hls extends EventEmitter {
   _loadSegment = async () => {
     if (this._segmentProcessing || !this.media) return
     const nextSeg = this._playlist.nextSegment
+    const { config } = this
 
     if (!nextSeg) return
 
@@ -464,10 +465,14 @@ export class Hls extends EventEmitter {
         bInfo = this.bufferInfo(bInfo.nextStart || 0.5)
       }
       const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < 0.1
-      if (bInfo.remaining >= this.config.preloadTime || bufferThroughout) {
+      if (bInfo.remaining >= config.preloadTime || bufferThroughout) {
         if (bufferThroughout && this._bufferService.msIsOpend) {
           this._bufferService.endOfStream()
         }
+        return
+      }
+
+      if (config.preferMMSStreaming && !this._bufferService.msStreaming) {
         return
       }
 
