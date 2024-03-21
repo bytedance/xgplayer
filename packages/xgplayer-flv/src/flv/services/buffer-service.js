@@ -45,7 +45,10 @@ export class BufferService {
       this._softVideo = softVideo
     } else {
       this._remuxer = new FMP4Remuxer(this._demuxer.videoTrack, this._demuxer.audioTrack)
-      this._mse = new MSE(null, {perferMMS: !!opts.perferMMS})
+      this._mse = new MSE(null, {
+        preferMMS:
+          typeof opts.preferMMS === 'boolean' ? opts.preferMMS : !!opts.perferMMS /* perferMMS is typo, deprecated */
+      })
       this._mse.bindMedia(flv.media)
     }
   }
