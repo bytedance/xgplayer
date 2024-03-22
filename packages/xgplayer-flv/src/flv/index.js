@@ -445,7 +445,7 @@ export class Flv extends EventEmitter {
         this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
         return
       }
-      if (opts.isLive && bufferEnd > opts.disconnectTime) {
+      if (opts.isLive && media.readyState === 4 && bufferEnd > opts.disconnectTime) {
         this.disconnect()
       }
     }
