@@ -15,6 +15,10 @@ function getMediaSource (preferMMS = true) {
   } catch (e) {}
 }
 
+function isMMS (mediaSource) {
+  return /ManagedMediaSource/gi.test(Object.prototype.toString.call(mediaSource))
+}
+
 /** @enum {string} */
 export const MSEErrorType = {
   UPDATE_ERROR: 'updateError'
@@ -39,6 +43,26 @@ export class MSEError extends Error {
 }
 
 export class MSE {
+  static VIDEO = 'video'
+
+  static AUDIO = 'audio'
+
+  /**
+   * @param {string} [mime='video/mp4; codecs="avc1.42E01E,mp4a.40.2"']
+   * @param { boolean} preferMMS
+   * @returns {boolean}
+   */
+  static isSupported (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"') {
+    const MediaSource = getMediaSource()
+    if (!MediaSource) return false
+    try {
+      return MediaSource.isTypeSupported(mime)
+    } catch (error) {
+      this._logger.error(mime, error)
+      return false
+    }
+  }
+
   /** @type { HTMLMediaElement | null } */
   media = null
 
@@ -50,10 +74,6 @@ export class MSE {
   _queue = Object.create(null)
 
   _sourceBuffer = Object.create(null)
-
-  static VIDEO = 'video'
-
-  static AUDIO = 'audio'
 
   _mseFullFlag = {}
 
@@ -70,7 +90,7 @@ export class MSE {
   static getDefaultConfig () {
     return {
       openLog: false,
-      perferMMS: false
+      preferMMS: false
     }
   }
 
@@ -102,6 +122,10 @@ export class MSE {
     return this.mediaSource ? this.mediaSource.readyState === 'ended' : false
   }
 
+  get streaming () {
+    return isMMS(this.mediaSource) ? this.mediaSource.streaming : true
+  }
+
   isFull (type) {
     return type ? this._mseFullFlag[type] : this._mseFullFlag[MSE.VIDEO]
   }
@@ -129,12 +153,12 @@ export class MSE {
 
     return this._enqueueBlockingOp(() => {
       if (this.isEnded) {
-        this._logger.debug('[debug mse] setDuration ended')
+        this._logger.debug('setDuration but ended')
         return
       }
       if (this.mediaSource) {
         this.mediaSource.duration = duration
-        this._logger.debug('[debug mse] setDuration')
+        this._logger.debug('setDuration', duration)
       }
     }, OP_NAME.UPDATE_DURATION, {isReduceDuration})
   }
@@ -144,10 +168,10 @@ export class MSE {
     if (this._openPromise.used && !this.isOpened && this.mediaSource) {
       const ms = this.mediaSource
       const onOpen = () => {
-        const costtime = nowTime() - this._st
-        this._logger.debug('MSE OPEN', costtime)
+        const costTime = nowTime() - this._st
+        this._logger.debug('sourceopen', costTime)
         ms.removeEventListener('sourceopen', onOpen)
-        this._openPromise.resolve({costtime})
+        this._openPromise.resolve({costtime: costTime})
       }
       ms.addEventListener('sourceopen', onOpen)
       this._openPromise = createPublicPromise()
@@ -157,36 +181,50 @@ export class MSE {
   }
 
   /**
+   * @private
+   */
+  _onStartStreaming = () => {
+    this._logger.debug('startstreaming')
+  }
+
+  /**
+   * @private
+   */
+  _onEndStreaming = () => {
+    this._logger.debug('endstreaming')
+  }
+
+  /**
    * @param { HTMLMediaElement } media
    * @return { Promise }
    */
   async bindMedia (media) {
     if (this.mediaSource || this.media) await this.unbindMedia()
 
-    const MediaSource = getMediaSource(this._config.perferMMS)
+    const MediaSource = getMediaSource(this._config.preferMMS)
 
     if (!media || !MediaSource) throw new Error('Param media or MediaSource does not exist')
     this.media = media
     const ms = this.mediaSource = new MediaSource()
+    const useMMS = isMMS(ms)
     this._st = nowTime()
 
     const onOpen = () => {
-      const costtime = nowTime() - this._st
-      this._logger.debug('MSE OPEN')
+      const costTime = nowTime() - this._st
+      this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
       URL.revokeObjectURL(media.src)
-      this._openPromise.resolve({costtime})
+      this._openPromise.resolve({costtime: costTime})
     }
     ms.addEventListener('sourceopen', onOpen)
+    if (useMMS) {
+      ms.addEventListener('startstreaming', this._onStartStreaming)
+      ms.addEventListener('endstreaming', this._onEndStreaming)
+    }
 
     this._url = URL.createObjectURL(ms)
     media.src = this._url
-
-    if (MediaSource.name === 'ManagedMediaSource') {
-      media.disableRemotePlayback = true
-    } else {
-      media.disableRemotePlayback = false
-    }
+    media.disableRemotePlayback = useMMS
 
     return this._openPromise
   }
@@ -222,6 +260,11 @@ export class MSE {
           // ignore
         }
       })
+
+      if (isMMS(ms)) {
+        ms.removeEventListener('startstreaming', this._onStartStreaming)
+        ms.removeEventListener('endstreaming', this._onEndStreaming)
+      }
     }
 
     if (this.media) {
@@ -357,14 +400,14 @@ export class MSE {
       return
     }
     if (!queue || !queue[type] || queue.length < 5) return
-    const initOpque = []
+    const initQueue = []
     queue.forEach(op => {
       if (op.context && op.context.isinit) {
-        initOpque.push(op)
+        initQueue.push(op)
       }
     })
     this._queue[type] = queue.slice(0, 2)
-    initOpque.length > 0 && this._queue[type].push(...initOpque)
+    initQueue.length > 0 && this._queue[type].push(...initQueue)
   }
 
   /**
@@ -540,22 +583,6 @@ export class MSE {
         op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_APPEND_BUFFER, event))
         // Do not shift from queue, 'updateend' event will fire next
       }
-    }
-  }
-
-  /**
-   * @param {string} [mime='video/mp4; codecs="avc1.42E01E,mp4a.40.2"']
-   * @param { boolean} preferMMS
-   * @returns {boolean}
-   */
-  static isSupported (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"', preferMMS = true) {
-    const MediaSource = getMediaSource(preferMMS)
-    if (!MediaSource) return false
-    try {
-      return MediaSource.isTypeSupported(mime)
-    } catch (error) {
-      this._logger.error(mime, error)
-      return false
     }
   }
 
