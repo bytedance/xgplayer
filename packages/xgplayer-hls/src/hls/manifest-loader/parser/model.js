@@ -174,7 +174,7 @@ export class MediaSegmentKey {
   }
 
   isSegmentEncrypted () {
-    const { method } = this.method
+    const { method } = this
     return method === 'AES-128' // || method === 'AES-256' || method === 'AES-256-CTR'
   }
 
