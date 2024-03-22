@@ -1,3 +1,6 @@
+## 3.0.15
+>* feat: feat: 🎸 (xgplayer-hls) hls支持MMS
+
 ## 3.0.14
 >* feat: 🎸 (xgplayer-hls) 加密hls支持更多的Key System
 
