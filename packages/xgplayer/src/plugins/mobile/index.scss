@@ -25,14 +25,17 @@ $color: #FF0000;
       transform: translate(-50%, -50%);
       color: #fff;
       text-shadow: 0 0 1px rgba(0,0,0,0.54);
-      font-size: 17px;
+      font-size: 18px;
       text-align: center;
       pointer-events: none;
       span {
         line-height: 24px;
-        &.xg-cur {
-          color: #FF0000;
-        }
+      }
+      .xg-cur {
+        color: #FF0000;
+      }
+      .xg-separator {
+        font-size: 14px;
       }
       .xg-seek-show {
         transform: translateX(-10px);
