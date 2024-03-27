@@ -208,15 +208,23 @@ class MobilePlugin extends Plugin {
 
   initCustomStyle () {
     const { commonStyle } = this.playerConfig || {}
-    const { playedColor, progressColor } = commonStyle
+    const { playedColor, progressColor, timePreviewStyle, curTimeColor, durationColor } = commonStyle
     if (playedColor) {
       this.find('.xg-curbar').style.backgroundColor = playedColor
-      this.find('.xg-cur').style.color = playedColor
     }
     if (progressColor) {
       this.find('.xg-bar').style.backgroundColor = progressColor
-      this.find('.time-preview').style.color = progressColor
     }
+    if (timePreviewStyle) {
+      const previewDom = this.find('.time-preview')
+      Object.keys(timePreviewStyle).forEach(key => {
+        previewDom.style[key] = timePreviewStyle[key]
+      })
+    }
+    const curColor = curTimeColor || playedColor
+    const durColor = durationColor
+    curColor && (this.find('.xg-cur').style.color = curColor)
+    durColor && (this.find('.xg-dur').style.color = durColor)
     this.config.disableTimeProgress && Util.addClass(this.find('.xg-timebar'), 'hide')
   }
 
@@ -690,7 +698,7 @@ class MobilePlugin extends Plugin {
             <div class="xg-seek-show ${this.config.disableSeekIcon ? ' hide-seek-icon' : ''}">
               <i class="xg-seek-icon"></i>
               <span class="xg-cur">00:00</span>
-              <span>/</span>
+              <span class="xg-separator">/</span>
               <span class="xg-dur">00:00</span>
             </div>
               <div class="xg-bar xg-timebar">
