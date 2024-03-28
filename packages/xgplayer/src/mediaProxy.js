@@ -158,6 +158,7 @@ class MediaProxy extends EventEmitter {
       'webkit-airplay': options.airplay,
       tabindex: options.tabindex | 0,
       mediaType: options.mediaType || 'video',
+      class: 'xgplayer-video',
       'data-index': -1
     }, options.videoConfig, options.videoAttributes)
     /**
