@@ -1,7 +1,7 @@
 function isEdtsApplicable () {
   let flag = true
   const userAgent = navigator.userAgent || ''
-  const isChrome = /Chrome/ig.test(userAgent) && !/Edge\//ig.test(userAgent)
+  const isChrome = /Chrome/gi.test(userAgent) && !/Edge\//gi.test(userAgent)
 
   // M75+ 开始支持负的 dts
   // https://bugs.chromium.org/p/chromium/issues/detail?id=398141
@@ -30,7 +30,14 @@ export function moovToSegments (moov, config) {
     segmentDurations = videoSegments.map(x => x.duration)
   }
   if (audioTrack) {
-    audioSegments = getSegments('audio', audioTrack, segmentDuration, config, segmentDurations)
+    audioSegments = getSegments(
+      'audio',
+      audioTrack,
+      segmentDuration,
+      config,
+      segmentDurations,
+      videoSegments
+    )
   }
 
   return {
@@ -39,8 +46,15 @@ export function moovToSegments (moov, config) {
   }
 }
 
-function getSegments (type, track, segDuration, config, segmentDurations = []) {
-  const { fixEditListOffset, fixEditListOffsetThreshold } = config
+function getSegments (
+  type,
+  track,
+  segDuration,
+  config,
+  segmentDurations = [],
+  videoSegments
+) {
+  const { fixEditListOffset, fixEditListOffsetThreshold, audioGroupingStrategy } = config
   const stbl = track.mdia?.minf?.stbl
   if (!stbl) {
     return []
@@ -57,9 +71,16 @@ function getSegments (type, track, segDuration, config, segmentDurations = []) {
   // 如果不参考editList信息，一些视频会有音画不同步问题
   let editListOffset = 0
   const editList = track.edts?.elst?.entries
-  if (fixEditListOffset && isEdtsApplicable() && Array.isArray(editList) && editList.length > 0) {
+  if (
+    fixEditListOffset &&
+    isEdtsApplicable() &&
+    Array.isArray(editList) &&
+    editList.length > 0
+  ) {
     const media_time = editList[0].media_time
-    const maxAllowedTime = fixEditListOffsetThreshold ? fixEditListOffsetThreshold * timescale : 5 * timescale
+    const maxAllowedTime = fixEditListOffsetThreshold
+      ? fixEditListOffsetThreshold * timescale
+      : 5 * timescale
     if (media_time > 0 && media_time < maxAllowedTime) {
       editListOffset = media_time
     }
@@ -238,26 +259,94 @@ function getSegments (type, track, segDuration, config, segmentDurations = []) {
     gopMinPtsArr = []
     gopMaxPtsFrameIdxArr = []
     let duration = segmentDurations[0] || segDuration
-    for (let i = 0, nextEndTime; i < l; i++) {
-      const curFrame = frames[i]
-      const nextFrame = frames[i + 1]
-      const isFinalFrame = i === l - 1
-      segFrames.push(curFrame)
-      time += curFrame.duration
-      const curEndTime = nextEndTime || time / timescale
-      nextEndTime = (nextFrame ? time + nextFrame.duration : 0) / timescale
+    let useGroupStartStrategy = audioGroupingStrategy === 1
+    const vSegments = videoSegments.map((v, i, arr) => {
       if (
-        isFinalFrame ||
-        // 这里使用下一帧的目的是将每个分组的起始音频帧应该覆盖或包含GOP的开始时间，
-        // MSE在remove buffer时会将gop结束时间点的那个音频帧删掉，这个策略就是为了
-        // 防止之后再添加新的Coded Frame Group时由于缺少了一帧音频容易产生Buffer gap
-        nextEndTime + adjust >= duration
+        (i === 0 && arr[i].startTime > segDuration) /* 第一帧开始时间太晚 */ ||
+        (i > 0 && arr[i].startTime !== arr[i - 1].endTime) /* 中间有GAP不连贯 */
       ) {
-        adjust += nextEndTime - duration
-        gopMinPtsArr.push(segFrames[0].pts)
-        gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
-        pushSegment(curEndTime, segments.length, segments.length)
-        duration = segmentDurations[segments.length] || segDuration
+        useGroupStartStrategy = false
+      }
+      return {
+        startTime: v.startTime,
+        endTime: v.endTime,
+        duration: v.duration
+      }
+    })
+
+    if (useGroupStartStrategy) {
+      if (frames.length > 0) {
+        const lastVFrame = videoSegments[videoSegments.length - 1]
+        const lastAFrame = frames[frames.length - 1]
+        const audioEndTime = (lastAFrame.pts + lastAFrame.duration) / timescale
+
+        if (!lastVFrame || lastVFrame.endTime < audioEndTime) {
+          let lastVSeg = vSegments.length ? vSegments[vSegments.length - 1] : null
+          // 补齐音视频对应的分组
+          do {
+            const startTime = lastVSeg?.endTime || 0
+            const endTime = startTime + segDuration
+            vSegments.push({
+              startTime,
+              endTime,
+              duration: segDuration
+            })
+            lastVSeg = vSegments[vSegments.length - 1]
+          } while (lastVSeg.endTime < audioEndTime)
+        }
+      }
+      for (let i = 0; i < l; i++) {
+        const curFrame = frames[i]
+        const nextFrame = frames[i + 1]
+        const isFinalFrame = i === l - 1
+        const curOrder = segments.length
+        segFrames.push(curFrame)
+        if (
+          isFinalFrame ||
+          // 这里使用下一帧的目的是将每个分组的起始音频帧应该覆盖或包含GOP的开始时间，
+          // MSE在remove buffer时会将gop开始时间点的所在的音频帧删掉，这个策略就是为了
+          // 防止之后再添加新的Coded Frame Group时由于缺少了一帧音频容易产生Buffer gap
+          vSegments[curOrder].endTime < (nextFrame.pts + nextFrame.duration) / timescale
+        ) {
+          const groupFirst = segFrames[0]
+          const groupLast = segFrames[segFrames.length - 1]
+          const groupDuration =
+            (groupLast.pts + groupLast.duration - groupFirst.pts) / timescale
+          gopMinPtsArr.push(groupFirst.pts)
+          gopMaxPtsFrameIdxArr.push(groupLast.index)
+          pushSegment(groupDuration, curOrder, curOrder)
+
+          console.log(
+            segments.length,
+            curOrder,
+            groupLast.duration / timescale,
+            vSegments[curOrder].startTime,
+            segments[curOrder].startTime
+          )
+        }
+      }
+    } else {
+      for (let i = 0, nextEndTime; i < l; i++) {
+        const curFrame = frames[i]
+        const nextFrame = frames[i + 1]
+        const isFinalFrame = i === l - 1
+        segFrames.push(curFrame)
+        time += curFrame.duration
+        const curEndTime = nextEndTime || time / timescale
+        nextEndTime = (nextFrame ? time + nextFrame.duration : 0) / timescale
+        if (
+          isFinalFrame ||
+          // 这里使用下一帧的目的是将每个分组的起始音频帧应该覆盖或包含GOP的开始时间，
+          // MSE在remove buffer时会将gop结束时间点的那个音频帧删掉，这个策略就是为了
+          // 防止之后再添加新的Coded Frame Group时由于缺少了一帧音频容易产生Buffer gap
+          nextEndTime + adjust >= duration
+        ) {
+          adjust += nextEndTime - duration
+          gopMinPtsArr.push(segFrames[0].pts)
+          gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
+          pushSegment(curEndTime, segments.length, segments.length)
+          duration = segmentDurations[segments.length] || segDuration
+        }
       }
     }
   }
