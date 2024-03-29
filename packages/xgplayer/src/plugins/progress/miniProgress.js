@@ -36,7 +36,7 @@ class MiniProgress extends Plugin {
     const _style = {
       cached: getBgColor(commonStyle.cachedColor),
       played: getBgColor(commonStyle.playedColor),
-      progress: getBgColor(commonStyle.progressColor),
+      progress: getBgColor(commonStyle.progressColor)
     }
     return `<xg-mini-progress class="xg-mini-progress" style="${_style.progress}">
     <xg-mini-progress-cache class="xg-mini-progress-cache" style="${_style.cached}"></xg-mini-progress-cache>

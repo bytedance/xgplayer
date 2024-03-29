@@ -21,7 +21,7 @@ class Poster extends Plugin {
       isEndedShow: true, // 是否在播放结束之后显示
       hideCanplay: false, // cnaplay 时间大于1的时候才隐藏
       poster: '', // 封面图地址
-      fillMode: 'fixWidth', // fixWidth / fixHeight / cover / container
+      fillMode: 'fixWidth' // fixWidth / fixHeight / cover / container
     }
   }
 
