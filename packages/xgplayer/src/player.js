@@ -1373,7 +1373,6 @@ class Player extends MediaProxy {
           })
         }
       })
-      this.play()
       this.emit(Events.REPLAY)
       this.onPlay()
     })
