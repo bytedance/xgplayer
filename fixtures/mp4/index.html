@@ -12,17 +12,13 @@
       margin: 0;
       padding: 0;
     }
-
-    #wrapper {
-      width: 600px;
-    }
-
     video {
       filter: saturate(100%) !important;
       -webkit-filter: saturate(100%) !important;
     }
   </style>
   <link rel="stylesheet" href="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.110-18/dist/xgplayer.min.css"/>
+  <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
 </head>
 <button id="btn" onclick="playNext()">播放下一个</button>
 <body>
@@ -30,6 +26,7 @@
   <div id="vs"></div>
 </section>
 <script type="module">
+  var vConsole = new window.VConsole();
   import Player from '../../packages/xgplayer/src/index'
   import Mp4Plugin from '../../packages/xgplayer-mp4/src/index'
   var videoList = [
@@ -74,9 +71,7 @@
     id: 'vs',
     autoplay: true,
     volume: 1,
-    url: '',
-    //url: './video/output.m4a',//'./video/1080p.mp4',
-    // url:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
+    url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
     poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
     playsinline: true,
     thumbnail: {
@@ -100,7 +95,7 @@
     // },
     height: window.innerHeight -300,
     width: window.innerWidth,
-    plugins: [Mp4Plugin]
+    // plugins: [Mp4Plugin]
   });
   window.player = player
 
@@ -110,13 +105,28 @@
       id: 'mse',
       isLive: false,
       autoplay: true,
-      plugins: [Mp4Plugin],
+      // plugins: [Mp4Plugin],
       url: './video/1080p.mp4'
     })
   }
   window.playNext = playNext
-  player.on('ended', () => {
-    player.replay()
+  // player.on('ended', () => {
+  //   player.replay()
+  // })
+  player.on('pause', () => {
+    console.log('>>>>pause')
+  })
+  player.on('play', () => {
+    console.log('>>>>play')
+  })
+  player.on('seeking', () => {
+    console.log('>>>>seeking')
+  })
+  player.on('seeked', () => {
+    console.log('>>>>seeked')
+  })
+  player.usePluginHooks('replay','replayClick', () => {
+    console.log('>>>>replayClick')
   })
 </script>
 <!--<script type="module" src="./index.js"></script>-->
