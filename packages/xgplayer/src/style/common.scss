@@ -201,6 +201,9 @@
     cursor: pointer;
     color: $definitionNameColor;
     fill: #fff;
+    &.xg-icon-disable {
+      cursor: not-allowed;
+    }
     .xg-tips {
       top: -30px;
       left: 50%;
