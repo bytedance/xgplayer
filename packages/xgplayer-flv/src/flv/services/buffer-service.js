@@ -37,7 +37,7 @@ export class BufferService {
    * @param {import('../index').Flv} flv
    * @param {Object} [softVideo]
    */
-  constructor (flv, softVideo, opts) {
+  constructor (flv, softVideo, opts = {}) {
     this.flv = flv
     this._opts = opts
 
