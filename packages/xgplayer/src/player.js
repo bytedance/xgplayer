@@ -575,6 +575,14 @@ class Player extends MediaProxy {
     this.media.removeEventListener('webkitendfullscreen', this._onWebkitendfullscreen)
   }
 
+  _clearUserTimer () {
+    if (!this.userTimer) {
+      return
+    }
+    Util.clearTimeout(this, this.userTimer)
+    this.userTimer = null
+  }
+
   /**
    *
    * @param { any } [url]
@@ -1682,6 +1690,7 @@ class Player extends MediaProxy {
       this.onBlur(data)
       return
     }
+    this._clearUserTimer()
     this.emit(Events.PLAYER_BLUR, {
       paused: this.paused,
       ended: this.ended,
@@ -1698,18 +1707,12 @@ class Player extends MediaProxy {
     const { innerStates } = this
     this.isActive = true
     this.removeClass(STATE_CLASS.INACTIVE)
-    if (this.userTimer) {
-      Util.clearTimeout(this, this.userTimer)
-      this.userTimer = null
-    }
+    this._clearUserTimer()
     if (data.isLock !== undefined) {
       innerStates.isActiveLocked = data.isLock
     }
     if (data.autoHide === false || data.isLock === true || innerStates.isActiveLocked) {
-      if (this.userTimer) {
-        Util.clearTimeout(this, this.userTimer)
-        this.userTimer = null
-      }
+      this._clearUserTimer()
       return
     }
     const time = data && data.delay ? data.delay : this.config.inactive
@@ -1725,7 +1728,7 @@ class Player extends MediaProxy {
    * @returns
    */
   onBlur ({ ignorePaused = false } = {}) {
-    if (!this.isActive || this.innerStates.isActiveLocked) {
+    if (this.innerStates.isActiveLocked) {
       return
     }
     const { closePauseVideoFocus } = this.config
@@ -1880,10 +1883,7 @@ class Player extends MediaProxy {
     this.addClass(STATE_CLASS.PAUSED)
     this.updateAcc('pause')
     if (!this.config.closePauseVideoFocus) {
-      if (this.userTimer) {
-        Util.clearTimeout(this, this.userTimer)
-        this.userTimer = null
-      }
+      this._clearUserTimer()
       this.focus()
     }
   }
