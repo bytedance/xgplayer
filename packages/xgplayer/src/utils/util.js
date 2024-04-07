@@ -772,6 +772,9 @@ util.cancelAnimationFrame = function (frameId) {
  * @returns { boolean }
  */
 util.isMSE = function (video) {
+  if (video.media) {
+    video = video.media
+  }
   if (!video || !(video instanceof HTMLMediaElement)) {
     return false
   }
