@@ -1304,12 +1304,12 @@ class Player extends MediaProxy {
    */
   destroy () {
     const { innerContainer, root, media } = this
-    if (!root || !media) {
+    if (!media) {
       return
     }
     this.hasStart = false
     this._useAutoplay = false
-    root.removeAttribute(PLATER_ID)
+    root && root.removeAttribute(PLATER_ID)
     this.updateAcc('destroy')
     this._unbindEvents()
     this._detachSourceEvents(this.media)
@@ -1320,7 +1320,7 @@ class Player extends MediaProxy {
     delHooksDescriptor(this)
     super.destroy()
     // 退出全屏
-    if (this.fullscreen && this._fullscreenEl === this.root) {
+    if (this.fullscreen && this._fullscreenEl === root) {
       this.exitFullscreen()
     }
 
@@ -1330,7 +1330,7 @@ class Player extends MediaProxy {
         innerContainer.removeChild(_c[i])
       }
     }
-    !innerContainer &&
+    root && !innerContainer &&
     media instanceof window.Node &&
       root.contains(media) &&
       root.removeChild(media);
@@ -1338,14 +1338,14 @@ class Player extends MediaProxy {
       this[item] && root.removeChild(this[item])
       this[item] = null
     })
-    const cList = root.className.split(' ')
-    const isBuildIn = Util.hasClass(this.root, STATE_CLASS.BUILTIN_CLASS)
+    const cList = root ? root.className.split(' ') : []
+    const isBuildIn = root && Util.hasClass(root, STATE_CLASS.BUILTIN_CLASS)
     if (cList.length > 0) {
       root.className = cList
         .filter((name) => name.indexOf('xgplayer') < 0)
         .join(' ')
     } else {
-      root.className = ''
+      root && (root.className = '')
     }
     this.removeAttribute('data-xgfill');
 
