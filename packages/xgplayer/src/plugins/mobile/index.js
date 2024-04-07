@@ -188,9 +188,11 @@ class MobilePlugin extends Plugin {
       if (progressPlugin) {
         progressPlugin.addCallBack('dragmove', (data) => {
           this.activeSeekNote(data.currentTime, data.forward)
-        })
-        progressPlugin.addCallBack('dragend', () => {
-          this.changeAction(ACTIONS.AUTO)
+        });
+        ['dragend', 'click'].forEach(key => {
+          progressPlugin.addCallBack(key, () => {
+            this.changeAction(ACTIONS.AUTO)
+          })
         })
       }
     }
@@ -369,6 +371,7 @@ class MobilePlugin extends Plugin {
     const touche = this.getTouche(e)
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
+      this.timer && clearTimeout(this.timer)
       // e.cancelable && e.preventDefault()
       Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
       this.find('.xg-dur').innerHTML = Util.format(this.duration)
@@ -438,6 +441,9 @@ class MobilePlugin extends Plugin {
 
   onTouchEnd = (e) => {
     const { player, pos, playerConfig } = this
+    setTimeout(() => {
+      player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
+    }, 10)
     if (!pos.isStart) {
       return
     }
@@ -448,9 +454,6 @@ class MobilePlugin extends Plugin {
     const { disableGesture, gestureX } = this.config
     if (!disableGesture && gestureX) {
       this.endLastMove(pos.scope)
-      setTimeout(() => {
-        player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
-      }, 10)
     } else {
       pos.time = 0
     }
