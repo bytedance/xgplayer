@@ -450,6 +450,7 @@ class Progress extends Plugin {
     if (eventType === 'touchstart') {
       this.root.addEventListener('touchmove', this.onMouseMove)
       this.root.addEventListener('touchend', this.onMouseUp)
+      this.root.addEventListener('touchcancel', this.onMouseUp)
     } else {
       this.unbind('mousemove', this.onMoveOnly)
 
@@ -724,7 +725,7 @@ class Progress extends Plugin {
       this.root.removeEventListener('touchstart', this.onMouseDown)
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
-      this.root.addEventListener('touchcancel', this.onMouseUp)
+      this.root.removeEventListener('touchcancel', this.onMouseUp)
       if (controls) {
         controls.root && controls.root.removeEventListener('touchmove', Util.stopPropagation)
         controls.center && controls.center.removeEventListener('touchend', Util.stopPropagation)
