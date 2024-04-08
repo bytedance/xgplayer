@@ -32,7 +32,7 @@ function getListClassName (listType, position) {
  * }} IOptionsIconConfig
  */
 
-const IS_MOBILE = Sniffer.device === 'mobile'
+let IS_MOBILE = Sniffer.device === 'mobile'
 
 export default class OptionsIcon extends Plugin {
   static get pluginName () {
@@ -72,7 +72,8 @@ export default class OptionsIcon extends Plugin {
   afterCreate () {
     const { config } = this
     this.initIcons()
-    if (IS_MOBILE && config.listType !== LIST_TYPES.MIDDLE) {
+    IS_MOBILE = IS_MOBILE || this.domEventType === 'touch'
+    if (Sniffer.device === 'mobile' && config.listType !== LIST_TYPES.MIDDLE) {
       config.listType = LIST_TYPES.SIDE
     }
 
@@ -207,7 +208,7 @@ export default class OptionsIcon extends Plugin {
 
   // 状态切换
   toggle (isActive) {
-    if (isActive === this.isActive) return
+    if (isActive === this.isActive || this.config.disable) return
     const { controls } = this.player
     const { listType } = this.config
     if (isActive) {
@@ -265,7 +266,8 @@ export default class OptionsIcon extends Plugin {
         className: getListClassName(config.listType, config.position), // config.listType === LIST_TYPES.SIDE ? 'xg-right-side' : '',
         onItemClick: (e, data) => {
           this.onItemClick(e, data)
-        }
+        },
+        domEventType: IS_MOBILE ? 'touche' : 'mouse'
       },
       root: config.listType === LIST_TYPES.SIDE ? (player.innerContainer || player.root) : this.root
     }
