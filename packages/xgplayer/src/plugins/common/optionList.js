@@ -1,4 +1,4 @@
-import Plugin, { Util, Sniffer } from '../../plugin'
+import Plugin, { Util } from '../../plugin'
 
 export default class OptionList {
   constructor (args) {
@@ -12,7 +12,7 @@ export default class OptionList {
     }
     this.onItemClick = this.onItemClick.bind(this)
     this.renderItemList()
-    const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'
+    const eventName = this.config.domEventType === 'touche' ? 'touchend' : 'click'
     this._delegates = Plugin.delegate.call(this, this.root, 'li', eventName, this.onItemClick)
   }
 
