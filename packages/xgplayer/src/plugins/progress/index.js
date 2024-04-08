@@ -507,7 +507,7 @@ class Progress extends Plugin {
     // 延迟复位，状态复位要在dom相关时间回调执行之后
     Util.setTimeout(this, () => {
       this.resetSeekState()
-    }, 10)
+    }, 1)
     // 交互结束 恢复控制栏的隐藏流程
     player.focus()
   }
@@ -738,7 +738,7 @@ class Progress extends Plugin {
       this.unbind('mouseleave', this.onMouseLeave)
       document.removeEventListener('mousemove', this.onMouseMove, false)
       document.removeEventListener('mouseup', this.onMouseUp, false)
-      player.root.removeEventListener('click', this.onBodyClick, true)
+      player.root.removeEventListener('click', this.onBodyClick, false)
     }
   }
 
