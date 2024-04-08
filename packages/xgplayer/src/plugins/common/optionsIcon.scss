@@ -7,7 +7,7 @@
       display: block;
     }
   }
-  
+
   @keyframes xg_right_options_active {
     0% {
       transform: translateX(50%);
@@ -103,12 +103,6 @@
         width: 100%;
         padding: 0;
         position: relative;
-        &:hover{
-          color: $definitionLiColor;
-        }
-        &.selected {
-          color: $definitionLiActiveColor;
-        }
         span {
           display: block;
           position: relative;
@@ -152,9 +146,16 @@
 }
 
 @media only screen and (max-width: 480px) {
-  .xgplayer-mobile .xg-options-icon {
-    &.portrait {
-      display: none;
+  .xgplayer-mobile {
+    .xg-options-icon {
+      &.portrait {
+        display: none;
+      }
+    }
+    .xg-options-list li {
+      &:hover{
+        color: $definitionLiColor;
+      }
     }
   }
 }
