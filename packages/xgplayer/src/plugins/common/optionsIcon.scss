@@ -66,6 +66,7 @@
       position: relative;
       padding: 4px 0;
       text-align: center;
+      color: $definitionLiColor;
       &:hover{
         color: $definitionLiActiveColor;
         opacity: 1;
