@@ -350,6 +350,7 @@ class Player extends MediaProxy {
      * @type {InstManager}
      */
     this.instManager = instManager
+    this._initMedia()
     const {isNoRoot} = this.config
     const rootInit = !isNoRoot && this._initDOM()
     if (!isNoRoot && !rootInit) {
@@ -400,6 +401,19 @@ class Player extends MediaProxy {
     }
   }
 
+  _initMedia () {
+    // 允许自定义video对象的构造
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if (XgVideoProxy && this.mediaConfig.mediaType === XgVideoProxy.mediaType) {
+      const el = this.innerContainer || this.root
+      this.detachVideoEvents(this.media)
+      const _nVideo = new XgVideoProxy(el, this.config, this.mediaConfig)
+      this.attachVideoEvents(_nVideo)
+      this.media = _nVideo
+    }
+    this.media.setAttribute(PLATER_ID, this.playerId)
+  }
+
   /**
    * init control domElement
    * @private
@@ -435,17 +449,6 @@ class Player extends MediaProxy {
     this.root.setAttribute(PLATER_ID, this.playerId)
     instManager?.add(this)
     this._initBaseDoms()
-
-    // 允许自定义video对象的构造
-    const XgVideoProxy = this.constructor.XgVideoProxy
-    if (XgVideoProxy && this.mediaConfig.mediaType === XgVideoProxy.mediaType) {
-      const el = this.innerContainer || this.root
-      this.detachVideoEvents(this.media)
-      const _nVideo = new XgVideoProxy(el, this.config, this.mediaConfig)
-      this.attachVideoEvents(_nVideo)
-      this.media = _nVideo
-    }
-    this.media.setAttribute(PLATER_ID, this.playerId)
     const device = isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
     this.addClass(
       `${STATE_CLASS.DEFAULT} ${STATE_CLASS.INACTIVE} xgplayer-${device} ${
