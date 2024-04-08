@@ -438,7 +438,7 @@ const pluginsManager = {
     if (!this.pluginGroup[cgid]) {
       return
     }
-    unObserver(player.root)
+    player.root && unObserver(player.root)
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
       this.unRegister(cgid, item)
