@@ -1,8 +1,16 @@
+## 3.0.17
+>* fix: 🐛 (xgplayer-hls) 修复hls最后一个segment被过滤后，播放到结尾卡住问题
+
+## 3.0.16
+-
+
 ## 3.0.15
->* feat: feat: 🎸 (xgplayer-hls) hls支持MMS
+>* feat: 🎸 (xgplayer-hls) hls支持MMS
+>* fix: 🐛 (xgplayer-hls) 加密HLS播放失败问题
 
 ## 3.0.14
 >* feat: 🎸 (xgplayer-hls) 加密hls支持更多的Key System
+>* fix(xgplayer-hls): 修复当末尾碎片sn=0时，sn被错误的兜底为-1的问题
 
 ## 3.0.13
 -
