@@ -296,16 +296,15 @@ function init(index = 0, config = {}) {
     DynamicBg: {
       disable: false
     },
-    marginControls: true,
     loop: false,
     autoplay: false,
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
     width: '96%',
-    ignores:['playbackrate'],
+    ignores:[],
     plugins: [],
-    rotate: true,
+    rotate: false,
     heatmap: {
       data: headmapData,
       minValue: 0.35,
@@ -329,9 +328,13 @@ function init(index = 0, config = {}) {
     volume: {
       position: 'rootTop'
     },
-    rotate: {
-      innerRotate: false
+    playbackRate: {
+      listType: 'side',
+      list: [1,2,3,4],
     },
+    // rotate: {
+    //   innerRotate: false
+    // },
     Keyboard: {
       // isGlobalTrigger: false, // Whether the shortcut key needs to be triggered globally
       // disableBodyTrigger: false,
