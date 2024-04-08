@@ -154,8 +154,11 @@
       }
     }
     .xg-options-list li {
-      &:hover{
+      &:hover {
         color: $definitionLiColor;
+      }
+      &.selected {
+        color: $definitionLiActiveColor;
       }
     }
   }
