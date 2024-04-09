@@ -306,7 +306,11 @@ function getSegments (
           // 防止之后再添加新的Coded Frame Group时由于缺少了一帧音频容易产生Buffer gap
           nextEndTime + adjust >= duration
         ) {
-          adjust += nextEndTime - duration
+          if (audioGroupingStrategy === 2) {
+            adjust += time / timescale - duration
+          } else {
+            adjust += nextEndTime - duration
+          }
           gopMinPtsArr.push(segFrames[0].pts)
           gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
           pushSegment(curEndTime, segments.length, segments.length)
