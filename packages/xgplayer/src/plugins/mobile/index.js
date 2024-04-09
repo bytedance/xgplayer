@@ -191,6 +191,7 @@ class MobilePlugin extends Plugin {
         });
         ['dragend', 'click'].forEach(key => {
           progressPlugin.addCallBack(key, () => {
+            console.log('>>>>progressPlugin callback', key)
             this.changeAction(ACTIONS.AUTO)
           })
         })
@@ -259,6 +260,7 @@ class MobilePlugin extends Plugin {
 
   changeAction (action) {
     const { player, root } = this
+    console.log('>>>>changeAction', action)
     root.setAttribute('data-xg-action', action)
     const startPlugin = player.plugins.start
     startPlugin && startPlugin.recover()
@@ -368,6 +370,7 @@ class MobilePlugin extends Plugin {
 
   onTouchStart = (e) => {
     const { player, config, pos, playerConfig } = this
+    console.log('>>>onTouchStart Mobile')
     const touche = this.getTouche(e)
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
@@ -441,8 +444,9 @@ class MobilePlugin extends Plugin {
 
   onTouchEnd = (e) => {
     const { player, pos, playerConfig } = this
+    console.log('>>>onTouchEnd Mobile')
     setTimeout(() => {
-      player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
+      player.getPlugin('progress') && player.getPlugin('progress').recoverSeekState()
     }, 10)
     if (!pos.isStart) {
       return

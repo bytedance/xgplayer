@@ -289,7 +289,7 @@ class Progress extends Plugin {
   }
 
   /**
-   * @description 解除进度条的所动状态
+   * @description 解除进度条的锁定状态
    * @returns
    */
   unlock () {
@@ -308,17 +308,17 @@ class Progress extends Plugin {
   }
 
   bindDomEvents () {
-    const { controls, config } = this.player
+    const { config } = this.player
     this._mouseDownHandlerHook = this.hook('dragstart', this._mouseDownHandler)
     this._mouseUpHandlerHook = this.hook('dragend', this._mouseUpHandler)
     this._mouseMoveHandlerHook = this.hook('drag', this._mouseMoveHandler)
 
     if (this.domEventType === 'touch' || this.domEventType === 'compatible') {
       this.root.addEventListener('touchstart', this.onMouseDown)
-      if (controls) {
-        controls.root && controls.root.addEventListener('touchmove', Util.stopPropagation)
-        controls.center && controls.center.addEventListener('touchend', Util.stopPropagation)
-      }
+      // if (controls) {
+      //   controls.root && controls.root.addEventListener('touchmove', this.onControlsMove)
+      //   controls.center && controls.center.addEventListener('touchend', this.onControlsEnd)
+      // }
     }
 
     if (this.domEventType === 'mouse' || this.domEventType === 'compatible') {
@@ -365,8 +365,8 @@ class Progress extends Plugin {
       pos.moving = true
       pos.x = x
       ret = this.computeTime(e, x)
+      this.triggerCallbacks('dragmove', ret, e)
     }
-    this.triggerCallbacks('dragmove', ret, e)
     this._updateInnerFocus(ret)
   }
 
@@ -414,7 +414,18 @@ class Progress extends Plugin {
     this._updateInnerFocus(data)
   }
 
+  onControlsMove = (e) => {
+    Util.stopPropagation(e)
+    console.log('onControlsMove', e.type)
+  }
+
+  onControlsEnd = (e) => {
+    console.log('onControlsEnd', e.type)
+    Util.stopPropagation(e)
+  }
+
   onMouseDown = (e) => {
+    console.log('>>>onMouseDown')
     const { _state, player, pos, config, playerConfig } = this
     const _ePos = Util.getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
@@ -463,6 +474,7 @@ class Progress extends Plugin {
 
   onMouseUp = (e) => {
     const { player, config, pos, playerConfig, _state } = this
+    console.log('onMouseUp', e.type)
     e.stopPropagation()
     e.preventDefault()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
@@ -473,14 +485,16 @@ class Progress extends Plugin {
     const ret = this.computeTime(e, pos.x)
     ret.prePlayTime = _state.prePlayTime
     if (pos.moving) {
+      console.log('>>>>triggerCallbacks dragend')
       this.triggerCallbacks('dragend', ret, e)
       this.emitUserAction('drag', 'dragend', ret)
     } else {
+      console.log('>>>>triggerCallbacks click')
       this.triggerCallbacks('click', ret, e)
       this.emitUserAction('click', 'click', ret)
     }
     this._mouseUpHandlerHook(e, ret)
-
+    console.log('>>>>after _mouseUpHandlerHook')
     pos.moving = false
     pos.isDown = false
     pos.x = 0
@@ -490,6 +504,7 @@ class Progress extends Plugin {
     _state.time = 0
     const eventType = e.type
     if (eventType === 'touchend' || eventType === 'touchcancel') {
+      console.log('>>>>removeEventListener')
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
       this.root.removeEventListener('touchcancel', this.onMouseUp)
@@ -504,10 +519,15 @@ class Progress extends Plugin {
         playerConfig.isMobileSimulateMode !== 'mobile' && this.bind('mousemove', this.onMoveOnly)
       }
     }
+    console.log('>>>>setTimeout recoverSeekState')
+    if (eventType === 'touchcancel') {
+      this.recoverSeekState()
+    }
     // 延迟复位，状态复位要在dom相关时间回调执行之后
     Util.setTimeout(this, () => {
-      this.resetSeekState()
-    }, 1)
+      console.log('>>>>recoverSeekState')
+      this.recoverSeekState()
+    }, 10)
     // 交互结束 恢复控制栏的隐藏流程
     player.focus()
   }
@@ -522,10 +542,15 @@ class Progress extends Plugin {
     const _ePos = Util.getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     const diff = Math.abs(pos.x - x)
-    if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
+    if (!pos.isDown || (pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
+      console.log('>>>onMouseMove11', `pos.isDown:${pos.isDown} isProgressMoving:${this.isProgressMoving}`)
       return
     }
     pos.x = x
+    if (config.disable) {
+      return
+    }
+    this.isProgressMoving = true
     const ret = this.computeTime(e, x)
     ret.prePlayTime = _state.prePlayTime
     this._mouseMoveHandlerHook(e, ret)
@@ -557,7 +582,7 @@ class Progress extends Plugin {
   }
 
   onMouseLeave = (e) => {
-    this.triggerCallbacks('mouseleave', null, e)
+    e && this.triggerCallbacks('mouseleave', null, e)
     this.unlock()
     this._updateInnerFocus(null)
   }
@@ -645,10 +670,14 @@ class Progress extends Plugin {
   /**
    * @description 复位正在拖拽状态 ，拖拽的时候要避免timeupdate更新
    */
-  resetSeekState () {
+  recoverSeekState () {
     this.isProgressMoving = false
     const timeIcon = this.player.plugins.time
     timeIcon && timeIcon.resetActive()
+  }
+
+  setSeekState () {
+    this.isProgressMoving = true
   }
 
   /**
@@ -657,7 +686,6 @@ class Progress extends Plugin {
    *
    */
   updatePercent (percent, notSeek) {
-    this.isProgressMoving = true
     if (this.config.disable) {
       return
     }
@@ -676,6 +704,7 @@ class Progress extends Plugin {
   onTimeupdate (isEnded) {
     const { player, _state, offsetDuration } = this
     if ((player.isSeeking && player.media.seeking) || this.isProgressMoving || !player.hasStart) {
+      console.log('>>>onTimeupdate', `isSeeking:${player.isSeeking} seeking:${player.media.seeking} isProgressMoving:${this.isProgressMoving} hasStart:${player.hasStart}`)
       return
     }
     if (_state.now > -1) {
@@ -716,7 +745,6 @@ class Progress extends Plugin {
 
   destroy () {
     const { player } = this
-    const { controls } = player
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null
@@ -726,10 +754,10 @@ class Progress extends Plugin {
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
       this.root.removeEventListener('touchcancel', this.onMouseUp)
-      if (controls) {
-        controls.root && controls.root.removeEventListener('touchmove', Util.stopPropagation)
-        controls.center && controls.center.removeEventListener('touchend', Util.stopPropagation)
-      }
+      // if (controls) {
+      //   controls.root && controls.root.removeEventListener('touchmove', this.onControlsMove)
+      //   controls.center && controls.center.removeEventListener('touchend',this.onControlsEnd)
+      // }
     }
     if (domEventType === 'mouse' || domEventType === 'compatible') {
       this.unbind('mousedown', this.onMouseDown)
