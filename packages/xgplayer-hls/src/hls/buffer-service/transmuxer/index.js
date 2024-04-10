@@ -52,6 +52,13 @@ export class Transmuxer {
     this.hls.emit(Event.DEMUXED_TRACK, {videoTrack, audioTrack})
 
     if (this._remuxer) {
+      // LG webos5.4系统上发现, 直播流开启low latency mode渲染的话，出首帧后需要等一段时间才触发loadeddata、canplay事件,影响首帧统计
+      // low latency mode通过解析封装的fmp4中对媒体播放时长的描述判断 https://issues.chromium.org/issues/41161663
+      if (needInit && this.hls.isLive && !this.hls.config.mseLowLatency) {
+        videoTrack.duration = this.hls.totalDuration * videoTrack.timescale
+        audioTrack.duration = this.hls.totalDuration * audioTrack.timescale
+      }
+
       try {
         const {
           videoInitSegment,
