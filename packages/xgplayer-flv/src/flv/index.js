@@ -499,6 +499,7 @@ export class Flv extends EventEmitter {
       const latency = bufferEnd - currentTime
       if (latency >= opts.maxLatency) {
         this.media.currentTime = bufferEnd - opts.targetLatency
+        this.emit(EVENT.CHASEFRAME, {currentTime: this.media.currentTime, latency: opts.targetLatency})
       }
     }
     this._seiService.throw(currentTime, true)

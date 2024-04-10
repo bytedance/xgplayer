@@ -11,6 +11,7 @@ export const EVENT = {
   REMOVE_BUFFER: 'core.removebuffer',
   BUFFEREOS: 'core.buffereos',
   KEYFRAME: 'core.keyframe',
+  CHASEFRAME: 'core.chaseframe',
   METADATA_PARSED: 'core.metadataparsed',
   SEI: 'core.sei',
   SEI_IN_TIME: 'core.seiintime',
