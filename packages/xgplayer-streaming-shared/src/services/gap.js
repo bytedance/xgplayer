@@ -12,7 +12,6 @@ export class GapService {
     if (this._prevCurrentTime === currentTime) {
       const info = Buffer.info(Buffer.get(media), currentTime)
       if (!info.buffers.length) return
-
       if (
         (isLive && info.nextStart) ||
         (info.nextStart && info.nextStart - currentTime < maxJumpDistance)
