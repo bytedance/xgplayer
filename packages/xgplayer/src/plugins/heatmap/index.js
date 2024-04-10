@@ -196,10 +196,10 @@ export default class HeatMap extends Plugin {
     }
   }
 
-  _getY(item, stepY, maxY) {
+  _getY (item, stepY, maxY) {
     const { maxValue, minValue } = this.config
     let y = minValue
-    y = item.score !==undefined ? item.score : item
+    y = item.score !== undefined ? item.score : item
     // y值只能在[minValue, maxValue]之间
     y = Math.min(y, maxValue)
     y = Math.max(y, minValue)
@@ -250,7 +250,7 @@ export default class HeatMap extends Plugin {
     while (j < curDataLength) {
       const x = this._getX(j, step_X, data[i], this.canvasWidth)
       this.xData.push(x)
-      let y = this._getY(data[i], step_V, step_Y)
+      const y = this._getY(data[i], step_V, step_Y)
       this.yMax = Math.max(this.yMax, step_Y - y)
       this.yData.push(y)
 
