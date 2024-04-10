@@ -13,9 +13,9 @@ const DESTROYED = 'DESTROYED';
 const sniffer = Player.sniffer;
 
 let isEnded = (player, mp4) => {
-  if (mp4.meta.endTime - player.currentTime < 0.5) {
+  if (player.mse && mp4.meta.endTime - player.currentTime < 0.5) {
     // let range = player.getBufferedRange(player.buffered2)
-    let offsetTime =  player.duration - player.currentTime
+    let offsetTime = player.duration - player.currentTime
     if (offsetTime < 0.5) {
       player.mse.endOfStream()
       player._stopProgress()
@@ -62,7 +62,7 @@ class Mp4Player extends Player {
     })
   }
 
-  _initMp4Kernal(){
+  _initMp4Kernal (){
     let player = this;
     let rule = player.config.pluginRule || function () { return true }
     if (MSE.isSupported('video/mp4; codecs="avc1.64001E, mp4a.40.5"')) {
@@ -74,7 +74,9 @@ class Mp4Player extends Player {
           return player.currentSrc
         },
         set (url) {
-          player.mse.endOfStream()
+          if (player.mse) {
+            player.mse.endOfStream()
+          }
           player._onDestroy();
           player.config.autoplay = player.autoplay = true
           player.config.url = url
