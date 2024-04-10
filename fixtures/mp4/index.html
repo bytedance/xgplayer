@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <title>播放器</title>
+    <style type="text/css">
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: auto;
+        overflow: hidden;
+        display: flex;
+      }
+      body {
+        display: flex;
+      }
+      #mse {
+        margin: auto;
+      }
+    </style>
+    <script type="text/javascript">
+    </script>
+  </head>
+  <body>
+    <div id="mse"></div>
+    <script src="../../packages/xgplayer/browser/index.js" charset="utf-8"></script>
+    <script src="../../packages/xgplayer-mp4/browser/index.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      let player = new Mp4Player({
+        id: "mse",
+        autoplay: true,
+        volume: 0.3,
+        url: "https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4",
+        playsinline: true,
+        height: window.innerHeight,
+        width: window.innerWidth,
+      });
+    </script>
+  </body>
+</html>
