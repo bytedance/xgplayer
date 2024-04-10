@@ -152,6 +152,13 @@ class MobilePlugin extends Plugin {
      */
     player.root.addEventListener('touchmove', this.onRootTouchMove, true)
     player.root.addEventListener('touchend', this.onRootTouchEnd, true)
+    player.root.addEventListener('touchcancel', this.onRootTouchEnd, true)
+    const { controls } = this.player
+    if (controls && controls.center) {
+      controls.center.addEventListener('touchmove', this.onRootTouchMove, true)
+      controls.center.addEventListener('touchend', this.onRootTouchEnd, true)
+      controls.center.addEventListener('touchcancel', this.onRootTouchEnd, true)
+    }
     this.on(Events.DURATION_CHANGE, () => {
       const { player, config } = this
       if (player.duration * 1000 < config.moveDuration) {
@@ -372,7 +379,7 @@ class MobilePlugin extends Plugin {
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
       this.timer && clearTimeout(this.timer)
-      // e.cancelable && e.preventDefault()
+      e.cancelable && e.preventDefault()
       Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
       this.find('.xg-dur').innerHTML = Util.format(this.duration)
       // pos.volume = player.volume * 100
@@ -486,8 +493,7 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchEnd = (e) => {
-    if (this.pos.isStart && this.checkIsRootTarget(e)) {
-      e.stopPropagation()
+    if (this.pos.isStart) {
       this.onTouchEnd(e)
       // const { controls } = this.player
       // controls && controls.recoverAutoHide()
@@ -690,6 +696,13 @@ class MobilePlugin extends Plugin {
     this.touch = null
     player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
     player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
+    player.root.removeEventListener('touchcancel', this.onRootTouchEnd, true)
+    const { controls } = this.player
+    if (controls && controls.center) {
+      controls.center.removeEventListener('touchmove', this.onRootTouchMove, true)
+      controls.center.removeEventListener('touchend', this.onRootTouchEnd, true)
+      controls.center.removeEventListener('touchcancel', this.onRootTouchEnd, true)
+    }
   }
 
   render () {

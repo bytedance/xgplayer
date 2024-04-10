@@ -3,6 +3,7 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
 
 .xgplayer {
   .xgplayer-time {
+    pointer-events: none;
     min-width: 40px;
     font-size: 14px;
     font-family: PingFangSC-Semibold;
