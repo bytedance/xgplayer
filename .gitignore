@@ -86,3 +86,7 @@ examples
 es/
 dist/
 browser/
+
+fixtures/*/*
+!fixtures/*/index.html
+!fixtures/*/index.js
