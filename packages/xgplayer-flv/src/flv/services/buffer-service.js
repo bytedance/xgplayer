@@ -198,6 +198,12 @@ export class BufferService {
 
       let remuxResult
       try {
+        // LG webos5.4系统上发现, 直播流开启low latency mode渲染的话，出首帧后需要等一段时间才触发loadeddata、canplay事件,影响首帧统计
+        // low latency mode通过解析封装的fmp4中对媒体播放时长的描述判断 https://issues.chromium.org/issues/41161663
+        if (this._needInitSegment && !this._opts.mseLowLatency) {
+          videoTrack.duration = this._opts.durationForMSELowLatencyOff * videoTrack.timescale
+          audioTrack.duration = this._opts.durationForMSELowLatencyOff * audioExist.timescale
+        }
         remuxResult = this._remuxer.remux(this._needInitSegment)
       } catch (error) {
         throw new StreamingError(ERR.REMUX, ERR.SUB_TYPES.FMP4, error)

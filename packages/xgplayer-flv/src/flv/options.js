@@ -23,6 +23,8 @@
 *   onlyVideo?: boolean,
 *   onlyAudio?: boolean,
 *   preferMMS?: boolean,
+*   mseLowLatency?: boolean,
+*   durationForLowLatency?: number, // s
 *   preProcessUrl?: (url: string, ext?: { [propName: string]: any }) => { url: string, [propName: string]: any }
  * }} FlvOption
  */
@@ -50,6 +52,8 @@ export function getOption (opts) {
     onlyVideo: false,
     onlyAudio: false,
     preferMMS: false,
+    mseLowLatency: true, // mse 低延迟模式渲染 https://issues.chromium.org/issues/41161663
+    durationForMSELowLatencyOff: 6, // s
     ...opts
   }
 

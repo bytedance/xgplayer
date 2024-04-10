@@ -21,6 +21,7 @@ import { searchKeyframeIndex } from './utils'
 export const logger = new Logger('flv')
 
 const MAX_HOLE = 0.1
+const MAX_START_GAP = 0.3
 
 /**
  * @typedef {import("../../../xgplayer-streaming-shared/es/services/stats").StatsInfo} Stats
@@ -94,6 +95,7 @@ export class Flv extends EventEmitter {
     }
 
     this.media.addEventListener('play', this._onPlay)
+    this.media.addEventListener('loadeddata', this._onLoadeddata)
     this.media.addEventListener('seeking', this._onSeeking)
     this.media.addEventListener('timeupdate', this._onTimeupdate)
     this.media.addEventListener('progress', this._onBufferUpdate)
@@ -219,6 +221,7 @@ export class Flv extends EventEmitter {
     this.removeAllListeners()
     this._seiService.reset()
     this.media.removeEventListener('play', this._onPlay)
+    this.media.removeEventListener('loadeddata', this._onLoadeddata)
     this.media.removeEventListener('seeking', this._onSeeking)
     this.media.removeEventListener('timeupdate', this._onTimeupdate)
     this.media.removeEventListener('waiting', this._onWaiting)
@@ -442,7 +445,10 @@ export class Flv extends EventEmitter {
       }
     } else {
       if (!media.currentTime && this._gapService) {
-        this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
+        // 起播跳洞检测
+        if (this.bufferInfo(MAX_START_GAP).nextStart) {
+          this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
+        }
         return
       }
       if (opts.isLive && media.readyState === 4 && bufferEnd > opts.disconnectTime) {
@@ -463,6 +469,15 @@ export class Flv extends EventEmitter {
     const info = this.bufferInfo()
     if ((info.start || info.nextStart) > MAX_HOLE) {
       this._tick()
+    }
+  }
+
+  _onLoadeddata = () => {
+    if (this.isLive && !this._opts.mseLowLatency) {
+      // update duration to Infinity
+      if (this.media.duration !== Infinity) {
+        this._bufferService.updateDuration(Infinity).catch(e=>{})
+      }
     }
   }
 
