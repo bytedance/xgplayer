@@ -82,6 +82,7 @@ export class Hls extends EventEmitter {
 
     this._stats = new MediaStatsService(this, 90000)
 
+    this.media.addEventListener('loadeddata', this._onLoadeddata)
     this.media.addEventListener('play', this._onPlay)
     this.media.addEventListener('pause', this._onPause)
     this.media.addEventListener('seeking', this._onSeeking)
@@ -92,7 +93,7 @@ export class Hls extends EventEmitter {
   get streams () { return this._playlist.streams }
   get currentStream () { return this._playlist.currentStream }
   get hasSubtitle () { return this._playlist.hasSubtitle}
-
+  get totalDuration () { return this._playlist.totalDuration}
   get baseDts () {
     return this._bufferService?.baseDts
   }
@@ -338,6 +339,7 @@ export class Hls extends EventEmitter {
     this._playlist.reset()
     this._segmentLoader.reset()
     this._seiService?.reset()
+    this.media.removeEventListener('loadeddata', this._onLoadeddata)
     this.media.removeEventListener('play', this._onPlay)
     this.media.removeEventListener('pause', this._onPause)
     this.media.removeEventListener('seeking', this._onSeeking)
@@ -567,6 +569,18 @@ export class Hls extends EventEmitter {
     this._prevSegCc = cc
     this._prevSegSn = sn
     return true
+  }
+
+  /**
+   * @private
+   */
+  _onLoadeddata = () => {
+    if (this.isLive && !this.config.mseLowLatency) {
+      // update duration to Infinity
+      if (this.media.duration !== Infinity) {
+        this._bufferService.updateDuration(Infinity).catch(e=>{})
+      }
+    }
   }
 
   /**

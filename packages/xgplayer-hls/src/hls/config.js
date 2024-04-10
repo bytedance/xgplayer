@@ -24,7 +24,8 @@
  *  decryptor?: Decryptor,
  *  minSegmentsStartPlay?: number
  *  preferMMS?: boolean
- *  preferMMSStreaming?: boolean
+ *  preferMMSStreaming?: boolean,
+ *  mseLowLatency?: boolean,
  * }} HlsOption
  */
 
@@ -55,6 +56,7 @@ export function getConfig (cfg) {
     minSegmentsStartPlay: 3,
     preferMMS: false,
     preferMMSStreaming: false,
+    mseLowLatency: true, // mse 低延迟模式渲染 https://issues.chromium.org/issues/41161663
     ...cfg,
     media
   }
