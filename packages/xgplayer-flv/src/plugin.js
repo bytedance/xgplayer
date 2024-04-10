@@ -95,6 +95,7 @@ export class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.REMOVE_BUFFER)
     this._transCoreEvent(EVENT.BUFFEREOS)
     this._transCoreEvent(EVENT.KEYFRAME)
+    this._transCoreEvent(EVENT.CHASEFRAME)
     this._transCoreEvent(EVENT.METADATA_PARSED)
     this._transCoreEvent(EVENT.SEI)
     this._transCoreEvent(EVENT.SEI_IN_TIME)
