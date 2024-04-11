@@ -5,7 +5,8 @@ import OptionList from './optionList'
 
 const LIST_TYPES = {
   SIDE: 'side',
-  MIDDLE: 'middle'
+  MIDDLE: 'middle',
+  DEFAULT: 'default',
 }
 
 const TOGGLE_MODES = {
@@ -47,7 +48,7 @@ export default class OptionsIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 100,
       list: [],
-      listType: 'middle', // 模式 side-右侧边栏  middle-中间显示
+      listType: 'default', // 模式 side-右侧边栏  middle-中间显示
       listStyle: {},
       hidePortrait: true,
       isShowIcon: false,
@@ -73,7 +74,7 @@ export default class OptionsIcon extends Plugin {
     const { config } = this
     this.initIcons()
     IS_MOBILE = IS_MOBILE || this.domEventType === 'touch'
-    if (Sniffer.device === 'mobile' && config.listType !== LIST_TYPES.MIDDLE) {
+    if (IS_MOBILE && config.listType === LIST_TYPES.DEFAULT) {
       config.listType = LIST_TYPES.SIDE
     }
 
