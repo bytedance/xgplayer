@@ -2046,11 +2046,12 @@ class Player extends MediaProxy {
   }
 
   /**
-   *
-   * @param { number } time
+   * 目标时间点是否在buffer内
+   * @param { number } time 时间点
+   * @param { number } diff 判断阈值，即该时间下剩余buffer长度超过阈值时才算作在buffer内
    * @returns { boolean }
    */
-  checkBuffer (time) {
+  checkBuffer (time, diff = 0) {
     const buffered = this.media.buffered
     if (!buffered || buffered.length === 0 || !this.duration) {
       return true
@@ -2058,7 +2059,7 @@ class Player extends MediaProxy {
     const currentTime = time || this.media.currentTime || 0.2
     const len = buffered.length
     for (let i = 0; i < len; i++) {
-      if (buffered.start(i) <= currentTime && buffered.end(i) > currentTime) {
+      if (buffered.start(i) <= currentTime && buffered.end(i) - diff > currentTime) {
         return true
       }
     }
