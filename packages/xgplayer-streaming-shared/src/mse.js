@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
-import { createPublicPromise, nowTime } from './utils'
 import { Buffer } from './buffer'
-import { StreamingError, ERR } from './error'
 import { isBrowser } from './env'
+import { ERR, StreamingError } from './error'
 import { Logger } from './logger'
+import { createPublicPromise, nowTime, SafeJSON } from './utils'
 
 function getMediaSource (preferMMS = true) {
   try {
@@ -17,6 +17,23 @@ function getMediaSource (preferMMS = true) {
 
 function isMMS (mediaSource) {
   return /ManagedMediaSource/gi.test(Object.prototype.toString.call(mediaSource))
+}
+
+/**
+ * @param {TimeRanges} buffered
+ */
+function getTimeRanges (buffered) {
+  const ranges = []
+
+  if (buffered instanceof TimeRanges) {
+    for (let i = 0; i < buffered.length; i++) {
+      ranges.push({
+        start: buffered.start(i),
+        end: buffered.end(i)
+      })
+    }
+  }
+  return ranges
 }
 
 /** @enum {string} */
@@ -567,7 +584,7 @@ export class MSE {
       }
       if (op) {
         const costtime = nowTime() - this._opst
-        this._logger.debug('UpdateEnd', op.opName, costtime, op.context)
+        this._logger.debug(`UpdateEnd(${type}/${op.opName})`, SafeJSON.stringify(getTimeRanges(this._sourceBuffer[type]?.buffered)), costtime, op.context)
         op.promise.resolve({name: op.opName, context: op.context, costtime})
         this._startQueue(type)
       }

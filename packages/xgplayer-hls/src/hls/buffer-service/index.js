@@ -162,8 +162,14 @@ export class BufferService {
         this._handleCodecChange(video, audio)
       }
 
-      if (video) p.push(mse.append(MSE.VIDEO, video.data))
-      if (audio) p.push(mse.append(MSE.AUDIO, audio.data))
+      if (video) {
+        const {data: videoData, ...videoRest} = video
+        p.push(mse.append(MSE.VIDEO, videoData, videoRest))
+      }
+      if (audio) {
+        const {data: audioData, ...audioRest} = audio
+        p.push(mse.append(MSE.AUDIO, audioData, audioRest))
+      }
       return Promise.all(p)
     }
   }

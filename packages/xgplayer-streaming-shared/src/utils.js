@@ -23,3 +23,21 @@ export function nowTime () {
     return new Date().getTime()
   }
 }
+
+
+export const SafeJSON = {
+  stringify (obj) {
+    try {
+      return JSON.stringify(obj)
+    } catch (e) {
+      return ''
+    }
+  },
+  parse (obj) {
+    try {
+      return JSON.parse(obj)
+    } catch (e) {
+      return undefined
+    }
+  }
+}

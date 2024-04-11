@@ -1,5 +1,5 @@
-import { TsDemuxer, FMP4Demuxer, FMP4Remuxer, WarningType } from 'xgplayer-transmuxer'
-import { ERR, StreamingError, Logger, concatUint8Array } from 'xgplayer-streaming-shared'
+import { ERR, Logger, StreamingError, concatUint8Array } from 'xgplayer-streaming-shared'
+import { FMP4Demuxer, FMP4Remuxer, TrackType, TsDemuxer, WarningType } from 'xgplayer-transmuxer'
 import { Event } from '../../constants'
 
 const logger = new Logger('Transmuxer')
@@ -27,7 +27,20 @@ export class Transmuxer {
     }
 
     const { videoTrack, audioTrack, metadataTrack } = demuxer
-
+    const vParsed = {
+      codec: videoTrack.codec,
+      timescale: videoTrack.timescale,
+      firstDts: videoTrack.firstDts / videoTrack.timescale,
+      firstPts: videoTrack.firstPts / videoTrack.timescale,
+      duration: videoTrack.samplesDuration / videoTrack.timescale
+    }
+    const aParsed = {
+      codec: audioTrack.codec,
+      timescale: audioTrack.timescale,
+      firstDts: audioTrack.firstDts / videoTrack.timescale,
+      firstPts: audioTrack.firstPts / videoTrack.timescale,
+      duration: audioTrack.samplesDuration / videoTrack.timescale
+    }
     const newId = `${videoTrack.codec}/${videoTrack.width}/${videoTrack.height}/${audioTrack.codec}/${audioTrack.config}`
     if (newId !== this._initSegmentId) {
       this._initSegmentId = newId
@@ -48,7 +61,10 @@ export class Transmuxer {
         } = this._remuxer.remux(needInit)
         const v = concatUint8Array(videoInitSegment, videoSegment)
         const a = concatUint8Array(audioInitSegment, audioSegment)
-        return [v ? { codec: videoTrack.codec, data: v } : undefined, a ? { codec: audioTrack.codec, data: a } : undefined]
+        return [
+          v ? { ...vParsed, data: v } : undefined,
+          a ? { ...aParsed, data: a } : undefined
+        ]
       } catch (error) {
         throw new StreamingError(ERR.REMUX, ERR.SUB_TYPES.FMP4, error)
       }
@@ -58,40 +74,43 @@ export class Transmuxer {
   }
 
   _fireEvents (videoTrack, audioTrack, metadataTrack, discontinuity) {
-    logger.debug(videoTrack.samples, audioTrack.samples)
+    const tracks = [videoTrack, audioTrack]
+    let logCC = `discontinuity: ${discontinuity}`
 
-    if (discontinuity) {
-      if (videoTrack.exist()) {
+    tracks.forEach(track => {
+      if (track.samples?.length) {
+        logCC += `; ${track.samples.length} ${
+          track.type === TrackType.VIDEO ? 'video' : 'audio'
+        } samples, firstDts/firstPts/duration: ${(
+          track.firstDts / track.timescale
+        ).toFixed(3)}/${(track.firstPts / track.timescale).toFixed(3)}/${(
+          track.samplesDuration / track.timescale
+        ).toFixed(3)}`
+      }
+
+      if (discontinuity && track.exist()) {
         this.hls.emit(Event.METADATA_PARSED, {
-          type: 'video',
-          track: videoTrack,
+          type: track.type,
+          track,
           meta: {
-            codec: videoTrack.codec,
-            timescale: videoTrack.timescale,
-            width: videoTrack.width,
-            height: videoTrack.height,
-            sarRatio: videoTrack.sarRatio,
-            baseDts: videoTrack.baseDts
+            codec: track.codec,
+            timescale: track.timescale,
+            baseDts: track.baseDts,
+            ... (track.type === TrackType.VIDEO
+              ? {width: track.width,
+                height: track.height,
+                sarRatio: track.sarRatio
+              }
+              : {
+                codec: track.codec,
+                channelCount: track.channelCount,
+                sampleRate: track.sampleRate
+              })
           }
         })
       }
-
-      if (audioTrack.exist()) {
-        this.hls.emit(Event.METADATA_PARSED, {
-          type: 'audio',
-          track: audioTrack,
-          meta: {
-            codec: audioTrack.codec,
-            channelCount: audioTrack.channelCount,
-            sampleRate: audioTrack.sampleRate,
-            timescale: audioTrack.timescale,
-            baseDts: audioTrack.baseDts
-          }
-        })
-      }
-
-      logger.debug('discontinuity', videoTrack, audioTrack)
-    }
+    })
+    logger.debug(logCC)
 
     videoTrack.warnings.forEach(warn => {
       let type
