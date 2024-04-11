@@ -329,7 +329,7 @@ function init(index = 0, config = {}) {
       position: 'rootTop'
     },
     playbackRate: {
-      listType: 'side',
+      // listType: 'side',
       list: [1,2,3,4],
     },
     // rotate: {
