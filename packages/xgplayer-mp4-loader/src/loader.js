@@ -3,7 +3,7 @@ import { MP4Parser } from 'xgplayer-transmuxer'
 import { getConfig } from './config'
 import { MediaError } from './error'
 import { Cache } from './cache'
-import { isNumber, moovToMeta, moovToSegments } from './utils'
+import { isNumber, moovToMeta, moovToSegments, isSegmentsOk } from './utils'
 import EventEmitter from 'eventemitter3'
 
 export class MP4Loader extends EventEmitter {
@@ -99,7 +99,7 @@ export class MP4Loader extends EventEmitter {
           if (state) {
             if (!mdat) {
               this._error = true
-              onProgress(null, state, options, {err:'cannot find moov or mdat box'}, response)
+              onProgress(null, state, options, new MediaError('cannot find moov or mdat box'), response)
               return
               // throw new MediaError('cannot find moov or mdat box')
             } else {
@@ -119,15 +119,15 @@ export class MP4Loader extends EventEmitter {
           const parsedMoov = MP4Parser.moov(moov)
           if (!parsedMoov) {
             this._error = true
-            onProgress(null, state, options, {err:'cannot parse moov box'},response)
+            onProgress(null, state, options, new MediaError('cannot parse moov box'), response)
             return
             // throw new MediaError('cannot parse moov box', moov.data)
           }
 
           const segments = moovToSegments(parsedMoov, this._config)
-          if (!segments) {
+          if (!isSegmentsOk(segments)) {
             this._error = true
-            onProgress(null, state, options, {err:'cannot parse segments'},response)
+            onProgress(null, state, options, new MediaError('cannot parse segments'), response)
             return
             // throw new MediaError('cannot parse segments', moov.data)
           }
@@ -181,9 +181,8 @@ export class MP4Loader extends EventEmitter {
     if (!parsedMoov) {
       throw new MediaError('cannot parse moov box', moov.data)
     }
-
     const segments = moovToSegments(parsedMoov, this._config)
-    if (!segments) {
+    if (!isSegmentsOk(segments)) {
       throw new MediaError('cannot parse segments', moov.data)
     }
 
