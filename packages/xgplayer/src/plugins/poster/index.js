@@ -77,6 +77,14 @@ class Poster extends Plugin {
     }
   }
 
+  setConfig (config) {
+    Object.keys(config).forEach(key => {
+      this.config[key] = config[key]
+    })
+    const { poster } = this.config
+    this.update(poster)
+  }
+
   onTimeUpdate () {
     if (!this.player.currentTime) {
       this.once(Events.TIME_UPDATE, () => {
