@@ -268,7 +268,7 @@ export default class OptionsIcon extends Plugin {
         onItemClick: (e, data) => {
           this.onItemClick(e, data)
         },
-        domEventType: IS_MOBILE ? 'touche' : 'mouse'
+        domEventType: IS_MOBILE ? 'touch' : 'mouse'
       },
       root: config.listType === LIST_TYPES.SIDE ? (player.innerContainer || player.root) : this.root
     }
