@@ -39,7 +39,6 @@ export function moovToSegments (moov, config) {
       videoSegments
     )
   }
-
   return {
     videoSegments,
     audioSegments
@@ -120,8 +119,8 @@ function getSegments (
   let chunkIndex = 0
   let chunkRunIndex = 0
   let offsetInChunk = 0
-  let lastSampleInChunk = stscEntries[0].samplesPerChunk
-  let lastChunkInRun = stscEntries[1] ? stscEntries[1].firstChunk - 1 : Infinity
+  let lastSampleInChunk = stscEntries.length > 0 ? stscEntries[0].samplesPerChunk : 0
+  let lastChunkInRun = stscEntries.length > 1 && stscEntries[1] ? stscEntries[1].firstChunk - 1 : Infinity
   let dts = 0
   let gopId = -1
   let editListApplied = false
@@ -208,7 +207,9 @@ function getSegments (
   })
 
   const l = frames.length
-  if (!l || (stss && !frames[0].keyframe)) return
+  if (!l || (stss && !frames[0].keyframe)) {
+    return []
+  }
 
   const segments = []
   let segFrames = []
@@ -386,4 +387,18 @@ export function moovToMeta (moov) {
 
 export function isNumber (n) {
   return typeof n === 'number' && !Number.isNaN(n)
+}
+
+
+export function isSegmentsOk (segments) {
+  if (!segments) {
+    return false
+  }
+  const {audioSegments , videoSegments} = segments
+  const v = !videoSegments || videoSegments.length === 0
+  const a = !audioSegments || audioSegments.length === 0
+  if (v && a) {
+    return false
+  }
+  return true
 }
