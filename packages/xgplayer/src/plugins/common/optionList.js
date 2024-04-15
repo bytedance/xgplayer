@@ -12,7 +12,7 @@ export default class OptionList {
     }
     this.onItemClick = this.onItemClick.bind(this)
     this.renderItemList()
-    const eventName = this.config.domEventType === 'touche' ? 'touchend' : 'click'
+    const eventName = this.config.domEventType === 'touch' ? 'touchend' : 'click'
     this._delegates = Plugin.delegate.call(this, this.root, 'li', eventName, this.onItemClick)
   }
 
