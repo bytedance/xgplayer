@@ -67,8 +67,18 @@ export class Stream {
     return this.endTime
   }
 
+  set liveEdge (end) {
+    this.endTime = end
+  }
+
   get endTime () {
     return this.lastSegment?.end || 0
+  }
+
+  set endTime (end) {
+    const lastSeg = this.lastSegment
+    if (lastSeg)
+      lastSeg.duration = end - lastSeg.start
   }
 
   get currentSubtitleEndSn () {

@@ -515,7 +515,7 @@ export class Hls extends EventEmitter {
     let cachedError = null
     try {
       this._segmentProcessing = true
-      logger.log(`load segment, sn:${seg.sn}, partIndex:${seg.partIndex}`)
+      logger.log(`load segment, sn:${seg.sn}, [${seg.start}, ${seg.end}], partIndex:${seg.partIndex}`)
       appended = await this._reqAndBufferSegment(seg, this._playlist.getAudioSegment(seg))
     } catch (error) {
       // If an exception is thrown here, other reference functions
@@ -536,7 +536,12 @@ export class Hls extends EventEmitter {
       return this._emitError(StreamingError.create(cachedError))
     }
     if (appended) {
-      if (this._urlSwitching) {
+      const bufferEnd = this.bufferInfo().end
+      if (this.isLive && !this.media.seeking && bufferEnd && Math.abs(seg.end - bufferEnd) > 1) {
+        logger.warn(`segment: ${seg.sn} expected end=${seg.end}, real end=${bufferEnd}`)
+        this._playlist.feedbackLiveEdge(seg, bufferEnd)
+      }
+      if (this._urlSwitching && this._playlist.currentStream?.url === this.config.url) {
         this._urlSwitching = false
         this.emit(Event.SWITCH_URL_SUCCESS, { url: this.config.url })
       }
@@ -581,6 +586,7 @@ export class Hls extends EventEmitter {
       const segStart = this.bufferInfo().end
       // update the new segements [start、end] to match timeline
       this._playlist.updateSegmentsRanges(sn, segStart)
+      logger.warn(`update the new playlist liveEdge, segment id=${sn}, buffer start=${segStart}, liveEdge=${this._playlist.liveEdge}`)
       if (discontinuity && !contiguous) {
         // 前后流segment sequencenumber 不匹配
         start = segStart
@@ -669,6 +675,7 @@ export class Hls extends EventEmitter {
     const info = Buffer.info(Buffer.get(this.media), seekTime, 0.1)
     if (curSeg) {
       if (info.end && Math.abs(info.end - curSeg.end) < 0.2) return
+      if (this.isLive && info.end) return
     }
 
     const segIndex = this._playlist.findSegmentIndexByTime(seekTime)
