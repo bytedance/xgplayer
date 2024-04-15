@@ -45,6 +45,12 @@ export class Playlist {
     return this.currentStream?.liveEdge
   }
 
+  set liveEdge (end) {
+    if (this.currentStream) {
+      this.currentStream.liveEdge = end
+    }
+  }
+
   get totalDuration () {
     return this.currentStream?.totalDuration || 0
   }
@@ -172,7 +178,6 @@ export class Playlist {
       s.start = start
       start = s.end
     })
-
   }
 
   switchSubtitle (lang) {
@@ -211,7 +216,18 @@ export class Playlist {
     if (!next.hasAudio && !next.hasVideo) return
 
     if ((next.hasAudio !== seg.hasAudio || next.hasVideo !== seg.hasVideo)) return next
+  }
 
+  feedbackLiveEdge (segment, bufferEnd) {
+    const segs = this.currentSegments
+    if (!segs) return
+    const isLast = this.lastSegment?.sn === segment.sn
+    if (isLast) {
+      this.liveEdge = bufferEnd
+      return
+    }
+
+    this.updateSegmentsRanges(segment.sn + 1, bufferEnd)
   }
 
 }
