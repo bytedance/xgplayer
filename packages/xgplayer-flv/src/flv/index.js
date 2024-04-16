@@ -208,10 +208,10 @@ export class Flv extends EventEmitter {
     await this._clear()
 
     setTimeout(() => {
-      this._loadData(url)
-      this._bufferService.seamlessSwitch()
       this._urlSwitching = true
       this._seamlessSwitching = true
+      this._loadData(url)
+      this._bufferService.seamlessSwitch()
     })
   }
 
@@ -288,7 +288,7 @@ export class Flv extends EventEmitter {
 
     this._mediaLoader.finnalUrl = finnalUrl
 
-    this.emit(EVENT.LOAD_START, { url: finnalUrl })
+    this.emit(EVENT.LOAD_START, { url: finnalUrl, seamlessSwitching: this._seamlessSwitching })
 
     logger.debug('load data, loading:', this._loading, finnalUrl)
 
