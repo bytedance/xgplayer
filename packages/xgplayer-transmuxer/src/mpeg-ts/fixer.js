@@ -161,7 +161,14 @@ export class TsFixer {
     let refSampleDurationInt
     if (videoTrack.fpsNum && videoTrack.fpsDen) {
       refSampleDurationInt = videoTrack.timescale * (videoTrack.fpsDen / videoTrack.fpsNum)
-    } else {
+    }
+
+    // fps inaccuracy
+    if (refSampleDurationInt < 90 * 10) { // < 10ms per frame
+      refSampleDurationInt = 0
+    }
+
+    if (!refSampleDurationInt) {
       const first = videoTrack.samples[0]
       const second = videoTrack.samples[1]
       // 100ms default
@@ -313,10 +320,10 @@ export class TsFixer {
 
         audioTrack.warnings.push({
           type: WarningType.AUDIO_FILLED,
-          pts: sample.pts,
+          pts: sample.pts / 90,
           originPts: sample.originPts,
           count,
-          nextPts,
+          nextPts: nextPts / 90,
           refSampleDuration
         })
 
@@ -337,9 +344,9 @@ export class TsFixer {
           this._lastAudioExceptionOverlapDot = sample.pts
           audioTrack.warnings.push({
             type: WarningType.AUDIO_DROPPED,
-            pts: sample.pts,
+            pts: sample.pts / 90,
             originPts: sample.originPts,
-            nextPts,
+            nextPts: nextPts / 90,
             refSampleDuration
           })
         }
@@ -354,9 +361,9 @@ export class TsFixer {
             audioTrack.warnings.push({
               type: WarningType.LARGE_AUDIO_GAP,
               time: sample.pts / 1000,
-              pts: sample.pts,
+              pts: sample.pts / 90,
               originPts: sample.originPts,
-              nextPts,
+              nextPts: nextPts / 90,
               sampleDuration: delta,
               refSampleDuration
             })
