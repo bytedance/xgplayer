@@ -1,5 +1,5 @@
 
-## xgplayer-flv@3.0.17-rc.1
+## xgplayer-flv@3.0.17
 >* fix: firstframe slow on lg webos
 >* feat: add chaseframe event
 >* feat: loadstart event add seamless switch status
@@ -25,7 +25,7 @@ player.on('core_event', e => {
 ```
 
 
-## xgplayer-flv@3.0.14-alpha.2
+## xgplayer-flv@3.0.14
 >* feat: support mms on safari 17.1+
 >* feat: newly increased api and props
 
@@ -45,7 +45,7 @@ new Player({
 ```
 
 
-## xgplayer-flv@3.0.11-alpha.2
+## xgplayer-flv@3.0.11
 >* feat: 断网、弱网增加重试配置
 >* refact: 点播流播放重构
 
