@@ -481,9 +481,7 @@ export class Hls extends EventEmitter {
       }
       const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < 0.1
       if (bInfo.remaining >= config.preloadTime || bufferThroughout) {
-        if (bufferThroughout && this._bufferService.msIsOpend) {
-          this._bufferService.endOfStream()
-        }
+        this._tryEos()
         return
       }
 
@@ -834,17 +832,21 @@ export class Hls extends EventEmitter {
       return
     }
 
-    if (Buffer.end(buffered) < 0.1 || !media.readyState) return
+    if (Buffer.end(buffered) >= 0.1 && media.readyState) {
+      if (isMediaPlaying(media)) {
+        this._loadSegment()
+        if (this._gapService) {
+          this._gapService.do(media, this.config.maxJumpDistance, this.isLive)
+        }
+      } else {
+        if (media.readyState < 2 && this._gapService) {
+          this._gapService.do(media, this.config.maxJumpDistance, !media.currentTime ? true : this.isLive)
+        }
+      }
+    }
 
-    if (isMediaPlaying(media)) {
-      this._loadSegment()
-      if (this._gapService) {
-        this._gapService.do(media, this.config.maxJumpDistance, this.isLive)
-      }
-    } else {
-      if (media.readyState < 2 && this._gapService) {
-        this._gapService.do(media, this.config.maxJumpDistance, !media.currentTime ? true : this.isLive)
-      }
+    if (!this.isLive) {
+      this._tryEos()
     }
   }
 
@@ -896,6 +898,36 @@ export class Hls extends EventEmitter {
     }
 
     return nextLoadPoint
+  }
+
+  /**
+   * @private
+   */
+  _tryEos () {
+    const { media } = this
+    const { nextSegment, lastSegment } = this._playlist
+    const eosAllowed =
+      !nextSegment &&
+      media.readyState &&
+      media.duration > 0 &&
+      this._bufferService?.msIsOpened &&
+      !this._bufferService?.msHasOpTasks &&
+      !this._bufferService?.msUpdating
+
+    if (!eosAllowed) {
+      return
+    }
+
+    let bInfo = this.bufferInfo()
+    if (media.paused && !media.currentTime) {
+      bInfo = this.bufferInfo(bInfo.nextStart || 0.5)
+    }
+
+    const bufferThroughout = Math.abs(bInfo.end - media.duration) < 0.1 ||
+      (!this.isLive && lastSegment && bInfo.end >= (lastSegment.start + lastSegment.duration))
+    if (bufferThroughout) {
+      this._bufferService.endOfStream()
+    }
   }
 }
 

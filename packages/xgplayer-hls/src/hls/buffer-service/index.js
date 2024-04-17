@@ -47,8 +47,16 @@ export class BufferService {
     return Object.keys(this._mse._sourceBuffer).length
   }
 
-  get msIsOpend () {
+  get msIsOpened () {
     return this._mse?.isOpened
+  }
+
+  get msUpdating () {
+    return this._mse?.updating
+  }
+
+  get msHasOpTasks () {
+    return this._mse?.hasOpTasks
   }
 
   get msStreaming () {
