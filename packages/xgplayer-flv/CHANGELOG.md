@@ -1,3 +1,30 @@
+
+## xgplayer-flv@3.0.17-rc.1
+>* fix: firstframe slow on lg webos
+>* feat: add chaseframe event
+>* feat: loadstart event add seamless switch status
+
+```
+
+const player = new Player({
+    plugins: [FlvPlugin],
+    flv: {
+        mseLowLatency: false // default true. off on lg webos
+    }
+})
+
+player.on('core_event', e => {
+    if(e.eventName === 'core.loadstart) {
+        // e.url
+        // e.seamlessSwitching ?: boolean // 标识冲拉流是否处于无缝切换阶段
+    }
+    if(e.eventName === 'core.chaseframe') {
+        // 追帧时触发
+    }
+})
+```
+
+
 ## xgplayer-flv@3.0.14-alpha.2
 >* feat: support mms on safari 17.1+
 >* feat: newly increased api and props
