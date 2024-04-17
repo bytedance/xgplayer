@@ -1,4 +1,5 @@
-## 3.0.17-rc.1
+## 3.0.17
+>* fix: 🐛 (xgplayer-hls) 修复hls最后一个segment被过滤后，播放到结尾卡住问题
 >* fix: firstframe slow on lg webos
 >* fix: (xgplayer-hls) live stream feedback liveEdge by appended segment
 >* fix: (xgplayer-transmuxer) video expected nextDts incorrect cased by fps inaccuracy (case av unsync)
@@ -12,8 +13,6 @@ const player = new Player({
 })
 ```
 
-## 3.0.17-alpha.0
->* fix: 🐛 (xgplayer-hls) 修复hls最后一个segment被过滤后，播放到结尾卡住问题
 
 ## 3.0.16
 -
