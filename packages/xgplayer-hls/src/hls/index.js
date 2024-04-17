@@ -139,7 +139,7 @@ export class Hls extends EventEmitter {
     const manifest = await this._loadM3U8(url)
     const { currentStream } = this._playlist
 
-    if (this._urlSwitching) {
+    if (this._urlSwitching && !this.isLive) {
       if (currentStream.bitrate === 0 && this._switchUrlOpts?.bitrate) {
         currentStream.bitrate = this._switchUrlOpts?.bitrate
       }
@@ -153,6 +153,17 @@ export class Hls extends EventEmitter {
         // move to next segment in case of media stall
         const bufferClearStartPoint = nextSeg.start
         await this._bufferService.removeBuffer(bufferClearStartPoint)
+      }
+    }
+
+    if (this._urlSwitching && this.isLive) {
+      // skip loaded segment
+      const preIndex = this._playlist.setNextSegmentBySN(this._prevSegSn)
+      logger.log(`segment nb=${this._prevSegSn} index of ${preIndex} in the new playlist`)
+      // the new stream no matched with old one
+      if (preIndex === -1) {
+        this._prevSegCc = null
+        this._prevSegSn = null
       }
     }
 
@@ -247,8 +258,10 @@ export class Hls extends EventEmitter {
       return this.media.play(true)
     } else {
       this._urlSwitching = true
-      this._prevSegSn = null
-      this._prevSegCc = null
+      if (!this.isLive) {
+        this._prevSegSn = null
+        this._prevSegCc = null
+      }
 
       this._playlist.reset()
       this._bufferService.seamlessSwitch()
@@ -559,11 +572,21 @@ export class Hls extends EventEmitter {
     const data = await this._bufferService.decryptBuffer(...responses)
     if (!data) return
     const sn = seg ? seg.sn : audioSeg.sn
-    const start = seg ? seg.start : audioSeg.start
+    let start = seg ? seg.start : audioSeg.start
     const stream = this._playlist.currentStream
     this._bufferService.createSource(data[0], data[1], stream?.videoCodec, stream?.audioCodec)
     const before = Date.now()
-    await this._bufferService.appendBuffer(seg, audioSeg, data[0], data[1], discontinuity, this._prevSegSn === sn - 1, start)
+    const contiguous = this._prevSegSn === sn - 1
+    if (this.isLive && this._urlSwitching) {
+      const segStart = this.bufferInfo().end
+      // update the new segements [start、end] to match timeline
+      this._playlist.updateSegmentsRanges(sn, segStart)
+      if (discontinuity && !contiguous) {
+        // 前后流segment sequencenumber 不匹配
+        start = segStart
+      }
+    }
+    await this._bufferService.appendBuffer(seg, audioSeg, data[0], data[1], discontinuity, contiguous, start)
     this.emit(Event.APPEND_COST, {elapsed: Date.now() - before, url: seg.url})
     await this._bufferService.evictBuffer(this.config.bufferBehind)
     this._prevSegCc = cc

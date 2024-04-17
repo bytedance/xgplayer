@@ -102,6 +102,14 @@ export class Playlist {
     this._segmentPointer = index - 1
   }
 
+  setNextSegmentBySN (sn = 0) {
+    const preIndex = this.currentSegments?.findIndex(x => x.sn === sn)
+    if (preIndex !== -1) {
+      this.setNextSegmentByIndex(preIndex + 1)
+    }
+    return preIndex
+  }
+
   findSegmentIndexByTime (time) {
     const segments = this.currentSegments
     if (segments) {
@@ -156,6 +164,15 @@ export class Playlist {
         }, 0)
       }
     }
+  }
+
+  updateSegmentsRanges (sn, start) {
+    const segs = this.currentSegments?.filter(x => x.sn >= sn)
+    segs.forEach(s => {
+      s.start = start
+      start = s.end
+    })
+
   }
 
   switchSubtitle (lang) {
