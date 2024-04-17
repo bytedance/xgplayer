@@ -127,6 +127,28 @@ export class MSE {
     return this.mediaSource?.readyState === 'open'
   }
 
+  get updating () {
+    let flag = false
+    Object.keys(this._sourceBuffer).forEach(k => {
+      const sb = this._sourceBuffer[k]
+      if (sb) {
+        flag ||= sb.updating
+      }
+    })
+    return flag
+  }
+
+  get hasOpTasks () {
+    let flag = false
+    Object.keys(this._queue).forEach(k => {
+      const queue = this._queue[k]
+      if (Array.isArray(queue)) {
+        flag ||= queue.length > 0
+      }
+    })
+    return flag
+  }
+
   get url () {
     return this._url
   }
