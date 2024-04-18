@@ -1,4 +1,5 @@
 ## 3.0.17
+>* fix: 🐛 (xgplayer-hls) 强化MSE endOfStream触发的时机，防止卡在最后不发end事件问题
 >* fix: 🐛 (xgplayer-hls) 修复hls最后一个segment被过滤后，播放到结尾卡住问题
 >* fix: firstframe slow on lg webos
 >* fix: (xgplayer-hls) live stream feedback liveEdge by appended segment
