@@ -911,8 +911,7 @@ export class Hls extends EventEmitter {
       media.readyState &&
       media.duration > 0 &&
       this._bufferService?.msIsOpened &&
-      !this._bufferService?.msHasOpTasks &&
-      !this._bufferService?.msUpdating
+      !this._bufferService?.msHasOpTasks
 
     if (!eosAllowed) {
       return

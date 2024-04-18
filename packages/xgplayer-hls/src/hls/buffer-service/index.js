@@ -51,10 +51,6 @@ export class BufferService {
     return this._mse?.isOpened
   }
 
-  get msUpdating () {
-    return this._mse?.updating
-  }
-
   get msHasOpTasks () {
     return this._mse?.hasOpTasks
   }
