@@ -338,7 +338,7 @@ window.onload = function () {
     var startTime = window.prompt('[点播]开始播放时间点', 0)
     startTime = Number(startTime)
     if (isNaN(startTime)) startTime = 0
-    player.switchURL(url, startTime)
+    player.switchURL(url, startTime).then(res=> console.log('switchURL success', res)).catch(err => console.error('switchURL error', err))
   }
   dbSetUrl.onclick = function () {
     var url = window.prompt('设置的 url 地址')
