@@ -174,16 +174,22 @@ export class HlsPlugin extends BasePlugin {
   }
 
   _onSwitchURL = (url, args) => {
-    const { player, hls } = this
-    if (hls) {
-      const options = parseSwitchUrlArgs(args, this)
-      player.config.url = url
-      hls.switchURL(url, options).catch(e => {})
+    return new Promise((resolve, reject) => {
+      const { player, hls } = this
+      if (hls) {
+        const options = parseSwitchUrlArgs(args, this)
+        player.config.url = url
+        hls.switchURL(url, options)
+          .then(() => resolve(true))
+          .catch(reject)
 
-      if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
-        this._keepPauseStatus()
+        if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
+          this._keepPauseStatus()
+        }
+      } else {
+        reject()
       }
-    }
+    })
   }
 
   _keepPauseStatus = () => {
