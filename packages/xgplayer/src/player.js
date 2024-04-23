@@ -2048,10 +2048,18 @@ class Player extends MediaProxy {
   /**
    * 目标时间点是否在buffer内
    * @param { number } time 时间点
-   * @param { number } diff 判断阈值，即该时间下剩余buffer长度超过阈值时才算作在buffer内
+   * @param options 判断阈值配置，可选的
+   * @param options.startDiff 判断起始阈值，即该时间下距离buffer开始点超过阈值时才算作在buffer内，默认为0
+   * @param options.endDiff 判断结束阈值，即该时间下距离buffer结束点超过阈值时才算作在buffer内，默认为0
    * @returns { boolean }
    */
-  checkBuffer (time, diff = 0) {
+  checkBuffer (
+    time,
+    options = {
+      startDiff: 0,
+      endDiff: 0
+    }) {
+    const { startDiff = 0, endDiff = 0 } = options || {}
     const buffered = this.media.buffered
     if (!buffered || buffered.length === 0 || !this.duration) {
       return true
@@ -2059,7 +2067,7 @@ class Player extends MediaProxy {
     const currentTime = time || this.media.currentTime || 0.2
     const len = buffered.length
     for (let i = 0; i < len; i++) {
-      if (buffered.start(i) <= currentTime && buffered.end(i) - diff > currentTime) {
+      if (buffered.start(i) + startDiff <= currentTime && buffered.end(i) - endDiff > currentTime) {
         return true
       }
     }
