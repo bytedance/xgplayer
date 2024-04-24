@@ -1,5 +1,5 @@
-import { BasePlugin, Events, Errors } from 'xgplayer'
-import { EVENT } from 'xgplayer-streaming-shared'
+import { BasePlugin, Errors, Events } from 'xgplayer'
+import { EVENT, MSE } from 'xgplayer-streaming-shared'
 import { Hls } from './hls'
 import { Event } from './hls/constants'
 import PluginExtension from './plugin-extension'
@@ -55,10 +55,14 @@ export class HlsPlugin extends BasePlugin {
 
   beforePlayerInit () {
     const config = this.player.config
+    const hlsOpts = config.hls || {}
 
-    if (!config.url &&
-      // private config key
-      !config.__allowHlsEmptyUrl__) {
+    if (
+      (!config.url &&
+        // private config key
+        !config.__allowHlsEmptyUrl__) ||
+      (!hlsOpts.preferMMS && MSE.isMMSOnly())
+    ) {
       return
     }
 
@@ -66,7 +70,6 @@ export class HlsPlugin extends BasePlugin {
     this.player.switchURL = this._onSwitchURL
     this.player.handleSource = false // disable player source handle
 
-    const hlsOpts = config.hls || {}
     hlsOpts.innerDegrade = hlsOpts.innerDegrade || config.innerDegrade
     if (hlsOpts.disconnectTime === null || hlsOpts.disconnectTime === undefined) hlsOpts.disconnectTime = 0
 

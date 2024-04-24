@@ -360,12 +360,13 @@ window.onload = function () {
   setTimeout(function () {
     var lastPlayback = null
     var fps = 0
-    var prevTime = 0
     setInterval(function () {
       if (player && player.plugins.hls) {
         var t = player.currentTime
-        prevTime = t
         var hls = player.plugins.hls.core
+        if (!hls) {
+          return
+        }
         var buf = hls.bufferInfo()
         var pq = hls.playbackQuality()
         var sp = hls.speedInfo()
