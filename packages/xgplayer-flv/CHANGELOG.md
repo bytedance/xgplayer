@@ -1,6 +1,7 @@
 
 ## xgplayer-flv@3.0.17
 >* fix: firstframe slow on lg webos
+>* fix: autoplay=false 不断流
 >* feat: add chaseframe event
 >* feat: loadstart event add seamless switch status
 

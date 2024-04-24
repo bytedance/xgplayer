@@ -4,7 +4,7 @@ import { getAbsoluteUrl, parseAttr, parseTag } from './utils'
 export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
   const media = new MediaPlaylist()
   media.url = parentUrl
-  let curSegment = new MediaSegment()
+  let curSegment = new MediaSegment(parentUrl)
   let curInitSegment = null
   let curKey = null
   let totalDuration = 0
@@ -33,7 +33,7 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
       if (curKey) curSegment.key = curKey.clone(curSN)
       if (curInitSegment) curSegment.initSegment = curInitSegment
       media.segments.push(curSegment)
-      curSegment = new MediaSegment()
+      curSegment = new MediaSegment(parentUrl)
       curSN++
       continue
     }
@@ -105,7 +105,7 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
         if (curKey) curSegment.key = curKey.clone(curSN)
         if (curInitSegment) curSegment.initSegment = curInitSegment
         media.segments.push(curSegment)
-        curSegment = new MediaSegment()
+        curSegment = new MediaSegment(parentUrl)
         partSegmentIndex++
       }
 
@@ -161,7 +161,7 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
           curSegment.key = curKey.clone(0)
         }
         curInitSegment = curSegment
-        curSegment = new MediaSegment()
+        curSegment = new MediaSegment(parentUrl)
       }
         break
       default:
