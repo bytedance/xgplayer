@@ -98,9 +98,13 @@ export class TsFixer {
 
     if (videoTrack.samples.length) {
       videoTrack.baseMediaDecodeTime = videoTrack.samples[0].dts
+      const last = videoTrack.samples[videoTrack.samples.length - 1]
+      console.log(`v: [${videoTrack.baseMediaDecodeTime / videoTrack.timescale}, ${last.dts / videoTrack.timescale}]`)
     }
     if (audioTrack.samples.length) {
       audioTrack.baseMediaDecodeTime = audioTrack.samples[0].pts * audioTrack.timescale / 90000
+      const last = videoTrack.samples[videoTrack.samples.length - 1]
+      console.log(`a: [${videoTrack.baseMediaDecodeTime / videoTrack.timescale}, ${last.dts / videoTrack.timescale}]`)
     }
   }
 

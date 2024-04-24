@@ -101,6 +101,7 @@ export class MediaSegment {
   sn = 0 // Media Sequence Number
   cc = 0
   url = ''
+  parentUrl = ''
   title = ''
   start = 0
   duration = 0
@@ -117,6 +118,10 @@ export class MediaSegment {
 
   independent = false
   partIndex = 0
+
+  constructor (parentUrl) {
+    this.parentUrl = parentUrl
+  }
 
   get end () {
     return this.start + this.duration

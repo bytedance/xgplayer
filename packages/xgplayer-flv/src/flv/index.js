@@ -449,6 +449,9 @@ export class Flv extends EventEmitter {
         if (this.bufferInfo(MAX_START_GAP).nextStart) {
           this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
         }
+        if (!media.autoplay) {
+          this.disconnect()
+        }
         return
       }
       if (opts.isLive && media.readyState === 4 && bufferEnd > opts.disconnectTime) {
