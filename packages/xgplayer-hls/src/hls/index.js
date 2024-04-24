@@ -539,7 +539,17 @@ export class Hls extends EventEmitter {
         logger.warn(`segment: ${seg.sn} expected end=${seg.end}, real end=${bufferEnd}`)
         this._playlist.feedbackLiveEdge(seg, bufferEnd)
       }
-      if (this._urlSwitching && this._playlist.currentStream?.url === this.config.url) {
+
+      const sameStream = this._playlist.currentStream?.url === seg.parentUrl
+      // switching -> pre playlist segment appended -> new playlist loaded -> new playlist segment appended
+      // _needInitSegment status maybe reset by pre playlist segment appendBuffer()
+      if (this._urlSwitching && !sameStream) {
+        logger.warn('pre playlist segment appended!')
+        this._bufferService.seamlessSwitch()
+      }
+
+      // switching -> new playlist loaded -> new playlist segment appended
+      if (this.isLive && this._urlSwitching && sameStream) {
         this._urlSwitching = false
         this.emit(Event.SWITCH_URL_SUCCESS, { url: this.config.url })
       }
@@ -582,13 +592,11 @@ export class Hls extends EventEmitter {
     const contiguous = this._prevSegSn === sn - 1
     if (this.isLive && this._urlSwitching) {
       const segStart = this.bufferInfo().end
-      // update the new segements [start、end] to match timeline
+      // update the new segements [start、end] to match timeline.
+      // (this appended segment duration maybe not matched with m3u8 description)
       this._playlist.updateSegmentsRanges(sn, segStart)
       logger.warn(`update the new playlist liveEdge, segment id=${sn}, buffer start=${segStart}, liveEdge=${this._playlist.liveEdge}`)
-      if (discontinuity && !contiguous) {
-        // 前后流segment sequencenumber 不匹配
-        start = segStart
-      }
+      start = segStart
     }
     await this._bufferService.appendBuffer(seg, audioSeg, data[0], data[1], discontinuity, contiguous, start)
     this.emit(Event.APPEND_COST, {elapsed: Date.now() - before, url: seg.url})

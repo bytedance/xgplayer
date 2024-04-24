@@ -130,7 +130,7 @@ export class BufferService {
       return Promise.all(p)
     }
     const needInit = this._needInitSegment || discontinuity
-    const [video, audio] = this._transmuxer.transmux(videoChunk, audioChunk, discontinuity, contiguous, startTime, this._needInitSegment || discontinuity)
+    const [video, audio] = this._transmuxer.transmux(videoChunk, audioChunk, needInit, contiguous, startTime, this._needInitSegment || discontinuity)
 
     if (audioChunk && audioSegment) {
       audioSegment?.setTrackExist(false, true)
