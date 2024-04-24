@@ -80,6 +80,10 @@ export class MSE {
     }
   }
 
+  static isMMSOnly () {
+    return typeof ManagedMediaSource !== 'undefined' && typeof MediaSource === 'undefined'
+  }
+
   /** @type { HTMLMediaElement | null } */
   media = null
 
