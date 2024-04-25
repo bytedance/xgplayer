@@ -446,11 +446,9 @@ export class Flv extends EventEmitter {
     } else {
       if (!media.currentTime && this._gapService) {
         // 起播跳洞检测
-        if (this.bufferInfo(MAX_START_GAP).nextStart) {
+        const gapJump = this._opts.mseLowLatency || (this._opts.mseLowLatency === false && this.bufferInfo(MAX_START_GAP).nextStart)
+        if (gapJump) {
           this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
-        }
-        if (!media.autoplay) {
-          this.disconnect()
         }
         return
       }
