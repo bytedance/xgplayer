@@ -27,7 +27,9 @@ export class BufferService {
       })
 
       if (hls.config.url) {
-        this._mse.bindMedia(hls.media)
+        this._mse.bindMedia(hls.media).then((e) => {
+          this.hls.emit(EVENT.MEDIASOURCE_OPENED, e)
+        })
       }
     }
 

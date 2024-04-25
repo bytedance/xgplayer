@@ -7,6 +7,7 @@ export const EVENT = {
   LOAD_COMPLETE: 'core.loadcomplete',
   LOAD_RETRY: 'core.loadretry',
   SOURCEBUFFER_CREATED: 'core.sourcebuffercreated',
+  MEDIASOURCE_OPENED: 'core.mediasourceopened',
   ANALYZE_DURATION_EXCEEDED: 'core.analyzedurationexceeded',
   REMOVE_BUFFER: 'core.removebuffer',
   BUFFEREOS: 'core.buffereos',

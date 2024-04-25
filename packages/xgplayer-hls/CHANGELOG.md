@@ -1,4 +1,5 @@
 ## 3.0.17
+>* feat: add core.mediasourceopend event
 >* fix: 🐛 (xgplayer-hls) safari下无缝切流播放报错
 >* fix: 🐛 (xgplayer-hls) 修复preferMMS未开启时，集成hls插件播放失败的问题
 >* fix: 🐛 (xgplayer-hls) 强化MSE endOfStream触发的时机，防止卡在最后不发end事件问题
