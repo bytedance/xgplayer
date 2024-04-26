@@ -390,7 +390,7 @@ export class MP4Parser {
 
   static avcC (box) {
     return parseBox(box, false, (ret, data) => {
-      ret.data = box.data;
+      ret.data = box.data
       ret.configurationVersion = data[0]
       ret.AVCProfileIndication = data[1]
       ret.profileCompatibility = data[2]
