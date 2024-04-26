@@ -1816,7 +1816,11 @@ class Player extends MediaProxy {
         this._fullScreenOffset = null
       }
       if (!this.cssfullscreen) {
-        this.recoverFullStyle( this.root,this._fullscreenEl, STATE_CLASS.FULLSCREEN)
+        let el = this._fullscreenEl
+        if (!el && (this.root.contains(event.target) || event.target === this.root)) {
+          el = event.target
+        }
+        this.recoverFullStyle( this.root, el, STATE_CLASS.FULLSCREEN)
       } else {
         this.removeClass(STATE_CLASS.FULLSCREEN)
       }
