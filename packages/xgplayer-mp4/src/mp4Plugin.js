@@ -403,7 +403,7 @@ export default class Mp4Plugin extends BasePlugin {
   /**
    * 销毁MSE对象 // 在重用MSE的时候，如果降级到video原生播放，单实例复用时，需要重新绑定url.所以降级到video原生的需要删除mse对象
    */
-  async destroyMSE() {
+  async destroyMSE () {
     await this.mse?.unbindMedia()
     this.mse = null
   }
