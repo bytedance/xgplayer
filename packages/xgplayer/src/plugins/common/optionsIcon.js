@@ -6,7 +6,7 @@ import OptionList from './optionList'
 const LIST_TYPES = {
   SIDE: 'side',
   MIDDLE: 'middle',
-  DEFAULT: 'default',
+  DEFAULT: 'default'
 }
 
 const TOGGLE_MODES = {
