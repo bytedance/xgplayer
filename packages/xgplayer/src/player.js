@@ -1459,6 +1459,9 @@ class Player extends MediaProxy {
    */
   getFullscreen (el = this.config.fullscreenTarget) {
     const { root, media } = this
+    if (Util.typeOf(el) === 'String') {
+      el = this[el]
+    }
     if (!el) {
       el = root
     }
