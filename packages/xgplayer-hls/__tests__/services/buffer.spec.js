@@ -90,7 +90,7 @@ describe('BufferService', () => {
   const append = jest.fn()
   const remove = jest.fn()
   const unbindMedia = jest.fn()
-  const bindMedia = jest.fn()
+  const bindMedia = jest.fn().mockImplementation(() => Promise.resolve(true));
   const endOfStream = jest.fn()
   const setLiveSeekableRange = jest.fn()
   const updateDuration = jest.fn()

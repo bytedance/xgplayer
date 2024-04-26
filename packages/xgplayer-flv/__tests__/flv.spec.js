@@ -40,11 +40,13 @@ describe('Flv', () => {
   const endOfStream = jest.fn()
   const bufferDestroy = jest.fn()
   const seamlessSwitch = jest.fn()
+  const isFull = jest.fn()
   BufferService.mockImplementation(() => {
     return {
       reset: bufferServiceReset,
       endOfStream,
       seamlessSwitch,
+      isFull,
       destroy: bufferDestroy
     }
   })
@@ -107,15 +109,15 @@ describe('Flv', () => {
   })
 
   test('load', async () => {
-    const flv = new Flv({ media })
+    const flv = new Flv({ media, isLive: true })
     const emit = jest.spyOn(flv, 'emit')
     await flv.load('url')
     expect(bufferServiceReset).toHaveBeenCalled()
     expect(seiServiceReset).toHaveBeenCalled()
     expect(bandwidthServiceReset).toHaveBeenCalled()
     expect(loaderCancel).toHaveBeenCalled()
-    expect(loaderLoad).toHaveBeenLastCalledWith({ url: 'url' })
-    expect(emit).toHaveBeenCalledWith(EVENT.LOAD_START, { url: 'url' })
+    expect(loaderLoad).toHaveBeenLastCalledWith({ url: 'url', "range": [] })
+    expect(emit).toHaveBeenCalledWith(EVENT.LOAD_START, { url: 'url', 'seamlessSwitching': false })
   })
 
   test('replay', async () => {
