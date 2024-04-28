@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-shaka",
-  "version": "3.0.17-rc.4",
+  "version": "3.0.17",
   "description": "xgplayer plugin for shaka-player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "rc"
+    "tag": "latest"
   },
   "keywords": [
     "mpeg-dash",
