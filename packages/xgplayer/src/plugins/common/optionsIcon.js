@@ -74,7 +74,7 @@ export default class OptionsIcon extends Plugin {
     const { config } = this
     this.initIcons()
     IS_MOBILE = IS_MOBILE || this.domEventType === 'touch'
-    if (IS_MOBILE && config.listType === LIST_TYPES.DEFAULT) {
+    if (IS_MOBILE && Sniffer.device === 'mobile' && config.listType === LIST_TYPES.DEFAULT) {
       config.listType = LIST_TYPES.SIDE
     }
 
