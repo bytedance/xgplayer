@@ -328,10 +328,7 @@ function init(index = 0, config = {}) {
     volume: {
       position: 'rootTop'
     },
-    playbackRate: {
-      // listType: 'side',
-      list: [1,2,3,4],
-    },
+    playbackRate: [1,2,3,4],
     // rotate: {
     //   innerRotate: false
     // },
