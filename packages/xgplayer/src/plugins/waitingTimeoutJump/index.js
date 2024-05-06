@@ -66,7 +66,6 @@ export default class WaitingTimeoutJump extends BasePlugin {
     if (jumpTo > seekEnd) {
       return
     }
-    console.log('waitintTimeout, currentTime:', player.currentTime, ', jumpTo:', jumpTo)
     this.jumpCnt++
     player.currentTime = jumpTo
   }
