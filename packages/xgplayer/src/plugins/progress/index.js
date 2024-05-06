@@ -729,7 +729,7 @@ class Progress extends Plugin {
       this.unbind('mouseleave', this.onMouseLeave)
       document.removeEventListener('mousemove', this.onMouseMove, false)
       document.removeEventListener('mouseup', this.onMouseUp, false)
-      player.root.removeEventListener('click', this.onBodyClick, false)
+      player.root.removeEventListener('click', this.onBodyClick, true)
     }
   }
 

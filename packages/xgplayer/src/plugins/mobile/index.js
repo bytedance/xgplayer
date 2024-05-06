@@ -198,7 +198,6 @@ class MobilePlugin extends Plugin {
         });
         ['dragend', 'click'].forEach(key => {
           progressPlugin.addCallBack(key, () => {
-            console.log('>>>ACTIONS.AUTO_3')
             this.changeAction(ACTIONS.AUTO)
           })
         })
@@ -266,7 +265,6 @@ class MobilePlugin extends Plugin {
   }
 
   changeAction (action) {
-    console.log('>>>changeAction', action)
     const { player, root } = this
     root.setAttribute('data-xg-action', action)
     const startPlugin = player.plugins.start
@@ -372,7 +370,6 @@ class MobilePlugin extends Plugin {
       case 2:
       default:
     }
-    console.log('>>>ACTIONS.AUTO_4')
     this.changeAction(ACTIONS.AUTO)
   }
 
@@ -470,7 +467,6 @@ class MobilePlugin extends Plugin {
     pos.scope = -1
     this.resetPos()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
-    console.log('>>>ACTIONS.AUTO_1')
     this.changeAction(ACTIONS.AUTO)
   }
 
@@ -497,7 +493,6 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchEnd = (e) => {
-    console.log('>>>onRootTouchEnd', this.pos.scope)
     if (this.pos.scope > -1) {
       this.onTouchEnd(e)
       // const { controls } = this.player
@@ -580,7 +575,6 @@ class MobilePlugin extends Plugin {
     this.emitUserAction('pressend', 'change_rate', { prop: 'playbackRate', from: player.playbackRate, to: pos.rate })
     player.playbackRate = pos.rate
     pos.rate = 1
-    console.log('>>>ACTIONS.AUTO_2')
     this.changeAction(ACTIONS.AUTO)
   }
 
