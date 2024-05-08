@@ -76,7 +76,7 @@ export class MP4Loader extends EventEmitter {
     return this.meta
   }
 
-  async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config) {
+  async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config = {}) {
     this._error = false
     this.logger.debug('[loadMetaProcess start], range,', [moovStart, moovEnd])
     const OnProgressHandle = async (data, state, options, response) => {
@@ -150,7 +150,7 @@ export class MP4Loader extends EventEmitter {
     await this.loadData([moovStart, moovEnd || this._config.moovEnd], cache, { onProgress: OnProgressHandle, ...config})
   }
 
-  async loadMeta (cache, moovEnd, config) {
+  async loadMeta (cache, moovEnd, config = {}) {
     const responses = []
     this.logger.debug('[loadMeta start]')
     let res = await this.loadData([0, moovEnd || this._config.moovEnd], cache, config)
@@ -314,12 +314,12 @@ export class MP4Loader extends EventEmitter {
     return res
   }
 
-  async loadData (range, cache, config) {
+  async loadData (range, cache, config = {}) {
     const cacheKey = this._getCacheKey(range)
     const data = await this.cache.get(cacheKey)
     let res
     if (!data) {
-      const url = config && config.url ? config.url : this.url
+      const url = config?.url ? config.url : this.url
       res = await this._loader.load(url, { range, vid: this.vid, ...config })
     } else {
       res = { data, state: true, options: { fromCache: true, range, vid: this.vid } }
