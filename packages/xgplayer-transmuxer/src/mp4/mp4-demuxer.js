@@ -2,7 +2,7 @@ import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample } from 
 import { readBig32 } from '../utils'
 import { MP4Parser } from './mp4-parser'
 import { Logger } from './logger'
-import Crypto from './crypto/crypto'
+// import Crypto from './crypto/crypto'
 const NEW_ARRAY_MAX_CNT = 20
 export class MP4Demuxer {
   _videoSamples = []
@@ -245,7 +245,7 @@ export class MP4Demuxer {
 
   decoderData (videoTrack, audioTrack, customDescryptHandler) {
     if (videoTrack.useEME || audioTrack.useEME) return
-    Crypto.decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler)
+    // Crypto.decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler)
   }
 
   static probe (data) {
