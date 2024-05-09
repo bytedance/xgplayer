@@ -2291,8 +2291,9 @@ class Player extends MediaProxy {
    * @returns { url: IUrl, [propName: string]: any }
    */
   _preProcessUrl (url, ext) {
-    const { preProcessUrl } = this.config
-    return !Util.isBlob(url) && typeof preProcessUrl === 'function' ? preProcessUrl(url, ext) : { url }
+    const { preProcessUrl, preProcessUrlOptions } = this.config
+    const processUrlOptions = Object.assign({}, preProcessUrlOptions, ext)
+    return !Util.isBlob(url) && typeof preProcessUrl === 'function' ? preProcessUrl(url, processUrlOptions) : { url }
   }
 
   /**
