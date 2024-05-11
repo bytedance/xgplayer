@@ -62,9 +62,7 @@ export class MP4 {
     'schi',
     'mehd',
     'fiel',
-    'sdtp',
-    'bvc2',
-    'bv2C'
+    'sdtp'
   ].reduce((p, c) => {
     p[c] = [c.charCodeAt(0), c.charCodeAt(1), c.charCodeAt(2), c.charCodeAt(3)]
     return p
@@ -521,9 +519,6 @@ export class MP4 {
     if (track.codecType === VideoCodecType.HEVC) {
       config = MP4.hvcC(track)
       typ = MP4.types.hvc1
-    } else if (track.codecType === VideoCodecType.VVCC){
-      config = MP4.vvcC(track)
-      typ = MP4.types.bvc2
     } else {
       config = MP4.avcC(track)
       typ = MP4.types.avc1
@@ -597,11 +592,6 @@ export class MP4 {
     ].concat(...sps)
       .concat([track.pps.length]) // numOfPictureParameterSets
       .concat(...pps)))
-  }
-
-  static vvcC (track) {
-    const vvcC = track.vvcC
-    return MP4.box(MP4.types.bv2C, new Uint8Array(vvcC))
   }
 
   static hvcC (track) {

@@ -1,4 +1,4 @@
-import { AAC, VVC } from '../codec'
+import { AAC } from '../codec'
 import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, readInt32, readInt64 } from '../utils'
 
@@ -331,28 +331,6 @@ export class MP4Parser {
     })
   }
 
-
-  static bvc2 (box) {
-    return parseBox(box, false, (ret, data, start) => {
-      const bodyStart = parseVisualSampleEntry(ret, data)
-      const bodyData = data.subarray(bodyStart)
-      start += bodyStart
-      ret.vvcC = MP4Parser.bv2C(MP4Parser.findBox(bodyData, ['bv2C'], start)[0])
-      ret.pasp = MP4Parser.pasp(MP4Parser.findBox(bodyData, ['pasp'], start)[0])
-    })
-  }
-
-  static bv2C (box) {
-    return parseBox(box, false, (ret, data, start) => {
-      const record = VVC.parseVVCDecoderConfigurationRecord(data)
-      for (const key in record) {
-        if (Object.prototype.hasOwnProperty.call(record, key)) {
-          ret[key] = record[key]
-        }
-      }
-    })
-  }
-
   static stsd (box) {
     return parseBox(box, true, (ret, data, start) => {
       ret.entryCount = readBig32(data)
@@ -366,9 +344,6 @@ export class MP4Parser {
           case 'hvc1':
           case 'hev1':
             return MP4Parser.hvc1(b)
-          // 266
-          case 'bvc2':
-            return MP4Parser.bvc2(b)
           case 'mp4a':
             return MP4Parser.mp4a(b)
           case 'alaw':
@@ -850,13 +825,6 @@ export class MP4Parser {
         v.codec = e1.avcC.codec
         v.sps = e1.avcC.sps
         v.pps = e1.avcC.pps
-      } else if (e1.vvcC) {
-        v.codecType = VideoCodecType.VVCC
-        v.codec = e1.vvcC.codec
-        v.sps = e1.vvcC.sps
-        v.pps = e1.vvcC.pps
-        v.vps = e1.vvcC.vps
-        v.vvcC = e1.vvcC.data
       } else {
         throw new Error('unknown video stsd entry')
       }
