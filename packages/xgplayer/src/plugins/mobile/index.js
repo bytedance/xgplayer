@@ -198,7 +198,6 @@ class MobilePlugin extends Plugin {
         });
         ['dragend', 'click'].forEach(key => {
           progressPlugin.addCallBack(key, () => {
-            console.log('>>>changeAction ACTIONS.AUTO progressPlugin')
             this.changeAction(ACTIONS.AUTO)
           })
         })
@@ -358,7 +357,7 @@ class MobilePlugin extends Plugin {
    */
   endLastMove (lastScope) {
     const { pos, player, config } = this
-    console.log('>>>endLastMove', lastScope)
+  
     const time = (pos.time - this.timeOffset) / 1000
     switch (lastScope) {
       case 0:
@@ -372,7 +371,6 @@ class MobilePlugin extends Plugin {
       case 2:
       default:
     }
-    console.log('>>>changeAction ACTIONS.AUTO endLastMove')
     this.changeAction(ACTIONS.AUTO)
   }
 
@@ -450,7 +448,6 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd = (e) => {
-    console.log('>>>>onTouchEnd', this.pos.scope)
     const { player, pos, playerConfig } = this
     setTimeout(() => {
       player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
@@ -471,7 +468,6 @@ class MobilePlugin extends Plugin {
     pos.scope = -1
     this.resetPos()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
-    console.log('>>>changeAction ACTIONS.AUTO1')
     this.changeAction(ACTIONS.AUTO)
   }
 
@@ -498,7 +494,6 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchEnd = (e) => {
-    console.log('>>>>onRootTouchEnd', this.pos.scope)
     if (this.pos.scope > -1) {
       this.onTouchEnd(e)
       // const { controls } = this.player
@@ -516,7 +511,6 @@ class MobilePlugin extends Plugin {
   }
 
   clickHandler (e) {
-    console.log('>>>clickHandler')
     const { player, config, playerConfig } = this
     if (player.state < STATES.RUNNING) {
       if (!playerConfig.closeVideoClick) {
@@ -546,7 +540,6 @@ class MobilePlugin extends Plugin {
   }
 
   onClick (e) {
-    console.log('>>>onClick')
     const { player } = this
     runHooks(this, HOOKS[0], (plugin, data) => {
       this.clickHandler(data.e)
@@ -554,7 +547,6 @@ class MobilePlugin extends Plugin {
   }
 
   onDbClick (e) {
-    console.log('>>>onDbClick')
     const { player } = this
     runHooks(this, HOOKS[1], (plugin, data) => {
       this.dbClickHandler(data.e)
@@ -584,7 +576,6 @@ class MobilePlugin extends Plugin {
     this.emitUserAction('pressend', 'change_rate', { prop: 'playbackRate', from: player.playbackRate, to: pos.rate })
     player.playbackRate = pos.rate
     pos.rate = 1
-    console.log('>>>changeAction ACTIONS.AUTO2')
     this.changeAction(ACTIONS.AUTO)
   }
 
