@@ -1,4 +1,9 @@
 # 版本更新记录
+## 3.0.18
+>* fix: 🐛 (xgplayer) 修复截图在部分机型失败的问题
+>* feat(xgplayer): 增加preProcessUrlOptions参数
+## 3.0.17
+>* fix: 🐛 (xgplayer) 修复音量展示和实际数值不符的问题
 ## 3.0.14
 >* feat(xgplayer): 🎸 当系统支持屏幕方向锁定时，全屏后自动横屏
 ## 3.0.13
