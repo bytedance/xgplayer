@@ -90,14 +90,17 @@ class Touche {
   }
 
   __setDb (e) {
+    console.log('>>>__setDb', this.dbIntrvalId)
     const { config } = this
     if (this.dbIntrvalId) {
+      console.log('>>>__setDb __clearDb')
       this.__clearDb()
       this.trigger(EVENTS.DOUBlE_CLICK, e)
       return
     }
     this.dbIntrvalId = setTimeout(() => {
       this.__clearDb()
+      console.log('>>>__setDb setTimeout', `start:${this._pos.start} press:${this._pos.press} moving:${this._pos.moving}`, !this._pos.start && !this._pos.press && !this._pos.moving)
       if (!this._pos.start && !this._pos.press && !this._pos.moving) {
         this.trigger(EVENTS.CLICK, e)
       }
@@ -148,6 +151,7 @@ class Touche {
 
   onTouchStart = (e) => {
     const { _pos, root } = this
+    console.log('>>>> touche onTouchStart', _pos.moving)
     // config.needPreventDefault && preventToucheDefault(e)
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -166,6 +170,7 @@ class Touche {
 
   onTouchEnd = (e) => {
     const { _pos, root } = this
+    console.log('>>>>touche onTouchEnd', `press:${_pos.press} moving:${_pos.moving}`, !_pos.press && !_pos.moving)
     // config.needPreventDefault && preventToucheDefault(e)
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
@@ -183,6 +188,7 @@ class Touche {
 
   onTouchMove = (e) => {
     const { _pos, config } = this
+    console.log('>>>> touche onTouchMove', _pos.moving)
     const touch = getTouch(e.touches)
     const x = touch ? parseInt(touch.pageX, 10) : e.pageX
     const y = touch ? parseInt(touch.pageY, 10) : e.pageX
