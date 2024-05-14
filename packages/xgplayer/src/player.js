@@ -1854,16 +1854,13 @@ class Player extends MediaProxy {
     this.waitTimer && Util.clearTimeout(this, this.waitTimer)
   }
 
-  onDurationchange () {
+  onLoadeddata () {
+    this.isError = false
+    this.isSeeking = false
     if (this.__startTime > 0 && this.duration > 0) {
       this.currentTime = this.__startTime
       this.__startTime = -1
     }
-  }
-
-  onLoadeddata () {
-    this.isError = false
-    this.isSeeking = false
   }
 
   onLoadstart () {
@@ -1988,7 +1985,7 @@ class Player extends MediaProxy {
     }
 
     // 兼容safari在调整为静音之后未调用play自动起播问题
-    if (!this.paused && this.state < STATES.RUNNING && this.duration) {
+    if (!this.paused && this.state === STATES.NOTALLOW && this.duration) {
       this.setState(STATES.RUNNING)
       this.emit(Events.AUTOPLAY_STARTED)
     }
