@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3'
 import Concat from 'concat-typed-array'
 import { MP4Demuxer, FMP4Remuxer } from 'xgplayer-transmuxer'
 import { ERROR_CODES, NetWorkError, ParserError, ERROR_TYPES } from './error'
-import util, { getFileSizeFromHeaders } from './util'
+import util, { getFileSizeFromHeaders, getContentLength } from './util'
 import MP4Loader from 'xgplayer-mp4-loader'
 import { checkOpenLog, log } from './util/logger'
 
@@ -160,8 +160,8 @@ class MP4 extends EventEmitter {
       this.bufferLoaded = new Uint8Array(0)
       let startPos = 0
       const onProgressHandle = async (data, state, options, error, response) => {
-        const fileSize = response ? Number(getFileSizeFromHeaders(response.headers, 'content-range')) : 0
-        const contentLength = response ? Number(getFileSizeFromHeaders(response.headers, 'Content-Length')) : 0
+        const fileSize = response ? Number(getFileSizeFromHeaders(response.headers)) : 0
+        const contentLength = response ? Number(getContentLength(response.headers)) : 0
         this.log('getMetaInfo onProgressHandle, dataLen,', data ? data.byteLength : -1, ', state,', state, ',range,', JSON.stringify(options.range))
         console.log('getMetaInfo onProgressHandle, dataLen,', state,',state', 'range', JSON.stringify(options.range), contentLength, fileSize)
         if (error) {
