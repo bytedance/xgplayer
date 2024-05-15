@@ -79,7 +79,7 @@ export class MP4Loader extends EventEmitter {
   async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config) {
     this._error = false
     this.logger.debug('[loadMetaProcess start], range,', [moovStart, moovEnd])
-    const OnProgressHandle = async (data, state, options) => {
+    const OnProgressHandle = async (data, state, options, responses) => {
       if (this.meta && options?.range && options.range.length > 0 && options.range[1] >= moovEnd) {
         state = true
         this.logger.debug('[loadMetaProcess],data done,setstate true,[', moovStart, moovEnd, ']')
@@ -89,7 +89,7 @@ export class MP4Loader extends EventEmitter {
         this.logger.debug('[loadMetaProcess],data not done,setstate false,[', moovStart, moovEnd, ']')
       }
       this.logger.debug('[loadMetaProcess],task,[', moovStart, moovEnd, '], range,', options.range, ',dataLen,', (data ? data.byteLength : undefined), ', state,', state, ',err,',this._error)
-      !this._error && data && data.byteLength > 0 && onProgress(data, state, options)
+      !this._error && data && data.byteLength > 0 && onProgress(data, state, options, null, responses)
       if (this.meta.moov || this._error) return
       if (data && data.byteLength > 0) {
         this.buffer = concatUint8Array(this.buffer, data)
@@ -99,7 +99,7 @@ export class MP4Loader extends EventEmitter {
           if (state) {
             if (!mdat) {
               this._error = true
-              onProgress(null, state, options, {err:'cannot find moov or mdat box'})
+              onProgress(null, state, options, {err:'cannot find moov or mdat box'}, responses)
               return
               // throw new MediaError('cannot find moov or mdat box')
             } else {
@@ -119,7 +119,7 @@ export class MP4Loader extends EventEmitter {
           const parsedMoov = MP4Parser.moov(moov)
           if (!parsedMoov) {
             this._error = true
-            onProgress(null, state, options, {err:'cannot parse moov box'})
+            onProgress(null, state, options, {err:'cannot parse moov box'}, responses)
             return
             // throw new MediaError('cannot parse moov box', moov.data)
           }
@@ -127,7 +127,7 @@ export class MP4Loader extends EventEmitter {
           const segments = moovToSegments(parsedMoov, this._config.segmentDuration)
           if (!segments) {
             this._error = true
-            onProgress(null, state, options, {err:'cannot parse segments'})
+            onProgress(null, state, options, {err:'cannot parse segments'}, responses)
             return
             // throw new MediaError('cannot parse segments', moov.data)
           }
@@ -143,7 +143,7 @@ export class MP4Loader extends EventEmitter {
               videoSegments,
               audioSegments
             }
-          })
+          }, null, responses)
         }
       }
     }
