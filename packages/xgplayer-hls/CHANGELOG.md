@@ -1,3 +1,6 @@
+## 3.0.18
+>* refactor: 💡 (xgplayer-hls) MSE ChangeType不支持时，对外抛出错误
+
 ## 3.0.17
 >* feat: add core.mediasourceopend event
 >* fix: 🐛 (xgplayer-hls) safari下无缝切流播放报错
