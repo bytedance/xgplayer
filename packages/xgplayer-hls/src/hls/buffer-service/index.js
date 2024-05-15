@@ -165,7 +165,7 @@ export class BufferService {
 
       if (needInit && !isFirstAppend) {
         // handle codec change during midstream
-        this._handleCodecChange(video, audio)
+        this._handleCodecChange(video, audio).forEach(task => p.push(task))
       }
 
       if (video) {
@@ -269,6 +269,7 @@ export class BufferService {
    * @private
    */
   _handleCodecChange (video, audio) {
+    const tasks = []
     const mse = this._mse
     const codecList = [{
       type: MSE.VIDEO,
@@ -283,10 +284,13 @@ export class BufferService {
       if (sourceBuffer) {
         const codec = codecs.split(',')[0]
         if (!new RegExp(codec, 'ig').test(sourceBuffer.mimeType)) {
-          mse.changeType(type, `${type}/mp4;codecs=${codecs}`)
+          tasks.push(
+            mse.changeType(type, `${type}/mp4;codecs=${codecs}`)
+          )
         }
       }
     })
+    return tasks
   }
 
   seamlessSwitch () {
