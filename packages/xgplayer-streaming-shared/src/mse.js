@@ -342,10 +342,23 @@ export class MSE {
     const sb = this._sourceBuffer[type]
     if (!this.mediaSource || !sb || sb.mimeType === mimeType) return Promise.resolve()
 
-    if (typeof sb.changeType !== 'function') return Promise.reject()
+    if (typeof sb.changeType !== 'function') {
+      return Promise.reject(
+        new StreamingError(
+          ERR.MEDIA,
+          ERR.SUB_TYPES.MSE_CHANGE_TYPE,
+          new Error('changeType is not a function')
+        )
+      )
+    }
 
     return this._enqueueOp(type, () => {
-      sb.changeType(mimeType)
+      try {
+        sb.changeType(mimeType)
+      } catch (e) {
+        throw new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_CHANGE_TYPE, e)
+      }
+
       sb.mimeType = mimeType
       this._onSBUpdateEnd(type)
     }, 'changeType', {mimeType})
@@ -581,7 +594,11 @@ export class MSE {
             op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error))
           } else {
             this._logger.error(error)
-            op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error))
+            op.promise.reject(
+              error.constructor === StreamingError
+                ? error
+                : new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error)
+            )
             queue.shift()
             this._startQueue(type)
           }
