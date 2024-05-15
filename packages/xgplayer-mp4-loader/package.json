@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4-loader",
-  "version": "3.0.17-alpha.1",
+  "version": "3.0.17-alpha.2",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "featcdh"
+    "tag": "alpha-1"
   },
   "license": "MIT",
   "unpkgFiles": [
