@@ -8,7 +8,7 @@ let player=new Player({
   id: 'vs',
   autoplay: true,
   volume: 0.3,
-  url: 'http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4', //'./douyin111.mp4',
+  url: './feishu_sample-3s.mp3', //'./douyin111.mp4',
   poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
   playsinline: true,
   thumbnail: {
@@ -19,7 +19,7 @@ let player=new Player({
     row: 10,
     // urls: ['//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-thumbnail.jpg'],
   },
-  height: window.innerHeight / 2,
+  height: 200,
   width: window.innerWidth / 2,
   plugins: [Mp4Player]
 });

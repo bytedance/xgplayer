@@ -25,6 +25,15 @@
 <section id="wrapper">
   <div id="vs"></div>
 </section>
+<section id="wrapper">
+  <div id="vs1"></div>
+</section>
+<section id="wrapper">
+  <div id="vs2"></div>
+</section>
+<section id="wrapper">
+  <div id="vs3"></div>
+</section>
 <script type="module">
   var vConsole = new window.VConsole();
   import Player from '../../packages/xgplayer/src/index'
@@ -37,41 +46,39 @@
       vheight: 360,
       vwidth: 640,
       duration:90,
-      url: './video/360p.mp4'
+      url: './feishu_sample-3s.mp3'
     },
-    {
-      definition: '480p',
-      //keyValue: "288e672cd2944bd0ab4aa0e03b4de438",
-      bitrate: 437288,
-      vheight: 480,
-      vwidth: 860,
-      duration:90,
-      url: './video/480p.mp4'
-    },
-    {
-      definition: '720p',
-      //keyValue: "d0aabcd3605c4ed8962fc6819764ec90",
-      bitrate: 915105,
-      vheight: 720,
-      vwidth: 1270,
-      duration:90,
-      url: './video/720p.mp4'
-    },
-    {
-      definition: '1080p',
-      //keyValue: "d0aabcd3605c4ed8962fc6819764ec90",
-      bitrate: 2713749,
-      vheight: 1080,
-      vwidth: 1920,
-      duration:90,
-      url: './video/1080p.mp4'
-    }
+    // {
+    //   definition: '480p',
+    //   //keyValue: "288e672cd2944bd0ab4aa0e03b4de438",
+    //   bitrate: 437288,
+    //   vheight: 480,
+    //   vwidth: 860,
+    //   duration:90,
+    //   url: './feishu_720p.mp4'
+    // },
+    // {
+    //   definition: '720p',
+    //   //keyValue: "d0aabcd3605c4ed8962fc6819764ec90",
+    //   bitrate: 915105,
+    //   vheight: 720,
+    //   vwidth: 1270,
+    //   duration:90,
+    //   url: './feishu_yuanhua111.mp4'
+    // },
+    // {
+    //   definition: '1080p',
+    //   //keyValue: "d0aabcd3605c4ed8962fc6819764ec90",
+    //   bitrate: 2713749,
+    //   vheight: 1080,
+    //   vwidth: 1920,
+    //   duration:90,
+    //   url: './feishu_yuanhua111.mp4'
+    // }
   ]
-  let player = new Player({
-    id: 'vs',
-    autoplay: true,
+  var config = {
+    autoplay: false,
     volume: 1,
-    url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
     poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
     playsinline: true,
     thumbnail: {
@@ -86,18 +93,31 @@
       defaultDefinition: '720p',
       // list: videoList
     },
-    // TestSpeed: {
-    //   url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
-    //   openSpeed: true,
-    //   loadSize: 200*1024,
-    //   testTimeStep: 5000,
-    //   testCnt: 3,
-    // },
-    height: window.innerHeight -300,
+    height: 200,
     width: window.innerWidth,
-    // plugins: [Mp4Plugin]
+    plugins: [Mp4Plugin]
+  }
+  let player = new Player({
+    id: 'vs',
+    url: videoList[0].url,
+    ...config
   });
-  window.player = player
+  let player1 = new Player({
+    id: 'vs1',
+    url: videoList[1].url,
+    ...config
+  });
+  let player2 = new Player({
+    id: 'vs2',
+    url: videoList[2].url,
+    ...config
+  });
+  let player3 = new Player({
+    id: 'vs3',
+    url: videoList[3].url,
+    ...config
+  });
+  // window.player = player
 
   function playNext() {
     player.playNext({

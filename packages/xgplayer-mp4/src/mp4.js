@@ -160,8 +160,10 @@ class MP4 extends EventEmitter {
       this.bufferLoaded = new Uint8Array(0)
       let startPos = 0
       const onProgressHandle = async (data, state, options, error, response) => {
-        const fileSize = response ? Number(getFileSizeFromHeaders(response.headers)) : 0
-        this.log('getMetaInfo onProgressHandle, dataLen,', data ? data.byteLength : -1, ', state,',state, ',range,',JSON.stringify(options.range))
+        const fileSize = response ? Number(getFileSizeFromHeaders(response.headers, 'content-range')) : 0
+        const contentLength = response ? Number(getFileSizeFromHeaders(response.headers, 'Content-Length')) : 0
+        this.log('getMetaInfo onProgressHandle, dataLen,', data ? data.byteLength : -1, ', state,', state, ',range,', JSON.stringify(options.range))
+        console.log('getMetaInfo onProgressHandle, dataLen,', state,',state', 'range', JSON.stringify(options.range), contentLength, fileSize)
         if (error) {
           this.emit(MP4_EVENTS.ERROR, error)
           return
@@ -195,6 +197,10 @@ class MP4 extends EventEmitter {
         }
         const range = options?.range || []
         if (fileSize > 0 && !this.meta && range && range.length > 1 && range[1] >= fileSize) {
+          this.log('getMetaInfo_error_nometa')
+          this.emit(MP4_EVENTS.ERROR, { message: 'getMetaInfo_error_nometa' })
+        }
+        if (contentLength > 0 && !this.meta && range && range.length > 1 && range[1] === contentLength) {
           this.log('getMetaInfo_error_nometa')
           this.emit(MP4_EVENTS.ERROR, { message: 'getMetaInfo_error_nometa' })
         }

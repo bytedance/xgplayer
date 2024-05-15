@@ -54,9 +54,10 @@ const MONITOR_HEADERS = {
   'content-type':'content-type',
 }
 const NUM_2 = 2
-export function getFileSizeFromHeaders (headers) {
+export function getFileSizeFromHeaders (headers, key1) {
   // 错误日志中有undefined情况，增加判断
-  const key = MONITOR_HEADERS['content-range']
+  // const key = MONITOR_HEADERS['content-range']
+  const key = MONITOR_HEADERS[key1]
   if (headers && headers.get && headers.get(key)) {
     const range = headers.get(key)
     const splitArr = range.split('/')
