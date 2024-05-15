@@ -39,9 +39,9 @@
     "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "eventemitter3": "^4.0.7",
-    "xgplayer-mp4-loader": "3.0.17",
     "xgplayer-streaming-shared": "3.0.17",
-    "xgplayer-transmuxer": "3.0.17"
+    "xgplayer-mp4-loader": "3.0.17-alpha.2",
+    "xgplayer-transmuxer": "3.0.17-alpha.1"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.0",

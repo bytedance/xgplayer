@@ -1,4 +1,5 @@
 /**
  * @type {string}
  * */
-export default __VERSION__
+const version = JSON.parse('__VERSION__')
+export default version

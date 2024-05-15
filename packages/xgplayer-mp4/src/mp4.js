@@ -2,10 +2,9 @@ import EventEmitter from 'eventemitter3'
 import Concat from 'concat-typed-array'
 import { MP4Demuxer, FMP4Remuxer } from 'xgplayer-transmuxer'
 import { ERROR_CODES, NetWorkError, ParserError, ERROR_TYPES } from './error'
-import util from './util'
+import util, { getFileSizeFromHeaders } from './util'
 import MP4Loader from 'xgplayer-mp4-loader'
 import { checkOpenLog, log } from './util/logger'
-import TransmuxerWorkerControl from './worker'
 
 const MP4_EVENTS = {
   ERROR: 'error',
@@ -60,35 +59,19 @@ class MP4 extends EventEmitter {
     this._metaLoading = false // meta请求是否进行中
     this.MP4Loader = new MP4Loader({
       segmentDuration: this.options.segmentDuration,
-      url: url,
+      url,
       vid: options.vid,
       retry: this.options.retryCount,
       retryDelay: this.options.retryDelay,
       timeout: this.options.timeout,
       ...options.reqOptions,
-      openLog: checkOpenLog()
+      openLog: checkOpenLog(),
     })
     this.MP4Demuxer = null
     this.FMP4Remuxer = null
     this._needInitSegment = true
     this._switchBitRate = false
     this.enableWorker = this.options.enableWorker
-    if (this.enableWorker && typeof Worker !== 'undefined') {
-      try {
-        this.workerSequence = 0
-        this.transmuxerWorkerControl = new TransmuxerWorkerControl({id: this.workerSequence, codecType : options.codecType, supportHevc: this.options.supportHevc, openLog: checkOpenLog()})
-        this.transmuxerWorkerControl.on('transmux', (muxRes) => {
-          const res = muxRes.args
-          this.log('[transmuxerworker end] ,range, ',JSON.stringify(res.range), ',dataLen,',res.buffer.byteLength, res.context)
-          this._loadSuccessCallBack && this._loadSuccessCallBack(res)
-        })
-        // this.eventListen = false
-      } catch (error) {
-        this.log('Error in worker:', error)
-        this.enableWorker = false
-        this.transmuxerWorkerControl = null
-      }
-    }
     if (!this.enableWorker) {
       this.MP4Demuxer = null
       this.FMP4Remuxer = null
@@ -116,7 +99,7 @@ class MP4 extends EventEmitter {
    * @param { Error } error
    * @param { string } state
    */
-  async errorHandler (error, state, context = {}) {
+  async errorHandler (error, state, _context = {}) {
     const { response, message } = error
     const vid = this.options ? this.options.vid : ''
     let _error = null
@@ -124,13 +107,13 @@ class MP4 extends EventEmitter {
     if (response) {
       _error = new NetWorkError('network', response.status, {
         httpText: response.httpText,
-        message: message,
-        url: response.url
+        message,
+        url: response.url,
       })
       this.emit(MP4_EVENTS.ERROR, _error)
     } else {
       // 其他错误信息
-      console.log(`[MP4] [${vid}] errorHandler,`, error)
+      console.error(`[MP4] [${vid}] errorHandler,`, error)
       _error = error
       this.emit(MP4_EVENTS.ERROR, _error)
     }
@@ -138,7 +121,9 @@ class MP4 extends EventEmitter {
 
 
   async init () {
-    if (this.url) await this.MP4Loader.changeUrl(this.url, this.options.vid + Date.now(), this.CHUNK_SIZE)
+    if (this.url) {
+      await this.MP4Loader.changeUrl(this.url, this.options.vid + Date.now(), this.CHUNK_SIZE)
+    }
     await this.getMetaInfo()
   }
 
@@ -160,7 +145,7 @@ class MP4 extends EventEmitter {
           startTime: Math.max(this.audioTrak[j].startTime, timeRange ? timeRange.endTime : 0),
           endTime: Math.max(this.audioTrak[j].endTime, timeRange ? timeRange.endTime : 0),
           downloaded : false,
-          isLoading : false
+          isLoading : false,
         }
         range.push(timeRange)
       }
@@ -174,8 +159,13 @@ class MP4 extends EventEmitter {
       this.log('getMetaInfo start')
       this.bufferLoaded = new Uint8Array(0)
       let startPos = 0
-      const onProgressHandle = async (data, state, options) => {
+      const onProgressHandle = async (data, state, options, error, response) => {
+        const fileSize = response ? Number(getFileSizeFromHeaders(response.headers)) : 0
         this.log('getMetaInfo onProgressHandle, dataLen,', data ? data.byteLength : -1, ', state,',state, ',range,',JSON.stringify(options.range))
+        if (error) {
+          this.emit(MP4_EVENTS.ERROR, error)
+          return
+        }
         if (data) {
           if (options.range[0] === startPos) {
             this.bufferLoaded = Concat(Uint8Array, this.bufferLoaded, new Uint8Array(data))
@@ -202,6 +192,11 @@ class MP4 extends EventEmitter {
         if (this.meta && (data || state)) {
           this.log('emit moov_req_progress')
           this.emit(MP4_EVENTS.MOOV_REQ_PROGRESS)
+        }
+        const range = options?.range || []
+        if (fileSize > 0 && !this.meta && range && range.length > 1 && range[1] >= fileSize) {
+          this.log('getMetaInfo_error_nometa')
+          this.emit(MP4_EVENTS.ERROR, { message: 'getMetaInfo_error_nometa' })
         }
       }
       await this.MP4Loader.loadMetaProcess(this.MP4Loader.cache, [0, this.CHUNK_SIZE], onProgressHandle)
@@ -240,15 +235,23 @@ class MP4 extends EventEmitter {
   async _checkHasMeta () {
     this.log(' loadMeta start')
     this._metaLoading = true
-    const metaInfo = await this.MP4Loader.loadMeta(this.MP4Loader.cache, Math.round(this.CHUNK_SIZE / 2))
-    this._metaLoading = false
-    this.videoTrak = metaInfo.videoSegments
-    this.audioTrak = metaInfo.audioSegments
-    this.meta = {...metaInfo.meta, ext:{videoTrak: this.videoTrak, audioTrak: this.audioTrak}}
-    this.timeRange = this.getTimeRange()
-    this.bufferLoaded = new Uint8Array(0)
-    metaInfo.bufferLoaded = this.bufferLoaded
-    return true
+    try {
+      const metaInfo = await this.MP4Loader.loadMeta(this.MP4Loader.cache, Math.round(this.CHUNK_SIZE / 2))
+      this._metaLoading = false
+      this.videoTrak = metaInfo.videoSegments
+      this.audioTrak = metaInfo.audioSegments
+      this.meta = {...metaInfo.meta, ext:{videoTrak: this.videoTrak, audioTrak: this.audioTrak}}
+      this.timeRange = this.getTimeRange()
+      this.bufferLoaded = new Uint8Array(0)
+      metaInfo.bufferLoaded = this.bufferLoaded
+      return true
+    } catch (e) {
+      console.error(e)
+      this._metaLoading = false
+      this.emit(MP4_EVENTS.ERROR, e)
+      console.error(e)
+      return false
+    }
   }
 
   resetFragmentLoadState (fragIndex){
@@ -318,6 +321,7 @@ class MP4 extends EventEmitter {
     if (this._switchBitRate && this._metaLoading) {
       return
     }
+
     const range = this.getFragRange(fragIndex)
     this.log('loadFragment,',fragIndex, ',range,',JSON.stringify(range))
     if (this.seekTime > 0) {
@@ -421,59 +425,49 @@ class MP4 extends EventEmitter {
     const videoIndexRange = this.getSamplesRange(fragIndex, 'video')
     const audioIndexRange = this.getSamplesRange(fragIndex, 'audio')
     const range = [start, start + buffer.byteLength]
-    if (this.transmuxerWorkerControl) {
-      const context = {
-        range,
-        state,
-        fragIndex
+    try {
+      if (!this.MP4Demuxer) {
+        this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog()})
       }
-      this.log('[transmuxerworker start] ,range, ',JSON.stringify(range), ',dataLen,',buffer.byteLength, context)
-      this.transmuxerWorkerControl.transmux(this.workerSequence, buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue, context)
-    } else {
-      try {
-        if (!this.MP4Demuxer) {
-          this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog()})
+      const demuxRet = this.MP4Demuxer.demuxPart(buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue)
+      if (!this.FMP4Remuxer && (!this.checkCodecH265() || this.options.supportHevc)) {
+        this.FMP4Remuxer = new FMP4Remuxer(this.MP4Demuxer.videoTrack, this.MP4Demuxer.audioTrack, {openLog: checkOpenLog()})
+      }
+      let res
+      this.log('[mux], videoTimeRange,',demuxRet.videoTrack ? [demuxRet.videoTrack.startPts, demuxRet.videoTrack.endPts] : null, ',audioTimeRange,',demuxRet.audioTrack ? [demuxRet.audioTrack.startPts, demuxRet.audioTrack.endPts] : null)
+      const startPts = Math.min(demuxRet.videoTrack.startPts, demuxRet.audioTrack.startPts)
+      const endPts = Math.max(demuxRet.videoTrack.endPts, demuxRet.audioTrack.endPts)
+      const timeRange = [startPts, endPts]
+      if (this.FMP4Remuxer) {
+        const remuxRes = this.FMP4Remuxer.remux(this._needInitSegment, {initMerge: true, range: range})
+        remuxRes.initSegment && (this._needInitSegment = false)
+        const data = util.concatData(remuxRes.audioSegment,remuxRes.videoSegment)
+        res = {
+          buffer: data,
+          range,
+          state,
+          context: {
+            range, fragIndex, timeRange
+          },
+          initSeg: remuxRes.initSegment
         }
-        const demuxRet = this.MP4Demuxer.demuxPart(buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue)
-        if (!this.FMP4Remuxer && (!this.checkCodecH265() || this.options.supportHevc)) {
-          this.FMP4Remuxer = new FMP4Remuxer(this.MP4Demuxer.videoTrack, this.MP4Demuxer.audioTrack, {openLog: checkOpenLog()})
-        }
-        let res
-        this.log('[mux], videoTimeRange,',demuxRet.videoTrack ? [demuxRet.videoTrack.startPts, demuxRet.videoTrack.endPts] : null, ',audioTimeRange,',demuxRet.audioTrack ? [demuxRet.audioTrack.startPts, demuxRet.audioTrack.endPts] : null)
-        const startPts = Math.min(demuxRet.videoTrack.startPts, demuxRet.audioTrack.startPts)
-        const endPts = Math.max(demuxRet.videoTrack.endPts, demuxRet.audioTrack.endPts)
-        const timeRange = [startPts, endPts]
-        if (this.FMP4Remuxer) {
-          const remuxRes = this.FMP4Remuxer.remux(this._needInitSegment, {initMerge: true, range: range})
-          remuxRes.initSegment && (this._needInitSegment = false)
-          const data = util.concatData(remuxRes.audioSegment,remuxRes.videoSegment)
-          res = {
-            buffer: data,
-            range,
-            state,
-            context: {
-              range, fragIndex, timeRange
-            },
-            initSeg: remuxRes.initSegment
-          }
-        } else {
-          res = {
-            videoTrack: demuxRet.videoTrack,
-            audioTrack: demuxRet.audioTrack,
-            buffer: null,
-            range,
-            state,
-            context: {
-              range, fragIndex, timeRange
-            }
+      } else {
+        res = {
+          videoTrack: demuxRet.videoTrack,
+          audioTrack: demuxRet.audioTrack,
+          buffer: null,
+          range,
+          state,
+          context: {
+            range, fragIndex, timeRange
           }
         }
-        this._loadSuccessCallBack && this._loadSuccessCallBack(res)
-      } catch (e) {
-        console.error('mux err:', e)
-        const err = new ParserError(ERROR_TYPES.remux, ERROR_CODES.muxError, {msg:JSON.stringify(e)})
-        this.errorHandler(err, 'mux', {fragIndex, range: [start, start + buffer.byteLength]})
       }
+      this._loadSuccessCallBack && this._loadSuccessCallBack(res)
+    } catch (e) {
+      console.error('mux err:', e)
+      const err = new ParserError(ERROR_TYPES.remux, ERROR_CODES.muxError, {msg:JSON.stringify(e)})
+      this.errorHandler(err, 'mux', {fragIndex, range: [start, start + buffer.byteLength]})
     }
   }
 
@@ -502,9 +496,7 @@ class MP4 extends EventEmitter {
   }
 
   async loadFragment (fragIndex, range) {
-    if (this._isPending || (range.length > 0 && range[0] === 0 && range[1] === 0) || this.timeRange[fragIndex].isLoading) {
-      return
-    }
+    if (this._isPending || (range.length > 0 && range[0] === 0 && range[1] === 0) || this.timeRange[fragIndex].isLoading /* || this._metaLoading*/) return
     this.log('[MP4.loadFragment] ,fragIndex,', fragIndex, ',range ', range, ',len ,', range[1] - range[0],', bufferLoaded_Len,', this.bufferLoaded.byteLength)
     if (range.length >= 2 && range[1] && range[1] > 0 && range[1] <= this.bufferLoaded.byteLength) {
       this.timeRange[fragIndex].isLoading = true
@@ -547,11 +539,13 @@ class MP4 extends EventEmitter {
       await this.MP4Loader.loadData(range, this.MP4Loader.cache, {
         index: fragIndex,
         onProgress: this.onprogressDataArrive,
-        onProcessMinLen: this.options.onProcessMinLen
+        onProcessMinLen: this.options.onProcessMinLen,
+        url: this.url
       })
     } catch (e) {
-      console.error('[MP4] trigger errorHandler getMetaInfo', e?.message)
-      this.loadError(e, 'loadFragment', {range, fragIndex})
+      console.error('[MP4] trigger errorHandler startLoad', range, fragIndex, e?.message)
+      this.timeRange[fragIndex].isLoading = false
+      this.loadError(e, 'startLoad', {range, fragIndex})
     }
   }
 
@@ -569,8 +563,20 @@ class MP4 extends EventEmitter {
     await this.MP4Loader && this.MP4Loader.cancel()
   }
 
-  update (url) {
+  async update (url) {
     this.url = url
+    this.MP4Loader && this.MP4Loader.changeUrl(url)
+    if (this.MP4Loader) {
+      this.MP4Loader.changeUrl(url)
+    }
+    //  await this.MP4Loader.changeUrl(this.url, this.options.vid + Date.now(), this.CHUNK_SIZE)
+  }
+
+  restart () {
+    this._isPending = false
+    if (!this.meta) {
+      this.init()
+    }
   }
 
 
@@ -586,7 +592,6 @@ class MP4 extends EventEmitter {
       return
     }
     this.resetTansmuxer()
-    this.transmuxerWorkerControl && this.transmuxerWorkerControl.destroy()
     this._isPending = false
     this._metaLoading = false
     this.bufferLoadedPos = 0
@@ -603,7 +608,6 @@ class MP4 extends EventEmitter {
     this.MP4Demuxer = null
     this.FMP4Remuxer && this.FMP4Remuxer.reset()
     this.FMP4Remuxer = null
-    this.transmuxerWorkerControl && this.transmuxerWorkerControl.reset()
   }
 }
 
