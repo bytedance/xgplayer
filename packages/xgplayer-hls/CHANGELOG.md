@@ -1,4 +1,5 @@
 ## 3.0.18
+>* refactor: 💡 (xgplayer-hls) DRM支持更多的identifiers
 >* refactor: 💡 (xgplayer-hls) MSE ChangeType不支持时，对外抛出错误
 
 ## 3.0.17
