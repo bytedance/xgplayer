@@ -5,8 +5,8 @@ import { Logger } from './logger'
 import Crypto from './crypto/crypto'
 const NEW_ARRAY_MAX_CNT = 20
 export class MP4Demuxer {
-  _videoSamples = []
-  _audioSamples = []
+  // _videoSamples = []
+  // _audioSamples = []
   _lastRemainBuffer = []
   _lastRemainBufferStartPos = 0
 
@@ -14,14 +14,9 @@ export class MP4Demuxer {
     this.videoTrack = new VideoTrack()
     this.audioTrack = new AudioTrack()
     this.metadataTrack = metadataTrack || new MetadataTrack()
+    this.videoSegmnents = videoSegmnents
+    this.audioSegmnents = audioSegmnents
     this.log = new Logger('MP4Demuxer', options && options.openLog ? !options.openLog : true)
-
-    videoSegmnents && videoSegmnents.forEach(item => {
-      this._videoSamples.push(...item.frames)
-    })
-    audioSegmnents && audioSegmnents.forEach(item => {
-      this._audioSamples.push(...item.frames)
-    })
   }
 
   parseSamples (moov) {
@@ -33,12 +28,12 @@ export class MP4Demuxer {
       this.videoSenc = this.videoTrack.videoSenc
       this.audioSenc = this.audioTrack.audioSenc
     }
-    if (!this._audioSamples.length && !this._videoSamples.length) {
-      const ret = MP4Parser.moovToSamples(moov)
-      if (!ret) throw new Error('cannot parse samples from moov box')
-      this._videoSamples = ret.videoSamples || []
-      this._audioSamples = ret.audioSamples || []
-    }
+    // if (!this._audioSamples.length && !this._videoSamples.length) {
+    //   const ret = MP4Parser.moovToSamples(moov)
+    //   if (!ret) throw new Error('cannot parse samples from moov box')
+    //   this._videoSamples = ret.videoSamples || []
+    //   this._audioSamples = ret.audioSamples || []
+    // }
   }
 
   demux (data, dataStart, videoIndexRange, audioIndexRange, moov) {
@@ -56,11 +51,19 @@ export class MP4Demuxer {
     if (videoIndexRange) {
       let frame
       let nalSize = 0
+      const findRes = this.getFramePosByIdx('video', videoIndexRange[0])
+      if (!findRes) {
+        throw new Error(`cannot found video frame #${videoIndexRange[0]}`)
+      }
+      let { frameIdx, segmentIdx} = findRes
       for (let i = videoIndexRange[0], l = videoIndexRange[1]; i <= l; i++) {
-        sample = this._videoSamples[i]
+        const ret = this.getFrameInfo('video', segmentIdx, frameIdx)
+        sample = ret.sample
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
+        segmentIdx = ret.segmentIdx
+        frameIdx = ret.frameIdx
         startByte = sample.offset - dataStart
         sampleData = data.subarray(startByte, startByte + sample.size)
         frame = new VideoSample(typeof sample.pts === 'number' ? sample.pts : sample.dts, sample.dts)
@@ -81,11 +84,19 @@ export class MP4Demuxer {
       videoTrack.baseMediaDecodeTime = videoTrack.samples[0].dts
     }
     if (audioIndexRange) {
+      const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
+      if (!findRes) {
+        throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
+      }
+      let { frameIdx , segmentIdx} = findRes
       for (let i = audioIndexRange[0], l = audioIndexRange[1]; i <= l; i++) {
-        sample = this._audioSamples[i]
+        const ret = this.getFrameInfo('audio',segmentIdx, frameIdx)
+        sample = ret.sample
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
+        segmentIdx = ret.segmentIdx
+        frameIdx = ret.frameIdx
         startByte = sample.offset - dataStart
         sampleData = data.subarray(startByte, startByte + sample.size)
         audioTrack.samples.push(new AudioSample(sample.dts, sampleData, sample.duration))
@@ -142,14 +153,22 @@ export class MP4Demuxer {
     let startByte
     let videoEndByte = 0
     let audioEndByte = 0
-    if (this._videoSamples.length > 0 && videoIndexRange.length > 0) {
+    if (videoIndexRange.length > 0) {
       let frame
       const end = data.byteLength + dataStart
+      const findRes = this.getFramePosByIdx('video', videoIndexRange[0])
+      if (!findRes) {
+        throw new Error(`cannot found video frame #${videoIndexRange[0]}`)
+      }
+      let { frameIdx, segmentIdx} = findRes
       for (let i = videoIndexRange[0]; i <= videoIndexRange[1]; i++) {
-        sample = this._videoSamples[i]
+        const ret = this.getFrameInfo('video',segmentIdx, frameIdx)
+        sample = ret.sample
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
+        segmentIdx = ret.segmentIdx
+        frameIdx = ret.frameIdx
         if (sample.offset >= dataStart && sample.offset + sample.size <= end) {
           startByte = sample.offset - dataStart
           videoEndByte = startByte + sample.size
@@ -172,6 +191,8 @@ export class MP4Demuxer {
         videoTrack.baseMediaDecodeTime = videoTrack.samples[0].dts
         videoTrack.startPts = videoTrack.samples[0].pts / videoTrack.timescale
         videoTrack.endPts = videoTrack.samples[videoTrack.samples.length - 1].pts / videoTrack.timescale
+        videoTrack.startDts = videoTrack.samples[0].dts / videoTrack.timescale
+        videoTrack.endDts = videoTrack.samples[videoTrack.samples.length - 1].dts / videoTrack.timescale
         // this.log.debug('[demux video],frame,startPts，', videoTrack.startPts, ', endPts,', videoTrack.endPts)
         if (this.videoSenc) {
           videoTrack.videoSenc = this.videoSenc.slice(videoTrack.samples[0].sampleOffset, videoTrack.samples[0].sampleOffset + videoTrack.samples.length)
@@ -179,12 +200,20 @@ export class MP4Demuxer {
         }
       }
     }
-    if (this._audioSamples.length > 0 && audioIndexRange.length > 0) {
+    const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
+    if (!findRes) {
+      throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
+    }
+    let { frameIdx, segmentIdx} = findRes
+    if (audioIndexRange.length > 0) {
       for (let i = audioIndexRange[0]; i <= audioIndexRange[1]; i++) {
-        sample = this._audioSamples[i]
+        const ret = this.getFrameInfo('audio',segmentIdx, frameIdx)
+        sample = ret.sample
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
+        segmentIdx = ret.segmentIdx
+        frameIdx = ret.frameIdx
         if (sample.offset >= dataStart && sample.offset + sample.size <= data.byteLength + dataStart) {
           startByte = sample.offset - dataStart
           audioEndByte = startByte + sample.size
@@ -234,8 +263,8 @@ export class MP4Demuxer {
   }
 
   reset () {
-    this._videoSamples = []
-    this._audioSamples = []
+    // this._videoSamples = []
+    // this._audioSamples = []
     this._lastRemainBuffer = null
     this._lastRemainBufferStartPos = 0
     this.videoTrack.reset()
@@ -251,4 +280,45 @@ export class MP4Demuxer {
   static probe (data) {
     return MP4Parser.probe(data)
   }
+
+  // 根据帧的index找出起始帧
+  getFramePosByIdx (type, frameIdx) {
+    const trak = type === 'video' ? this.videoSegmnents : this.audioSegmnents
+    if (!trak) return null
+    let segmentIdx = 0
+    let frames
+    for (let idx = 0; idx < trak.length; idx++) {
+      frames = trak[idx].frames
+      if (frameIdx <= trak[idx].frames?.[frames?.length - 1].index) {
+        segmentIdx = idx
+        break
+      }
+    }
+
+    const findFrameIdx = frames.findIndex(frame => frame.index === frameIdx)
+    return {
+      frameIdx: findFrameIdx,
+      segmentIdx: segmentIdx
+    }
+  }
+
+  getFrameInfo (type, segmentIdx, frameIdx) {
+    const trak = type === 'video' ? this.videoSegmnents : this.audioSegmnents
+    if (!trak) return {}
+    const curSegmentFrameLen = trak[segmentIdx]?.frames?.length
+    if (frameIdx < curSegmentFrameLen) {
+      return {
+        sample:trak[segmentIdx]?.frames[frameIdx],
+        segmentIdx,
+        frameIdx: frameIdx + 1
+      }
+    } else {
+      return {
+        sample:trak[segmentIdx + 1]?.frames[0],
+        segmentIdx: segmentIdx + 1,
+        frameIdx: 0
+      }
+    }
+  }
+
 }
