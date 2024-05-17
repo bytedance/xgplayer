@@ -181,8 +181,10 @@ class Volume extends Plugin {
     const $labelValue = this.find('.xgplayer-value-label')
     const vol = Math.max(Math.min(volume, 1), 0)
 
-    // Math.ceil有精度问题，比如Math.ceil(0.55 * 100) == 56，因此这里使用parseInt
-    $labelValue.innerText = muted ? 0 : parseInt(vol * 100, 10)
+    // Math.ceil有精度问题，比如Math.ceil(0.55 * 100) == 56，因此这里使用Math.round
+    // 0.58 * 100 === 57.99999999999999
+    // 0.55 * 100 === 55.00000000000001
+    $labelValue.innerText = muted ? 0 : Math.round(vol * 100)
   }
 
   /**
