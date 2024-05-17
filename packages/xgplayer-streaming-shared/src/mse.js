@@ -590,6 +590,9 @@ export class MSE {
         } catch (error) {
           if (error && error.message && error.message.indexOf('SourceBuffer is full') >= 0) {
             this._mseFullFlag[type] = true
+            if (op.context && typeof op.context === 'object'){
+              op.context.isFull = true
+            }
             this._logger.error('[MSE error],  context,', op.context, ' ,name,', op.opName, ',err,SourceBuffer is full')
             op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error))
           } else {
@@ -618,6 +621,10 @@ export class MSE {
         const costtime = nowTime() - this._opst
         this._logger.debug(`UpdateEnd(${type}/${op.opName})`, SafeJSON.stringify(getTimeRanges(this._sourceBuffer[type]?.buffered)), costtime, op.context)
         op.promise.resolve({name: op.opName, context: op.context, costtime})
+        const callback = op.context?.callback
+        if (callback && typeof callback === 'function'){
+          callback(op.context)
+        }
         this._startQueue(type)
       }
     }
