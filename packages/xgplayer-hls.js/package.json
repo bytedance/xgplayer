@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls.js",
-  "version": "3.0.18-rc.3",
+  "version": "3.0.18",
   "description": "xgplayer plugin for hls",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "rc"
+    "tag": "latest"
   },
   "repository": {
     "type": "git",
