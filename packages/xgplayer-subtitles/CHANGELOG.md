@@ -1,4 +1,6 @@
 # 版本更新记录
+## 3.0.19
+>* feat(subtitles): 时间戳解析适配xxx:xx.xxx --> xxx:xx.xxx
 ## 3.0.10
 >* feat(subtitles): 字幕展示增加逐字展示能力
 ## 1.0.24
