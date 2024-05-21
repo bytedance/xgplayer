@@ -167,7 +167,7 @@ class Danmu extends Plugin {
 
   registerExtIcons () {
     const { player, config } = this
-    if (config.panel) {
+    if (config.panel && player.controls) {
       const panelOptions = {
         config: {
           onChangeset: (set) => {
@@ -178,7 +178,7 @@ class Danmu extends Plugin {
       this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName)
     }
     const { switchConfig } = config
-    if (!config.closeDefaultBtn) {
+    if (!config.closeDefaultBtn && player.controls) {
       const buttonOptions = {
         config: {
           onSwitch: (event, isOpen) => {
