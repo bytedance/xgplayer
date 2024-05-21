@@ -1,8 +1,11 @@
 # 版本更新记录
 ## 3.0.18
->* fix: 🐛 (xgplayer) 修复音量展示和时机数值有差异的问题
+>* fix: 🐛 (xgplayer) 修复弹幕在自定义el元素内容时，文字样式折行的问题
+>* fix: 🐛 (xgplayer) 修复音量展示和时机数值有差异的问题 #1396
 >* fix: 🐛 (xgplayer) 修复截图在部分机型失败的问题
 >* feat(xgplayer): 增加preProcessUrlOptions参数
+>* fix(xgplayer): 修复pad端列表按钮交互异常问题
+>* fix(xgplayer): 修复pad端进度条拖动异常问题
 ## 3.0.17
 >* fix: 🐛 (xgplayer) 修复音量展示和实际数值不符的问题
 ## 3.0.14
