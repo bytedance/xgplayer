@@ -316,7 +316,7 @@ export class MP4Demuxer {
       return {
         sample:trak[segmentIdx + 1]?.frames[0],
         segmentIdx: segmentIdx + 1,
-        frameIdx: 0
+        frameIdx: 1
       }
     }
   }
