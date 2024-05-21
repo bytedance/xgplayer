@@ -357,7 +357,7 @@ class MobilePlugin extends Plugin {
    */
   endLastMove (lastScope) {
     const { pos, player, config } = this
-  
+
     const time = (pos.time - this.timeOffset) / 1000
     switch (lastScope) {
       case 0:
