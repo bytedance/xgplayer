@@ -1,5 +1,6 @@
 /* c8 ignore next 12 */
 import { HlsPlugin, parseSwitchUrlArgs } from './plugin'
+import { HlsPreloader } from './hls/preload'
 
 /**
  * @typedef { import ('./hls/buffer-service/decrypt/index').IExternalDecryptor } IExternalDecryptor
@@ -16,6 +17,6 @@ export {
 } from 'xgplayer-streaming-shared'
 export * from './hls'
 export { Event as EVENT } from './hls/constants'
-export { HlsPlugin, parseSwitchUrlArgs }
+export { HlsPlugin, parseSwitchUrlArgs, HlsPreloader }
 
 export default HlsPlugin
