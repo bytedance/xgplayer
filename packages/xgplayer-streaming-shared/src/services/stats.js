@@ -137,6 +137,8 @@ class MediaStatsService {
       ...this._stats.getStats(),
       downloadSpeed: this._core?.speedInfo?.().speed || 0,
       avgSpeed: this._core?.speedInfo?.().avgSpeed || 0,
+      totalReceivedByte: this._core?.speedInfo?.().totalSize || 0,
+      totalReceivedCost: this._core?.speedInfo?.().totalCost || 0,
       currentTime,
       bufferEnd: this._core?.bufferInfo()?.remaining || 0,
       decodeFps
