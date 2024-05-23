@@ -87,7 +87,11 @@ export class Flv extends EventEmitter {
       this._opts
     )
     this._seiService = new SeiService(this)
-    this._bandwidthService = new BandwidthService()
+    this._bandwidthService = new BandwidthService({
+      chunkCountForSpeed: this._opts.chunkCountForSpeed,
+      skipChunkSize: this._opts.skipChunkSize,
+      longtimeNoReceived: this._opts.longtimeNoReceived
+    })
     this._stats = new MediaStatsService(this)
 
     if (!this._opts.softDecode) {
@@ -131,7 +135,9 @@ export class Flv extends EventEmitter {
   speedInfo () {
     return {
       speed: this._bandwidthService.getLatestSpeed(),
-      avgSpeed: this._bandwidthService.getAvgSpeed()
+      avgSpeed: this._bandwidthService.getAvgSpeed(),
+      totalSize: this._bandwidthService.getTotalSize(),
+      totalCost: this._bandwidthService.getTotalCost()
     }
   }
 
@@ -288,7 +294,10 @@ export class Flv extends EventEmitter {
 
     this._mediaLoader.finnalUrl = finnalUrl
 
-    this.emit(EVENT.LOAD_START, { url: finnalUrl, seamlessSwitching: this._seamlessSwitching })
+    this.emit(EVENT.LOAD_START, {
+      url: finnalUrl,
+      seamlessSwitching: this._seamlessSwitching
+    })
 
     logger.debug('load data, loading:', this._loading, finnalUrl)
 
@@ -301,7 +310,7 @@ export class Flv extends EventEmitter {
       await this._mediaLoader.load({ url: finnalUrl, range })
     } catch (error) {
       this._loading = false
-      return this._emitError(StreamingError.network(error))
+      return this._emitError(StreamingError.network(error), false)
     }
   }
 
@@ -384,7 +393,7 @@ export class Flv extends EventEmitter {
     if (!this.isLive) return
 
     const { maxReaderInterval } = this._opts
-    if (maxReaderInterval) {
+    if (maxReaderInterval && this._firstProgressEmit) {
       clearTimeout(this._maxChunkWaitTimer)
       this._maxChunkWaitTimer = setTimeout(() => {
         if (this._disconnectRetryCount) {
@@ -446,7 +455,9 @@ export class Flv extends EventEmitter {
     } else {
       if (!media.currentTime && this._gapService) {
         // 起播跳洞检测
-        const gapJump = this._opts.mseLowLatency || (this._opts.mseLowLatency === false && this.bufferInfo(MAX_START_GAP).nextStart)
+        const gapJump =
+          this._opts.mseLowLatency ||
+          (this._opts.mseLowLatency === false && this.bufferInfo(MAX_START_GAP).nextStart)
         if (gapJump) {
           this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
         }
@@ -477,7 +488,7 @@ export class Flv extends EventEmitter {
     if (this.isLive && !this._opts.mseLowLatency) {
       // update duration to Infinity
       if (this.media.duration !== Infinity) {
-        this._bufferService.updateDuration(Infinity).catch(e=>{})
+        this._bufferService.updateDuration(Infinity).catch(e => {})
       }
     }
   }
@@ -500,7 +511,10 @@ export class Flv extends EventEmitter {
       const latency = bufferEnd - currentTime
       if (latency >= opts.maxLatency) {
         this.media.currentTime = bufferEnd - opts.targetLatency
-        this.emit(EVENT.CHASEFRAME, {currentTime: this.media.currentTime, latency: opts.targetLatency})
+        this.emit(EVENT.CHASEFRAME, {
+          currentTime: this.media.currentTime,
+          latency: opts.targetLatency
+        })
       }
     }
     this._seiService.throw(currentTime, true)
