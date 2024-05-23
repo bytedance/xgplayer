@@ -1,5 +1,32 @@
 import Player from '../../packages/xgplayer/src'
 import HlsPlayer from '../../packages/xgplayer-hls/src'
+import { HlsPreloader, EVENT } from '../../packages/xgplayer-hls/src'
+
+function testPreoad(){
+    const preloader = new HlsPreloader([], {
+      onPreM3U8Parse:function(manifest){
+          console.log('manifest', manifest)
+      }
+    })
+    window.preloader = preloader
+    preloader.preload([
+    {
+      url: 'https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8',
+    },
+    {
+      url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/hls/xgplayer-demo.m3u8',
+      startTime: 10,
+    },
+    ])
+
+    preloader.on(EVENT.PRELOAD_FINISH, ()=>{
+      if(preloader.isEmpty()){
+          preloader.destroy()
+      }
+    })
+}
+
+window.testPreoad = testPreoad
 
 localStorage.setItem('xgd', 1)
 function defaultOpt() {

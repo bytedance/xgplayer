@@ -36,7 +36,7 @@ export class HlsPreloader extends EventEmitter{
 
     async _preloadNext (){
       const urls = this._urls
-      if (!urls || !urls.length) return
+      if (!urls || !urls.length || this._isDestroyed) return
       const { startTime, url } = urls.shift()
       this._isPreloading = true
       if (!url){
@@ -51,6 +51,7 @@ export class HlsPreloader extends EventEmitter{
         return
       }
       await this._loadSegment()
+      this.emit(Event.PRELOAD_FINISH)
       this._preloadNext()
     }
 
@@ -101,6 +102,19 @@ export class HlsPreloader extends EventEmitter{
       this._isPreloading = false
       // 检测取消期间是否有新数据需要加载
       this._preloadNext()
+    }
+
+    async destroy (){
+      this._isDestroyed = true
+      await this.cancel()
+      this._manifestLoader = null
+      this._segmentLoader = null
+      this._playlist = null
+      this.removeAllListeners()
+    }
+
+    isEmpty (){
+      return this._urls.length === 0
     }
 
 }

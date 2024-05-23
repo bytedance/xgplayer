@@ -7,5 +7,6 @@ export const Event = {
   SUBTITLE_SEGMENTS: 'core.subtitlesegments',
   SUBTITLE_PLAYLIST: 'core.subtitleplaylist',
   SEI_PAYLOAD_TIME: 'core.seipayloadtime',
-  APPEND_COST: 'core.appendcost'
+  APPEND_COST: 'core.appendcost',
+  PRELOAD_FINISH:'core.preloadfinish'
 }
