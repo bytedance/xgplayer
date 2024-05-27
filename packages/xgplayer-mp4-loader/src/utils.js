@@ -161,7 +161,7 @@ function getSegments (
       }
       if (cttsEntries) {
         beforeCttsInfo = getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
-        frame.pts = dts + beforeCttsInfo.offset
+        frame.pts = dts + (beforeCttsInfo?.offset || 0)
       }
       if (editListOffset === 0 && pos === 0) {
         frame.pts = 0
@@ -336,22 +336,23 @@ function getCTTSOffset (cttsEntries, frameIndex, beforeCttsInfo) {
     ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
     // curUsedCttsIdx前的count的累计值
     ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
-  }
-  const curerentCTTS = cttsEntries[beforeCttsInfo?.usedCttsIdx || 0]
-  const count = curerentCTTS?.count || 1
-  if (frameIndex < (beforeCttsInfo?.beforeFrameNum || 0) + count) {
-    ret.offset = curerentCTTS?.offset || 0
-    ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
-    ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
   } else {
-    const newCTTS = cttsEntries[beforeCttsInfo.usedCttsIdx + 1]
-    if (!newCTTS) {
-      ret.offset = 0
+    const curerentCTTS = cttsEntries[beforeCttsInfo?.usedCttsIdx || 0]
+    const count = curerentCTTS?.count || 1
+    if (frameIndex < (beforeCttsInfo?.beforeFrameNum || 0) + count) {
+      ret.offset = curerentCTTS?.offset || 0
+      ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
+      ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
     } else {
-      ret.offset = newCTTS?.offset || 0
+      const newCTTS = cttsEntries[beforeCttsInfo.usedCttsIdx + 1]
+      if (!newCTTS) {
+        ret.offset = 0
+      } else {
+        ret.offset = newCTTS?.offset || 0
+      }
+      ret.usedCttsIdx = beforeCttsInfo.usedCttsIdx + 1
+      ret.beforeFrameNum = (beforeCttsInfo?.beforeFrameNum || 0) + (curerentCTTS?.count || 1)
     }
-    ret.usedCttsIdx = beforeCttsInfo.usedCttsIdx + 1
-    ret.beforeFrameNum = (beforeCttsInfo?.beforeFrameNum || 0) + (curerentCTTS?.count || 1)
   }
   return ret
 }
