@@ -1,145 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
-  <script>
-    var ua = navigator.userAgent.toLowerCase()
-    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
-    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
-      var vConsole = new window.VConsole();
-    }
-  </script>
-    <style>
-      .pannel {
-        margin: 20px 0;
-        padding: 20px;
-        background: #72a0c8;
-      }
-      .message-pannel {
-        margin-top: 20px;
-        color: #333a3c;
-      }
-      .message-info {
-        margin-top: 20px;
-        border: 1px solid #728bb8;
-        padding: 10px 10px;
-      }
-      h4 {
-        margin-block-start: 0.2em;
-        margin-block-end: 0.2em;
-      }
-      p {
-        line-height: 18px;
-        display: block;
-        line-height: 16px;
-        /* margin: 10px; */
-        margin-block-start: 0.4em;
-        margin-block-end: 0.4em;
-      }
-      .ext-controls0 {
-        height: 80px !important;
-        background-color: #000;
-      }
-      .xgplayer .my-pop {
-        height: 100px;
-        width: 400px;
-        background-color: #72a0c8;
-        border: 2px solid red;
-        box-sizing: border-box;
-      }
-    </style>
-  </head>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+  <meta name="referrer" content="no-referrer">
+  <title>xgplayer</title>
+  <style type="text/css">
+    html, body {width:100%;height:100%;margin:auto;overflow: hidden;}
+  </style>
+</head>
+<body>
+<div id="mse"></div>
+<link rel="stylesheet" href="https://unpkg.byted-static.com/xgplayer/3.0.10/dist/index.min.css"/>
+<script charset="utf-8" src="https://unpkg.byted-static.com/xgplayer/3.0.10/dist/index.min.js"></script>
 
-  <body>
-    <div id="video0" style="margin: 0 auto"></div>
-    <div class="pannel">
-      <div class="tool">
-        <button type="submit" class="btn" id="js-destroy0" onclick="window.destroy(0)">
-          销毁
-        </button>
-        <button type="submit" class="btn" id="js-reinit0" onclick="window.init(0)">
-          重新初始化
-        </button>
-        <button type="submit" class="btn" id="js-playnext0" onclick="window.playNext(0)">
-          播放下一个
-        </button>
-        <button
-          type="submit"
-          class="btn"
-          id="js-changelang0"
-          onclick="window.changeLang(0)"
-        >
-          切换语言
-        </button>
-        <button
-          type="submit"
-          class="btn"
-          id="js-changelang0"
-          onclick="window.createDot(0)"
-        >
-          添加预览点
-        </button>
-      </div>
-      <div class="message-pannel">
-        <div class="message-info" id="js-show-lang0">
-          <h4>current lang:</h4>
-        </div>
+<script>
+  const config = {
+    "id": "mse",
+    "url": "https://lf3-static.bytednsdoc.com/obj/eden-cn/7221eh7pxhfuloj/wangziyi5.23.mp4",
+    "playsinline": true,
+    "poster": "//lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/poster.jpg",
+    "plugins": []
+  }
 
-        <div class="message-info" id="js-show-log0">
-          <h4>log info:</h4>
-        </div>
-      </div>
-    </div>
-    <div id="video1" style="margin: 0 auto"></div>
-    <!-- <div class="pannel">
-      <div class="tool">
-        <button type="submit" class="btn" id="js-destroy0" onclick="window.destroy(0)">
-          销毁
-        </button>
-        <button type="submit" class="btn" id="js-reinit0" onclick="window.init(0)">
-          重新初始化
-        </button>
-        <button type="submit" class="btn" id="js-playnext0" onclick="window.playNext(0)">
-          播放下一个
-        </button>
-        <button
-          type="submit"
-          class="btn"
-          id="js-changelang0"
-          onclick="window.changeLang(0)"
-        >
-          切换语言
-        </button>
-        <button
-          type="submit"
-          class="btn"
-          id="js-changelang0"
-          onclick="window.createDot(0)"
-        >
-          添加预览点
-        </button>
-      </div>
-      <div class="message-pannel">
-        <div class="message-info" id="js-show-lang0">
-          <h4>current lang:</h4>
-        </div>
+  let player = new Player(config)
 
-        <div class="message-info" id="js-show-log0">
-          <h4>log info:</h4>
-        </div>
-      </div>
-    </div> -->
-    <script></script>
-    <script type="module" defer src="./index.js"></script>
-    <script>
-      // window.onload = function(){
-      //   window.initPlayer()
-      // }
-    </script>
-  </body>
+</script>  </body>
 </html>

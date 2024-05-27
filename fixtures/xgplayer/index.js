@@ -41,7 +41,7 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "",
+    url: "https://lf3-static.bytednsdoc.com/obj/eden-cn/7221eh7pxhfuloj/wangziyi5.23.mp4",
     DynamicBg: {
       disable: false
     },
