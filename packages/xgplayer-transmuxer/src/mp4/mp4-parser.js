@@ -647,14 +647,14 @@ export class MP4Parser {
   static stsc (box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
-      const entries = []
+      const entries = new Array(entryCount)
       let start = 4
       for (let i = 0; i < entryCount; i++) {
-        entries.push({
+        entries[i] = {
           firstChunk: readBig32(data, start),
           samplesPerChunk: readBig32(data, start + 4),
           sampleDescriptionIndex: readBig32(data, start + 8)
-        })
+        }
         start += 12
       }
       ret.entryCount = entryCount
@@ -666,11 +666,11 @@ export class MP4Parser {
     return parseBox(box, true, (ret, data) => {
       const sampleSize = readBig32(data)
       const sampleCount = readBig32(data, 4)
-      const entrySizes = []
+      const entrySizes = new Array(sampleCount)
       if (!sampleSize) {
         let start = 8
         for (let i = 0; i < sampleCount; i++) {
-          entrySizes.push(readBig32(data, start))
+          entrySizes[i] = (readBig32(data, start))
           start += 4
         }
       }
@@ -683,10 +683,10 @@ export class MP4Parser {
   static stco (box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
-      const entries = []
+      const entries = new Array(entryCount)
       let start = 4
       for (let i = 0; i < entryCount; i++) {
-        entries.push(readBig32(data, start))
+        entries[i] = (readBig32(data, start))
         start += 4
       }
       ret.entryCount = entryCount
@@ -697,10 +697,11 @@ export class MP4Parser {
   static co64 (box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
-      const entries = []
+      const entries = new Array(entryCount)
       let start = 4
       for (let i = 0; i < entryCount; i++) {
-        entries.push(readBig64(data, start))
+        // entries.push(readBig64(data, start))
+        entries[i] = readBig64(data, start)
         start += 8
       }
       ret.entryCount = entryCount
@@ -711,10 +712,10 @@ export class MP4Parser {
   static stss (box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
-      const entries = []
+      const entries = new Array(entryCount)
       let start = 4
       for (let i = 0; i < entryCount; i++) {
-        entries.push(readBig32(data, start))
+        entries[i] = readBig32(data, start)
         start += 4
       }
       ret.entryCount = entryCount
@@ -757,7 +758,7 @@ export class MP4Parser {
         ret.firstSampleFlags = readBig32(data, offset)
         offset += 4
       }
-      ret.samples = []
+      ret.samples = new Array(sampleCount)
       if (dataLen > offset) {
         let sample
         for (let i = 0; i < sampleCount; i++) {
@@ -782,7 +783,7 @@ export class MP4Parser {
             }
             offset += 4
           }
-          ret.samples.push(sample)
+          ret.samples[i] = sample
         }
       }
     })
@@ -993,9 +994,9 @@ export class MP4Parser {
       let dts = 0
       let gopId = -1
       if (!trun.samples.length && trun.sampleCount) {
-        ret[tfhd.trackId] = []
+        ret[tfhd.trackId] = new Array(trun.sampleCount)
         for (let i = 0; i < trun.sampleCount; i++) {
-          ret[tfhd.trackId].push({
+          ret[tfhd.trackId][i] = ({
             offset,
             dts,
             duration: defaultDuration,
