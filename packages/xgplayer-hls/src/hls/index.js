@@ -9,6 +9,7 @@ import { Playlist } from './playlist'
 import { SegmentLoader } from './segment-loader'
 import { clamp } from './utils'
 
+export { getConfig, ManifestLoader, Playlist, SegmentLoader}
 /**
  * @typedef {import('./manifest-loader/parser/model').MediaSegment} MediaSegment
  */
