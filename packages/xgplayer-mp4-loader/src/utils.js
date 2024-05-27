@@ -95,15 +95,15 @@ function getSegments (
   const stszEntrySizes = stsz.entrySizes
   const stssEntries = stss?.entries
   const cttsEntries = ctts?.entries
-  let cttsArr
-  if (cttsEntries) {
-    cttsArr = []
-    cttsEntries.forEach(({ count, offset }) => {
-      for (let i = 0; i < count; i++) {
-        cttsArr.push(offset)
-      }
-    })
-  }
+  // let cttsArr
+  // if (cttsEntries) {
+  //   cttsArr = []
+  //   cttsEntries.forEach(({ count, offset }) => {
+  //     for (let i = 0; i < count; i++) {
+  //       cttsArr.push(offset)
+  //     }
+  //   })
+  // }
   let keyframeMap
   if (stssEntries) {
     keyframeMap = {}
@@ -124,8 +124,9 @@ function getSegments (
   let dts = 0
   let gopId = -1
   let editListApplied = false
+  let beforeCttsInfo = null
 
-  if (cttsArr?.length > 0 && editListOffset > 0) {
+  if (cttsEntries?.length > 0 && editListOffset > 0) {
     // 参考chromium原生播放时，ffmpeg_demuxer处理edts后的逻辑：
     // FFmpeg将所有AVPacket dts值根据editListOffset进行偏移，以确保解码器有足够的解码时间(即保持cts不变，dts从负值开始)
     // FFmpeg对于音频的AVPacket dts/pts虽然也进行了偏移，但在chromium中最后给到decoder时又将其偏移修正回0
@@ -158,8 +159,9 @@ function getSegments (
         }
         frame.gopId = gopId
       }
-      if (cttsArr && pos < cttsArr.length) {
-        frame.pts = dts + cttsArr[pos]
+      if (cttsEntries) {
+        beforeCttsInfo = getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
+        frame.pts = dts + beforeCttsInfo.offset
       }
       if (editListOffset === 0 && pos === 0) {
         frame.pts = 0
@@ -170,7 +172,8 @@ function getSegments (
       }
       // 更新当前gop中最小的pts
       if (frame.keyframe) {
-        gopMinPtsArr.push(frame.pts)
+        gopMinPtsArr[gopMinPtsArr.length] = frame.pts
+        // gopMinPtsArr.push(frame.pts)
       } else {
         if (frame.pts < gopMinPtsArr[gop.length - 1]) {
           gopMinPtsArr[gop.length - 1] = frame.pts
@@ -178,14 +181,16 @@ function getSegments (
       }
       // 更新当前gop中最大的pts
       if (frame.keyframe) {
-        gopMaxPtsFrameIdxArr.push(frame.index)
+        gopMaxPtsFrameIdxArr[gopMaxPtsFrameIdxArr.length] = frame.index
+        // gopMaxPtsFrameIdxArr.push(frame.index)
       } else if (gop.length > 0 && gopMaxPtsFrameIdxArr[gop.length - 1] !== undefined) {
         const curMaxPts = frames[gopMaxPtsFrameIdxArr[gop.length - 1]]?.pts
         if (curMaxPts !== undefined && frame.pts > curMaxPts) {
           gopMaxPtsFrameIdxArr[gop.length - 1] = frame.index
         }
       }
-      frames.push(frame)
+      frames[frames.length] = frame
+      // frames.push(frame)
 
       dts += delta
       pos++
@@ -322,6 +327,33 @@ function getSegments (
   }
 
   return segments
+}
+
+function getCTTSOffset (cttsEntries, frameIndex, beforeCttsInfo) {
+  const ret = {}
+  if (!cttsEntries || cttsEntries?.length <= 0 || beforeCttsInfo?.usedCttsIdx >= cttsEntries.length) {
+    ret.offset = 0
+    ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
+    // curUsedCttsIdx前的count的累计值
+    ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
+  }
+  const curerentCTTS = cttsEntries[beforeCttsInfo?.usedCttsIdx || 0]
+  const count = curerentCTTS?.count || 1
+  if (frameIndex < (beforeCttsInfo?.beforeFrameNum || 0) + count) {
+    ret.offset = curerentCTTS?.offset || 0
+    ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
+    ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
+  } else {
+    const newCTTS = cttsEntries[beforeCttsInfo.usedCttsIdx + 1]
+    if (!newCTTS) {
+      ret.offset = 0
+    } else {
+      ret.offset = newCTTS?.offset || 0
+    }
+    ret.usedCttsIdx = beforeCttsInfo.usedCttsIdx + 1
+    ret.beforeFrameNum = (beforeCttsInfo?.beforeFrameNum || 0) + (curerentCTTS?.count || 1)
+  }
+  return ret
 }
 
 export function moovToMeta (moov) {
