@@ -124,7 +124,7 @@ function getSegments (
   let dts = 0
   let gopId = -1
   let editListApplied = false
-  let beforeCttsInfo = null
+  let beforeCttsInfo = {}
 
   if (cttsEntries?.length > 0 && editListOffset > 0) {
     // 参考chromium原生播放时，ffmpeg_demuxer处理edts后的逻辑：
@@ -160,7 +160,7 @@ function getSegments (
         frame.gopId = gopId
       }
       if (cttsEntries) {
-        beforeCttsInfo = getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
+        getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
         frame.pts = dts + (beforeCttsInfo?.offset || 0)
       }
       if (editListOffset === 0 && pos === 0) {
@@ -330,31 +330,31 @@ function getSegments (
 }
 
 function getCTTSOffset (cttsEntries, frameIndex, beforeCttsInfo) {
-  const ret = {}
+  // const ret = {}
+  beforeCttsInfo.offset = 0
   if (!cttsEntries || cttsEntries?.length <= 0 || beforeCttsInfo?.usedCttsIdx >= cttsEntries.length) {
-    ret.offset = 0
-    ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
+    beforeCttsInfo.offset = 0
+    beforeCttsInfo.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
     // curUsedCttsIdx前的count的累计值
-    ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
+    beforeCttsInfo.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
   } else {
     const curerentCTTS = cttsEntries[beforeCttsInfo?.usedCttsIdx || 0]
     const count = curerentCTTS?.count || 1
     if (frameIndex < (beforeCttsInfo?.beforeFrameNum || 0) + count) {
-      ret.offset = curerentCTTS?.offset || 0
-      ret.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
-      ret.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
+      beforeCttsInfo.offset = curerentCTTS?.offset || 0
+      beforeCttsInfo.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
+      beforeCttsInfo.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
     } else {
       const newCTTS = cttsEntries[beforeCttsInfo.usedCttsIdx + 1]
       if (!newCTTS) {
-        ret.offset = 0
+        beforeCttsInfo.offset = 0
       } else {
-        ret.offset = newCTTS?.offset || 0
+        beforeCttsInfo.offset = newCTTS?.offset || 0
       }
-      ret.usedCttsIdx = beforeCttsInfo.usedCttsIdx + 1
-      ret.beforeFrameNum = (beforeCttsInfo?.beforeFrameNum || 0) + (curerentCTTS?.count || 1)
+      beforeCttsInfo.usedCttsIdx = beforeCttsInfo.usedCttsIdx + 1
+      beforeCttsInfo.beforeFrameNum = (beforeCttsInfo?.beforeFrameNum || 0) + (curerentCTTS?.count || 1)
     }
   }
-  return ret
 }
 
 export function moovToMeta (moov) {
