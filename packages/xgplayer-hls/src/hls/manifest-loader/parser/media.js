@@ -18,9 +18,6 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
 
   // eslint-disable-next-line no-cond-assign
   while (line = lines[index++]) {
-    if (endOfList) {
-      break
-    }
     if (line[0] !== '#') { // url
       if (media.lowLatency) {
         curSN++
@@ -70,11 +67,6 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
       }
         break
       case 'ENDLIST': {
-        const lastSegment = media.segments[media.segments.length - 1]
-        if (lastSegment) {
-          lastSegment.isLast = true
-        }
-        media.live = false
         endOfList = true
       }
         break
@@ -169,17 +161,18 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
   }
 
   media.segments = media.segments.filter(x => x.duration !== 0)
-
   const lastSegment = media.segments[media.segments.length - 1]
-  if (lastSegment) {
-    media.endSN = lastSegment.sn
-    media.endPartIndex = lastSegment.partIndex
 
-    // The real lastSegment maybe filter by 0 duration
-    if (endOfList && !lastSegment.isLast) {
+  if (lastSegment) {
+    if (endOfList) {
       lastSegment.isLast = true
     }
+    media.endSN = lastSegment.sn
+    media.endPartIndex = lastSegment.partIndex
+    media.live = false
+
   }
+
 
   media.totalDuration = totalDuration
   media.endCC = curCC
