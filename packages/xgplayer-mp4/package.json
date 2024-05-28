@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4",
-  "version": "3.0.0-alpha.30",
+  "version": "3.0.0-alpha.31",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -9,7 +9,10 @@
     "*.css"
   ],
   "libd": {
-    "umdName": "Mp4Plugin"
+    "umdName": "Mp4Plugin",
+    "legacy": {
+      "polyfills": false
+    }
   },
   "files": [
     "dist",
