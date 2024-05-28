@@ -130,4 +130,25 @@ export class Buffer {
       length: Buffer.totalLength && Buffer.totalLength(buffers)
     }
   }
+
+  /**
+   *
+   * @param {HTMLMediaElement} media
+   * @param {number} pos
+   * @returns {Boolean}
+   */
+  static isBuffered (media, pos) {
+    if (media) {
+      const buffered = Buffer.get(media)
+
+      if (buffered?.length) {
+        for (let i = 0; i < buffered.length; i++) {
+          if (pos >= buffered.start(i) && pos <= buffered.end(i)) {
+            return true
+          }
+        }
+      }
+    }
+    return false
+  }
 }
