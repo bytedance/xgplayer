@@ -55,7 +55,7 @@ export class AAC {
       }
 
       frameLength = ((data[i + 3] & 0x03) << 11) | (data[i + 4] << 3) | ((data[i + 5] & 0xe0) >> 5)
-      if ((len - i) < frameLength) break
+      if (!frameLength || (len - i) < frameLength) break
 
       protectionSkipBytes = (~data[i + 1] & 0x01) * 2
       frames.push({
