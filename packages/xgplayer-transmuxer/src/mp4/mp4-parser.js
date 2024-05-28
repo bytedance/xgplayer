@@ -758,8 +758,8 @@ export class MP4Parser {
         ret.firstSampleFlags = readBig32(data, offset)
         offset += 4
       }
-      ret.samples = new Array(sampleCount)
       if (dataLen > offset) {
+        ret.samples = new Array(sampleCount)
         let sample
         for (let i = 0; i < sampleCount; i++) {
           sample = {}
