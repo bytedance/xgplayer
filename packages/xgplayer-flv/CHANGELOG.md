@@ -1,4 +1,19 @@
 
+## 3.0.19
+>* refactor: update download speed evaluate strategy, export configuration for speed evaluate
+
+```
+const player = new Player({
+    isLive: true,
+    plugins: [FlvPlugin],
+    flv: {
+        chunkCountForSpeed?: number, // default: 50, 累计最近多少次接受的chunk用于平均速度计算
+        skipChunkSize?: number,  // default: 1000 Byte, 过滤数据量小于1000字节的chunk，不用于速度计算
+        longtimeNoReceived?: number, // default: 3000ms, 超过一定间隔无新数据接收时，增加数据量为0的chunk用于速度计算
+    }
+})
+```
+
 ## xgplayer-flv@3.0.17
 >* fix: firstframe slow on lg webos
 >* fix: autoplay=false 不断流

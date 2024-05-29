@@ -1,3 +1,7 @@
+## 3.0.19
+>* fix: adts parser兼容异常case造成页面crash
+>* fix: m3u8 parser 兼容 EXT-X-ENDLIST出现在任意位置
+
 ## 3.0.18
 >* refactor: 💡 (xgplayer-hls) DRM支持更多的identifiers
 >* refactor: 💡 (xgplayer-hls) MSE ChangeType不支持时，对外抛出错误
