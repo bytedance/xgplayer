@@ -200,12 +200,12 @@ export class MP4Demuxer {
         }
       }
     }
-    const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
-    if (!findRes) {
-      throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
-    }
-    let { frameIdx, segmentIdx} = findRes
     if (audioIndexRange.length > 0) {
+      const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
+      if (!findRes) {
+        throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
+      }
+      let { frameIdx, segmentIdx} = findRes
       for (let i = audioIndexRange[0]; i <= audioIndexRange[1]; i++) {
         const ret = this.getFrameInfo('audio',segmentIdx, frameIdx)
         sample = ret.sample
@@ -284,7 +284,7 @@ export class MP4Demuxer {
   // 根据帧的index找出起始帧
   getFramePosByIdx (type, frameIdx) {
     const trak = type === 'video' ? this.videoSegmnents : this.audioSegmnents
-    if (!trak) return null
+    if (!trak || !trak?.length) return null
     let segmentIdx = 0
     let frames
     for (let idx = 0; idx < trak.length; idx++) {
