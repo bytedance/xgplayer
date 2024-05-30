@@ -141,6 +141,7 @@ export class MP4Loader extends EventEmitter {
           const { videoSegments, audioSegments } = segments
           this.videoSegments = videoSegments
           this.audioSegments = audioSegments
+          delete this.buffer
           this.logger.debug('[loadMetaProcess] moov ok')
           onProgress(undefined, state, {
             meta: {
@@ -195,6 +196,7 @@ export class MP4Loader extends EventEmitter {
     const { videoSegments, audioSegments } = segments
     this.videoSegments = videoSegments
     this.audioSegments = audioSegments
+    delete this.buffer
     this.logger.debug('[load moov end!!!!!]')
     return {
       meta: this.meta,
@@ -286,6 +288,7 @@ export class MP4Loader extends EventEmitter {
     this.audioSegments = []
     this._currentSegmentIndex = -1
     this._currentLoadingSegmentIndex = -1
+    delete this.buffer
   }
 
   async destroy () {
