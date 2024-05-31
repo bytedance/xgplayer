@@ -353,7 +353,7 @@ export class MP4 {
   static stbl (track) {
     const extBox = []
     if (track && track.ext) {
-      track.ext.stss && extBox.push(MP4.stss(track.ext.stss.entries))
+      // track.ext.stss && extBox.push(MP4.stss(track.ext.stss.entries))
       // track.ext.stss && extBox.push(MP4.ctts(track.ext.stss.entries))
     }
     const stbl = MP4.box(MP4.types.stbl, MP4.stsd(track), MP4.STTS, extBox[0], MP4.STSC, MP4.STSZ, MP4.STCO)
