@@ -4,6 +4,7 @@ import { MP4Parser } from './mp4-parser'
 import { Logger } from './logger'
 import Crypto from './crypto/crypto'
 const NEW_ARRAY_MAX_CNT = 20
+const DELETE_BOX_LIST = ['stts','stsc','stsz','stco','co64']
 export class MP4Demuxer {
   // _videoSamples = []
   // _audioSamples = []
@@ -27,8 +28,16 @@ export class MP4Demuxer {
       MP4Parser.moovToTrack(moov, this.videoTrack, this.audioTrack)
       this.videoSenc = this.videoTrack.videoSenc
       this.audioSenc = this.audioTrack.audioSenc
-      // 使用完之后释放掉，减少内存占用
-      moov.trak.forEach(trak => {trak.mdia.minf.stbl = null})
+      // 把不用的释放掉,减少内存占用
+      moov.trak.forEach(trak => {
+        DELETE_BOX_LIST.forEach(type => {
+          const box = trak.mdia.minf.stbl[type]
+          if (box) {
+            box.entries && (box.entries = null)
+            box.entrySizes && (box.entrySizes = null)
+          }
+        })
+      })
     }
     // if (!this._audioSamples.length && !this._videoSamples.length) {
     //   const ret = MP4Parser.moovToSamples(moov)
