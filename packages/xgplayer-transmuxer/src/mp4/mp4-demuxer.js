@@ -27,6 +27,8 @@ export class MP4Demuxer {
       MP4Parser.moovToTrack(moov, this.videoTrack, this.audioTrack)
       this.videoSenc = this.videoTrack.videoSenc
       this.audioSenc = this.audioTrack.audioSenc
+      // 使用完之后释放掉，减少内存占用
+      moov.trak.forEach(trak => {trak.mdia.minf.stbl = null})
     }
     // if (!this._audioSamples.length && !this._videoSamples.length) {
     //   const ret = MP4Parser.moovToSamples(moov)
