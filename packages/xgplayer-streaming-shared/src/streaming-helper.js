@@ -29,30 +29,35 @@ export function concatUint8Array (...arr) {
   arr = arr.filter(Boolean)
   if (arr.length < 2) return arr[0]
   const size = arr.reduce((p, c) => p + c.byteLength, 0)
-  let tryCnt = 0
-  let data
-  while (tryCnt < NEW_ARRAY_MAX_CNT) {
-    try {
-      data = new Uint8Array(size)
-      if (data && data.byteLength > 0) {
-        break
-      } else {
-        tryCnt++
-      }
-    } catch (e) {
-      if (tryCnt < NEW_ARRAY_MAX_CNT) {
-        tryCnt++
-      } else {
-        throw new Error(`new array failed final,${e?.message}`)
-      }
-    }
-  }
+  const data = newUint8Array(size)
   let prevLen = 0
   arr.forEach((d) => {
     data.set(d, prevLen)
     prevLen += d.byteLength
   })
   return data
+}
+
+export function newUint8Array (size) {
+  let cnt = 0
+  let array
+  while (cnt < NEW_ARRAY_MAX_CNT) {
+    try {
+      array = new Uint8Array(size)
+      if (array && array.byteLength > 0) {
+        break
+      } else {
+        cnt++
+      }
+    } catch (e) {
+      if (cnt < NEW_ARRAY_MAX_CNT) {
+        cnt++
+      } else {
+        throw new Error(`new array failed final,${e?.message}`)
+      }
+    }
+  }
+  return array
 }
 
 export function sleep (t = 0) {
