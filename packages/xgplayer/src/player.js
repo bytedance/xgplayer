@@ -46,6 +46,14 @@ class Player extends MediaProxy {
     XG_DEBUG.config.debug = value
   }
 
+  /**
+   * @type { string }
+   */
+  static get version () {
+    return version
+  }
+
+
   static get debugger () {
     return XG_DEBUG.config.debug
   }
