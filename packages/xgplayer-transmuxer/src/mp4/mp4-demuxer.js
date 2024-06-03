@@ -4,7 +4,7 @@ import { MP4Parser } from './mp4-parser'
 import { Logger } from './logger'
 import Crypto from './crypto/crypto'
 const NEW_ARRAY_MAX_CNT = 20
-const DELETE_BOX_LIST = ['stts','stsc','stsz','stco','co64', 'stss']
+const DELETE_BOX_LIST = ['stts','stsc','stsz','stco','co64','stss', 'ctts']
 export class MP4Demuxer {
   _videoSamples = []
   _audioSamples = []
