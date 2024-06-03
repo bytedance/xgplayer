@@ -66,6 +66,7 @@ class MP4 extends EventEmitter {
       retryDelay: this.options.retryDelay,
       timeout: this.options.timeout,
       ...options.reqOptions,
+      memoryOpt: this.options.memoryOpt,
       openLog: checkOpenLog()
     })
     this.MP4Demuxer = null
@@ -432,7 +433,7 @@ class MP4 extends EventEmitter {
     } else {
       try {
         if (!this.MP4Demuxer) {
-          this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog()})
+          this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog(), memoryOpt: this.options.memoryOpt})
         }
         const demuxRet = this.MP4Demuxer.demuxPart(buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue)
         if (!this.FMP4Remuxer && (!this.checkCodecH265() || this.options.supportHevc)) {
