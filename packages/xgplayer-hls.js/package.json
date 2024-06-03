@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls.js",
-  "version": "3.0.12-alpha.3",
+  "version": "3.0.16",
   "description": "xgplayer plugin for hls",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "alpha"
+    "tag": "latest"
   },
   "repository": {
     "type": "git",
@@ -35,10 +35,10 @@
   "dependencies": {
     "deepmerge": "2.0.1",
     "event-emitter": "^0.3.5",
-    "hls.js": "^1.4.12"
+    "hls.js": "^1.5.6"
   },
   "peerDependencies": {
-    "xgplayer": ">=3.0.0-next.0",
+    "xgplayer": ">=3.0.13",
     "core-js": ">=3.12.1"
   }
 }

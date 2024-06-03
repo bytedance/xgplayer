@@ -110,6 +110,8 @@ export default function getDefaultConfig () {
   return {
     id: '', // container DOM id
     el: null, // container domElement
+    isNoRoot: false, // 是否是无root状态
+    isCustomRoot: true, // 是否是自定义root
     url: '', // the url need to play
     domEventType: 'default', // 事件类型，默认值default, touch | mouse
     nullUrlStart: false, // Whether to start broadcasting with empty url

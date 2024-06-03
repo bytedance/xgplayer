@@ -272,6 +272,20 @@ export class TsDemuxer {
           //   sample = this.prevAvcSample = new VideoSample(pts, dts)
           // }
           break
+        case 38: // HEVC FD_NUT
+          if (isHevc) {
+            let ffByteFound = false
+            for (let i = 2; i < unit.byteLength; i++) {
+              if (unit[i] === 0xff) {
+                ffByteFound = true
+                break
+              }
+            }
+            if (!ffByteFound) {
+              return
+            }
+          }
+          break
         default:
       }
       sample.units.push(unit)

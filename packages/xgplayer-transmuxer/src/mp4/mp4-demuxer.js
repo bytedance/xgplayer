@@ -2,9 +2,18 @@ import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample } from 
 import { readBig32 } from '../utils'
 import { MP4Parser } from './mp4-parser'
 import { Logger } from './logger'
-import Crypto from './crypto/crypto'
+// import Crypto from './crypto/crypto'
+let _Crypto = null
 const NEW_ARRAY_MAX_CNT = 20
 export class MP4Demuxer {
+  static set Crypto (val) {
+    _Crypto = val
+  }
+
+  static get Crypto () {
+    return _Crypto
+  }
+
   _videoSamples = []
   _audioSamples = []
   _lastRemainBuffer = []
@@ -245,7 +254,11 @@ export class MP4Demuxer {
 
   decoderData (videoTrack, audioTrack, customDescryptHandler) {
     if (videoTrack.useEME || audioTrack.useEME) return
-    Crypto.decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler)
+    if (_Crypto) {
+      Crypto.decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler)
+    } else {
+      // @TODO 抛出无法解密的错误信息
+    }
   }
 
   static probe (data) {

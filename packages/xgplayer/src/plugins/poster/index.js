@@ -4,7 +4,7 @@ import './index.scss'
 /**
  * @typedef {{
  *   isEndedShow?: boolean, // 是否在播放结束之后显示
- *   hideCanplay?: boolean, // cnaplay 时间大于1的时候才隐藏
+ *   hideCanplay?: boolean, // 设置为true时，播放后才隐藏，在视频地址更新后会重新显示poster。默认为false，即在play事件触发后隐藏poster
  *   poster?: string // 封面图地址
  * }} IPosterConfig
  */
@@ -19,10 +19,10 @@ class Poster extends Plugin {
   static get defaultConfig () {
     return {
       isEndedShow: true, // 是否在播放结束之后显示
-      hideCanplay: false, // cnaplay 时间大于1的时候才隐藏
+      hideCanplay: false, // 设置为true时，播放后才隐藏，在视频地址更新后会重新显示poster。默认为false，即在play事件触发后隐藏poster
       notHidden: false, // 是否一直显示
       poster: '', // 封面图地址
-      fillMode: 'fixWidth', // fixWidth / fixHeight / cover / container
+      fillMode: 'fixWidth', // 封面图填充方式，fixWidth / fixHeight / cover / contain
     }
   }
 
@@ -38,7 +38,11 @@ class Poster extends Plugin {
     Util.addClass(this.root, 'hide')
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     Util.removeClass(this.root, 'hide')
   }
 
@@ -97,8 +101,8 @@ class Poster extends Plugin {
       case 'cover':
         _bg = 'cover'
         break
-      case 'container':
-        _bg = 'container'
+      case 'contain':
+        _bg = 'contain'
         break
       case 'fixHeight':
         _bg = 'auto 100%'

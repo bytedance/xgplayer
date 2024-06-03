@@ -29,11 +29,15 @@ export class BufferService {
     return this._demuxer?._fixer?._baseDts
   }
 
+  get blobUrl () {
+    return this._mse?.url
+  }
+
   /**
    * @param {import('../index').Flv} flv
    * @param {Object} [softVideo]
    */
-  constructor (flv, softVideo, opts) {
+  constructor (flv, softVideo, opts = {}) {
     this.flv = flv
     this._opts = opts
 
@@ -41,7 +45,10 @@ export class BufferService {
       this._softVideo = softVideo
     } else {
       this._remuxer = new FMP4Remuxer(this._demuxer.videoTrack, this._demuxer.audioTrack)
-      this._mse = new MSE()
+      this._mse = new MSE(null, {
+        preferMMS:
+          typeof opts.preferMMS === 'boolean' ? opts.preferMMS : !!opts.perferMMS /* perferMMS is typo, deprecated */
+      })
       this._mse.bindMedia(flv.media)
     }
   }

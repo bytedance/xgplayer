@@ -125,6 +125,12 @@ class Keyboard extends BasePlugin {
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
 
+  setConfig (newConfig) {
+    Object.keys(newConfig).forEach(key => {
+      this.config[key] = newConfig[key]
+    })
+  }
+
   checkIsVisible () {
     if (!this.config.checkVisible) {
       return true
@@ -379,6 +385,7 @@ class Keyboard extends BasePlugin {
           })
         }
         preventDefault(event)
+        event.stopPropagation()
         break
       }
     }

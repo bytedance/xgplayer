@@ -65,7 +65,11 @@ class Replay extends Plugin {
     Util.removeClass(this.player.root, 'replay')
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (this.config.disable) {
       return
     }

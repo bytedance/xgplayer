@@ -113,7 +113,11 @@ class Progress extends Plugin {
     this.useable = useable
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     this.root && (this.root.style.display = 'flex')
   }
   /**
@@ -291,6 +295,7 @@ class Progress extends Plugin {
   unlock () {
     const { player, pos } = this
     pos.isEnter = false
+    pos.isLocked = false
     if (player.isMini) {
       return
     }
@@ -445,6 +450,7 @@ class Progress extends Plugin {
     if (eventType === 'touchstart') {
       this.root.addEventListener('touchmove', this.onMouseMove)
       this.root.addEventListener('touchend', this.onMouseUp)
+      this.root.addEventListener('touchcancel', this.onMouseUp)
     } else {
       this.unbind('mousemove', this.onMoveOnly)
 
@@ -483,9 +489,10 @@ class Progress extends Plugin {
     _state.prePlayTime = 0
     _state.time = 0
     const eventType = e.type
-    if (eventType === 'touchend') {
+    if (eventType === 'touchend' || eventType === 'touchcancel') {
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
+      this.root.removeEventListener('touchcancel', this.onMouseUp)
       // 交互结束 恢复控制栏的隐藏流程
       this.blur()
     } else {
@@ -565,10 +572,10 @@ class Progress extends Plugin {
 
   /**
    * @description 根据currenTime和占用百分比更新进度条
-   * @param {Number} currentTime 需要更新到的时间
-   * @param {Number} seekTime 实际seek的时间
-   * @param {Number} percent 更新时间占比
-   * @param {Int} type 触发类型 0-down 1-move 2-up
+   * @param {number} currentTime 需要更新到的时间
+   * @param {number} seekTime 实际seek的时间
+   * @param {number} percent 更新时间占比
+   * @param {number} type 触发类型 0-down 1-move 2-up
    */
   updateWidth (currentTime, seekTime, percent, type) {
     const { config, player } = this
@@ -684,8 +691,6 @@ class Progress extends Plugin {
     time = Util.adjustTimeByDuration(time, offsetDuration, isEnded)
     this.innerList.update({ played: time }, offsetDuration)
     this.progressBtn.style.left = `${time / offsetDuration * 100}%`
-    const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ played: time }, offsetDuration)
   }
 
   /**
@@ -702,15 +707,10 @@ class Progress extends Plugin {
     let _end = player.bufferedPoint.end
     _end = Util.adjustTimeByDuration(_end, duration, isEnded)
     this.innerList.update({ cached: _end }, duration)
-    const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ cached: _end }, duration)
   }
 
   onReset () {
     this.innerList.update({ played: 0, cached: 0 }, 0)
-    this.progressBtn.style.left = '0%'
-    const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ cached: 0, played: 0 }, 0)
     this.progressBtn.style.left = '0%'
   }
 
@@ -725,6 +725,7 @@ class Progress extends Plugin {
       this.root.removeEventListener('touchstart', this.onMouseDown)
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
+      this.root.removeEventListener('touchcancel', this.onMouseUp)
       if (controls) {
         controls.root && controls.root.removeEventListener('touchmove', Util.stopPropagation)
         controls.center && controls.center.removeEventListener('touchend', Util.stopPropagation)

@@ -22,6 +22,11 @@ const POSITIONS = {
   CONTROLS: 'controls'
 }
 
+const PLUGIN_STATE_CLASS = {
+  ICON_DISABLE: 'xg-icon-disable',
+  ICON_HIDE: 'xg-icon-hide'
+}
+
 /**
  * Check if the url is a link address
  * @param { string } str
@@ -144,7 +149,7 @@ function registerTextObj (textConfig, plugin) {
 class Plugin extends BasePlugin {
   /**
     * 插入dom结构
-    * @param { String | HTMLElement } html html字符串或者dom
+    * @param { string | HTMLElement } html html字符串或者dom
     * @param { HTMLElement } parent
     * @param { number } index
     * @returns { HTMLElement }
@@ -193,8 +198,8 @@ class Plugin extends BasePlugin {
   /**
    *
    * @param { HTMLElement } root
-   * @param { String } querySelector
-   * @param { String | Array<String> } eventType
+   * @param { string } querySelector
+   * @param { string | Array<string> } eventType
    * @param { Function } callback
    * @param { boolean } [capture=false]
    * @returns
@@ -237,7 +242,7 @@ class Plugin extends BasePlugin {
   }
 
   /**
-   * @private
+   * @protected
    */
   __init (args) {
     super.__init(args)
@@ -406,6 +411,19 @@ class Plugin extends BasePlugin {
 
   plugins () {
     return this._children
+  }
+
+  /**
+   *
+   */
+  disable () {
+    this.config.disable = true
+    Util.addClass(this.find('.xgplayer-icon'), PLUGIN_STATE_CLASS.ICON_DISABLE)
+  }
+
+  enable () {
+    this.config.disable = false
+    Util.removeClass(this.find('.xgplayer-icon'), PLUGIN_STATE_CLASS.ICON_DISABLE)
   }
 
   children () {
@@ -664,5 +682,6 @@ class Plugin extends BasePlugin {
 export {
   Plugin as default,
   ROOT_TYPES,
-  POSITIONS
+  POSITIONS,
+  PLUGIN_STATE_CLASS
 }

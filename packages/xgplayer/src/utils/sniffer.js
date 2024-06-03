@@ -22,7 +22,7 @@
  *  },
  *  isWeixin: boolean,
  *  isSupportMP4(): ICheckResult,
- *  isHevcSupported(): boolean
+ *  isHevcSupported(): boolean,
  *  probeConfigSupported(info: MediaDecodingConfiguration): Promise<MediaCapabilitiesDecodingInfo>
  * }} ISniffer
  */

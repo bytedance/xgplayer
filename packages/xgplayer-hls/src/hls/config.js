@@ -23,6 +23,8 @@
  *  onPreM3U8Parse?: (m3u8: string) => string | void
  *  decryptor?: Decryptor,
  *  minSegmentsStartPlay?: number
+ *  preferMMS?: boolean
+ *  preferMMSStreaming?: boolean
  * }} HlsOption
  */
 
@@ -51,6 +53,8 @@ export function getConfig (cfg) {
     seiInTime: false,
     manifestList: [],
     minSegmentsStartPlay: 3,
+    preferMMS: false,
+    preferMMSStreaming: false,
     ...cfg,
     media
   }

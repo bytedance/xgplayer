@@ -98,7 +98,7 @@ class BasePlugin {
   destroy () {}
 
   /**
-   * @private
+   * @protected
    * @param { any } args
    */
   __init (args) {

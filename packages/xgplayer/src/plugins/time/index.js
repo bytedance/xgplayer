@@ -62,7 +62,11 @@ class Time extends Plugin {
     })
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (this.mode === 'flex') {
       this.centerCurDom && (this.centerCurDom.style.display = 'block')
       this.centerDurDom && (this.centerDurDom.style.display = 'block')

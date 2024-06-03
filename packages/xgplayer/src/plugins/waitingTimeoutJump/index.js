@@ -21,6 +21,9 @@ export default class WaitingTimeoutJump extends BasePlugin {
     }
     this.hasPlayed = false
     this.jumpCnt = 0
+    /**
+     * @type {null | number}
+     */
     this.timer = null
     this.jumpSize = jumpSize
     this.on(Events.WAITING, this.onWaiting)

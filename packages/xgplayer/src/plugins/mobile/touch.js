@@ -56,7 +56,13 @@ class Touche {
     })
     this.root = dom
     this.events = config.eventType === 'mouse' ? MOUSES : TOUCHS
+    /**
+     * @type { null | number}
+     */
     this.pressIntrvalId = null
+    /**
+     * @type { null | number}
+     */
     this.dbIntrvalId = null
     this.__handlers = {}
     this._initEvent()

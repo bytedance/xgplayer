@@ -10,7 +10,7 @@ export class Task {
     this.alive = !!config.onProgress
     !config.logger && (config.logger = new Logger('Loader'))
     this._loaderType = type
-    this._loader = type === LoaderType.FETCH && !!window.fetch ? new FetchLoader() : new XhrLoader()
+    this._loader = type === LoaderType.FETCH && typeof fetch !== 'undefined' ? new FetchLoader() : new XhrLoader()
     this._config = config
     this._retryCount = 0
     this._retryTimer = null

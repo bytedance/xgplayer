@@ -113,10 +113,6 @@ class MobilePlugin extends Plugin {
     return this.playerConfig.timeOffset || 0
   }
 
-  /**
-   * @private
-   * @returns {[propName: string]: any}
-   */
   registerIcons () {
     return {
       seekTipIcon: { icon: SeekTipIcon, class: 'xg-seek-pre' }
@@ -192,9 +188,11 @@ class MobilePlugin extends Plugin {
       if (progressPlugin) {
         progressPlugin.addCallBack('dragmove', (data) => {
           this.activeSeekNote(data.currentTime, data.forward)
-        })
-        progressPlugin.addCallBack('dragend', () => {
-          this.changeAction(ACTIONS.AUTO)
+        });
+        ['dragend', 'click'].forEach(key => {
+          progressPlugin.addCallBack(key, () => {
+            this.changeAction(ACTIONS.AUTO)
+          })
         })
       }
     }
@@ -212,15 +210,23 @@ class MobilePlugin extends Plugin {
 
   initCustomStyle () {
     const { commonStyle } = this.playerConfig || {}
-    const { playedColor, progressColor } = commonStyle
+    const { playedColor, progressColor, timePreviewStyle, curTimeColor, durationColor } = commonStyle
     if (playedColor) {
       this.find('.xg-curbar').style.backgroundColor = playedColor
-      this.find('.xg-cur').style.color = playedColor
     }
     if (progressColor) {
       this.find('.xg-bar').style.backgroundColor = progressColor
-      this.find('.time-preview').style.color = progressColor
     }
+    if (timePreviewStyle) {
+      const previewDom = this.find('.time-preview')
+      Object.keys(timePreviewStyle).forEach(key => {
+        previewDom.style[key] = timePreviewStyle[key]
+      })
+    }
+    const curColor = curTimeColor || playedColor
+    const durColor = durationColor
+    curColor && (this.find('.xg-cur').style.color = curColor)
+    durColor && (this.find('.xg-dur').style.color = durColor)
     this.config.disableTimeProgress && Util.addClass(this.find('.xg-timebar'), 'hide')
   }
 
@@ -365,6 +371,7 @@ class MobilePlugin extends Plugin {
     const touche = this.getTouche(e)
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
+      this.timer && clearTimeout(this.timer)
       // e.cancelable && e.preventDefault()
       Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
       this.find('.xg-dur').innerHTML = Util.format(this.duration)
@@ -434,6 +441,9 @@ class MobilePlugin extends Plugin {
 
   onTouchEnd = (e) => {
     const { player, pos, playerConfig } = this
+    setTimeout(() => {
+      player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
+    }, 10)
     if (!pos.isStart) {
       return
     }
@@ -444,9 +454,6 @@ class MobilePlugin extends Plugin {
     const { disableGesture, gestureX } = this.config
     if (!disableGesture && gestureX) {
       this.endLastMove(pos.scope)
-      setTimeout(() => {
-        player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
-      }, 10)
     } else {
       pos.time = 0
     }
@@ -694,7 +701,7 @@ class MobilePlugin extends Plugin {
             <div class="xg-seek-show ${this.config.disableSeekIcon ? ' hide-seek-icon' : ''}">
               <i class="xg-seek-icon"></i>
               <span class="xg-cur">00:00</span>
-              <span>/</span>
+              <span class="xg-separator">/</span>
               <span class="xg-dur">00:00</span>
             </div>
               <div class="xg-bar xg-timebar">

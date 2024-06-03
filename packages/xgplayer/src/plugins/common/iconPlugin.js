@@ -4,6 +4,9 @@ export default class Icon extends Plugin {
   afterCreate () {
     this.bind('mouseenter', this._onMouseenter)
     this.bind('mouseleave', this._onMouseLeave)
+    if (this.config.disable) {
+      this.disable()
+    }
   }
 
   _onMouseenter = (e) => {

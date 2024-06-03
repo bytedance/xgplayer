@@ -29,7 +29,7 @@ export default class PlaybackRate extends OptionsIcon {
       list: [2, 1.5, 1, 0.75, 0.5],
       className: 'xgplayer-playbackrate',
       isShowIcon: true,
-      hidePortrait: false
+      hidePortrait: false,
     }
   }
 
@@ -67,15 +67,19 @@ export default class PlaybackRate extends OptionsIcon {
     this.renderItemList()
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (!this.config.list || this.config.list.length === 0) {
       return
     }
     super.show()
   }
 
-  onItemClick (e, data) {
-    super.onItemClick(...arguments)
+  onItemClick (e, _data) {
+    super.onItemClick(e, _data)
     const target = e.delegateTarget
     const rate = Number(target.getAttribute('rate'))
     if (!rate || rate === this.curValue) {
@@ -84,8 +88,8 @@ export default class PlaybackRate extends OptionsIcon {
     const props = {
       playbackRate: {
         from: this.player.playbackRate,
-        to: rate
-      }
+        to: rate,
+      },
     }
     this.emitUserAction(e, 'change_rate', { props })
     this.curValue = rate

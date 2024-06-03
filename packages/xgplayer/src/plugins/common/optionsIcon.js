@@ -131,7 +131,11 @@ export default class OptionsIcon extends Plugin {
     Util.addClass(this.find('.xgplayer-icon'), 'btn-text')
   }
 
-  show () {
+  /**
+   * @param {string} [value]
+   * @returns
+   */
+  show (value) {
     if (!this.config.list || this.config.list.length < 2) {
       return
     }

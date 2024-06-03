@@ -9,8 +9,6 @@ examples/*
 jest.config.js
 jest.setup.js
 babel.config.js
-packages/xgplayer-flv.js/*
-packages/xgplayer-hls.js/*
 packages/xgplayer-shaka/*
 packages/xgplayer-helper-transmuxers/*
 packages/xgplayer-helper-utils/*

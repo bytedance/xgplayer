@@ -1,4 +1,9 @@
 # 版本更新记录
+## 3.0.14
+>* feat(xgplayer): 🎸 当系统支持屏幕方向锁定时，全屏后自动横屏
+## 3.0.13
+>* feat(xgplayer): 提供更多语言的国际化文案资源
+>* refactor(xgplayer): 支持播放插件控制media source
 ## 3.0.12
 >* fix(xgplayer): PIP插件支持文档画中画能力 [Document Picture-in-Picture](https://wicg.github.io/document-picture-in-picture/)
 ## 3.0.11

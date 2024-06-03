@@ -19,7 +19,7 @@ function nowTime () {
 
 /**
  * Check whether the current environment supports canvas
- * @returns { Boolean }
+ * @returns { boolean }
  */
 function checkIsSupportCanvas () {
   try {
