@@ -93,11 +93,13 @@ export class MP4Loader extends EventEmitter {
   async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config = {}) {
     this._error = false
     this.logger.debug('[loadMetaProcess start], range,', [moovStart, moovEnd])
-    if (!this.buffer || config?.isExp) {
-      try {
-        this.newBufferArray(moovEnd - moovStart + 1, config?.isExp)
-      } catch (e) {
-        onProgress(null, true, {}, new MediaError(e?.message), {})
+    if (this._config?.memoryOpt) {
+      if (!this.buffer || config?.isExp) {
+        try {
+          this.newBufferArray(moovEnd - moovStart + 1, config?.isExp)
+        } catch (e) {
+          onProgress(null, true, {}, new MediaError(e?.message), {})
+        }
       }
     }
     const OnProgressHandle = async (data, state, options, response) => {
@@ -114,13 +116,16 @@ export class MP4Loader extends EventEmitter {
       if (this.meta.moov || this._error) return
       if (data && data.byteLength > 0) {
         try {
-          this.buffer.set(data, this.bufferDataLen)
-          this.bufferDataLen += data?.byteLength || 0
-          // this.buffer = concatUint8Array(this.buffer, data)
+          if (this._config?.memoryOpt) {
+            this.buffer.set(data, this.bufferDataLen)
+          } else {
+            this.buffer = concatUint8Array(this.buffer, data)
+          }
         } catch (e) {
           onProgress(null, state, options, new MediaError(e?.message), response)
           return
         }
+        this.bufferDataLen += data?.byteLength || 0
         let moov = MP4Parser.findBox(this.buffer.subarray(0, this.bufferDataLen), ['moov'])[0]
         if (!moov) {
           const mdat = MP4Parser.findBox(this.buffer.subarray(0, this.bufferDataLen), ['mdat'])[0]
@@ -164,8 +169,10 @@ export class MP4Loader extends EventEmitter {
           const { videoSegments, audioSegments } = segments
           this.videoSegments = videoSegments
           this.audioSegments = audioSegments
-          delete this.buffer
-          this.bufferDataLen = 0
+          if (this._config?.memoryOpt) {
+            delete this.buffer
+            this.bufferDataLen = 0
+          }
           this.logger.debug('[loadMetaProcess] moov ok')
           onProgress(undefined, state, {
             meta: {
@@ -313,8 +320,10 @@ export class MP4Loader extends EventEmitter {
     this.audioSegments = []
     this._currentSegmentIndex = -1
     this._currentLoadingSegmentIndex = -1
-    delete this.buffer
-    this.bufferDataLen = 0
+    if (this._config?.memoryOpt) {
+      delete this.buffer
+      this.bufferDataLen = 0
+    }
   }
 
   async destroy () {
