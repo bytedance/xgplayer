@@ -1,0 +1,31 @@
+{
+  "name": "xgplayer-ads",
+  "version": "3.0.19-rc.2",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "sideEffects": false,
+  "libd": {
+    "umdName": "XgplayerAds"
+  },
+  "files": [
+    "dist",
+    "es"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "rc"
+  },
+  "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
+  "dependencies": {
+    "eventemitter3": "^4.0.7"
+  },
+  "peerDependencies": {
+    "xgplayer": "3.0.19-rc.2",
+    "core-js": ">=3.12.1"
+  }
+}
