@@ -53,7 +53,7 @@ function getSegments (
   segmentDurations = [],
   videoSegments
 ) {
-  const { fixEditListOffset, fixEditListOffsetThreshold, audioGroupingStrategy } = config
+  const { fixEditListOffset, fixEditListOffsetThreshold, audioGroupingStrategy, memoryOpt } = config
   const stbl = track.mdia?.minf?.stbl
   if (!stbl) {
     return []
@@ -95,22 +95,22 @@ function getSegments (
   const stszEntrySizes = stsz.entrySizes
   const stssEntries = stss?.entries
   const cttsEntries = ctts?.entries
-  // let cttsArr
-  // if (cttsEntries) {
-  //   cttsArr = []
-  //   cttsEntries.forEach(({ count, offset }) => {
-  //     for (let i = 0; i < count; i++) {
-  //       cttsArr.push(offset)
-  //     }
-  //   })
-  // }
-  // let keyframeMap
-  // if (stssEntries) {
-  //   keyframeMap = {}
-  //   stssEntries.forEach(x => {
-  //     keyframeMap[x - 1] = true
-  //   })
-  // }
+  const cttsArr = []
+  const keyframeMap = {}
+  if (!memoryOpt) {
+    if (cttsEntries) {
+      cttsEntries.forEach(({ count, offset }) => {
+        for (let i = 0; i < count; i++) {
+          cttsArr.push(offset)
+        }
+      })
+    }
+    if (stssEntries) {
+      stssEntries.forEach(x => {
+        keyframeMap[x - 1] = true
+      })
+    }
+  }
 
   let frame
   let duration
@@ -149,11 +149,15 @@ function getSegments (
         index: pos
       }
       if (stssEntries) {
-        if (pos + 1 === curSyncSampleNum) {
-          frame.keyframe = true
-          // Because the stss table is arranged in strictly increasing order of sample number,
-          // Therefore use array.shift to get the next sync sample number
-          curSyncSampleNum = stssEntries.shift()
+        if (memoryOpt) {
+          if (pos + 1 === curSyncSampleNum) {
+            frame.keyframe = true
+            // Because the stss table is arranged in strictly increasing order of sample number,
+            // Therefore use array.shift to get the next sync sample number
+            curSyncSampleNum = stssEntries.shift()
+          }
+        } else {
+          frame.keyframe = keyframeMap[pos]
         }
 
         if (frame.keyframe) {
@@ -167,8 +171,14 @@ function getSegments (
         frame.gopId = gopId
       }
       if (cttsEntries) {
-        getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
-        frame.pts = dts + (beforeCttsInfo?.offset || 0)
+        if (memoryOpt) {
+          getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
+          frame.pts = dts + (beforeCttsInfo?.offset || 0)
+        } else {
+          if (cttsArr && pos < cttsArr.length) {
+            frame.pts = dts + cttsArr[pos]
+          }
+        }
       }
       if (editListOffset === 0 && pos === 0) {
         frame.pts = 0
