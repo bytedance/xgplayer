@@ -104,13 +104,13 @@ function getSegments (
   //     }
   //   })
   // }
-  let keyframeMap
-  if (stssEntries) {
-    keyframeMap = {}
-    stssEntries.forEach(x => {
-      keyframeMap[x - 1] = true
-    })
-  }
+  // let keyframeMap
+  // if (stssEntries) {
+  //   keyframeMap = {}
+  //   stssEntries.forEach(x => {
+  //     keyframeMap[x - 1] = true
+  //   })
+  // }
 
   let frame
   let duration
@@ -137,6 +137,7 @@ function getSegments (
 
   track.editListApplied = editListApplied
 
+  let curSyncSampleNum = stssEntries?.shift()
   stts.entries.forEach(({ count, delta }) => {
     duration = delta // in timescale
     for (let i = 0; i < count; i++) {
@@ -148,7 +149,13 @@ function getSegments (
         index: pos
       }
       if (stssEntries) {
-        frame.keyframe = keyframeMap[pos]
+        if (pos + 1 === curSyncSampleNum) {
+          frame.keyframe = true
+          // Because the stss table is arranged in strictly increasing order of sample number,
+          // Therefore use array.shift to get the next sync sample number
+          curSyncSampleNum = stssEntries.shift()
+        }
+
         if (frame.keyframe) {
           gopId++
           gop.push([frame])
