@@ -189,22 +189,29 @@ export class MP4Demuxer {
     let startByte
     let videoEndByte = 0
     let audioEndByte = 0
+    let findRes = {}
     if (videoIndexRange.length > 0) {
       let frame
       const end = data.byteLength + dataStart
-      const findRes = this.getFramePosByIdx('video', videoIndexRange[0])
-      if (!findRes) {
-        throw new Error(`cannot found video frame #${videoIndexRange[0]}`)
+      if (this.memoryOpt) {
+        findRes = this.getFramePosByIdx('video', videoIndexRange[0])
+        if (!findRes) {
+          throw new Error(`cannot found video frame #${videoIndexRange[0]}`)
+        }
       }
       let { frameIdx, segmentIdx} = findRes
       for (let i = videoIndexRange[0]; i <= videoIndexRange[1]; i++) {
-        const ret = this.getFrameInfo('video',segmentIdx, frameIdx)
-        sample = ret.sample
+        if (this.memoryOpt) {
+          const ret = this.getFrameInfo('video', segmentIdx, frameIdx)
+          sample = ret.sample
+          segmentIdx = ret.segmentIdx
+          frameIdx = ret.frameIdx
+        } else {
+          sample = this._videoSamples[i]
+        }
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
-        segmentIdx = ret.segmentIdx
-        frameIdx = ret.frameIdx
         if (sample.offset >= dataStart && sample.offset + sample.size <= end) {
           startByte = sample.offset - dataStart
           videoEndByte = startByte + sample.size
@@ -237,19 +244,25 @@ export class MP4Demuxer {
       }
     }
     if (audioIndexRange.length > 0) {
-      const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
-      if (!findRes) {
-        throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
+      if (this.memoryOpt) {
+        findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
+        if (!findRes) {
+          throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
+        }
       }
       let { frameIdx, segmentIdx} = findRes
       for (let i = audioIndexRange[0]; i <= audioIndexRange[1]; i++) {
-        const ret = this.getFrameInfo('audio',segmentIdx, frameIdx)
-        sample = ret.sample
+        if (this.memoryOpt) {
+          const ret = this.getFrameInfo('audio', segmentIdx, frameIdx)
+          sample = ret.sample
+          segmentIdx = ret.segmentIdx
+          frameIdx = ret.frameIdx
+        } else {
+          sample = this._audioSamples[i]
+        }
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
-        segmentIdx = ret.segmentIdx
-        frameIdx = ret.frameIdx
         if (sample.offset >= dataStart && sample.offset + sample.size <= data.byteLength + dataStart) {
           startByte = sample.offset - dataStart
           audioEndByte = startByte + sample.size
