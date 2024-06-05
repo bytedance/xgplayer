@@ -200,12 +200,12 @@ export class MP4Demuxer {
         }
       }
     }
-    const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
-    if (!findRes) {
-      throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
-    }
-    let { frameIdx, segmentIdx} = findRes
     if (audioIndexRange.length > 0) {
+      const findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
+      if (!findRes) {
+        throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
+      }
+      let { frameIdx, segmentIdx} = findRes
       for (let i = audioIndexRange[0]; i <= audioIndexRange[1]; i++) {
         const ret = this.getFrameInfo('audio',segmentIdx, frameIdx)
         sample = ret.sample
