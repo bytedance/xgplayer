@@ -17,11 +17,11 @@ export class TsDemuxer {
    * @param {AudioTrack} [audioTrack]
    * @param {MetadataTrack} [metadataTrack]
    */
-  constructor (videoTrack, audioTrack, metadataTrack) {
+  constructor (videoTrack, audioTrack, metadataTrack, fixerConfig = {}) {
     this.videoTrack = videoTrack || new VideoTrack()
     this.audioTrack = audioTrack || new AudioTrack()
     this.metadataTrack = metadataTrack || new MetadataTrack()
-    this._fixer = new TsFixer(this.videoTrack, this.audioTrack, this.metadataTrack)
+    this._fixer = new TsFixer(this.videoTrack, this.audioTrack, this.metadataTrack, fixerConfig)
   }
 
   /**
@@ -155,8 +155,8 @@ export class TsDemuxer {
    * @param {boolean} [discontinuity=false]
    * @param {boolean} [contiguous=true]
    */
-  fix (startTime, discontinuity, contiguous, forceFixLargeGap) {
-    this._fixer.fix(startTime, discontinuity, contiguous, forceFixLargeGap)
+  fix (startTime, discontinuity, contiguous) {
+    this._fixer.fix(startTime, discontinuity, contiguous)
     return {
       videoTrack: this.videoTrack,
       audioTrack: this.audioTrack,
@@ -170,9 +170,9 @@ export class TsDemuxer {
    * @param {boolean} [contiguous=true]
    * @param {number} [startTime=0]
    */
-  demuxAndFix (data, discontinuity, contiguous, startTime, forceFixLargeGap) {
+  demuxAndFix (data, discontinuity, contiguous, startTime) {
     this.demux(data, discontinuity, contiguous)
-    return this.fix(startTime, discontinuity, contiguous, forceFixLargeGap)
+    return this.fix(startTime, discontinuity, contiguous)
   }
 
   /**

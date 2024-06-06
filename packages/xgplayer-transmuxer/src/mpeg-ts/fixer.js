@@ -8,9 +8,10 @@ const MAX_SILENT_FRAME_DURATION = 90000 // 1s
 const AUDIO_EXCETION_LOG_EMIT_DURATION = 5 * 90000 // 5s
 const MAX_VIDEO_FRAME_DURATION = 90000 // 1s
 const MAX_DTS_DELTA_WITH_NEXT_CHUNK = 90000 / 2 // 500ms
+const LARGE_AV_FIRST_FRAME_FORCE_FIX_THRESHOLD = 90000 * 5 // 5s
 
 export class TsFixer {
-  constructor (videoTrack, audioTrack, metadataTrack) {
+  constructor (videoTrack, audioTrack, metadataTrack, fixerConfig) {
     this.videoTrack = videoTrack
     this.audioTrack = audioTrack
     this.metadataTrack = metadataTrack
@@ -30,10 +31,11 @@ export class TsFixer {
     this._lastAudioExceptionOverlapDot = 0
     this._lastAudioExceptionLargeGapDot = 0
 
-    this._needForceFixLargeGap = false
+    this._needForceFixLargeGap = fixerConfig?.forceFixLargeGap
+    this._largeGapThreshold = fixerConfig?.largeGapThreshold || LARGE_AV_FIRST_FRAME_FORCE_FIX_THRESHOLD
   }
 
-  fix (startTime = 0, discontinuity = false, contiguous = true, forceFixLargeGap = false) {
+  fix (startTime = 0, discontinuity = false, contiguous = true) {
     startTime = Math.round(startTime * 90000)
     const videoTrack = this.videoTrack
     const audioTrack = this.audioTrack
@@ -45,7 +47,6 @@ export class TsFixer {
 
     const firstVideoSample = vSamples[0]
     const firstAudioSample = aSamples[0]
-    this._needForceFixLargeGap = forceFixLargeGap
     // consider av delta
     let vaDelta = 0
 
@@ -270,6 +271,8 @@ export class TsFixer {
         baseDts: this._baseDts,
         delta
       })
+    }
+    if (Number.isFinite(delta) && Math.abs(delta) > this._largeGapThreshold * MAX_SILENT_FRAME_DURATION) {
       largeGap = true
     }
     if (!this._baseDtsInited){
