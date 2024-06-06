@@ -58,7 +58,10 @@ export function getConfig (cfg) {
     preferMMS: false,
     preferMMSStreaming: false,
     mseLowLatency: true, // mse 低延迟模式渲染 https://issues.chromium.org/issues/41161663
-    forceFixLargeGap:false, // 强制修复音视频PTS LargeGap, PTS从0开始
+    fixerConfig: {
+      forceFixLargeGap:false, // 强制修复音视频PTS LargeGap, PTS从0开始
+      largeGapThreshold: 5 // 单位s
+    },
     ...cfg,
     media
   }
