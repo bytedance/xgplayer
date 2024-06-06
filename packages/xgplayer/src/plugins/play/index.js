@@ -29,10 +29,10 @@ class Play extends IconPlugin {
     this.bind(['touchend', 'click'], this.btnClick)
 
     this.on([Events.PAUSE, Events.ERROR, Events.EMPTIED], () => {
-      this.animate(player.paused)
+      this.animate(player.isAd ? player.adPaused : player.paused)
     })
     this.on(Events.PLAY, () => {
-      this.animate(player.paused)
+      this.animate(player.isAd ? player.adPaused : player.paused)
     })
     this.animate(true)
   }

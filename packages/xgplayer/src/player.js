@@ -140,6 +140,13 @@ class Player extends MediaProxy {
      * @readonly
      * @type { boolean }
      */
+    this.isAd = false
+
+    /**
+     * @public
+     * @readonly
+     * @type { boolean }
+     */
     this.isError = false
 
     /**
