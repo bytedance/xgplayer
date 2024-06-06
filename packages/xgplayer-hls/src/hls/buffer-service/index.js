@@ -78,10 +78,10 @@ export class BufferService {
     const chunk = videoChunk || audioChunk
     if (!chunk) return
     if (TsDemuxer.probe(chunk)) {
-      if (!this._transmuxer) this._transmuxer = new Transmuxer(this.hls, false, !this._softVideo)
+      if (!this._transmuxer) this._transmuxer = new Transmuxer(this.hls, false, !this._softVideo, this.hls.config.forceFixLargeGap)
     } else if (MP4Parser.probe(chunk)) {
       if (this._softVideo) {
-        if (!this._transmuxer) this._transmuxer = new Transmuxer(this.hls, true)
+        if (!this._transmuxer) this._transmuxer = new Transmuxer(this.hls, true, null, this.hls.config.forceFixLargeGap)
       } else {
         this._directAppend = true
         let mix = false

@@ -155,8 +155,8 @@ export class TsDemuxer {
    * @param {boolean} [discontinuity=false]
    * @param {boolean} [contiguous=true]
    */
-  fix (startTime, discontinuity, contiguous) {
-    this._fixer.fix(startTime, discontinuity, contiguous)
+  fix (startTime, discontinuity, contiguous, forceFixLargeGap) {
+    this._fixer.fix(startTime, discontinuity, contiguous, forceFixLargeGap)
     return {
       videoTrack: this.videoTrack,
       audioTrack: this.audioTrack,
@@ -170,9 +170,9 @@ export class TsDemuxer {
    * @param {boolean} [contiguous=true]
    * @param {number} [startTime=0]
    */
-  demuxAndFix (data, discontinuity, contiguous, startTime) {
+  demuxAndFix (data, discontinuity, contiguous, startTime, forceFixLargeGap) {
     this.demux(data, discontinuity, contiguous)
-    return this.fix(startTime, discontinuity, contiguous)
+    return this.fix(startTime, discontinuity, contiguous, forceFixLargeGap)
   }
 
   /**
