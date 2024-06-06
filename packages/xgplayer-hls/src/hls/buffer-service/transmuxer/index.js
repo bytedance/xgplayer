@@ -7,8 +7,9 @@ const logger = new Logger('Transmuxer')
 export class Transmuxer {
   _initSegmentId = ''
 
-  constructor (hls, isMP4, needRemux) {
+  constructor (hls, isMP4, needRemux, forceFixLargeGap) {
     this.hls = hls
+    this.forceFixLargeGap = forceFixLargeGap
     this._demuxer = isMP4 ? new FMP4Demuxer() : new TsDemuxer()
     this._isMP4 = isMP4
     if (needRemux) this._remuxer = new FMP4Remuxer(this._demuxer.videoTrack, this._demuxer.audioTrack)
@@ -20,7 +21,7 @@ export class Transmuxer {
       if (this._isMP4) {
         demuxer.demux(videoChunk, audioChunk)
       } else {
-        demuxer.demuxAndFix(concatUint8Array(videoChunk, audioChunk), discontinuity, contiguous, startTime)
+        demuxer.demuxAndFix(concatUint8Array(videoChunk, audioChunk), discontinuity, contiguous, startTime, this.forceFixLargeGap)
       }
     } catch (error) {
       throw new StreamingError(ERR.DEMUX, ERR.SUB_TYPES.HLS, error)
