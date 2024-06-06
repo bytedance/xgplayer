@@ -808,7 +808,7 @@ export class MP4 {
     const tfhd = MP4.tfhd(track.id)
     // console.log('[remux],tfhd, len,', tfhd.byteLength, hashVal(tfhd.toString()), ', trackid = ', track.id)
     // console.log('[remux],tfdt,baseMediaDecodeTime,', track.baseMediaDecodeTime)
-    const tfdt = MP4.tfdt(track, track.baseMediaDecodeTime)
+    const tfdt = MP4.tfdt(track.baseMediaDecodeTime)
     let sencLength = 0
     let samples
     if (track.isVideo && track.videoSenc) {
@@ -894,41 +894,36 @@ export class MP4 {
     // const ceil = id === 1 ? 12 : 4
     const buffer = new Buffer()
     const sampleCount = Buffer.writeUint32(data.samples.length)
+    const baseOffset =
+      16 + // tfhd
+      20 + // tfdt
+      8 + // traf header
+      16 + // mfhd
+      8 + // moof header
+      8 // mdat header
     let offset = null
+
     if (data.isVideo) {
       const sencLength = data.videoSencLength
       /*
-      16 + // mfhd
-      16 + // tfhd
-      20 + // tfdt
-      17 + //saiz
-      24 + //saio
-      data.samples.length*16
-      4(offset) + 4(sampleCount) + 12(header)  //trun
-      12(header) + sencLength //senc
-      8 + // traf header
-      8 + // moof header
-      8 // mdat header
-      = 149+data.samples.length * 16 + sencLength
+        17 + //saiz
+        24 + //saio
+        data.samples.length*16
+        4(offset) + 4(sampleCount) + 12(header)  //trun
+        12(header) + sencLength //senc
        */
-      offset = Buffer.writeUint32(data.samples.length * 16 + sencLength + 149)
+      offset = Buffer.writeUint32(baseOffset + data.samples.length * 16 + sencLength + 77)
       if (!data.isVideoEncryption && data.isAudioEncryption) {
-        offset = Buffer.writeUint32(data.samples.length * 16 + 92)
+        offset = Buffer.writeUint32(baseOffset + data.samples.length * 16 + 20)
       }
     } else {
       /*
-      16 + // mfhd
-      16 + // tfhd
-      20 + // tfdt
-      28 + //sbgp
-      4(offset) + 4(sampleCount) + 12(header)  //trun
-      8 + // traf header
-      8 + // moof header
-      8 // mdat header
+        28 + // sbgp
+        4(offset) + 4(sampleCount) + 12(header)  //trun
        */
-      let len = data.samples.length * 12 + 124
+      let len = baseOffset + data.samples.length * 12 + 52
       if (data.isAudioEncryption) {
-        len = data.samples.length * 12 + 8 * data.audioSenc.length + 177
+        len = baseOffset + data.samples.length * 12 + 8 * data.audioSenc.length + 105
       }
       offset = Buffer.writeUint32(len)
     }
@@ -1036,32 +1031,32 @@ export class MP4 {
     ]))
   }
 
-  static tfdt (data, baseMediaDecodeTime) {
+  static tfdt (baseMediaDecodeTime) {
     const upperWordBaseMediaDecodeTime = Math.floor(baseMediaDecodeTime / (UINT32_MAX + 1))
     const lowerWordBaseMediaDecodeTime = Math.floor(baseMediaDecodeTime % (UINT32_MAX + 1))
-    if (data.useEME && (data.isVideoEncryption || data.isAudioEncryption)) {
-      return MP4.box(MP4.types.tfdt, new Uint8Array([
-        0x00, // version 0
-        0x00, 0x00, 0x00, // flags
-        lowerWordBaseMediaDecodeTime >> 24,
-        (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
-        (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
-        lowerWordBaseMediaDecodeTime & 0xff
-      ]))
-    } else {
-      return MP4.box(MP4.types.tfdt, new Uint8Array([
-        0x01, // version 1
-        0x00, 0x00, 0x00, // flags
-        upperWordBaseMediaDecodeTime >> 24,
-        (upperWordBaseMediaDecodeTime >> 16) & 0xff,
-        (upperWordBaseMediaDecodeTime >> 8) & 0xff,
-        upperWordBaseMediaDecodeTime & 0xff,
-        lowerWordBaseMediaDecodeTime >> 24,
-        (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
-        (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
-        lowerWordBaseMediaDecodeTime & 0xff
-      ]))
-    }
+    // if (data.useEME && (data.isVideoEncryption || data.isAudioEncryption)) {
+    //   return MP4.box(MP4.types.tfdt, new Uint8Array([
+    //     0x00, // version 0
+    //     0x00, 0x00, 0x00, // flags
+    //     lowerWordBaseMediaDecodeTime >> 24,
+    //     (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
+    //     (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
+    //     lowerWordBaseMediaDecodeTime & 0xff
+    //   ]))
+    // } else {
+    return MP4.box(MP4.types.tfdt, new Uint8Array([
+      0x01, // version 1
+      0x00, 0x00, 0x00, // flags
+      upperWordBaseMediaDecodeTime >> 24,
+      (upperWordBaseMediaDecodeTime >> 16) & 0xff,
+      (upperWordBaseMediaDecodeTime >> 8) & 0xff,
+      upperWordBaseMediaDecodeTime & 0xff,
+      lowerWordBaseMediaDecodeTime >> 24,
+      (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
+      (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
+      lowerWordBaseMediaDecodeTime & 0xff
+    ]))
+    // }
   }
 
   static trun (samples, offset) {
