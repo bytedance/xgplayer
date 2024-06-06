@@ -22,7 +22,8 @@
     "dist"
   ],
   "dependencies": {
-    "eventemitter3": "^4.0.7"
+    "eventemitter3": "^4.0.7",
+    "xgplayer-streaming-shared": "3.0.19-rc.2"
   },
   "peerDependencies": {
     "xgplayer": "3.0.19-rc.2",

@@ -43,6 +43,7 @@
     "delegate": "^3.2.0",
     "downloadjs": "1.4.7",
     "eventemitter3": "^4.0.7",
+    "xgplayer-streaming-shared": "3.0.19-rc.3",
     "xgplayer-subtitles": "3.0.19-rc.3"
   },
   "peerDependencies": {
