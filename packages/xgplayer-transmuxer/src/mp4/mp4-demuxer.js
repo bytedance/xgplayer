@@ -33,29 +33,19 @@ export class MP4Demuxer {
     if (!moov) {
       throw new Error('moov is required')
     }
+    if (!this._audioSamples.length && !this._videoSamples.length) {
+      const ret = MP4Parser.moovToSamples(moov)
+      if (!ret) throw new Error('cannot parse samples from moov box')
+      this._videoSamples = ret.videoSamples || []
+      this._audioSamples = ret.audioSamples || []
+    }
     if (!this.videoTrack.codec && !this.audioTrack.codec) {
       MP4Parser.moovToTrack(moov, this.videoTrack, this.audioTrack)
       this.videoSenc = this.videoTrack.videoSenc
       this.audioSenc = this.audioTrack.audioSenc
       // 把不用的释放掉,减少内存占用
-      if (this.memoryOpt) {
-        moov.trak.forEach(trak => {
-          DELETE_BOX_LIST.forEach(type => {
-            const box = trak.mdia.minf.stbl[type]
-            if (box) {
-              box.entries && (box.entries = null)
-              box.entrySizes && (box.entrySizes = null)
-            }
-          })
-        })
-      }
+      this.memoryOpt && this.clearBoxEntries(moov)
     }
-    // if (!this._audioSamples.length && !this._videoSamples.length) {
-    //   const ret = MP4Parser.moovToSamples(moov)
-    //   if (!ret) throw new Error('cannot parse samples from moov box')
-    //   this._videoSamples = ret.videoSamples || []
-    //   this._audioSamples = ret.audioSamples || []
-    // }
   }
 
   demux (data, dataStart, videoIndexRange, audioIndexRange, moov) {
@@ -74,7 +64,7 @@ export class MP4Demuxer {
     if (videoIndexRange) {
       let frame
       let nalSize = 0
-      if (this.memoryOpt) {
+      if (this.memoryOpt && this.videoSegmnents) {
         findRes = this.getFramePosByIdx('video', videoIndexRange[0])
         if (!findRes) {
           throw new Error(`cannot found video frame #${videoIndexRange[0]}`)
@@ -82,7 +72,7 @@ export class MP4Demuxer {
       }
       let { frameIdx, segmentIdx} = findRes
       for (let i = videoIndexRange[0], l = videoIndexRange[1]; i <= l; i++) {
-        if (this.memoryOpt) {
+        if (!this._videoSamples.length && this.videoSegmnents) {
           const ret = this.getFrameInfo('video', segmentIdx, frameIdx)
           sample = ret.sample
           segmentIdx = ret.segmentIdx
@@ -114,7 +104,7 @@ export class MP4Demuxer {
     }
     findRes = {}
     if (audioIndexRange) {
-      if (this.memoryOpt) {
+      if (this.memoryOpt && this.audioSegmnents) {
         findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
         if (!findRes) {
           throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
@@ -122,7 +112,7 @@ export class MP4Demuxer {
       }
       let { frameIdx , segmentIdx} = findRes
       for (let i = audioIndexRange[0], l = audioIndexRange[1]; i <= l; i++) {
-        if (this.memoryOpt) {
+        if (!this._audioSamples.length &&this.audioSegmnents) {
           const ret = this.getFrameInfo('audio', segmentIdx, frameIdx)
           sample = ret.sample
           segmentIdx = ret.segmentIdx
@@ -193,7 +183,7 @@ export class MP4Demuxer {
     if (videoIndexRange.length > 0) {
       let frame
       const end = data.byteLength + dataStart
-      if (this.memoryOpt) {
+      if (this.memoryOpt && this.videoSegmnents) {
         findRes = this.getFramePosByIdx('video', videoIndexRange[0])
         if (!findRes) {
           throw new Error(`cannot found video frame #${videoIndexRange[0]}`)
@@ -201,7 +191,7 @@ export class MP4Demuxer {
       }
       let { frameIdx, segmentIdx} = findRes
       for (let i = videoIndexRange[0]; i <= videoIndexRange[1]; i++) {
-        if (this.memoryOpt) {
+        if (!this._videoSamples.length && this.videoSegmnents) {
           const ret = this.getFrameInfo('video', segmentIdx, frameIdx)
           sample = ret.sample
           segmentIdx = ret.segmentIdx
@@ -244,7 +234,7 @@ export class MP4Demuxer {
       }
     }
     if (audioIndexRange.length > 0) {
-      if (this.memoryOpt) {
+      if (this.memoryOpt && this.audioSegmnents) {
         findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
         if (!findRes) {
           throw new Error(`cannot found video frame #${audioIndexRange[0]}`)
@@ -252,7 +242,7 @@ export class MP4Demuxer {
       }
       let { frameIdx, segmentIdx} = findRes
       for (let i = audioIndexRange[0]; i <= audioIndexRange[1]; i++) {
-        if (this.memoryOpt) {
+        if (!this._audioSamples.length && this.audioSegmnents) {
           const ret = this.getFrameInfo('audio', segmentIdx, frameIdx)
           sample = ret.sample
           segmentIdx = ret.segmentIdx
@@ -367,6 +357,21 @@ export class MP4Demuxer {
         segmentIdx: segmentIdx + 1,
         frameIdx: 1
       }
+    }
+  }
+
+  clearBoxEntries(moov){
+    // 把不用的释放掉,减少内存占用
+    if (this.memoryOpt) {
+      moov.trak.forEach(trak => {
+        DELETE_BOX_LIST.forEach(type => {
+          const box = trak.mdia.minf.stbl[type]
+          if (box) {
+            box.entries && (box.entries = null)
+            box.entrySizes && (box.entrySizes = null)
+          }
+        })
+      })
     }
   }
 
