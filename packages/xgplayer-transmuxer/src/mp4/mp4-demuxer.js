@@ -106,7 +106,7 @@ export class MP4Demuxer {
       }
       let { frameIdx , segmentIdx} = findRes
       for (let i = audioIndexRange[0], l = audioIndexRange[1]; i <= l; i++) {
-        if (!this._audioSamples.length &&this.audioSegmnents) {
+        if (!this._audioSamples.length && this.audioSegmnents) {
           const ret = this.getFrameInfo('audio', segmentIdx, frameIdx)
           sample = ret.sample
           segmentIdx = ret.segmentIdx
