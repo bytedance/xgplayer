@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer",
-  "version": "3.0.9-rc.8",
+  "version": "3.0.9-rc.9",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",

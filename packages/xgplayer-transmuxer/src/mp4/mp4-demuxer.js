@@ -33,12 +33,6 @@ export class MP4Demuxer {
     if (!moov) {
       throw new Error('moov is required')
     }
-    if (!this._audioSamples.length && !this._videoSamples.length) {
-      const ret = MP4Parser.moovToSamples(moov)
-      if (!ret) throw new Error('cannot parse samples from moov box')
-      this._videoSamples = ret.videoSamples || []
-      this._audioSamples = ret.audioSamples || []
-    }
     if (!this.videoTrack.codec && !this.audioTrack.codec) {
       MP4Parser.moovToTrack(moov, this.videoTrack, this.audioTrack)
       this.videoSenc = this.videoTrack.videoSenc
