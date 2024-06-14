@@ -8,7 +8,7 @@ xgplayer-ads 插件内提供了对 'Google IMA', 'Google DAI' 符合VAST、VMAP�
 
 ```javascript
 import Player from "xgplayer"
-import AdPlugin, { IMA } from "xgplayer-ads"
+import AdPlugin, { ADEvents } from "xgplayer-ads"
 import "xgplayer/dist/xgplayer.min.css"
 
 const player = new Player({
@@ -19,22 +19,46 @@ const player = new Player({
     width: window.innerWidth,
     plugins: [AdPlugin],
     ad: {
-      adType: IMAPlugin
+      adType: 'ima',
     }
 })
 
+player.on(ADEvents.AD_PLAY, ()=>{
+    // do something
+})
 player.on('adPlay', ()=>{
     // do something
 })
+player.on('adPause', ()=>{})
+
+
+function createAdsRequest() {
+  // Request video ads.
+  const adsRequest = new google.ima.AdsRequest()
+  adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
+        'iu=/21775744923/external/single_ad_samples&sz=640x480&' +
+        'cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&' +
+        'output=vast&unviewed_position_start=1&env=vp&impl=s&correlator='
+
+  // Specify the linear and nonlinear slot sizes. This helps the SDK to
+  // select the correct creative if multiple are returned.
+  adsRequest.linearAdSlotWidth = 640
+  adsRequest.linearAdSlotHeight = 400
+  adsRequest.nonLinearAdSlotWidth = 640
+  adsRequest.nonLinearAdSlotHeight = 150
+  return adsRequest
+}
 
 ```
 
 
 可配置的能力
 
-| 配置字段 | 默认值 | 含义 |
+| 配置字段 | 类型 | 含义 |
 | ------ | -------- | ----- |
-| locale |  |  |
+| locale | string | 参看：[Localizing for language and locale](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization) |
+| adsRequest | object | 参看：[google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) |
+| adTagUrl | string | adsRequest的一个参数，指定向广告服务器请求地址 |
 
 
 事件（Events）
@@ -50,6 +74,7 @@ player.on('adPlay', ()=>{
 | 事件名 | 含义 |
 | ------ | ----- |
 | adPlay | 当广告启播时，发布此事件 |
+| adPause | 当广告暂停时，发布此事件 |
 | adPause | 当广告暂停时，发布此事件 |
 
 ## IMA
@@ -89,7 +114,10 @@ TODO: 待调研
 2. 广告的状态应尽可能独立于 xgplayer 中抽离出来，并通过插件的方式获取
     
     - 贴片广告UI和正片差异化很大时，如何实现？
+        - 这种情况下，广告的样式完全实现于广告插件中。
+        - 广告插件开放自定义UI的能力，可以实现广告UI的定制。
     - 贴片广告UI和正片差异化不大时，需要复用控制条样式，并进行一些小的修改，如何实现？
+        - 播放器部分UI会针对广告时的样式进行区分，做小的微调。
 
 
 ### 广告状态、事件、方法的实现
