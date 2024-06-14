@@ -6,9 +6,6 @@ import * as ADEvents from './events'
 
 const logger = new Logger('AdsPluginImaAdManager')
 
-// TODO: delete
-Logger.enable()
-
 export class ImaAdManager extends BaseAdManager {
   constructor (options = {}) {
     super(options)
@@ -132,11 +129,11 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   onMediaResize = () => {
-    const { mediaElement } = this
+    const { player } = this
     const viewMode = this.isFullScreen()
       ? google.ima.ViewMode.FULLSCREEN
       : google.ima.ViewMode.NORMAL
-    this.adsManager?.resize(mediaElement.offsetWidth, mediaElement.offsetHeight, viewMode)
+    this.adsManager?.resize(player.sizeInfo.width, player.sizeInfo.height, viewMode)
   }
 
   /**
@@ -159,7 +156,7 @@ export class ImaAdManager extends BaseAdManager {
 
     const cuePoints = adsManager.getCuePoints()
     if (cuePoints.length) {
-      console.log('cuePoints', cuePoints)
+      logger.log('cuePoints', cuePoints)
     }
 
     this._initAdsManagerEventListeners()
@@ -169,11 +166,7 @@ export class ImaAdManager extends BaseAdManager {
         ? google.ima.ViewMode.FULLSCREEN
         : google.ima.ViewMode.NORMAL
 
-      adsManager.init(
-        this.mediaElement.offsetWidth,
-        this.mediaElement.offsetHeight,
-        viewMode
-      )
+      adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
 
       if (this.mediaPlayed) {
         adsManager.start()
@@ -199,8 +192,7 @@ export class ImaAdManager extends BaseAdManager {
   _initAdsManagerEventListeners () {
     const adsManager = this.adsManager
 
-    adsManager
-      .addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this.onAdError)
+    adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this.onAdError)
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdEvent
     const adEvents = [
@@ -211,7 +203,22 @@ export class ImaAdManager extends BaseAdManager {
       google.ima.AdEvent.Type.COMPLETE,
       google.ima.AdEvent.Type.ALL_ADS_COMPLETED,
       google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED,
-      google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED
+      google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED,
+      google.ima.AdEvent.Type.VOLUME_CHANGED,
+      google.ima.AdEvent.Type.VOLUME_MUTED,
+      google.ima.AdEvent.Type.AD_METADATA,
+      google.ima.AdEvent.Type.AD_CAN_PLAY,
+      google.ima.AdEvent.Type.CLICK,
+      google.ima.AdEvent.Type.VIDEO_CLICKED,
+      google.ima.AdEvent.Type.VIDEO_ICON_CLICKED,
+      google.ima.AdEvent.Type.FIRST_QUARTILE,
+      google.ima.AdEvent.Type.MIDPOINT,
+      google.ima.AdEvent.Type.THIRD_QUARTILE,
+      google.ima.AdEvent.Type.COMPLETE,
+      google.ima.AdEvent.Type.SKIPPED,
+      google.ima.AdEvent.Type.USER_CLOSE,
+      google.ima.AdEvent.Type.AD_BREAK_READY,
+      google.ima.AdEvent.Type.AD_BREAK_FETCH_ERROR
     ]
     adEvents.forEach(type => {
       adsManager.addEventListener(type, this.onAdEvent)
