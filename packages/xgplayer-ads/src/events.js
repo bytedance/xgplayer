@@ -3,7 +3,8 @@ export const AD_PLAY = 'adPlay'
 export const AD_PAUSE = 'adPause'
 
 // IMA Specific Events
-export const IMA_AD_MANAGER_LOADED = 'ima_ad_manager_loaded'
+export const IMA_AD_LOADER_READY = 'ima_ad_loader_ready'
+export const IMA_AD_MANAGER_READY = 'ima_ad_manager_ready'
 export const IMA_AD_PAUSE = 'ima_ad_pause'
 export const IMA_AD_ENDED = 'ima_ad_ended'
 export const IMA_AD_SKIPPED = 'ima_ad_skipped'

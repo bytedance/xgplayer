@@ -72,7 +72,7 @@ export class ImaAdManager extends BaseAdManager {
    */
   _initLoader () {
     // Create ads loader.
-    const adsLoader = new google.ima.AdsLoader(this.displayContainer)
+    const adsLoader = (this.adsLoader = new google.ima.AdsLoader(this.displayContainer))
 
     // Listen and respond to ads loaded and error events.
     adsLoader.addEventListener(
@@ -86,7 +86,7 @@ export class ImaAdManager extends BaseAdManager {
       false
     )
 
-    this.adsLoader = adsLoader
+    this.emit(ADEvents.IMA_AD_LOADER_READY, { adsLoader })
   }
 
   /**
@@ -180,9 +180,7 @@ export class ImaAdManager extends BaseAdManager {
       this.onAdEvent()
     }
 
-    this.emit(ADEvents.IMA_AD_MANAGER_LOADED, {
-      adsManager
-    })
+    this.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
   }
 
   /**
@@ -192,6 +190,7 @@ export class ImaAdManager extends BaseAdManager {
   _initAdsManagerEventListeners () {
     const adsManager = this.adsManager
 
+    // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdErrorEvent
     adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this.onAdError)
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdEvent
@@ -296,7 +295,7 @@ export class ImaAdManager extends BaseAdManager {
       // This event is sent when an ad is resumed after a pause.
       case google.ima.AdEvent.Type.RESUMED: {
         this._isAdPaused = false
-        this.player.emit(Events.PLAY, {
+        this.player.emit(ADEvents.AD_PLAY, {
           ad
         })
         break
@@ -305,7 +304,7 @@ export class ImaAdManager extends BaseAdManager {
       // This event is sent when an ad is paused before it finishes.
       case google.ima.AdEvent.Type.PAUSED: {
         this._isAdPaused = true
-        this.player.emit(Events.PAUSE, {
+        this.player.emit(ADEvents.AD_PAUSE, {
           ad
         })
         break
