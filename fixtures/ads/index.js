@@ -1,5 +1,9 @@
-import Player from '../../packages/xgplayer/src/index.umd'
 import AdPlugin from '../../packages/xgplayer-ads/src'
+import { Logger } from '../../packages/xgplayer-streaming-shared/src/logger'
+import Player from '../../packages/xgplayer/src/index.umd'
+
+// TODO: delete
+Logger.enable()
 
 window.player = new Player({
   id: 'video',
