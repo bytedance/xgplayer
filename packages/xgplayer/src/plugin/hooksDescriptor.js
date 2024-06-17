@@ -38,7 +38,7 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
     }
     if (this.__hooks && this.__hooks[hookName]) {
       try {
-        const preRet = this.__hooks[hookName].call(this, this, ...arguments)
+        const preRet = runHooks(this, hookName, handler)
         if (preRet) {
           if (preRet.then) {
             preRet.then((isContinue) => {
@@ -66,6 +66,20 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
   }.bind(this)
 }
 
+function findHookIndex (hookName, handler) {
+  const { __hooks } = this
+  if (!__hooks || !Array.isArray(__hooks[hookName])) {
+    return -1
+  }
+  const hookHandlers = __hooks[hookName]
+  for (let i = 0; i < hookHandlers.length; i++) {
+    if (hookHandlers[i] === handler) {
+      return i
+    }
+  }
+  return -1
+}
+
 /**
  * add hooks
  * @param { string } hookName
@@ -81,7 +95,13 @@ function useHooks (hookName, handler) {
     console.warn(`has no supported hook which name [${hookName}]`)
     return false
   }
-  __hooks && (__hooks[hookName] = handler)
+  if (!Array.isArray(__hooks[hookName])) {
+    __hooks[hookName] = []
+  }
+
+  if (findHookIndex.call(this, hookName, handler) === -1) {
+    __hooks[hookName].push(handler)
+  }
   return true
 }
 
@@ -95,6 +115,15 @@ function removeHooks (hookName, handler) {
   const { __hooks } = this
   if (!__hooks) {
     return
+  }
+
+  if (Array.isArray(__hooks[hookName])) {
+    const hooks = __hooks[hookName]
+    const index = findHookIndex.call(this, hookName, handler)
+
+    if (index !== -1) {
+      hooks.splice(index, 1)
+    }
   }
   delete __hooks[hookName]
 }
@@ -148,17 +177,33 @@ function delHooksDescriptor (instance) {
 }
 
 function runHooks (obj, hookName, handler, ...args) {
-  if (obj.__hooks && obj.__hooks[hookName]) {
-    const ret = obj.__hooks[hookName].call(obj, obj, ...args)
-    if (ret && ret.then) {
-      ret.then((data) => {
-        return data === false ? null : handler.call(obj, obj, ...args)
-      }).catch(e => {
-        console.warn(`[runHooks]${hookName} reject`, e.message)
-      })
-    } else if (ret !== false) {
-      return handler.call(obj, obj, ...args)
+  if (obj.__hooks && Array.isArray(obj.__hooks[hookName])) {
+    const hooks = obj.__hooks[hookName]
+    let index = -1
+    /**
+     * @private
+     */
+    const runHooksRecursive = function (obj, hookName, handler, ...args) {
+      index++
+      // 递归终止条件
+      if (hooks.length === 0 || index === hooks.length) {
+        return handler.call(obj, obj, ...args)
+      }
+      // 递归调用
+      const hook = hooks[index]
+      const ret = hook.call(obj, obj, ...args)
+      if (ret && ret.then) {
+        return ret.then((data) => {
+          return data === false ? null : runHooksRecursive(obj, hookName, handler, ...args)
+        }).catch(e => {
+          console.warn(`[runHooks]${hookName} reject`, e.message)
+        })
+      } else if (ret !== false) {
+        return runHooksRecursive(obj, hookName, handler, ...args)
+      }
     }
+
+    return runHooksRecursive(obj, hookName, handler, ...args)
   } else {
     return handler.call(obj, obj, ...args)
   }
