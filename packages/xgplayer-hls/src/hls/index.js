@@ -470,8 +470,10 @@ export class Hls extends EventEmitter {
    */
   _loadSegment = async () => {
     if (this._segmentProcessing || !this.media) return
-    const { nextSegment } = this._playlist
+    const { nextSegment, lastSegment } = this._playlist
     const { config } = this
+    // Constrain in the range of 0.016 ~ 0.1, 0.016 is the duration of 1 frame at 60fps
+    const maxBufferThroughout = Math.min(Math.max(lastSegment?.duration || 0, 0.016), 0.1)
 
     if (!nextSegment) return
 
@@ -480,7 +482,7 @@ export class Hls extends EventEmitter {
       if (this.media.paused && !this.media.currentTime) {
         bInfo = this.bufferInfo(bInfo.nextStart || 0.5)
       }
-      const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < 0.1
+      const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < maxBufferThroughout
       if (bInfo.remaining >= config.preloadTime || bufferThroughout) {
         this._tryEos()
         return
