@@ -87,3 +87,14 @@ export function hashVal (str) {
   }
   return hash
 }
+
+export function combineToFloat (integer, decimal) {
+  return Number(integer + '.' + decimal)
+}
+
+export function toDegree (matrix) {
+  if (matrix.length < 5)
+    return 0
+  const scaled0 = Math.hypot(matrix[0], matrix[3]), scaled1 = Math.hypot(matrix[1], matrix[4])
+  return 0 === scaled0 || 0 === scaled1 ? 0 : 180 * Math.atan2(matrix[1] / scaled1, matrix[0] / scaled0) / Math.PI
+}
