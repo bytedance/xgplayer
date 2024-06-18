@@ -2,10 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="referrer" content="no-referrer" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <meta name="referrer" content="no-referrer" />
+    <title>HLS 测试</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
 
     <style>
       h4 {
@@ -29,8 +33,59 @@
     ></script>
   </head>
 
-  <body>
+  <body class="text-base">
     <div id="video" style="margin: 0 auto"></div>
+
+    <div id="options" class="container p-3">
+      <h3 class="text-lg font-semibold text-indigo-500">IMA 参数</h3>
+      <div class="flex flex-wrap">
+        <label id="ima-preset-url" class="mr-3 mb-2 p-1 bg-gray-200">
+          TagURL (<a
+            class="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+            href="https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/tags"
+            target="_blank"
+            >Samples</a
+          >) : <input style="width: 500px" />
+          <select>
+            <option value="">请选择预设</option>
+            <option
+              value="https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=
+              "
+            >
+              Single Inline Linear
+            </option>
+            <option
+              value="https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_preroll_skippable&sz=640x480&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=
+              "
+            >
+              Single Skippable Inline
+            </option>
+          </select>
+        </label>
+
+        <label id="ima-ads-request" class="mr-3 mb-2 p-1 bg-gray-200" title="优先使用AdsRequest">
+          AdsRequest: <input type="checkbox" /> <br />
+        </label>
+
+        <label id="ima-ads-response" class="mr-3 mb-2 p-1 bg-gray-200">
+          TagURL 请求后转为 AdsResponse <input type="checkbox" /> <br />
+          AdsResponse: <textarea style="width: 500px"></textarea>
+        </label>
+
+        <label id="autoplay" class="hidden mr-3 mb-2 p-1 bg-gray-200"
+          >自动播放<input type="checkbox"
+        /></label>
+      </div>
+      <div class="flex flex-wrap">
+        <button id="reset-opt" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">
+          重置参数
+        </button>
+        <button id="apply-opt" class="py-1 px-2 bg-green-500 text-white shadow-md">
+          更新参数
+        </button>
+      </div>
+    </div>
+
     <script type="module" defer src="./index.js"></script>
   </body>
 </html>

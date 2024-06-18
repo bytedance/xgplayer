@@ -2,7 +2,7 @@
 
 ## 简介
 
-xgplayer-ads 插件内提供了对 'Google IMA', 'Google DAI' 符合VAST、VMAP、VPAID等标准的广告快捷的接入能力
+`Ads` 插件集成了 `Google IMA`、`Google DAI`<sup>(待开发)</sup> 等SDK，提供了符合VAST、VMAP、VPAID等标准的广告快捷的接入能力。
 
 ### 使用方式
 
@@ -20,16 +20,19 @@ const player = new Player({
     plugins: [AdPlugin],
     ad: {
       adType: 'ima',
+      ima: {
+        locale: 'zh_cn',
+        adsRequest: createAdsRequest()
+      }
     }
 })
 
 player.on(ADEvents.AD_PLAY, ()=>{
     // do something
 })
-player.on('adPlay', ()=>{
+player.on(ADEvents.AD_PAUSE, ()=>{
     // do something
 })
-player.on('adPause', ()=>{})
 
 
 function createAdsRequest() {
@@ -52,16 +55,28 @@ function createAdsRequest() {
 ```
 
 
-可配置的能力
+### 可配置的参数
 
+```javascript
+{
+  adType: 'ima',
+  ima: {
+    locale: 'zh_cn',
+    adsRequest: createAdsRequest()
+  }
+}
+```
+
+#### IMA Config
 | 配置字段 | 类型 | 含义 |
 | ------ | -------- | ----- |
 | locale | string | 参看：[Localizing for language and locale](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization) |
 | adsRequest | object | 参看：[google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) |
-| adTagUrl | string | adsRequest的一个参数，指定向广告服务器请求地址 |
+| adsResponse | string | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` 参数被设置时，此参数不生效。 |
+| adTagUrl | string | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` \| `adsResponse` 参数被设置时，此参数不生效。 |
 
 
-事件（Events）
+### 事件（Events）
 
 >> 广告事件独立于普通视频播放事件，可通过 on 监听
 
@@ -74,7 +89,6 @@ player.on('adPlay', ()=>{
 | 事件名 | 含义 |
 | ------ | ----- |
 | adPlay | 当广告启播时，发布此事件 |
-| adPause | 当广告暂停时，发布此事件 |
 | adPause | 当广告暂停时，发布此事件 |
 
 ## IMA
