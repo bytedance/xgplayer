@@ -51,8 +51,8 @@ function initSetting() {
     cachedOpt = undefined
   }
   var opts = Object.assign({}, defaultOpt(), cachedOpt, {
-    useAdsRequest: doAdsRequest.getElementsByTagName('input')[0].value,
-    useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].value,
+    useAdsRequest: doAdsRequest.getElementsByTagName('input')[0].checked,
+    useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].checked,
     adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value
   })
 
@@ -60,6 +60,9 @@ function initSetting() {
 }
 
 function newPlayer () {
+  if (window.player) {
+    window.player.destroy()
+  }
   window.player = new Player({
     id: 'video',
     url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
@@ -88,6 +91,8 @@ function newPlayer () {
 
 function initPlayer() {
   settings = initSetting()
+
+  console.log('settings', settings)
 
   if (settings.useAdsResponse && settings.adTagUrl) {
     fetch(settings.adTagUrl)
