@@ -17,22 +17,20 @@ function generateAdTagUrl() {
   return doPresetUrl.getElementsByTagName('input')[0].value
 }
 
-function generateAdsRequest(settings) {
-  if (settings.useAdsRequest) {
-    // Request video ads.
-    const adsRequest = new google.ima.AdsRequest()
-    adsRequest.adTagUrl = generateAdTagUrl()
+function generateAdsRequest() {
+  // Request video ads.
+  const adsRequest = new google.ima.AdsRequest()
+  adsRequest.adTagUrl = generateAdTagUrl()
 
-    // Specify the linear and nonlinear slot sizes. This helps the SDK to
-    // select the correct creative if multiple are returned.
-    adsRequest.linearAdSlotWidth = 640
-    adsRequest.linearAdSlotHeight = 400
+  // Specify the linear and nonlinear slot sizes. This helps the SDK to
+  // select the correct creative if multiple are returned.
+  adsRequest.linearAdSlotWidth = 640
+  adsRequest.linearAdSlotHeight = 400
 
-    adsRequest.nonLinearAdSlotWidth = 640
-    adsRequest.nonLinearAdSlotHeight = 150
+  adsRequest.nonLinearAdSlotWidth = 640
+  adsRequest.nonLinearAdSlotHeight = 150
 
-    return adsRequest
-  }
+  return adsRequest
 }
 
 function generateAdsResponse() {
@@ -43,7 +41,8 @@ function initSetting() {
   function defaultOpt() {
     return {
       useAdsRequest: true,
-      useAdsResponse: false
+      useAdsResponse: false,
+      adTagUrl: ''
     }
   }
   var cachedOpt = localStorage.getItem('xg:test:ads:opt')
@@ -63,7 +62,26 @@ function initSetting() {
   return opts
 }
 
-function newPlayer () {
+
+function initIMAConfigure () {
+  const obj = {
+    adTagUrl: '',
+    adsRequest: null,
+    adsResponse: null,
+    adWillAutoPlay: settings.adWillAutoPlay,
+  }
+
+  if (settings.useAdsRequest) {
+    obj.adsRequest = generateAdsRequest()
+  } else if (settings.useAdsResponse) {
+    obj.adsResponse = settings.adsResponse
+  } else if (settings.adTagUrl) {
+    obj.adTagUrl = settings.adTagUrl
+  }
+  return obj
+}
+
+function newPlayer (imaConfigure) {
   if (!settings.resetPlayer && window.player) {
     window.player.plugins.ad.reset()
     window.player.plugins.ad.updateConfig({
@@ -82,6 +100,7 @@ function newPlayer () {
   if (window.player) {
     window.player.destroy()
   }
+
   window.player = new Player({
     id: 'video',
     url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
@@ -91,12 +110,7 @@ function newPlayer () {
     plugins: [AdPlugin],
     ad: {
       adType: 'ima',
-      ima: {
-        adsRequest: generateAdsRequest(settings),
-        adsResponse: settings.adsResponse,
-        adTagUrl: settings.adTagUrl,
-        adWillAutoPlay: settings.adWillAutoPlay,
-      }
+      ima: imaConfigure
     }
   })
 
@@ -118,11 +132,13 @@ function initPlayer() {
     fetch(settings.adTagUrl)
       .then(res => res.text())
       .then(data => {
-        settings.adsResponse = data
-        newPlayer()
+        const imaConfigure = initIMAConfigure()
+        imaConfigure.adsResponse = data
+        newPlayer(imaConfigure)
       })
   } else {
-    newPlayer()
+    const imaConfigure = initIMAConfigure()
+    newPlayer(imaConfigure)
   }
 }
 
