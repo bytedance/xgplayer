@@ -5,6 +5,7 @@ export class BaseAdManager extends EventEmitter {
     super()
 
     this.options = options
+    this.config = options.config || {}
     this.player = options.player
     this.mediaElement = options.player.media || options.player.video
 
