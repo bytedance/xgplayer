@@ -20,25 +20,25 @@ export class Logger {
   debug (...args) {
     this.logCache(LogCacheLevel.DEBUG,...args)
     if (Logger.disabled) return
-    console.debug(this._prefix, nowTime(), ...args)
+    console.debug(`[${nowTime()}]`, this._prefix, ...args)
   }
 
   log (...args) {
     this.logCache(LogCacheLevel.LOG,...args)
     if (Logger.disabled) return
-    console.log(this._prefix, nowTime(), ...args)
+    console.log(`[${nowTime()}]`, this._prefix, ...args)
   }
 
   warn (...args) {
     this.logCache(LogCacheLevel.WARN,...args)
     if (Logger.disabled) return
-    console.warn(this._prefix, nowTime(), ...args)
+    console.warn(`[${nowTime()}]`, this._prefix, ...args)
   }
 
   error (...args) {
     this.logCache(LogCacheLevel.ERROR,...args)
     if (Logger.disabled) return
-    console.error(this._prefix, nowTime(), ...args)
+    console.error(`[${nowTime()}]`, this._prefix, ...args)
   }
 
   logCache (logCacheLevel, ...logText) {
@@ -46,7 +46,7 @@ export class Logger {
     let text = ''
     try {
       const finLogText = logText.map( item => logable(item))
-      text = this._prefix + nowTime() + (JSON.stringify(finLogText))
+      text = `[${nowTime()}]` + this._prefix + (JSON.stringify(finLogText))
     } catch (e) {
       return
     }
