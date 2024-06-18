@@ -133,7 +133,7 @@ export class ImaAdManager extends BaseAdManager {
         adsRequest.adTagUrl = adTagUrl
       }
 
-      this.csManager.requestAds(adsRequest)
+      this.requestAds(adsRequest)
     } else {
       logger.warn('adsRequest should be provided')
     }
@@ -353,6 +353,8 @@ export class ImaAdManager extends BaseAdManager {
    */
   requestAds (payload) {
     this.adsManager?.destroy()
+
+    logger.log('requestAds', JSON.stringify(payload))
 
     this.adsLoader?.contentComplete()
     this.adsLoader?.requestAds(payload)

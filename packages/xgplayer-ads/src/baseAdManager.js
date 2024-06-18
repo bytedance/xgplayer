@@ -1,4 +1,7 @@
 import { EventEmitter } from 'eventemitter3'
+import { Logger } from 'xgplayer-streaming-shared'
+
+const logger = new Logger('AdsPluginBaseAdManager')
 
 export class BaseAdManager extends EventEmitter {
   constructor (options = {}) {
@@ -40,5 +43,9 @@ export class BaseAdManager extends EventEmitter {
 
   get isAdRunning () {
     return this._isAdRunning
+  }
+
+  destroy () {
+    this.removeAllListeners()
   }
 }
