@@ -166,13 +166,14 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
   if (lastSegment) {
     if (endOfList) {
       lastSegment.isLast = true
-      media.live = false
+    
     }
     media.endSN = lastSegment.sn
     media.endPartIndex = lastSegment.partIndex
   }
-
-
+  if (endOfList) {
+    media.live = false
+  }
   media.totalDuration = totalDuration
   media.endCC = curCC
 
