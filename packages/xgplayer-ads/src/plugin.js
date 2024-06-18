@@ -92,8 +92,9 @@ export class AdsPlugin extends Plugin {
 
   initImaAd () {
     this.csManager = new ImaAdManager({
-      displayContainer: this.root,
-      player: this.player
+      player: this.player,
+      config: this.config.ima,
+      displayContainer: this.root
     })
 
     this.csManager.on(AdEvents.IMA_AD_LOADER_READY, () => {
@@ -103,7 +104,6 @@ export class AdsPlugin extends Plugin {
       this.initPromise?.resolve()
       this.emit(AdEvents.IMA_AD_MANAGER_READY)
     })
-
 
     this.csManager.init()
   }

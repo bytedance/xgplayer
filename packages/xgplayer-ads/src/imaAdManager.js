@@ -23,6 +23,7 @@ export class ImaAdManager extends BaseAdManager {
     this._initMediaEvents()
     this._initContainer()
     this._initLoader()
+    this._loadAdsRequest()
   }
 
   destroy () {
@@ -110,6 +111,32 @@ export class ImaAdManager extends BaseAdManager {
       this.onAdError,
       false
     )
+  }
+
+  /**
+   * Loads the ads request.
+   * @private
+   */
+  _loadAdsRequest () {
+    const { adsRequest, adsResponse, adTagUrl } = this.config
+
+    if (adsRequest) {
+      this.requestAds(adsRequest)
+    } else if (adsResponse || adTagUrl) {
+      // Request video ads.
+      const adsRequest = new google.ima.AdsRequest()
+
+      if (adsResponse) {
+        adsRequest.adsResponse = adsResponse
+      }
+      if (adTagUrl) {
+        adsRequest.adTagUrl = adTagUrl
+      }
+
+      this.csManager.requestAds(adsRequest)
+    } else {
+      logger.warn('adsRequest should be provided')
+    }
   }
 
   /**
