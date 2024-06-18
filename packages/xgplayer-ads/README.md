@@ -27,29 +27,31 @@ const player = new Player({
     }
 })
 
-player.on(ADEvents.AD_PLAY, ()=>{
-    // do something
+player.on(ADEvents.AD_PLAY, () => {
+    // 举例：直播或点播等特殊场景，需要轮询异步的获取adTagUrl时间，可通过 requestAd 方法重新请求广告
+    setTimeout(()=>{
+        player.plugins.ad.requestAd(createAdsRequest())
+    }, 1000)
 })
 player.on(ADEvents.AD_PAUSE, ()=>{
     // do something
 })
 
-
 function createAdsRequest() {
-  // Request video ads.
-  const adsRequest = new google.ima.AdsRequest()
-  adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
-        'iu=/21775744923/external/single_ad_samples&sz=640x480&' +
-        'cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&' +
-        'output=vast&unviewed_position_start=1&env=vp&impl=s&correlator='
+    // Request video ads.
+    const adsRequest = new google.ima.AdsRequest()
+    adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
+            'iu=/21775744923/external/single_ad_samples&sz=640x480&' +
+            'cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&' +
+            'output=vast&unviewed_position_start=1&env=vp&impl=s&correlator='
 
-  // Specify the linear and nonlinear slot sizes. This helps the SDK to
-  // select the correct creative if multiple are returned.
-  adsRequest.linearAdSlotWidth = 640
-  adsRequest.linearAdSlotHeight = 400
-  adsRequest.nonLinearAdSlotWidth = 640
-  adsRequest.nonLinearAdSlotHeight = 150
-  return adsRequest
+    // Specify the linear and nonlinear slot sizes. This helps the SDK to
+    // select the correct creative if multiple are returned.
+    adsRequest.linearAdSlotWidth = 640
+    adsRequest.linearAdSlotHeight = 400
+    adsRequest.nonLinearAdSlotWidth = 640
+    adsRequest.nonLinearAdSlotHeight = 150
+    return adsRequest
 }
 
 ```
@@ -115,7 +117,8 @@ google.ima.settings.setVpaidMode(google.ima.ImaSdkSettings.VpaidMode.ENABLED);
 
 ## ADBlocker
 
-如何识别浏览器启用插件 ADBlocker？
+1. 如何识别浏览器启用插件 ADBlocker？
+2. ADBlocker机制触发时，广告的流程可正常运转
 
 TODO: 待调研
 
@@ -145,8 +148,9 @@ TODO: 待调研
 
 ```JavaScript
 import Events from "xgplayer"
+import AdPlugin, { ADEvents } from "xgplayer-ads"
 
-player.on([Events.AD_PLAY, Events.AD_PAUSE], ()=>{
-    // do something
+player.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], ()=>{
+  // do something
 })
 ```
