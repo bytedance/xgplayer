@@ -3,10 +3,31 @@ import { Logger } from 'xgplayer-streaming-shared'
 
 const logger = new Logger('AdsPluginBaseAdManager')
 
+/**
+ * @typedef { import ('../../xgplayer/src/player').default } Player
+ */
+
+/**
+ * @template T
+ * @typedef {{
+ *   player?: Player,
+ *   config?: T,
+ * }} BaseAdManagerOptions
+ */
+
+/**
+ * @template [T=object],[V=object]
+*/
 export class BaseAdManager extends EventEmitter {
+  /**
+   * @param {BaseAdManagerOptions<T>} options
+   */
   constructor (options = {}) {
     super()
 
+    /**
+     * @type {V}
+     */
     this.options = options
     this.config = options.config || {}
     this.player = options.player

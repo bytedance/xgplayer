@@ -6,7 +6,33 @@ import * as ADEvents from './events'
 
 const logger = new Logger('AdsPluginImaAdManager')
 
+/**
+ * @typedef {{
+ *   adTagUrl?: string,
+ *   adsResponse?: string,
+ *   adsRequest?: google.ima.AdsRequest,
+ * }} ImaConfig
+ */
+
+/**
+ * @typedef { import ('../../xgplayer/src/player').default } Player
+ */
+
+/**
+ * @typedef {{
+ *   player?: Player,
+ *   config?: ImaConfig,
+ *   displayContainer?: HTMLElement,
+ * }} ImaAdManagerOptions
+ */
+
+/**
+ * @extends {BaseAdManager<ImaConfig, ImaAdManagerOptions>}
+ */
 export class ImaAdManager extends BaseAdManager {
+  /**
+   * @param {ImaAdManagerOptions} options
+   */
   constructor (options = {}) {
     super(options)
 

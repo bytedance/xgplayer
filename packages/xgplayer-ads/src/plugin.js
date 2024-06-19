@@ -6,6 +6,17 @@ import './index.scss'
 
 const logger = new Logger('AdsPlugin')
 
+/**
+ * @typedef { import ('./imaAdManager').ImaConfig } ImaConfig
+ */
+
+/**
+ * @typedef {{
+ *   adType: 'ima',
+ *   ima: ImaConfig
+ * }} AdsPluginConfig
+ */
+
 export class AdsPlugin extends Plugin {
   static get pluginName () {
     return 'ad'
