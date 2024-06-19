@@ -1,6 +1,7 @@
 import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, combineToFloat, toDegree } from '../utils'
 import { AAC } from '../codec'
+import { ByteReader } from './byte-reader'
 export class MP4Parser {
   static findBox (data, names, start = 0) {
     const ret = []
@@ -126,26 +127,15 @@ export class MP4Parser {
     return parseBox(box, true, (ret, data) => {
       let start = 0
       if (ret.version === 1) {
-        ret.createTime = readBig64(data, 0)
-        ret.modifyTime = readBig64(data, 8)
         ret.timescale = readBig32(data, 16)
         ret.duration = readBig64(data, 20)
         start += 28
       } else {
-        ret.createTime = readBig32(data, 0)
-        ret.modifyTime = readBig32(data, 4)
         ret.timescale = readBig32(data, 8)
         ret.duration = readBig32(data, 12)
         start += 16
       }
-      ret.rate = combineToFloat(readBig16(data, start), readBig16(data, start + 2))
-      start += 4
-      ret.volume = combineToFloat(data[start], data[start + 1])
-      start += 2
-      start += 10 // skip
-      start += 36 // skip matrix, Because the rotate of the mp4 video track is determined by the matrix in tkhd box
-      start += 24 // skip
-      ret.nextTrackId = readBig32(data, start)
+      ret.nextTrackId = readBig32(data, start + 76)
     })
   }
 
@@ -158,36 +148,36 @@ export class MP4Parser {
 
   static tkhd (box) {
     return parseBox(box, true, (ret, data) => {
-      let start = 0
+      const byte = ByteReader.fromUint8(data)
       if (ret.version === 1) {
-        ret.trackId = readBig32(data, 16)
-        ret.duration = readBig64(data, 24)
-        start += 32
+        byte.read(8) // createTime
+        byte.read(8) // modifyTime
+        ret.trackId = byte.read(4)
+        byte.read(4)
+        ret.duration = byte.read(8)
       } else {
-        ret.trackId = readBig32(data, 8)
-        ret.duration = readBig32(data, 16)
-        start += 20
+        byte.read(4) // createTime
+        byte.read(4) // modifyTime
+        ret.trackId = byte.read(4)
+        byte.read(4)
+        ret.duration = byte.read(4)
       }
-      start += 8 // skip
-      ret.layer = readBig16(data, start)
-      start += 2
-      ret.alternateGroup = readBig16(data, start)
-      start += 2
-      start += 4 // skip
+      byte.skip(16) // reserved(8) + layer(2) + alternateGroup(2) + volume(2) + reserved(2)
       ret.matrix = [] // for remux
       for (let i = 0; i < 36; i++) {
-        ret.matrix.push(data[start + i])
+        ret.matrix.push(byte.read(1))
       }
+      byte.back(36)
       const caculatedMatrix = [] // for caculation of rotation
-      for (let i = 0; i < 9; i++) {
-        caculatedMatrix.push(combineToFloat(readBig16(data, start + i * 2), readBig16(data, start + i * 2 + 2))) // 16.16 fixed point
-        caculatedMatrix.push(combineToFloat(readBig16(data, start + i * 2 + 4), readBig16(data, start + i * 2 + 6))) // 16.16 fixed point
-        caculatedMatrix.push(combineToFloat(data[start + i * 2 + 8] & 0x3, readBig32(data, start + i * 2 + 8) >>> 2)) //  2.30 fixed point
+      for (let i = 0, int32; i < 3; i++) {
+        caculatedMatrix.push(combineToFloat(byte.read(2), byte.read(2))) // 16.16 fixed point
+        caculatedMatrix.push(combineToFloat(byte.read(2), byte.read(2))) // 16.16 fixed point
+        int32 = byte.readInt(4)
+        caculatedMatrix.push(combineToFloat(int32 >> 30, int32 & 0x3fffffff)) //  2.30 fixed point
       }
-      start += 36
       ret.rotation = toDegree(caculatedMatrix)
-      ret.width = readBig32(data, start) // 16.16 fixed point, no parsed
-      ret.height = readBig32(data, start + 4) // 16.16 fixed point, no parsed
+      ret.width = byte.read(4) // 16.16 fixed point, no parsed
+      ret.height = byte.read(4) // 16.16 fixed point, no parsed
     })
   }
 
