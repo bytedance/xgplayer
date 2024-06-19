@@ -289,16 +289,16 @@ export class ImaAdManager extends BaseAdManager {
       // This usually happens when an ad finishes or collapses.
       case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED: {
         this._isAdRunning = false
-        player?.pause()
+        if (!this._isMediaEnded) {
+          player?.play()
+        }
         break
       }
       // Fires when media content should be paused.
       // This usually happens right before an ad is about to cover the content.
       case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED: {
         this._isAdRunning = true
-        if (!this._isMediaEnded) {
-          player?.play()
-        }
+        player?.pause()
         break
       }
       // Fires when the ad starts playing.
