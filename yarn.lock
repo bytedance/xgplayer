@@ -6360,6 +6360,15 @@ xgplayer-mp4-loader@0.0.1:
     xgplayer-streaming-shared "3.0.0-next.2-1"
     xgplayer-transmuxer "3.0.0-next.2-1"
 
+xgplayer-mp4-loader@3.0.11-alpha.10:
+  version "3.0.11-alpha.10"
+  resolved "https://registry.npmjs.org/xgplayer-mp4-loader/-/xgplayer-mp4-loader-3.0.11-alpha.10.tgz#9d3e64d47a66f05c7b88b202241f662600fbb3c3"
+  integrity sha512-8PlqOmPEMoq3I92vTKRlO+jIQkPbcLIgNj0xLXcT1AiaiJIUQU5v0wTp0eueBonB/8g99wCBV2OGwBa0ECJMDg==
+  dependencies:
+    eventemitter3 "^4.0.7"
+    xgplayer-streaming-shared "3.0.11-alpha.10"
+    xgplayer-transmuxer "3.0.11-alpha.10"
+
 xgplayer-streaming-shared@3.0.0-next.2-1:
   version "3.0.0-next.2-1"
   resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.2-1.tgz#357cd2d160f3f12a21dacd8a8fadb7f598639166"
@@ -6391,6 +6400,15 @@ xgplayer-transmuxer@3.0.0-next.8:
   dependencies:
     "@babel/runtime" "^7.15.3"
     core-js "3"
+
+xgplayer-transmuxer@3.0.11-alpha.10:
+  version "3.0.11-alpha.10"
+  resolved "https://registry.npmjs.org/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.11-alpha.10.tgz#8f4a461f672b11107d07e46d98b77fc2490227e8"
+  integrity sha512-QbUkF4m1KXt+JOeTwM0AO/VZN6g697thGZjYMPkoXjxIU4I0F8lybc46Ng+0bZn2aKci54gAE660xsyiHFEUkA==
+  dependencies:
+    "@babel/runtime" "^7.15.3"
+    concat-typed-array "^1.0.2"
+    crypto-es "^1.2.4"
 
 xml-name-validator@^4.0.0:
   version "4.0.0"

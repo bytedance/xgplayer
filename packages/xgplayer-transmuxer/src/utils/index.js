@@ -29,8 +29,18 @@ export function readBig32 (data, i = 0) {
   return (data[i] << 24 >>> 0) + (data[i + 1] << 16) + (data[i + 2] << 8) + (data[i + 3] || 0)
 }
 
+export function readInt32 (data, i = 0) {
+  const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)
+  return dv.getInt32(i)
+}
+
 export function readBig64 (data, i = 0) {
   return readBig32(data, i) * MAX_SIZE + readBig32(data, i + 4)
+}
+
+export function readInt64 (data, i = 0) {
+  const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)
+  return (dv.getUint32(i) << 32) | dv.getUint32(i + 4)
 }
 
 export function getAvcCodec (codecs) {
