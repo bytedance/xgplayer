@@ -1,7 +1,7 @@
 import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, combineToFloat, toDegree } from '../utils'
 import { AAC } from '../codec'
-import { ByteReader } from './byte-reader'
+import { ByteReader } from '../utils/byte-reader'
 export class MP4Parser {
   static findBox (data, names, start = 0) {
     const ret = []
