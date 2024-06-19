@@ -987,13 +987,7 @@ class Player extends MediaProxy {
         reject(e)
       }
       const _canplay = () => {
-        if (this.duration > 0 && this.__startTime > 0) {
-          /**
-           * @type {number}
-           */
-          this.currentTime = this.__startTime
-          this.__startTime = -1
-        }
+        this._seekToStartTime()
         if (isPaused) {
           this.pause()
         }
@@ -1748,10 +1742,7 @@ class Player extends MediaProxy {
     const { autoplay, defaultPlaybackRate } = this.config
 
     XG_DEBUG.logInfo('player', 'canPlayFunc, startTime', this.__startTime)
-    if (this.__startTime > 0 && this.duration > 0) {
-      this.currentTime = this.__startTime > this.duration ? this.duration : this.__startTime
-      this.__startTime = -1
-    }
+    this._seekToStartTime()
 
     // 解决浏览器安装了一些倍速扩展插件的情况下，倍速设置失效问题
     this.playbackRate = defaultPlaybackRate;
@@ -1857,9 +1848,16 @@ class Player extends MediaProxy {
   onLoadeddata () {
     this.isError = false
     this.isSeeking = false
-    if (this.__startTime > 0 && this.duration > 0) {
-      this.currentTime = this.__startTime
-      this.__startTime = -1
+    if (this.__startTime > 0) {
+      if (this.duration > 0) {
+        this._seekToStartTime()
+      } else {
+        // 在安卓原生video播放hls时，loadeddata触发时durationchange事件虽然已经触发过了但duration仍然为0，
+        // 需要在下一次durationchange触发时再重新设置起播时间
+        this.once(Events.DURATION_CHANGE, () => {
+          this._seekToStartTime()
+        })
+      }
     }
   }
 
@@ -2291,6 +2289,17 @@ class Player extends MediaProxy {
     const { preProcessUrl, preProcessUrlOptions } = this.config
     const processUrlOptions = Object.assign({}, preProcessUrlOptions, ext)
     return !Util.isBlob(url) && typeof preProcessUrl === 'function' ? preProcessUrl(url, processUrlOptions) : { url }
+  }
+
+
+  /**
+   * @description 跳转至配置的起播时间点
+   */
+  _seekToStartTime () {
+    if (this.__startTime > 0 && this.duration > 0) {
+      this.currentTime = this.__startTime > this.duration ? this.duration : this.__startTime
+      this.__startTime = -1
+    }
   }
 
   /**
