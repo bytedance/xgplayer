@@ -1857,9 +1857,20 @@ class Player extends MediaProxy {
   onLoadeddata () {
     this.isError = false
     this.isSeeking = false
-    if (this.__startTime > 0 && this.duration > 0) {
-      this.currentTime = this.__startTime
-      this.__startTime = -1
+    if (this.__startTime > 0) {
+      if (this.duration > 0) {
+        this.currentTime = this.__startTime
+        this.__startTime = -1
+      } else {
+        // 在安卓原生video播放hls时，loadeddata触发时durationchange事件虽然已经触发过了但duration仍然为0，
+        // 需要在下一次durationchange触发时再重新设置起播时间
+        this.once(Events.DURATION_CHANGE, () => {
+          if (this.__startTime > 0 && this.duration > 0) {
+            this.currentTime = this.__startTime
+            this.__startTime = -1
+          }
+        })
+      }
     }
   }
 
