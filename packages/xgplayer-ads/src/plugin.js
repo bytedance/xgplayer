@@ -21,8 +21,8 @@ export class AdsPlugin extends Plugin {
   beforePlayerInit () {
     logger.log(`plugin config: ${JSON.stringify(this.config || {})}`)
 
-    this._initHooks()
-    this._proxyPlayer()
+    // this._initHooks()
+    // this._proxyPlayer()
 
     this.initPromise = createPublicPromise()
 
