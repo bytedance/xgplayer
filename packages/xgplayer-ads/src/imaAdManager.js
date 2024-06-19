@@ -63,8 +63,6 @@ export class ImaAdManager extends BaseAdManager {
       displayContainer,
       this.mediaElement
     )
-    // TODO: Must be done through a user action on mobile devices.
-    this.displayContainer.initialize()
   }
 
   /**
@@ -189,18 +187,12 @@ export class ImaAdManager extends BaseAdManager {
     this._initAdsManagerEventListeners()
 
     try {
-      const viewMode = this.isFullScreen()
-        ? google.ima.ViewMode.FULLSCREEN
-        : google.ima.ViewMode.NORMAL
-
-      adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
-
       if (this.mediaPlayed) {
-        adsManager.start()
+        this.playAds()
       } else {
         player.once(Events.PLAY, () => {
           this.mediaPlayed = true
-          adsManager.start()
+          this.playAds()
         })
       }
     } catch (adError) {
@@ -208,6 +200,26 @@ export class ImaAdManager extends BaseAdManager {
     }
 
     this.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
+  }
+
+  playAds () {
+    if (!this.displayContainerInitialized) {
+      // Initialize the container. Must be done through a user action on mobile
+      // devices.
+      this.displayContainer.initialize()
+      this.displayContainerInitialized = true
+    }
+
+    const { player } = this
+    const viewMode = this.isFullScreen()
+      ? google.ima.ViewMode.FULLSCREEN
+      : google.ima.ViewMode.NORMAL
+
+    // Initialize the ads manager. Ad rules playlist will start at this time.
+    this.adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
+    // Call play to start showing the ad. Single video and overlay ads will
+    // start at this time; the call will be ignored for ad rules.
+    this.adsManager.start()
   }
 
   /**
