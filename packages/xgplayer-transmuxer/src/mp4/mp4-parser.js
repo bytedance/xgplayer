@@ -170,8 +170,8 @@ export class MP4Parser {
       byte.back(36)
       const caculatedMatrix = [] // for caculation of rotation
       for (let i = 0, int32; i < 3; i++) {
-        caculatedMatrix.push(combineToFloat(byte.read(2), byte.read(2))) // 16.16 fixed point
-        caculatedMatrix.push(combineToFloat(byte.read(2), byte.read(2))) // 16.16 fixed point
+        caculatedMatrix.push(combineToFloat(byte.readInt(2), byte.readInt(2))) // 16.16 fixed point
+        caculatedMatrix.push(combineToFloat(byte.readInt(2), byte.readInt(2))) // 16.16 fixed point
         int32 = byte.readInt(4)
         caculatedMatrix.push(combineToFloat(int32 >> 30, int32 & 0x3fffffff)) //  2.30 fixed point
       }
