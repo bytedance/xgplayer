@@ -1,6 +1,12 @@
 ## 3.0.19
 >* fix: adts parser兼容异常case造成页面crash
 >* fix: m3u8 parser 兼容 EXT-X-ENDLIST出现在任意位置
+>* fix: 🐛 (xgplayer-hls) 修复重播时，视频播放到结尾一直loading的问题（重播时末尾buffer已下载）
+>* fix: (xgplayer-hls) m3u8 parser 兼容 EXT-X-ENDLIST出现在任意位置
+>* fix: (xgplayer-hls) playlist Live state
+>* fix: 🐛 (xgplayer-hls）修复hls最后一帧不渲染，并且播放到最后一直loading的问题
+>* fix(xgplayer-hls): 修复HLS点播场景空列表时未触发报错问题
+>* feat(xgplayer-hls xgplayer-transmuxer): HLS 音视频LargeGAP优化处理
 
 ## 3.0.18
 >* refactor: 💡 (xgplayer-hls) DRM支持更多的identifiers
