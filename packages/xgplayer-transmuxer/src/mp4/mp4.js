@@ -6,6 +6,8 @@ const UINT32_MAX = 2 ** 32 - 1
 
 export class MP4 {
   static types = [
+    'av01',
+    'av1C',
     'avc1',
     'avcC',
     'hvc1',
@@ -352,6 +354,8 @@ export class MP4 {
     } else if (track.useEME && track.encv) {
       content = MP4.encv(track)
       // console.log('[remux],encv, len,', content.byteLength, track.type, hashVal(content.toString()))
+    } else if (track.av1C) {
+      content = MP4.av01(track)
     } else {
       content = MP4.avc1hev1(track)
       // console.log('[remux],avc1hev1, len,', content.byteLength, track.type, hashVal(content.toString()))
@@ -492,7 +496,31 @@ export class MP4 {
     const schi = MP4.schi(data)
     return MP4.box(MP4.types.sinf, content, MP4.box(MP4.types.frma, frma), MP4.box(MP4.types.schm, schm), schi)
   }
-
+  static av01 (track) {
+    return MP4.box(MP4.types.av01, new Uint8Array([
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // reserved
+      0x00, 0x01, // data_reference_index
+      0x00, 0x00, // pre_defined
+      0x00, 0x00, // reserved
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // pre_defined
+      (track.width >> 8) & 0xff, track.width & 0xff, // width
+      (track.height >> 8) & 0xff, track.height & 0xff, // height
+      0x00, 0x48, 0x00, 0x00, // horizresolution
+      0x00, 0x48, 0x00, 0x00, // vertresolution
+      0x00, 0x00, 0x00, 0x00, // reserved
+      0x00, 0x01, // frame_count
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, // compressor name
+      0x00, 0x18, // depth
+      0x11, 0x11 // pre_defined = -1 //todo
+    ]), track.av1C, track.colr)
+  }
   static avc1hev1 (track) {
     const isHevc = track.codecType === VideoCodecType.HEVC
     const typ = isHevc ? MP4.types.hvc1 : MP4.types.avc1

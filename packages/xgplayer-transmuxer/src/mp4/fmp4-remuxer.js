@@ -82,29 +82,47 @@ export class FMP4Remuxer {
       track.samples[0].flag = { dependsOn: 2, isNonSyncSample: 0 }
     }
     const samples = track.samples
+    const isAV01 = /av01/.test(track.codec)
 
     let mdatSize = 0
 
-    samples.forEach((s) => {
-      mdatSize += s.units.reduce((t, c) => (t + c.byteLength), 0)
-      mdatSize += (s.units.length * 4)
-    })
+    if (isAV01) {
+      samples.forEach((s) => {
+        mdatSize += s.data.byteLength
+      })
+    } else {
+      samples.forEach((s) => {
+        mdatSize += s.units.reduce((t, c) => (t + c.byteLength), 0)
+        mdatSize += (s.units.length * 4)
+      })
+    }
 
     const mdata = new Uint8Array(mdatSize)
-    const mdatView = new DataView(mdata.buffer)
 
-    for (let i = 0, l = samples.length, offset = 0, sample; i < l; i++) {
-      sample = samples[i]
+    // av1没有uints，直接写入data即可
+    // todo: H.265/H.264为什么要拼接nals/uints而不直接用data？
+    if (isAV01) {
+      for (let i = 0, l = samples.length, offset = 0, sample; i < l; i++) {
+        sample = samples[i]
+        mdata.set(sample.data, offset)
+        sample.size = sample.data.byteLength
+        offset += sample.size
+      }
+    } else {
+      const mdatView = new DataView(mdata.buffer)
+      for (let i = 0, l = samples.length, offset = 0, sample; i < l; i++) {
+        sample = samples[i]
 
-      let sampleSize = 0
-      sample.units.forEach((u) => {
-        mdatView.setUint32(offset, u.byteLength)
-        offset += 4
-        mdata.set(u, offset)
-        offset += u.byteLength
-        sampleSize += (4 + u.byteLength)
-      })
-      sample.size = sampleSize
+        let sampleSize = 0
+        sample.units.forEach((u) => {
+          mdatView.setUint32(offset, u.byteLength)
+          offset += 4
+          mdata.set(u, offset)
+          offset += u.byteLength
+          sampleSize += (4 + u.byteLength)
+        })
+        sample.size = sampleSize
+      }
     }
     const mdat = MP4.mdat(mdata)
 

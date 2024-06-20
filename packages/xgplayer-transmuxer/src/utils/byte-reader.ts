@@ -6,7 +6,7 @@ export class ByteReader {
   constructor(buf: ArrayBuffer, offset: number, len: number) {
     this.dv = new DataView(buf)
     this.start = this.offset = offset || this.dv.byteOffset
-    this.end = len ? this.start + len : this.dv.byteLength
+    this.end = len ? this.start + len : this.start + this.dv.byteLength
   }
   static fromUint8(uint8: Uint8Array) {
     return new ByteReader(uint8.buffer, uint8.byteOffset, uint8.byteLength)
@@ -105,7 +105,7 @@ export class ByteReader {
   readToBuffer(len?: number) {
     let buffer: ArrayBuffer
     if (this.offset || len) {
-      buffer = this.dv.buffer.slice(this.offset, len ? this.offset + len : undefined)
+      buffer = this.dv.buffer.slice(this.offset, len ? this.offset + len : this.end)
     } else {
       buffer = this.dv.buffer
     }
