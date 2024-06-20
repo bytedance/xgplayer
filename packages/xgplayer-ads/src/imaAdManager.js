@@ -1,6 +1,7 @@
 /* global google */
 import { Events } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
+import canAutoplay from 'can-autoplay'
 import { BaseAdManager } from './baseAdManager'
 import * as ADEvents from './events'
 
@@ -11,7 +12,6 @@ const logger = new Logger('AdsPluginImaAdManager')
  *   adTagUrl?: string,
  *   adsResponse?: string,
  *   adsRequest?: google.ima.AdsRequest,
- *   adWillAutoPlay?: boolean,
  *   autoPlayAdBreaks?: boolean,
  * }} ImaConfig
  */
@@ -66,7 +66,6 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _initConfig () {
-    this.adWillAutoPlay = this.config.adWillAutoPlay !== false ? true : false
     this.autoPlayAdBreaks = this.config.autoPlayAdBreaks !== false ? true : false
   }
 
@@ -130,7 +129,7 @@ export class ImaAdManager extends BaseAdManager {
       false
     )
 
-    this.emit(ADEvents.IMA_AD_LOADER_READY, { adsLoader })
+    this.player.emit(ADEvents.IMA_AD_LOADER_READY, { adsLoader })
   }
 
   /**
@@ -159,10 +158,21 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _initAdsRequest () {
+  async _initAdsRequest () {
     const { adsRequest, adsResponse, adTagUrl } = this.config
     if (adsRequest || adsResponse || adTagUrl) {
+      await this._checkAutoplaySupport()
       this.requestAds()
+      this.player.once(ADEvents.IMA_AD_MANAGER_READY, () => {
+        this._startPreRoll()
+        if (!this.adsManager.getCuePoints().length) {
+          this.emit(ADEvents.IMA_READY_TO_PLAY)
+        } else {
+          this.player.once(ADEvents.IMA_AD_LOADED, () => {
+            this.emit(ADEvents.IMA_READY_TO_PLAY)
+          })
+        }
+      })
     } else {
       this.emit(ADEvents.IMA_READY_TO_PLAY)
     }
@@ -209,6 +219,29 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
+  _startPreRoll = () => {
+    if (this.autoPlayAdBreaks) {
+      if (this.autoplayAllowed) {
+        this._initAdsManager()
+        this.playAds()
+        this._mediaPlayFunc = this.player.mediaPlay
+        this.player.mediaPlay = () => {}
+      } else {
+        const cb = () => {
+          this._initAdsManager()
+          this.playAds()
+          this.player.removeHooks('play', cb)
+          return false
+        }
+
+        this.player.useHooks('play', cb)
+      }
+    }
+  }
+
+  /**
+   * @private
+   */
   _onMediaVolumeChange = () => {
     this.adsManager?.setVolume(this.player.volume)
   }
@@ -222,6 +255,7 @@ export class ImaAdManager extends BaseAdManager {
     // Get the ads manager.
     const adsRenderingSettings = new google.ima.AdsRenderingSettings()
     adsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete = true
+    adsRenderingSettings.enablePreloading = true
     const adsManager = (this.adsManager = ev.getAdsManager(
       this.mediaElement,
       adsRenderingSettings
@@ -235,48 +269,20 @@ export class ImaAdManager extends BaseAdManager {
     }
 
     this._initAdsManagerEventListeners()
-    this._initAdsManager()
 
-    if ((this.adWillAutoPlay && !cuePoints.length) || (this.autoPlayAdBreaks && cuePoints.length)) {
-      this._doOnPlay(() => {
-        this._actualPlayAds()
-      })
+    if (!this.autoPlayAdBreaks || !cuePoints.length) {
+      this._initAdsManager()
     }
 
-    this.emit(ADEvents.IMA_READY_TO_PLAY)
-    this.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
+    this.player.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
   }
 
   playAds () {
-    if (!this.autoPlayAdBreaks || !this.adWillAutoPlay) {
-      this._doOnPlay(() => {
-        this._actualPlayAds()
-      })
-    }
-  }
-
-  /**
-   * @private
-   */
-  _actualPlayAds () {
     try {
       this.adsManager.setVolume(this.player.volume)
       this.adsManager.start()
     } catch (adError) {
       this.onAdError(adError)
-    }
-  }
-
-  /**
-   * @private
-   */
-  _doOnPlay (callback) {
-    if (this._mediaPlayed) {
-      callback()
-    } else {
-      this.player.once(Events.PLAY, () => {
-        callback()
-      })
     }
   }
 
@@ -392,6 +398,10 @@ export class ImaAdManager extends BaseAdManager {
       // This usually happens when an ad finishes or collapses.
       case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED: {
         this._isAdRunning = false
+        if (this._mediaPlayFunc) {
+          this.player.mediaPlay = this._mediaPlayFunc
+          this._mediaPlayFunc = undefined
+        }
         if (!this._isMediaEnded) {
           player?.play()
         }
@@ -409,7 +419,7 @@ export class ImaAdManager extends BaseAdManager {
       case google.ima.AdEvent.Type.STARTED: {
         if (ad.isLinear()) {
           this._isAdPaused = false
-          this.player.emit(Events.PLAY, {
+          this.player.emit(Events.AD_PLAY, {
             ad
           })
 
@@ -450,10 +460,7 @@ export class ImaAdManager extends BaseAdManager {
     }
   }
 
-  /**
-   * @private
-   */
-  _reset () {
+  reset () {
     this._isAdRunning = false
     this.adsManager?.destroy()
     this.adsManager = null
@@ -473,7 +480,8 @@ export class ImaAdManager extends BaseAdManager {
     adsRequest.linearAdSlotHeight = player.sizeInfo.height
     adsRequest.nonLinearAdSlotWidth = player.sizeInfo.width
     adsRequest.nonLinearAdSlotHeight = player.sizeInfo.height
-    adsRequest.setAdWillAutoPlay(this.adWillAutoPlay)
+    adsRequest.setAdWillAutoPlay(this.autoplayAllowed)
+    adsRequest.setAdWillPlayMuted(this.autoplayRequiresMuted)
 
     if (adTagUrl) {
       adsRequest.adTagUrl = adTagUrl
@@ -518,6 +526,24 @@ export class ImaAdManager extends BaseAdManager {
   updateConfig (config) {
     super.updateConfig(config)
     this._initConfig()
-    this._reset()
+  }
+
+  /**
+   * @private
+   */
+  async _checkAutoplaySupport () {
+    const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
+      this.player.config.autoplay ?
+        canAutoplay.video({ timeout: 100 }).then(({ result }) => result) :
+        Promise.resolve(false),
+      this.player.config.autoplay && this.player.config.autoplayMuted ?
+        canAutoplay.video({ timeout: 100, muted: true }).then(({ result }) => result) :
+        Promise.resolve(false)
+    ])
+
+    this.autoplayAllowed = autoplayAllowed || autoplayMutedAllowed
+    this.autoplayRequiresMuted = !autoplayAllowed && autoplayMutedAllowed
+
+    logger.log('checkAutoplaySupport', this.autoplayAllowed, this.autoplayRequiresMuted)
   }
 }
