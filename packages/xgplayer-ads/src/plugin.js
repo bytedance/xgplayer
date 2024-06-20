@@ -110,22 +110,26 @@ export class AdsPlugin extends Plugin {
       displayContainer: this.root
     })
 
-    this.csManager.on(AdEvents.IMA_AD_LOADER_READY, () => {
-      this.emit(AdEvents.IMA_AD_LOADER_READY)
-    })
-    this.csManager.on(AdEvents.IMA_AD_MANAGER_READY, () => {
+    this.csManager.once(AdEvents.IMA_READY_TO_PLAY, () => {
       this.initPromise?.resolve()
-      this.emit(AdEvents.IMA_AD_MANAGER_READY)
     })
 
     this.csManager.init()
   }
 
-  requestAds (payload) {
-    this.csManager?.requestAds(payload)
+  requestAds () {
+    this.csManager?.requestAds()
+  }
+
+  playAds () {
+    this.csManager?.playAds()
   }
 
   destroy () {
     this.csManager?.destroy()
+  }
+
+  updateConfig (config) {
+    this.csManager?.updateConfig(config)
   }
 }
