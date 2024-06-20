@@ -80,6 +80,7 @@ export class ImaAdManager extends BaseAdManager {
     player.on(Events.ENDED, this._onMediaEnded)
     player.on(Events.PLAY, this._onMediaPlay)
     player.on(Events.PAUSED, this._onMediaPause)
+    player.on(Events.VOLUME_CHANGE, this._onMediaVolumeChange)
   }
 
   /**
@@ -92,6 +93,7 @@ export class ImaAdManager extends BaseAdManager {
     player.off(Events.ENDED, this._onMediaEnded)
     player.off(Events.PLAY, this._onMediaPlay)
     player.off(Events.PAUSED, this._onMediaPause)
+    player.off(Events.VOLUME_CHANGE, this._onMediaVolumeChange)
   }
 
   /**
@@ -205,6 +207,13 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   /**
+   * @private
+   */
+  _onMediaVolumeChange = () => {
+    this.adsManager?.setVolume(this.player.volume)
+  }
+
+  /**
    * Handles the ad manager loading and sets ad event listeners.
    * @param {!google.ima.AdsManagerLoadedEvent} ev
    * @private
@@ -251,7 +260,7 @@ export class ImaAdManager extends BaseAdManager {
    */
   _actualPlayAds () {
     try {
-
+      this.adsManager.setVolume(this.player.volume)
       this.adsManager.start()
     } catch (adError) {
       this.onAdError(adError)
