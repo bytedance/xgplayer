@@ -8,9 +8,7 @@ const doPresetUrl = document.getElementById('ima-preset-url')
 const doAdsRequest = document.getElementById('ima-ads-request')
 const doAdsResponse = document.getElementById('ima-ads-response')
 const doAutoPlay = document.getElementById('autoplay')
-const doAutoPlayAd = document.getElementById('autoplay-ad')
 const doAutoPlayAdBreaks = document.getElementById('autoplay-ad-breaks')
-const doPlayAdOpt = document.getElementById('play-ad-opt')
 const doPlayAdBreakOpt = document.getElementById('play-ad-break-opt')
 const doResetPlayerOpt = document.getElementById('reset-player')
 
@@ -61,7 +59,6 @@ function initSetting() {
     useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].checked,
     adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value,
     autoplay: doAutoPlay.getElementsByTagName('input')[0].checked,
-    adWillAutoPlay: doAutoPlayAd.getElementsByTagName('input')[0].checked,
     autoPlayAdBreaks: doAutoPlayAdBreaks.getElementsByTagName('input')[0].checked,
     resetPlayer: doResetPlayerOpt.getElementsByTagName('input')[0].checked,
   })
@@ -71,6 +68,7 @@ function initSetting() {
 
 function newPlayer () {
   if (!settings.resetPlayer && window.player) {
+    window.player.plugins.ad.reset()
     window.player.plugins.ad.updateConfig({
       adsRequest: generateAdsRequest(settings),
       adsResponse: settings.adsResponse,
@@ -79,6 +77,10 @@ function newPlayer () {
       autoPlayAdBreaks: settings.autoPlayAdBreaks,
     })
     window.player.plugins.ad.requestAds()
+    window.player.once(AdEvents.IMA_AD_LOADED, () => {
+      console.log('=====> IMA_AD_LOADED')
+      window.player?.plugins.ad.playAds()
+    })
     return
   }
   if (window.player) {
@@ -111,14 +113,6 @@ function newPlayer () {
     console.log('=====> AD_PAUSE', e)
   })
 
-  if (settings.adWillAutoPlay) {
-    doPlayAdOpt.style.visibility = 'hidden'
-  } else {
-    player.once(AdEvents.IMA_AD_LOADED, function (e) {
-      doPlayAdOpt.style.visibility = 'visible'
-    })
-  }
-
   if (settings.autoPlayAdBreaks) {
     doPlayAdBreakOpt.style.visibility = 'hidden'
   } else {
@@ -147,10 +141,6 @@ function initPlayer() {
 
 dbApplyOpt.addEventListener('click', function () {
   initPlayer()
-})
-
-doPlayAdOpt.addEventListener('click', function () {
-  window.player?.plugins.ad.playAds()
 })
 
 doPlayAdBreakOpt.addEventListener('click', function () {

@@ -129,6 +129,10 @@ export class AdsPlugin extends Plugin {
     this.csManager?.destroy()
   }
 
+  reset () {
+    this.csManager?.reset()
+  }
+
   updateConfig (config) {
     this.csManager?.updateConfig(config)
   }
