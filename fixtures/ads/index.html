@@ -161,10 +161,24 @@
           TagURL 请求后转为 AdsResponse <input type="checkbox" /> <br />
           AdsResponse: <textarea style="width: 500px"></textarea>
         </label>
-
-        <label id="autoplay" class="hidden mr-3 mb-2 p-1 bg-gray-200"
-          >自动播放<input type="checkbox"
-        /></label>
+        <label id="autoplay" class="mr-3 mb-2 p-1 bg-gray-200">
+          autoplay<input type="checkbox" checked="true"/>
+        </label>
+        <label id="autoplay-ad" class="mr-3 mb-2 p-1 bg-gray-200">
+          adWillAutoPlay<input type="checkbox" checked="true"/>
+          <button id="play-ad-opt" style="visibility: hidden" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">
+            Play
+          </button>
+        </label>
+        <label id="autoplay-ad-breaks" class="mr-3 mb-2 p-1 bg-gray-200">
+          autoPlayAdBreaks<input type="checkbox" checked="true"/>
+          <button id="play-ad-break-opt" style="visibility: hidden" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">
+            Play
+          </button>
+        </label>
+        <label id="reset-player" class="mr-3 mb-2 p-1 bg-gray-200">
+          重置播放器<input type="checkbox" checked="true"/>
+        </label>
       </div>
       <div class="flex flex-wrap">
         <button id="reset-opt" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">

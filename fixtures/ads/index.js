@@ -7,6 +7,12 @@ const dbApplyOpt = document.getElementById('apply-opt')
 const doPresetUrl = document.getElementById('ima-preset-url')
 const doAdsRequest = document.getElementById('ima-ads-request')
 const doAdsResponse = document.getElementById('ima-ads-response')
+const doAutoPlay = document.getElementById('autoplay')
+const doAutoPlayAd = document.getElementById('autoplay-ad')
+const doAutoPlayAdBreaks = document.getElementById('autoplay-ad-breaks')
+const doPlayAdOpt = document.getElementById('play-ad-opt')
+const doPlayAdBreakOpt = document.getElementById('play-ad-break-opt')
+const doResetPlayerOpt = document.getElementById('reset-player')
 
 // TODO: delete
 Logger.enable()
@@ -53,20 +59,35 @@ function initSetting() {
   var opts = Object.assign({}, defaultOpt(), cachedOpt, {
     useAdsRequest: doAdsRequest.getElementsByTagName('input')[0].checked,
     useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].checked,
-    adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value
+    adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value,
+    autoplay: doAutoPlay.getElementsByTagName('input')[0].checked,
+    adWillAutoPlay: doAutoPlayAd.getElementsByTagName('input')[0].checked,
+    autoPlayAdBreaks: doAutoPlayAdBreaks.getElementsByTagName('input')[0].checked,
+    resetPlayer: doResetPlayerOpt.getElementsByTagName('input')[0].checked,
   })
 
   return opts
 }
 
 function newPlayer () {
+  if (!settings.resetPlayer && window.player) {
+    window.player.plugins.ad.updateConfig({
+      adsRequest: generateAdsRequest(settings),
+      adsResponse: settings.adsResponse,
+      adTagUrl: settings.adTagUrl,
+      adWillAutoPlay: settings.adWillAutoPlay,
+      autoPlayAdBreaks: settings.autoPlayAdBreaks,
+    })
+    window.player.plugins.ad.requestAds()
+    return
+  }
   if (window.player) {
     window.player.destroy()
   }
   window.player = new Player({
     id: 'video',
     url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
-    autoplay: true,
+    autoplay: settings.autoplay,
     width: '80%',
     height: 700,
     plugins: [AdPlugin],
@@ -75,7 +96,9 @@ function newPlayer () {
       ima: {
         adsRequest: generateAdsRequest(settings),
         adsResponse: settings.adsResponse,
-        adTagUrl: settings.adTagUrl
+        adTagUrl: settings.adTagUrl,
+        adWillAutoPlay: settings.adWillAutoPlay,
+        autoPlayAdBreaks: settings.autoPlayAdBreaks,
       }
     }
   })
@@ -87,6 +110,22 @@ function newPlayer () {
   player.on(AdEvents.AD_PAUSE, function (e) {
     console.log('=====> AD_PAUSE', e)
   })
+
+  if (settings.adWillAutoPlay) {
+    doPlayAdOpt.style.visibility = 'hidden'
+  } else {
+    player.once(AdEvents.IMA_AD_LOADED, function (e) {
+      doPlayAdOpt.style.visibility = 'visible'
+    })
+  }
+
+  if (settings.autoPlayAdBreaks) {
+    doPlayAdBreakOpt.style.visibility = 'hidden'
+  } else {
+    player.once(AdEvents.IMA_AD_BREAK_READY, function (e) {
+      doPlayAdBreakOpt.style.visibility = 'visible'
+    })
+  }
 }
 
 function initPlayer() {
@@ -108,6 +147,14 @@ function initPlayer() {
 
 dbApplyOpt.addEventListener('click', function () {
   initPlayer()
+})
+
+doPlayAdOpt.addEventListener('click', function () {
+  window.player?.plugins.ad.playAds()
+})
+
+doPlayAdBreakOpt.addEventListener('click', function () {
+  window.player?.plugins.ad.playAds()
 })
 
 doPresetUrl.getElementsByTagName('select')[0].onchange = function () {

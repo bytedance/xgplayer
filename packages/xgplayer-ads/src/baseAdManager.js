@@ -29,6 +29,9 @@ export class BaseAdManager extends EventEmitter {
      * @type {V}
      */
     this.options = options
+    /**
+     * @type {T}
+     */
     this.config = options.config || {}
     this.player = options.player
     this.mediaElement = options.player.media || options.player.video
@@ -49,6 +52,13 @@ export class BaseAdManager extends EventEmitter {
      * @description Whether the video has ended
      */
     this._isMediaEnded = false
+  }
+
+  updateConfig (config = {}) {
+    this.config = {
+      ...this.config,
+      ...config
+    }
   }
 
   /**

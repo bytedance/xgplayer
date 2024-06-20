@@ -11,6 +11,8 @@ const logger = new Logger('AdsPluginImaAdManager')
  *   adTagUrl?: string,
  *   adsResponse?: string,
  *   adsRequest?: google.ima.AdsRequest,
+ *   adWillAutoPlay?: boolean,
+ *   autoPlayAdBreaks?: boolean,
  * }} ImaConfig
  */
 
@@ -46,10 +48,11 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   init () {
+    this._initConfig()
     this._initMediaEvents()
     this._initContainer()
     this._initLoader()
-    this._loadAdsRequest()
+    this._initAdsRequest()
   }
 
   destroy () {
@@ -62,11 +65,21 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
+  _initConfig () {
+    this.adWillAutoPlay = this.config.adWillAutoPlay !== false ? true : false
+    this.autoPlayAdBreaks = this.config.autoPlayAdBreaks !== false ? true : false
+  }
+
+  /**
+   * @private
+   */
   _initMediaEvents () {
     const { player } = this
 
-    player.on(Events.VIDEO_RESIZE, this.onMediaResize)
-    player.on(Events.ENDED, this.onMediaEnded)
+    player.on(Events.VIDEO_RESIZE, this._onMediaResize)
+    player.on(Events.ENDED, this._onMediaEnded)
+    player.on(Events.PLAY, this._onMediaPlay)
+    player.on(Events.PAUSED, this._onMediaPause)
   }
 
   /**
@@ -75,8 +88,10 @@ export class ImaAdManager extends BaseAdManager {
   _removeMediaEvents () {
     const { player } = this
 
-    player.off(Events.VIDEO_RESIZE, this.onMediaResize)
-    player.off(Events.ENDED, this.onMediaEnded)
+    player.off(Events.VIDEO_RESIZE, this._onMediaResize)
+    player.off(Events.ENDED, this._onMediaEnded)
+    player.off(Events.PLAY, this._onMediaPlay)
+    player.off(Events.PAUSED, this._onMediaPause)
   }
 
   /**
@@ -98,6 +113,8 @@ export class ImaAdManager extends BaseAdManager {
   _initLoader () {
     // Create ads loader.
     const adsLoader = (this.adsLoader = new google.ima.AdsLoader(this.displayContainer))
+
+    adsLoader.getSettings().setAutoPlayAdBreaks(this.autoPlayAdBreaks)
 
     // Listen and respond to ads loaded and error events.
     adsLoader.addEventListener(
@@ -138,28 +155,14 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   /**
-   * Loads the ads request.
    * @private
    */
-  _loadAdsRequest () {
+  _initAdsRequest () {
     const { adsRequest, adsResponse, adTagUrl } = this.config
-
-    if (adsRequest) {
-      this.requestAds(adsRequest)
-    } else if (adsResponse || adTagUrl) {
-      // Request video ads.
-      const adsRequest = new google.ima.AdsRequest()
-
-      if (adsResponse) {
-        adsRequest.adsResponse = adsResponse
-      }
-      if (adTagUrl) {
-        adsRequest.adTagUrl = adTagUrl
-      }
-
-      this.requestAds(adsRequest)
+    if (adsRequest || adsResponse || adTagUrl) {
+      this.requestAds()
     } else {
-      logger.warn('adsRequest should be provided')
+      this.emit(ADEvents.IMA_READY_TO_PLAY)
     }
   }
 
@@ -167,7 +170,7 @@ export class ImaAdManager extends BaseAdManager {
    * End event listener to tell the SDK can play any post-roll ads.
    * @private
    */
-  onMediaEnded = () => {
+  _onMediaEnded = () => {
     // An ad might have been playing in the content element, in which case the
     // content has not actually ended.
     if (this._isAdRunning) return
@@ -179,7 +182,7 @@ export class ImaAdManager extends BaseAdManager {
    * End event listener to tell the SDK can play any post-roll ads.
    * @private
    */
-  onMediaResize = () => {
+  _onMediaResize = () => {
     const { player } = this
     const viewMode = this.isFullScreen()
       ? google.ima.ViewMode.FULLSCREEN
@@ -188,13 +191,25 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   /**
+   * @private
+   */
+  _onMediaPlay = () => {
+    this._mediaPlayed = true
+  }
+
+  /**
+   * @private
+   */
+  _onMediaPause = () => {
+    this._mediaPlayed = false
+  }
+
+  /**
    * Handles the ad manager loading and sets ad event listeners.
    * @param {!google.ima.AdsManagerLoadedEvent} ev
    * @private
    */
   onAdsManagerLoaded = ev => {
-    const { player } = this
-
     // Get the ads manager.
     const adsRenderingSettings = new google.ima.AdsRenderingSettings()
     adsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete = true
@@ -211,41 +226,49 @@ export class ImaAdManager extends BaseAdManager {
     }
 
     this._initAdsManagerEventListeners()
+    this._initAdsManager()
 
-    try {
-      if (this.mediaPlayed) {
-        this.playAds()
-      } else {
-        player.once(Events.PLAY, () => {
-          this.mediaPlayed = true
-          this.playAds()
-        })
-      }
-    } catch (adError) {
-      this.onAdEvent()
+    if ((this.adWillAutoPlay && !cuePoints.length) || (this.autoPlayAdBreaks && cuePoints.length)) {
+      this._doOnPlay(() => {
+        this._actualPlayAds()
+      })
     }
 
+    this.emit(ADEvents.IMA_READY_TO_PLAY)
     this.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
   }
 
   playAds () {
-    if (!this.displayContainerInitialized) {
-      // Initialize the container. Must be done through a user action on mobile
-      // devices.
-      this.displayContainer.initialize()
-      this.displayContainerInitialized = true
+    if (!this.autoPlayAdBreaks || !this.adWillAutoPlay) {
+      this._doOnPlay(() => {
+        this._actualPlayAds()
+      })
     }
+  }
 
-    const { player } = this
-    const viewMode = this.isFullScreen()
-      ? google.ima.ViewMode.FULLSCREEN
-      : google.ima.ViewMode.NORMAL
+  /**
+   * @private
+   */
+  _actualPlayAds () {
+    try {
 
-    // Initialize the ads manager. Ad rules playlist will start at this time.
-    this.adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
-    // Call play to start showing the ad. Single video and overlay ads will
-    // start at this time; the call will be ignored for ad rules.
-    this.adsManager.start()
+      this.adsManager.start()
+    } catch (adError) {
+      this.onAdError(adError)
+    }
+  }
+
+  /**
+   * @private
+   */
+  _doOnPlay (callback) {
+    if (this._mediaPlayed) {
+      callback()
+    } else {
+      this.player.once(Events.PLAY, () => {
+        callback()
+      })
+    }
   }
 
   /**
@@ -290,6 +313,30 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   /**
+ * Initialize the ads manager.
+ */
+  _initAdsManager () {
+    try {
+      if (!this.displayContainerInitialized) {
+        // Initialize the container. Must be done through a user action on mobile
+        // devices.
+        this.displayContainer.initialize()
+        this.displayContainerInitialized = true
+      }
+
+      const { player } = this
+      const viewMode = this.isFullScreen()
+        ? google.ima.ViewMode.FULLSCREEN
+        : google.ima.ViewMode.NORMAL
+
+      // Initialize the ads manager. Ad rules playlist will start at this time.
+      this.adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
+    } catch (adError) {
+      this.onAdError(adError)
+    }
+  }
+
+  /**
    * Handles ad errors.
    * @param {!google.ima.AdErrorEvent} ev
    * @private
@@ -315,12 +362,21 @@ export class ImaAdManager extends BaseAdManager {
     logger.log('AdEvent', ev?.type, ev?.getAd())
 
     switch (ev?.type) {
+      case google.ima.AdEvent.Type.AD_BREAK_READY: {
+        this.player.emit(ADEvents.IMA_AD_BREAK_READY, {
+          ad
+        })
+        break
+      }
       // Fires when ad data is available.
       // This is the first event sent for an ad.
       case google.ima.AdEvent.Type.LOADED: {
         if (!ad.isLinear()) {
           this.mediaElement?.play()
         }
+        this.player.emit(ADEvents.IMA_AD_LOADED, {
+          ad
+        })
         break
       }
       // Fires when media content should be resumed.
@@ -386,16 +442,43 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   /**
-   * @param {!google.ima.AdsRequest} payload
-   * https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest
+   * @private
    */
-  requestAds (payload) {
+  _reset () {
+    this._isAdRunning = false
     this.adsManager?.destroy()
-
-    logger.log('requestAds', JSON.stringify(payload))
-
+    this.adsManager = null
     this.adsLoader?.contentComplete()
-    this.adsLoader?.requestAds(payload)
+  }
+
+  /**
+   * Creates the AdsRequest and request ads through the AdsLoader.
+   */
+  requestAds () {
+    const { adsRequest: providedAdsRequest, adsResponse, adTagUrl } = this.config
+    const { player } = this
+
+    const adsRequest = new google.ima.AdsRequest()
+
+    adsRequest.linearAdSlotWidth = player.sizeInfo.width
+    adsRequest.linearAdSlotHeight = player.sizeInfo.height
+    adsRequest.nonLinearAdSlotWidth = player.sizeInfo.width
+    adsRequest.nonLinearAdSlotHeight = player.sizeInfo.height
+    adsRequest.setAdWillAutoPlay(this.adWillAutoPlay)
+
+    if (adTagUrl) {
+      adsRequest.adTagUrl = adTagUrl
+    } else if (adsResponse) {
+      adsRequest.adsResponse = adsResponse
+    } else if (providedAdsRequest && typeof providedAdsRequest === 'object') {
+      Object.keys(providedAdsRequest).forEach((key) => {
+        adsRequest[key] = providedAdsRequest[key]
+      })
+    }
+
+    logger.log('requestAds', JSON.stringify(adsRequest))
+
+    this.adsLoader?.requestAds(adsRequest)
   }
 
   /**
@@ -421,5 +504,11 @@ export class ImaAdManager extends BaseAdManager {
    */
   skip () {
     return this.adsManager?.skip()
+  }
+
+  updateConfig (config) {
+    super.updateConfig(config)
+    this._initConfig()
+    this._reset()
   }
 }
