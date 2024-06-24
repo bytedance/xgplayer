@@ -1,7 +1,7 @@
 /* global google */
+import canAutoplay from 'can-autoplay'
 import { Events } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
-import canAutoplay from 'can-autoplay'
 import { BaseAdManager } from './baseAdManager'
 import * as ADEvents from './events'
 
@@ -37,16 +37,20 @@ export class ImaAdManager extends BaseAdManager {
   constructor (options = {}) {
     super(options)
 
-    if (!google?.ima) {
-      throw 'google.ima sdk is not loaded'
-    }
-
     this.displayContainer = null
     this.adsLoader = null
     this.adsManager = null
   }
 
-  init () {
+  async init () {
+    try {
+      await this._loadIMASdk()
+      this.emit(ADEvents.IMA_SDK_LOAD_SUCCESS)
+    } catch (e) {
+      logger.error('google.ima sdk is not loaded, due to error', e)
+      this.emit(ADEvents.IMA_SDK_LOAD_ERROR)
+    }
+
     this._initConfig()
     this._initMediaEvents()
     this._initContainer()
@@ -65,6 +69,32 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _initConfig () {
+    const { locale } = this.config
+
+    if (locale) {
+      google.ima.settings.setLocale(locale)
+    }
+  }
+
+  /**
+   * @private
+   */
+  _loadIMASdk () {
+    return new Promise((resolve, reject) => {
+      if (typeof google !== 'undefined' && google.ima) {
+        resolve()
+        return
+      }
+      const script = document.createElement('script')
+      script.src = `https://imasdk.googleapis.com/js/sdkloader/ima3${this.config.debug ? '_debug' : ''}.js`
+      script.onload = () => {
+        resolve()
+      }
+      script.onerror = (e) => {
+        reject(e?.message)
+      }
+      document.head.appendChild(script)
+    })
   }
 
   /**
