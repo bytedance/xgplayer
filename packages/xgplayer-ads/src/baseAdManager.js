@@ -33,7 +33,13 @@ export class BaseAdManager extends EventEmitter {
      * @type {T}
      */
     this.config = options.config || {}
+    /**
+     * @type {Player}
+     */
     this.player = options.player
+    /**
+     * @type {HTMLMediaElement}
+     */
     this.mediaElement = options.player.media || options.player.video
 
     /**

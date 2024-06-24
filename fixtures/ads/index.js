@@ -65,6 +65,8 @@ function initSetting() {
 
 function initIMAConfigure () {
   const obj = {
+    debug: true,
+    locale: 'en',
     adTagUrl: '',
     adsRequest: null,
     adsResponse: null,
