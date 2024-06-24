@@ -8,8 +8,6 @@ const doPresetUrl = document.getElementById('ima-preset-url')
 const doAdsRequest = document.getElementById('ima-ads-request')
 const doAdsResponse = document.getElementById('ima-ads-response')
 const doAutoPlay = document.getElementById('autoplay')
-const doAutoPlayAdBreaks = document.getElementById('autoplay-ad-breaks')
-const doPlayAdBreakOpt = document.getElementById('play-ad-break-opt')
 const doResetPlayerOpt = document.getElementById('reset-player')
 
 // TODO: delete
@@ -59,7 +57,6 @@ function initSetting() {
     useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].checked,
     adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value,
     autoplay: doAutoPlay.getElementsByTagName('input')[0].checked,
-    autoPlayAdBreaks: doAutoPlayAdBreaks.getElementsByTagName('input')[0].checked,
     resetPlayer: doResetPlayerOpt.getElementsByTagName('input')[0].checked,
   })
 
@@ -74,7 +71,6 @@ function newPlayer () {
       adsResponse: settings.adsResponse,
       adTagUrl: settings.adTagUrl,
       adWillAutoPlay: settings.adWillAutoPlay,
-      autoPlayAdBreaks: settings.autoPlayAdBreaks,
     })
     window.player.plugins.ad.requestAds()
     window.player.once(AdEvents.IMA_AD_LOADED, () => {
@@ -100,7 +96,6 @@ function newPlayer () {
         adsResponse: settings.adsResponse,
         adTagUrl: settings.adTagUrl,
         adWillAutoPlay: settings.adWillAutoPlay,
-        autoPlayAdBreaks: settings.autoPlayAdBreaks,
       }
     }
   })
@@ -112,14 +107,6 @@ function newPlayer () {
   player.on(AdEvents.AD_PAUSE, function (e) {
     console.log('=====> AD_PAUSE', e)
   })
-
-  if (settings.autoPlayAdBreaks) {
-    doPlayAdBreakOpt.style.visibility = 'hidden'
-  } else {
-    player.once(AdEvents.IMA_AD_BREAK_READY, function (e) {
-      doPlayAdBreakOpt.style.visibility = 'visible'
-    })
-  }
 }
 
 function initPlayer() {
@@ -141,10 +128,6 @@ function initPlayer() {
 
 dbApplyOpt.addEventListener('click', function () {
   initPlayer()
-})
-
-doPlayAdBreakOpt.addEventListener('click', function () {
-  window.player?.plugins.ad.playAds()
 })
 
 doPresetUrl.getElementsByTagName('select')[0].onchange = function () {
