@@ -3,6 +3,8 @@ export const AD_PLAY = 'adPlay'
 export const AD_PAUSE = 'adPause'
 
 // IMA Specific Events
+export const IMA_SDK_LOAD_SUCCESS = 'ima_sdk_load_success'
+export const IMA_SDK_LOAD_ERROR = 'ima_sdk_load_error'
 export const IMA_AD_LOADER_READY = 'ima_ad_loader_ready'
 export const IMA_AD_MANAGER_READY = 'ima_ad_manager_ready'
 export const IMA_AD_PAUSE = 'ima_ad_pause'
