@@ -12,7 +12,6 @@ const logger = new Logger('AdsPluginImaAdManager')
  *   adTagUrl?: string,
  *   adsResponse?: string,
  *   adsRequest?: google.ima.AdsRequest,
- *   autoPlayAdBreaks?: boolean,
  * }} ImaConfig
  */
 
@@ -66,7 +65,6 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _initConfig () {
-    this.autoPlayAdBreaks = this.config.autoPlayAdBreaks !== false ? true : false
   }
 
   /**
@@ -114,8 +112,6 @@ export class ImaAdManager extends BaseAdManager {
   _initLoader () {
     // Create ads loader.
     const adsLoader = (this.adsLoader = new google.ima.AdsLoader(this.displayContainer))
-
-    adsLoader.getSettings().setAutoPlayAdBreaks(this.autoPlayAdBreaks)
 
     // Listen and respond to ads loaded and error events.
     adsLoader.addEventListener(
@@ -173,6 +169,9 @@ export class ImaAdManager extends BaseAdManager {
           })
         }
       })
+      this.player.once(ADEvents.IMA_AD_ERROR, () => {
+        this.emit(ADEvents.IMA_READY_TO_PLAY)
+      })
     } else {
       this.emit(ADEvents.IMA_READY_TO_PLAY)
     }
@@ -220,22 +219,18 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _startPreRoll = () => {
-    if (this.autoPlayAdBreaks) {
-      if (this.autoplayAllowed) {
-        this._initAdsManager()
+    if (this.autoplayAllowed) {
+      this.playAds()
+      this._mediaPlayFunc = this.player.mediaPlay
+      this.player.mediaPlay = () => {}
+    } else {
+      const cb = () => {
         this.playAds()
-        this._mediaPlayFunc = this.player.mediaPlay
-        this.player.mediaPlay = () => {}
-      } else {
-        const cb = () => {
-          this._initAdsManager()
-          this.playAds()
-          this.player.removeHooks('play', cb)
-          return false
-        }
-
-        this.player.useHooks('play', cb)
+        this.player.removeHooks('play', cb)
+        return false
       }
+
+      this.player.useHooks('play', cb)
     }
   }
 
@@ -270,9 +265,7 @@ export class ImaAdManager extends BaseAdManager {
 
     this._initAdsManagerEventListeners()
 
-    if (!this.autoPlayAdBreaks || !cuePoints.length) {
-      this._initAdsManager()
-    }
+    this._initAdsManager()
 
     this.player.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
   }
@@ -360,6 +353,7 @@ export class ImaAdManager extends BaseAdManager {
     // Handle the error logging.
     console.log(ev.getError())
     this.adsManager?.destroy()
+    this.player.emit(ADEvents.IMA_AD_ERROR, ev)
   }
 
   /**
