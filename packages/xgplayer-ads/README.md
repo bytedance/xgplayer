@@ -72,6 +72,7 @@ function createAdsRequest() {
 #### IMA Config
 | 配置字段 | 类型 | 含义 |
 | ------ | -------- | ----- |
+| debug | boolean | 在插件加载前，开发者可自行引入加载IMA SDK。如果插件检测到没有 `google.ima` 对象时，插件内会自动加载IMA SDK，此开关为`true`时加载debug版本IMA SDK |
 | locale | string | 参看：[Localizing for language and locale](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization) |
 | adsRequest | object | 参看：[google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) |
 | adsResponse | string | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` 参数被设置时，此参数不生效。 |
