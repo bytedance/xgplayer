@@ -109,7 +109,7 @@ export class ImaAdManager extends BaseAdManager {
     player.on(Events.VIDEO_RESIZE, this._onMediaResize)
     player.on(Events.ENDED, this._onMediaEnded)
     player.on(Events.PLAY, this._onMediaPlay)
-    player.on(Events.PAUSED, this._onMediaPause)
+    player.on(Events.PAUSE, this._onMediaPause)
     player.on(Events.VOLUME_CHANGE, this._onMediaVolumeChange)
   }
 
@@ -122,7 +122,7 @@ export class ImaAdManager extends BaseAdManager {
     player.off(Events.VIDEO_RESIZE, this._onMediaResize)
     player.off(Events.ENDED, this._onMediaEnded)
     player.off(Events.PLAY, this._onMediaPlay)
-    player.off(Events.PAUSED, this._onMediaPause)
+    player.off(Events.PAUSE, this._onMediaPause)
     player.off(Events.VOLUME_CHANGE, this._onMediaVolumeChange)
   }
 
@@ -448,7 +448,7 @@ export class ImaAdManager extends BaseAdManager {
       case google.ima.AdEvent.Type.STARTED: {
         if (ad.isLinear()) {
           this._isAdPaused = false
-          this.player.emit(Events.AD_PLAY, {
+          this.player.emit(ADEvents.AD_PLAY, {
             ad
           })
 
