@@ -472,8 +472,13 @@ export class Hls extends EventEmitter {
     if (this._segmentProcessing || !this.media) return
     const { nextSegment, lastSegment } = this._playlist
     const { config } = this
+    const minFrameDuration = 0.016
     // Constrain in the range of 0.016 ~ 0.1, 0.016 is the duration of 1 frame at 60fps
-    const maxBufferThroughout = Math.min(Math.max(lastSegment?.duration || 0, 0.016), 0.1)
+    // “minFrameDuration / 2” is to handle the media buffer precision deviation problem
+    const maxBufferThroughout = Math.min(
+      Math.max(lastSegment?.duration - minFrameDuration / 2 || 0, minFrameDuration),
+      0.1
+    )
 
     if (!nextSegment) return
 
