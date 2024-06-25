@@ -7,6 +7,7 @@ export const TrackType = {
 
 /** @enum {string} */
 export const VideoCodecType = {
+  AV1: 'av1',
   AVC: 'avc',
   HEVC: 'hevc'
 }

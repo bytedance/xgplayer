@@ -3,7 +3,7 @@ import { MP4Parser } from 'xgplayer-transmuxer'
 import { getConfig } from './config'
 import { MediaError } from './error'
 import { Cache } from './cache'
-import { isNumber, moovToMeta, moovToSegments } from './utils'
+import { isNumber, moovToMeta, moovToSegments, sidxToSegments } from './utils'
 import EventEmitter from 'eventemitter3'
 
 export class MP4Loader extends EventEmitter {
@@ -124,7 +124,42 @@ export class MP4Loader extends EventEmitter {
             // throw new MediaError('cannot parse moov box', moov.data)
           }
 
-          const segments = moovToSegments(parsedMoov, this._config.segmentDuration)
+          let segments = moovToSegments(parsedMoov, this._config.segmentDuration)
+
+          // 当box存在但不完整时，补全box
+          const getCompletedBox = async (name) => {
+            const box = MP4Parser.findBox(this.buffer, [name])[0]
+            if (box) {
+              if (box.size > box.data.length) {
+                const res = await this.loadData([box.start, box.start + box.size - 1], cache, config)
+                if (res) {
+                  return MP4Parser.findBox(res.data, [name])[0]
+                }
+              } else {
+                return box
+              }
+            }
+          }
+
+          // 现在的分段式range加载逻辑不适用于fmp4，需要判断太多条件
+          // 因为fmp4的samples信息存放在moof中，而解析moof的range需要依赖sidx
+          // 而sidx和moof的size都是动态的（且sidx不一定存在），导致每个环节都需要判断是否满足解析条件以及对应的兜底处理
+          // todo: 后续加载逻辑需要改为【开区间range+主动取消】才能更好的处理fmp4
+          let isFragmentMP4 = false
+          if (!(segments && segments.videoSegments.length && segments.audioSegments.length)) {
+            const sidx = await getCompletedBox('sidx')
+            if (sidx) {
+              const parsedSidx = MP4Parser.sidx(sidx)
+              if (parsedSidx) {
+                segments = sidxToSegments(parsedMoov, parsedSidx)
+                isFragmentMP4 = true
+              }
+            } else {
+              // 无 sidx box 场景，当前架构只能通过模拟加载完整的fmp4来解析出segments，这样会导致fetch加载的数据量特别大，loading时间长
+              // 更倾向于使用【开区间range+主动取消】方案异步读取，todo
+            }
+          }
+
           if (!segments) {
             this._error = true
             onProgress(null, state, options, {err:'cannot parse segments'})
@@ -132,7 +167,7 @@ export class MP4Loader extends EventEmitter {
             // throw new MediaError('cannot parse segments', moov.data)
           }
 
-          this.meta = moovToMeta(parsedMoov)
+          this.meta = moovToMeta(parsedMoov, isFragmentMP4)
           const { videoSegments, audioSegments } = segments
           this.videoSegments = videoSegments
           this.audioSegments = audioSegments
@@ -182,12 +217,26 @@ export class MP4Loader extends EventEmitter {
       throw new MediaError('cannot parse moov box', moov.data)
     }
 
-    const segments = moovToSegments(parsedMoov, this._config.segmentDuration)
+    let segments = moovToSegments(parsedMoov, this._config.segmentDuration)
     if (!segments) {
       throw new MediaError('cannot parse segments', moov.data)
     }
 
-    this.meta = moovToMeta(parsedMoov)
+    let parsedSidx
+    if (!(segments.videoSegments.length && segments.audioSegments.length)) {
+      const moof = MP4Parser.findBox(this.buffer, ['moof'])[0]
+      const sidx = MP4Parser.findBox(this.buffer, ['sidx'])[0]
+      if (moof && moof.size <= moof.data.length && sidx) {
+        const parsedMoof = MP4Parser.moof(moof)
+
+        parsedSidx = MP4Parser.sidx(sidx)
+        if (parsedMoof && parsedSidx) {
+          segments = sidxToSegments(parsedMoov, parsedSidx, parsedMoof)
+        }
+      }
+    }
+
+    this.meta = moovToMeta(parsedMoov, parsedSidx)
     const { videoSegments, audioSegments } = segments
     this.videoSegments = videoSegments
     this.audioSegments = audioSegments

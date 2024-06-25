@@ -2,6 +2,7 @@ import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, combineToFloat, toDegree } from '../utils'
 import { AAC } from '../codec'
 import { ByteReader } from '../utils/byte-reader'
+import { BitReader } from '../utils/bit-reader'
 export class MP4Parser {
   static findBox (data, names, start = 0) {
     const ret = []
@@ -318,6 +319,8 @@ export class MP4Parser {
       ret.entryCount = readBig32(data)
       ret.entries = MP4Parser.findBox(data.subarray(4), [], start + 4).map(b => {
         switch (b.type) {
+          case 'av01':
+            return MP4Parser.av01(b)
           case 'avc1':
           case 'avc2':
           case 'avc3':
@@ -394,6 +397,78 @@ export class MP4Parser {
       for (let i = 0; i < 4; i++) {
         ret.data_format += String.fromCharCode(data[i])
       }
+    })
+  }
+
+  static colr (box) {
+    return parseBox(box, false, (ret, data) => {
+      const byte = ByteReader.fromUint8(data)
+      ret.data = box.data
+      ret.colorType = byte.readString(4)
+      // Array.from(data.subarray(0, 4)).map(v => String.fromCharCode(v)).join('')
+      if (ret.colorType === 'nclx') {
+        ret.colorPrimaries = byte.read(2)
+        ret.transferCharacteristics = byte.read(2)
+        ret.matrixCoefficients = byte.read(2)
+        ret.fullRangeFlag = byte.read(1) >> 7
+      } else if (ret.colorType === 'rICC' || ret.colorType === 'prof') {
+        ret.iccProfile = data.readToUint8()
+      }
+    })
+  }
+
+  static av01 (box) {
+    return parseBox(box, false, (ret, data, start) => {
+      const bodyStart = parseVisualSampleEntry(ret, data)
+      const bodyData = data.subarray(bodyStart)
+      start += bodyStart
+      ret.av1C = MP4Parser.av1C(MP4Parser.findBox(bodyData, ['av1C'], start)[0])
+      ret.colr = MP4Parser.colr(MP4Parser.findBox(bodyData, ['colr'], start)[0])
+    })
+  }
+
+  static av1C (box) {
+    return parseBox(box, false, (ret, data) => {
+      ret.data = box.data
+
+      const byte = ByteReader.fromUint8(data)
+      const bit = BitReader.fromByte(byte, 4)
+
+      ret.marker = bit.read(1)
+      ret.version = bit.read(7)
+
+      ret.seqProfile = bit.read(3)
+      ret.seqLevelIdx0 = bit.read(5)
+
+      ret.seqTier0 = bit.read(1)
+      ret.highBitdepth = bit.read(1)
+      ret.twelveBit = bit.read(1)
+      ret.monochrome = bit.read(1)
+      ret.chromaSubsamplingX = bit.read(1)
+      ret.chromaSubsamplingY = bit.read(1)
+      ret.chromaSamplePosition = bit.read(2)
+      ret.reserved = bit.read(3)
+      ret.initialPresentationDelayPresent = bit.read(1)
+
+      if (ret.initialPresentationDelayPresent) {
+        ret.initialPresentationDelayMinusOne = bit.read(4)
+      } else {
+        ret.initialPresentationDelayMinusOne = 0
+      }
+      ret.configOBUs = byte.readToUint8()
+
+      let bitdepth
+      if (ret.seqLevelIdx0 === 2 && ret.highBitdepth === 1) {
+        bitdepth = ret.twelveBit === 1 ? '12' : '10'
+      } else if (ret.seqProfile <= 2) {
+        bitdepth = ret.highBitdepth === 1 ? '10' : '08'
+      }
+      ret.codec = [
+        'av01',
+        ret.seqProfile,
+        (ret.seqLevelIdx0 < 10 ? '0' + ret.seqLevelIdx0 : ret.seqLevelIdx0) + (ret.seqTier0 ? 'H' : 'M'),
+        bitdepth
+      ].join('.')
     })
   }
 
@@ -794,7 +869,12 @@ export class MP4Parser {
       if (e1.pasp) {
         v.sarRatio = [e1.pasp.hSpacing, e1.pasp.vSpacing]
       }
-      if (e1.hvcC) {
+      if (e1.av1C) {
+        v.codecType = VideoCodecType.AV1
+        v.codec = e1.av1C.codec
+        v.av1C = e1.av1C.data
+        v.colr = e1.colr.data
+      } else if (e1.hvcC) {
         v.codecType = VideoCodecType.HEVC
         v.codec = e1.hvcC.codec
         v.vps = e1.hvcC.vps
@@ -1103,7 +1183,9 @@ function parseAudioSampleEntry (ret, data) {
 
 function parseBox (box, isFullBox, parse) {
   if (!box) return
-  if (box.size !== box.data.length) throw new Error(`box ${box.type} size !== data.length`)
+  if (box.size !== box.data.length) {
+    throw new Error(`box ${box.type} size !== data.length`)
+  }
   const ret = {
     start: box.start,
     size: box.size,

@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3'
 import Concat from 'concat-typed-array'
-import { MP4Demuxer, FMP4Remuxer } from 'xgplayer-transmuxer'
+import { MP4Demuxer, FMP4Demuxer, FMP4Remuxer } from 'xgplayer-transmuxer'
 import { ERROR_CODES, NetWorkError, ParserError, ERROR_TYPES } from './error'
 import util from './util'
 import MP4Loader from 'xgplayer-mp4-loader'
@@ -68,6 +68,7 @@ class MP4 extends EventEmitter {
       ...options.reqOptions,
       openLog: checkOpenLog()
     })
+    this.fMP4Demuxer = null
     this.MP4Demuxer = null
     this.FMP4Remuxer = null
     this._needInitSegment = true
@@ -348,6 +349,10 @@ class MP4 extends EventEmitter {
     this.log('>>>>>getSubRange time,',time, JSON.stringify(range))
     if (this.videoTrak) {
       const videoSeg = fragIndex < this.videoTrak.length ? this.videoTrak[fragIndex] : this.videoTrak[this.videoTrak.length - 1]
+      if (videoSeg.frames.length === 0) {
+        this.log('>>>>>getSubRange video, no frames')
+        return range
+      }
       const keyFrameList = videoSeg.frames.filter(getKeyFrameList)
       const videoTimescale = this.meta.videoTimescale
       let startTime = keyFrameList[0].startTime / videoTimescale
@@ -373,6 +378,10 @@ class MP4 extends EventEmitter {
     i = 1
     if (this.audioTrak) {
       const audioSeg = fragIndex < this.audioTrak.length ? this.audioTrak[fragIndex] : this.audioTrak[this.audioTrak.length - 1]
+      if (audioSeg.frames.length === 0) {
+        this.log('>>>>>getSubRange video, no frames')
+        return range
+      }
       const frameList = audioSeg.frames
       const audioTimescale = this.meta.audioTimescale
       i = Math.floor((time * audioTimescale - frameList[0].startTime) / audioSeg.frames[0].duration)
@@ -421,7 +430,7 @@ class MP4 extends EventEmitter {
     const videoIndexRange = this.getSamplesRange(fragIndex, 'video')
     const audioIndexRange = this.getSamplesRange(fragIndex, 'audio')
     const range = [start, start + buffer.byteLength]
-    if (this.transmuxerWorkerControl) {
+    if (this.transmuxerWorkerControl && !this.meta.isFragmentMP4) { // todo: fmp4 demux worker
       const context = {
         range,
         state,
@@ -431,12 +440,20 @@ class MP4 extends EventEmitter {
       this.transmuxerWorkerControl.transmux(this.workerSequence, buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue, context)
     } else {
       try {
-        if (!this.MP4Demuxer) {
-          this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog()})
+        let demuxRet
+        if (this.meta.isFragmentMP4) {
+          if (!this.fMP4Demuxer) {
+            this.fMP4Demuxer = new FMP4Demuxer()
+          }
+          demuxRet = this.fMP4Demuxer.demuxPart(buffer, start, this.meta.moov)
+        } else {
+          if (!this.MP4Demuxer) {
+            this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog()})
+          }
+          demuxRet = this.MP4Demuxer.demuxPart(buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue)
         }
-        const demuxRet = this.MP4Demuxer.demuxPart(buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue)
         if (!this.FMP4Remuxer && (!this.checkCodecH265() || this.options.supportHevc)) {
-          this.FMP4Remuxer = new FMP4Remuxer(this.MP4Demuxer.videoTrack, this.MP4Demuxer.audioTrack, {openLog: checkOpenLog()})
+          this.FMP4Remuxer = new FMP4Remuxer(demuxRet.videoTrack, demuxRet.audioTrack, {openLog: checkOpenLog()})
         }
         let res
         this.log('[mux], videoTimeRange,',demuxRet.videoTrack ? [demuxRet.videoTrack.startPts, demuxRet.videoTrack.endPts] : null, ',audioTimeRange,',demuxRet.audioTrack ? [demuxRet.audioTrack.startPts, demuxRet.audioTrack.endPts] : null)
@@ -481,8 +498,9 @@ class MP4 extends EventEmitter {
     const range = []
     switch (type) {
       case 'video':
-        if (this.videoTrak && fragmentIdx < this.videoTrak.length ) {
+        if (this.videoTrak && fragmentIdx < this.videoTrak.length) {
           const frames = this.videoTrak[fragmentIdx].frames
+          if (!frames.length) break
           range.push(frames[0].index)
           range.push(frames[frames.length - 1].index)
         }
@@ -490,6 +508,7 @@ class MP4 extends EventEmitter {
       case 'audio':
         if (this.audioTrak && fragmentIdx < this.audioTrak.length ) {
           const frames = this.audioTrak[fragmentIdx].frames
+          if (!frames.length) break
           range.push(frames[0].index)
           range.push(frames[frames.length - 1].index)
         }

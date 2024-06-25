@@ -111,6 +111,9 @@ export class VideoTrack {
    * @returns {boolean}
    */
   exist () {
+    if (/av01/.test(this.codec)) {
+      return true
+    }
     return !!(this.pps.length && this.sps.length && this.codec)
   }
 
