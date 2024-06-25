@@ -25,8 +25,6 @@
         margin-block-end: 0.4em;
       }
     </style>
-
-
   </head>
 
   <body class="text-base">
@@ -34,15 +32,9 @@
       <h3 class="text-lg font-semibold text-indigo-500">IMA 参数</h3>
       <div class="flex flex-wrap">
         <label id="ima-preset-url" class="mr-3 mb-2 p-1 bg-gray-200">
-          <a
-            class="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
-            href="https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/tags"
-            target="_blank"
-            >IMA sample tag url</a
-          >
-          : <input style="width: 500px" />
           <select>
-            <option value="">请选择预设</option>
+            <option value="">请选择预设 IMA TagURL
+            </option>
             <option
               value="https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator="
             >
@@ -143,6 +135,16 @@
               OM SDK Sample Pre-roll
             </option>
           </select>
+
+          <div class="mt-1 mb-1">
+            <a
+              class="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+              href="https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/tags"
+              target="_blank"
+              >IMA sample tag url</a
+            >
+            : <input style="width: 500px" />
+          </div>
         </label>
 
         <label
@@ -158,10 +160,10 @@
           AdsResponse: <textarea style="width: 500px"></textarea>
         </label>
         <label id="autoplay" class="mr-3 mb-2 p-1 bg-gray-200">
-          autoplay<input type="checkbox" checked="true"/>
+          autoplay<input type="checkbox" checked="true" />
         </label>
         <label id="reset-player" class="mr-3 mb-2 p-1 bg-gray-200">
-          重置播放器<input type="checkbox" checked="true"/>
+          重置播放器<input type="checkbox" checked="true" />
         </label>
       </div>
       <div class="flex flex-wrap">

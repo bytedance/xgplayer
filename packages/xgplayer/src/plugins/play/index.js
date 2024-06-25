@@ -20,21 +20,22 @@ class Play extends IconPlugin {
 
   afterCreate () {
     super.afterCreate()
-    const { player, config } = this
+    const { config } = this
     if (config.disable) {
       return
     }
     this.initIcons()
-    this.btnClick = this.btnClick.bind(this)
     this.bind(['touchend', 'click'], this.btnClick)
 
-    this.on([Events.PAUSE, Events.ERROR, Events.EMPTIED], () => {
-      this.animate(player.isAd ? player.adPaused : player.paused)
-    })
-    this.on(Events.PLAY, () => {
-      this.animate(player.isAd ? player.adPaused : player.paused)
-    })
+    this.listenEvents()
     this.animate(true)
+  }
+
+  listenEvents () {
+    const { player } = this
+    this.on([Events.PLAY, Events.PAUSE, Events.ERROR, Events.EMPTIED], () => {
+      this.animate(player.paused)
+    })
   }
 
   registerIcons () {
@@ -44,7 +45,7 @@ class Play extends IconPlugin {
     }
   }
 
-  btnClick (e) {
+  btnClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
     const { player } = this
