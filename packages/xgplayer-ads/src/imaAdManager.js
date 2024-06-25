@@ -268,7 +268,7 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _onMediaVolumeChange = () => {
-    this.adsManager?.setVolume(this.player.volume)
+    this.adsManager?.setVolume(this.player.muted ? 0 : this.player.volume)
   }
 
   /**
@@ -302,7 +302,7 @@ export class ImaAdManager extends BaseAdManager {
 
   playAds () {
     try {
-      this.adsManager.setVolume(this.player.volume)
+      this._onMediaVolumeChange()
       this.adsManager.start()
     } catch (adError) {
       this.onAdError(adError)
