@@ -1,6 +1,6 @@
 /* global google */
 import canAutoplay from 'can-autoplay'
-import { Events } from 'xgplayer'
+import { Events, Util } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
 import { BaseAdManager } from './baseAdManager'
 import * as ADEvents from './events'
@@ -26,6 +26,8 @@ const logger = new Logger('AdsPluginImaAdManager')
  *   displayContainer?: HTMLElement,
  * }} ImaAdManagerOptions
  */
+
+const CLASS_NAME = 'xgplayer-ads-playing'
 
 /**
  * @extends {BaseAdManager<ImaConfig, ImaAdManagerOptions>}
@@ -61,6 +63,7 @@ export class ImaAdManager extends BaseAdManager {
   destroy () {
     super.destroy()
 
+    this.reset()
     this._removeMediaEvents()
     this._destroyLoader()
   }
@@ -422,6 +425,7 @@ export class ImaAdManager extends BaseAdManager {
       // This usually happens when an ad finishes or collapses.
       case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED: {
         this._isAdRunning = false
+        Util.removeClass(player.root, CLASS_NAME)
         if (this._mediaPlayFunc) {
           this.player.mediaPlay = this._mediaPlayFunc
           this._mediaPlayFunc = undefined
@@ -435,6 +439,7 @@ export class ImaAdManager extends BaseAdManager {
       // This usually happens right before an ad is about to cover the content.
       case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED: {
         this._isAdRunning = true
+        Util.addClass(this.player.root, CLASS_NAME)
         player?.pause()
         break
       }
@@ -489,6 +494,7 @@ export class ImaAdManager extends BaseAdManager {
     this.adsManager?.destroy()
     this.adsManager = null
     this.adsLoader?.contentComplete()
+    Util.removeClass(this.player.root, CLASS_NAME)
   }
 
   /**
