@@ -3,6 +3,7 @@ import { Logger, createPublicPromise } from 'xgplayer-streaming-shared'
 import * as AdEvents from './events'
 import { ImaAdManager } from './imaAdManager'
 import './index.scss'
+import { AdUIManager } from './ui/adUIManager'
 
 const logger = new Logger('AdsPlugin')
 
@@ -25,6 +26,10 @@ export class AdsPlugin extends Plugin {
     return __VERSION__
   }
 
+  get paused () {
+    return !!(this.csManager?.isAdRunning && this.csManager?.paused)
+  }
+
   afterCreate () {
     this.csManager = undefined
   }
@@ -36,6 +41,10 @@ export class AdsPlugin extends Plugin {
     // this._proxyPlayer()
 
     this.initPromise = createPublicPromise()
+    this.uiManager = new AdUIManager(this.config, {
+      plugin: this,
+      player: this.player
+    })
 
     if (this.config.adType === 'ima') {
       this.initClientSideAd()
@@ -123,6 +132,20 @@ export class AdsPlugin extends Plugin {
 
   playAds () {
     this.csManager?.playAds()
+  }
+
+  /**
+   * @public
+   */
+  pause () {
+    this.csManager?.pause()
+  }
+
+  /**
+   * @public
+   */
+  play () {
+    this.csManager?.play()
   }
 
   destroy () {
