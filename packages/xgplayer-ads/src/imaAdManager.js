@@ -149,12 +149,12 @@ export class ImaAdManager extends BaseAdManager {
     // Listen and respond to ads loaded and error events.
     adsLoader.addEventListener(
       google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-      this.onAdsManagerLoaded,
+      this._onAdsManagerLoaded,
       false
     )
     adsLoader.addEventListener(
       google.ima.AdErrorEvent.Type.AD_ERROR,
-      this.onAdError,
+      this._onAdError,
       false
     )
 
@@ -174,12 +174,12 @@ export class ImaAdManager extends BaseAdManager {
 
     adsLoader.removeEventListener(
       google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-      this.onAdsManagerLoaded,
+      this._onAdsManagerLoaded,
       false
     )
     adsLoader.removeEventListener(
       google.ima.AdErrorEvent.Type.AD_ERROR,
-      this.onAdError,
+      this._onAdError,
       false
     )
   }
@@ -279,7 +279,7 @@ export class ImaAdManager extends BaseAdManager {
    * @param {!google.ima.AdsManagerLoadedEvent} ev
    * @private
    */
-  onAdsManagerLoaded = ev => {
+  _onAdsManagerLoaded = ev => {
     // Get the ads manager.
     const adsRenderingSettings = new google.ima.AdsRenderingSettings()
     adsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete = true
@@ -308,8 +308,18 @@ export class ImaAdManager extends BaseAdManager {
       this._onMediaVolumeChange()
       this.adsManager.start()
     } catch (adError) {
-      this.onAdError(adError)
+      this._handleAdError(adError)
     }
+  }
+
+  /**
+   * @private
+   */
+  _handleAdError = (error, resumeContent) => {
+    console.log(error)
+    this.adsManager?.destroy()
+    this.player.emit(ADEvents.IMA_AD_ERROR, error)
+    resumeContent && this._resumeContent()
   }
 
   /**
@@ -320,7 +330,7 @@ export class ImaAdManager extends BaseAdManager {
     const adsManager = this.adsManager
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdErrorEvent
-    adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this.onAdError)
+    adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this._onAdError)
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdEvent
     const adEvents = [
@@ -373,7 +383,7 @@ export class ImaAdManager extends BaseAdManager {
       // Initialize the ads manager. Ad rules playlist will start at this time.
       this.adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
     } catch (adError) {
-      this.onAdError(adError)
+      this._handleAdError(adError)
     }
   }
 
@@ -382,11 +392,23 @@ export class ImaAdManager extends BaseAdManager {
    * @param {!google.ima.AdErrorEvent} ev
    * @private
    */
-  onAdError = ev => {
-    // Handle the error logging.
-    console.log(ev.getError())
-    this.adsManager?.destroy()
-    this.player.emit(ADEvents.IMA_AD_ERROR, ev)
+  _onAdError = ev => {
+    this._handleAdError(ev.getError(), true)
+  }
+
+  /**
+   * @private
+   */
+  _resumeContent () {
+    this._isAdRunning = false
+    Util.removeClass(this.player.root, CLASS_NAME)
+    if (this._mediaPlayFunc) {
+      this.player.mediaPlay = this._mediaPlayFunc
+      this._mediaPlayFunc = undefined
+    }
+    if (!this._isMediaEnded) {
+      this.player?.play()
+    }
   }
 
   /**
@@ -424,15 +446,7 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when media content should be resumed.
       // This usually happens when an ad finishes or collapses.
       case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED: {
-        this._isAdRunning = false
-        Util.removeClass(player.root, CLASS_NAME)
-        if (this._mediaPlayFunc) {
-          this.player.mediaPlay = this._mediaPlayFunc
-          this._mediaPlayFunc = undefined
-        }
-        if (!this._isMediaEnded) {
-          player?.play()
-        }
+        this._resumeContent()
         break
       }
       // Fires when media content should be paused.
