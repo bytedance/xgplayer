@@ -19,6 +19,14 @@ const logger = new Logger('AdsPluginBaseAdManager')
  * @template [T=object],[V=object]
 */
 export class BaseAdManager extends EventEmitter {
+  get currentTime () {
+    return this.context.currentTime
+  }
+
+  get duration () {
+    return this.context.duration
+  }
+
   /**
    * @param {BaseAdManagerOptions<T>} options
    */
@@ -58,9 +66,27 @@ export class BaseAdManager extends EventEmitter {
      * @description Whether the video has ended
      */
     this._isMediaEnded = false
+
+    /**
+     * @type {object}
+     */
+    this.context = {
+      /**
+       * @type {number}
+       */
+      currentTime: 0,
+      /**
+       * @type {number}
+       */
+      duration: 0
+    }
   }
 
   updateConfig (config = {}) {
+    if (!config) {
+      logger.warn('config is empty')
+      return
+    }
     this.config = {
       ...this.config,
       ...config

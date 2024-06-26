@@ -89,11 +89,13 @@ export class ImaAdManager extends BaseAdManager {
         return
       }
       const script = document.createElement('script')
-      script.src = `https://imasdk.googleapis.com/js/sdkloader/ima3${this.config.debug ? '_debug' : ''}.js`
+      script.src = `https://imasdk.googleapis.com/js/sdkloader/ima3${
+        this.config.debug ? '_debug' : ''
+      }.js`
       script.onload = () => {
         resolve()
       }
-      script.onerror = (e) => {
+      script.onerror = e => {
         reject(e?.message)
       }
       document.head.appendChild(script)
@@ -336,32 +338,34 @@ export class ImaAdManager extends BaseAdManager {
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdEvent
     const adEvents = [
-      google.ima.AdEvent.Type.LOADED,
-      google.ima.AdEvent.Type.STARTED,
-      google.ima.AdEvent.Type.RESUMED,
-      google.ima.AdEvent.Type.PAUSED,
-      google.ima.AdEvent.Type.COMPLETE,
-      google.ima.AdEvent.Type.ALL_ADS_COMPLETED,
-      google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED,
-      google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED,
-      google.ima.AdEvent.Type.VOLUME_CHANGED,
-      google.ima.AdEvent.Type.VOLUME_MUTED,
-      google.ima.AdEvent.Type.AD_METADATA,
-      google.ima.AdEvent.Type.AD_CAN_PLAY,
-      google.ima.AdEvent.Type.CLICK,
-      google.ima.AdEvent.Type.VIDEO_CLICKED,
-      google.ima.AdEvent.Type.VIDEO_ICON_CLICKED,
-      google.ima.AdEvent.Type.FIRST_QUARTILE,
-      google.ima.AdEvent.Type.MIDPOINT,
-      google.ima.AdEvent.Type.THIRD_QUARTILE,
-      google.ima.AdEvent.Type.COMPLETE,
-      google.ima.AdEvent.Type.SKIPPED,
-      google.ima.AdEvent.Type.USER_CLOSE,
-      google.ima.AdEvent.Type.AD_BREAK_READY,
-      google.ima.AdEvent.Type.AD_BREAK_FETCH_ERROR
+      'LOADED',
+      'STARTED',
+      'RESUMED',
+      'PAUSED',
+      'COMPLETE',
+      'ALL_ADS_COMPLETED',
+      'CONTENT_PAUSE_REQUESTED',
+      'CONTENT_RESUME_REQUESTED',
+      'VOLUME_CHANGED',
+      'VOLUME_MUTED',
+      'AD_METADATA',
+      'AD_CAN_PLAY',
+      'AD_PROGRESS',
+      'AD_BUFFERING',
+      'CLICK',
+      'VIDEO_CLICKED',
+      'VIDEO_ICON_CLICKED',
+      'FIRST_QUARTILE',
+      'MIDPOINT',
+      'THIRD_QUARTILE',
+      'COMPLETE',
+      'SKIPPED',
+      'USER_CLOSE',
+      'AD_BREAK_READY',
+      'AD_BREAK_FETCH_ERROR'
     ]
     adEvents.forEach(type => {
-      adsManager.addEventListener(type, this.onAdEvent)
+      adsManager.addEventListener(google.ima.AdEvent.Type[type], this.onAdEvent)
     })
   }
 
@@ -425,6 +429,9 @@ export class ImaAdManager extends BaseAdManager {
       // This usually happens when an ad finishes or collapses.
       case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED: {
         this._resumeContent()
+        this.emit(ADEvents.IMA_CONTENT_RESUME_REQUESTED, {
+          ad
+        })
         break
       }
       // Fires when media content should be paused.
@@ -433,6 +440,9 @@ export class ImaAdManager extends BaseAdManager {
         this._isAdRunning = true
         Util.addClass(this.player.root, CLASS_NAME)
         player?.pause()
+        this.emit(ADEvents.IMA_CONTENT_PAUSE_REQUESTED, {
+          ad
+        })
         break
       }
       // Fires when the ad starts playing.
@@ -466,6 +476,20 @@ export class ImaAdManager extends BaseAdManager {
       case google.ima.AdEvent.Type.PAUSED: {
         this._isAdPaused = true
         this.player.emit(ADEvents.AD_PAUSE, {
+          ad
+        })
+        break
+      }
+      // Fires when the ad's current time value changes.
+      // Calling getAdData() on this event will return an AdProgressData object.
+      case google.ima.AdEvent.Type.AD_PROGRESS: {
+        const { currentTime, duration } = ev.getAdData()
+        // Sync AdProgressData into AdManager Context.
+        Object.assign(this.context, {
+          currentTime,
+          duration
+        })
+        this.player.emit(ADEvents.AD_TIME_UPDATE, {
           ad
         })
         break
@@ -510,7 +534,7 @@ export class ImaAdManager extends BaseAdManager {
     } else if (adsResponse) {
       adsRequest.adsResponse = adsResponse
     } else if (providedAdsRequest && typeof providedAdsRequest === 'object') {
-      Object.keys(providedAdsRequest).forEach((key) => {
+      Object.keys(providedAdsRequest).forEach(key => {
         adsRequest[key] = providedAdsRequest[key]
       })
     }
@@ -555,12 +579,12 @@ export class ImaAdManager extends BaseAdManager {
    */
   async _checkAutoplaySupport () {
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
-      this.player.config.autoplay ?
-        canAutoplay.video({ timeout: 100 }).then(({ result }) => result) :
-        Promise.resolve(false),
-      this.player.config.autoplay && this.player.config.autoplayMuted ?
-        canAutoplay.video({ timeout: 100, muted: true }).then(({ result }) => result) :
-        Promise.resolve(false)
+      this.player.config.autoplay
+        ? canAutoplay.video({ timeout: 100 }).then(({ result }) => result)
+        : Promise.resolve(false),
+      this.player.config.autoplay && this.player.config.autoplayMuted
+        ? canAutoplay.video({ timeout: 100, muted: true }).then(({ result }) => result)
+        : Promise.resolve(false)
     ])
 
     this.autoplayAllowed = autoplayAllowed || autoplayMutedAllowed
