@@ -1,4 +1,5 @@
 import AdPlugin, { AdEvents } from '../../packages/xgplayer-ads/src'
+import HlsPlugin from '../../packages/xgplayer-hls/src'
 import { Logger } from '../../packages/xgplayer-streaming-shared/src/logger'
 import Player from '../../packages/xgplayer/src/index.umd'
 
@@ -105,11 +106,13 @@ function newPlayer (imaConfigure) {
 
   window.player = new Player({
     id: 'video',
-    url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
+    url: '//pull-demo.volcfcdnrd.com/live/st-4536521.m3u8',
+    // url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
     autoplay: settings.autoplay,
     width: '80%',
     height: 700,
-    plugins: [AdPlugin],
+    isLive: true,
+    plugins: [HlsPlugin, AdPlugin],
     ad: {
       adType: 'ima',
       ima: imaConfigure
