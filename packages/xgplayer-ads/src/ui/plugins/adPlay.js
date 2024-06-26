@@ -2,6 +2,9 @@ import { PlayIcon } from 'xgplayer'
 import * as AdEvents from '../../events'
 
 export class AdPlayIcon extends PlayIcon {
+  /**
+   * @override
+   */
   static get pluginName () {
     return 'adPlay'
   }
@@ -10,6 +13,9 @@ export class AdPlayIcon extends PlayIcon {
     return this.player.getPlugin('ad')
   }
 
+  /**
+   * @override
+   */
   listenEvents () {
     this.on([AdEvents.AD_PAUSE], () => {
       this.animate(true)
@@ -19,6 +25,9 @@ export class AdPlayIcon extends PlayIcon {
     })
   }
 
+  /**
+   * @override
+   */
   btnClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
