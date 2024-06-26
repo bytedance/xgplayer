@@ -93,6 +93,7 @@ player.on('ad_play', ()=>{
 | ------ | ----- |
 | ad_play | 当广告启播时，发布此事件 |
 | ad_pause | 当广告暂停时，发布此事件 |
+| ad_time_update | 当广告类型为贴片时，广告当前时间发生变更时触发 |
 
 ## IMA
 
@@ -128,22 +129,18 @@ TODO: 待调研
 贴片广告UI在实施时，需要获取广告的状态，并且可能和主视频的UI耦合。在具体实施时应权衡影响，在不集成广告插件时应最小化减少对主包体积的影响，需制定整体的设计原则。
 
 ### 设计要点
-1. AD UI应尽可能独立于 xgplayer 
-2. 广告的状态应尽可能独立于 xgplayer 中抽离出来，并通过插件的方式获取
-    
-    - 贴片广告UI和正片差异化很大时，如何实现？
-        - 这种情况下，广告的样式完全实现于广告插件中。
-        - 广告插件开放自定义UI的能力，可以实现广告UI的定制。
-    - 贴片广告UI和正片差异化不大时，需要复用控制条样式，并进行一些小的修改，如何实现？
-        - 播放器部分UI会针对广告时的样式进行区分，做小的微调。
+1. AD UI完全独立于 xgplayer，以继承内置UI插件的功能独立实现，并复写部分需要修改的状态/事件等 
+2. 内置广告UI管理器（AdUIManager），监听广告播放状态，响应广告UI变化。
+3. Xgplayer UI插件微调，以支持Ad插件，但内部不对广告状态进行特殊编码，只提供可以复写的能力。
 
 
 ### 广告状态、事件、方法的实现
 
 1. 广告状态
 
-    - 广告是否暂停 : `player.adPaused`
-    - 广告是否结束 : `player.adEnded`
+    - 广告是否处于非播放态 : `adPlugin.paused`
+    - 当前广告播放的时间点 : `adPlugin.currentTime`
+    - 当前广告时长 : `adPlugin.duration`
 
 1. 广告事件
 
@@ -154,4 +151,14 @@ import AdPlugin, { ADEvents } from "xgplayer-ads"
 player.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], ()=>{
   // do something
 })
+```
+1. 广告方法调用
+```JavaScript
+import Events from "xgplayer"
+import AdPlugin, { ADEvents } from "xgplayer-ads"
+
+const adPlugin = player.getPlugin(AdPlugin.pluginName)
+
+adPlugin.play()
+adPlugin.pause()
 ```
