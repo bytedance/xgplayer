@@ -173,6 +173,16 @@ class Progress extends Plugin {
 
     this.progressBtn = this.find('.xgplayer-progress-btn')
 
+    this.listenEvents()
+    this.bindDomEvents()
+    this.initCustomStyle()
+  }
+
+  /**
+   * This method can be overridden.
+   * Eg. xgplayer-ads/ui/adProgress.js
+   */
+  listenEvents () {
     this.on(Events.DURATION_CHANGE, () => {
       this.onMouseLeave()
     })
@@ -203,9 +213,6 @@ class Progress extends Plugin {
     this.on(Events.VIDEO_RESIZE, () => {
       this.onVideoResize()
     })
-
-    this.bindDomEvents()
-    this.initCustomStyle()
   }
 
   /**
