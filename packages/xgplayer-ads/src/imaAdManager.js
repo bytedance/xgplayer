@@ -156,7 +156,7 @@ export class ImaAdManager extends BaseAdManager {
     )
     adsLoader.addEventListener(
       google.ima.AdErrorEvent.Type.AD_ERROR,
-      this._onAdError,
+      this._onAdsLoaderAdError,
       false
     )
 
@@ -181,7 +181,7 @@ export class ImaAdManager extends BaseAdManager {
     )
     adsLoader.removeEventListener(
       google.ima.AdErrorEvent.Type.AD_ERROR,
-      this._onAdError,
+      this._onAdsLoaderAdError,
       false
     )
   }
@@ -197,11 +197,6 @@ export class ImaAdManager extends BaseAdManager {
       this.player.once(ADEvents.IMA_AD_MANAGER_READY, () => {
         if (this.autoplayAllowed) {
           this.playAds()
-          this._mediaPlayFunc = this.player.mediaPlay
-          this.player.mediaPlay = () => {}
-          this.player.once(ADEvents.IMA_AD_LOADED, () => {
-            this.emit(ADEvents.IMA_READY_TO_PLAY)
-          })
         } else {
           const cb = () => {
             this.playAds()
@@ -209,10 +204,14 @@ export class ImaAdManager extends BaseAdManager {
             return false
           }
           this.player.useHooks('play', cb)
-          this.emit(ADEvents.IMA_READY_TO_PLAY)
         }
+        // 1. 如果在广告开始播放后emit IMA_READY_TO_PLAY，有可能因为其他插件没有初始化完成，导致广告和loading状态同时展示
+        // 2. 如果先emit IMA_READY_TO_PLAY再播放广告，有可能看到内容的首帧
+        this.emit(ADEvents.IMA_READY_TO_PLAY)
       })
       this.player.once(ADEvents.IMA_AD_ERROR, () => {
+        this.player.config.autoplay = this._originAutoplay
+        this.player.media.autoplay = this._originAutoplay
         this.emit(ADEvents.IMA_READY_TO_PLAY)
       })
     } else {
@@ -313,17 +312,36 @@ export class ImaAdManager extends BaseAdManager {
       this.adsManager.start()
     } catch (adError) {
       this._handleAdError(adError)
+      this._resumeContent()
     }
+  }
+
+  /**
+   * Handles ad errors.
+   * @param {!google.ima.AdErrorEvent} ev
+   * @private
+   */
+  _onAdsManagerAdError = ev => {
+    this._handleAdError(ev.getError())
+    this._resumeContent()
+  }
+
+  /**
+   * Handles ad errors.
+   * @param {!google.ima.AdErrorEvent} ev
+   * @private
+   */
+  _onAdsLoaderAdError = ev => {
+    this._handleAdError(ev.getError())
   }
 
   /**
    * @private
    */
-  _handleAdError = (error, resumeContent) => {
-    console.log(error)
+  _handleAdError = (error) => {
+    logger.log('AdError', error)
     this.adsManager?.destroy()
     this.player.emit(ADEvents.IMA_AD_ERROR, error)
-    resumeContent && this._resumeContent()
   }
 
   /**
@@ -334,7 +352,7 @@ export class ImaAdManager extends BaseAdManager {
     const adsManager = this.adsManager
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdErrorEvent
-    adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this._onAdError)
+    adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this._onAdsManagerAdError)
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdEvent
     const adEvents = [
@@ -370,24 +388,11 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   /**
-   * Handles ad errors.
-   * @param {!google.ima.AdErrorEvent} ev
-   * @private
-   */
-  _onAdError = ev => {
-    this._handleAdError(ev.getError(), true)
-  }
-
-  /**
    * @private
    */
   _resumeContent () {
     this._isAdRunning = false
     Util.removeClass(this.player.root, CLASS_NAME)
-    if (this._mediaPlayFunc) {
-      this.player.mediaPlay = this._mediaPlayFunc
-      this._mediaPlayFunc = undefined
-    }
     if (!this._isMediaEnded) {
       this.player?.play()
     }
@@ -578,11 +583,19 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   async _checkAutoplaySupport () {
+    this._originAutoplay = this.player.config.autoplay
+    if (this._originAutoplay) {
+      // 禁止media自动播放
+      this.player.media.autoplay = false
+      // 禁止player自动播放
+      this.player.config.autoplay = false
+    }
+
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
-      this.player.config.autoplay
+      this._originAutoplay
         ? canAutoplay.video({ timeout: 100 }).then(({ result }) => result)
         : Promise.resolve(false),
-      this.player.config.autoplay && this.player.config.autoplayMuted
+      this._originAutoplay && this.player.config.autoplayMuted
         ? canAutoplay.video({ timeout: 100, muted: true }).then(({ result }) => result)
         : Promise.resolve(false)
     ])
