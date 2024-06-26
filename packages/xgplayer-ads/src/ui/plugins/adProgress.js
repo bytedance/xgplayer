@@ -21,8 +21,34 @@ export class AdProgress extends Progress {
     return adPlugin?.duration || 0
   }
 
+  /**
+   * @override
+   */
+  get offsetDuration () {
+    return this.duration
+  }
+
+  /**
+   * @override
+   */
+  get timeOffset () {
+    return 0
+  }
+
+  /**
+   * @override
+   */
+  get currentTime () {
+    const adPlugin = this.getAdPlugin()
+    return adPlugin?.currentTime || 0
+  }
+
   afterCreate () {
-    this.config.disable = true
+    Object.assign(this.config, {
+      isCloseClickSeek: true,
+      isDraggingSeek: true,
+      closeMoveSeek: true
+    })
     super.afterCreate()
   }
 
@@ -30,6 +56,8 @@ export class AdProgress extends Progress {
    * @override
    */
   listenEvents () {
-
+    this.on(AdEvents.AD_TIME_UPDATE, () => {
+      this.onTimeupdate()
+    })
   }
 }
