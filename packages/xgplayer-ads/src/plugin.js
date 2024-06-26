@@ -30,6 +30,14 @@ export class AdsPlugin extends Plugin {
     return !!(this.csManager?.isAdRunning && this.csManager?.paused)
   }
 
+  get currentTime () {
+    return this.csManager?.currentTime || 0
+  }
+
+  get duration () {
+    return this.csManager?.duration || 0
+  }
+
   afterCreate () {
     this.csManager = undefined
   }
@@ -47,7 +55,7 @@ export class AdsPlugin extends Plugin {
     })
 
     if (this.config.adType === 'ima') {
-      this.initClientSideAd()
+      this._initClientSideAd()
     }
 
     return this.initPromise
@@ -106,13 +114,19 @@ export class AdsPlugin extends Plugin {
     return Util.createDom('xg-ad', '', {}, 'xgplayer-ads')
   }
 
-  initClientSideAd () {
+  /**
+   * @private
+   */
+  _initClientSideAd () {
     if (this.config.adType === 'ima') {
-      this.initImaAd()
+      this._initImaAd()
     }
   }
 
-  initImaAd () {
+  /**
+   * @private
+   */
+  _initImaAd () {
     this.csManager = new ImaAdManager({
       player: this.player,
       config: this.config.ima,
@@ -121,6 +135,12 @@ export class AdsPlugin extends Plugin {
 
     this.csManager.once(AdEvents.IMA_READY_TO_PLAY, () => {
       this.initPromise?.resolve()
+    })
+    this.csManager.on(AdEvents.IMA_CONTENT_PAUSE_REQUESTED, () => {
+      this.uiManager.showAdUI()
+    })
+    this.csManager.on(AdEvents.IMA_CONTENT_RESUME_REQUESTED, () => {
+      this.uiManager.hideAdUI()
     })
 
     this.csManager.init()

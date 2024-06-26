@@ -45,6 +45,15 @@ class Time extends Plugin {
     }
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
+
+    this.listenEvents()
+  }
+
+  /**
+   * This method can be overridden.
+   * Eg. xgplayer-ads/ui/adTime.js
+   */
+  listenEvents () {
     this.on([Events.DURATION_CHANGE, Events.SEEKED, Events.TIME_UPDATE], (e) => {
       if (e.eventName === 'durationchange') {
         this.isActiving = false
