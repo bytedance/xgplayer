@@ -193,13 +193,21 @@ export class ImaAdManager extends BaseAdManager {
       await this._checkAutoplaySupport()
       this.requestAds()
       this.player.once(ADEvents.IMA_AD_MANAGER_READY, () => {
-        this._startPreRoll()
-        if (!this.adsManager.getCuePoints().length) {
-          this.emit(ADEvents.IMA_READY_TO_PLAY)
-        } else {
+        if (this.autoplayAllowed) {
+          this.playAds()
+          this._mediaPlayFunc = this.player.mediaPlay
+          this.player.mediaPlay = () => {}
           this.player.once(ADEvents.IMA_AD_LOADED, () => {
             this.emit(ADEvents.IMA_READY_TO_PLAY)
           })
+        } else {
+          const cb = () => {
+            this.playAds()
+            this.player.removeHooks('play', cb)
+            return false
+          }
+          this.player.useHooks('play', cb)
+          this.emit(ADEvents.IMA_READY_TO_PLAY)
         }
       })
       this.player.once(ADEvents.IMA_AD_ERROR, () => {
@@ -251,25 +259,6 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _startPreRoll = () => {
-    if (this.autoplayAllowed) {
-      this.playAds()
-      this._mediaPlayFunc = this.player.mediaPlay
-      this.player.mediaPlay = () => {}
-    } else {
-      const cb = () => {
-        this.playAds()
-        this.player.removeHooks('play', cb)
-        return false
-      }
-
-      this.player.useHooks('play', cb)
-    }
-  }
-
-  /**
-   * @private
-   */
   _onMediaVolumeChange = () => {
     this.adsManager?.setVolume(this.player.muted ? 0 : this.player.volume)
   }
@@ -298,14 +287,27 @@ export class ImaAdManager extends BaseAdManager {
 
     this._initAdsManagerEventListeners()
 
-    this._initAdsManager()
-
     this.player.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
   }
 
   playAds () {
     try {
       this._onMediaVolumeChange()
+
+      if (!this.displayContainerInitialized) {
+        // Initialize the container. Must be done through a user action on mobile
+        // devices.
+        this.displayContainer.initialize()
+        this.displayContainerInitialized = true
+      }
+
+      const { player } = this
+      const viewMode = this.isFullScreen()
+        ? google.ima.ViewMode.FULLSCREEN
+        : google.ima.ViewMode.NORMAL
+
+      // Initialize the ads manager. Ad rules playlist will start at this time.
+      this.adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
       this.adsManager.start()
     } catch (adError) {
       this._handleAdError(adError)
@@ -361,30 +363,6 @@ export class ImaAdManager extends BaseAdManager {
     adEvents.forEach(type => {
       adsManager.addEventListener(type, this.onAdEvent)
     })
-  }
-
-  /**
- * Initialize the ads manager.
- */
-  _initAdsManager () {
-    try {
-      if (!this.displayContainerInitialized) {
-        // Initialize the container. Must be done through a user action on mobile
-        // devices.
-        this.displayContainer.initialize()
-        this.displayContainerInitialized = true
-      }
-
-      const { player } = this
-      const viewMode = this.isFullScreen()
-        ? google.ima.ViewMode.FULLSCREEN
-        : google.ima.ViewMode.NORMAL
-
-      // Initialize the ads manager. Ad rules playlist will start at this time.
-      this.adsManager.init(player.sizeInfo.width, player.sizeInfo.height, viewMode)
-    } catch (adError) {
-      this._handleAdError(adError)
-    }
   }
 
   /**
