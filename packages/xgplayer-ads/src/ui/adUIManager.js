@@ -1,5 +1,7 @@
 import { AdPlayIcon } from './plugins/adPlay'
+import { AdStub } from './plugins/adStub'
 import { AdTimeIcon } from './plugins/adTime'
+import { AdProgress } from './plugins/adProgress'
 
 export class AdUIManager {
   constructor (config, { player, plugin }) {
@@ -20,7 +22,9 @@ export class AdUIManager {
     const { player, adUIPlugins, fragmentContainer } = this
     const decoratedPluginList = [
       [player.getPlugin('play'), AdPlayIcon],
-      [player.getPlugin('time'), AdTimeIcon]
+      [player.getPlugin('time'), AdTimeIcon],
+      [player.getPlugin('playbackRate'), AdStub],
+      [player.getPlugin('progress'), AdProgress]
     ]
 
     decoratedPluginList.forEach(([targetPlugin, decoratorClass]) => {
