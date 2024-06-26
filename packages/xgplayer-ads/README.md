@@ -84,15 +84,15 @@ function createAdsRequest() {
 >> 广告事件独立于普通视频播放事件，可通过 on 监听
 
 ```javascript
-player.on('adPlay', ()=>{
+player.on('ad_play', ()=>{
     // do something
 })
 ```
 
 | 事件名 | 含义 |
 | ------ | ----- |
-| adPlay | 当广告启播时，发布此事件 |
-| adPause | 当广告暂停时，发布此事件 |
+| ad_play | 当广告启播时，发布此事件 |
+| ad_pause | 当广告暂停时，发布此事件 |
 
 ## IMA
 
