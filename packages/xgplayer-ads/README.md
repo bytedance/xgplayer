@@ -69,6 +69,15 @@ function createAdsRequest() {
 }
 ```
 
+#### Ad Config
+| 配置字段 | 类型 | 含义 |
+| ------ | -------- | ----- |
+| adType | `ima` \| `media-tailer` \| `dai` | 广告SDK对接的 SDK 类型，目前仅支持`ima` |
+| ima | object | 参见 [IMA Config](#ima_configure) |
+| controls | boolean | 是否需要在广告期间展示播控UI，默认为 `true` |
+
+
+<a name="ima_configure"></a>
 #### IMA Config
 | 配置字段 | 类型 | 含义 |
 | ------ | -------- | ----- |
