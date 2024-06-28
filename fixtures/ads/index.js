@@ -9,6 +9,7 @@ const doPresetUrl = document.getElementById('ima-preset-url')
 const doAdsRequest = document.getElementById('ima-ads-request')
 const doAdsResponse = document.getElementById('ima-ads-response')
 const doAutoPlay = document.getElementById('autoplay')
+const doShowControls = document.getElementById('showControls')
 const doResetPlayerOpt = document.getElementById('reset-player')
 
 // TODO: delete
@@ -57,6 +58,7 @@ function initSetting() {
     useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].checked,
     adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value,
     autoplay: doAutoPlay.getElementsByTagName('input')[0].checked,
+    controls: doShowControls.getElementsByTagName('input')[0].checked,
     resetPlayer: doResetPlayerOpt.getElementsByTagName('input')[0].checked,
   })
 
@@ -115,7 +117,8 @@ function newPlayer (imaConfigure) {
     plugins: [HlsPlugin, AdPlugin],
     ad: {
       adType: 'ima',
-      ima: imaConfigure
+      ima: imaConfigure,
+      controls: settings.controls,
     }
   })
 
