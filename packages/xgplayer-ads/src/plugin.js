@@ -123,8 +123,13 @@ export class AdsPlugin extends Plugin {
    * @private
    */
   _initClientSideAd () {
-    if (this.config.adType === 'ima') {
-      this._initImaAd()
+    switch (this.config.adType) {
+      case 'ima':
+      case 'google-ima':
+        this._initImaAd()
+        break
+      default:
+        break
     }
   }
 
