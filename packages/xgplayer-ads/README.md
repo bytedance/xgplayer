@@ -148,17 +148,25 @@ TODO: 待调研
     - 当前广告播放的时间点 : `adPlugin.currentTime`
     - 当前广告时长 : `adPlugin.duration`
 
-1. 广告事件
+2. 广告事件
 
 ```JavaScript
 import Events from "xgplayer"
 import AdPlugin, { ADEvents } from "xgplayer-ads"
 
-player.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], ()=>{
+player.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], () => {
+  // do something
+})
+
+// or
+const adPlugin = player.getPlugin(AdPlugin.pluginName)
+adPlugin.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], () => {
   // do something
 })
 ```
-1. 广告方法调用
+
+3. 广告方法调用
+
 ```JavaScript
 import Events from "xgplayer"
 import AdPlugin, { ADEvents } from "xgplayer-ads"
