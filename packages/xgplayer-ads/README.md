@@ -15,8 +15,6 @@ const player = new Player({
     url,
     id,
     autoplay: true,
-    height: window.innerHeight,
-    width: window.innerWidth,
     plugins: [AdPlugin],
     ad: {
       adType: 'ima',
@@ -57,11 +55,11 @@ function createAdsRequest() {
 ```
 
 
-### 可配置的参数
+#### Ad Config
 
 ```javascript
 {
-  adType: 'ima',
+  adType: 'google-ima',
   ima: {
     locale: 'zh_cn',
     adsRequest: createAdsRequest()
@@ -69,10 +67,9 @@ function createAdsRequest() {
 }
 ```
 
-#### Ad Config
 | 配置字段 | 类型 | 含义 |
 | ------ | -------- | ----- |
-| adType | `ima` \| `media-tailer` \| `dai` | 广告SDK对接的 SDK 类型，目前仅支持`ima` |
+| adType | `google-ima` \| `aws-media-tailer` \| `google-dai` | 广告SDK对接的 SDK 类型，目前仅支持`ima` |
 | ima | object | 参见 [IMA Config](#ima_configure) |
 | controls | boolean | 是否需要在广告期间展示播控UI，默认为 `true` |
 

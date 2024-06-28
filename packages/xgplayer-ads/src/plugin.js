@@ -54,8 +54,13 @@ export class AdsPlugin extends Plugin {
       player: this.player
     })
 
-    if (this.config.adType === 'ima') {
-      this._initClientSideAd()
+    switch (this.config.adType) {
+      case 'ima':
+      case 'google-ima':
+        this._initClientSideAd()
+        break
+      default:
+        break
     }
 
     return this.initPromise
