@@ -69,7 +69,7 @@ function createAdsRequest() {
 
 | 配置字段 | 类型 | 含义 |
 | ------ | -------- | ----- |
-| adType | `google-ima` \| `aws-media-tailer` \| `google-dai` | 广告SDK对接的 SDK 类型，目前仅支持`ima` |
+| adType | `google-ima` \| `google-dai` \| `aws-media-tailer` | 广告SDK对接的 SDK 类型，目前仅支持`ima` |
 | ima | object | 参见 [IMA Config](#ima_configure) |
 | controls | boolean | 是否需要在广告期间展示播控UI，默认为 `true` |
 
@@ -87,7 +87,7 @@ function createAdsRequest() {
 
 ### 事件（Events）
 
->> 广告事件独立于普通视频播放事件，可通过 on 监听
+> 广告事件独立于普通视频播放事件，可通过 on 监听
 
 ```javascript
 player.on('ad_play', ()=>{
