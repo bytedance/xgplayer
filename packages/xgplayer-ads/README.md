@@ -2,7 +2,7 @@
 
 ## 简介
 
-`Ads` 插件集成了 `Google IMA`、`Google DAI`<sup>(待开发)</sup> 等SDK，提供了符合VAST、VMAP、VPAID等标准的广告快捷的接入能力。
+`Ads` 插件主要是为了提供用户快速接入广告的能力。插件集成了 `Google IMA`、`Google DAI`<sup>(待开发)</sup> 等SDK，提供了符合VAST、VMAP、VPAID等标准的广告接入方式。
 
 ### 使用方式
 
