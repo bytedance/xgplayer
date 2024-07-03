@@ -39,10 +39,6 @@ const H264_MIMETYPES = [
   'avc1.64001E, mp4a.40.2',
   'avc1.42E01E',
   'mp4v.20.8',
-  'avc1.42E01E, mp4a.40.2',
-  'avc1.58A01E, mp4a.40.2',
-  'avc1.4D401E, mp4a.40.2',
-  'avc1.64001E, mp4a.40.2',
   'mp4v.20.8, mp4a.40.2',
   'mp4v.20.240, mp4a.40.2'
 ]
