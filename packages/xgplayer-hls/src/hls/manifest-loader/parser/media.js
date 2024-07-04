@@ -1,5 +1,5 @@
 import { MediaPlaylist, MediaSegment, MediaSegmentKey } from './model'
-import { getAbsoluteUrl, parseAttr, parseTag } from './utils'
+import { getAbsoluteUrl, parseAttr, parseTag, isValidDaterange } from './utils'
 
 export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
   const media = new MediaPlaylist()
@@ -154,6 +154,27 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
         }
         curInitSegment = curSegment
         curSegment = new MediaSegment(parentUrl)
+      }
+        break
+      case 'SKIP': {
+        const attr = parseAttr(data)
+        const skippedSegments = parseInt(attr['SKIPPED-SEGMENTS'], 10)
+        if (skippedSegments <= Number.MAX_SAFE_INTEGER) {
+          media.skippedSegments += skippedSegments
+        }
+      }
+        break
+      case 'DATERANGE': {
+        const attr = parseAttr(data)
+        const dateRangeWithSameId = media.dateRanges[attr.ID]
+        attr._startDate = dateRangeWithSameId ? dateRangeWithSameId._startDate : new Date(attr['START-DATE'])
+        const endDate = dateRangeWithSameId?._endDate || new Date(attr.END_DATE)
+        if (Number.isFinite(endDate)) {
+          attr._endDate = endDate
+        }
+        if (isValidDaterange(attr, dateRangeWithSameId) || media.skippedSegments) {
+          media.dateRanges[attr.ID] = attr
+        }
       }
         break
       default:
