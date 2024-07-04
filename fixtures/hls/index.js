@@ -161,6 +161,12 @@ window.onload = function () {
       player.on('retry', function (event) { pushEvent('retry', event) })
       player.on('core_event', function (event) { pushEvent(event.eventName, event) })
       player.on('error', function (event) { pushEvent(event.errorType, event, dlError) })
+      player.on('core_event', (info) => {
+        const { eventName, playlist } = info
+      if (eventName === 'core.hlslevelloaded' && playlist) {
+        console.log('playlist1111', playlist)
+      }
+      })
 
       dStreamForce.checked = true
       function refreshStreams() {
