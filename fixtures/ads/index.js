@@ -56,44 +56,43 @@ function initSetting() {
   var opts = Object.assign({}, defaultOpt(), cachedOpt, {
     useAdsRequest: doAdsRequest.getElementsByTagName('input')[0].checked,
     useAdsResponse: doAdsResponse.getElementsByTagName('input')[0].checked,
+    adsResponse: doAdsResponse.getElementsByTagName('textarea')[0].value,
     adTagUrl: doPresetUrl.getElementsByTagName('input')[0].value,
     autoplay: doAutoPlay.getElementsByTagName('input')[0].checked,
     controls: doShowControls.getElementsByTagName('input')[0].checked,
-    resetPlayer: doResetPlayerOpt.getElementsByTagName('input')[0].checked,
+    resetPlayer: doResetPlayerOpt.getElementsByTagName('input')[0].checked
   })
 
   return opts
 }
 
-
-function initIMAConfigure () {
+function initIMAConfigure() {
   const obj = {
     debug: true,
     locale: 'en',
     adTagUrl: '',
     adsRequest: null,
-    adsResponse: null,
-    adWillAutoPlay: settings.adWillAutoPlay,
+    adsResponse: null
   }
 
-  if (settings.useAdsRequest) {
+  if (settings.adsResponse) {
+    const parser = new DOMParser();
+    obj.adsResponse = parser.parseFromString(settings.adsResponse.trim(), "application/xml")
+  } else if (settings.useAdsRequest) {
     obj.adsRequest = generateAdsRequest()
-  } else if (settings.useAdsResponse) {
-    obj.adsResponse = settings.adsResponse
   } else if (settings.adTagUrl) {
     obj.adTagUrl = settings.adTagUrl
   }
   return obj
 }
 
-function newPlayer (imaConfigure) {
+function newPlayer(imaConfigure) {
   if (!settings.resetPlayer && window.player) {
     window.player.plugins.ad.reset()
     window.player.plugins.ad.updateConfig({
       adsRequest: generateAdsRequest(settings),
       adsResponse: settings.adsResponse,
-      adTagUrl: settings.adTagUrl,
-      adWillAutoPlay: settings.adWillAutoPlay,
+      adTagUrl: settings.adTagUrl
     })
     window.player.plugins.ad.requestAds()
     window.player.once(AdEvents.IMA_AD_LOADED, () => {
@@ -118,7 +117,7 @@ function newPlayer (imaConfigure) {
     ad: {
       adType: 'ima',
       ima: imaConfigure,
-      controls: settings.controls,
+      controls: settings.controls
     }
   })
 
@@ -131,19 +130,18 @@ function newPlayer (imaConfigure) {
   })
 }
 
-function initPlayer() {
+async function initPlayer() {
   settings = initSetting()
 
   console.log('settings', settings)
 
   if (settings.useAdsResponse && settings.adTagUrl) {
-    fetch(settings.adTagUrl)
-      .then(res => res.text())
-      .then(data => {
-        const imaConfigure = initIMAConfigure()
-        imaConfigure.adsResponse = data
-        newPlayer(imaConfigure)
-      })
+    const res = await fetch(settings.adTagUrl)
+    const data = await res.text()
+
+    const imaConfigure = initIMAConfigure()
+    imaConfigure.adsResponse = data
+    newPlayer(imaConfigure)
   } else {
     const imaConfigure = initIMAConfigure()
     newPlayer(imaConfigure)
