@@ -52,7 +52,7 @@ export function getCodecs (type, codecs) {
   }
 }
 
-export function isValidDaterange(attr, dateRangeWithSameId) {
+export function isValidDaterange (attr, dateRangeWithSameId) {
   let _badValueForSameId
   if (dateRangeWithSameId) {
     for (const key in dateRangeWithSameId) {
@@ -60,8 +60,8 @@ export function isValidDaterange(attr, dateRangeWithSameId) {
         Object.prototype.hasOwnProperty.call(dateRangeWithSameId, key) &&
         attr[key] !== dateRangeWithSameId[key]
       ) {
-        _badValueForSameId = key;
-        break;
+        _badValueForSameId = key
+        break
       }
     }
   }
@@ -79,7 +79,7 @@ export function isValidDaterange(attr, dateRangeWithSameId) {
   const cue = enumeratedStringList(attr.CUE || attr['X-CUE'], {
     pre: false,
     post: false,
-    once: false,
+    once: false
   })
 
   return (
@@ -94,15 +94,15 @@ export function isValidDaterange(attr, dateRangeWithSameId) {
     (!(attr.CLASS === 'com.apple.hls.interstitial') ||
       'X-ASSET-URI' in attr ||
       'X-ASSET-LIST' in attr)
-  );
+  )
 }
 
-function enumeratedStringList(attrValue, dict) {
+function enumeratedStringList (attrValue, dict) {
   return (attrValue ? attrValue.split(/[ ,]+/) : []).reduce(
     (result, identifier) => {
-      result[identifier.toLowerCase()] = true;
-      return result;
+      result[identifier.toLowerCase()] = true
+      return result
     },
-    dict,
-  );
+    dict
+  )
 }
