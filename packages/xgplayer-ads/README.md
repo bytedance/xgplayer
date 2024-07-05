@@ -67,22 +67,23 @@ function createAdsRequest() {
 }
 ```
 
-| 配置字段 | 类型 | 含义 |
-| ------ | -------- | ----- |
-| adType | `google-ima` \| `google-dai` \| `aws-media-tailer` | 广告SDK对接的 SDK 类型，目前仅支持`ima` |
-| ima | object | 参见 [IMA Config](#ima_configure) |
-| controls | boolean | 是否需要在广告期间展示播控UI，默认为 `true` |
+| 配置字段 | 类型 | 默认值 | 含义 |
+| ------ | -------- | ----- | ----- |
+| adType | `google-ima` \| `google-dai` \| `aws-media-tailer` | '' |广告SDK对接的 SDK 类型，目前仅支持`ima` |
+| ima | object | [IMA Config](#ima_configure) | 为客户端实现方案 IMA 提供的配置 |
+| controls | boolean | `true` | 是否需要在广告期间展示播控UI |
 
 
 <a name="ima_configure"></a>
 #### IMA Config
-| 配置字段 | 类型 | 含义 |
-| ------ | -------- | ----- |
-| debug | boolean | 在插件加载前，开发者可自行引入加载IMA SDK。如果插件检测到没有 `google.ima` 对象时，插件内会自动加载IMA SDK，此开关为`true`时加载debug版本IMA SDK |
-| locale | string | 参看：[Localizing for language and locale](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization) |
-| adsRequest | object | 参看：[google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) |
-| adsResponse | string | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` 参数被设置时，此参数不生效。 |
-| adTagUrl | string | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` \| `adsResponse` 参数被设置时，此参数不生效。 |
+| 配置字段 | 类型 | 默认值 | 含义 |
+| ------ | -------- | ----- | ----- |
+| debug | boolean | false | 在插件加载前，开发者可自行引入加载IMA SDK。如果插件检测到没有 `google.ima` 对象时，插件内会自动加载IMA SDK，此开关为`true`时加载debug版本IMA SDK |
+| loadSdkTimeout | number | 3000 | 如果由IMAManager内加载IMA SDK JS，表示其加载超时时间，单位：毫秒ms |
+| locale | string | - | 参看：[Localizing for language and locale](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization) |
+| adsRequest | object | - | 参看：[google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) |
+| adsResponse | null \| string \| non-null Document | - | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告 ｜ 服务器请求地址。当 `adsRequest` 参数被设置时，此参数不生效。 |
+| adTagUrl | string | - | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` \| `adsResponse` 参数被设置时，此参数不生效。 |
 
 
 ### 事件（Events）
