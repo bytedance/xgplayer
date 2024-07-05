@@ -34,7 +34,6 @@ export class AdTimeIcon extends TimeIcon {
    */
   listenEvents () {
     this.on([AdEvents.AD_TIME_UPDATE], (e) => {
-      console.log('AD_TIME_UPDATE', e)
       this.onTimeUpdate()
     })
   }

@@ -1,4 +1,4 @@
-import { BasePlugin, Plugin, Util } from 'xgplayer'
+import { Plugin, Util } from 'xgplayer'
 import { Logger, createPublicPromise } from 'xgplayer-streaming-shared'
 import * as AdEvents from './events'
 import { ImaAdManager } from './imaAdManager'
@@ -39,14 +39,20 @@ export class AdsPlugin extends Plugin {
   }
 
   afterCreate () {
+    const { config } = this
+
+    logger.log(`plugin afterCreate, config: ${JSON.stringify(config || {})}`)
+
+    /**
+     * @type {ImaAdManager | undefined}
+     */
     this.csManager = undefined
+
+    this._blockContentPlay()
   }
 
   beforePlayerInit () {
-    logger.log(`plugin config: ${JSON.stringify(this.config || {})}`)
-
-    // this._initHooks()
-    // this._proxyPlayer()
+    logger.log('plugin beforePlayerInit')
 
     this.initPromise = createPublicPromise()
     this.uiManager = new AdUIManager(this.config, {
@@ -64,55 +70,6 @@ export class AdsPlugin extends Plugin {
     }
 
     return this.initPromise
-  }
-
-  /**
-   * @private
-   */
-  _initHooks () {
-    this.player.useHooks('play', () => {
-      if (this.csManager?.isAdRunning) {
-        this.csManager?.play()
-        return false
-      }
-    })
-    this.player.useHooks('pause', () => {
-      if (this.csManager?.isAdRunning) {
-        this.csManager?.pause()
-        return false
-      }
-    })
-  }
-
-  /**
-   * @private
-   */
-  _proxyPlayer () {
-    const { player } = this
-
-    BasePlugin.defineGetterOrSetter(player, {
-      adPaused: {
-        get: () => {
-          const media = player.media || player.video
-          logger.log(
-            'csManager.paused',
-            this.csManager?.isAdRunning,
-            this.csManager.paused,
-            this.csManager?.isAdRunning
-              ? this.csManager.paused
-              : media
-                ? media.paused
-                : true
-          )
-          return this.csManager?.isAdRunning
-            ? this.csManager.paused
-            : media
-              ? media.paused
-              : true
-        },
-        configurable: true
-      }
-    })
   }
 
   render () {
@@ -188,5 +145,20 @@ export class AdsPlugin extends Plugin {
 
   updateConfig (config) {
     this.csManager?.updateConfig(config)
+  }
+
+  /**
+   * Makes sure content video state is paused during ad running.
+   * @private
+   */
+  _blockContentPlay () {
+    const { player } = this
+
+    player.on('play', () => {
+      if (this.csManager?.shouldBlockVideoContent && !player.paused) {
+        logger.log('block content play')
+        player.pause()
+      }
+    })
   }
 }
