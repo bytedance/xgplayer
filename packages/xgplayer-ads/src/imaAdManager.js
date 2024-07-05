@@ -9,6 +9,9 @@ const logger = new Logger('AdsPluginImaAdManager')
 
 /**
  * @typedef {{
+ *   debug?: boolean,
+ *   loadSdkTimeout?: number,
+ *   locale?: string,
  *   adTagUrl?: string,
  *   adsResponse?: string,
  *   adsRequest?: google.ima.AdsRequest,
@@ -45,12 +48,16 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   async init () {
+    this.shouldBlockVideoContent = true
+
     try {
       await this._loadIMASdk()
       this.emit(ADEvents.IMA_SDK_LOAD_SUCCESS)
     } catch (e) {
-      logger.error('google.ima sdk is not loaded, due to error', e)
+      logger.error('google.ima sdk is not loaded, due to error', e?.message || e)
       this.emit(ADEvents.IMA_SDK_LOAD_ERROR)
+      this.shouldBlockVideoContent = false
+      return
     }
 
     this._initConfig()
@@ -89,13 +96,18 @@ export class ImaAdManager extends BaseAdManager {
         return
       }
       const script = document.createElement('script')
+      const scriptLoadTimer = setTimeout(() => {
+        reject(new Error('google.ima sdk load timeout'))
+      }, this.config.loadSdkTimeout || 3000)
       script.src = `https://imasdk.googleapis.com/js/sdkloader/ima3${
         this.config.debug ? '_debug' : ''
       }.js`
       script.onload = () => {
+        clearTimeout(scriptLoadTimer)
         resolve()
       }
       script.onerror = e => {
+        clearTimeout(scriptLoadTimer)
         reject(e?.message)
       }
       document.head.appendChild(script)
@@ -226,7 +238,7 @@ export class ImaAdManager extends BaseAdManager {
   _onMediaEnded = () => {
     // An ad might have been playing in the content element, in which case the
     // content has not actually ended.
-    if (this._isAdRunning) return
+    if (this.isAdRunning) return
     this._isMediaEnded = true
     this.adsLoader?.contentComplete()
   }
@@ -340,6 +352,8 @@ export class ImaAdManager extends BaseAdManager {
    */
   _handleAdError = (error) => {
     logger.log('AdError', error)
+    this.shouldBlockVideoContent = false
+    this.isAdRunning = false
     this.adsManager?.destroy()
     this.player.emit(ADEvents.IMA_AD_ERROR, error)
   }
@@ -391,7 +405,8 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _resumeContent () {
-    this._isAdRunning = false
+    this.isAdRunning = false
+    this.shouldBlockVideoContent = false
     Util.removeClass(this.player.root, CLASS_NAME)
     if (!this._isMediaEnded) {
       this.player?.play()
@@ -442,7 +457,8 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when media content should be paused.
       // This usually happens right before an ad is about to cover the content.
       case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED: {
-        this._isAdRunning = true
+        this.isAdRunning = true
+        this.shouldBlockVideoContent = true
         Util.addClass(this.player.root, CLASS_NAME)
         player?.pause()
         this.emit(ADEvents.IMA_CONTENT_PAUSE_REQUESTED, {
@@ -511,7 +527,7 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   reset () {
-    this._isAdRunning = false
+    this.isAdRunning = false
     this.adsManager?.destroy()
     this.adsManager = null
     this.adsLoader?.contentComplete()

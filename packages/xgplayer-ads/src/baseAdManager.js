@@ -54,7 +54,18 @@ export class BaseAdManager extends EventEmitter {
      * @type {boolean}
      * @description Whether in the advertising process
      */
-    this._isAdRunning = false
+    this.isAdRunning = false
+
+    /**
+     * @type {boolean}
+     * @description Whether the video is blocked to play.
+     *   When the ad is playing or preparing, the video player is blocked.
+     *
+     *   `shouldBlockVideoContent` & `isAdRunning` is not equal,
+     *   `shouldBlockVideoContent` include ad sdk preparing period during lifecycle
+     */
+    this.shouldBlockVideoContent = false
+
     /**
      * @type {boolean}
      * @description Whether in ad pause state.
@@ -102,10 +113,6 @@ export class BaseAdManager extends EventEmitter {
 
   get paused () {
     return this._isAdPaused
-  }
-
-  get isAdRunning () {
-    return this._isAdRunning
   }
 
   destroy () {
