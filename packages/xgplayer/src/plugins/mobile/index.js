@@ -64,7 +64,7 @@ class MobilePlugin extends Plugin {
       scopeR: 0.25, // Gesture range on the right
       scopeM: 0.9, // Middle gesture range
       pressRate: 2, // playbackRate when long press
-      darkness: true, // Whether to enable the dimming function on the right
+      darkness: true, // Whether to enable the dimming function on the left
       maxDarkness: 0.8, // Maximum darkness，maximum transparency of the mask
       disableActive: false, // Whether to disable the time prompt
       disableTimeProgress: false, // Whether to disable the time progress bar
@@ -357,7 +357,7 @@ class MobilePlugin extends Plugin {
    */
   endLastMove (lastScope) {
     const { pos, player, config } = this
-  
+
     const time = (pos.time - this.timeOffset) / 1000
     switch (lastScope) {
       case 0:
@@ -614,10 +614,13 @@ class MobilePlugin extends Plugin {
   }
 
   updateBrightness (percent) {
+    const { pos, config, xgMask } = this
+    if (!config.darkness) {
+      return
+    }
     if (this.player.rotateDeg) {
       percent = -percent
     }
-    const { pos, config, xgMask } = this
     let light = pos.light + (0.8 * percent)
     light = light > config.maxDarkness ? config.maxDarkness : (light < 0 ? 0 : light)
     if (xgMask) {
