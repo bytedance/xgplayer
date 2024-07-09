@@ -28,6 +28,14 @@ import { InstManager, checkPlayerRoot } from './instManager'
  * @typedef { import ('./defaultConfig').IUrl } IUrl
  */
 
+/**
+ * @typedef {boolean | {
+ *    seamless?: boolean,
+ *    currentTime?: number,
+ *    bitrate?: number
+ * }} SwitchUrlOptions
+ */
+
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 let REAL_TIME_SPEED = 0 // 实时下载速率, kb/s
@@ -967,11 +975,7 @@ class Player extends MediaProxy {
 
   /**
    * @param { string | object } url
-   * @param { boolean | {
-   *    seamless?: boolean,
-   *    currentTime?: number,
-   *    bitrate?: number
-   * } } [options]
+   * @param { SwitchUrlOptions } [options]
    * @returns { Promise | null } 执行结果
    */
   switchURL (url, options) {
