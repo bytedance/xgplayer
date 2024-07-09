@@ -140,31 +140,33 @@ export class Hls extends EventEmitter {
     const manifest = await this._loadM3U8(url)
     const { currentStream } = this._playlist
 
-    if (this._urlSwitching && !this.isLive) {
-      if (currentStream.bitrate === 0 && this._switchUrlOpts?.bitrate) {
-        currentStream.bitrate = this._switchUrlOpts?.bitrate
-      }
-      const switchTimePoint = this._getSeamlessSwitchPoint()
-      this.config.startTime = switchTimePoint
+    if (this._urlSwitching) {
+      if (this.isLive) {
+        // skip loaded segment
+        const preIndex = this._playlist.setNextSegmentBySN(this._prevSegSn)
+        logger.log(`segment nb=${this._prevSegSn} index of ${preIndex} in the new playlist`)
+        // the new stream no matched with old one
+        if (preIndex === -1) {
+          this._prevSegCc = null
+          this._prevSegSn = null
+        }
+      } else {
+        if (currentStream.bitrate === 0 && this._switchUrlOpts?.bitrate) {
+          currentStream.bitrate = this._switchUrlOpts?.bitrate
+        }
+        const switchTimePoint = typeof this._switchUrlOpts?.startTime === 'number'
+          ? this._switchUrlOpts?.startTime
+          : this._getSeamlessSwitchPoint()
+        this.config.startTime = switchTimePoint
 
-      const segIdx = this._playlist.findSegmentIndexByTime(switchTimePoint)
-      const nextSeg = this._playlist.getSegmentByIndex(segIdx + 1)
+        const segIdx = this._playlist.findSegmentIndexByTime(switchTimePoint)
+        const nextSeg = this._playlist.getSegmentByIndex(segIdx + 1)
 
-      if (nextSeg) {
-        // move to next segment in case of media stall
-        const bufferClearStartPoint = nextSeg.start
-        await this._bufferService.removeBuffer(bufferClearStartPoint)
-      }
-    }
-
-    if (this._urlSwitching && this.isLive) {
-      // skip loaded segment
-      const preIndex = this._playlist.setNextSegmentBySN(this._prevSegSn)
-      logger.log(`segment nb=${this._prevSegSn} index of ${preIndex} in the new playlist`)
-      // the new stream no matched with old one
-      if (preIndex === -1) {
-        this._prevSegCc = null
-        this._prevSegSn = null
+        if (nextSeg) {
+          // move to next segment in case of media stall
+          const bufferClearStartPoint = nextSeg.start
+          await this._bufferService.removeBuffer(bufferClearStartPoint)
+        }
       }
     }
 
