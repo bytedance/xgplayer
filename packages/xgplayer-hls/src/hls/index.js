@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3'
-import { Buffer, ERR, EVENT, GapService, Logger, MSE, MediaStatsService, SeiService, StreamingError, getVideoPlaybackQuality, isMediaPlaying } from 'xgplayer-streaming-shared'
+import { Buffer, ERR, GapService, Logger, MSE, MediaStatsService, SeiService, StreamingError, getVideoPlaybackQuality, isMediaPlaying } from 'xgplayer-streaming-shared'
 import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import { BufferService } from './buffer-service'
 import { getConfig } from './config'
@@ -9,7 +9,7 @@ import { Playlist } from './playlist'
 import { SegmentLoader } from './segment-loader'
 import { clamp } from './utils'
 
-export { getConfig, ManifestLoader, Playlist, SegmentLoader}
+export { ManifestLoader, Playlist, SegmentLoader, getConfig }
 /**
  * @typedef {import('./manifest-loader/parser/model').MediaSegment} MediaSegment
  */

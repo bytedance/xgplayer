@@ -166,7 +166,6 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
   if (lastSegment) {
     if (endOfList) {
       lastSegment.isLast = true
-    
     }
     media.endSN = lastSegment.sn
     media.endPartIndex = lastSegment.partIndex
