@@ -33,6 +33,11 @@ export { DanmuIcon, DanmuPanel } from './plugins/danmu'
 export { default as TextTrack } from './plugins/track'
 export { default as HeatMap } from './plugins/heatmap'
 
+
+/**
+ * @typedef { import ('./player').SwitchUrlOptions } SwitchUrlOptions
+ */
+
 /**
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
  */
