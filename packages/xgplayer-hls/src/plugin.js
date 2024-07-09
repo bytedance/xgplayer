@@ -1,9 +1,14 @@
-import { BasePlugin, Errors, Events } from 'xgplayer'
+import { BasePlugin, Errors, Events, SwitchUrlOptions } from 'xgplayer'
 import { EVENT, MSE } from 'xgplayer-streaming-shared'
 import { Hls, logger } from './hls'
 import { Event } from './hls/constants'
 import PluginExtension from './plugin-extension'
 
+/**
+ * @param {SwitchUrlOptions} args
+ * @param {HlsPlugin} plugin
+ * @returns
+ */
 export function parseSwitchUrlArgs (args, plugin) {
   const { player } = plugin
   const curTime = player.currentTime
@@ -22,9 +27,14 @@ export function parseSwitchUrlArgs (args, plugin) {
     case 'boolean':
       options.seamless = args
       break
-    case 'object':
-      Object.assign(options, args)
+    case 'object': {
+      const { currentTime, ...rest } = args
+      Object.assign(options, rest)
+      if (typeof currentTime === 'number') {
+        options.startTime = currentTime
+      }
       break
+    }
     default:
       break
   }
