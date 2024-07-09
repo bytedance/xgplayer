@@ -1,12 +1,12 @@
-import { BasePlugin, Errors, Events, SwitchUrlOptions } from 'xgplayer'
+import { BasePlugin, Errors, Events } from 'xgplayer'
 import { EVENT, MSE } from 'xgplayer-streaming-shared'
 import { Hls, logger } from './hls'
 import { Event } from './hls/constants'
 import PluginExtension from './plugin-extension'
 
 /**
- * @param {SwitchUrlOptions} args
- * @param {HlsPlugin} plugin
+ * @param { import('xgplayer').SwitchUrlOptions } args
+ * @param { HlsPlugin } plugin
  * @returns
  */
 export function parseSwitchUrlArgs (args, plugin) {
