@@ -200,10 +200,6 @@ class MP4 extends EventEmitter {
           this.log('getMetaInfo_error_nometa')
           this.emit(MP4_EVENTS.ERROR, { message: 'getMetaInfo_error_nometa' })
         }
-        if (contentLength > 0 && !this.meta && range && range.length > 1 && range[1] === contentLength) {
-          this.log('getMetaInfo_error_nometa')
-          this.emit(MP4_EVENTS.ERROR, { message: 'getMetaInfo_error_nometa' })
-        }
       }
       await this.MP4Loader.loadMetaProcess(this.MP4Loader.cache, [0, this.CHUNK_SIZE], onProgressHandle)
     } catch (error) {
@@ -353,55 +349,43 @@ class MP4 extends EventEmitter {
   getSubRange (fragIndex, time, range) {
     let videoStartRange = range[0]
     let audioStartRange = range[0]
-    let i = 1
-    let find = false
     this.log('>>>>>getSubRange time,',time, JSON.stringify(range))
-    if (this.videoTrak) {
+    if (this.videoTrak?.length > 0) {
       const videoSeg = fragIndex < this.videoTrak.length ? this.videoTrak[fragIndex] : this.videoTrak[this.videoTrak.length - 1]
       const keyFrameList = videoSeg.frames.filter(getKeyFrameList)
       const videoTimescale = this.meta.videoTimescale
-      let startTime = keyFrameList[0].startTime / videoTimescale
-      this.log('>>>>>getSubRange video, startTime,',videoSeg.startTime,',endTime,',videoSeg.endTime)
-      for (let j = 0; j < keyFrameList.length; j++) {
-        this.log('>>>>>getSubRange video keyFrameList, startTime,',keyFrameList[j].startTime / videoTimescale,',range,',keyFrameList[j].offset)
-      }
-      for (; i < keyFrameList.length; i++) {
-        const endTime = keyFrameList[i].startTime / videoTimescale
-        if ( startTime <= time && time < endTime && range[0] < keyFrameList[i - 1].offset) {
-          videoStartRange = keyFrameList[i - 1].offset
-          find = true
-          this.log('>>>>>getSubRange video end, startTime,',startTime, ',endTime,',endTime, ',startRange,',videoStartRange, ', keyFrameIndex,',i - 1)
-          break
+      this.log('>>>>>getSubRange video, startTime,', videoSeg.startTime, ',endTime,', videoSeg.endTime)
+      const keyFrameItem = keyFrameList.find((keyFrameItem, idx) => {
+        const startTime = keyFrameItem.startTime / videoTimescale
+        const endTime = idx + 1 < keyFrameList.length ? (keyFrameList[idx + 1].startTime / videoTimescale) : (videoSeg.endTime + 0.8)
+        if (time >= startTime && time < endTime) {
+          this.log('>>>>>getSubRange video end, startTime,', startTime, ',endTime,', endTime, ',startRange,', videoStartRange, ', keyFrameIndex,', keyFrameItem.index)
+          return keyFrameItem
         }
-        startTime = endTime
-      }
-      if (!find && startTime <= time && time < videoSeg.endTime + 0.8) {
-        videoStartRange = keyFrameList[i - 1].offset
-        this.log('>>>>>getSubRange video last, startTime,',startTime, ',endTime,',videoSeg.endTime, ',startRange,',videoStartRange)
-      }
+      })
+      videoStartRange = keyFrameItem?.offset || videoStartRange
     }
-    i = 1
-    if (this.audioTrak) {
+    let i = 1
+    if (this.audioTrak?.length > 0) {
       const audioSeg = fragIndex < this.audioTrak.length ? this.audioTrak[fragIndex] : this.audioTrak[this.audioTrak.length - 1]
       const frameList = audioSeg.frames
       const audioTimescale = this.meta.audioTimescale
       i = Math.floor((time * audioTimescale - frameList[0].startTime) / audioSeg.frames[0].duration)
       i = Math.min(frameList.length - 1, i)
-      let starttime = i > 0 ? frameList[i - 1].startTime / audioTimescale : frameList[0].startTime / audioTimescale
-      for ( ; i >= 0 && i < frameList.length; ) {
-        if (i > 0 && starttime > time) {
+      let startTime = i > 0 ? frameList[i - 1].startTime / audioTimescale : frameList[0].startTime / audioTimescale
+      for ( ; i >= 0; ) {
+        if (i > 0 && startTime > time) {
           i -= 1
-          starttime = frameList[i].startTime / audioTimescale
+          startTime = frameList[i].startTime / audioTimescale
           continue
         }
-        const endtime = (frameList[i].startTime + frameList[i].duration) / audioTimescale
-        if (starttime <= time && time < endtime && range[0] < frameList[i].offset) {
+        const endTime = (frameList[i].startTime + frameList[i].duration) / audioTimescale
+        if (startTime <= time && time < endTime && range[0] < frameList[i].offset) {
           audioStartRange = frameList[i].offset
-          find = true
-          this.log('>>>>>getSubRange audio end, startTime,', starttime, ',endTime,', endtime, ',startRange,', audioStartRange, ', index,', i)
+          this.log('>>>>>getSubRange audio end, startTime,', startTime, ',endTime,', endTime, ',startRange,', audioStartRange, ', index,', i)
           break
         }
-        starttime = endtime
+        startTime = endTime
         i++
       }
     }
