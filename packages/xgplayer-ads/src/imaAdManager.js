@@ -609,10 +609,10 @@ export class ImaAdManager extends BaseAdManager {
 
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
       this._originAutoplay
-        ? canAutoplay.video({ timeout: 100 }).then(({ result }) => result)
+        ? canAutoplay.video().then(({ result }) => result)
         : Promise.resolve(false),
       this._originAutoplay && this.player.config.autoplayMuted
-        ? canAutoplay.video({ timeout: 100, muted: true }).then(({ result }) => result)
+        ? canAutoplay.video({ muted: true }).then(({ result }) => result)
         : Promise.resolve(false)
     ])
 
