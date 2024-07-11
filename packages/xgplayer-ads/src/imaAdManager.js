@@ -222,8 +222,6 @@ export class ImaAdManager extends BaseAdManager {
         this.emit(ADEvents.IMA_READY_TO_PLAY)
       })
       this.player.once(ADEvents.IMA_AD_ERROR, () => {
-        this.player.config.autoplay = this._originAutoplay
-        this.player.media.autoplay = this._originAutoplay
         this.emit(ADEvents.IMA_READY_TO_PLAY)
       })
     } else {
@@ -238,7 +236,9 @@ export class ImaAdManager extends BaseAdManager {
   _onMediaEnded = () => {
     // An ad might have been playing in the content element, in which case the
     // content has not actually ended.
-    if (this.isAdRunning) return
+    if (this.isLinearAdRunning) {
+      return
+    }
     this._isMediaEnded = true
     this.adsLoader?.contentComplete()
   }
@@ -350,10 +350,10 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _handleAdError = (error) => {
+  _handleAdError = error => {
     logger.log('AdError', error)
     this.shouldBlockVideoContent = false
-    this.isAdRunning = false
+    this.isLinearAdRunning = false
     this.adsManager?.destroy()
     this.player.emit(ADEvents.IMA_AD_ERROR, error)
   }
@@ -366,7 +366,10 @@ export class ImaAdManager extends BaseAdManager {
     const adsManager = this.adsManager
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdErrorEvent
-    adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, this._onAdsManagerAdError)
+    adsManager.addEventListener(
+      google.ima.AdErrorEvent.Type.AD_ERROR,
+      this._onAdsManagerAdError
+    )
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdEvent
     const adEvents = [
@@ -390,7 +393,6 @@ export class ImaAdManager extends BaseAdManager {
       'FIRST_QUARTILE',
       'MIDPOINT',
       'THIRD_QUARTILE',
-      'COMPLETE',
       'SKIPPED',
       'USER_CLOSE',
       'AD_BREAK_READY',
@@ -405,7 +407,7 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   _resumeContent () {
-    this.isAdRunning = false
+    this.isLinearAdRunning = false
     this.shouldBlockVideoContent = false
     Util.removeClass(this.player.root, CLASS_NAME)
     if (!this._isMediaEnded) {
@@ -437,10 +439,13 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when ad data is available.
       // This is the first event sent for an ad.
       case google.ima.AdEvent.Type.LOADED: {
-        if (!ad.isLinear()) {
-          this.mediaElement?.play()
+        if (ad.isLinear()) {
+          this.shouldBlockVideoContent = true
+        } else {
+          this.shouldBlockVideoContent = false
+          this.tryContentPlay()
         }
-        this.player.emit(ADEvents.IMA_AD_LOADED, {
+        this.plugin.emit(ADEvents.IMA_AD_LOADED, {
           ad
         })
         break
@@ -457,7 +462,7 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when media content should be paused.
       // This usually happens right before an ad is about to cover the content.
       case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED: {
-        this.isAdRunning = true
+        this.isLinearAdRunning = true
         this.shouldBlockVideoContent = true
         Util.addClass(this.player.root, CLASS_NAME)
         player?.pause()
@@ -471,7 +476,7 @@ export class ImaAdManager extends BaseAdManager {
       case google.ima.AdEvent.Type.STARTED: {
         if (ad.isLinear()) {
           this._isAdPaused = false
-          this.player.emit(ADEvents.AD_PLAY, {
+          this.plugin.emit(ADEvents.AD_PLAY, {
             ad
           })
 
@@ -487,7 +492,7 @@ export class ImaAdManager extends BaseAdManager {
       // This event is sent when an ad is resumed after a pause.
       case google.ima.AdEvent.Type.RESUMED: {
         this._isAdPaused = false
-        this.player.emit(ADEvents.AD_PLAY, {
+        this.plugin.emit(ADEvents.AD_PLAY, {
           ad
         })
         break
@@ -496,7 +501,7 @@ export class ImaAdManager extends BaseAdManager {
       // This event is sent when an ad is paused before it finishes.
       case google.ima.AdEvent.Type.PAUSED: {
         this._isAdPaused = true
-        this.player.emit(ADEvents.AD_PAUSE, {
+        this.plugin.emit(ADEvents.AD_PAUSE, {
           ad
         })
         break
@@ -510,14 +515,41 @@ export class ImaAdManager extends BaseAdManager {
           currentTime,
           duration
         })
-        this.player.emit(ADEvents.AD_TIME_UPDATE, {
+        this.plugin.emit(ADEvents.AD_TIME_UPDATE, {
           ad
         })
         break
       }
       // Fires when the ad completes playing.
       // Player could remove the ad UI also start playing the next ad.
-      case google.ima.AdEvent.Type.COMPLETE:
+      case google.ima.AdEvent.Type.COMPLETE: {
+        if (ad?.isLinear()) {
+          clearInterval(intervalTimer)
+        }
+
+        this.plugin.emit(ADEvents.IMA_AD_COMPLETE, {
+          ad
+        })
+        this.plugin.emit(ADEvents.AD_COMPLETE, {
+          ad
+        })
+        break
+      }
+      // Fires when the ad completes playing.
+      // Player could remove the ad UI also start playing the next ad.
+      case google.ima.AdEvent.Type.ALL_ADS_COMPLETED: {
+        if (ad?.isLinear()) {
+          clearInterval(intervalTimer)
+        }
+
+        this.plugin.emit(ADEvents.IMA_ALL_ADS_COMPLETED, {
+          ad
+        })
+        this.player.emit(ADEvents.AD_ALL_COMPLETED, {
+          ad
+        })
+        break
+      }
       default:
         if (ad?.isLinear()) {
           clearInterval(intervalTimer)
@@ -527,7 +559,7 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   reset () {
-    this.isAdRunning = false
+    this.isLinearAdRunning = false
     this.adsManager?.destroy()
     this.adsManager = null
     this.adsLoader?.contentComplete()
@@ -599,19 +631,13 @@ export class ImaAdManager extends BaseAdManager {
    * @private
    */
   async _checkAutoplaySupport () {
-    this._originAutoplay = this.player.config.autoplay
-    if (this._originAutoplay) {
-      // 禁止media自动播放
-      this.player.media.autoplay = false
-      // 禁止player自动播放
-      this.player.config.autoplay = false
-    }
+    const autoplay = this.player.config.autoplay
 
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
-      this._originAutoplay
+      autoplay
         ? canAutoplay.video().then(({ result }) => result)
         : Promise.resolve(false),
-      this._originAutoplay && this.player.config.autoplayMuted
+      autoplay && this.player.config.autoplayMuted
         ? canAutoplay.video({ muted: true }).then(({ result }) => result)
         : Promise.resolve(false)
     ])

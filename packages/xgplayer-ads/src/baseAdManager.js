@@ -1,4 +1,5 @@
 import { EventEmitter } from 'eventemitter3'
+import { Events, STATE_CLASS, STATES } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
 
 const logger = new Logger('AdsPluginBaseAdManager')
@@ -27,6 +28,22 @@ export class BaseAdManager extends EventEmitter {
     return this.context.duration
   }
 
+  get paused () {
+    return this._isAdPaused
+  }
+
+  get shouldBlockVideoContent () {
+    return this.isLinearAdRunning || this._shouldBlockVideoContent
+  }
+
+  /**
+   * @param {boolean} flag
+   */
+  set shouldBlockVideoContent (flag) {
+    // const preIsBlockState = this._shouldBlockVideoContent
+    this._shouldBlockVideoContent = flag
+  }
+
   /**
    * @param {BaseAdManagerOptions<T>} options
    */
@@ -42,29 +59,33 @@ export class BaseAdManager extends EventEmitter {
      */
     this.config = options.config || {}
     /**
+     * @type {import('./plugin').AdsPlugin}
+     */
+    this.plugin = options.plugin
+    /**
      * @type {Player}
      */
-    this.player = options.player
+    this.player = options.plugin.player
     /**
      * @type {HTMLMediaElement}
      */
-    this.mediaElement = options.player.media || options.player.video
+    this.mediaElement = this.player.media || this.player.video
 
     /**
      * @type {boolean}
-     * @description Whether in the advertising process
+     * @description Whether in the linear advertising process
      */
-    this.isAdRunning = false
+    this.isLinearAdRunning = false
 
     /**
      * @type {boolean}
      * @description Whether the video is blocked to play.
      *   When the ad is playing or preparing, the video player is blocked.
      *
-     *   `shouldBlockVideoContent` & `isAdRunning` is not equal,
+     *   `shouldBlockVideoContent` & `isLinearAdRunning` is not equal,
      *   `shouldBlockVideoContent` include ad sdk preparing period during lifecycle
      */
-    this.shouldBlockVideoContent = false
+    this._shouldBlockVideoContent = false
 
     /**
      * @type {boolean}
@@ -111,11 +132,51 @@ export class BaseAdManager extends EventEmitter {
     return !!this.player.fullscreen
   }
 
-  get paused () {
-    return this._isAdPaused
-  }
 
   destroy () {
     this.removeAllListeners()
   }
+
+  /**
+   * @private
+   */
+  tryContentPlay () {
+    const { player } = this
+
+    // if (player.config.autoplay) {
+    const playPromise = player.play()
+
+    if (playPromise !== undefined && playPromise && playPromise.then) {
+      playPromise
+        .then(() => {
+          logger.log('content play')
+
+          player.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+          player.addClass(STATE_CLASS.PLAYING)
+          if (player.state < STATES.RUNNING) {
+            player.setState(STATES.RUNNING)
+            player.emit(Events.AUTOPLAY_STARTED)
+          }
+        })
+        .catch((e) => {
+          logger.error('content play error', e)
+
+          if (player.media && player.media.error) {
+            player.onError()
+            player.removeClass(STATE_CLASS.ENTER)
+            return
+          }
+        })
+    } else {
+      if (player.state < STATES.RUNNING) {
+        player.setState(STATES.RUNNING)
+        player.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+        player.removeClass(STATE_CLASS.NO_START)
+        player.removeClass(STATE_CLASS.ENTER)
+        player.addClass(STATE_CLASS.PLAYING)
+        player.emit(Events.AUTOPLAY_STARTED)
+      }
+    }
+  }
+  // }
 }

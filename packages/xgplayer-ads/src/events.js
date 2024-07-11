@@ -2,6 +2,8 @@
 export const AD_PLAY = 'ad_play'
 export const AD_PAUSE = 'ad_pause'
 export const AD_TIME_UPDATE = 'ad_time_update'
+export const AD_COMPLETE = 'ad_complete'
+export const AD_ALL_COMPLETED = 'ad_all_completed'
 
 // IMA Specific Events
 export const IMA_SDK_LOAD_SUCCESS = 'ima_sdk_load_success'
@@ -11,6 +13,7 @@ export const IMA_AD_MANAGER_READY = 'ima_ad_manager_ready'
 export const IMA_AD_ENDED = 'ima_ad_ended'
 export const IMA_AD_SKIPPED = 'ima_ad_skipped'
 export const IMA_AD_COMPLETE = 'ima_ad_complete'
+export const IMA_ALL_ADS_COMPLETED = 'ima_all_ads_completed'
 export const IMA_AD_ERROR = 'ima_ad_error'
 export const IMA_AD_SEEKING = 'ima_ad_seeking'
 export const IMA_AD_SEEKED = 'ima_ad_seeked'
