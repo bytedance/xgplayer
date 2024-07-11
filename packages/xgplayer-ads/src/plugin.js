@@ -27,7 +27,7 @@ export class AdsPlugin extends Plugin {
   }
 
   get paused () {
-    return !!(this.csManager?.isAdRunning && this.csManager?.paused)
+    return !!(this.csManager?.isLinearAdRunning && this.csManager?.paused)
   }
 
   get currentTime () {
@@ -95,7 +95,7 @@ export class AdsPlugin extends Plugin {
    */
   _initImaAd () {
     this.csManager = new ImaAdManager({
-      player: this.player,
+      plugin: this,
       config: this.config.ima,
       displayContainer: this.root
     })
@@ -148,14 +148,14 @@ export class AdsPlugin extends Plugin {
   }
 
   /**
-   * Makes sure content video state is paused during ad running.
+   * Makes sure content video state is paused during linear ad or before preroll.
    * @private
    */
   _blockContentPlay () {
     const { player } = this
 
     player.on('play', () => {
-      if (this.csManager?.shouldBlockVideoContent && !player.paused) {
+      if (this.csManager?.shouldBlockVideoContent) {
         logger.log('block content play')
         player.pause()
       }
