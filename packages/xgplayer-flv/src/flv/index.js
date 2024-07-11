@@ -188,7 +188,7 @@ export class Flv extends EventEmitter {
     } else {
       await this.load()
     }
-    return this.media.play(!isPlayEmit).catch(() => {})
+    return this.media.play(!isPlayEmit).catch(() => { })
   }
 
   disconnect () {
@@ -208,7 +208,7 @@ export class Flv extends EventEmitter {
     if (!seamless || !this._opts.isLive) {
       await this.load(url)
       this._urlSwitching = true
-      return this.media.play(true).catch(() => {})
+      return this.media.play(true).catch(() => { })
     }
 
     await this._clear()
@@ -463,7 +463,7 @@ export class Flv extends EventEmitter {
         }
         return
       }
-      if (opts.isLive && media.readyState === 4 && bufferEnd > opts.disconnectTime) {
+      if (opts.isLive && media.readyState === 4 && (bufferEnd - media.currentTime) > opts.disconnectTime) {
         this.disconnect()
       }
     }
@@ -488,7 +488,7 @@ export class Flv extends EventEmitter {
     if (this.isLive && !this._opts.mseLowLatency) {
       // update duration to Infinity
       if (this.media.duration !== Infinity) {
-        this._bufferService.updateDuration(Infinity).catch(e => {})
+        this._bufferService.updateDuration(Infinity).catch(e => { })
       }
     }
   }
