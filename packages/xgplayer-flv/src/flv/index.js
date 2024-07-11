@@ -463,7 +463,7 @@ export class Flv extends EventEmitter {
         }
         return
       }
-      if (opts.isLive && media.readyState === 4 && bufferEnd > opts.disconnectTime) {
+      if (opts.isLive && media.readyState === 4 && (bufferEnd - media.currentTime) > opts.disconnectTime) {
         this.disconnect()
       }
     }
