@@ -670,9 +670,14 @@ export default class Mp4Plugin extends BasePlugin {
         this._checkRemoveSourceBuffer([bufferRange.start, bufferRange.end], player.currentTime , true, true)
       }
     }
+    // 如果正在切换码率途中seek了，则需要更新切换后码率的开始下载点
+    if (mp4.changeBitRateTime > 0) {
+      mp4.changeBitRateTime = mp4.seekTime
+    }
     await mp4.cancelLoading()
     mp4.resetFragmentLoadState(fragIndex)
     this._curLoadSegmentIdx = fragIndex
+
     this._onTimeUpdate()
     this._startProgress()
     this._isEnded()
