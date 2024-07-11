@@ -100,7 +100,9 @@ player.on('ad_play', ()=>{
 | ------ | ----- |
 | ad_play | 当广告启播时，发布此事件 |
 | ad_pause | 当广告暂停时，发布此事件 |
-| ad_time_update | 当广告类型为贴片时，广告当前时间发生变更时触发 |
+| ad_time_update | 当广告类型为线性贴片时，广告当前时间发生变更时触发 |
+| ad_complete | 当线性广告单个完成时，发布此事件 |
+| ad_all_completed | 当所有广告完成时，发布此事件 |
 
 ## IMA
 

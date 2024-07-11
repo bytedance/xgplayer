@@ -1,7 +1,9 @@
+import { STATE_CLASS } from 'xgplayer'
+import * as AdEvents from '../events'
 import { AdPlayIcon } from './plugins/adPlay'
+import { AdProgress } from './plugins/adProgress'
 import { AdStub } from './plugins/adStub'
 import { AdTimeIcon } from './plugins/adTime'
-import { AdProgress } from './plugins/adProgress'
 
 export class AdUIManager {
   constructor (config, { player, plugin }) {
@@ -26,11 +28,13 @@ export class AdUIManager {
     this.controlsPos = null
 
     this.init()
+    this.initEvents()
   }
 
   init () {
     const { player, adUIPlugins, fragment } = this
     const decoratedPluginList = [
+      // [player.getPlugin('start'), AdStart],
       [player.getPlugin('play'), AdPlayIcon],
       [player.getPlugin('time'), AdTimeIcon],
       [player.getPlugin('playbackRate'), AdStub],
@@ -47,6 +51,18 @@ export class AdUIManager {
           newDecoratorPlugin /* override plugin */
         ])
       }
+    })
+  }
+
+  initEvents () {
+    const { adPlugin, player } = this
+
+    adPlugin.on(AdEvents.AD_PLAY, () => {
+      const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
+      const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING]
+      clsList.forEach((cls) => {
+        player.removeClass(cls)
+      })
     })
   }
 
@@ -68,6 +84,12 @@ export class AdUIManager {
     if (config.controls === false && player.controls) {
       this.hideControls()
     }
+
+    // start插件比较特殊需要单独处理
+    const startPlugin = player.getPlugin('start')
+    if (startPlugin) {
+      startPlugin.hide()
+    }
   }
 
   hideAdUI () {
@@ -87,6 +109,23 @@ export class AdUIManager {
 
     if (config.controls === false && fragment.contains(player.controls?.root)) {
       this.showControls()
+    }
+
+    // start插件比较特殊需要单独处理
+    const startPlugin = player.getPlugin('start')
+    if (startPlugin) {
+      const disableAnimate = startPlugin.config.disableAnimate
+      const isShowPause = startPlugin.config.isShowPause
+      if (!disableAnimate) {
+        startPlugin.config.disableAnimate = true
+        startPlugin.config.isShowPause = false
+      }
+      player.once('play', () => {
+        setTimeout(() => {
+          startPlugin.config.disableAnimate = disableAnimate
+          startPlugin.config.disableAnimate = isShowPause
+        }, 10)
+      })
     }
   }
 
