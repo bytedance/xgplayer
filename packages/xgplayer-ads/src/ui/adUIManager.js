@@ -1,8 +1,7 @@
-import { STATE_CLASS } from 'xgplayer'
+import { CssFullscreenIcon, FullscreenIcon, PlayIcon, Progress, STATE_CLASS, TimeIcon, Util, VolumeIcon } from 'xgplayer'
 import * as AdEvents from '../events'
 import { AdPlayIcon } from './plugins/adPlay'
 import { AdProgress } from './plugins/adProgress'
-import { AdStub } from './plugins/adStub'
 import { AdTimeIcon } from './plugins/adTime'
 
 export class AdUIManager {
@@ -27,28 +26,38 @@ export class AdUIManager {
      */
     this.controlsPos = null
 
+    /**
+     * @description 装饰的广告UI插件列表, 如果没有被装饰的对象也依然允许展示
+     */
+    this.decoratedAdPluginList = [
+      [PlayIcon, AdPlayIcon],
+      [TimeIcon, AdTimeIcon],
+      [Progress, AdProgress],
+      [VolumeIcon, null],
+      [CssFullscreenIcon, null],
+      [FullscreenIcon, null]
+    ]
+
     this.init()
     this.initEvents()
   }
 
   init () {
-    const { player, adUIPlugins, fragment } = this
-    const decoratedPluginList = [
-      // [player.getPlugin('start'), AdStart],
-      [player.getPlugin('play'), AdPlayIcon],
-      [player.getPlugin('time'), AdTimeIcon],
-      [player.getPlugin('playbackRate'), AdStub],
-      [player.getPlugin('progress'), AdProgress]
-    ]
+    const { player, adUIPlugins, fragment, decoratedAdPluginList } = this
 
-    decoratedPluginList.forEach(([targetPlugin, decoratorClass]) => {
-      if (targetPlugin && !player.getPlugin(decoratorClass.pluginName)) {
-        player.registerPlugin(decoratorClass)
-        const newDecoratorPlugin = player.getPlugin(decoratorClass.pluginName)
-        fragment.appendChild(newDecoratorPlugin.root)
+    decoratedAdPluginList.forEach(([targetClass, decoratorClass]) => {
+      const targetPlugin = player.getPlugin(targetClass.pluginName)
+      if (targetPlugin) {
+        let newDecoratorPlugin = null
+        if (decoratorClass && !player.getPlugin(decoratorClass.pluginName)) {
+          player.registerPlugin(decoratorClass)
+          newDecoratorPlugin = player.getPlugin(decoratorClass.pluginName)
+          fragment.appendChild(newDecoratorPlugin.root)
+        }
+
         adUIPlugins.push([
           targetPlugin /* target plugin */,
-          newDecoratorPlugin /* override plugin */
+          newDecoratorPlugin /* override plugin, maybe null */
         ])
       }
     })
@@ -68,6 +77,8 @@ export class AdUIManager {
 
   showAdUI () {
     const { player, config, adUIPlugins, fragment: fragmentContainer } = this
+
+    // Allowed Ad UI Plugins
     adUIPlugins.forEach(([normalPlugin, overrideAdPlugin]) => {
       if (!overrideAdPlugin) {
         return
@@ -77,37 +88,65 @@ export class AdUIManager {
       if (fragmentContainer.contains(adRoot)) {
         fragmentContainer.removeChild(adRoot)
       }
+      // The ad plugin and the target plugin swap positions
       normalRoot.parentNode.insertBefore(adRoot, normalRoot)
       fragmentContainer.appendChild(normalRoot)
     })
 
-    if (config.controls === false && player.controls) {
-      this.hideControls()
-    }
+    // Non-Ad UI Plugins
+    const otherPlugins = this._getNonAdPlugin()
+    otherPlugins.filter((plugin) => !!plugin.root).forEach((plugin) => {
+      const { root } = plugin
+
+      if (!plugin.__adStub__) {
+        plugin.__adStub__ = Util.createDom('xg-ad-stub', '', {})
+      }
+
+      root.parentNode.insertBefore(plugin.__adStub__, root)
+      fragmentContainer.appendChild(root)
+    })
 
     // start插件比较特殊需要单独处理
     const startPlugin = player.getPlugin('start')
     if (startPlugin) {
       startPlugin.hide()
     }
+
+    if (config.controls === false && player.controls) {
+      this.hideControls()
+    }
   }
 
   hideAdUI () {
-    const { player, config, adUIPlugins, fragment } = this
+    const { player, config, adUIPlugins, fragment: fragmentContainer } = this
+
+    // Allowed Ad UI Plugins
     adUIPlugins.forEach(([normalPlugin, overrideAdPlugin]) => {
       if (!overrideAdPlugin) {
         return
       }
       const { root: adRoot } = overrideAdPlugin
       const { root: normalRoot } = normalPlugin
-      if (fragment.contains(normalRoot)) {
-        fragment.removeChild(normalRoot)
+      if (fragmentContainer.contains(normalRoot)) {
+        fragmentContainer.removeChild(normalRoot)
       }
       adRoot.parentNode.insertBefore(normalRoot, adRoot)
-      fragment.appendChild(adRoot)
+      fragmentContainer.appendChild(adRoot)
     })
 
-    if (config.controls === false && fragment.contains(player.controls?.root)) {
+    // Non-Ad UI Plugins
+    const otherPlugins = this._getNonAdPlugin()
+    otherPlugins.filter((plugin) => !!plugin.root).forEach((plugin) => {
+      const { root } = plugin
+
+      if (fragmentContainer.contains(root)) {
+        fragmentContainer.removeChild(root)
+      }
+
+      plugin.__adStub__?.parentNode?.insertBefore(root, plugin.__adStub__)
+    })
+
+    if (config.controls === false && fragmentContainer.contains(player.controls?.root)) {
       this.showControls()
     }
 
@@ -171,5 +210,24 @@ export class AdUIManager {
 
       this.controlsPos = null
     }
+  }
+
+  /**
+   * 获取非广告UI插件（目前只处理controls内的插件）
+   * @private
+   */
+  _getNonAdPlugin () {
+    const { player, decoratedAdPluginList } = this
+    const allowedNames = []
+    decoratedAdPluginList.forEach(([targetClass, decoratorClass]) => {
+      allowedNames.push(targetClass.pluginName.toLowerCase())
+      if (decoratorClass) {
+        allowedNames.push(decoratorClass.pluginName.toLowerCase())
+      }
+    })
+    const controlPlugins = player.controls?.plugins() || []
+    const otherPlugins = controlPlugins.filter((plugin) => allowedNames.indexOf(plugin.pluginName.toLowerCase()) === -1)
+
+    return otherPlugins
   }
 }
