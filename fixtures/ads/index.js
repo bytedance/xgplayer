@@ -108,6 +108,7 @@ function newPlayer(imaConfigure) {
   window.player = new Player({
     id: 'video',
     url: '//pull-demo.volcfcdnrd.com/live/st-4536521.m3u8',
+    // url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/hls/xgplayer-demo.m3u8',
     // url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
     autoplay: settings.autoplay,
     width: '80%',
