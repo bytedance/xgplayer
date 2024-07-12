@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-ads",
-  "version": "3.0.20-alpha.2",
+  "version": "3.0.20-alpha.4",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -28,6 +28,6 @@
   },
   "peerDependencies": {
     "core-js": ">=3.12.1",
-    "xgplayer": "3.0.20-alpha.2"
+    "xgplayer": "3.0.20-alpha.4"
   }
 }
