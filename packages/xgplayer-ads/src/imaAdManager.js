@@ -564,7 +564,11 @@ export class ImaAdManager extends BaseAdManager {
         break
     }
 
-    logger.log('AdEvent', ev?.type, printJsonLog ? JSON.stringify(ev?.getAdData() || {}) : ev?.getAd())
+    logger.log(
+      'AdEvent',
+      ev?.type,
+      printJsonLog ? JSON.stringify(ev?.getAdData() || {}) : ev?.getAd()
+    )
   }
 
   reset () {
@@ -641,13 +645,15 @@ export class ImaAdManager extends BaseAdManager {
    */
   async _checkAutoplaySupport () {
     const autoplay = this.player.config.autoplay
+    // Safari 自动启播时间比较久，可能超过500ms+，因此考虑可能的其他浏览器低端机，将兜底timeout默认值`250ms`调高
+    const timeout = 800
 
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
       autoplay
-        ? canAutoplay.video().then(({ result }) => result)
+        ? canAutoplay.video({ timeout }).then(({ result }) => result)
         : Promise.resolve(false),
       autoplay && this.player.config.autoplayMuted
-        ? canAutoplay.video({ muted: true }).then(({ result }) => result)
+        ? canAutoplay.video({ timeout, muted: true }).then(({ result }) => result)
         : Promise.resolve(false)
     ])
 
