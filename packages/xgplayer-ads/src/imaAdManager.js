@@ -426,8 +426,7 @@ export class ImaAdManager extends BaseAdManager {
     // ALL_ADS_COMPLETED) don't have ad object associated.
     const ad = ev?.getAd()
     let intervalTimer
-
-    logger.log('AdEvent', ev?.type, ev?.getAd())
+    let printJsonLog = false
 
     switch (ev?.type) {
       case google.ima.AdEvent.Type.AD_BREAK_READY: {
@@ -439,12 +438,20 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when ad data is available.
       // This is the first event sent for an ad.
       case google.ima.AdEvent.Type.LOADED: {
-        if (ad.isLinear()) {
-          this.shouldBlockVideoContent = true
-        } else {
-          this.shouldBlockVideoContent = false
-          this.tryContentPlay()
+        const { adPodInfo } = ev.getAdData()
+        const isPreroll = adPodInfo?.podIndex === 0
+
+        printJsonLog = true
+
+        if (isPreroll) {
+          if (ad.isLinear()) {
+            this.shouldBlockVideoContent = true
+          } else {
+            this.shouldBlockVideoContent = false
+            this.tryContentPlay()
+          }
         }
+
         this.plugin.emit(ADEvents.IMA_AD_LOADED, {
           ad
         })
@@ -556,6 +563,8 @@ export class ImaAdManager extends BaseAdManager {
         }
         break
     }
+
+    logger.log('AdEvent', ev?.type, printJsonLog ? JSON.stringify(ev?.getAdData() || {}) : ev?.getAd())
   }
 
   reset () {
