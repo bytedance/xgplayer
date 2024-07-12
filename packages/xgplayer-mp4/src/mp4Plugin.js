@@ -671,7 +671,7 @@ export default class Mp4Plugin extends BasePlugin {
       }
     }
     // 如果正在切换码率途中seek了，则需要更新切换后码率的开始下载点
-    if (mp4.changeBitRateTime > 0) {
+    if (mp4.changeBitRateTime >= 0) {
       mp4.changeBitRateTime = mp4.seekTime
       this.log('[seekTime set changeBitRateTime ], curTime,', curTime, ', changeBitRateTime,', mp4.changeBitRateTime)
     }
