@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-ads",
-  "version": "3.0.20-alpha.4",
+  "version": "3.0.20-alpha.5",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
