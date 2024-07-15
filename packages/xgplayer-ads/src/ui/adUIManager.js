@@ -130,8 +130,10 @@ export class AdUIManager {
       if (fragmentContainer.contains(normalRoot)) {
         fragmentContainer.removeChild(normalRoot)
       }
-      adRoot.parentNode.insertBefore(normalRoot, adRoot)
-      fragmentContainer.appendChild(adRoot)
+      if (!fragmentContainer.contains(adRoot)) {
+        adRoot.parentNode.insertBefore(normalRoot, adRoot)
+        fragmentContainer.appendChild(adRoot)
+      }
     })
 
     // Non-Ad UI Plugins
