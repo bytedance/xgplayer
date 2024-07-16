@@ -74,6 +74,6 @@ export function createResponse (
   return { data, done, options, response }
 }
 
-export function calculateSpeed (byteLen, millisec) {
-  return Math.round(byteLen * 8 * 1000 / millisec / 1024)
+export function calculateSpeed (byteLen, milliSecond) {
+  return Math.round(byteLen * 8 * 1000 / milliSecond / 1024) // Kb/s
 }

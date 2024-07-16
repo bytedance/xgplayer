@@ -223,7 +223,7 @@ class Player extends MediaProxy {
     this._cssfullscreenEl = null
 
     /**
-     * @type { IDefinition | null }
+     * @type { ?IDefinition }
      * @public
      */
     this.curDefinition = null
