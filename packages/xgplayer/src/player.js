@@ -1511,7 +1511,7 @@ class Player extends MediaProxy {
       return
     }
     const { root, media } = this
-    if (el) {
+    if (!el) {
       el = root
     }
     this._fullActionFrom = 'exit'
