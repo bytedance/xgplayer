@@ -95,8 +95,12 @@ export class Hls extends EventEmitter {
   get currentStream () { return this._playlist.currentStream }
   get hasSubtitle () { return this._playlist.hasSubtitle}
   get totalDuration () { return this._playlist.totalDuration}
-  get baseDts () {
-    return this._bufferService?.baseDts
+  get baseDts () { return this._bufferService?.baseDts }
+  get abrSwitchPoint () {
+    const targetSeg = this._urlSwitching
+      ? this._playlist.currentSegment
+      : this._playlist.nextSegment
+    return targetSeg ? targetSeg.start + targetSeg.duration / 2 : null
   }
 
   speedInfo () {
