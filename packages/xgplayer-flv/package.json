@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "3.0.14",
+  "version": "3.0.14-beta.0",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "latest"
+    "tag": "beta"
   },
   "license": "MIT",
   "unpkgFiles": [
