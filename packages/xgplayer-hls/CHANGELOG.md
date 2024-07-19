@@ -7,6 +7,7 @@
 >* fix: 🐛 (xgplayer-hls）修复hls最后一帧不渲染，并且播放到最后一直loading的问题
 >* fix(xgplayer-hls): 修复HLS点播场景空列表时未触发报错问题
 >* feat(xgplayer-hls xgplayer-transmuxer): HLS 音视频LargeGAP优化处理
+fix: 🐛 (xgplayer-hls) 修复播放到结尾一直loading的问题
 
 ## 3.0.18
 >* refactor: 💡 (xgplayer-hls) DRM支持更多的identifiers
