@@ -1,10 +1,10 @@
 # 版本更新记录
 ## 3.0.19
-fix: 🐛 (xgplayer) 修复弹幕插件在无controls时，初始化报错问题
-fix(xgplayer): android hls origin video play's startTime
-chore: (xgplayer) remove duplicate codec item for MP4 support check
-fix(xgplayer): apply mobile plugin's darkness config
-fix: (xgplayer) exitFullscreen without el set
+>* fix: 🐛 (xgplayer) 修复弹幕插件在无controls时，初始化报错问题
+>* fix(xgplayer): android hls origin video play's startTime
+>* chore: (xgplayer) remove duplicate codec item for MP4 support check
+>* fix(xgplayer): apply mobile plugin's darkness config
+>* fix: (xgplayer) exitFullscreen without el set
 ## 3.0.18
 >* fix: 🐛 (xgplayer) 修复弹幕在自定义el元素内容时，文字样式折行的问题
 >* fix: 🐛 (xgplayer) 修复音量展示和时机数值有差异的问题 #1396
