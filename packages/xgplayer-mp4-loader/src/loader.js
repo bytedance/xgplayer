@@ -114,21 +114,25 @@ export class MP4Loader extends EventEmitter {
       this.logger.debug('[loadMetaProcess],task,[', moovStart, moovEnd, '], range,', options.range, ',dataLen,', (data ? data.byteLength : undefined), ', state,', state, ',err,',this._error)
       !this._error && data && data.byteLength > 0 && onProgress(data, state, options, null, response)
       if (this.meta.moov || this._error) return
+      let parseData
       if (data && data.byteLength > 0) {
         try {
           if (this._config?.memoryOpt) {
             this.buffer.set(data, this.bufferDataLen)
+            this.bufferDataLen += data?.byteLength || 0
+            parseData = this.buffer.subarray(0, this.bufferDataLen)
           } else {
             this.buffer = concatUint8Array(this.buffer, data)
+            parseData = this.buffer
           }
         } catch (e) {
           onProgress(null, state, options, new MediaError(e?.message), response)
           return
         }
-        this.bufferDataLen += data?.byteLength || 0
-        let moov = MP4Parser.findBox(this.buffer.subarray(0, this.bufferDataLen), ['moov'])[0]
+
+        let moov = MP4Parser.findBox(parseData, ['moov'])[0]
         if (!moov) {
-          const mdat = MP4Parser.findBox(this.buffer.subarray(0, this.bufferDataLen), ['mdat'])[0]
+          const mdat = MP4Parser.findBox(parseData, ['mdat'])[0]
           if (state) {
             if (!mdat) {
               this._error = true
