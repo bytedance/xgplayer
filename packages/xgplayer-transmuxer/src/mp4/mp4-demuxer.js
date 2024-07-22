@@ -208,11 +208,11 @@ export class MP4Demuxer {
         } else {
           sample = this._videoSamples[i]
         }
-        if (this.memoryOpt && end < sample.offset) {
-          break
-        }
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
+        }
+        if (this.memoryOpt && sample.offset + sample.size > end) {
+          break
         }
         if (sample.offset >= dataStart && sample.offset + sample.size <= end) {
           startByte = sample.offset - dataStart
@@ -258,11 +258,11 @@ export class MP4Demuxer {
         } else {
           sample = this._audioSamples[i]
         }
-        if (this.memoryOpt && end < sample.offset) {
-          break
-        }
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
+        }
+        if (this.memoryOpt && sample.offset + sample.size > end) {
+          break
         }
         if (sample.offset >= dataStart && sample.offset + sample.size <= end) {
           startByte = sample.offset - dataStart
