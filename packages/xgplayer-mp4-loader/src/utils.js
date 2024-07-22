@@ -136,8 +136,10 @@ function getSegments (
   }
 
   track.editListApplied = editListApplied
-
-  let curSyncSampleNum = stssEntries?.shift()
+  let curSyncSampleNum
+  if (memoryOpt) {
+    curSyncSampleNum = stssEntries?.shift()
+  }
   stts.entries.forEach(({ count, delta }) => {
     duration = delta // in timescale
     for (let i = 0; i < count; i++) {

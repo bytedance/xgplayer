@@ -189,9 +189,9 @@ export class MP4Demuxer {
     let videoEndByte = 0
     let audioEndByte = 0
     let findRes = {}
+    const end = data.byteLength + dataStart
     if (videoIndexRange.length > 0) {
       let frame
-      const end = data.byteLength + dataStart
       if (this.memoryOpt && this.videoSegmnents) {
         findRes = this.getFramePosByIdx('video', videoIndexRange[0])
         if (!findRes) {
@@ -208,7 +208,7 @@ export class MP4Demuxer {
         } else {
           sample = this._videoSamples[i]
         }
-        if (dataStart + data.byteLength < sample.offset) {
+        if (this.memoryOpt && end < sample.offset) {
           break
         }
         if (!sample) {
@@ -258,13 +258,13 @@ export class MP4Demuxer {
         } else {
           sample = this._audioSamples[i]
         }
-        if (dataStart + data.byteLength < sample.offset) {
+        if (this.memoryOpt && end < sample.offset) {
           break
         }
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
-        if (sample.offset >= dataStart && sample.offset + sample.size <= data.byteLength + dataStart) {
+        if (sample.offset >= dataStart && sample.offset + sample.size <= end) {
           startByte = sample.offset - dataStart
           audioEndByte = startByte + sample.size
           sampleData = data.subarray(startByte, audioEndByte)
