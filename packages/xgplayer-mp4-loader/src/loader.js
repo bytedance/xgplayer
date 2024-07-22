@@ -126,9 +126,10 @@ export class MP4Loader extends EventEmitter {
           return
         }
         this.bufferDataLen += data?.byteLength || 0
-        let moov = MP4Parser.findBox(this.buffer.subarray(0, this.bufferDataLen), ['moov'])[0]
+        const parseData = this._config?.memoryOpt ? this.buffer.subarray(0, this.bufferDataLen) : this.buffer
+        let moov = MP4Parser.findBox(parseData, ['moov'])[0]
         if (!moov) {
-          const mdat = MP4Parser.findBox(this.buffer.subarray(0, this.bufferDataLen), ['mdat'])[0]
+          const mdat = MP4Parser.findBox(parseData, ['mdat'])[0]
           if (state) {
             if (!mdat) {
               this._error = true
