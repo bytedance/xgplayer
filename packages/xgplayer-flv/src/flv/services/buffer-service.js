@@ -1,5 +1,7 @@
 import { FlvDemuxer, FMP4Remuxer, WarningType } from 'xgplayer-transmuxer'
 import { MSE, Buffer, EVENT, ERR, StreamingError, Logger, concatUint8Array } from 'xgplayer-streaming-shared'
+import { TRANSFER_EVENT } from './transfer-cost'
+
 const logger = new Logger('BufferService')
 
 export class BufferService {
@@ -123,7 +125,9 @@ export class BufferService {
     if (!chunk || !chunk.length || !demuxer) return
 
     try {
+      this.flv._transferCost.start(TRANSFER_EVENT.DEMUX)
       demuxer.demuxAndFix(chunk, this._discontinuity, this._contiguous, this._demuxStartTime)
+      this.flv._transferCost.end(TRANSFER_EVENT.DEMUX)
     } catch (error) {
       throw new StreamingError(ERR.DEMUX, ERR.SUB_TYPES.FLV, error)
     }
@@ -204,7 +208,10 @@ export class BufferService {
           videoTrack.duration = this._opts.durationForMSELowLatencyOff * videoTrack.timescale
           audioTrack.duration = this._opts.durationForMSELowLatencyOff * audioExist.timescale
         }
+        this.flv._transferCost.start(TRANSFER_EVENT.REMUX)
         remuxResult = this._remuxer.remux(this._needInitSegment)
+        this.flv._transferCost.end(TRANSFER_EVENT.REMUX)
+
       } catch (error) {
         throw new StreamingError(ERR.REMUX, ERR.SUB_TYPES.FMP4, error)
       }
@@ -221,7 +228,10 @@ export class BufferService {
       if (remuxResult.videoSegment) p.push(mse.append(videoType, remuxResult.videoSegment))
       if (remuxResult.audioSegment) p.push(mse.append(audioType, remuxResult.audioSegment))
 
-      return Promise.all(p)
+      this.flv._transferCost.start(TRANSFER_EVENT.APPEND)
+      return Promise.all(p).then(() => {
+        this.flv._transferCost.end(TRANSFER_EVENT.APPEND)
+      })
     } else if (this._softVideo) {
       this._softVideo.appendBuffer(videoTrack, audioTrack)
     }

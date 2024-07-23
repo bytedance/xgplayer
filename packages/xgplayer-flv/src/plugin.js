@@ -36,6 +36,10 @@ export class FlvPlugin extends BasePlugin {
     return this.flv?.loader
   }
 
+  get transferCost () {
+    return this.flv._transferCost.transferCost
+  }
+
   beforePlayerInit () {
     const config = this.player.config
 
