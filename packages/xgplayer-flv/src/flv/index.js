@@ -17,6 +17,7 @@ import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import { BufferService } from './services'
 import { getOption } from './options'
 import { searchKeyframeIndex } from './utils'
+import { TransferCost, TRANSFER_EVENT } from './services/transfer-cost'
 
 export const logger = new Logger('flv')
 
@@ -80,6 +81,7 @@ export class Flv extends EventEmitter {
     })
 
     this._disconnectRetryCount = this._opts.disconnectRetryCount
+    this._transferCost = new TransferCost()
 
     this._bufferService = new BufferService(
       this,
@@ -338,12 +340,14 @@ export class Flv extends EventEmitter {
         return
       }
       const headers = response.headers
+      const elapsed = st ? firstByteTime - st : endTime - startTime
       this.emit(EVENT.TTFB, {
         url: this._opts.url,
         responseUrl: response.url,
-        elapsed: st ? firstByteTime - st : endTime - startTime
+        elapsed
       })
       this.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers })
+      this._transferCost.set(TRANSFER_EVENT.TTFB, elapsed)
       this._acceptRanges =
         !!headers?.get('Accept-Ranges') || !!headers?.get('Content-Range')
       this._firstProgressEmit = true
