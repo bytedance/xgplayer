@@ -48,7 +48,7 @@ export class ImaAdManager extends BaseAdManager {
   }
 
   async init () {
-    this.shouldBlockVideoContent = true
+    this.shouldBlockVideoContent = !!(this.config.adTagUrl || this.config.adsResponse || this.config.adsRequest)
 
     try {
       await this._loadIMASdk()
