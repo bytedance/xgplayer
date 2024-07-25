@@ -87,25 +87,27 @@ function initIMAConfigure() {
 }
 
 function newPlayer(imaConfigure) {
-  if (!settings.resetPlayer && window.player) {
-    window.player.plugins.ad.reset()
-    window.player.plugins.ad.updateConfig({
+  let player = window.player
+
+  if (!settings.resetPlayer && player) {
+    player.plugins.ad.reset()
+    player.plugins.ad.updateConfig({
       adsRequest: generateAdsRequest(settings),
       adsResponse: settings.adsResponse,
       adTagUrl: settings.adTagUrl
     })
-    window.player.plugins.ad.requestAds()
-    window.player.once(AdEvents.IMA_AD_LOADED, () => {
+    player.plugins.ad.requestAds()
+    player.once(AdEvents.IMA_AD_LOADED, () => {
       console.log('=====> IMA_AD_LOADED')
-      window.player?.plugins.ad.playAds()
+      player?.plugins.ad.playAds()
     })
     return
   }
-  if (window.player) {
-    window.player.destroy()
+  if (player) {
+    player.destroy()
   }
 
-  window.player = new Player({
+  window.player = player = new Player({
     id: 'video',
     url: '//pull-demo.volcfcdnrd.com/live/st-4536521.m3u8',
     // url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/hls/xgplayer-demo.m3u8',

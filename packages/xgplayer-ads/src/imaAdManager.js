@@ -481,6 +481,10 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when the ad starts playing.
       // Player can display a pause button and create an ad countdown timer.
       case google.ima.AdEvent.Type.STARTED: {
+        this.plugin.emit(ADEvents.AD_START, {
+          ad
+        })
+
         if (ad.isLinear()) {
           this._isAdPaused = false
           this.plugin.emit(ADEvents.AD_PLAY, {
