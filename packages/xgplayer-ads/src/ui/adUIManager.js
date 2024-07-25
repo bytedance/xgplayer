@@ -1,5 +1,6 @@
 import { CssFullscreenIcon, FullscreenIcon, PlayIcon, Progress, STATE_CLASS, TimeIcon, Util, VolumeIcon } from 'xgplayer'
 import * as AdEvents from '../events'
+import { AD_STATE_CLASS } from './adStateClass'
 import { AdPlayIcon } from './plugins/adPlay'
 import { AdProgress } from './plugins/adProgress'
 import { AdTimeIcon } from './plugins/adTime'
@@ -73,6 +74,29 @@ export class AdUIManager {
         player.removeClass(cls)
       })
     })
+
+    adPlugin.on(AdEvents.AD_START, () => {
+      this.showAdContainer()
+    })
+    adPlugin.on(AdEvents.AD_COMPLETE, () => {
+      this.hideAdContainer()
+    })
+  }
+
+  showAdContainer () {
+    const { player } = this
+
+    if (!Util.hasClass(player.root, AD_STATE_CLASS.START)) {
+      Util.addClass(player.root, AD_STATE_CLASS.START)
+    }
+  }
+
+  hideAdContainer () {
+    const { player } = this
+
+    if (Util.hasClass(player.root, AD_STATE_CLASS.START)) {
+      Util.removeClass(player.root, AD_STATE_CLASS.START)
+    }
   }
 
   showAdUI () {
@@ -115,6 +139,9 @@ export class AdUIManager {
     if (config.controls === false && player.controls) {
       this.hideControls()
     }
+
+    // 广告播控UI展示的时候，一定需要展示容器。反之是不一定的，比如非线形广告，也是需要展示广告容器的
+    this.showAdContainer()
   }
 
   hideAdUI () {
