@@ -295,7 +295,7 @@ export class MP4Demuxer {
         start += nalSize
       }
     }
-    const usedPos = Math.min(videoEndByte, audioEndByte)
+    const usedPos = Math.max(videoEndByte, audioEndByte)
     this._lastRemainBuffer = data.subarray(usedPos)
     if (this._lastRemainBuffer.byteLength > 0) {
       this._lastRemainBufferStartPos = dataStart + data.byteLength - this._lastRemainBuffer.byteLength
