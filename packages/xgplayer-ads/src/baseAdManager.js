@@ -5,7 +5,7 @@ import { Logger } from 'xgplayer-streaming-shared'
 const logger = new Logger('AdsPluginBaseAdManager')
 
 /**
- * @typedef { import ('../../xgplayer/src/player').default } Player
+ * @typedef { import ('xgplayer').default } Player
  */
 
 /**

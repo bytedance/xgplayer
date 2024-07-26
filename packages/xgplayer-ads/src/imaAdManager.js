@@ -19,7 +19,7 @@ const logger = new Logger('AdsPluginImaAdManager')
  */
 
 /**
- * @typedef { import ('../../xgplayer/src/player').default } Player
+ * @typedef { import ('xgplayer').default } Player
  */
 
 /**
