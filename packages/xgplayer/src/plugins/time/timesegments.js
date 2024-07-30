@@ -50,7 +50,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     const { player } = this
     if (disable || !segments || segments.length === 0) {
       player.timeSegments = []
-      player.offsetDuration = 0
+      player.offsetDuration = -1
       player.offsetCurrentTime = -1
     } else {
       const _segs = this.formatTimeSegments(segments, player.duration)
