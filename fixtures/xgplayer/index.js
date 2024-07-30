@@ -341,10 +341,10 @@ function init(index = 0, config = {}) {
       // gestureX: false
     },
     // timeSegments: ,
-    // timeSegmentsControls:{
-    //   disable: false,
-    //   segments: [{start: 0, end: 10}]
-    // },
+    timeSegmentsControls:{
+      disable: false,
+      segments: [{start: 0, end: 10}, {start: 50, end: 100}, {start: 200, end: 220 }, {start: 300, end: 420 }, {start: 500, end: 510 }]
+    },
     keyboard: {
       seekStep: 2
     },
