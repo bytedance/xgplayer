@@ -161,7 +161,7 @@ class MobilePlugin extends Plugin {
     }
     this.on(Events.DURATION_CHANGE, () => {
       const { player, config } = this
-      if (player.duration * 1000 < config.moveDuration) {
+      if (player.duration > 0 && player.duration * 1000 < config.moveDuration) {
         config.moveDuration = player.duration * 1000
       }
     })
