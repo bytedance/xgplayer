@@ -83,7 +83,7 @@ export default class TimeSegmentsControls extends BasePlugin {
       } else {
         const last = ret[index - 1]
         _item.offset = last.offset + (_item.start - last.end)
-        _item.cTime = last.duration + last.cTime
+        _item.cTime = last.duration
         _item.segDuration = _segDuration
         _item.duration = last.duration + _segDuration
       }
@@ -140,6 +140,7 @@ export default class TimeSegmentsControls extends BasePlugin {
       this.player.currentTime = start
     } else if (currentTime > end && index >= _len - 1) {
       this.player.pause()
+      this.player.emit('ended')
     }
   }
 
@@ -163,6 +164,35 @@ export default class TimeSegmentsControls extends BasePlugin {
     }
   }
 
+  convertVideoTime (offsetTime) {
+    let realTime = -1
+    const {timeSegments} = this.player
+    if (!this._checkIfEnabled(timeSegments)) {
+      return offsetTime
+    }
+    const _len = timeSegments.length
+    if (offsetTime < timeSegments[0].duration) {
+      return offsetTime
+    } else if (offsetTime >= timeSegments[_len - 1].duration) {
+      return timeSegments[_len - 1].end
+    } else {
+      let _index = -1
+      for (let i = 0; i < _len; i++) {
+        if (offsetTime > timeSegments[i].duration && offsetTime <= timeSegments[i + 1].duration) {
+          _index = i + 1
+          break
+        }
+      }
+      if (_index >= 0) {
+        const item = timeSegments[_index]
+        realTime = item.start + offsetTime - item.cTime
+      } else {
+        realTime = offsetTime
+      }
+    }
+    return realTime
+  }
+
   _onPlay = () => {
     const { currentTime, timeSegments } = this.player
     if (this._checkIfEnabled(timeSegments) && currentTime >= timeSegments[timeSegments.length - 1].end) {
@@ -171,8 +201,14 @@ export default class TimeSegmentsControls extends BasePlugin {
   }
 
   getSeekTime (currentTime, lastCurrentTime, index, timeSegments) {
+    console.log('>>>getSeekTime', currentTime, lastCurrentTime, index)
     let _time = -1
     const { start, end } = timeSegments[index]
+    if (currentTime < timeSegments[0].start) {
+      return currentTime
+    } else if (currentTime > timeSegments[timeSegments.length - 1].end){
+      return timeSegments[timeSegments.length - 1].end
+    }
     if (currentTime >= start && currentTime <= end) {
       // console.log('>>>>_onSeeking noSeek', currentTime, lastCurrentTime, start, end, _time)
       return _time
