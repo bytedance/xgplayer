@@ -61,6 +61,11 @@ export class Flv extends EventEmitter {
   _keyframes = null
   _acceptRanges = true
 
+  switchCallback = null;
+  waitingSwitch = false;
+  switchStoping = false;
+  showLog = false;
+
   /**
    * @param {import('./options').FlvOption} opts
    */
@@ -79,6 +84,7 @@ export class Flv extends EventEmitter {
       onProgress: this._onProgress,
       responseType: 'arraybuffer'
     })
+    this.showLog = opts.showLog;
 
     this._disconnectRetryCount = this._opts.disconnectRetryCount
     this._transferCost = new TransferCost()
@@ -203,25 +209,32 @@ export class Flv extends EventEmitter {
    * @param {boolean} [seamless=false]
    */
   async switchURL (url, seamless) {
-    if (!this._bufferService) return
+    this.waitingSwitch = true;
 
-    this._resetDisconnectCount()
+    this.switchCallback  = async (keyFramePts) => {
+      if (!this._bufferService) return
+  
+      this._resetDisconnectCount()
+  
+      if (!seamless || !this._opts.isLive) {
+        await this.load(url)
+        this._urlSwitching = true
+        return this.media.play(true).catch(() => {})
+      }
 
-    if (!seamless || !this._opts.isLive) {
-      await this.load(url)
-      this._urlSwitching = true
-      return this.media.play(true).catch(() => {})
+      // this._loadData.cancel();
+  
+      // this._clear()
+  
+      // setTimeout(() => {
+        this._urlSwitching = true
+        this._seamlessSwitching = true
+        this._loadData(url + '?abr_pts=' + keyFramePts)
+        this._bufferService.seamlessSwitch()
+      // })
     }
-
-    await this._clear()
-
-    setTimeout(() => {
-      this._urlSwitching = true
-      this._seamlessSwitching = true
-      this._loadData(url)
-      this._bufferService.seamlessSwitch()
-    })
   }
+
 
   /** @return {Promise} */
   async destroy () {
@@ -307,13 +320,14 @@ export class Flv extends EventEmitter {
       await this._mediaLoader.cancel()
     }
 
-    this._loading = true
-    try {
-      await this._mediaLoader.load({ url: finnalUrl, range })
-    } catch (error) {
-      this._loading = false
-      return this._emitError(StreamingError.network(error), false)
-    }
+      this._loading = true
+      try {
+        await this._mediaLoader.load({ url: finnalUrl, range })
+      } catch (error) {
+        this._loading = false
+        return this._emitError(StreamingError.network(error), false)
+      }
+
   }
 
   /**
@@ -359,8 +373,14 @@ export class Flv extends EventEmitter {
     this._bandwidthService.addChunkRecord(chunk?.byteLength, endTime - startTime)
 
     try {
-      await this._bufferService.appendBuffer(chunk)
+      const res = await this._bufferService.appendBuffer(chunk, this)
       this._bufferService?.evictBuffer(this._opts.bufferBehind)
+      if(res?.nextIframePts) {
+        console.log('nextIframePts ===>', res.nextIframePts);
+        this.switchCallback(res.nextIframePts);
+        this.switchStoping = false;
+        this.waitingSwitch = false;
+      }
     } catch (error) {
       if (!this.isLive && this._bufferService.isFull()) {
         await this._mediaLoader.cancel()
@@ -421,7 +441,7 @@ export class Flv extends EventEmitter {
   }
 
   async _clear () {
-    if (this._mediaLoader) await this._mediaLoader.cancel()
+    if (this._mediaLoader) this._mediaLoader.cancel()
     clearTimeout(this._maxChunkWaitTimer)
     clearTimeout(this._tickTimer)
     this._loading = false

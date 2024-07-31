@@ -3,7 +3,7 @@ import { MSE, Buffer, EVENT, ERR, StreamingError, Logger, concatUint8Array } fro
 import { TRANSFER_EVENT } from './transfer-cost'
 
 const logger = new Logger('BufferService')
-
+let segmentTemp = [];
 export class BufferService {
   /** @type {import('../index').Flv | null} */
   flv = null
@@ -115,7 +115,12 @@ export class BufferService {
     this._remuxer = null
   }
 
-  async appendBuffer (chunk) {
+  async appendBuffer (chunk, parent) {
+    if(parent.switchStoping) {
+      console.log('停止收流')
+      return;
+    }
+
     if (this._cachedBuffer) {
       chunk = concatUint8Array(this._cachedBuffer, chunk)
       this._cachedBuffer = null
@@ -185,6 +190,24 @@ export class BufferService {
       this._emitMetaParsedEvent(videoTrack, audioTrack)
     }
 
+    const keyFrameIndex = videoTrack.samples.findIndex(sample => !!sample.keyframe);
+    const hasKeyFrame = keyFrameIndex > -1;
+    const keyFrame = videoTrack.samples[keyFrameIndex];
+    // console.log('[cyj] 有关键帧', hasKeyFrame)
+
+    if(parent.showLog){
+      console.log(videoTrack.samples.reduce((pre, cur) => {return pre + ',' + cur.originPts + (cur.keyframe ? '【keyframe】' : '')}, ''))
+      console.log(videoTrack.samples);
+    }
+
+    if(parent.waitingSwitch && hasKeyFrame) {
+      console.log('slice 前', videoTrack.samples)
+      videoTrack.samples = videoTrack.samples.slice(0, keyFrameIndex);
+      console.log('slice 后', videoTrack.samples)
+      parent.switchStoping = true;
+    }
+
+
     if (mse) {
       if (!this._sourceCreated) {
         await mse.open()
@@ -222,15 +245,25 @@ export class BufferService {
 
       this._needInitSegment = false
 
-      const p = []
-      if (remuxResult.videoInitSegment) p.push(mse.append(videoType, remuxResult.videoInitSegment))
-      if (remuxResult.audioInitSegment) p.push(mse.append(audioType, remuxResult.audioInitSegment))
-      if (remuxResult.videoSegment) p.push(mse.append(videoType, remuxResult.videoSegment))
-      if (remuxResult.audioSegment) p.push(mse.append(audioType, remuxResult.audioSegment))
 
-      this.flv._transferCost.start(TRANSFER_EVENT.APPEND)
-      return Promise.all(p).then(() => {
-        this.flv._transferCost.end(TRANSFER_EVENT.APPEND)
+      const p = []
+      if (remuxResult.videoInitSegment) {
+        p.push(mse.append(videoType, remuxResult.videoInitSegment))
+      }
+      if (remuxResult.audioInitSegment) p.push(mse.append(audioType, remuxResult.audioInitSegment))
+      if (remuxResult.videoSegment) {
+        p.push(mse.append(videoType, remuxResult.videoSegment))
+      }
+      if (remuxResult.audioSegment) p.push(mse.append(audioType, remuxResult.audioSegment))
+      return Promise.all(p).then((...res) => {
+        if(parent.waitingSwitch && hasKeyFrame) {
+          return {
+            // ...res,
+            nextIframePts: keyFrame.originPts
+          }
+          // return res;
+        }
+        return res;
       })
     } else if (this._softVideo) {
       this._softVideo.appendBuffer(videoTrack, audioTrack)
@@ -290,7 +323,7 @@ export class BufferService {
 
     videoTrack.samples.forEach((sample) => {
       if (sample.keyframe) {
-        this.flv.emit(EVENT.KEYFRAME, { pts: sample.pts })
+        this.flv.emit(EVENT.KEYFRAME, { pts: sample.pts, originPts: sample.originPts })
       }
     })
 

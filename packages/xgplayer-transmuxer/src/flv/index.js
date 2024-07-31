@@ -110,7 +110,7 @@ export class FlvDemuxer {
       if (tagType === 8) {
         this._parseAudio(bodyData, timestamp)
       } else if (tagType === 9) {
-        this._parseVideo(bodyData, timestamp)
+        this._parseVideo(bodyData, timestamp, discontinuity)
       } else if (tagType === 18) {
         this._parseScript(bodyData, timestamp)
       } else {
@@ -250,7 +250,7 @@ export class FlvDemuxer {
     }
   }
 
-  _parseVideo (data, dts) {
+  _parseVideo (data, dts, discontinuity) {
     if (data.length < 6) return
 
     const frameType = (data[0] & 0xf0) >>> 4
@@ -307,6 +307,14 @@ export class FlvDemuxer {
         const sample = new VideoSample(dts + cts, dts, units)
         if (frameType === 1) {
           sample.setToKeyframe()
+          // console.log('discontinuity =====>', discontinuity)
+          // if (discontinuity) {
+          //   const idx = track.samples.findIndex((s) => (s.originDts === sample.dts))
+          //   if (idx >= 0) {
+          //     console.log('idx', id)
+          //     track.samples.splice(idx)
+          //   }
+          // }
         }
         track.samples.push(sample)
 
@@ -339,9 +347,9 @@ export class FlvDemuxer {
         })
 
         if (sample.keyframe) {
-          this._gopId++
+          // this._gopId++
         }
-        sample.gopId = this._gopId
+        // sample.gopId = this._gopId
       } else {
         logger.warn('Cannot parse NALUs', data)
       }

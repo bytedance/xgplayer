@@ -1,7 +1,7 @@
 import Player from '../../packages/xgplayer/src'
 import FlvPlayer from '../../packages/xgplayer-flv/src'
 
-localStorage.setItem('xgd', 1)
+// localStorage.setItem('xgd', 1)
 function defaultOpt() {
   return {
     isLive: true,
@@ -15,7 +15,8 @@ function defaultOpt() {
     bufferBehind: 10,
     maxJumpDistance: 3,
     maxReaderInterval: 5000,
-    seamlesslyReload: false
+    seamlesslyReload: false,
+    // onlyVideo: true,
   }
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
@@ -97,6 +98,8 @@ window.onload = function () {
     localStorage.setItem('xg:test:flv:opt', JSON.stringify(opts))
     window.location.reload()
   }
+
+  var timer;
   function initPlayer() {
     if (player) {
       player.destroy()
@@ -108,19 +111,41 @@ window.onload = function () {
       window.player = player = new Player({
         el: document.getElementById('player'),
         plugins: [FlvPlayer],
-        url: opts.url,
+        // url: opts.url,
+        url: 'http://pull-demo.volcfcdnrd.com/live/st-4536521_cyjhd.flv',
+        // url: 'https://livestream-bd2.tv360.vn/live/livestream02_lbld4.flv?expire=1723104734&sign=02c782b5de83ed60bcee9a8a61d64109',
         isLive: opts.isLive,
         autoplay: opts.autoplay,
         autoplayMuted: opts.autoplayMuted,
-        flv: opts
+        flv: {...opts, showLog: true},
+        // onlyVideo: true
       });
+      // window.player1 = new Player({
+      //   el: document.getElementById('player1'),
+      //   plugins: [FlvPlayer],
+      //   // url: opts.url,
+      //   url: 'https://livestream-bd2.tv360.vn/live/livestream02_lahd4.flv?expire=1723104746&sign=bb3dd96ed0322cede88e2da8c61284ad',
+      //   isLive: opts.isLive,
+      //   autoplay: opts.autoplay,
+      //   autoplayMuted: opts.autoplayMuted,
+      //   flv: {...opts, showLog: false},
+      //   // onlyVideo: true
+      // });
+
+      timer && clearInterval(timer);
+
+      timer = setInterval(function () {
+          // var stats = player.plugins.flv.getStats();
+          // var totalVideoFrames = player.video.getVideoPlaybackQuality().totalVideoFrames;
+          console.log('[cyj] getVideoPlaybackQuality', player.buffered.length, 'bufferend:', player.buffered.end(player.buffered.length - 1) * 1000, 'currentTime:', player.currentTime * 1000, player.media.videoWidth);
+      }, 1000);
       dlEvent.innerHTML = ''
       dlError.innerHTML = ''
 
       function pushEvent(name, value, container) {
         container = container || dlEvent
         if (container === dlEvent && dlLogPause.checked) return
-        console.debug('[test]', name, value)
+        // console.debug('[test]', name, value)
         if (container === dlEvent && logFilter && !logFilter(name, value)) {
           return
         }
@@ -133,26 +158,29 @@ window.onload = function () {
         container.prepend(record)
       }
 
-      player.on('loadstart', function (event) { pushEvent('loadstart', event) })
-      player.on('loadeddata', function (event) { pushEvent('loadeddata', event) })
-      player.on('play', function (event) { pushEvent('play', event) })
-      player.on('pause', function (event) { pushEvent('pause', event) })
-      player.on('ended', function (event) { pushEvent('ended', event) })
-      player.on('autoplay_was_prevented', function (event) { pushEvent('autoplay_was_prevented', event) })
-      player.on('playing', function (event) { pushEvent('playing', event) })
-      player.on('seeking', function (event) { pushEvent('seeking', event) })
-      player.on('seeked', function (event) { pushEvent('seeked', event) })
-      player.on('waiting', function (event) { pushEvent('waiting', event) })
-      player.on('canplay', function (event) { pushEvent('canplay', event) })
-      player.on('durationchange', function (event) { pushEvent('durationchange', event) })
-      player.on('ready', function (event) { pushEvent('ready', event) })
-      player.on('complete', function (event) { pushEvent('complete', event) })
-      player.on('urlchange', function (event) { pushEvent('urlchange', event) })
-      player.on('destroy', function (event) { pushEvent('destroy', event) })
-      player.on('replay', function (event) { pushEvent('replay', event) })
-      player.on('retry', function (event) { pushEvent('retry', event) })
-      player.on('core_event', function (event) { pushEvent(event.eventName, event) })
-      player.on('error', function (event) { pushEvent(event.errorType, event, dlError) })
+      // player.on('loadstart', function (event) { pushEvent('loadstart', event) })
+      // player.on('loadeddata', function (event) { pushEvent('loadeddata', event) })
+      // player.on('play', function (event) { pushEvent('play', event) })
+      // player.on('pause', function (event) { pushEvent('pause', event) })
+      // player.on('ended', function (event) { pushEvent('ended', event) })
+      // player.on('autoplay_was_prevented', function (event) { pushEvent('autoplay_was_prevented', event) })
+      // player.on('playing', function (event) { pushEvent('playing', event) })
+      // player.on('seeking', function (event) { pushEvent('seeking', event) })
+      // player.on('seeked', function (event) { pushEvent('seeked', event) })
+      // player.on('waiting', function (event) { pushEvent('waiting', event) })
+      // player.on('canplay', function (event) { pushEvent('canplay', event) })
+      // player.on('durationchange', function (event) { pushEvent('durationchange', event) })
+      // player.on('ready', function (event) { pushEvent('ready', event) })
+      // player.on('complete', function (event) { pushEvent('complete', event) })
+      // player.on('urlchange', function (event) { pushEvent('urlchange', event) })
+      // player.on('destroy', function (event) { pushEvent('destroy', event) })
+      // player.on('replay', function (event) { pushEvent('replay', event) })
+      // player.on('retry', function (event) { pushEvent('retry', event) })
+      // player.on('core_event', function (event) { pushEvent(event.eventName, event) })
+      // // player.on('error', function (event) { pushEvent(event.errorType, event, dlError) })
+      player.on('error', function (err) { 
+        console.log(err)
+      })
     }
   }
 
