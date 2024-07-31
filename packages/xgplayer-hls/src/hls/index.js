@@ -132,7 +132,7 @@ export class Hls extends EventEmitter {
    * @param {string} url
    * @param {LoadOptions | boolean} options
    */
-  async load (url, options) {
+  async load (url = '', options = {}) {
     const reuseMse = typeof options === 'boolean' ? options : !!options?.reuseMse
 
     if (typeof options === 'object' && options?.clearSwitchStatus) {
