@@ -373,6 +373,12 @@ export class Hls extends EventEmitter {
     await this._refreshM3U8()
   }
 
+  async detachMedia () {
+    if (this._bufferService) {
+      await this._bufferService.detachMedia()
+    }
+  }
+
   async destroy () {
     if (!this.media) return
     this.removeAllListeners()

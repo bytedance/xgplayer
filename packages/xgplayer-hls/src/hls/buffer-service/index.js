@@ -247,11 +247,15 @@ export class BufferService {
     if (this._mse) this._mse.setLiveSeekableRange(start, end)
   }
 
-  async destroy () {
-    this._decryptor?.destroy()
+  async detachMedia () {
     if (this._mse) {
       await this._mse.unbindMedia()
     }
+  }
+
+  async destroy () {
+    this._decryptor?.destroy()
+    await this.detachMedia()
 
     this._decryptor = null
     this._mse = null
