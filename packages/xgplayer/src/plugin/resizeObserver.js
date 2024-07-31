@@ -99,11 +99,11 @@ function addObserver (target, handler) {
 }
 
 function unObserver (target, handler) {
-  resizeObserver.unObserver(target, handler)
+  resizeObserver?.unObserver(target, handler)
 }
 
 function destroyObserver (target, handler) {
-  resizeObserver.destroyObserver(target, handler)
+  resizeObserver?.destroyObserver(target, handler)
 }
 
 export {
