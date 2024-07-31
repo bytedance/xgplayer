@@ -182,7 +182,9 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(Event.APPEND_COST)
 
     if (config.url) {
-      this.hls.load(config.url, true).catch(e => {})
+      this.hls.load(config.url, {
+        reuseMse: true
+      }).catch(e => {})
     }
   }
 
