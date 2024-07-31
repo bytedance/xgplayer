@@ -23,6 +23,12 @@ export { ManifestLoader, Playlist, SegmentLoader, getConfig }
  *  bitrate?: number
  * }} SwitchUrlOptions
  */
+/**
+ * @typedef {{
+*  reuseMse?: boolean,
+*  clearSwitchStatus?: boolean,
+* }} LoadOptions
+*/
 
 export const logger = new Logger('hls')
 
@@ -122,7 +128,19 @@ export class Hls extends EventEmitter {
     return getVideoPlaybackQuality(this.media)
   }
 
-  async load (url, reuseMse = false) {
+  /**
+   * @param {string} url
+   * @param {LoadOptions | boolean} options
+   */
+  async load (url, options) {
+    const reuseMse = typeof options === 'boolean' ? options : !!options?.reuseMse
+
+    if (typeof options === 'object' && options?.clearSwitchStatus) {
+      this._urlSwitching = false
+      this._switchUrlOpts = null
+      this.config.startTime = undefined
+    }
+
     if (url) this.config.url = url
     url = this.config.url
     await this._reset(reuseMse)
@@ -209,6 +227,8 @@ export class Hls extends EventEmitter {
 
   async replay (isPlayEmit) {
     this.config.startTime = 0
+    this._urlSwitching = false
+    this._switchUrlOpts = null
     await this.load()
     this._reloadOnPlay = false
     return this.media.play(!isPlayEmit)
