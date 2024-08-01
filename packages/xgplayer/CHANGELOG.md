@@ -1,4 +1,8 @@
 # 版本更新记录
+## 3.0.20
+>* fix: 🐛 (xgplayer)多个播放器，只显示一个rotate icon
+>* fix: 🐛 (xgplayer)修复mobile插件部分手机场景功能失效问题修复
+>* fix: 🐛 (xgplayer) 修复播放器销毁时，ResizeObserver报错的问题
 ## 3.0.19
 >* fix: 🐛 (xgplayer) 修复弹幕插件在无controls时，初始化报错问题
 >* fix(xgplayer): android hls origin video play's startTime
