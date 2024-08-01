@@ -1,7 +1,7 @@
 import Player from '../../packages/xgplayer/src'
 import FlvPlayer from '../../packages/xgplayer-flv/src'
 
-localStorage.setItem('xgd', 1)
+// localStorage.setItem('xgd', 1)
 function defaultOpt() {
   return {
     isLive: true,
@@ -120,7 +120,7 @@ window.onload = function () {
       function pushEvent(name, value, container) {
         container = container || dlEvent
         if (container === dlEvent && dlLogPause.checked) return
-        console.debug('[test]', name, value)
+        // console.debug('[test]', name, value)
         if (container === dlEvent && logFilter && !logFilter(name, value)) {
           return
         }

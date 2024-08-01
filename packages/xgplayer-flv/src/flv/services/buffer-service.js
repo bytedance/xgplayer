@@ -126,12 +126,22 @@ export class BufferService {
 
     try {
       this.flv._transferCost.start(TRANSFER_EVENT.DEMUX)
-      demuxer.demuxAndFix(chunk, this._discontinuity, this._contiguous, this._demuxStartTime)
+      demuxer.demuxAndFix(chunk, this._discontinuity, this._contiguous, this._demuxStartTime, this.seamlessLoadingSwitching)
+      this.seamlessLoadingSwitching = false
       this.flv._transferCost.end(TRANSFER_EVENT.DEMUX)
     } catch (error) {
       throw new StreamingError(ERR.DEMUX, ERR.SUB_TYPES.FLV, error)
     }
     const { videoTrack, audioTrack, metadataTrack } = demuxer
+
+    if (this.seamlessLoadingSwitch) {
+      const idx = videoTrack.samples.findLastIndex(sample => (sample.originDts === videoTrack.lastKeyFrameDts))
+      if (idx >= 0) {
+        videoTrack.samples.splice(idx)
+        await this.seamlessLoadingSwitch()
+        this.seamlessLoadingSwitch = null
+      }
+    }
 
     let videoExist = videoTrack.exist()
     let audioExist = audioTrack.exist()
