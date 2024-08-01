@@ -1,3 +1,4 @@
+import GopItem from './gopItem'
 function isEdtsApplicable () {
   let flag = true
   const userAgent = navigator.userAgent || ''
@@ -124,7 +125,7 @@ function getSegments (
   let dts = 0
   let gopId = -1
   let editListApplied = false
-  let beforeCttsInfo = {}
+  const beforeCttsInfo = {}
 
   if (cttsEntries?.length > 0 && editListOffset > 0) {
     // 参考chromium原生播放时，ffmpeg_demuxer处理edts后的逻辑：
@@ -150,28 +151,7 @@ function getSegments (
         offset: stcoEntries[chunkIndex] + offsetInChunk,
         index: pos
       }
-      if (stssEntries) {
-        if (memoryOpt) {
-          if (pos + 1 === curSyncSampleNum) {
-            frame.keyframe = true
-            // Because the stss table is arranged in strictly increasing order of sample number,
-            // Therefore use array.shift to get the next sync sample number
-            curSyncSampleNum = stssEntries.shift()
-          }
-        } else {
-          frame.keyframe = keyframeMap[pos]
-        }
-
-        if (frame.keyframe) {
-          gopId++
-          gop.push([frame])
-          gopDuration.push(frame.duration)
-        } else {
-          gop[gop.length - 1].push(frame)
-          gopDuration[gop.length - 1] += frame.duration
-        }
-        frame.gopId = gopId
-      }
+      // 计算pts
       if (cttsEntries) {
         if (memoryOpt) {
           getCTTSOffset(cttsEntries, pos, beforeCttsInfo)
@@ -189,28 +169,62 @@ function getSegments (
       if (frame.pts === undefined) {
         frame.pts = frame.dts
       }
-      // 更新当前gop中最小的pts
-      if (frame.keyframe) {
-        gopMinPtsArr[gopMinPtsArr.length] = frame.pts
-        // gopMinPtsArr.push(frame.pts)
-      } else {
-        if (frame.pts < gopMinPtsArr[gop.length - 1]) {
-          gopMinPtsArr[gop.length - 1] = frame.pts
+      if (stssEntries) {
+        if (memoryOpt) {
+          if (pos + 1 === curSyncSampleNum) {
+            frame.keyframe = true
+            // Because the stss table is arranged in strictly increasing order of sample number,
+            // Therefore use array.shift to get the next sync sample number
+            curSyncSampleNum = stssEntries.shift()
+          }
+        } else {
+          frame.keyframe = keyframeMap[pos]
+        }
+        if (frame.keyframe) {
+          gopId++
+          if (!memoryOpt) {
+            gop.push([frame])
+            gopDuration.push(frame.duration)
+          } else {
+            const gopItem = new GopItem()
+            gopItem.appendFrame(frame)
+            gop.push(gopItem)
+          }
+        } else {
+          if (!memoryOpt) {
+            gop[gop.length - 1].push(frame)
+            gopDuration[gop.length - 1] += frame.duration
+          } else {
+            gop[gop.length - 1].appendFrame(frame)
+          }
+        }
+        frame.gopId = gopId
+        if (memoryOpt) {
+          gop[gop.length - 1].calMinMaxPts(frame)
         }
       }
-      // 更新当前gop中最大的pts
-      if (frame.keyframe) {
-        gopMaxPtsFrameIdxArr[gopMaxPtsFrameIdxArr.length] = frame.index
-        // gopMaxPtsFrameIdxArr.push(frame.index)
-      } else if (gop.length > 0 && gopMaxPtsFrameIdxArr[gop.length - 1] !== undefined) {
-        const curMaxPts = frames[gopMaxPtsFrameIdxArr[gop.length - 1]]?.pts
-        if (curMaxPts !== undefined && frame.pts > curMaxPts) {
-          gopMaxPtsFrameIdxArr[gop.length - 1] = frame.index
+      if (!memoryOpt) {
+        // 更新当前gop中最小的pts
+        if (frame.keyframe) {
+          gopMinPtsArr[gopMinPtsArr.length] = frame.pts
+          // gopMinPtsArr.push(frame.pts)
+        } else {
+          if (frame.pts < gopMinPtsArr[gop.length - 1]) {
+            gopMinPtsArr[gop.length - 1] = frame.pts
+          }
+        }
+        // 更新当前gop中最大的pts
+        if (frame.keyframe) {
+          gopMaxPtsFrameIdxArr[gopMaxPtsFrameIdxArr.length] = frame.index
+          // gopMaxPtsFrameIdxArr.push(frame.index)
+        } else if (gop.length > 0 && gopMaxPtsFrameIdxArr[gop.length - 1] !== undefined) {
+          const curMaxPts = frames[gopMaxPtsFrameIdxArr[gop.length - 1]]?.pts
+          if (curMaxPts !== undefined && frame.pts > curMaxPts) {
+            gopMaxPtsFrameIdxArr[gop.length - 1] = frame.index
+          }
         }
       }
       frames[frames.length] = frame
-      // frames.push(frame)
-
       dts += delta
       pos++
 
@@ -238,26 +252,33 @@ function getSegments (
   const segments = []
   let segFrames = []
   let time = 0
-  let lastFrame
   let adjust = 0
   let segMinPts = 0
-  let segMaxPtsFrame = 0
+  let segMaxPts = 0
+  let segLastFrames
+  let segMaxPtsFrame
   const pushSegment = (duration, startGopIdx, endGopIdx) => {
-    lastFrame = segFrames[segFrames.length - 1]
-    segMinPts = gopMinPtsArr[startGopIdx]
-    segMaxPtsFrame = frames[gopMaxPtsFrameIdxArr[endGopIdx]]
+    segLastFrames = segFrames[segFrames.length - 1]
+    if (memoryOpt) {
+      segMinPts = gop?.length > 0 ? gop[startGopIdx].minPts : segFrames[0].pts
+      segMaxPts = gop?.length > 0 ? gop[endGopIdx].maxPts : (segLastFrames.pts + segLastFrames.duration)
+    } else {
+      segMinPts = gopMinPtsArr[startGopIdx]
+      segMaxPtsFrame = frames[gopMaxPtsFrameIdxArr[endGopIdx]]
+      segMaxPts = segMaxPtsFrame.pts + segMaxPtsFrame.duration
+    }
     // 因为强制把视频第一帧的pts改为0 ，所以第一个gop的时长可能和endTime - startTime对应不上
     // 需要修正下,不然音频根据视频gop时长截取的第一个关键帧起始的误差较大
     if (segments.length === 0) {
-      const diff = segMaxPtsFrame.pts + segMaxPtsFrame.duration - segMinPts
+      const diff = segMaxPts - segMinPts
       duration = diff / timescale
     }
     segments.push({
       index: segments.length,
       startTime: segMinPts / timescale, // (segments[segments.length - 1]?.endTime || segFrames[0].startTime / timescale),
-      endTime: (segMaxPtsFrame.pts + segMaxPtsFrame.duration) / timescale,
+      endTime: segMaxPts / timescale,
       duration: duration,
-      range: [segFrames[0].offset, lastFrame.offset + lastFrame.size - 1],
+      range: [segFrames[0].offset, segLastFrames.offset + segLastFrames.size - 1],
       frames: segFrames
     })
 
@@ -272,8 +293,13 @@ function getSegments (
   if (stss) {
     const duration = segDuration * timescale
     for (let i = 0, l = gop.length; i < l; i++) {
-      time += gopDuration[i]
-      segFrames.push(...gop[i])
+      if (memoryOpt) {
+        time += gop[i].dur
+        segFrames.push(...gop[i].frames)
+      } else {
+        time += gopDuration[i]
+        segFrames.push(...gop[i])
+      }
       if (i + 1 < l) {
         if (i === 0 || time > duration) {
           pushSegment(time / timescale, segGopStartIdx, i)
@@ -285,8 +311,10 @@ function getSegments (
       }
     }
   } else {
-    gopMinPtsArr = []
-    gopMaxPtsFrameIdxArr = []
+    if (!memoryOpt) {
+      gopMinPtsArr = []
+      gopMaxPtsFrameIdxArr = []
+    }
     let duration = segmentDurations[0] || segDuration
 
     if (audioGroupingStrategy === 1) {
@@ -309,8 +337,10 @@ function getSegments (
               : nextEndTime - segFrames[0].pts / timescale >= duration /* 无视频帧（包含音频帧大于视频时长的剩余音频帧分组的场景），使用配置的切片时间或最后一个GOP时长进行分割 */
           )
         ) {
-          gopMinPtsArr.push(segFrames[0].pts)
-          gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
+          if (!memoryOpt) {
+            gopMinPtsArr.push(segFrames[0].pts)
+            gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
+          }
           pushSegment(curEndTime, segments.length, segments.length)
           duration = segmentDurations[segments.length] || segDuration
         }
@@ -336,8 +366,10 @@ function getSegments (
           } else {
             adjust += nextEndTime - duration
           }
-          gopMinPtsArr.push(segFrames[0].pts)
-          gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
+          if (!memoryOpt) {
+            gopMinPtsArr.push(segFrames[0].pts)
+            gopMaxPtsFrameIdxArr.push(segFrames[segFrames.length - 1].index)
+          }
           pushSegment(curEndTime, segments.length, segments.length)
           duration = segmentDurations[segments.length] || segDuration
         }
@@ -351,27 +383,29 @@ function getSegments (
 function getCTTSOffset (cttsEntries, frameIndex, beforeCttsInfo) {
   // const ret = {}
   beforeCttsInfo.offset = 0
+  const beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
+  let currentCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
   if (!cttsEntries || cttsEntries?.length <= 0 || beforeCttsInfo?.usedCttsIdx >= cttsEntries.length) {
     beforeCttsInfo.offset = 0
-    beforeCttsInfo.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
+    beforeCttsInfo.usedCttsIdx = currentCttsIdx
     // curUsedCttsIdx前的count的累计值
-    beforeCttsInfo.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
+    beforeCttsInfo.beforeFrameNum = beforeFrameNum
   } else {
-    const curerentCTTS = cttsEntries[beforeCttsInfo?.usedCttsIdx || 0]
+    const curerentCTTS = cttsEntries[currentCttsIdx]
     const count = curerentCTTS?.count || 1
-    if (frameIndex < (beforeCttsInfo?.beforeFrameNum || 0) + count) {
+    if (frameIndex < beforeFrameNum + count) {
       beforeCttsInfo.offset = curerentCTTS?.offset || 0
-      beforeCttsInfo.usedCttsIdx = beforeCttsInfo?.usedCttsIdx || 0
-      beforeCttsInfo.beforeFrameNum = beforeCttsInfo?.beforeFrameNum || 0
     } else {
-      const newCTTS = cttsEntries[beforeCttsInfo.usedCttsIdx + 1]
+      currentCttsIdx ++
+      const newCTTS = cttsEntries[currentCttsIdx]
       if (!newCTTS) {
         beforeCttsInfo.offset = 0
+        beforeCttsInfo.beforeFrameNum = beforeFrameNum + 1
       } else {
-        beforeCttsInfo.offset = newCTTS?.offset || 0
+        beforeCttsInfo.offset = newCTTS.offset || 0
+        beforeCttsInfo.beforeFrameNum = beforeFrameNum + curerentCTTS.count
       }
-      beforeCttsInfo.usedCttsIdx = beforeCttsInfo.usedCttsIdx + 1
-      beforeCttsInfo.beforeFrameNum = (beforeCttsInfo?.beforeFrameNum || 0) + (curerentCTTS?.count || 1)
+      beforeCttsInfo.usedCttsIdx = currentCttsIdx
     }
   }
 }
