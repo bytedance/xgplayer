@@ -23,7 +23,7 @@ class ResizeObserver {
     if (!this.observer) {
       return
     }
-    this.observer && this.observer.observe(target)
+    this.observer.observe(target)
     const _pid = target.getAttribute(PLATER_ID)
     const { __handlers } = this
     let index = -1
@@ -51,14 +51,13 @@ class ResizeObserver {
       }
     })
     try {
-      this.observer && this.observer.unobserve(target)
+      this.observer?.unobserve(target)
     } catch (e) {}
-    this.observer && this.observer.unobserve(target)
     i > -1 && this.__handlers.splice(i, 1)
   }
 
   destroyObserver () {
-    this.observer && this.observer.disconnect()
+    this.observer?.disconnect()
     this.observer = null
     this.__handlers = null
   }
@@ -87,6 +86,9 @@ class ResizeObserver {
   }
 }
 
+/**
+ * @type {ResizeObserver | null}
+ */
 let resizeObserver = null
 
 function addObserver (target, handler) {
@@ -99,11 +101,11 @@ function addObserver (target, handler) {
 }
 
 function unObserver (target, handler) {
-  resizeObserver.unObserver(target, handler)
+  resizeObserver?.unObserver(target, handler)
 }
 
 function destroyObserver (target, handler) {
-  resizeObserver.destroyObserver(target, handler)
+  resizeObserver?.destroyObserver(target, handler)
 }
 
 export {
