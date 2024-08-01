@@ -39,7 +39,7 @@ export class FlvDemuxer {
    * @param {boolean} [contiguous=true]
    * @returns {DemuxResult}
    */
-  demux (data, discontinuity = false, contiguous = true) {
+  demux (data, discontinuity = false, contiguous = true, seamlessLoadingSwitching) {
     const { audioTrack, videoTrack, metadataTrack } = this
 
     if (discontinuity || !contiguous) {
@@ -110,6 +110,7 @@ export class FlvDemuxer {
       if (tagType === 8) {
         this._parseAudio(bodyData, timestamp)
       } else if (tagType === 9) {
+        if (seamlessLoadingSwitching) this.seamlessLoadingSwitching = true
         this._parseVideo(bodyData, timestamp)
       } else if (tagType === 18) {
         this._parseScript(bodyData, timestamp)
@@ -169,8 +170,8 @@ export class FlvDemuxer {
    * @param {number} [startTime=0]
    * @returns {DemuxResult}
    */
-  demuxAndFix (data, discontinuity, contiguous, startTime) {
-    this.demux(data, discontinuity, contiguous)
+  demuxAndFix (data, discontinuity, contiguous, startTime, seamlessLoadingSwitching) {
+    this.demux(data, discontinuity, contiguous, seamlessLoadingSwitching)
     return this.fix(startTime, discontinuity, contiguous)
   }
 
@@ -305,8 +306,13 @@ export class FlvDemuxer {
 
       if (units && units.length) {
         const sample = new VideoSample(dts + cts, dts, units)
+        if (this.seamlessLoadingSwitching && dts < track.lastKeyFrameDts) {
+          return
+        }
+        this.seamlessLoadingSwitching = false
         if (frameType === 1) {
           sample.setToKeyframe()
+          track.lastKeyFrameDts = dts
         }
         track.samples.push(sample)
 

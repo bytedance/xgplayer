@@ -62,6 +62,8 @@ export class VideoTrack {
 
   isVideo = true
 
+  lastKeyFrameDts = 0
+
   kid = null
 
   pssh = null

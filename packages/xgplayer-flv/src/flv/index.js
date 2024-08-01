@@ -207,6 +207,18 @@ export class Flv extends EventEmitter {
 
     this._resetDisconnectCount()
 
+    if (this.loading && seamless) {
+      this._bufferService.seamlessLoadingSwitch = async (pts) => {
+        await this._clear()
+        this._bufferService.seamlessLoadingSwitching = true
+        this._urlSwitching = true
+        this._seamlessSwitching = true
+        this._bufferService.seamlessSwitch()
+        this._loadData(url)
+      }
+      return
+    }
+
     if (!seamless || !this._opts.isLive) {
       await this.load(url)
       this._urlSwitching = true
