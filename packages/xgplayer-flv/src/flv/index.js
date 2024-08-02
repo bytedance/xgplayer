@@ -195,6 +195,7 @@ export class Flv extends EventEmitter {
 
   disconnect () {
     logger.debug('disconnect!')
+    this._bufferService?.resetSeamlessSwitchStats()
     return this._clear()
   }
 
