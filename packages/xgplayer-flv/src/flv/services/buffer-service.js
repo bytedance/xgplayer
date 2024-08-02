@@ -135,7 +135,7 @@ export class BufferService {
 
     try {
       this.flv._transferCost.start(TRANSFER_EVENT.DEMUX)
-      demuxer.demuxAndFix(chunk, this._discontinuity, this._contiguous, this._demuxStartTime, this.seamlessLoadingSwitching)
+      demuxer.demuxAndFix(chunk, this.seamlessLoadingSwitching || this._discontinuity, this._contiguous, this._demuxStartTime, this.seamlessLoadingSwitching)
       this.seamlessLoadingSwitching = false
       this.flv._transferCost.end(TRANSFER_EVENT.DEMUX)
     } catch (error) {
