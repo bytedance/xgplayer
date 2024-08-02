@@ -81,6 +81,16 @@ export class BufferService {
     this._contiguous = false
     this._sourceCreated = false
     this._initSegmentId = ''
+    this.resetSeamlessSwitchStats()
+  }
+
+  resetSeamlessSwitchStats () {
+    console.log('resetSeamlessSwitchStats')
+    this.seamlessLoadingSwitch = null
+    this.seamlessLoadingSwitching = false
+    if (this._demuxer) {
+      this._demuxer.seamlessLoadingSwitching = false
+    }
   }
 
   async endOfStream () {
