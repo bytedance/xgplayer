@@ -2,8 +2,7 @@
 
 ## Introduction
 
-The `Ads` plugin mainly used to provide users with the ability to quickly integrate advertizement. 插件集成了 `Google IMA`、`Google DAI`<sup>(待开发)</sup> 等SDK，提供了符合VAST、VMAP、VPAID等标准的广告接入方式。
-The plugin integrates SDKs such as `Google IMA` and `Google DAI`<sup>(to be developed)</sup>, and provides ad integration capability that comply with VAST, VMAP, VPAID and other standards.
+The `Ads` plugin mainly used to provide users with the ability to quickly integrate advertizement. The plugin integrates SDKs such as `Google IMA` and `Google DAI`<sup>(to be developed)</sup>, and provides ad integration capability that comply with VAST, VMAP, VPAID and other standards.
 
 ### Usage
 
@@ -31,7 +30,7 @@ const player = new Player({
 
 | Name | Types | Default | Description |
 | ------ | -------- | ----- | ----- |
-| adType | `google-ima` \| `google-dai` \| `aws-media-tailer` | - | , |
+| adType | `google-ima` \| `google-dai` \| `aws-media-tailer` | - | Ad SDK type, currently only supports `google-ima` |
 | ima | object | [IMA Config](#ima_configure) | Configuration provided for `google-ima` type |
 | controls | boolean | `true` | Whether display the playback control UI during the ad playing |
 
