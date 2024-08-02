@@ -85,7 +85,6 @@ export class BufferService {
   }
 
   resetSeamlessSwitchStats () {
-    console.log('resetSeamlessSwitchStats')
     this.seamlessLoadingSwitch = null
     this.seamlessLoadingSwitching = false
     if (this._demuxer) {
