@@ -4,10 +4,12 @@ export const AD_PLAY = 'ad_play'
 export const AD_PAUSE = 'ad_pause'
 export const AD_TIME_UPDATE = 'ad_time_update'
 export const AD_SKIPPED = 'ad_skipped'
+export const AD_ERROR = 'ad_error'
 export const AD_COMPLETE = 'ad_complete'
 export const AD_ALL_COMPLETED = 'ad_all_completed'
 
 // IMA Specific Events
+export const IMA_SDK_LOAD_START = 'ima_sdk_load_start'
 export const IMA_SDK_LOAD_SUCCESS = 'ima_sdk_load_success'
 export const IMA_SDK_LOAD_ERROR = 'ima_sdk_load_error'
 export const IMA_AD_LOADER_READY = 'ima_ad_loader_ready'
