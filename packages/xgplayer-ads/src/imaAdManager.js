@@ -51,6 +51,7 @@ export class ImaAdManager extends BaseAdManager {
     this.shouldBlockVideoContent = !!(this.config.adTagUrl || this.config.adsResponse || this.config.adsRequest)
 
     try {
+      this.emit(ADEvents.IMA_SDK_LOAD_START)
       await this._loadIMASdk()
       this.emit(ADEvents.IMA_SDK_LOAD_SUCCESS)
     } catch (e) {
@@ -355,7 +356,8 @@ export class ImaAdManager extends BaseAdManager {
     this.shouldBlockVideoContent = false
     this.isLinearAdRunning = false
     this.adsManager?.destroy()
-    this.player.emit(ADEvents.IMA_AD_ERROR, error)
+    this.plugin?.emit(ADEvents.IMA_AD_ERROR, error)
+    this.plugin?.emit(ADEvents.AD_ERROR, error)
   }
 
   /**
@@ -452,8 +454,13 @@ export class ImaAdManager extends BaseAdManager {
           }
         }
 
+        this.emit(ADEvents.IMA_AD_LOADED, {
+          ad,
+          isPreroll
+        })
         this.plugin.emit(ADEvents.IMA_AD_LOADED, {
-          ad
+          ad,
+          isPreroll
         })
         break
       }

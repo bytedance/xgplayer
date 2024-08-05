@@ -100,6 +100,17 @@ export class AdsPlugin extends Plugin {
       displayContainer: this.root
     })
 
+    this.csManager.once(AdEvents.IMA_SDK_LOAD_START, () => {
+      this.uiManager.showAdContainer()
+    })
+    this.csManager.on(AdEvents.IMA_SDK_LOAD_ERROR, () => {
+      this.uiManager.hideAdContainer()
+    })
+    this.csManager.once(AdEvents.IMA_AD_LOADED, ({isPreroll}) => {
+      if (!isPreroll) {
+        this.uiManager.hideAdContainer()
+      }
+    })
     this.csManager.once(AdEvents.IMA_READY_TO_PLAY, () => {
       this.initPromise?.resolve()
     })
