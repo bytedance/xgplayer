@@ -99,6 +99,9 @@ export class AdUIManager {
     adPlugin.on(AdEvents.AD_COMPLETE, () => {
       this.hideAdContainer()
     })
+    adPlugin.on(AdEvents.AD_SKIPPED, () => {
+      this.hideAdContainer()
+    })
   }
 
   showAdContainer () {

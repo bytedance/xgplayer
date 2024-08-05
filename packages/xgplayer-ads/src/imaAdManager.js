@@ -517,6 +517,13 @@ export class ImaAdManager extends BaseAdManager {
         })
         break
       }
+      // Fires when the ad is skipped by the user.
+      case google.ima.AdEvent.Type.SKIPPED: {
+        this.plugin.emit(ADEvents.AD_SKIPPED, {
+          ad
+        })
+        break
+      }
       // Fires when the ad's current time value changes.
       // Calling getAdData() on this event will return an AdProgressData object.
       case google.ima.AdEvent.Type.AD_PROGRESS: {
