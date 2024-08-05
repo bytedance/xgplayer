@@ -136,7 +136,10 @@ export class AdsPlugin extends Plugin {
   }
 
   destroy () {
+    this.offAll()
+
     this.csManager?.destroy()
+    this.uiManager?.destroy()
   }
 
   reset () {

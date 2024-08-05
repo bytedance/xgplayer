@@ -6,9 +6,19 @@ import { AdProgress } from './plugins/adProgress'
 import { AdTimeIcon } from './plugins/adTime'
 
 export class AdUIManager {
-  constructor (config, { player, plugin }) {
+  /**
+   * @param {Object} options
+   * @param {import('xgplayer').default} options.player
+   * @param {import('../plugin').AdsPlugin} options.plugin
+   */
+  constructor (config, options) {
+    const { player, plugin } = options
     this.player = player
     this.config = config
+
+    /**
+     * @type {import('../plugin').AdsPlugin}
+     */
     this.adPlugin = plugin
     this.adUIPlugins = []
 
@@ -62,6 +72,14 @@ export class AdUIManager {
         ])
       }
     })
+  }
+
+  destroy () {
+    this.fragment = null
+    this.adUIPlugins = []
+    this.decoratedAdPluginList = []
+    this.adPlugin = null
+    this.player = null
   }
 
   initEvents () {
