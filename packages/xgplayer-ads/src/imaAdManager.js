@@ -427,6 +427,7 @@ export class ImaAdManager extends BaseAdManager {
     // Retrieve the ad from the event. Some events (for example,
     // ALL_ADS_COMPLETED) don't have ad object associated.
     const ad = ev?.getAd()
+    const adData = ev?.getAdData() || ad?.data
     let intervalTimer
     let printJsonLog = false
 
@@ -440,7 +441,7 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when ad data is available.
       // This is the first event sent for an ad.
       case google.ima.AdEvent.Type.LOADED: {
-        const { adPodInfo } = ev.getAdData()
+        const { adPodInfo } = adData || {}
         const isPreroll = adPodInfo?.podIndex === 0
 
         printJsonLog = true
@@ -548,15 +549,24 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when the ad completes playing.
       // Player could remove the ad UI also start playing the next ad.
       case google.ima.AdEvent.Type.COMPLETE: {
+        const { adPodInfo } = adData || {}
+        let hasNextInPod = false
+
         if (ad?.isLinear()) {
+          if (adPodInfo) {
+            hasNextInPod = adPodInfo.adPosition < adPodInfo.totalAds
+          }
+
           clearInterval(intervalTimer)
         }
 
         this.plugin.emit(ADEvents.IMA_AD_COMPLETE, {
-          ad
+          ad,
+          hasNextInPod
         })
         this.plugin.emit(ADEvents.AD_COMPLETE, {
-          ad
+          ad,
+          hasNextInPod
         })
         break
       }
