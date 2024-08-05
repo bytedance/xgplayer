@@ -166,6 +166,8 @@ export class AdUIManager {
 
     // 广告播控UI展示的时候，一定需要展示容器。反之是不一定的，比如非线形广告，也是需要展示广告容器的
     this.showAdContainer()
+
+    player.addClass(AD_STATE_CLASS.UI_SHOW)
   }
 
   hideAdUI () {
@@ -219,6 +221,8 @@ export class AdUIManager {
         }, 10)
       })
     }
+
+    player.removeClass(AD_STATE_CLASS.UI_SHOW)
   }
 
   hideControls () {
