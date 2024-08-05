@@ -96,8 +96,10 @@ export class AdUIManager {
     adPlugin.on(AdEvents.AD_START, () => {
       this.showAdContainer()
     })
-    adPlugin.on(AdEvents.AD_COMPLETE, () => {
-      this.hideAdContainer()
+    adPlugin.on(AdEvents.AD_COMPLETE, ({ hasNextInPod }) => {
+      if (!hasNextInPod) {
+        this.hideAdContainer()
+      }
     })
     adPlugin.on(AdEvents.AD_SKIPPED, () => {
       this.hideAdContainer()
