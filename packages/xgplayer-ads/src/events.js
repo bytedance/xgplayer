@@ -3,6 +3,7 @@ export const AD_START = 'ad_start'
 export const AD_PLAY = 'ad_play'
 export const AD_PAUSE = 'ad_pause'
 export const AD_TIME_UPDATE = 'ad_time_update'
+export const AD_SKIPPED = 'ad_skipped'
 export const AD_COMPLETE = 'ad_complete'
 export const AD_ALL_COMPLETED = 'ad_all_completed'
 
