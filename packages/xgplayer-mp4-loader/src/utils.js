@@ -303,10 +303,12 @@ function getSegments (
       if (i + 1 < l) {
         if (i === 0 || time > duration) {
           pushSegment(time / timescale, segGopStartIdx, i)
+          time = 0
           segGopStartIdx = i + 1
         }
       } else {
         pushSegment(time / timescale, segGopStartIdx, i)
+        time = 0
         segGopStartIdx = i + 1
       }
     }

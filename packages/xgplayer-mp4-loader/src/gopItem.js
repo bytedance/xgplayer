@@ -13,8 +13,9 @@ export default class GopItem {
     if (frame.pts < this.minPts){
       this.minPts = frame.pts
     }
-    if (frame.pts + frame.duration > this.maxPts){
-      this.maxPts = frame.pts + frame.duration
+    const pts = frame.pts + frame.duration
+    if (pts > this.maxPts){
+      this.maxPts = pts
     }
   }
 }
