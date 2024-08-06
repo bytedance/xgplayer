@@ -148,7 +148,9 @@ export class BufferService {
       if (idx >= 0) {
         videoTrack.samples.splice(idx)
         await this.seamlessLoadingSwitch()
+        // 切换清晰度后，删除原清晰度数据
         this.seamlessLoadingSwitch = null
+        chunk = null
       }
     }
 
