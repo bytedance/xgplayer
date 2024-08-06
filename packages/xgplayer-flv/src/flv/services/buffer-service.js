@@ -125,6 +125,7 @@ export class BufferService {
   }
 
   async appendBuffer (chunk) {
+    let switchingNoReset = false
     if (this._cachedBuffer) {
       chunk = concatUint8Array(this._cachedBuffer, chunk)
       this._cachedBuffer = null
@@ -151,6 +152,7 @@ export class BufferService {
         // 切换清晰度后，删除原清晰度数据
         this.seamlessLoadingSwitch = null
         chunk = null
+        switchingNoReset = true
       }
     }
 
@@ -190,9 +192,11 @@ export class BufferService {
     const videoType = videoTrack.type
     const audioType = audioTrack.type
     this._fireEvents(videoTrack, audioTrack, metadataTrack)
-    this._discontinuity = false
-    this._contiguous = true
-    this._demuxStartTime = 0
+    if (!switchingNoReset) {
+      this._discontinuity = false
+      this._contiguous = true
+      this._demuxStartTime = 0
+    }
 
     const mse = this._mse
 
