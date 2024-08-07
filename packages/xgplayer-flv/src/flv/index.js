@@ -183,9 +183,9 @@ export class Flv extends EventEmitter {
       await this._clear()
 
       setTimeout(() => {
+        this._seamlessSwitching = true
         this._loadData(this._opts.url)
         this._bufferService.seamlessSwitch()
-        this._seamlessSwitching = true
       })
     } else {
       await this.load()
@@ -465,12 +465,12 @@ export class Flv extends EventEmitter {
     if (bufferEnd < MAX_HOLE || !media.readyState) return
 
     const opts = this._opts
-    if (isMediaPlaying(media)) {
+    if (isMediaPlaying(media) && media.currentTime) {
       if (this._gapService) {
         this._gapService.do(media, opts.maxJumpDistance, this.isLive, 3)
       }
     } else {
-      if (!media.currentTime && this._gapService) {
+      if (!media.currentTime && this._gapService && opts.enableStartGapJump) {
         // 起播跳洞检测
         const gapJump =
           this._opts.mseLowLatency ||
