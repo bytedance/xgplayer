@@ -145,7 +145,7 @@ export class BufferService {
     const { videoTrack, audioTrack, metadataTrack } = demuxer
 
     if (this.seamlessLoadingSwitch) {
-      const idx = videoTrack.samples.findLastIndex(sample => (sample.originDts === videoTrack.lastKeyFrameDts))
+      const idx = videoTrack.samples.findIndex(sample => (sample.originDts === videoTrack.lastKeyFrameDts))
       if (idx >= 0) {
         videoTrack.samples.splice(idx)
         await this.seamlessLoadingSwitch()
@@ -315,7 +315,7 @@ export class BufferService {
 
     videoTrack.samples.forEach((sample) => {
       if (sample.keyframe) {
-        this.flv.emit(EVENT.KEYFRAME, { pts: sample.pts })
+        this.flv.emit(EVENT.KEYFRAME, { pts: sample.originPts })
       }
     })
 

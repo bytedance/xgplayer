@@ -29,6 +29,7 @@
 *   skipChunkSize?: number, // Byte
 *   longtimeNoReceived?: number,
 *   preProcessUrl?: (url: string, ext?: { [propName: string]: any }) => { url: string, [propName: string]: any }
+*   enableStartGapJump?: boolean
  * }} FlvOption
  */
 
@@ -60,6 +61,8 @@ export function getOption (opts) {
     chunkCountForSpeed: 50,
     skipChunkSize: 1000,
     longtimeNoReceived: 3000,
+    // currentTime 为 0 时，是否允许跳洞。兼容 tizen 首帧跳洞导致帧回退问题。
+    enableStartGapJump: true,
     ...opts
   }
 
