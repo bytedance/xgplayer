@@ -19,12 +19,45 @@ function mergeISPOT (iSpot) {
   })
 }
 
+export function getOffSetISpot (time, duration, timeSegments) {
+  if (!timeSegments || timeSegments.length < 1 ){
+    return {
+      time,
+      duration
+    }
+  }
+  let offsetTime = time
+  const index = Util.getIndexByTime(time, timeSegments)
+  if (index < 0) {
+    return null
+  } else {
+    const item = timeSegments[index]
+    if (time + duration < item.start || time > item.end) {
+      return null
+    }
+    if (time <= item.start) {
+      offsetTime = item.cTime
+      duration = duration - (item.start - time)
+    } else {
+      offsetTime = item.cTime + (time - item.start)
+      duration = offsetTime + duration <= item.end ? duration : item.end - offsetTime
+    }
+  }
+  return {
+    time: offsetTime,
+    duration
+  }
+}
 const APIS = {
   _updateDotDom (iSpot, dotDom) {
     if (!dotDom) {
       return
     }
-    const ret = this.calcuPosition(iSpot.time, iSpot.duration)
+    const offset = getOffSetISpot(iSpot.time, iSpot.duration, this.player.timeSegments)
+    if (!offset) {
+      return
+    }
+    const ret = this.calcuPosition(offset.time, offset.duration)
     const style = iSpot.style || {}
     style.left = `${ret.left}%`
     style.width = `${ret.width}%`
@@ -63,7 +96,14 @@ const APIS = {
     if (!this.ispotsInit && isNew) {
       return
     }
-    const ret = this.calcuPosition(iSpot.time, iSpot.duration)
+    const offset = getOffSetISpot(iSpot.time, iSpot.duration, this.player.timeSegments)
+    if (!offset) {
+      return
+    }
+    const ret = this.calcuPosition(offset.time, offset.duration)
+    if (!ret) {
+      return
+    }
     const style = iSpot.style || {}
     style.left = `${ret.left}%`
     style.width = `${ret.width}%`

@@ -1,47 +1,4 @@
 import { BasePlugin, Events, Util } from '../../plugin'
-export function getIndexByTime (time, segments) {
-  const _len = segments.length
-  let _index = -1
-  if (_len < 1) {
-    return _index
-  }
-  if (time <= segments[0].end || _len < 2) {
-    _index = 0
-  } else if (time > segments[_len - 1].end) {
-    _index = _len - 1
-  } else {
-    for (let i = 1; i < _len; i++) {
-      if (time > segments[i - 1].end && time <= segments[i].end){
-        _index = i
-        break
-      }
-    }
-  }
-  return _index
-}
-
-export function getOffsetCurrentTime (currentTime, segments, index = -1) {
-  let _index = -1
-  if (index >= 0 && index < segments.length) {
-    _index = index
-  } else {
-    _index = getIndexByTime(currentTime, segments)
-  }
-  if (_index < 0) {
-    return -1
-  }
-  const _len = segments.length
-  const { start, end, cTime, offset } = segments[_index]
-  if (currentTime < start) {
-    return cTime
-  } else if (currentTime >= start && currentTime <= end) {
-    return currentTime - offset
-  } else if (currentTime > end && _index >= _len - 1) {
-    return end - offset
-  }
-  return -1
-}
-
 /**
  * 进行事件分段控制
  */
@@ -140,8 +97,8 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (!this._checkIfEnabled(timeSegments)) {
       return
     }
-    const index = getIndexByTime(currentTime,timeSegments)
-    const time = getOffsetCurrentTime(currentTime, timeSegments, index)
+    const index = Util.getIndexByTime(currentTime,timeSegments)
+    const time = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
     this.player.offsetCurrentTime = time
     this.changeIndex(index, timeSegments)
   }
@@ -151,7 +108,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (!this._checkIfEnabled(timeSegments)) {
       return
     }
-    const time = getOffsetCurrentTime(0, timeSegments)
+    const time = Util.getOffsetCurrentTime(0, timeSegments)
     this.player.offsetCurrentTime = time
     this.changeIndex(0, timeSegments)
     if (this.curPos.start > 0){
@@ -166,11 +123,11 @@ export default class TimeSegmentsControls extends BasePlugin {
     }
     const _len = timeSegments.length
     this.lastCurrentTime = currentTime
-    const index = getIndexByTime(currentTime, timeSegments)
+    const index = Util.getIndexByTime(currentTime, timeSegments)
     if (index !== this.curIndex) {
       this.changeIndex(index, timeSegments)
     }
-    const curTime = getOffsetCurrentTime(currentTime, timeSegments, index)
+    const curTime = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
     this.player.offsetCurrentTime = curTime
 
     // 根据分段信息进行放时间点跳转
@@ -206,7 +163,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     } else if (currentTime > timeSegments[timeSegments.length - 1].end) {
       this.player.currentTime = timeSegments[timeSegments.length - 1].end
     } else {
-      const _index = getIndexByTime(currentTime, timeSegments)
+      const _index = Util.getIndexByTime(currentTime, timeSegments)
       if (_index >= 0) {
         const _seekTime = this.getSeekTime(currentTime, this.lastCurrentTime, _index, timeSegments)
         if (_seekTime >= 0 ) {
@@ -222,27 +179,28 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (!this._checkIfEnabled(timeSegments)) {
       return offsetTime
     }
-    const _len = timeSegments.length
-    if (offsetTime < timeSegments[0].duration) {
-      const { start } = timeSegments[0]
-      return offsetTime + start
-    } else if (offsetTime >= timeSegments[_len - 1].duration) {
-      return timeSegments[_len - 1].end
-    } else {
-      let _index = -1
-      for (let i = 0; i < _len; i++) {
-        if (offsetTime > timeSegments[i].duration && offsetTime <= timeSegments[i + 1].duration) {
-          _index = i + 1
-          break
-        }
-      }
-      if (_index >= 0) {
-        const item = timeSegments[_index]
-        realTime = item.start + offsetTime - item.cTime
-      } else {
-        realTime = offsetTime
-      }
-    }
+    realTime = Util.getCurrentTimeByOffset(offsetTime, timeSegments)
+    // const _len = timeSegments.length
+    // if (offsetTime < timeSegments[0].duration) {
+    //   const { start } = timeSegments[0]
+    //   return offsetTime + start
+    // } else if (offsetTime >= timeSegments[_len - 1].duration) {
+    //   return timeSegments[_len - 1].end
+    // } else {
+    //   let _index = -1
+    //   for (let i = 0; i < _len; i++) {
+    //     if (offsetTime > timeSegments[i].duration && offsetTime <= timeSegments[i + 1].duration) {
+    //       _index = i + 1
+    //       break
+    //     }
+    //   }
+    //   if (_index >= 0) {
+    //     const item = timeSegments[_index]
+    //     realTime = item.start + offsetTime - item.cTime
+    //   } else {
+    //     realTime = offsetTime
+    //   }
+    // }
     return realTime
   }
 
