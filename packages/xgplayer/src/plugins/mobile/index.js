@@ -682,12 +682,12 @@ class MobilePlugin extends Plugin {
 
   // 动态禁用手势
   disableGesture () {
-    this.config.disableGesture = false
+    this.config.disableGesture = true
   }
 
   // 动态启用手势
   enableGesture () {
-    this.config.disableGesture = true
+    this.config.disableGesture = false
   }
 
   destroy () {
