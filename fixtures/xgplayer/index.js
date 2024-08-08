@@ -344,7 +344,7 @@ function init(index = 0, config = {}) {
     // timeSegments: ,
     timeSegmentsControls:{
       disable: false,
-      segments: [{start: 0, end: 10}, {start: 50, end: 100}, {start: 200, end: 220 }, {start: 300, end: 420 }, {start: 500, end: 510 }]
+      segments: [{start: 50, end: 100}, {start: 200, end: 220 }, {start: 300, end: 420 }, {start: 500, end: 510 }]
     },
     keyboard: {
       seekStep: 2
@@ -352,7 +352,28 @@ function init(index = 0, config = {}) {
     progresspreview: {
       // width: 88.23,
       // height: 50,
-      mode: 'short'
+      mode: 'short',
+      ispots: [{
+        time: 20,
+        duration: 10,
+        text: '1111',
+        id: 1
+      },{
+        time: 40,
+        duration: 165,
+        text: '2222',
+        id: 2
+      },{
+        time: 170,
+        duration: 20,
+        text: '3333',
+        id: 3
+      },{
+        time: 250,
+        duration: 400,
+        text: '4444',
+        id: 3
+      }]
     },
     seekedStatus: 'auto',
     texttrack: {

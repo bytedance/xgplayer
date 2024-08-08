@@ -93,6 +93,7 @@ export default class ProgressPreview extends Plugin {
     this.on(Events.DURATION_CHANGE, () => {
       this.show()
     })
+
     if (this.config.disable) {
       this.disable()
     }
