@@ -1,5 +1,5 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
-import { TextTrack } from '../../packages/xgplayer/src/index'
+import Magnifier from '../../packages/xgplayer/src/plugins/magnifier'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
@@ -292,7 +292,7 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
+    url: "./3_555555_h264.mp4",
     DynamicBg: {
       disable: false
     },
@@ -301,9 +301,8 @@ function init(index = 0, config = {}) {
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
-    width: '96%',
     ignores:[],
-    plugins: [],
+    plugins: [Magnifier],
     rotate: false,
     heatmap: {
       data: headmapData,
@@ -387,7 +386,8 @@ function init(index = 0, config = {}) {
       defaultDefinition: '360p',
       isItemClickHide: false
     },
-    height: 300,
+    width: 600,
+    height: 337.5,
     miniprogress: true,
     ...config
   })
