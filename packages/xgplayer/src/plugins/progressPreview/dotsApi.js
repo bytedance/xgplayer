@@ -26,28 +26,33 @@ export function getOffSetISpot (time, duration, timeSegments) {
       duration
     }
   }
-  let offsetTime = time
-  const index = Util.getIndexByTime(time, timeSegments)
-  if (index < 0) {
+  const offsetTime = Util.getOffsetCurrentTime(time, timeSegments)
+  const offsetEnd = Util.getOffsetCurrentTime(time + duration, timeSegments)
+  const d = offsetEnd - offsetTime
+  if (offsetEnd <= offsetTime) {
     return null
-  } else {
-    const item = timeSegments[index]
-    if (time + duration < item.start || time > item.end) {
-      return null
-    }
-    if (time <= item.start) {
-      offsetTime = item.cTime
-      duration = duration - (item.start - time)
-    } else {
-      offsetTime = item.cTime + (time - item.start)
-      duration = offsetTime + duration <= item.end ? duration : item.end - offsetTime
-    }
   }
   return {
     time: offsetTime,
-    duration
+    duration: d
   }
 }
+
+export function getOffSetISpotList (ispots, timeSegments) {
+  const ret = []
+  ispots.forEach(item => {
+    const offsetItem = getOffSetISpot(item.time, item.duration, timeSegments)
+    if (offsetItem) {
+      ret.push({
+        time: offsetItem.time,
+        duration: offsetItem.duration,
+        id: item.id
+      })
+    }
+  })
+  return ret
+}
+
 const APIS = {
   _updateDotDom (iSpot, dotDom) {
     if (!dotDom) {
@@ -72,6 +77,7 @@ const APIS = {
       dotDom.style[key] = style[key]
     })
   },
+
   initDots () {
     this._ispots.map(item => {
       this.createDot(item, false)
