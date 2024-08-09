@@ -1,12 +1,24 @@
 import { BasePlugin, Errors, Events } from 'xgplayer'
 import { EVENT, MSE } from 'xgplayer-streaming-shared'
-import { Hls } from './hls'
+import { Hls, logger } from './hls'
 import { Event } from './hls/constants'
 import PluginExtension from './plugin-extension'
 
+/**
+ * @param { import('xgplayer').SwitchUrlOptions } args
+ * @param { HlsPlugin } plugin
+ * @returns
+ */
 export function parseSwitchUrlArgs (args, plugin) {
   const { player } = plugin
   const curTime = player.currentTime
+
+  /**
+   * @type {{
+   *  startTime: number
+   *  seamless?: boolean
+   * }}
+   */
   const options = {
     startTime: curTime
   }
@@ -15,9 +27,14 @@ export function parseSwitchUrlArgs (args, plugin) {
     case 'boolean':
       options.seamless = args
       break
-    case 'object':
-      Object.assign(options, args)
+    case 'object': {
+      const { currentTime, ...rest } = args
+      Object.assign(options, rest)
+      if (typeof currentTime === 'number') {
+        options.startTime = currentTime
+      }
       break
+    }
     default:
       break
   }
@@ -28,6 +45,8 @@ export class HlsPlugin extends BasePlugin {
   static Hls = Hls
 
   static EVENT = Event
+
+  logger = logger
 
   /**
    * @type {Hls}
@@ -67,7 +86,32 @@ export class HlsPlugin extends BasePlugin {
     }
 
     if (this.hls) this.hls.destroy()
-    this.player.switchURL = this._onSwitchURL
+
+    /**
+     * 支持被继承时，指定不可写的属性。用来实现外部 switchURL 逻辑
+     */
+    const descriptor = Object.getOwnPropertyDescriptor(this.player, 'switchURL')
+    if (!descriptor || descriptor.writable) {
+      this.player.switchURL = (url, args) => {
+        return new Promise((resolve, reject) => {
+          const { player, hls } = this
+          if (hls) {
+            const options = parseSwitchUrlArgs(args, this)
+            player.config.url = url
+            hls.switchURL(url, options)
+              .then(() => resolve(true))
+              .catch(reject)
+
+            if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
+              this._keepPauseStatus()
+            }
+          } else {
+            reject()
+          }
+        })
+      }
+    }
+    const onSwitchUrl = this.player.switchURL
     this.player.handleSource = false // disable player source handle
 
     hlsOpts.innerDegrade = hlsOpts.innerDegrade || config.innerDegrade
@@ -105,8 +149,8 @@ export class HlsPlugin extends BasePlugin {
       this.player?.useHooks('replay', () => this.hls?.replay())
     }
 
+    this.on(Events.URL_CHANGE, onSwitchUrl)
     this.on(Events.SWITCH_SUBTITLE || 'switch_subtitle', this._onSwitchSubtitle)
-    this.on(Events.URL_CHANGE, this._onSwitchURL)
     this.on(Events.DESTROY, this.destroy.bind(this))
 
     this._transError()
@@ -117,6 +161,7 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.LOAD_RETRY)
     this._transCoreEvent(EVENT.SOURCEBUFFER_CREATED)
     this._transCoreEvent(EVENT.MEDIASOURCE_OPENED)
+    this._transCoreEvent(EVENT.APPEND_BUFFER)
     this._transCoreEvent(EVENT.REMOVE_BUFFER)
     this._transCoreEvent(EVENT.BUFFEREOS)
     this._transCoreEvent(EVENT.KEYFRAME)
@@ -137,7 +182,9 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(Event.APPEND_COST)
 
     if (config.url) {
-      this.hls.load(config.url, true).catch(e => {})
+      this.hls.load(config.url, {
+        reuseMse: true
+      }).catch(e => {})
     }
   }
 
@@ -175,25 +222,6 @@ export class HlsPlugin extends BasePlugin {
 
   _onSwitchSubtitle = ({lang}) => {
     this.hls?.switchSubtitleStream(lang)
-  }
-
-  _onSwitchURL = (url, args) => {
-    return new Promise((resolve, reject) => {
-      const { player, hls } = this
-      if (hls) {
-        const options = parseSwitchUrlArgs(args, this)
-        player.config.url = url
-        hls.switchURL(url, options)
-          .then(() => resolve(true))
-          .catch(reject)
-
-        if (!options.seamless && this.player.config?.hls?.keepStatusAfterSwitch) {
-          this._keepPauseStatus()
-        }
-      } else {
-        reject()
-      }
-    })
   }
 
   _keepPauseStatus = () => {
