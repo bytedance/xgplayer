@@ -17,6 +17,17 @@ export { default as langZhHk } from './lang/zh-hk'
 export { default as langJp } from './lang/jp'
 export { default as langZhCn } from './lang/zh-cn'
 
+/**
+ * Plugins Exports
+ */
+export { default as PlayIcon } from './plugins/play'
+export { default as TimeIcon } from './plugins/time'
+export { default as Start } from './plugins/start'
+export { default as Progress } from './plugins/progress'
+export { default as Loading } from './plugins/loading'
+export { default as VolumeIcon } from './plugins/volume'
+export { default as FullscreenIcon } from './plugins/fullscreen'
+export { default as CssFullscreenIcon } from './plugins/cssFullScreen'
 export { default as Danmu } from './plugins/danmu'
 export { DanmuIcon, DanmuPanel } from './plugins/danmu'
 export { default as TextTrack } from './plugins/track'

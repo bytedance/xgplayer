@@ -6,7 +6,7 @@ import './index.scss'
  * @typedef {{
  *   position?:string,
  *   disable?: boolean,
- *   isDragingSeek?: boolean, // 是否在拖拽的过程中更新currentTime
+ *   isDraggingSeek?: boolean, // 是否在拖拽的过程中更新currentTime
  *   closeMoveSeek?: boolean, // 是否关闭滑块seek能力
  *   isPauseMoving?: boolean, // 是否在move的时候暂停视频内容
  *   isCloseClickSeek?: boolean, // 是否关闭点击进度条的时候seek
@@ -43,7 +43,7 @@ class Progress extends Plugin {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
       disable: false,
-      isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
+      isDraggingSeek: true, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
       isPauseMoving: false, // 是否在move的时候暂停视频内容
       isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
@@ -90,6 +90,12 @@ class Progress extends Plugin {
     }
 
     this._disableBlur = false
+
+    // 兼容旧版本
+    if (typeof this.config.isDragingSeek === 'boolean') {
+      console.warn('[XGPLAYER] \'isDragingSeek\' is deprecated, please use \'isDraggingSeek\' instead')
+      this.config.isDraggingSeek = this.config.isDragingSeek
+    }
   }
 
   get offsetDuration () {
@@ -167,12 +173,22 @@ class Progress extends Plugin {
     const { fragFocusClass, fragAutoFocus, fragClass } = this.config
     this._initInner(this.config.fragments, { fragFocusClass, fragAutoFocus, fragClass, style: this.playerConfig.commonStyle || {} })
     if (Sniffer.device === 'mobile') {
-      this.config.isDragingSeek = false
+      this.config.isDraggingSeek = false
       this.isMobile = true
     }
 
     this.progressBtn = this.find('.xgplayer-progress-btn')
 
+    this.listenEvents()
+    this.bindDomEvents()
+    this.initCustomStyle()
+  }
+
+  /**
+   * This method can be overridden.
+   * Eg. xgplayer-ads/ui/adProgress.js
+   */
+  listenEvents () {
     this.on(Events.DURATION_CHANGE, () => {
       this.onMouseLeave()
     })
@@ -203,9 +219,6 @@ class Progress extends Plugin {
     this.on(Events.VIDEO_RESIZE, () => {
       this.onVideoResize()
     })
-
-    this.bindDomEvents()
-    this.initCustomStyle()
   }
 
   /**
@@ -583,7 +596,7 @@ class Progress extends Plugin {
 
     this.updatePercent(percent)
     this.updateTime(currentTime)
-    if (type === 1 && (!config.isDragingSeek || player.config.mediaType === 'audio')) {
+    if (type === 1 && (!config.isDraggingSeek || player.config.mediaType === 'audio')) {
       return
     }
     this._state.now = realTime

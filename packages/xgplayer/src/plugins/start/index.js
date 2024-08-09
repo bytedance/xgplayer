@@ -63,9 +63,24 @@ class Start extends Plugin {
   }
 
   afterCreate () {
-    const { player, playerConfig } = this
+    const { playerConfig } = this
 
     this.initIcons()
+    this.listenEvents()
+    this.bindClickEvents()
+
+    if (!playerConfig.autoplay) {
+      this.show()
+    }
+  }
+
+  /**
+   * @public
+   * This method can be overridden.
+   */
+  listenEvents () {
+    const { player, playerConfig } = this
+
     this.once(Events.READY, () => {
       if (playerConfig) {
         if (playerConfig.lang && playerConfig.lang === 'en') {
@@ -78,10 +93,6 @@ class Start extends Plugin {
 
     this.on(Events.AUTOPLAY_STARTED, this.onAutoplayStart)
 
-    if (!playerConfig.autoplay) {
-      this.show()
-    }
-
     this.on(Events.AUTOPLAY_PREVENTED, () => {
       const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
       this.setAttr('data-state', 'play')
@@ -90,17 +101,22 @@ class Start extends Plugin {
     })
 
     this.on(Events.PLAY, () => {
-      this.onPlayPause('play')
+      this.toggleTo('play')
     })
 
     this.on(Events.PAUSE, () => {
-      this.onPlayPause('pause')
+      this.toggleTo('pause')
     })
 
     this.on(Events.RESET, () => {
       this.onPlayerReset()
     })
+  }
 
+  /**
+   * @public
+   */
+  bindClickEvents () {
     this.clickHandler = this.hook('startClick', this.switchPausePlay, {
       pre: (e) => {
         e.cancelable && e.preventDefault()
@@ -128,7 +144,7 @@ class Start extends Plugin {
     const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
     Util.addClass(this.root, className)
     this.autoPlayStart = true
-    this.onPlayPause('play')
+    this.toggleTo('play')
   }
 
   registerIcons () {
@@ -193,6 +209,9 @@ class Start extends Plugin {
     this._animateId = null
   }
 
+  /**
+   * @public
+   */
   switchPausePlay (e) {
     const { player } = this
     e.cancelable && e.preventDefault()
@@ -208,7 +227,17 @@ class Start extends Plugin {
     }
   }
 
+  /**
+   * @deprecated
+   */
   onPlayPause (status) {
+    this.toggleTo(status)
+  }
+
+  /**
+   * @param {'play'|'pause'} status
+   */
+  toggleTo (status) {
     const { config, player } = this
     if (!player || player.state < STATES.RUNNING || !this.autoPlayStart) {
       return

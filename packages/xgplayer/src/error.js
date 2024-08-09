@@ -45,8 +45,14 @@ const ErrorTypes = {
   timeout: {
     code: 7
   },
-  other: {
+  drm: {
     code: 8
+  },
+  ad: {
+    code: 9
+  },
+  other: {
+    code: 1000
   }
 }
 
