@@ -1,5 +1,5 @@
 {
-  "name": "xgplayer-hls",=
+  "name": "xgplayer-hls",
   "version": "3.0.20-rc.3",
   "main": "dist/index.min.js",
   "module": "es/index.js",
