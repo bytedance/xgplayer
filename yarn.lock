@@ -6381,6 +6381,13 @@ xgplayer-streaming-shared@3.0.0-next.8:
     "@babel/runtime" "^7.15.3"
     core-js "3"
 
+xgplayer-streaming-shared@3.0.20-rc.2:
+  version "3.0.20-rc.2"
+  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.20-rc.2.tgz#87f7387676e91d8b8aa331f13c658fe42713c24a"
+  integrity sha512-fkwGaDU4ipK7QyxgG8NlF9X+y64hzoYc70ZMqeS4kTT4JOJ0xwbTYaIjFwPeHoiD1BefxV1yhp/wRlvLvvXj6w==
+  dependencies:
+    eventemitter3 "^4.0.7"
+
 xgplayer-transmuxer@3.0.0-next.2-1:
   version "3.0.0-next.2-1"
   resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.0-next.2-1.tgz#9e2deb51b83d4252bad07b3ae47139df19d43864"
