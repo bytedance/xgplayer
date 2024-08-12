@@ -45,6 +45,7 @@ export class FlvPlugin extends BasePlugin {
 
   beforePlayerInit () {
     const config = this.player.config
+    const mediaElem = this.player.media || this.player.video
 
     if (!config.url) return
 
@@ -60,7 +61,7 @@ export class FlvPlugin extends BasePlugin {
     this.flv = new Flv({
       softDecode: this.softDecode,
       isLive: config.isLive,
-      media: this.player.video,
+      media: mediaElem,
       preProcessUrl: (url, ext) => this.player?.preProcessUrl?.(url, ext) || {url, ext},
       ...flvOpts
     })
@@ -79,6 +80,7 @@ export class FlvPlugin extends BasePlugin {
     if (this.softDecode) {
       this.pluginExtension = new PluginExtension({
         media: this.player.video,
+        isLive: config.isLive,
         ...config.flv
       }, this)
       this.player.forceDegradeToVideo = (...args) => this.pluginExtension?.forceDegradeToVideo(...args)

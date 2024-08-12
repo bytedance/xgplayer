@@ -74,6 +74,7 @@ export class HlsPlugin extends BasePlugin {
 
   beforePlayerInit () {
     const config = this.player.config
+    const mediaElem = this.player.media || this.player.video
     const hlsOpts = config.hls || {}
 
     if (
@@ -120,7 +121,7 @@ export class HlsPlugin extends BasePlugin {
     this.hls = new Hls({
       softDecode: this.softDecode,
       isLive: config.isLive,
-      media: this.player.media || this.player.video,
+      media: mediaElem,
       startTime: config.startTime,
       url: config.url,
       ...hlsOpts
@@ -138,7 +139,7 @@ export class HlsPlugin extends BasePlugin {
     if (this.softDecode) {
       this.pluginExtension = new PluginExtension({
         isLive: config.isLive,
-        media: this.player.video,
+        media: mediaElem,
         ...hlsOpts
       }, this)
       this.player.forceDegradeToVideo = (...args) => this.pluginExtension?.forceDegradeToVideo(...args)

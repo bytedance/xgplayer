@@ -311,7 +311,7 @@ export class BufferService {
   }
 
   _fireEvents (videoTrack, audioTrack, metadataTrack) {
-    logger.debug(videoTrack.samples, audioTrack.samples)
+    logger.debug(`videoTrack samples count: ${videoTrack.samples.length}, audioTrack samples count: ${audioTrack.samples.length}`)
 
     metadataTrack.flvScriptSamples.forEach(sample => {
       this.flv.emit(EVENT.FLV_SCRIPT_DATA, sample)
