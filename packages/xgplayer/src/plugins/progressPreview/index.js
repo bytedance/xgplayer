@@ -1,5 +1,5 @@
 import Plugin, { Util, Sniffer, Events } from '../../plugin'
-import initDotsAPI, { getOffSetISpot } from './dotsApi'
+import initDotsAPI, { getOffSetISpot, getOffSetISpotList } from './dotsApi'
 import './index.scss'
 /**
  * @typedef {{
@@ -500,5 +500,6 @@ export default class ProgressPreview extends Plugin {
 }
 
 export {
-  getOffSetISpot
+  getOffSetISpot,
+  getOffSetISpotList
 }
