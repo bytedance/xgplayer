@@ -110,6 +110,8 @@ export class MediaPlaylist {
   endPartIndex = 0
   /** @type {Array.<MediaSegment>} */
   segments = []
+  dateRanges = {}
+  skippedSegments = 0
 }
 
 export class MediaSegment {

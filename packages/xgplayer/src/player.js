@@ -140,6 +140,13 @@ class Player extends MediaProxy {
      * @readonly
      * @type { boolean }
      */
+    this.isAd = false
+
+    /**
+     * @public
+     * @readonly
+     * @type { boolean }
+     */
     this.isError = false
 
     /**
@@ -285,7 +292,7 @@ class Player extends MediaProxy {
     this.innerContainer = null
 
     /**
-     * @type { null | Object }
+     * @type { ?Controls }
      * @readonly
      * @description 控制栏插件
      */
@@ -786,10 +793,7 @@ class Player extends MediaProxy {
       typeof position === 'string' &&
       position.indexOf('controls') > -1
     ) {
-      return (
-        this.controls &&
-        this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
-      )
+      return this.controls?.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
     }
     if (!options.root) {
       options.root = this._getRootByPosition(position)

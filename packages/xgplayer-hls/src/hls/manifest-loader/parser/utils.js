@@ -51,3 +51,58 @@ export function getCodecs (type, codecs) {
     }
   }
 }
+
+export function isValidDaterange (attr, dateRangeWithSameId) {
+  let _badValueForSameId
+  if (dateRangeWithSameId) {
+    for (const key in dateRangeWithSameId) {
+      if (
+        Object.prototype.hasOwnProperty.call(dateRangeWithSameId, key) &&
+        attr[key] !== dateRangeWithSameId[key]
+      ) {
+        _badValueForSameId = key
+        break
+      }
+    }
+  }
+
+  let duration = null
+  if (attr.DURATION) {
+    duration = parseFloat(attr.DURATION)
+    if (!Number.isFinite(duration)) {
+      duration = null
+    } else if (attr._endDate) {
+      duration = (attr._endDate.getTime() - attr._startDate.getTime()) / 1000
+    }
+  }
+
+  const cue = enumeratedStringList(attr.CUE || attr['X-CUE'], {
+    pre: false,
+    post: false,
+    once: false
+  })
+
+  return (
+    !!attr.ID &&
+    !_badValueForSameId &&
+    Number.isFinite(attr._startDate.getTime()) &&
+    (duration === null || duration >= 0) &&
+    (!(attr.END_ON_NEXT === 'YES') || !!attr.CLASS) &&
+    (!attr.CUE ||
+      (!cue.pre && !cue.post) ||
+      cue.pre !== cue.post) &&
+    (!(attr.CLASS === 'com.apple.hls.interstitial') ||
+      'X-ASSET-URI' in attr ||
+      'X-ASSET-LIST' in attr)
+  )
+}
+
+function enumeratedStringList (attrValue, dict) {
+  return (attrValue ? attrValue.split(/[ ,]+/) : []).reduce(
+    (result, identifier) => {
+      result[identifier.toLowerCase()] = true
+      return result
+    },
+    dict
+  )
+}

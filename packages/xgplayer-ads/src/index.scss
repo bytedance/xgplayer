@@ -1,0 +1,17 @@
+.xgplayer-ads {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; // > video
+  display: none;
+}
+
+.xgplayer-ad-start .xgplayer-ads {
+  display: block;
+}
+
+.xgplayer-ad-show-ui .xgplayer-replay {
+  display: none!important;
+}

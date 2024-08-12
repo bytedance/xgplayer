@@ -16,7 +16,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "rc"
+    "tag": "alpha"
   },
   "files": [
     "dist",
