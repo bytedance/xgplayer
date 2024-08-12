@@ -8,9 +8,14 @@ export default class PluginExtension {
   }
 
   _init () {
-    const { media, preloadTime, innerDegrade, decodeMode } = this._opts
+    const { media, isLive, preloadTime, innerDegrade, decodeMode } = this._opts
 
     if (!media) return
+
+    if (!isLive && media.setPlayMode) {
+      media.setPlayMode('VOD')
+      return
+    }
 
     if (innerDegrade) {
       media.setAttribute('innerdegrade', innerDegrade)

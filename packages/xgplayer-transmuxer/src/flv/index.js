@@ -141,6 +141,29 @@ export class FlvDemuxer {
       videoTrack.reset()
     }
 
+    const scriptDataObject = metadataTrack.flvScriptSamples[metadataTrack.flvScriptSamples.length - 1]
+    const metaData = scriptDataObject?.data?.onMetaData
+
+    if (metaData) {
+      if (videoTrack?.exist()) {
+        if (metaData.hasOwnProperty('duration')) {
+          videoTrack.duration = metaData.duration * 1000
+        }
+
+        if (metaData.hasOwnProperty('width') && metaData.hasOwnProperty('height')) {
+          videoTrack.width = metaData.width
+          videoTrack.height = metaData.height
+        }
+      }
+
+      if (audioTrack?.exist()) {
+        if (metaData.hasOwnProperty('duration')) {
+          audioTrack.duration = metaData.duration * 1000
+        }
+      }
+    }
+
+
     return {
       videoTrack,
       audioTrack,
@@ -211,10 +234,16 @@ export class FlvDemuxer {
       track.channelCount = soundType + 1
     }
 
-    if (format === 10) {
-      this._parseAac(data, pts)
-    } else {
-      this._parseG711(data, pts, format)
+    switch (format) {
+      case 7 /* G.711 A-law logarithmic PCM */:
+      case 8 /* G.711 mu-law logarithmic PCM */:
+        this._parseG711(data, pts, format)
+        break
+      case 10 /* AAC */:
+        this._parseAac(data, pts)
+        break
+      default:
+        break
     }
   }
 

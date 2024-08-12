@@ -74,7 +74,14 @@ export class AudioTrack {
    * @returns {boolean}
    */
   exist () {
-    return !!(this.sampleRate && this.channelCount && this.codec && this.codecType === AudioCodecType.AAC)
+    return !!(
+      this.sampleRate &&
+      this.channelCount &&
+      this.codec &&
+      (this.codecType === AudioCodecType.AAC ||
+        this.codecType === AudioCodecType.G711PCMA ||
+        this.codecType === AudioCodecType.G711PCMU)
+    )
   }
 
   /**
