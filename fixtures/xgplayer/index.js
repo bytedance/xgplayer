@@ -407,7 +407,7 @@ function init(index = 0, config = {}) {
       defaultDefinition: '360p',
       isItemClickHide: false
     },
-    width: 600,
+    width: 700,
     height: 337.5,
     miniprogress: true,
     ...config
@@ -423,6 +423,10 @@ function init(index = 0, config = {}) {
     console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
     // window[p].seek(30)
     // window[p].play()
+  })
+
+  window[p].once('timesegments_change', (data) => {
+    console.log('>>>timesegments_change', data.timeSegments)
   })
 
   window[p].on('source_error', (data) => {

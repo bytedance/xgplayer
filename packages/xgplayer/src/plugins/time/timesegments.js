@@ -57,6 +57,10 @@ export default class TimeSegmentsControls extends BasePlugin {
       player.timeSegments = _segs
       player.offsetDuration = _segs.length > 0 ? _segs[_segs.length - 1].duration : 0
     }
+    if (this.player.duration) {
+      this._onLoadedData()
+    }
+    this.player.emit('timesegments_change', { timeSegments : player.timeSegments })
   }
 
   formatTimeSegments (timeSegments, duration) {

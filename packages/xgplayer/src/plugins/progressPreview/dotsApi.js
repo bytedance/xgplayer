@@ -339,7 +339,7 @@ export default function initDotsAPI (plugin) {
       plugin.updateDuration()
     }
   })
-  plugin.on(Events.VIDEO_RESIZE, () => {
-    plugin.positionDots()
+  plugin.on('timesegments_change', (data) => {
+    plugin.updateAllDots(ispots)
   })
 }
