@@ -18,7 +18,7 @@ export default class Magnifier extends Plugin {
       magnifierHeight: 200,
       magnifierRatio: 2,
       interval: 100,
-      index: 1,
+      index: 1
     }
   }
 
