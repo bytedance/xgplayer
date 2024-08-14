@@ -1,11 +1,13 @@
-import { TrackType, VideoCodecType } from '../model'
-import { concatUint8Array, parse /* hashVal */ } from '../utils'
+import { AudioCodecType, TrackType, VideoCodecType } from '../model'
+import { concatUint8Array, parse } from '../utils'
 import Buffer from './buffer'
-// import Crypto from './crypto/crypto'
+
 const UINT32_MAX = 2 ** 32 - 1
 
 export class MP4 {
   static types = [
+    'Opus',
+    'dOps',
     'av01',
     'av1C',
     'avc1',
@@ -343,13 +345,17 @@ export class MP4 {
 
   static stsd (track) {
     let content
+
     if (track.type === 'audio') {
       if (track.useEME && track.enca) {
         content = MP4.enca(track)
         // console.log('[remux],enca, len,', content.byteLength, track.type, hashVal(content.toString()))
       } else {
-        content = MP4.mp4a(track)
-        // console.log('[remux],mp4a, len,', content.byteLength, track.type, hashVal(content.toString()))
+        if (track.codecType === AudioCodecType.OPUS) {
+          content = MP4.opus(track)
+        } else {
+          content = MP4.mp4a(track)
+        }
       }
     } else if (track.useEME && track.encv) {
       content = MP4.encv(track)
@@ -715,6 +721,62 @@ export class MP4 {
     ))
     // console.log('[remux],esds ,len ', esds.byteLength, hashVal(esds.toString()))
     return esds
+  }
+
+  /**
+   * https://opus-codec.org/docs/opus_in_isobmff.html
+   */
+  static opus (track) {
+    const opusAudioDescription = new Uint8Array([
+      0x00, 0x00, 0x00, // version
+      0x00, 0x00, 0x00, // reserved
+      0x00, 0x01, // data_reference_index
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // reserved
+      track.channelCount,
+      0x00, 0x10, // sampleSize
+      0x00, 0x00, // pre_defined
+      0x00, 0x00, // reserved
+      (track.sampleRate >> 8) & 0xff,
+      track.sampleRate & 0xff, // sampleRate
+      0x00, 0x00
+    ])
+
+    const opusSpecificConfig = track.config.length ? MP4.dOps(track) : []
+    return MP4.box(MP4.types.Opus, opusAudioDescription, opusSpecificConfig)
+  }
+
+  static dOps (track) {
+    if (track.config) {
+      track.config[4] = (track.sampleRate >>> 24) & 0xFF
+      track.config[5] = (track.sampleRate >>> 16) & 0xFF
+      track.config[6] = (track.sampleRate >>> 8) & 0xFF
+      track.config[7] = (track.sampleRate) & 0xFF
+
+      return MP4.box(MP4.types.dOps, track.config)
+    }
+
+    // const {channelCount, channelConfigCode, sampleRate } = track
+
+    // const mapping = channelConfigCode?.map((c) => {
+    //   return [
+    //     (c >>> 4) & 0xFF, // Channel mapping family
+    //     c & 0xFF // Channel mapping index
+    //   ]
+    // }).flat() || []
+
+    // const data = new Uint8Array([
+    //   0x00, // version
+    //   channelCount, // channelCount
+    //   0x00, 0x00, // preSkip
+    //   (sampleRate >>> 24) & 0xFF,
+    //   (sampleRate >>> 17) & 0xFF,
+    //   (sampleRate >>> 8) & 0xFF,
+    //   (sampleRate >>> 0) & 0xFF,
+    //   0x00, 0x00, // Global Gain
+    //   ... mapping
+    // ])
+
+    // return data
   }
 
   static mvex (tracks) {

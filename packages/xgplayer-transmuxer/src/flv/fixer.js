@@ -1,15 +1,15 @@
 import { AudioCodecType, AudioSample, WarningType } from '../model'
-import { AAC } from '../codec'
+import { AAC, OPUS } from '../codec'
 import { isSafari } from '../utils'
 
 const LARGE_AV_FIRST_FRAME_GAP = 500 // ms
 const AUDIO_GAP_OVERLAP_THRESHOLD_COUNT = 3
 const MAX_SILENT_FRAME_DURATION = 1000 // ms
-const AUDIO_EXCETION_LOG_EMIT_DURATION = 5000 // 5s
+const AUDIO_EXCEPTION_LOG_EMIT_DURATION = 5000 // 5s
 const MAX_VIDEO_FRAME_DURATION = 1000 // ms
 const MAX_DTS_DELTA_WITH_NEXT_CHUNK = 200 // ms
-const VIDEO_EXCETION_LOG_EMIT_DURATION = 5000 // 5s
-const TRACK_BREACKED_CHECK_TIME = 5
+const VIDEO_EXCEPTION_LOG_EMIT_DURATION = 5000 // 5s
+const TRACK_BROKEN_CHECK_TIME = 5
 
 export class FlvFixer {
   constructor (videoTrack, audioTrack, metadataTrack) {
@@ -152,7 +152,7 @@ export class FlvFixer {
 
     if (Math.abs(vDelta) > MAX_DTS_DELTA_WITH_NEXT_CHUNK) {
       // emit large delta of first sample with expect
-      if (Math.abs(firstSample.dts - this._lastVideoExceptionChunkFirstDtsDot) > VIDEO_EXCETION_LOG_EMIT_DURATION) {
+      if (Math.abs(firstSample.dts - this._lastVideoExceptionChunkFirstDtsDot) > VIDEO_EXCEPTION_LOG_EMIT_DURATION) {
         this._lastVideoExceptionChunkFirstDtsDot = firstSample.dts
 
         videoTrack.warnings.push({
@@ -164,8 +164,8 @@ export class FlvFixer {
         })
       }
 
-      // only video breaked
-      if (this._videoTimestampBreak >= TRACK_BREACKED_CHECK_TIME) {
+      // only video break
+      if (this._videoTimestampBreak >= TRACK_BROKEN_CHECK_TIME) {
         this._videoNextDts = firstSample.dts
         this._videoTimestampBreak = 0
       } else {
@@ -192,8 +192,8 @@ export class FlvFixer {
 
       if (sampleDuration > MAX_VIDEO_FRAME_DURATION || sampleDuration < 0) {
         this._videoTimestampBreak++
-        // emit stream breaked
-        if (Math.abs(dts - this._lastVideoExceptionLargeGapDot) > VIDEO_EXCETION_LOG_EMIT_DURATION) {
+        // emit stream break
+        if (Math.abs(dts - this._lastVideoExceptionLargeGapDot) > VIDEO_EXCEPTION_LOG_EMIT_DURATION) {
           this._lastVideoExceptionLargeGapDot = dts
           videoTrack.warnings.push({
             type: WarningType.LARGE_VIDEO_GAP,
@@ -266,7 +266,7 @@ export class FlvFixer {
 
   _resetBaseDtsWhenStreamBreaked () {
     /**
-       * timestamp breaked
+       * timestamp break
        *                     _audioNextDts
        *  ---------------------|
        * (_baseDts)          _videoNextDts
@@ -297,13 +297,33 @@ export class FlvFixer {
 
   _doFixAudioInternal (audioTrack, samples, timescale) {
     if (!audioTrack.sampleDuration) {
-      audioTrack.sampleDuration = audioTrack.codecType === AudioCodecType.AAC
-        ? AAC.getFrameDuration(audioTrack.timescale, timescale)
-        : this._getG711Duration(audioTrack)
+      switch (audioTrack.codecType) {
+        case AudioCodecType.AAC: {
+          audioTrack.sampleDuration = AAC.getFrameDuration(audioTrack.timescale, timescale)
+          break
+        }
+        case AudioCodecType.OPUS: {
+          audioTrack.sampleDuration = OPUS.getFrameDuration(audioTrack.samples, timescale)
+          break
+        }
+        case AudioCodecType.G711PCMA:
+        case AudioCodecType.G711PCMU: {
+          audioTrack.sampleDuration = this._getG711Duration(audioTrack)
+          break
+        }
+        default:
+          console.error('can\'t fix audio codecType:', audioTrack.codecType)
+          break
+      }
     }
     const refSampleDuration = audioTrack.sampleDuration
 
-    const sampleDurationInSampleRate = audioTrack.codecType === AudioCodecType.AAC ? 1024 : refSampleDuration * audioTrack.timescale / 1000
+    const sampleDurationInSampleRate =
+      audioTrack.codecType === AudioCodecType.OPUS
+        ? 20
+        : audioTrack.codecType === AudioCodecType.AAC
+          ? 1024
+          : (refSampleDuration * audioTrack.timescale) / 1000
 
     if (this._audioNextPts === undefined) {
       const samp0 = samples[0]
@@ -315,8 +335,8 @@ export class FlvFixer {
       const sample = samples[i]
       let delta = sample.pts - nextPts
 
-      // only audio breaked
-      if (i === 0 && this._audioTimestampBreak >= TRACK_BREACKED_CHECK_TIME && this._keyFrameInNextChunk) {
+      // only audio break
+      if (i === 0 && this._audioTimestampBreak >= TRACK_BROKEN_CHECK_TIME && this._keyFrameInNextChunk) {
         nextPts = this._audioNextPts = sample.dts
         delta = 0
         this._audioTimestampBreak = 0
@@ -329,7 +349,7 @@ export class FlvFixer {
         const silentFrame = this._getSilentFrame(audioTrack) || samples[0].data.subarray()
         const count = Math.floor(delta / refSampleDuration)
 
-        if (Math.abs(sample.pts - this._lastAudioExceptionGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+        if (Math.abs(sample.pts - this._lastAudioExceptionGapDot) > AUDIO_EXCEPTION_LOG_EMIT_DURATION) {
           this._lastAudioExceptionGapDot = sample.pts
           audioTrack.warnings.push({
             type: WarningType.AUDIO_FILLED,
@@ -354,7 +374,7 @@ export class FlvFixer {
         // delta  >= -500ms
       } else if (delta <= -AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration && delta >= -1 * MAX_SILENT_FRAME_DURATION) {
         // need discard frames
-        if (Math.abs(sample.pts - this._lastAudioExceptionOverlapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+        if (Math.abs(sample.pts - this._lastAudioExceptionOverlapDot) > AUDIO_EXCEPTION_LOG_EMIT_DURATION) {
           this._lastAudioExceptionOverlapDot = sample.pts
 
           audioTrack.warnings.push({
@@ -371,7 +391,7 @@ export class FlvFixer {
         if (Math.abs(delta) > MAX_SILENT_FRAME_DURATION) {
           this._audioTimestampBreak++
 
-          if (Math.abs(sample.pts - this._lastAudioExceptionLargeGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+          if (Math.abs(sample.pts - this._lastAudioExceptionLargeGapDot) > AUDIO_EXCEPTION_LOG_EMIT_DURATION) {
             this._lastAudioExceptionLargeGapDot = sample.pts
             audioTrack.warnings.push({
               type: WarningType.LARGE_AUDIO_GAP,
@@ -385,8 +405,15 @@ export class FlvFixer {
           }
         }
 
-        sample.dts = sample.pts = nextPts
-        sample.duration = sampleDurationInSampleRate
+        if (audioTrack.codecType === AudioCodecType.OPUS) {
+          const lastSample = samples[samples.length - 1]
+          if (lastSample) {
+            lastSample.duration = sample.pts - lastSample.pts
+          }
+        } else {
+          sample.dts = sample.pts = nextPts
+          sample.duration = sampleDurationInSampleRate
+        }
         this._audioNextPts += refSampleDuration
       }
     }

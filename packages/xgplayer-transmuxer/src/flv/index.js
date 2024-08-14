@@ -3,6 +3,8 @@ import { FlvFixer } from './fixer'
 import { concatUint8Array, Logger, readBig32 } from '../utils'
 import { AAC, AVC, HEVC, NALu } from '../codec'
 import { AMF } from './amf'
+import { FlvSoundFormat } from './soundFormat'
+import { OPUS } from '../codec/opus'
 
 const logger = new Logger('FlvDemuxer')
 
@@ -132,7 +134,7 @@ export class FlvDemuxer {
     }
 
     audioTrack.formatTimescale = videoTrack.formatTimescale = videoTrack.timescale = metadataTrack.timescale = 1000
-    audioTrack.timescale = audioTrack.sampleRate || 0
+    audioTrack.timescale = audioTrack.codecType === AudioCodecType.OPUS ? 1000 : audioTrack.sampleRate || 0
 
     if (!audioTrack.exist() && audioTrack.hasSample()) {
       audioTrack.reset()
@@ -209,6 +211,11 @@ export class FlvDemuxer {
     return readBig32(data, 5) >= 9
   }
 
+  /**
+   * @param {Uint8Array} data
+   * @param {number} pts
+   * @private
+   */
   _parseAudio (data, pts) {
     if (!data.length) return
 
@@ -216,16 +223,17 @@ export class FlvDemuxer {
     const track = this.audioTrack
 
     if (
-      format !== 10 && // AAC
-      format !== 7 && // G.711 A-law logarithmic PCM
-      format !== 8 // G.711 mu-law logarithmic PCM
+      format !== FlvSoundFormat.AAC &&
+      format !== FlvSoundFormat.G711A &&
+      format !== FlvSoundFormat.G711M &&
+      format !== FlvSoundFormat.OPUS
     ) {
       logger.warn(`Unsupported sound format: ${format}`)
       track.reset()
       return
     }
 
-    if (format !== 10) {
+    if (format !== FlvSoundFormat.AAC && format !== FlvSoundFormat.OPUS) {
       const soundRate = (data[0] & 0x0c) >> 2
       const soundSize = (data[0] & 0x02) >> 1
       const soundType = (data[0] & 0x01)
@@ -235,15 +243,56 @@ export class FlvDemuxer {
     }
 
     switch (format) {
-      case 7 /* G.711 A-law logarithmic PCM */:
-      case 8 /* G.711 mu-law logarithmic PCM */:
+      case FlvSoundFormat.G711A:
+      case FlvSoundFormat.G711M:
         this._parseG711(data, pts, format)
         break
-      case 10 /* AAC */:
+      case FlvSoundFormat.AAC:
         this._parseAac(data, pts)
+        break
+      case FlvSoundFormat.OPUS:
+        this._parseOpus(data, pts)
         break
       default:
         break
+    }
+  }
+
+  /**
+   * @param {Uint8Array} data
+   * @param {number} pts
+   * @private
+   */
+  _parseOpus (data, pts) {
+    const track = this.audioTrack
+    const packetType = data[1]
+
+    track.codecType = AudioCodecType.OPUS
+
+    switch (packetType) {
+      case 0 /* Header Packets */: {
+        const ret = OPUS.parseHeaderPackets(data.subarray(2))
+        if (ret) {
+          track.codec = ret.codec
+          track.channelCount = ret.channelCount
+          track.sampleRate = ret.sampleRate
+          track.config = ret.config
+          track.sampleDuration = OPUS.getFrameDuration([], track.timescale)
+        } else {
+          track.reset()
+          logger.warn('Cannot parse AudioSpecificConfig', data)
+        }
+        break
+      }
+      case 1 /* Raw OPUS frame data */: {
+        if (pts === undefined || pts === null) return
+
+        const newSample = new AudioSample(pts, data.subarray(2), track.sampleDuration)
+        track.samples.push(newSample)
+        break
+      }
+      default:
+        logger.warn(`Unknown OpusPacketType: ${packetType}`)
     }
   }
 

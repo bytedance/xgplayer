@@ -16,7 +16,8 @@ export const VideoCodecType = {
 export const AudioCodecType = {
   AAC: 'aac',
   G711PCMA: 'g7110a',
-  G711PCMU: 'g7110m'
+  G711PCMU: 'g7110m',
+  OPUS: 'opus'
 }
 
 /** @enum {string} */
