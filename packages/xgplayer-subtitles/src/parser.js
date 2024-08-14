@@ -348,7 +348,7 @@ export default class SubTitleParser {
     let retText = ''; let tag = 'default'
     if (langMatch) {
       // eslint-disable-next-line no-useless-escape
-      tag = langMatch[0].replace(/\<|\>|\&/g, '')
+      tag = langMatch[0].replace(/\<|\>|\&/g, '').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
       // 动态构造语言匹配规则
       // eslint-disable-next-line no-useless-escape
       const newReg = RegExp(`^<${tag}>(([\\s\\S])*?)<\/${tag}>$`)
