@@ -200,7 +200,9 @@ export class BufferService {
 
     const mse = this._mse
     const afterAppend = () => {
-      this.emit(EVENT.APPEND_BUFFER, {})
+      if (this.flv?.emit) {
+        this.flv?.emit(EVENT.APPEND_BUFFER, {})
+      }
     }
 
     // emit demuxed track
