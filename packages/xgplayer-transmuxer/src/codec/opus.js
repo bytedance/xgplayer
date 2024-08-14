@@ -65,9 +65,6 @@ export class OPUS {
     const originCodec = 'opus'
     const config = new Uint8Array(data.buffer, data.byteOffset + 8, data.byteLength - 8)
 
-    console.log('config:', config)
-    // config[0] = 0 // ??
-
     return {
       outputGain,
       sampleRate,
