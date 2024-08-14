@@ -80,7 +80,8 @@ export class AudioTrack {
       this.codec &&
       (this.codecType === AudioCodecType.AAC ||
         this.codecType === AudioCodecType.G711PCMA ||
-        this.codecType === AudioCodecType.G711PCMU)
+        this.codecType === AudioCodecType.G711PCMU ||
+        this.codecType === AudioCodecType.OPUS)
     )
   }
 
