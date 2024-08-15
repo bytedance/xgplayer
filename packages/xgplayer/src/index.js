@@ -20,6 +20,7 @@ export { default as langZhCn } from './lang/zh-cn'
 export { default as Danmu } from './plugins/danmu'
 export { DanmuIcon, DanmuPanel } from './plugins/danmu'
 export { default as TextTrack } from './plugins/track'
+export { default as Magnifier } from './plugins/magnifier'
 export { default as HeatMap } from './plugins/heatmap'
 
 /**
