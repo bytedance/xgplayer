@@ -472,7 +472,7 @@ export class Hls extends EventEmitter {
     let pollInterval
 
     if (this._playlist.lowLatency) {
-      pollInterval = (this._playlist.currentStream.partTargetDuration * 2 || 0) * 1000
+      pollInterval = (this._playlist.currentStream.partTargetDuration || 0) * 1000
     } else {
       pollInterval = (this._playlist.lastSegment?.duration || 0) * 1000
     }
