@@ -22,6 +22,8 @@ export { DanmuIcon, DanmuPanel } from './plugins/danmu'
 export { default as TextTrack } from './plugins/track'
 export { default as Magnifier } from './plugins/magnifier'
 export { default as HeatMap } from './plugins/heatmap'
+export * from './plugins/progressPreview'
+export { default as TimeSegmentsControls } from './plugins/time/timesegments'
 
 /**
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
