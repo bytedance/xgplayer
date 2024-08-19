@@ -295,7 +295,7 @@ class PIP extends IconPlugin {
 
   isPIPAvailable () {
     const video = this.player.media
-    const _isEnabled = Util.typeOf(document.pictureInPictureEnabled) === 'Boolean' ? document.pictureInPictureEnabled : true
+    const _isEnabled = Util.typeOf(document.pictureInPictureEnabled) === 'Boolean' ? document.pictureInPictureEnabled : false
     return _isEnabled &&
     ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
      (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function')) ||

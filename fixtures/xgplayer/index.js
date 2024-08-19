@@ -293,9 +293,7 @@ function init(index = 0, config = {}) {
       }
     },
     url: "./heatmap.mp4",
-    DynamicBg: {
-      disable: false
-    },
+    pip: true,
     loop: false,
     autoplay: false,
     autoplayMuted: true,
