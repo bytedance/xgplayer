@@ -59,6 +59,7 @@ export class FetchLoader extends EventEmitter {
     this._onCancel = onCancel
     this._abortController = typeof AbortController !== 'undefined' && new AbortController()
     this._running = true
+    this._receivedLength = 0
     this._index = index
     this._range = range || [0, 0]
     this._vid = vid || url
@@ -249,7 +250,7 @@ export class FetchLoader extends EventEmitter {
       if (this._onProcessMinLen > 0) {
         if (this._writeIdx + curLen >= this._onProcessMinLen || data.done) {
           retData = new Uint8Array(this._writeIdx + curLen)
-          retData.set(this._cache.slice(0, this._writeIdx), 0)
+          retData.set(this._cache.subarray(0, this._writeIdx), 0)
           curLen > 0 && retData.set(data.value, this._writeIdx)
           this._writeIdx = 0
           this._logger.debug('【fetchLoader,onProgress enough】,done,', data.done, ',len,', retData.byteLength, ', writeIdx,', this._writeIdx)
@@ -261,7 +262,7 @@ export class FetchLoader extends EventEmitter {
           } else if (curLen > 0) {
             const temp = new Uint8Array(this._writeIdx + curLen + 2048)
             this._logger.debug('【fetchLoader,onProgress extra start】,size,', this._writeIdx + curLen + 2048, ', datalen,', curLen, ', writeIdx,', this._writeIdx)
-            temp.set(this._cache.slice(0, this._writeIdx), 0)
+            temp.set(this._cache.subarray(0, this._writeIdx), 0)
             curLen > 0 && temp.set(data.value, this._writeIdx)
             this._writeIdx += curLen
             delete this._cache
@@ -285,7 +286,7 @@ export class FetchLoader extends EventEmitter {
           priOptions:this._priOptions
         }, response)
         lastReadDataTime = Date.now()
-      } else if (Date.now() - lastReadDataTime > this._processMaxGapTime) {
+      } else if (Date.now() - lastReadDataTime >= this._processMaxGapTime) {
         this._logger.debug(`[onProgress timeout],task: ${JSON.stringify(this._range)} done: ${data.done} processMaxGapTime: ${this._processMaxGapTime}`)
         const error = new NetError(response.url, null, response, 'process timeout')
         error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
