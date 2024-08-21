@@ -41,7 +41,7 @@ class Poster extends Plugin {
       notHidden: false, // 是否一直显示
       poster: '', // 封面图地址
       fillMode: 'fixWidth', // 封面图填充方式，fixWidth / fixHeight / cover / contain
-      autoLoad: false, // 是否自动请求img
+      autoLoad: false // 是否自动请求img
     }
   }
 
@@ -124,13 +124,13 @@ class Poster extends Plugin {
       this.emit('poster_load', {
         type: 'success',
         error: 0,
-        url: poster,
+        url: poster
       })
     }).catch(e => {
       this.emit('poster_load', {
         type: 'error',
         error: 1,
-        url: poster,
+        url: poster
       })
     })
   }
