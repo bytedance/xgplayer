@@ -296,6 +296,7 @@ function init(index = 0, config = {}) {
     DynamicBg: {
       disable: false
     },
+    poster: 'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg',
     loop: false,
     autoplay: false,
     autoplayMuted: true,
@@ -423,6 +424,9 @@ function init(index = 0, config = {}) {
     console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
     // window[p].seek(30)
     // window[p].play()
+  })
+  window[p].on('poster_load',(data) => {
+    console.log('>>>>>poster_load', data)
   })
 
   window[p].once('timesegments_change', (data) => {
