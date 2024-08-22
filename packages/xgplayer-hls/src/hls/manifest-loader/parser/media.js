@@ -63,7 +63,7 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
         media.canBlockReload = attr['CAN-BLOCK-RELOAD'] === 'YES'
         media.partHoldBack = parseFloat(attr['PART-HOLD-BACK'] || 0)
         media.canSkipUntil = parseFloat(attr['CAN-SKIP-UNTIL'] || 0)
-        media.canSkipDateRanges = attr['CAN-SKIP-DATERANGES'] === 'YES'
+        media.canSkipDateRanges = media.canSkipUntil > 0 && (attr['CAN-SKIP-DATERANGES'] === 'YES')
       }
         break
       case 'ENDLIST': {
@@ -102,7 +102,15 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
       }
 
         break
-      case 'PRELOAD-HINT':
+      case 'PRELOAD-HINT': {
+        const attr = parseAttr(data)
+        media.preloadHint = attr
+        if (attr['TYPE'] === 'PART' && attr['URI']) {
+          const tmp = attr['URI'].split('.ts')[0].split('-')
+          media.nextSN = tmp[3]
+          media.nextIndex = tmp[tmp.length - 1]
+        }
+      }
         break
       case 'PROGRAM-DATE-TIME':
         curSegment.dataTime = data
@@ -161,6 +169,7 @@ export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
         const skippedSegments = parseInt(attr['SKIPPED-SEGMENTS'], 10)
         if (skippedSegments <= Number.MAX_SAFE_INTEGER) {
           media.skippedSegments += skippedSegments
+          curSN += skippedSegments
         }
       }
         break

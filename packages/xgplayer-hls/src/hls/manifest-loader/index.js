@@ -1,6 +1,7 @@
 import { NetLoader, StreamingError, EVENT, ERR } from 'xgplayer-streaming-shared'
 import { M3U8Parser } from './parser'
 import { Event } from '../constants'
+import { HlsUrlParameters } from './parser/model'
 
 export class ManifestLoader {
   constructor (hls) {
@@ -109,6 +110,13 @@ export class ManifestLoader {
       if (playlist.isMaster) {
         this.hls.emit(Event.HLS_MANIFEST_LOADED, { playlist })
       } else {
+        if (this._useLowLatency) {
+          if (playlist.canBlockReload) {
+            this.deliveryDirectives = new HlsUrlParameters(playlist.nextSN, playlist.nextIndex, '')
+          } else {
+            this.deliveryDirectives = null
+          }
+        }
         this.hls.emit(Event.HLS_LEVEL_LOADED, { playlist })
       }
     }
@@ -147,8 +155,12 @@ export class ManifestLoader {
     let retryCount = this.hls.config.pollRetryCount
     const fn = async () => {
       clearTimeout(this._timer)
+      let reqUrl = url
       try {
-        const res = await this.load(url, audioUrl, subtitleUrl)
+        if (this.deliveryDirectives) {
+          reqUrl = this.deliveryDirectives.addDirectives(url)
+        }
+        const res = await this.load(reqUrl, audioUrl, subtitleUrl)
         if (!res[0]) return
         retryCount = this.hls.config.pollRetryCount
         cb(res[0], res[1], res[2])
