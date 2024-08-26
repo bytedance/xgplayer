@@ -859,7 +859,7 @@ export class Hls extends EventEmitter {
     if (!this.media) return
     this._startTick()
     const media = this.media
-    const buffered = Buffer.get(media)
+    // const buffered = Buffer.get(media)
     const segLoaderError = this._segmentLoader.error
     this._onCheckQuotaExceeded()
     // change _segmentProcessing to false
@@ -880,7 +880,7 @@ export class Hls extends EventEmitter {
       return
     }
 
-    if (Buffer.end(buffered) >= 0.1 && media.readyState) {
+    if (media.readyState) {
       if (isMediaPlaying(media)) {
         this._loadSegment()
         if (this._gapService) {
