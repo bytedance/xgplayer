@@ -184,7 +184,7 @@ export class Playlist {
     this.currentStream?.switchSubtitle(lang)
   }
 
-  clearOldSegment (maxPlaylistSize = 50) {
+  clearOldSegment (maxPlaylistSize = (this.hls.config.maxPlaylistSize || 50)) {
     const stream = this.currentStream
     if (!this.dvrWindow || !stream) return
     const startTime = stream.endTime - this.dvrWindow
