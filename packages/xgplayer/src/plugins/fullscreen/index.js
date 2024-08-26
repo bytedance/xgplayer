@@ -137,7 +137,7 @@ export default class Fullscreen extends IconPlugin {
    * @param { Event } [e]
    */
   toggleFullScreen (e) {
-    if (e) {
+    if (e instanceof Event) {
       e.preventDefault()
       e.stopPropagation()
     }
