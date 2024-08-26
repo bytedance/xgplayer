@@ -961,7 +961,7 @@ class Player extends MediaProxy {
         if (!url) {
           url = this.url || this.config.url
         }
-        const _furl = this._preProcessUrl(url)
+        const _furl = this.preProcessUrl(url)
         const ret = this._startInit(_furl.url)
         return ret
       })
@@ -983,7 +983,7 @@ class Player extends MediaProxy {
     if (Util.typeOf(url) === 'Object') {
       _src = url.url
     }
-    _src = this._preProcessUrl(_src).url
+    _src = this.preProcessUrl(_src).url
     const curTime = this.currentTime
     this.__startTime = curTime
     const isPaused = this.paused && !this.isError
@@ -1394,7 +1394,7 @@ class Player extends MediaProxy {
     runHooks(this, 'retry', () => {
       const cur = this.currentTime
       const { url } = this.config
-      const _srcRet = !Util.isMSE(this.media) ? this._preProcessUrl(url) : { url }
+      const _srcRet = !Util.isMSE(this.media) ? this.preProcessUrl(url) : { url }
       this.src = _srcRet.url
       !this.config.isLive && (this.currentTime = cur)
       this.once(Events.CANPLAY, () => {
@@ -2292,8 +2292,9 @@ class Player extends MediaProxy {
    * @param { IUrl } url
    * @param { {[propName: string]: any} } [ext]
    * @returns { url: IUrl, [propName: string]: any }
+   * @public
    */
-  _preProcessUrl (url, ext) {
+  preProcessUrl (url, ext) {
     const { preProcessUrl, preProcessUrlOptions } = this.config
     const processUrlOptions = Object.assign({}, preProcessUrlOptions, ext)
     return !Util.isBlob(url) && typeof preProcessUrl === 'function' ? preProcessUrl(url, processUrlOptions) : { url }
