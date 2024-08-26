@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-subtitles",
-  "version": "3.0.20",
+  "version": "3.0.21-rc.0",
   "description": "",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -16,7 +16,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "latest"
+    "tag": "rc"
   },
   "files": [
     "/es",
