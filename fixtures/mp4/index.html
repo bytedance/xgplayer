@@ -95,7 +95,14 @@
     // },
     height: window.innerHeight -300,
     width: window.innerWidth,
-    // plugins: [Mp4Plugin]
+    preferMMS: true,
+    waitingInBufferTimeOut: 5001,
+    //plugins: [Mp4Plugin],
+
+    // set mp4Plugin support Apple's MMS
+    //mp4Plugin: {
+    //  preferMMS: true,
+    //}
   });
   window.player = player
 

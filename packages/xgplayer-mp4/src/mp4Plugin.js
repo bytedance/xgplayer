@@ -34,7 +34,8 @@ export default class Mp4Plugin extends BasePlugin {
       waitJampBufferMaxCnt:3,
       tickInSeconds: 0.1,
       reqOptions: null,
-      closeDowngrade: false
+      closeDowngrade: false,
+      preferMMS: false
     }
   }
 
@@ -381,7 +382,8 @@ export default class Mp4Plugin extends BasePlugin {
     }
 
     const contentTypes = { [MSE.VIDEO]: { mimeType: 'video/mp4', codec } }
-    this.mse = new MSE()
+
+    this.mse = new MSE(null, { preferMMS: this.config.preferMMS })
     const openPromise = this.mse.bindMedia(this.player.video)
     openPromise.then(()=> {
       const contentTypesLocal = Object.keys(contentTypes)

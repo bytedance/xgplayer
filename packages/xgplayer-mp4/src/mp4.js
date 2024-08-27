@@ -27,7 +27,8 @@ class MP4 extends EventEmitter {
       enableWorker: false,
       playerId: '',
       vid: '',
-      ext: {}
+      ext: {},
+      preferMMS: false
     }
   }
   /**
@@ -66,6 +67,7 @@ class MP4 extends EventEmitter {
       retryDelay: this.options.retryDelay,
       timeout: this.options.timeout,
       ...options.reqOptions,
+      preferMMS: this.options.preferMMS,
       openLog: checkOpenLog()
     })
     this.fMP4Demuxer = null
