@@ -1,5 +1,7 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
 import Magnifier from '../../packages/xgplayer/src/plugins/magnifier'
+import HlsPlayer from '../../packages/xgplayer-hls/src/index'
+import Poster from '../../packages/xgplayer/src/plugins/poster'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
@@ -292,7 +294,7 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./3_555555_h264.mp4",
+    url: "https://pull-hls-f16-admin-tt03.fcdn.eu.tiktokcdn.com/stage/stream-3286130944701891453/index.m3u8?end=1722529170&reviewer_country_code=SG&start=1722529110", //"./3_555555_h264.mp4",
     DynamicBg: {
       disable: false
     },
@@ -303,7 +305,7 @@ function init(index = 0, config = {}) {
     videoInit: true,
     preloadTime: 20,
     ignores:[],
-    plugins: [Magnifier],
+    plugins: [HlsPlayer],
     rotate: false,
     heatmap: {
       data: headmapData,
@@ -345,7 +347,7 @@ function init(index = 0, config = {}) {
     // timeSegments: ,
     timeSegmentsControls:{
       disable: false,
-      segments: [{start: 50, end: 100}, {start: 200, end: 220 }, {start: 300, end: 420 }, {start: 500, end: 510 }]
+      segments: [{start: 35, end: 60}]
     },
     keyboard: {
       seekStep: 2
@@ -420,10 +422,20 @@ function init(index = 0, config = {}) {
   // setTimeout(() => {
   //   window[p].registerPlugin(Poster)
   // }, 10)
-  window[p].once('canplay',() => {
-    console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
+  window[p].on('seeking',() => {
+    console.log('>>>>>canplay seek', window[p].media.currentTime)
     // window[p].seek(30)
     // window[p].play()
+  })
+  window[p].on('timeupdate',() => {
+    console.log('>>>>>timeupdate', window[p].media.currentTime)
+  })
+
+  window[p].on('loadeddata',() => {
+    console.log('>>>>>loadeddata', window[p].media.duration)
+  })
+  window[p].on('durationchange',() => {
+    console.log('>>>>>durationchange', window[p].media.duration)
   })
   window[p].on('poster_load',(data) => {
     console.log('>>>>>poster_load', data)
