@@ -11,7 +11,11 @@
     "**/*.css"
   ],
   "libd": {
-    "umdName": "Player"
+    "umdName": "Player",
+    "legacy": {
+      "enabled": false,
+      "esPolyfills": false
+    }
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
