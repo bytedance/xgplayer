@@ -81,7 +81,7 @@ export class AudioTrack {
       (this.codecType === AudioCodecType.AAC ||
         this.codecType === AudioCodecType.G711PCMA ||
         this.codecType === AudioCodecType.G711PCMU ||
-        this.codecType === AudioCodecType.OPUS)
+        this.codecType === AudioCodecType.OPUS || this.codecType === AudioCodecType.MP3)
     )
   }
 

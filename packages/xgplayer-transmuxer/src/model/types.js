@@ -17,7 +17,8 @@ export const AudioCodecType = {
   AAC: 'aac',
   G711PCMA: 'g7110a',
   G711PCMU: 'g7110m',
-  OPUS: 'opus'
+  OPUS: 'opus',
+  MP3: 'mp3'
 }
 
 /** @enum {string} */
