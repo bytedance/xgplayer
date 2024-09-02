@@ -1,7 +1,8 @@
 import { TsFixer } from './fixer'
-import { AVC, AAC, HEVC, NALu } from '../codec'
+import { AVC, AAC, HEVC, NALu, MPEG } from '../codec'
 import { VideoSample, AudioSample, VideoCodecType, VideoTrack, AudioTrack, MetadataTrack, SeiSample } from '../model'
 import { Logger, concatUint8Array } from '../utils'
+import { AudioCodecType } from '../model/types'
 
 const logger = new Logger('TsDemuxer')
 
@@ -97,6 +98,11 @@ export class TsDemuxer {
             switch (data[offset]) {
               case 0x0f: // AAC ADTS
                 audioTrack.pid = audioPid = esPid
+                break
+              case 0x03:
+              case 0x04:
+                audioTrack.pid = audioPid = esPid
+                audioTrack.codecType = AudioCodecType.MP3
                 break
               case 0x1b: // AVC
                 if (videoPid !== -1) break
@@ -319,7 +325,15 @@ export class TsDemuxer {
       return
     }
 
-    this._parseAacData(pes)
+    switch (this.audioTrack.codecType) {
+      case AudioCodecType.AAC:
+        this._parseAacData(pes)
+        break
+      case AudioCodecType.MP3:
+        this._parseMPEG(pes)
+        break
+      default:
+    }
 
     this._audioPesData = []
   }
@@ -353,6 +367,38 @@ export class TsDemuxer {
       }
     } else {
       logger.warn('Cannot parse aac adts', pes)
+    }
+  }
+
+  _parseMPEG (pes) {
+    const data = pes.data
+    const length = data.length
+    let frameIndex = 0
+    let offset = 0
+    const pts = pes.pts
+    if (pts === undefined) {
+      logger.warn('[tsdemuxer]: MPEG PES unknown PTS')
+      return
+    }
+
+    while (offset < length) {
+      if (MPEG.isHeader(data, offset)) {
+        const frame = MPEG.appendFrame(
+          this.audioTrack,
+          data,
+          offset,
+          pts,
+          frameIndex
+        )
+        if (frame) {
+          offset += frame.length
+          frameIndex++
+        } else {
+          break
+        }
+      } else {
+        offset++
+      }
     }
   }
 
