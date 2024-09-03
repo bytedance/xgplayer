@@ -73,7 +73,7 @@ import { getLang } from './utils/util'
  *   keyShortcut?: boolean,
  *   presets?: any[],
  *   plugins?: any[]
- *   playbackRate?: number | Array<number> | { [propName: string]: any },
+ *   playbackRate?: boolean | Array<number> | { [propName: string]: any },
  *   definition?: { list: Array<IDefinition> , defaultDefinition?: IDefinition['definition'], [propName: string]: any},
  *   playsinline?: boolean,
  *   customDuration?: number,
