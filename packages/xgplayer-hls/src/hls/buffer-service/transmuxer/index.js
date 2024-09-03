@@ -39,7 +39,8 @@ export class Transmuxer {
       timescale: audioTrack.timescale,
       firstDts: audioTrack.firstDts / videoTrack.timescale,
       firstPts: audioTrack.firstPts / videoTrack.timescale,
-      duration: audioTrack.samplesDuration / videoTrack.timescale
+      duration: audioTrack.samplesDuration / videoTrack.timescale,
+      container: audioTrack.container
     }
     const newId = `${videoTrack.codec}/${videoTrack.width}/${videoTrack.height}/${audioTrack.codec}/${audioTrack.config}`
     if (newId !== this._initSegmentId) {

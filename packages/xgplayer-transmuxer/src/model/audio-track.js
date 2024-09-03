@@ -12,6 +12,8 @@ export class AudioTrack {
 
   codec = ''
 
+  container = ''
+
   sequenceNumber = 0
 
   sampleDuration = 0
@@ -77,7 +79,7 @@ export class AudioTrack {
     return !!(
       this.sampleRate &&
       this.channelCount &&
-      this.codec &&
+      (this.codec || this.container) &&
       (this.codecType === AudioCodecType.AAC ||
         this.codecType === AudioCodecType.G711PCMA ||
         this.codecType === AudioCodecType.G711PCMU ||
