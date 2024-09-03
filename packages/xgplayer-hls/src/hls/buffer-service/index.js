@@ -169,7 +169,7 @@ export class BufferService {
     } else if (this._mse) {
       const isFirstAppend = !this._sourceCreated
       if (isFirstAppend) {
-        this._createMseSource(video?.codec, audio?.codec)
+        this._createMseSource(video?.codec, audio?.codec, audio?.container)
       }
       this._needInitSegment = false
       const mse = this._mse
@@ -265,7 +265,7 @@ export class BufferService {
   /**
    * @private
    */
-  _createMseSource (videoCodec, audioCodec) {
+  _createMseSource (videoCodec, audioCodec, container) {
     logger.debug(`create mse source, videoCodec=${videoCodec}, audioCodec=${audioCodec}`)
     const mse = this._mse
     if (!mse) return
@@ -275,6 +275,9 @@ export class BufferService {
     }
     if (audioCodec) {
       mse.createSource(MSE.AUDIO, `audio/mp4;codecs=${audioCodec}`)
+      this._sourceCreated = true
+    } else if (container) {
+      mse.createSource(MSE.AUDIO, `${container};codecs=""`)
       this._sourceCreated = true
     }
     this.hls.emit(EVENT.SOURCEBUFFER_CREATED)

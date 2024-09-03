@@ -75,13 +75,15 @@ export class MPEG {
       const frameDuration = (header.samplesPerFrame * 90000) / header.sampleRate
       const stamp = pts + frameIndex * frameDuration
       const sample = {
-        unit: data.subarray(offset, offset + header.frameLength),
+        data: data.subarray(offset, offset + header.frameLength),
         pts: stamp,
         dts: stamp
       }
+      sample.size = sample.data.byteLength
       track.config = []
       track.channelCount = header.channelCount
       track.sampleRate = header.sampleRate
+      track.container = 'audio/mpeg'
       track.samples.push(sample)
 
       return { length: header.frameLength }
