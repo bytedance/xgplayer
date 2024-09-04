@@ -101,8 +101,10 @@ export class TsDemuxer {
                 break
               case 0x03:
               case 0x04:
-                audioTrack.pid = audioPid = esPid
-                audioTrack.codecType = AudioCodecType.MP3
+                if (audioTrack.pid === -1) {
+                  audioTrack.pid = audioPid = esPid
+                  audioTrack.codecType = AudioCodecType.MP3
+                }
                 break
               case 0x1b: // AVC
                 if (videoPid !== -1) break
