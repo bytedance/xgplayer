@@ -1,3 +1,5 @@
+import { isFirefox } from '../utils'
+
 const BitratesMap = [
   32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 32, 48, 56,
   64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 32, 40, 48, 56, 64, 80,
@@ -83,7 +85,11 @@ export class MPEG {
       track.config = []
       track.channelCount = header.channelCount
       track.sampleRate = header.sampleRate
-      track.container = 'audio/mpeg'
+      if (isFirefox) {
+        track.codec = 'mp3'
+      } else {
+        track.container = 'audio/mpeg'
+      }
       track.samples.push(sample)
 
       return { length: header.frameLength }
