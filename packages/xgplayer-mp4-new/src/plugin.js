@@ -21,7 +21,7 @@ export class MP4Plugin extends BasePlugin {
 
   get softDecode () {
     const mediaType = this.player?.config?.mediaType
-    return !!mediaType && mediaType !== 'video'
+    return !!mediaType && mediaType !== 'video' && mediaType !== 'offscreen-video'
   }
 
   beforePlayerInit () {
