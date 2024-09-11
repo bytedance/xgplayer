@@ -19,12 +19,50 @@ function mergeISPOT (iSpot) {
   })
 }
 
+export function getOffSetISpot (time, duration, timeSegments) {
+  if (!timeSegments || timeSegments.length < 1 ){
+    return {
+      time,
+      duration
+    }
+  }
+  const offsetTime = Util.getOffsetCurrentTime(time, timeSegments)
+  const offsetEnd = Util.getOffsetCurrentTime(time + duration, timeSegments)
+  const d = offsetEnd - offsetTime
+  if (offsetEnd <= offsetTime) {
+    return null
+  }
+  return {
+    time: offsetTime,
+    duration: d
+  }
+}
+
+export function getOffSetISpotList (ispots, timeSegments) {
+  const ret = []
+  ispots.forEach(item => {
+    const offsetItem = getOffSetISpot(item.time, item.duration, timeSegments)
+    if (offsetItem) {
+      ret.push({
+        time: offsetItem.time,
+        duration: offsetItem.duration,
+        id: item.id
+      })
+    }
+  })
+  return ret
+}
+
 const APIS = {
   _updateDotDom (iSpot, dotDom) {
     if (!dotDom) {
       return
     }
-    const ret = this.calcuPosition(iSpot.time, iSpot.duration)
+    const offset = getOffSetISpot(iSpot.time, iSpot.duration, this.player.timeSegments)
+    if (!offset) {
+      return
+    }
+    const ret = this.calcuPosition(offset.time, offset.duration)
     const style = iSpot.style || {}
     style.left = `${ret.left}%`
     style.width = `${ret.width}%`
@@ -39,6 +77,7 @@ const APIS = {
       dotDom.style[key] = style[key]
     })
   },
+
   initDots () {
     this._ispots.map(item => {
       this.createDot(item, false)
@@ -63,7 +102,14 @@ const APIS = {
     if (!this.ispotsInit && isNew) {
       return
     }
-    const ret = this.calcuPosition(iSpot.time, iSpot.duration)
+    const offset = getOffSetISpot(iSpot.time, iSpot.duration, this.player.timeSegments)
+    if (!offset) {
+      return
+    }
+    const ret = this.calcuPosition(offset.time, offset.duration)
+    if (!ret) {
+      return
+    }
     const style = iSpot.style || {}
     style.left = `${ret.left}%`
     style.width = `${ret.width}%`
@@ -293,7 +339,7 @@ export default function initDotsAPI (plugin) {
       plugin.updateDuration()
     }
   })
-  plugin.on(Events.VIDEO_RESIZE, () => {
-    plugin.positionDots()
+  plugin.on('timesegments_change', (data) => {
+    plugin.updateAllDots(ispots)
   })
 }

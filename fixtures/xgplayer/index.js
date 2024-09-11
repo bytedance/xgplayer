@@ -1,5 +1,7 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
-import { TextTrack } from '../../packages/xgplayer/src/index'
+import Magnifier from '../../packages/xgplayer/src/plugins/magnifier'
+import HlsPlayer from '../../packages/xgplayer-hls/src/index'
+import Poster from '../../packages/xgplayer/src/plugins/poster'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
@@ -299,9 +301,8 @@ function init(index = 0, config = {}) {
     autoplayMuted: true,
     videoInit: true,
     preloadTime: 20,
-    width: '96%',
     ignores:[],
-    plugins: [],
+    plugins: [HlsPlayer],
     rotate: false,
     heatmap: {
       data: headmapData,
@@ -343,7 +344,7 @@ function init(index = 0, config = {}) {
     // timeSegments: ,
     timeSegmentsControls:{
       disable: false,
-      segments: [{start: 0, end: 10}, {start: 50, end: 100}, {start: 200, end: 220 }, {start: 300, end: 420 }, {start: 500, end: 510 }]
+      segments: [{start: 35, end: 60}]
     },
     keyboard: {
       seekStep: 2
@@ -351,7 +352,28 @@ function init(index = 0, config = {}) {
     progresspreview: {
       // width: 88.23,
       // height: 50,
-      mode: 'short'
+      mode: 'short',
+      ispots: [{
+        time: 20,
+        duration: 10,
+        text: '1111',
+        id: 1
+      },{
+        time: 40,
+        duration: 165,
+        text: '2222',
+        id: 2
+      },{
+        time: 170,
+        duration: 20,
+        text: '3333',
+        id: 3
+      },{
+        time: 250,
+        duration: 400,
+        text: '4444',
+        id: 3
+      }]
     },
     seekedStatus: 'auto',
     texttrack: {
@@ -385,7 +407,8 @@ function init(index = 0, config = {}) {
       defaultDefinition: '360p',
       isItemClickHide: false
     },
-    height: 300,
+    width: 700,
+    height: 337.5,
     miniprogress: true,
     ...config
   })
@@ -396,10 +419,27 @@ function init(index = 0, config = {}) {
   // setTimeout(() => {
   //   window[p].registerPlugin(Poster)
   // }, 10)
-  window[p].once('canplay',() => {
-    console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
+  window[p].on('seeking',() => {
+    console.log('>>>>>canplay seek', window[p].media.currentTime)
     // window[p].seek(30)
     // window[p].play()
+  })
+  window[p].on('timeupdate',() => {
+    console.log('>>>>>timeupdate', window[p].media.currentTime)
+  })
+
+  window[p].on('loadeddata',() => {
+    console.log('>>>>>loadeddata', window[p].media.duration)
+  })
+  window[p].on('durationchange',() => {
+    console.log('>>>>>durationchange', window[p].media.duration)
+  })
+  window[p].on('poster_load',(data) => {
+    console.log('>>>>>poster_load', data)
+  })
+
+  window[p].once('timesegments_change', (data) => {
+    console.log('>>>timesegments_change', data.timeSegments)
   })
 
   window[p].on('source_error', (data) => {
