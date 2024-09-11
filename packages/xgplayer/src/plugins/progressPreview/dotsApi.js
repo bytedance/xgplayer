@@ -63,6 +63,9 @@ const APIS = {
       return
     }
     const ret = this.calcuPosition(offset.time, offset.duration)
+    if (!ret) {
+      return
+    }
     const style = iSpot.style || {}
     style.left = `${ret.left}%`
     style.width = `${ret.width}%`
