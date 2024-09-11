@@ -1,5 +1,4 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
-import Magnifier from '../../packages/xgplayer/src/plugins/magnifier'
 import HlsPlayer from '../../packages/xgplayer-hls/src/index'
 import Poster from '../../packages/xgplayer/src/plugins/poster'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'

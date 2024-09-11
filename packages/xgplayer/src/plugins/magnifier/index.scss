@@ -1,5 +1,22 @@
 .magnifier-canvas {
   position: absolute;
-  z-index: 10;
+  z-index: 5;
   pointer-events: none;
+}
+.xgplayer-magnifier {
+  .xg-magnifier-open {
+    display: none;
+  }
+  .xg-magnifier-off {
+    display: block;
+  }
+
+  &[data-state=open] {
+    .xg-magnifier-open{
+      display: block;
+    }
+    .xg-magnifier-off {
+      display: none;
+    }
+  }
 }
