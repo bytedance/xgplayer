@@ -1,4 +1,4 @@
-d -import { MediaPlaylist, MediaSegment, MediaSegmentKey } from './model'
+import { MediaPlaylist, MediaSegment, MediaSegmentKey } from './model'
 import { getAbsoluteUrl, parseAttr, parseTag, isValidDaterange } from './utils'
 
 export function parseMediaPlaylist (lines, parentUrl, useLowLatency) {
