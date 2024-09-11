@@ -1,5 +1,5 @@
 import Plugin, { Util, Sniffer, Events } from '../../plugin'
-import initDotsAPI from './dotsApi'
+import initDotsAPI, { getOffSetISpot, getOffSetISpotList } from './dotsApi'
 import './index.scss'
 /**
  * @typedef {{
@@ -93,6 +93,7 @@ export default class ProgressPreview extends Plugin {
     this.on(Events.DURATION_CHANGE, () => {
       this.show()
     })
+
     if (this.config.disable) {
       this.disable()
     }
@@ -364,22 +365,23 @@ export default class ProgressPreview extends Plugin {
     this.updateThumbnails(0)
   }
 
-  calcuPosition (time, duration) {
+  calcuPosition (time, dur) {
     const { progress } = this.player.plugins
     const { player } = this
+    const duration = player.offsetDuration
     const totalWidth = progress.root.getBoundingClientRect().width
-    const widthPerSeconds = player.duration / totalWidth * 6
+    const widthPerSeconds = duration / totalWidth * 6
     const ret = {}
-    if (time + duration > player.duration) {
-      duration = player.duration - time
+    if (time + dur > duration) {
+      dur = duration - time
     }
-    ret.left = time / player.duration * 100
-    ret.width = duration / player.duration
-    ret.isMini = widthPerSeconds > duration
+    ret.left = time / duration * 100
+    ret.width = dur / duration
+    ret.isMini = widthPerSeconds > dur
     return {
-      left: time / player.duration * 100,
-      width: duration / player.duration * 100,
-      isMini: duration < widthPerSeconds
+      left: time / duration * 100,
+      width: dur / duration * 100,
+      isMini: dur < widthPerSeconds
     }
   }
 
@@ -495,4 +497,9 @@ export default class ProgressPreview extends Plugin {
       <div class="xg-spot-line"></div>
     </div>`
   }
+}
+
+export {
+  getOffSetISpot,
+  getOffSetISpotList
 }

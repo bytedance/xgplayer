@@ -289,7 +289,7 @@ class Player extends MediaProxy {
      */
     this._offsetInfo = {
       currentTime: -1,
-      duration: 0
+      duration: -1
     }
 
     /**
@@ -2592,7 +2592,7 @@ class Player extends MediaProxy {
   }
 
   get offsetCurrentTime () {
-    return this._offsetInfo.currentTime || 0
+    return this._offsetInfo.currentTime > -1 ? this._offsetInfo.currentTime : this.currentTime
   }
 
   set offsetCurrentTime (val) {
@@ -2600,7 +2600,7 @@ class Player extends MediaProxy {
   }
 
   get offsetDuration () {
-    return this._offsetInfo.duration || 0
+    return this._offsetInfo.duration > -1 ? this._offsetInfo.duration : this.duration
   }
 
   set offsetDuration (val) {
