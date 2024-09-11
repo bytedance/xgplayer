@@ -1,20 +1,5 @@
 import Plugin, { Events, Util } from '../../plugin'
 import './index.scss'
-function loadImage (url) {
-  return new Promise((resolve, reject) => {
-    let img = new Image()
-    img.onload = (data) => {
-      console.log('onload', data)
-      img = null
-      resolve({url})
-    }
-    img.onerror = (e) => {
-      img = null
-      reject(e)
-    }
-    img.src = url
-  })
-}
 
 /**
  * @typedef {{
@@ -94,7 +79,6 @@ class Poster extends Plugin {
         Util.addClass(this.root, 'hide')
       })
     }
-    this.loadPoster()
   }
 
   setConfig (config) {
@@ -115,33 +99,12 @@ class Poster extends Plugin {
     }
   }
 
-  loadPoster () {
-    const { poster, autoLoad} = this.config
-    if (!poster || !autoLoad) {
-      return
-    }
-    loadImage(poster).then((data) => {
-      this.emit('poster_load', {
-        type: 'success',
-        error: 0,
-        url: poster
-      })
-    }).catch(e => {
-      this.emit('poster_load', {
-        type: 'error',
-        error: 1,
-        url: poster
-      })
-    })
-  }
-
   update (poster) {
     if (!poster) {
       return
     }
     this.config.poster = poster
     this.root.style.backgroundImage = `url(${poster})`
-    this.loadPoster()
   }
 
   getBgSize (mode) {
