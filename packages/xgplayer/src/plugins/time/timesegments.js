@@ -65,6 +65,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     this.updateSegments()
 
     this.on(Events.DURATION_CHANGE, this._onDurationChange)
+    this.on(Events.URL_CHANGE, this._onUrlChange)
     this.on(Events.LOADED_DATA, this._onLoadedData)
 
     this.on(Events.TIME_UPDATE, this._onTimeupdate)
@@ -141,27 +142,23 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onDurationChange = () => {
     this.updateSegments()
-    // const { currentTime, timeSegments } = this.player
-    // if (!this._checkIfEnabled(timeSegments)) {
-    //   return
-    // }
-    // const index = Util.getIndexByTime(currentTime,timeSegments)
-    // const time = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
-    // this.player.offsetCurrentTime = time
-    // this.changeIndex(index, timeSegments)
   }
 
-  _onLoadedData = () => {
+  _onUrlChange = () => {
+    this.off(Events.LOADED_DATA, this._onceLoadedData)
+    this.once(Events.LOADED_DATA, this._onceLoadedData)
+  }
+
+  _onceLoadedData = () => {
     // console.log('》》》_onLoadedData')
-    const { timeSegments } = this.player
-    if (!this._checkIfEnabled(timeSegments)) {
+    const { timeSegments, currentTime, duration } = this.player
+    if (this._checkIfEnabled(timeSegments)) {
       return
     }
     const time = getOffsetCurrentTime(0, timeSegments)
     this.player.offsetCurrentTime = time
     this.changeIndex(0, timeSegments)
     if (this.curPos.start > 0){
-      // console.log('》》》seek6', this.curPos.start)
       this.player.currentTime = this.curPos.start
     }
   }
@@ -198,6 +195,7 @@ export default class TimeSegmentsControls extends BasePlugin {
   }
 
   triggerCustomEnded () {
+    console.log('>>>triggerCustomEnded')
     const { loop } = this.playerConfig
     if (loop) {
       const time = this.convertVideoTime(0)
