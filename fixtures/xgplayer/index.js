@@ -1,6 +1,8 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
+import Magnifier from '../../packages/xgplayer/src/plugins/magnifier'
 import HlsPlayer from '../../packages/xgplayer-hls/src/index'
 import Poster from '../../packages/xgplayer/src/plugins/poster'
+import TimeSegmentsControls from '../../packages/xgplayer/src/plugins/time/timesegments'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
@@ -293,7 +295,8 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
+    url: "https://pull-hls-f16-admin-tt01.tiktokcdn-us.com/stage/stream-3574518998224077744/index.m3u8?start=1724877259&end=1724877279",
+    poster: "https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
     pip: true,
     loop: false,
     autoplay: false,
@@ -301,7 +304,7 @@ function init(index = 0, config = {}) {
     videoInit: true,
     preloadTime: 20,
     ignores:[],
-    plugins: [HlsPlayer],
+    plugins: [HlsPlayer,TimeSegmentsControls],
     rotate: false,
     heatmap: {
       data: headmapData,
@@ -343,7 +346,7 @@ function init(index = 0, config = {}) {
     // timeSegments: ,
     timeSegmentsControls:{
       disable: false,
-      segments: [{start: 35, end: 60}]
+      // segments: [{start: 0, end: 10}]
     },
     keyboard: {
       seekStep: 2
