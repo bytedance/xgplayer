@@ -1,6 +1,7 @@
 import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
 import Magnifier from '../../packages/xgplayer/src/plugins/magnifier'
 import HlsPlayer from '../../packages/xgplayer-hls/src/index'
+import TimeSegmentsControls from '../../packages/xgplayer/src/plugins/time/timesegments'
 import Poster from '../../packages/xgplayer/src/plugins/poster'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
@@ -294,7 +295,7 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "https://pull-hls-f16-admin-tt03.fcdn.eu.tiktokcdn.com/stage/stream-3286130944701891453/index.m3u8?end=1722529170&reviewer_country_code=SG&start=1722529110", //"./3_555555_h264.mp4",
+    url: "https://pull-hls-f16-admin-tt01.tiktokcdn-us.com/stage/stream-3574518998224077744/index.m3u8?start=1724877259&end=1724877279", //"./3_555555_h264.mp4",
     DynamicBg: {
       disable: false
     },
@@ -305,7 +306,7 @@ function init(index = 0, config = {}) {
     videoInit: true,
     preloadTime: 20,
     ignores:[],
-    plugins: [HlsPlayer],
+    plugins: [HlsPlayer, TimeSegmentsControls],
     rotate: false,
     heatmap: {
       data: headmapData,
@@ -347,7 +348,7 @@ function init(index = 0, config = {}) {
     // timeSegments: ,
     timeSegmentsControls:{
       disable: false,
-      segments: [{start: 35, end: 60}]
+      segments: [{start: 0, end: 20}]
     },
     keyboard: {
       seekStep: 2
@@ -357,13 +358,13 @@ function init(index = 0, config = {}) {
       // height: 50,
       mode: 'short',
       ispots: [{
-        time: 20,
-        duration: 10,
+        time: 0,
+        duration: 5,
         text: '1111',
         id: 1
       },{
-        time: 40,
-        duration: 165,
+        time: 10,
+        duration: 15,
         text: '2222',
         id: 2
       },{
@@ -490,13 +491,13 @@ function init(index = 0, config = {}) {
     return true
   })
 
-  // window[p].usePluginHooks('progress', 'dragstart', (plugin, event, data) =>{
-  //   console.log('progress', data)
-  //   // TODO
-  //   if (data.currentTime > currentTime) {
-  //     return false
-  //   }
-  // })
+  window[p].usePluginHooks('progress', 'dragstart', (plugin, event, data) =>{
+    console.log('progress', data)
+    // TODO
+    if (data.currentTime > currentTime) {
+      return false
+    }
+  })
 
   // window[p].usePluginHooks('progress', 'drag', (plugin, event, data) =>{
   //   // TODO
