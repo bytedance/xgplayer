@@ -372,7 +372,9 @@ export default class ProgressPreview extends Plugin {
     const totalWidth = progress.root.getBoundingClientRect().width
     const widthPerSeconds = duration / totalWidth * 6
     const ret = {}
-    if (time + dur > duration) {
+    if (time > duration) {
+      return null
+    } else if (time + dur > duration) {
       dur = duration - time
     }
     ret.left = time / duration * 100
