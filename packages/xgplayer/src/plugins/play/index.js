@@ -25,7 +25,8 @@ class Play extends IconPlugin {
       return
     }
     this.initIcons()
-    this.bind(['touchend', 'click'], this.btnClick)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this.btnClick)
 
     this.listenEvents()
     this.animate(true)
@@ -83,7 +84,8 @@ class Play extends IconPlugin {
 
   destroy () {
     super.destroy()
-    this.unbind(['touchend', 'click'], this.btnClick)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.btnClick)
   }
 
   render () {

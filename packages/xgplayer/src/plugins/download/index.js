@@ -46,7 +46,8 @@ export default class Download extends IconPlugin {
         e.stopPropagation()
       }
     })
-    this.bind(['click', 'touchend'], this._handler)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this._handler)
   }
 
   registerIcons () {
@@ -88,7 +89,8 @@ export default class Download extends IconPlugin {
 
   destroy () {
     super.destroy()
-    this.unbind(['click', 'touchend'], this.download)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.download)
     window.clearTimeout(this.timer)
     this.timer = null
   }

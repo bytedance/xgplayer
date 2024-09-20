@@ -45,7 +45,8 @@ export default class ScreenShot extends IconPlugin {
   onPluginsReady () {
     this.show()
     this.onClickBtn = this.onClickBtn.bind(this)
-    this.bind(['click', 'touchend'], this.onClickBtn)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this.onClickBtn)
   }
 
   saveScreenShot (data, filename) {
@@ -164,7 +165,8 @@ export default class ScreenShot extends IconPlugin {
 
   destroy () {
     super.destroy()
-    this.unbind(['click', 'touchend'], this.onClickBtn)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.onClickBtn)
     this.off(Events.VIDEO_RESIZE, this.initSize)
   }
 

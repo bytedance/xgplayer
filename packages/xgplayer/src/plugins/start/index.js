@@ -125,8 +125,8 @@ class Start extends Plugin {
         this.emitUserAction(e, 'switch_play_pause', { props: 'paused', from: paused, to: !paused })
       }
     })
-
-    this.bind(['click', 'touchend'], this.clickHandler)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this.clickHandler)
   }
 
   onPlayerReset = () => {
@@ -279,7 +279,8 @@ class Start extends Plugin {
   }
 
   destroy () {
-    this.unbind(['click', 'touchend'], this.clickHandler)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.clickHandler)
     clearAnimation(this._animateId)
   }
 

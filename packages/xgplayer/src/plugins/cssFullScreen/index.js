@@ -59,7 +59,8 @@ export default class CssFullScreen extends IconPlugin {
         e.stopPropagation()
       }
     })
-    this.bind(['click', 'touchend'], this.handleCssFullscreen)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this.handleCssFullscreen)
   }
 
   initIcons () {
@@ -104,7 +105,8 @@ export default class CssFullScreen extends IconPlugin {
 
   destroy () {
     super.destroy()
-    this.unbind(['click', 'touchend'], this.btnClick)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.btnClick)
   }
 
   render () {

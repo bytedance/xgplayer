@@ -27,7 +27,7 @@ class MiniScreenIcon extends Plugin {
   }
 
   destroy () {
-    this.unbind(['click', 'touchend'], this.getMini)
+    this.unbind('click', this.getMini)
   }
 
   render () {

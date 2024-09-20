@@ -20,8 +20,8 @@ export default class TopBackIcon extends Plugin {
       e.stopPropagation()
       this.config.onClick(e)
     }
-
-    this.bind(['click', 'touchend'], this.onClick)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this.onClick)
   }
 
   registerIcons () {
@@ -43,6 +43,10 @@ export default class TopBackIcon extends Plugin {
     Util.removeClass(this.root, 'show')
   }
 
+  destroy () {
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.onClick)
+  }
   render () {
     return `<xg-icon class="xgplayer-back">
     </xg-icon>`

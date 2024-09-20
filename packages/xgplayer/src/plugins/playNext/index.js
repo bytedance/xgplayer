@@ -1,7 +1,7 @@
 /**
  * 下一个按钮组件
  */
-import Plugin, { POSITIONS, Sniffer, Events } from '../../plugin'
+import Plugin, { POSITIONS, Events } from '../../plugin'
 import { xgIconTips } from '../common/iconTools'
 import Next from '../assets/playNext.svg'
 import './index.scss'
@@ -41,8 +41,8 @@ export default class PlayNextIcon extends Plugin {
 
   initEvents () {
     this.nextHandler = this.hook('nextClick', this.changeSrc)
-    const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
-    this.bind(event, this.playNext)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.bind(eName, this.playNext)
     this.show()
   }
 
@@ -77,7 +77,8 @@ export default class PlayNextIcon extends Plugin {
   }
 
   destroy () {
-    this.unbind(['touchend', 'click'], this.playNext)
+    const eName = this.domEventType === 'touch' ? 'touchend' : 'click'
+    this.unbind(eName, this.playNext)
   }
 
   render () {
