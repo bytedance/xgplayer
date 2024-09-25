@@ -1,5 +1,7 @@
-import Plugin, { Util, Events } from '../../plugin'
+import Plugin, { Util, Events, POSITIONS } from '../../plugin'
 import IntervalTimer from './intervalTimer'
+import MagnifierOpen from '../assets/magnifierOn.svg'
+import MagnifierOff from '../assets/magnifierOff.svg'
 import './index.scss'
 
 const TAG = 'Magnifier'
@@ -18,41 +20,44 @@ export default class Magnifier extends Plugin {
       magnifierHeight: 200,
       magnifierRatio: 2,
       interval: 100,
-      index: 1
+      index: 2,
+      position: POSITIONS.CONTROLS_RIGHT,
     }
   }
 
   afterCreate () {
     const { config } = this
+    this.renderRoot = Util.createDom('div', '',{}, 'magnifier-root')
+    const root = this.player.innerContainer || this.player.root
+    root.appendChild(this.renderRoot)
     this.canvas = document.createElement('canvas')
-    this.root.appendChild(this.canvas)
+    this.renderRoot.appendChild(this.canvas)
     Util.addClass(this.canvas, 'magnifier-canvas')
     this.canvasCtx = this.canvas.getContext('2d')
     this.canvas.width = config.magnifierWidth || 200
     this.canvas.height = config.magnifierHeight || 120
-    console.log(TAG, 'afterCreate', this.canvas.width , this.canvas.height, config)
     this.ratio = config.magnifierRatio || 1
     this.isOpen = false
     this.isEnter = false
     this.contentY = 0
     this.contentX = 0
+    this.initIcons()
     this.bindEvents()
-    // this.switchMagnifier()
-    // this.startRender()
   }
 
   bindEvents () {
-    console.log(TAG, 'bindEvents')
     const playerRoot = this.player.root
     playerRoot.addEventListener('mousemove', this.onMouseMove)
     // playerRoot.addEventListener('mouseenter', this.onEnterPlayer)
     this.player.on(Events.ENTER_PLAYER, this.onEnterPlayer)
     this.player.on(Events.LEAVE_PLAYER, this.onLeavePlayer)
+    this.bind(['click','touchend'], this.handleIconSwitch)
   }
 
   unbindEvents () {
     const playerRoot = this.player.root
     playerRoot.removeEventListener('mousemove', this.onMouseMove)
+    this.unbind(['click','touchend'], this.handleIconSwitch)
   }
 
   onMouseMove = (e) => {
@@ -62,15 +67,25 @@ export default class Magnifier extends Plugin {
   }
 
   onLeavePlayer = (e) => {
-    console.log('>>>onLeavePlayer')
     this.isEnter = false
-    this.hide()
+    this.hideTool()
   }
 
   onEnterPlayer = (e) => {
-    console.log('>>>onEnterPlayer')
     this.isEnter = true
-    this.isOpen && this.show()
+    this.isOpen && this.showTool()
+  }
+
+  hideTool() {
+    this.renderRoot.style.display = 'none'
+  }
+
+  showTool() {
+    const cs = window.getComputedStyle(this.renderRoot, null)
+    const cssDisplayValue = cs.getPropertyValue('display')
+    if (cssDisplayValue === 'none') {
+      return (this.renderRoot.style.display = 'block')
+    }
   }
 
   position (e) {
@@ -95,9 +110,9 @@ export default class Magnifier extends Plugin {
   switchMagnifier () {
     if (this.isOpen) {
       this.stopRender()
-      this.hide()
+      this.hideTool()
     } else {
-      this.isEnter && this.show()
+      this.isEnter && this.showTool()
       this.startRender()
     }
     this.isOpen = !this.isOpen
@@ -161,14 +176,40 @@ export default class Magnifier extends Plugin {
       dheight > 0 ? dheight : 0)
   }
 
+  initIcons () {
+    const { icons } = this
+    const contentIcon = this.find('.xgplayer-icon')
+    contentIcon.appendChild(icons.magnifierOpen)
+    contentIcon.appendChild(icons.magnifierOff)
+    this.setAttr('data-state', 'off')
+  }
+  
+  registerIcons () {
+    return {
+      magnifierOpen: { icon: MagnifierOpen, class: 'xg-magnifier-open' },
+      magnifierOff: { icon: MagnifierOff, class: 'xg-magnifier-off' }
+    }
+  }
+  
+  handleIconSwitch = () => {
+    this.switchMagnifier()
+    const state = this.isOpen ? 'open' : 'off'
+    this.setAttr('data-state', state)
+  }
+
   destroy () {
     if (this.videoTimer) {
       this.videoTimer.clear()
       this.videoTimer = null
     }
     this.unbindEvents()
+    const root = this.player.innerContainer || this.player.root
+    root.removeChild(this.renderRoot)
   }
   render () {
-    return '<div class="magnifier-root"></div>'
+    return `<xg-icon class='xgplayer-magnifier'>
+    <div class="xgplayer-icon">
+    </div>
+    </xg-icon>`
   }
 }
