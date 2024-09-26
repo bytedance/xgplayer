@@ -296,12 +296,22 @@ export class FlvDemuxer {
     }
   }
 
+  /**
+   * @param {Uint8Array} data
+   * @param {number} pts
+   * @param {import('./soundFormat').FlvSoundFormat} format
+   */
   _parseG711 (data, pts, format) {
     const track = this.audioTrack
+    const audioData = data.subarray(1)
+
+    if (audioData.byteLength < 1) return
+
+    const sample = new AudioSample(pts, audioData)
     track.codecType = format === 7 ? AudioCodecType.G711PCMA : AudioCodecType.G711PCMU
     track.sampleRate = 8000
     track.codec = track.codecType
-    track.samples.push(new AudioSample(pts, data.subarray(1)))
+    track.samples.push(sample)
   }
 
   _parseAac (data, pts) {
