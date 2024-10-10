@@ -174,6 +174,10 @@ class Controls extends Plugin {
       this.unbind('mouseenter', this.onMouseEnter)
       this.unbind('mouseleave', this.onMouseLeave)
     }
+    this.left = null
+    this.center = null
+    this.right = null
+    this.innerRoot = null
   }
 
   render () {

@@ -376,7 +376,7 @@ class MediaProxy extends EventEmitter {
       let _e = this.media.error || error
       const type = _e.code ? ERROR_TYPE_MAP[_e.code] : 'other'
       let message = _e.message
-      if (!this.media.currentSrc) {
+      if (!(this.media.currentSrc || this.media.srcObject)) {
         message = 'empty_src'
         _e = {
           code: 6,
