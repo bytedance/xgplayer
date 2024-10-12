@@ -1,4 +1,9 @@
 # 版本更新记录
+## 3.0.21
+>* fix: 🐛 (xgplayer) 修复播放器seeked时，播放器未启动播放而弹幕自动播放问题
+>* fix player destroy  control plugins memeory leak
+>* fix: 🐛 (xgplayer) 修复全屏hook，执行报错的问题 close#1579
+>* refactor: 💡 (xgplayer) preProcessUrl API 对外使用
 ## 3.0.20
 >* fix: 🐛 (xgplayer)多个播放器，只显示一个rotate icon
 >* fix: 🐛 (xgplayer)修复mobile插件部分手机场景功能失效问题修复
