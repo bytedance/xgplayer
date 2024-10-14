@@ -558,7 +558,7 @@ export class MSE {
       return Promise.resolve()
     }
     return this._enqueueOp(type, () => {
-      this._sourceBuffer[type].abort()
+      this._sourceBuffer[type]?.abort()
       this._onSBUpdateEnd(type)
     }, 'abort', context)
   }
