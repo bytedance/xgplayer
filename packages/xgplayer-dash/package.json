@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-dash",
-  "version": "3.0.21-rc.5",
+  "version": "3.0.21-rc.7",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -38,7 +38,7 @@
     "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.21-rc.5",
+    "xgplayer": "3.0.21-rc.7",
     "core-js": ">=3.12.1"
   }
 }
