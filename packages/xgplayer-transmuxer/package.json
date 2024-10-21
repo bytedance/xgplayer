@@ -24,7 +24,7 @@
   "dependencies": {
     "@babel/runtime": "^7.15.3",
     "concat-typed-array": "^1.0.2",
-    "crypto-es": "^1.2.4"
+    "crypto-es": "^2.1.0"
   },
   "peerDependencies": {
     "core-js": ">=3.12.1"
