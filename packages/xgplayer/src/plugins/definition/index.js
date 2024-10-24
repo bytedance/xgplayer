@@ -134,6 +134,11 @@ export default class DefinitionIcon extends OptionsIcon {
     if (!Array.isArray(list)) {
       return
     }
+
+    if (this.player.config.definition) {
+      this.player.config.definition.list = list
+    }
+
     this.config.list = list.map(item => {
       if (!item.text && item.name) {
         item.text = item.name
@@ -152,7 +157,7 @@ export default class DefinitionIcon extends OptionsIcon {
   }
 
   onItemClick (e, data) {
-    const { definitionList } = this.player
+    const { list: definitionList } = this.config
     super.onItemClick(...arguments)
     this.emitUserAction(e, 'change_definition', { from: data.from, to: data.to })
     for (let i = 0; i < definitionList.length; i++) {
