@@ -103,7 +103,7 @@ export default class DefinitionIcon extends OptionsIcon {
   }
 
   renderItemList (list = this.config.list || [], to) {
-    const targetDef = to && to.definition ? to.definition : this.config.defaultDefinition
+    const targetDef = to && to.definition ? to.definition : this.curItem ? this.curItem.definition : this.config.defaultDefinition
     if (to) {
       list.forEach((item) => {
         item.selected = false
