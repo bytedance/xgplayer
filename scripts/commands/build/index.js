@@ -218,6 +218,22 @@ async function build (target, { all } = { all: false }) {
           fs.copySync(x.path, path.resolve(esDir, path.relative(srcDir, x.path)))
         })
       }
+
+      // Copy the language file to the es directory
+      const langDir = path.resolve(pkgDir, 'src/lang')
+      const targetLangDir = path.resolve(esDir, 'lang')
+
+      walk(langDir, {
+        nodir: true,
+        traverseAll: true
+      }).forEach(x => {
+        const relativePath = path.relative(langDir, x.path)
+        const targetPath = path.resolve(targetLangDir, relativePath)
+
+        if (!fs.existsSync(targetPath)) {
+          fs.copySync(x.path, targetPath)
+        }
+      })
     }
   }
 
