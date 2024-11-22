@@ -1803,7 +1803,7 @@ class Player extends MediaProxy {
       const { _fullScreenOffset, config } = this
       if (config.needFullscreenScroll) {
         // 保证页面scroll的情况下退出全屏 页面回到原位置
-        window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
+        document.documentElement.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
         Util.setTimeout( this, () => {
           this.fullscreen = false
           this._fullScreenOffset = null
