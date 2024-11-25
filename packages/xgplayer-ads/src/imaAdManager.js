@@ -45,6 +45,7 @@ export class ImaAdManager extends BaseAdManager {
     this.displayContainer = null
     this.adsLoader = null
     this.adsManager = null
+    this._resumeCallback = null
   }
 
   async init () {
@@ -70,10 +71,14 @@ export class ImaAdManager extends BaseAdManager {
 
   destroy () {
     super.destroy()
-
     this.reset()
+    this.displayContainer.destroy()
     this._removeMediaEvents()
     this._destroyLoader()
+  }
+
+  set resumeCallback (resumeCallbackFunc) {
+    this._resumeCallback = resumeCallbackFunc
   }
 
   /**
@@ -468,6 +473,12 @@ export class ImaAdManager extends BaseAdManager {
       // Fires when media content should be resumed.
       // This usually happens when an ad finishes or collapses.
       case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED: {
+        if (this._resumeCallback) {
+          const { canResume } = this._resumeCallback()
+          if (!canResume) {
+            break
+          }
+        }
         this._resumeContent()
         this.emit(ADEvents.IMA_CONTENT_RESUME_REQUESTED, {
           ad

@@ -93,7 +93,7 @@ export class AdsPlugin extends Plugin {
   /**
    * @private
    */
-  _initImaAd () {
+  async _initImaAd () {
     this.csManager = new ImaAdManager({
       plugin: this,
       config: this.config.ima,
@@ -121,7 +121,8 @@ export class AdsPlugin extends Plugin {
       this.uiManager.hideAdUI()
     })
 
-    this.csManager.init()
+    await this.csManager.init()
+    return this.csManager
   }
 
   requestAds () {
