@@ -25,9 +25,23 @@ class HlsJsPlugin extends BasePlugin {
     this.player.handleSource = false // 关闭player源处理
   }
 
+  /**
+   * @private
+   */
+  _adaptHlsJsConfig (hlsOpts = {}) {
+    const { playerConfig } = this
+
+    if (!hlsOpts?.startPosition && typeof playerConfig.startTime === 'number') {
+      hlsOpts.startPosition = playerConfig.startTime
+    }
+
+    return hlsOpts
+  }
+
   afterCreate () {
     const { hlsOpts } = this.config
-    this.hlsOpts = hlsOpts
+    this.hlsOpts = this._adaptHlsJsConfig(hlsOpts)
+
     this.on(Events.URL_CHANGE, (url) => {
       if (/^blob/.test(url)) {
         return
