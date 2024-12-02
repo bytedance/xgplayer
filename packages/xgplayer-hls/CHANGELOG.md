@@ -1,3 +1,9 @@
+## 3.0.21
+>* fix: 🐛 (xgplayer-hls) 非MMS应支持软解
+>* fix: 调整插件内软解判断
+>* feat: 🎸 (xgplayer-hls) 支持MP3
+>* fix: 🐛 (xgplayer-hls) llhls loading
+
 ## 3.0.20
 >* fix: 🐛 (xgplayer-hls) 修复HlsOption类型未导出问题
 >* refactor: 💡 (xgplayer-hls) 对外提供 APPEND_BUFFER 时机
