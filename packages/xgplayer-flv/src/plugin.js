@@ -32,7 +32,7 @@ export class FlvPlugin extends BasePlugin {
   /** @type {boolean} */
   get softDecode () {
     const mediaType = this.player?.config?.mediaType
-    return !!mediaType && mediaType !== 'video' && mediaType !== 'audio' &&  mediaType !== 'offscreen-video'
+    return !!mediaType && mediaType !== 'video' && mediaType !== 'audio' && mediaType !== 'offscreen-video'
   }
 
   get loader () {
