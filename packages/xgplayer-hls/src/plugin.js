@@ -81,7 +81,7 @@ export class HlsPlugin extends BasePlugin {
       (!config.url &&
         // private config key
         !config.__allowHlsEmptyUrl__) ||
-      (!hlsOpts.preferMMS && MSE.isMMSOnly())
+      (!this.softDecode && !hlsOpts.preferMMS && MSE.isMMSOnly())
     ) {
       return
     }
