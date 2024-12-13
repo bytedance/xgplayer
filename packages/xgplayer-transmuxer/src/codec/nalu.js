@@ -24,6 +24,9 @@ export class NALu {
           } else if (data[end - 2] !== 0) {
             end++
             break
+          } else if (end < len - 1 && data[end + 1] !== 1) {
+            end++
+            break
           }
 
           if (start !== end - 2) units.push(data.subarray(start, end - 2))
