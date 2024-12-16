@@ -203,6 +203,11 @@ class MediaProxy extends EventEmitter {
       this.media.autoplay = true
     }
 
+    // Warning：一些移动端浏览器（Like Vivo）需要直接设置JS属性，否则会导致失效
+    if (options.playsinline) {
+      this.media.playsinline = true
+    }
+
     /**
      * @private
      */
