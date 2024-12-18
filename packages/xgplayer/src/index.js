@@ -13,9 +13,24 @@ import { STATES } from './state'
 
 export * from './presets'
 
+/**
+ * Languages Exports
+ */
 export { default as langZhHk } from './lang/zh-hk'
 export { default as langJp } from './lang/jp'
 export { default as langZhCn } from './lang/zh-cn'
+export { default as langBr } from './lang/br'
+export { default as langDe } from './lang/de'
+export { default as langEn } from './lang/en'
+export { default as langEs } from './lang/es'
+export { default as langFr } from './lang/fr'
+export { default as langId } from './lang/id'
+export { default as langIt } from './lang/it'
+export { default as langKr } from './lang/kr'
+export { default as langMsMy } from './lang/ms-my'
+export { default as langRu } from './lang/ru'
+export { default as langTh } from './lang/th'
+export { default as langVn } from './lang/vn'
 
 /**
  * Plugins Exports
