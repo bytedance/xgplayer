@@ -1,6 +1,7 @@
 import { AudioSample, WarningType } from '../model'
 import { AAC } from '../codec'
 import { isSafari } from '../utils'
+import { AudioCodecType } from '../model/types'
 
 const LARGE_AV_FIRST_FRAME_GAP = 90000 / 2 // 500ms
 const AUDIO_GAP_OVERLAP_THRESHOLD_COUNT = 3
@@ -230,6 +231,23 @@ export class TsFixer {
     const samples = audioTrack.samples
 
     if (!samples.length) return
+    if (audioTrack.codecType === AudioCodecType.MP3) {
+      if (this.lastAudioSample) {
+        samples.unshift(this.lastAudioSample)
+      }
+      for (let index = 0; index < samples.length; index++) {
+        const x = samples[index]
+        if (samples[index + 1]) {
+          x.duration = samples[index + 1].pts - x.pts
+        } else {
+          break
+        }
+        x.pts -= this._baseDts
+        x.dts = x.pts
+      }
+      this.lastAudioSample = samples.pop()
+      return
+    }
     samples.forEach(x => {
       x.pts -= this._needForceFixLargeGap ? this._baseAudioDts : this._baseDts
       x.dts = x.pts
