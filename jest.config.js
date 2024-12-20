@@ -21,10 +21,10 @@ module.exports = {
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
-    "packages/xgplayer-flv/src/**/*.js",
-    "packages/xgplayer-hls/src/**/*.js",
-    "packages/xgplayer-transmuxer/src/**/*.js",
-    "!**/node_modules/**"
+    'packages/xgplayer-flv/src/**/*.js',
+    'packages/xgplayer-hls/src/**/*.js',
+    'packages/xgplayer-transmuxer/src/**/*.js',
+    '!**/node_modules/**'
   ],
 
   // The directory where Jest should output its coverage files
@@ -32,8 +32,8 @@ module.exports = {
 
   // An array of regexp pattern strings used to skip coverage collection
   coveragePathIgnorePatterns: [
-    "/node_modules/",
-    "index.umd.js"
+    '/node_modules/',
+    'index.umd.js'
   ],
 
   // Indicates which provider should be used to instrument code for coverage
@@ -41,9 +41,9 @@ module.exports = {
 
   // A list of reporter names that Jest uses when writing coverage reports
   coverageReporters: [
-    "text",
-    "lcov",
-    "clover"
+    'text',
+    'lcov',
+    'clover'
   ],
 
   // An object that configures minimum threshold enforcement for coverage results
@@ -72,7 +72,7 @@ module.exports = {
 
   // An array of directory names to be searched recursively up from the requiring module's location
   moduleDirectories: [
-    "node_modules"
+    'node_modules'
   ],
 
   // An array of file extensions your modules use
@@ -90,8 +90,8 @@ module.exports = {
     'xgplayer-streaming-shared': '<rootDir>/packages/xgplayer-streaming-shared/src/',
     'xgplayer-transmuxer': '<rootDir>/packages/xgplayer-transmuxer/src/',
     'xgplayer': '<rootDir>/packages/xgplayer/src/',
-    "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/__mocks__/fileMock.js",
-    "\\.(css|scss)$": "<rootDir>/__mocks__/styleMock.js"
+    '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js',
+    '\\.(css|scss)$': '<rootDir>/__mocks__/styleMock.js'
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -155,9 +155,9 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    "**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js",
-    "**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js",
-    "**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js",
+    '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
+    '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
+    '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js'
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
@@ -182,16 +182,19 @@ module.exports = {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    "\\.[jt]sx?$": ["babel-jest", {
-      presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
-    }],
+    '\\.[jt]sx?$': ['babel-jest', {
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        '@babel/preset-typescript'
+      ]
+    }]
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   transformIgnorePatterns: [
-  "node_modules/(?!crypto-es/.*)",
+    'node_modules/(?!crypto-es/.*)'
   //   "\\.pnp\\.[^\\/]+$"
-  ],
+  ]
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,

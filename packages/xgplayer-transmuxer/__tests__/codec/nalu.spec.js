@@ -3,25 +3,29 @@ import { NALu } from '../../src/codec'
 describe('NALu', () => {
 
   test('parseAnnexB', () => {
-    const uint1 = [9, 240]
-    const uint2 = [103, 100, 0, 31, 172, 217, 64, 212, 61, 176, 17, 0, 0, 3, 0, 1, 0, 0, 3, 0, 120, 15, 24, 49, 150]
-    const uint3 = [104, 235, 226, 75, 34, 192]
+    const uint0 = [9, 240]
+    const uint1 = [103, 100, 0, 31, 172, 217, 64, 212, 61, 176, 17, 0, 0, 3, 0, 1, 0, 0, 3, 0, 120, 15, 24, 49, 150]
+    const uint2 = [104, 235, 226, 75, 34, 192]
+    const uint3 = [226, 249, 198, 12, 0, 0, 0, 70, 83, 84, 83, 29, 1, 168, 170, 147, 1, 0, 0, 18] // 00 00 00 + not 1
     const data = new Uint8Array([
+      0, 0, 0, 1,
+      ...uint0,
       0, 0, 0, 1,
       ...uint1,
       0, 0, 0, 1,
       ...uint2,
-      0, 0, 0, 1,
+      0, 0, 1,
       ...uint3,
       0, 0, 1
     ])
 
     const result = NALu.parseAnnexB(data)
 
-    expect(result.length).toBe(3)
-    expect(result[0]).toEqual(new Uint8Array(uint1))
-    expect(result[1]).toEqual(new Uint8Array(uint2))
-    expect(result[2]).toEqual(new Uint8Array(uint3))
+    expect(result.length).toBe(4)
+    expect(result[0]).toEqual(new Uint8Array(uint0))
+    expect(result[1]).toEqual(new Uint8Array(uint1))
+    expect(result[2]).toEqual(new Uint8Array(uint2))
+    expect(result[3]).toEqual(new Uint8Array(uint3))
   })
 
   test('parseAvcC', () => {
