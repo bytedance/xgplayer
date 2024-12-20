@@ -188,7 +188,10 @@ export class BufferService {
         const {data: audioData, ...audioRest} = audio
         p.push(mse.append(MSE.AUDIO, audioData, audioRest))
       }
-      return Promise.all(p).then(afterAppend)
+
+      const ret = Promise.all(p)
+      ret.then(afterAppend)
+      return ret
     }
   }
 

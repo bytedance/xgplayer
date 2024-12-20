@@ -1,6 +1,10 @@
 import { readBig32 } from '../utils'
 
 export class NALu {
+  /**
+   * @param {Uint8Array} data
+   * @returns {Uint8Array[]}
+   */
   static parseAnnexB (data) {
     const len = data.length
     let start = 2

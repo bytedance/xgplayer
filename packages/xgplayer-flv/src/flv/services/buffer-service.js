@@ -259,10 +259,13 @@ export class BufferService {
       if (remuxResult.audioSegment) p.push(mse.append(audioType, remuxResult.audioSegment))
 
       this.flv._transferCost.start(TRANSFER_EVENT.APPEND)
-      return Promise.all(p).then(afterAppend).then(() => {
+
+      const ret = Promise.all(p)
+      ret.then(afterAppend).then(() => {
         this.flv._transferCost.end(TRANSFER_EVENT.APPEND)
         afterAppend()
       })
+      return ret
     } else if (this._softVideo) {
       this._softVideo.appendBuffer(videoTrack, audioTrack)
       afterAppend()
