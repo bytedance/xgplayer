@@ -2109,8 +2109,10 @@ class Player extends MediaProxy {
     const { root, innerContainer } = this
     const width = root.offsetWidth
     const height = innerContainer ? innerContainer.offsetHeight : root.offsetHeight
+    const styles = {}
     let rHeight = height
     let rWidth = width
+
     if (_t % 2 === 0) {
       scale = h > 0 ? 100 / h : (w > 0 ? 100 / w : 1)
       _pos.scale = scale
@@ -2118,8 +2120,10 @@ class Player extends MediaProxy {
       _pos.y = _t === 2 ? 0 - offsetY : offsetY
       offsetX = vx > 0 ? (100 - w) / 2 - vx : 0
       _pos.x = _t === 2 ? 0 - offsetX : offsetX
-      this.media.style.width = `${rWidth}px`
-      this.media.style.height = `${rHeight}px`
+      styles.width = `${rWidth}px`
+      styles.height = `${rHeight}px`
+      styles.maxWidth = ''
+      styles.maxHeight = ''
     } else if (_t % 2 === 1) {
       rWidth = height
       rHeight = width
@@ -2129,12 +2133,18 @@ class Player extends MediaProxy {
       offsetY = offset / 2 / rHeight * 100
       _pos.y = _t === 3 ? offsetY + vx / 2 : offsetY - vx / 2
       _pos.scale = scale
-      this.media.style.width = `${rWidth}px`
-      this.media.style.height = `${rHeight}px`
+      styles.width = `${rWidth}px`
+      styles.maxWidth = `${rWidth}px`
+      styles.height = `${rHeight}px`
+      styles.maxHeight = `${rHeight}px`
     }
     const formStyle = Util.getTransformStyle(_pos, this.media.style.transform || this.media.style.webkitTransform)
-    this.media.style.transform = formStyle
-    this.media.style.webkitTransform = formStyle
+    styles.transform = formStyle
+    styles.webkitTransform = formStyle
+
+    Object.keys(styles).map(key => {
+      this.media.style[key] = styles[key]
+    })
   }
 
   /**
