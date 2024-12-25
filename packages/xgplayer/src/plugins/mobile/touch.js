@@ -74,12 +74,19 @@ class Touche {
 
   __setPress (e) {
     const { config } = this
+    // 禁用长按的时候不做处理
+    if (config.disablePress) {
+      return
+    }
     if (this.pressIntrvalId) {
       this.__clearPress()
     }
     this.pressIntrvalId = setTimeout(() => {
-      this.trigger(EVENTS.PRESS, e)
-      this._pos.press = true
+      // 当前是moving状态，长按不再生效
+      if (!this._pos.moving) {
+        this.trigger(EVENTS.PRESS, e)
+        this._pos.press = true
+      }
       this.__clearPress()
     }, config.pressDelay)
   }
@@ -182,6 +189,9 @@ class Touche {
 
   onTouchMove = (e) => {
     const { _pos, config } = this
+    if (_pos.press) {
+      return
+    }
     const touch = getTouch(e.touches)
     const x = touch ? parseInt(touch.pageX, 10) : e.pageX
     const y = touch ? parseInt(touch.pageY, 10) : e.pageX
@@ -190,9 +200,6 @@ class Touche {
     if (Math.abs(diffy) < config.miniStep && Math.abs(diffx) < config.miniStep) {
       return
     }
-    this.__clearPress()
-    _pos.press && this.trigger(EVENTS.PRESS_END, e)
-    _pos.press = false
     _pos.moving = true
     this.trigger(EVENTS.TOUCH_MOVE, e)
   }

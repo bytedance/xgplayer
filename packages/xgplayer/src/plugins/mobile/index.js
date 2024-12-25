@@ -141,7 +141,12 @@ class MobilePlugin extends Plugin {
     this.registerThumbnail()
 
     const eventType = this.domEventType === 'mouse' ? 'mouse' : 'touch'
-    this.touch = new Touche(this.root, { eventType, needPreventDefault: !this.config.disableGesture })
+    const { disableGesture, disablePress } = this.config
+    this.touch = new Touche(this.root, {
+      eventType,
+      needPreventDefault: !disableGesture,
+      disablePress,
+    })
 
     this.root.addEventListener('contextmenu', e => {
       e.preventDefault()
@@ -555,7 +560,7 @@ class MobilePlugin extends Plugin {
 
   onPress (e) {
     const { pos, config, player } = this
-    if (config.disablePress) {
+    if (config.disablePress || player.paused) {
       return
     }
     pos.rate = this.player.playbackRate
