@@ -280,6 +280,7 @@ I18N.extend([
 window.player = null
 window.player1 = null
 function init(index = 0, config = {}) {
+  console.log('>>>init')
   const p = `player${index}`
   if (window[p]) {
     window[p].destroy()
@@ -292,7 +293,7 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
+    url: "https://mv-video-akamai.serealplus.com/202412252109/e80b646e59b1bd6c4508627f8581b6bb/prod/video/147756332186091520/EP01/2ced2650c7b98b01dd6103c3e481b37d-sd.mp4",
     pip: true,
     loop: false,
     autoplay: false,
@@ -339,6 +340,7 @@ function init(index = 0, config = {}) {
     },
     mobile: {
       // gestureX: false
+      disablePress: false
     },
     // timeSegments: ,
     // timeSegmentsControls:{

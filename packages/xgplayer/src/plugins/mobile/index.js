@@ -145,7 +145,7 @@ class MobilePlugin extends Plugin {
     this.touch = new Touche(this.root, {
       eventType,
       needPreventDefault: !disableGesture,
-      disablePress,
+      disablePress
     })
 
     this.root.addEventListener('contextmenu', e => {
