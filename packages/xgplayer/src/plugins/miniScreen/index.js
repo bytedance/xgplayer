@@ -184,6 +184,17 @@ class MiniScreen extends Plugin {
     this.isMini = player.isMini = false
   }
 
+
+  updatePos (pos) {
+    this.pos = Object.assign(this.pos, pos)
+    if (this.isMini) {
+      this.player.root.style.left = `${this.pos.left}px`
+      this.player.root.style.top = `${this.pos.top}px`
+      this.player.root.style.width = `${this.pos.width}px`
+      this.player.root.style.height = `${this.pos.height}px`
+    }
+  }
+
   destroy () {
     window.removeEventListener('scroll', this.onScroll)
     const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
