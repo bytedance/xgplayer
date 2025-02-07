@@ -609,7 +609,7 @@ export default class Mp4Plugin extends BasePlugin {
     // 校验是否是h265的视频
     if (!this.mp4 || !this.mse) return
     this.mse.append(MSE.VIDEO, initSeg, {vid: this.playerConfig.vid, range: null, dataLen: initSeg.byteLength, isinit: true}).then((data) => {
-      this.log('appendInitSeg end ==>>>', data.context ? data.context : null, ', costTime,', data.costtime)
+      this.log('appendInitSeg end ==>>>', data?.context,' costTime,', data?.costtime)
     })
   }
 

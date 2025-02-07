@@ -594,10 +594,10 @@ export class MSE {
               op.context.isFull = true
             }
             this._logger.error('[MSE error],  context,', op.context, ' ,name,', op.opName, ',err,SourceBuffer is full')
-            op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error))
+            op?.promise?.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error))
           } else {
             this._logger.error(error)
-            op.promise.reject(
+            op?.promise?.reject(
               error.constructor === StreamingError
                 ? error
                 : new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error)
