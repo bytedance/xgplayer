@@ -124,8 +124,10 @@ function removeHooks (hookName, handler) {
     if (index !== -1) {
       hooks.splice(index, 1)
     }
+  } else if (__hooks[hookName]) {
+    __hooks[hookName] = null
+    // delete __hooks[hookName]
   }
-  delete __hooks[hookName]
 }
 
 /**
