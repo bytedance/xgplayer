@@ -4,6 +4,7 @@
 >* fix player destroy  control plugins memeory leak
 >* fix: 🐛 (xgplayer) 修复全屏hook，执行报错的问题 close#1579
 >* refactor: 💡 (xgplayer) preProcessUrl API 对外使用
+>* feat: (xgplayer) support standalone video (XgVideoProxy is deprecated)
 ## 3.0.20
 >* fix: 🐛 (xgplayer)多个播放器，只显示一个rotate icon
 >* fix: 🐛 (xgplayer)修复mobile插件部分手机场景功能失效问题修复
