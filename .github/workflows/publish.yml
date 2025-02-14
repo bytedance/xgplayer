@@ -45,17 +45,17 @@ jobs:
 
       - name: install repo dependencies
         run: |
-          yarn install --registry="https://registry.yarnpkg.com" 
-      - name: npm version 
+          yarn install --registry="https://registry.yarnpkg.com"
+      - name: npm version
         run: |
           zx scripts/workflow/set-package-version.mjs
-        env: 
+        env:
           TAG: ${{steps.extract_tag.outputs.result}}
       - name: build
         run: |
-          yarn build:all 
+          yarn build:all
       - name: upload build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
@@ -106,7 +106,7 @@ jobs:
           run: |
             npm install yarn -g 
             npm install zx@7.2.3 -g
-            
+
         - name: install repo deps
           run: |
             yarn install --registry="https://registry.yarnpkg.com"
@@ -114,10 +114,10 @@ jobs:
           uses: actions/download-artifact@v3
           with:
             name: build
-        - name: npm version 
+        - name: npm version
           run: |
             zx scripts/workflow/set-package-version.mjs
-          env: 
+          env:
             TAG: ${{steps.extract_tag.outputs.result}}
         - name: setup npm
           run: |
@@ -133,7 +133,7 @@ jobs:
             zx scripts/workflow/npm-publish.mjs
         - name: push to release branch
           uses: EndBug/add-and-commit@v9
-          with: 
+          with:
             add: "."
             default_author: github_actor
             fetch: true
@@ -142,9 +142,9 @@ jobs:
             message: 'Auto Publish npm version ${{steps.extract_tag.outputs.result}}'
         - name: create PR from back to main
           uses: actions/github-script@v6
-          env: 
+          env:
             RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
-          with: 
+          with:
             script: |
               const owner = context.repo.owner;
               const repo = context.repo.repo;
