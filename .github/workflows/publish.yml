@@ -63,6 +63,10 @@ jobs:
             packages/*/es/**
             package.json
   release_npm:
+      permissions:
+        contents: write  # support to do the release on branch
+        pull-requests: write
+        
       if: ${{ startsWith(github.ref, 'refs/tags/') }}
       needs: [build]
       environment: release
