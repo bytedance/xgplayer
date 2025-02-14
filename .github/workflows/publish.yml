@@ -111,7 +111,7 @@ jobs:
           run: |
             yarn install --registry="https://registry.yarnpkg.com"
         - name: download build
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
           with:
             name: build
         - name: npm version
