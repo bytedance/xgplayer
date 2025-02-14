@@ -20,6 +20,7 @@ import { getLang } from './utils/util'
  * @typedef { {
  *   id?: string,
  *   el?: HTMLElement,
+ *   mediaEl?: HTMLMediaElement | (mediaConfig: { [propName: string]: any }) => HTMLMediaElement,
  *   url?: IUrl,
  *   domEventType?: 'default' | 'touch' | 'mouse',
  *   nullUrlStart?: boolean,
@@ -99,6 +100,7 @@ import { getLang } from './utils/util'
  *     sliderBtnStyle?: { [propName: string]: any },
  *     volumeColor?: string
  *   },
+ *   remainMediaAfterDestroy? boolean,
  *   [propName: string]: any;
  * } } IPlayerOptions
  */
