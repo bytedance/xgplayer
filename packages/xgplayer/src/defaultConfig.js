@@ -100,7 +100,7 @@ import { getLang } from './utils/util'
  *     sliderBtnStyle?: { [propName: string]: any },
  *     volumeColor?: string
  *   },
- *   remainMediaAfterDestroy? boolean,
+ *   remainMediaAfterDestroy?: boolean,
  *   [propName: string]: any;
  * } } IPlayerOptions
  */
