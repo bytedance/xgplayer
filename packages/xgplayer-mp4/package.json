@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4",
-  "version": "3.0.21-rc.20",
+  "version": "3.0.21-rc.21",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -39,9 +39,9 @@
     "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "eventemitter3": "^4.0.7",
-    "xgplayer-mp4-loader": "3.0.21-rc.20",
-    "xgplayer-streaming-shared": "3.0.21-rc.20",
-    "xgplayer-transmuxer": "3.0.21-rc.20"
+    "xgplayer-mp4-loader": "3.0.21-rc.21",
+    "xgplayer-streaming-shared": "3.0.21-rc.21",
+    "xgplayer-transmuxer": "3.0.21-rc.21"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.0",
