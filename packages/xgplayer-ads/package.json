@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-ads",
-  "version": "3.0.21-rc.21",
+  "version": "3.0.21-rc.22",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -24,10 +24,10 @@
   "dependencies": {
     "can-autoplay": "^3.0.2",
     "eventemitter3": "^4.0.7",
-    "xgplayer-streaming-shared": "3.0.21-rc.21"
+    "xgplayer-streaming-shared": "3.0.21-rc.22"
   },
   "peerDependencies": {
     "core-js": ">=3.12.1",
-    "xgplayer": "3.0.21-rc.21"
+    "xgplayer": "3.0.21-rc.22"
   }
 }
