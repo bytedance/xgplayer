@@ -768,7 +768,7 @@ export class Hls extends EventEmitter {
   _onTimeupdate = () => {
     if (!this.media) return
     const cfg = this.config
-    if (cfg.isLive && cfg.maxLatency && cfg.targetLatency && this.media) {
+    if (cfg.isLive && cfg.maxLatency && cfg.targetLatency) {
       const liveEdge = this._playlist.liveEdge
       if (!liveEdge) return
       const latency = liveEdge - this.media.currentTime
@@ -782,10 +782,9 @@ export class Hls extends EventEmitter {
       this._seiService?.throw(this.media.currentTime)
     }
 
-    if (this.config.allowedStreamTrackChange && !this.config.softDecode) {
+    if (cfg.allowedStreamTrackChange && !cfg.softDecode && this.media.readyState) {
       this._checkStreamTrackChange(this.media.currentTime)
     }
-
   }
 
   _checkStreamTrackChange (time) {
