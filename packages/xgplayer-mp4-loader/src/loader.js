@@ -35,6 +35,7 @@ export class MP4Loader extends EventEmitter {
     this.logger = new Logger('MP4Loader_' + this.vid)
     !!config.openLog && Logger.enable()
     rest.logger = this.logger
+    this.filesize = 0
 
     this._loader = new NetLoader(rest)
     this._loader.on(EVENT.REAL_TIME_SPEED, (data) => {
@@ -92,6 +93,7 @@ export class MP4Loader extends EventEmitter {
 
   async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config = {}) {
     this._error = false
+    this.filesize = 0
     this.logger.debug('[loadMetaProcess start], range,', [moovStart, moovEnd])
     if (this._config?.memoryOpt) {
       if (!this.buffer || config?.isExp) {
@@ -103,7 +105,21 @@ export class MP4Loader extends EventEmitter {
       }
     }
     const OnProgressHandle = async (data, state, options, response) => {
-      if (this.meta && options?.range && options.range.length > 0 && options.range[1] >= moovEnd) {
+      if (!this.filesize && response?.headers) {
+        const contentRange = response.headers.get('content-range')
+        if (contentRange) {
+          const range = contentRange.split('/')
+          if (Array.isArray(range) && range.length === 2) {
+            this.filesize = parseInt(range[1])
+
+            if (this.filesize > 0 && moovEnd > this.filesize) {
+              moovEnd = this.filesize
+              this.logger.debug(`[loadMetaProcess] moovEnd changed by content-range in header, [${moovStart}-${moovEnd}]`)
+            }
+          }
+        }
+      }
+      if (!state && this.meta && options?.range && options.range.length > 0 && options.range[1] >= moovEnd) {
         state = true
         this.logger.debug('[loadMetaProcess],data done,setstate true,[', moovStart, moovEnd, ']')
       }
