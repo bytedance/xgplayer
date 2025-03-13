@@ -873,7 +873,9 @@ export class MP4Parser {
         v.codecType = VideoCodecType.AV1
         v.codec = e1.av1C.codec
         v.av1C = e1.av1C.data
-        v.colr = e1.colr.data
+        if (e1.colr) {
+          v.colr = e1.colr.data
+        }
       } else if (e1.hvcC) {
         v.codecType = VideoCodecType.HEVC
         v.codec = e1.hvcC.codec
