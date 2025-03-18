@@ -620,6 +620,9 @@ class Progress extends Plugin {
     offset = offset > rWidth ? rWidth : (offset < 0 ? 0 : offset)
     let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
+    if(Number.isNaN(percent)){
+      percent = this.player.currentTime / this.offsetDuration
+    }
     const currentTime = parseInt(percent * this.offsetDuration * 1000, 10) / 1000
     const seekTime = Util.getCurrentTimeByOffset(currentTime, player.timeSegments)
     return {
