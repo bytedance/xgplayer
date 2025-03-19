@@ -22,7 +22,7 @@ class DASH extends EventEmitter {
     return new Promise((resolve, reject) => {
       const task = new Task(url, resolve, range)
       task.once('error', err => {
-        self.emit('error', err)
+        this.emit('error', err)
       })
     })
   }
