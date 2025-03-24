@@ -8,7 +8,7 @@ export default {
       },
       mse: {
         code: 2,
-        msg: '劉追加錯誤'
+        msg: '流追加錯誤'
       },
       parse: {
         code: 3,
