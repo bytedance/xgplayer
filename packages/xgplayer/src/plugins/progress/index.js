@@ -472,6 +472,9 @@ class Progress extends Plugin {
 
   onMouseUp = (e) => {
     const { player, config, pos, playerConfig, _state } = this
+    if (!pos) {
+      return
+    }
     e.stopPropagation()
     e.preventDefault()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
