@@ -146,7 +146,7 @@ class HlsJsPlugin extends BasePlugin {
 
     hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (flag, payload) => {
       mediainfo.hasAudio = !!((payload.tracks && payload.tracks.audio))
-      mediainfo.hasVideo = !!((payload.tracks && payload.tracks.audio))
+      mediainfo.hasVideo = !!((payload.tracks && payload.tracks.video))
 
       if (mediainfo.hasAudio) {
         const track = payload.tracks.audio
