@@ -49,7 +49,8 @@ export class FetchLoader extends EventEmitter {
     referrer,
     referrerPolicy,
     onProcessMinLen,
-    priOptions
+    priOptions,
+    streamRes
   }) {
     this._logger = logger
     this._aborted = false
@@ -108,7 +109,14 @@ export class FetchLoader extends EventEmitter {
     const startTime = Date.now()
     this._logger.debug('[fetch load start], index,', index, ',range,', range)
     return new Promise((resolve, reject) => {
-      fetch(request || url, request ? undefined : init).then(async (response) => {
+      const promise = streamRes
+        ? new Promise(r => {
+          // const response = new Response(stream)
+          // Object.defineProperty(response, 'url', { value: url })
+          r(streamRes)
+        })
+        : fetch(request || url, request ? undefined : init)
+      promise.then(async (response) => {
         clearTimeout(this._timeoutTimer)
         this._response = response
         if (this._aborted || !this._running) return
