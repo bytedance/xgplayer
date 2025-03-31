@@ -114,7 +114,9 @@ export class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.SWITCH_URL_SUCCESS)
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
 
-    this.flv.load(config.url, true)
+    if (!flvOpts.manualLoad) {
+      this.loadSource(config.url)
+    }
   }
 
   /**
@@ -122,6 +124,10 @@ export class FlvPlugin extends BasePlugin {
    */
   getStats = () => {
     return this.flv?.getStats()
+  }
+
+  loadSource = (url = this.player.config.url, streamRes) => {
+    this.flv?.load(this.player.config.url, true, streamRes)
   }
 
   destroy = () => {
