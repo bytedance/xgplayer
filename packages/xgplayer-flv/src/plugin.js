@@ -115,7 +115,7 @@ export class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
 
     if (!flvOpts.manualLoad) {
-      this.loadSource(config.url)
+      this.loadSource(config.url, flvOpts.streamRes)
     }
   }
 
