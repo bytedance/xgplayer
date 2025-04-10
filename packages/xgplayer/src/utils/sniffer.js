@@ -74,7 +74,7 @@ const sniffer = {
     const isWindowsPhone = /(?:Windows Phone)/.test(ua)
     const isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
     const isTizen = /(?:Tizen)/ig.test(ua) // Samsung Tizen TV
-    const isWebOS = /(?:webOS)/ig.test(ua) // LG TV
+    const isWebOS = /(?:Web0S)/ig.test(ua) // LG TV
     const isAndroid = /(?:Android)/.test(ua)
     const isFireFox = /(?:Firefox)/.test(ua)
     const isIpad = /(?:iPad|PlayBook)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
