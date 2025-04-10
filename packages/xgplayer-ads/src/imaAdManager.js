@@ -675,7 +675,7 @@ export class ImaAdManager extends BaseAdManager {
     const autoplay = this.player.config.autoplay
     // Safari 自动启播时间比较久，可能超过500ms+，因此考虑可能的其他浏览器低端机，将兜底timeout默认值`250ms`调高
     const timeout = 800
-    const isKnownAutoplayPlatform = Sniffer.os.isTizen || Sniffer.os.isWeb0S
+    const isKnownAutoplayPlatform = Sniffer.os.isTizen || Sniffer.os.isWebOS
 
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
       autoplay
