@@ -6,7 +6,7 @@
   "typings": "es/index.d.ts",
   "sideEffects": false,
   "libd": {
-    "umdName": "XgplayerAds"
+    "umdName": "AdPlugin"
   },
   "files": [
     "dist",
