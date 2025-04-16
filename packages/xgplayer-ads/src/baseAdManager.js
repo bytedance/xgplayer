@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventemitter3'
-import { Events, STATE_CLASS, STATES } from 'xgplayer'
+import { Events, Sniffer, STATE_CLASS, STATES } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
 
 const logger = new Logger('AdsPluginBaseAdManager')
@@ -33,6 +33,10 @@ export class BaseAdManager extends EventEmitter {
   }
 
   get shouldBlockVideoContent () {
+    // TODO: Just block content video to play for mutiple MediaElement, Ad in TV is video reused
+    if (Sniffer.os.isTizen || Sniffer.os.isWebOS){
+      return false
+    }
     return this.isLinearAdRunning || this._shouldBlockVideoContent
   }
 
