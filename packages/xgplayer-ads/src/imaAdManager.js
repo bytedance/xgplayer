@@ -478,11 +478,7 @@ export class ImaAdManager extends BaseAdManager {
       // This usually happens right before an ad is about to cover the content.
       case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED: {
         this.isLinearAdRunning = true
-
-        // TODO: Just block content video to play for mutiple MediaElement, Ad in TV is video reused
-        if (!(Sniffer.os.isTizen || Sniffer.os.isWebOS) ) {
-          this.shouldBlockVideoContent = true
-        }
+        this.shouldBlockVideoContent = true
         Util.addClass(this.player.root, CLASS_NAME)
         player?.pause()
         this.emit(ADEvents.IMA_CONTENT_PAUSE_REQUESTED, {
