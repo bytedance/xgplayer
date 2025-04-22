@@ -154,6 +154,12 @@ export class BufferService {
         chunk = null
         switchingNoReset = true
       }
+    } else if (this._opts.onlyLastGop && !this._initSegmentId) {
+      // 首次添加数据，只保留最后一个gop数据
+      const idx = videoTrack.samples.findIndex(sample => (sample.originDts === videoTrack.lastKeyFrameDts))
+      if (idx >= 0) {
+        videoTrack.samples.splice(0, idx)
+      }
     }
 
     let videoExist = videoTrack.exist()
