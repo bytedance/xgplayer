@@ -16,6 +16,7 @@ export class FetchLoader extends EventEmitter {
   _running = false
   _logger = null
   _vid = ''
+  _firtstByte = 0
   _onProcessMinLen = 0
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
@@ -111,8 +112,9 @@ export class FetchLoader extends EventEmitter {
     return new Promise((resolve, reject) => {
       const promise = streamRes
         ? new Promise(r => {
-          // const response = new Response(stream)
+          // const response = new Response(streamRes)
           // Object.defineProperty(response, 'url', { value: url })
+          // r(response)
           r(streamRes)
         })
         : fetch(request || url, request ? undefined : init)
@@ -277,6 +279,18 @@ export class FetchLoader extends EventEmitter {
         retData = data.value
       }
       if (retData && retData.byteLength > 0 || data.done) {
+        if (!this._firtstByte) {
+          this._firtstByte++
+          const tmp = retData.slice(0, 20000)
+          this._cacheData = retData.slice(20000)
+          retData = tmp
+        } else if (this._cacheData) {
+          const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
+          tmp.set(this._cacheData, 0)
+          tmp.set(retData, this._cacheData.byteLength)
+          retData = tmp
+          this._cacheData = null
+        }
         onProgress(retData, data.done, {
           range: [this._range[0] + this._receivedLength - (retData ? retData.byteLength : 0), this._range[0] + this._receivedLength],
           vid: this._vid,
@@ -289,7 +303,10 @@ export class FetchLoader extends EventEmitter {
         }, response)
       }
       if (!data.done) {
-        pump()
+        setTimeout(() => {
+          pump()
+        }, 0)
+        // pump()
       } else {
         const costTime = Date.now() - st
         const speed = calculateSpeed(this._receivedLength, costTime)

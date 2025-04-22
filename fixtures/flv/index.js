@@ -17,7 +17,7 @@ function defaultOpt() {
     maxReaderInterval: 5000,
     seamlesslyReload: false,
     onlyLastGop: true,
-    manualLoad: false
+    manualLoad: true
   }
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
@@ -31,6 +31,9 @@ var testPoint = Number(localStorage.getItem('xg:test:flv:point'))
 if (isNaN(testPoint)) testPoint = 0
 
 window.onload = function () {
+  fetch('https://pull-demo.volcfcdnrd.com/live/st-4536524.flv').then(res => {
+    window.streamRes = res
+  })
   var dTestPoint = document.getElementById('test-point')
   var dTestPointDesc = document.getElementById('test-point-desc')
 
@@ -107,6 +110,7 @@ window.onload = function () {
       init()
     }
     function init() {
+      window.timeStart = Date.now()
       window.player = player = new Player({
         el: document.getElementById('player'),
         plugins: [FlvPlayer],
@@ -114,12 +118,24 @@ window.onload = function () {
         isLive: opts.isLive,
         autoplay: opts.autoplay,
         autoplayMuted: opts.autoplayMuted,
-        flv: opts
+        flv: {
+          // streamRes: window.streamRes,
+          ...opts
+        }
       });
+      player.once('ready', () => {
+        // console.log('streamRes', Date.now() - timeStart, streamRes, player.plugins.flv)
+        if (player.config.flv.manualLoad) {
+          player.plugins.flv.loadSource(player.config.url, streamRes)
+        }
+      })
       dlEvent.innerHTML = ''
       dlError.innerHTML = ''
 
       function pushEvent(name, value, container) {
+        if (name === 'loadeddata') {
+          console.log('loadeddata', Date.now() - window.timeStart)
+        }
         container = container || dlEvent
         if (container === dlEvent && dlLogPause.checked) return
         // console.debug('[test]', name, value)
@@ -254,7 +270,9 @@ window.onload = function () {
   inp(doDisconnectTime).onchange = function () { updateOpts('disconnectTime', this.value, 'number') }
   inp(doMaxReaderInterval).onchange = function () { updateOpts('maxReaderInterval', this.value, 'number') }
 
-  initPlayer()
+  setTimeout(() => {
+    initPlayer()
+  }, 3000)
 
   dbResetOpt.onclick = resetOpts
   dbApplyOpt.onclick = initPlayer
