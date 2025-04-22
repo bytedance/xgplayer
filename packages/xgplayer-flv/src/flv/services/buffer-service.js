@@ -158,8 +158,9 @@ export class BufferService {
       // 首次添加数据，只保留最后一个gop数据
       const idx = videoTrack.samples.findIndex(sample => (sample.originDts === videoTrack.lastKeyFrameDts))
       if (idx >= 0) {
-        videoTrack.samples.splice(0, idx)
+        videoTrack.samples.splice(idx)
       }
+      audioTrack.samples = audioTrack.samples.filter(sample => (sample.originPts >= videoTrack.lastKeyFrameDts))
     }
 
     let videoExist = videoTrack.exist()
