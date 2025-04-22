@@ -15,7 +15,9 @@ function defaultOpt() {
     bufferBehind: 10,
     maxJumpDistance: 3,
     maxReaderInterval: 5000,
-    seamlesslyReload: false
+    seamlesslyReload: false,
+    onlyLastGop: true,
+    manualLoad: false
   }
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
