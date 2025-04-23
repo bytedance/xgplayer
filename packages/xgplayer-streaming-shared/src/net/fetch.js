@@ -51,7 +51,8 @@ export class FetchLoader extends EventEmitter {
     referrerPolicy,
     onProcessMinLen,
     priOptions,
-    streamRes
+    streamRes,
+    firstMaxChunkSize
   }) {
     this._logger = logger
     this._aborted = false
@@ -141,7 +142,7 @@ export class FetchLoader extends EventEmitter {
           if (onProgress) {
             this.resolve = resolve
             this.reject = reject
-            this._loadChunk(response, onProgress, startTime, firstByteTime)
+            this._loadChunk(response, onProgress, startTime, firstByteTime, firstMaxChunkSize)
             return
           } else {
             data = await response.arrayBuffer()
@@ -209,7 +210,7 @@ export class FetchLoader extends EventEmitter {
     }
   }
 
-  _loadChunk (response, onProgress, st, firstByteTime) {
+  _loadChunk (response, onProgress, st, firstByteTime, firstMaxChunkSize) {
     if (!response.body || !response.body.getReader) {
       this._running = false
       const err = new NetError(response.url, '', response, 'onProgress of bad response.body.getReader')
@@ -279,17 +280,19 @@ export class FetchLoader extends EventEmitter {
         retData = data.value
       }
       if (retData && retData.byteLength > 0 || data.done) {
-        if (!this._firtstByte) {
-          this._firtstByte++
-          const tmp = retData.slice(0, 20000)
-          this._cacheData = retData.slice(20000)
-          retData = tmp
-        } else if (this._cacheData) {
-          const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
-          tmp.set(this._cacheData, 0)
-          tmp.set(retData, this._cacheData.byteLength)
-          retData = tmp
-          this._cacheData = null
+        if (firstMaxChunkSize) {
+          if (!this._firtstByte) {
+            this._firtstByte++
+            const tmp = retData.slice(0, firstMaxChunkSize)
+            this._cacheData = retData.slice(firstMaxChunkSize)
+            retData = tmp
+          } else if (this._cacheData) {
+            const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
+            tmp.set(this._cacheData, 0)
+            tmp.set(retData, this._cacheData.byteLength)
+            retData = tmp
+            this._cacheData = null
+          }
         }
         onProgress(retData, data.done, {
           range: [this._range[0] + this._receivedLength - (retData ? retData.byteLength : 0), this._range[0] + this._receivedLength],
@@ -303,9 +306,13 @@ export class FetchLoader extends EventEmitter {
         }, response)
       }
       if (!data.done) {
-        setTimeout(() => {
+        if (this._firtstByte < 3 && firstMaxChunkSize) {
+          setTimeout(() => {
+            pump()
+          }, 0)
+        } else {
           pump()
-        }, 0)
+        }
         // pump()
       } else {
         const costTime = Date.now() - st
