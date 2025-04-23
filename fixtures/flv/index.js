@@ -127,6 +127,7 @@ window.onload = function () {
         // console.log('streamRes', Date.now() - timeStart, streamRes, player.plugins.flv)
         if (player.config.flv.manualLoad) {
           player.plugins.flv.loadSource(player.config.url, streamRes)
+          streamRes = null
         }
       })
       dlEvent.innerHTML = ''

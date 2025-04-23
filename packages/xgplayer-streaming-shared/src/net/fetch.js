@@ -306,7 +306,8 @@ export class FetchLoader extends EventEmitter {
         }, response)
       }
       if (!data.done) {
-        if (this._firtstByte < 3 && firstMaxChunkSize) {
+        if (firstMaxChunkSize) {
+          // this._firtstByte++
           setTimeout(() => {
             pump()
           }, 0)
