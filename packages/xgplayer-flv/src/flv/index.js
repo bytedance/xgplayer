@@ -322,7 +322,7 @@ export class Flv extends EventEmitter {
 
     this._loading = true
     try {
-      await this._mediaLoader.load({ url: finnalUrl, range, streamRes })
+      await this._mediaLoader.load({ url: finnalUrl, range, streamRes, firstMaxChunkSize: this._opts.firstMaxChunkSize })
     } catch (error) {
       this._loading = false
       return this._emitError(StreamingError.network(error), false)

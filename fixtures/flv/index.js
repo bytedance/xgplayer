@@ -16,7 +16,7 @@ function defaultOpt() {
     maxJumpDistance: 3,
     maxReaderInterval: 5000,
     seamlesslyReload: false,
-    onlyLastGop: true,
+    firstMaxChunkSize: 20000,
     manualLoad: true
   }
 }
@@ -272,7 +272,7 @@ window.onload = function () {
 
   setTimeout(() => {
     initPlayer()
-  }, 3000)
+  }, 5000)
 
   dbResetOpt.onclick = resetOpts
   dbApplyOpt.onclick = initPlayer
