@@ -136,6 +136,7 @@ window.onload = function () {
       function pushEvent(name, value, container) {
         if (name === 'loadeddata') {
           console.log('loadeddata', Date.now() - window.timeStart)
+          player.plugins.flv.flv._mediaLoader._currentTask._loader._firstMaxChunkSize = null
         }
         container = container || dlEvent
         if (container === dlEvent && dlLogPause.checked) return
@@ -273,7 +274,7 @@ window.onload = function () {
 
   setTimeout(() => {
     initPlayer()
-  }, 5000)
+  }, 3000)
 
   dbResetOpt.onclick = resetOpts
   dbApplyOpt.onclick = initPlayer
