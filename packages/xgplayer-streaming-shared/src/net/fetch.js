@@ -64,6 +64,7 @@ export class FetchLoader extends EventEmitter {
     this._range = range || [0, 0]
     this._vid = vid || url
     this._priOptions = priOptions || {}
+    this._firstMaxChunkSize = firstMaxChunkSize
     const init = {
       method,
       headers,
@@ -142,7 +143,7 @@ export class FetchLoader extends EventEmitter {
           if (onProgress) {
             this.resolve = resolve
             this.reject = reject
-            this._loadChunk(response, onProgress, startTime, firstByteTime, firstMaxChunkSize)
+            this._loadChunk(response, onProgress, startTime, firstByteTime)
             return
           } else {
             data = await response.arrayBuffer()
@@ -210,7 +211,7 @@ export class FetchLoader extends EventEmitter {
     }
   }
 
-  _loadChunk (response, onProgress, st, firstByteTime, firstMaxChunkSize) {
+  _loadChunk (response, onProgress, st, firstByteTime) {
     if (!response.body || !response.body.getReader) {
       this._running = false
       const err = new NetError(response.url, '', response, 'onProgress of bad response.body.getReader')
@@ -280,11 +281,11 @@ export class FetchLoader extends EventEmitter {
         retData = data.value
       }
       if (retData && retData.byteLength > 0 || data.done) {
-        if (firstMaxChunkSize) {
+        if (this._firstMaxChunkSize) {
           if (!this._firtstByte) {
             this._firtstByte++
-            const tmp = retData.slice(0, firstMaxChunkSize)
-            this._cacheData = retData.slice(firstMaxChunkSize)
+            const tmp = retData.slice(0, this._firstMaxChunkSize)
+            this._cacheData = retData.slice(this._firstMaxChunkSize)
             retData = tmp
           } else if (this._cacheData) {
             const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
@@ -306,7 +307,7 @@ export class FetchLoader extends EventEmitter {
         }, response)
       }
       if (!data.done) {
-        if (firstMaxChunkSize) {
+        if (this._firstMaxChunkSize) {
           // this._firtstByte++
           setTimeout(() => {
             pump()
