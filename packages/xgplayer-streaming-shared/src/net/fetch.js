@@ -20,6 +20,8 @@ export class FetchLoader extends EventEmitter {
   _onProcessMinLen = 0
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
+  _cacheData = []
+  _firtstByteCount = 5
 
   constructor () {
     super()
@@ -52,7 +54,8 @@ export class FetchLoader extends EventEmitter {
     onProcessMinLen,
     priOptions,
     streamRes,
-    firstMaxChunkSize
+    firstMaxChunkSize,
+    firtstByteCount
   }) {
     this._logger = logger
     this._aborted = false
@@ -65,6 +68,7 @@ export class FetchLoader extends EventEmitter {
     this._vid = vid || url
     this._priOptions = priOptions || {}
     this._firstMaxChunkSize = firstMaxChunkSize
+    this._firtstByteCount = firtstByteCount || 5
     const init = {
       method,
       headers,
@@ -281,18 +285,19 @@ export class FetchLoader extends EventEmitter {
         retData = data.value
       }
       if (retData && retData.byteLength > 0 || data.done) {
+        if (this._cacheData.length) {
+          const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
+          tmp.set(this._cacheData, 0)
+          tmp.set(retData, this._cacheData.byteLength)
+          retData = tmp
+          this._cacheData = []
+        }
         if (this._firstMaxChunkSize) {
-          if (!this._firtstByte) {
+          if (this._firtstByte < this._firtstByteCount) {
             this._firtstByte++
             const tmp = retData.slice(0, this._firstMaxChunkSize)
             this._cacheData = retData.slice(this._firstMaxChunkSize)
             retData = tmp
-          } else if (this._cacheData) {
-            const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
-            tmp.set(this._cacheData, 0)
-            tmp.set(retData, this._cacheData.byteLength)
-            retData = tmp
-            this._cacheData = null
           }
         }
         onProgress(retData, data.done, {
