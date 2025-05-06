@@ -1,4 +1,11 @@
 # 版本更新记录
+## 3.0.22
+refactor: 💡 (xgplayer) add umd ui plugins exports for ads, eg. PlayIcon、Progress、TimeIcon etc.
+fix: 🐛 (ads) always autoplay for LG & Samsung TV
+fix: 🐛 progress bar mouseup event is not fired, due to preview
+fix: 🐛 typo in zh-hk.js
+fix(xgplayer): fix percent NaN and fix to currentTime percent
+feat: add update function for miniscreen
 ## 3.0.21
 >* fix: 🐛 (xgplayer) 修复播放器seeked时，播放器未启动播放而弹幕自动播放问题
 >* fix player destroy  control plugins memeory leak
