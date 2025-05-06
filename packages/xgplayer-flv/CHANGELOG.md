@@ -4,6 +4,7 @@
 >* feat: 支持对首次加流进行裁剪
 >* fix: 支持初始化传入stream res
 >* feat: 支持flv预拉流
+>* fix: firstMaxChunkSize可动态变化
 
 ## 3.0.21
 >* test: 💍 add test case for annex-b nalu split
