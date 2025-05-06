@@ -2192,7 +2192,7 @@ class Player extends MediaProxy {
   }
 
   resize () {
-    if (!this.media) {
+    if (!this.media || !this.root) {
       return
     }
     const containerSize = this.root.getBoundingClientRect()
