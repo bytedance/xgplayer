@@ -245,7 +245,9 @@ export class MSE {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      URL.revokeObjectURL(media.src)
+      if (!globalThis.inPlayerWorker) {
+        URL.revokeObjectURL(media.src)
+      }
       this._openPromise.resolve({costtime: costTime})
     }
     ms.addEventListener('sourceopen', onOpen)
@@ -254,9 +256,15 @@ export class MSE {
       ms.addEventListener('endstreaming', this._onEndStreaming)
     }
 
-    this._url = URL.createObjectURL(ms)
-    media.src = this._url
-    media.disableRemotePlayback = useMMS
+    if (globalThis.inPlayerWorker) {
+      globalThis.postMessage({
+        type: 'handle', handle
+      }, [handle])
+    } else {
+      this._url = URL.createObjectURL(ms)
+      media.src = this._url
+      media.disableRemotePlayback = useMMS
+    }
 
     return this._openPromise
   }
@@ -303,7 +311,7 @@ export class MSE {
       this.media.disableRemotePlayback = false
       this.media.removeAttribute('src')
       try {
-        this.media.load()
+        await this.media.load()
       } catch (error) {
         // ignore
       }
