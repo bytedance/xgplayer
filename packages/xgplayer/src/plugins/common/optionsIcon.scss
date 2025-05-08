@@ -1,5 +1,5 @@
 @import "../../style/variable";
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .xg-options-icon {
     display: none;
     cursor: pointer;
@@ -147,7 +147,7 @@
 }
 
 @media only screen and (max-width: 480px) {
-  .xgplayer-mobile {
+  .xgplayer-mobile, .xgplayer-v3-mobile {
     .xg-options-icon {
       &.portrait {
         display: none;

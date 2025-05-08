@@ -1,5 +1,9 @@
 import { BasePlugin, Events, Util } from '../../plugin'
-
+function requestVideoFrameCallback (media, callback){
+  if (media.requestVideoFrameCallback) {
+    media.requestVideoFrameCallback(callback)
+  }
+}
 /**
  * 进行事件分段控制
  */
@@ -19,13 +23,13 @@ export default class TimeSegmentsControls extends BasePlugin {
     this.curIndex = -1
     this.curPos = null
     this.lastCurrentTime = 0
+    this.isOffsetEnded = false
 
     this.updateSegments()
 
     this.on(Events.DURATION_CHANGE, this._onDurationChange)
     this.on(Events.URL_CHANGE, this._onUrlChange)
     this.on(Events.LOADED_DATA, this._onLoadedData)
-
     this.on(Events.TIME_UPDATE, this._onTimeupdate)
 
     this.on(Events.SEEKING, this._onSeeking)
@@ -102,13 +106,22 @@ export default class TimeSegmentsControls extends BasePlugin {
     this.updateSegments()
   }
 
+  _onLoadedData = () => {
+    const { timeSegments, media, currentTime } = this.player
+    this.handlerCurrentTime(currentTime, timeSegments, 'timeupdate')
+    requestVideoFrameCallback(media, this.onRequestVideoFrameCallback)
+  }
+
   _onUrlChange = () => {
-    this.off(Events.LOADED_DATA, this._onceLoadedData)
-    this.once(Events.LOADED_DATA, this._onceLoadedData)
+    this.player.offsetDuration = -1
+    this.player.offsetCurrentTime = -1
+    this.curIndex = -1
+    this.curPos = null
+    // this.off(Events.LOADED_DATA, this._onceLoadedData)
+    // this.once(Events.LOADED_DATA, this._onceLoadedData)
   }
 
   _onceLoadedData = () => {
-    // console.log('》》》_onLoadedData')
     const { timeSegments } = this.player
     if (!this._checkIfEnabled(timeSegments)) {
       return
@@ -121,15 +134,24 @@ export default class TimeSegmentsControls extends BasePlugin {
     }
   }
 
+  onRequestVideoFrameCallback = () => {
+    const { currentTime, timeSegments, media } = this.player
+    if (!this._checkIfEnabled(timeSegments)) {
+      return
+    }
+    this.handlerCurrentTime(currentTime, timeSegments, 'requestVideoFrameCallback')
+    requestVideoFrameCallback(media, this.onRequestVideoFrameCallback)
+  }
+
   _onTimeupdate = () => {
     const { currentTime, timeSegments } = this.player
     if (!this._checkIfEnabled(timeSegments)) {
       return
     }
-    this.handlerCurrentTime(currentTime, timeSegments)
+    this.handlerCurrentTime(currentTime, timeSegments, 'timeupdate')
   }
 
-  handlerCurrentTime (currentTime, timeSegments) {
+  handlerCurrentTime (currentTime, timeSegments, type) {
     const _len = timeSegments.length
     this.lastCurrentTime = currentTime
     const index = Util.getIndexByTime(currentTime, timeSegments)
@@ -148,11 +170,15 @@ export default class TimeSegmentsControls extends BasePlugin {
       // console.log('》》》seek1', start)
       this.player.currentTime = start
     } else if (currentTime > end && index >= _len - 1) {
-      this.triggerCustomEnded()
+      this.triggerCustomEnded(type)
     }
   }
 
-  triggerCustomEnded () {
+  triggerCustomEnded (type) {
+    if (this.isOffsetEnded) {
+      return
+    }
+    this.isOffsetEnded = true
     const { loop } = this.playerConfig
     if (loop) {
       const time = this.convertVideoTime(0)
@@ -223,6 +249,7 @@ export default class TimeSegmentsControls extends BasePlugin {
       // console.log('》》》seek5', timeSegments[0].start)
       this.player.currentTime = timeSegments[0].start
     }
+    this.isOffsetEnded = false
   }
 
   getSeekTime (currentTime, lastCurrentTime, index, timeSegments) {

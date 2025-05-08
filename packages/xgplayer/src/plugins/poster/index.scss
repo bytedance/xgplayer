@@ -1,4 +1,4 @@
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .xgplayer-poster {
     display: block;
     opacity: 1;
@@ -32,7 +32,7 @@
   }
 }
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   &.xgplayer-is-enter, &.xgplayer-playing {
     .xgplayer-poster.xg-showplay {
       opacity: 1;
@@ -41,7 +41,7 @@
   }
 }
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   &.xgplayer-nostart, 
   &.xgplayer-ended,
   &.not-allow-autoplay {

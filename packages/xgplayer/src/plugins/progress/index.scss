@@ -1,6 +1,6 @@
 @import "../../style/variable";
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .xgplayer-progress {
     display: flex;
     align-items: center;
@@ -160,7 +160,7 @@
     }
   }
 
-  &.xgplayer-pc {
+  &.xgplayer-pc, &.xgplayer-v3-pc {
     .xgplayer-progress-btn {
       transform: translate(-50%, -50%) scale(0);
     }
@@ -217,7 +217,7 @@
     }
   }
 
-  &.xgplayer-mobile  {
+  &.xgplayer-mobile, &.xgplayer-v3-mobile  {
     // 进度条位于底部的时候
     .xgplayer-progress-bottom {
       .xgplayer-progress-outer {
@@ -227,7 +227,7 @@
   }
 }
 @media (prefers-color-scheme: dark) {
-  .xgplayer {
+  .xgplayer, .xgplayer-v3 {
     .xgplayer-progress {
       .xgplayer-progress-inner {
         background-color: $progressOuterBgColor;

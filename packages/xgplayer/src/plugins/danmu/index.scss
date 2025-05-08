@@ -10,7 +10,7 @@ $sliderBarBgColor: rgba(255, 255, 255, 0.30);
 $sliderDragBgColor: #FA1F41;
 $sliderDragAfterBgColor: #fff;
 $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .danmu-icon  {
     .danmu-switch {
       margin:0 auto;
@@ -146,7 +146,7 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
     z-index: -1;
   }
 }
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .xgplayer-panel{
     outline: none;
     width: 40px;

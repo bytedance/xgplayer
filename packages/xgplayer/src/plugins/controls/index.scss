@@ -2,7 +2,7 @@
 //controls
 $controlHeight: 48px;
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   &.not-allow-autoplay,
   &.xgplayer-nostart {
     // .xgplayer-controls, .flex-controls {
@@ -127,7 +127,7 @@ $controlHeight: 48px;
       padding: 0 16px;
     }
   }
-  &.xgplayer-mobile {
+  &.xgplayer-mobile, &.xgplayer-v3-mobile {
     .xg-center-grid {
       z-index: 2;
     }

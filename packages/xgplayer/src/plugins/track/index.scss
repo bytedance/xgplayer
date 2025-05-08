@@ -26,8 +26,10 @@
   }
 }
 
-.xgplayer xg-text-track.follow-control {
-  transition: transform .2s ease;
+.xgplayer, .xgplayer .xgplayer-v3{
+  xg-text-track.follow-control {
+    transition: transform .2s ease;
+  }
 }
 
 .xgplayer-is-texttrack {

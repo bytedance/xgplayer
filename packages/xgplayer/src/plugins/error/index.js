@@ -29,7 +29,10 @@ export default class ErrorPlugin extends Plugin {
   }
 
   handleError (error = {}) {
-    const { player } = this
+    const { player,root } = this
+    if (!root) {
+      return
+    }
     const type = error.errorType
     let errorNote = player.errorNote ? this.i18n[player.errorNote] : ''
     if (!errorNote) {

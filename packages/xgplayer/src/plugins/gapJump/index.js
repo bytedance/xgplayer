@@ -55,7 +55,7 @@ export default class GapJump extends BasePlugin {
     if (idx === null || idx === 0) {
       return
     }
-    console.log('GapJump  bufferRange ', buffered.start(idx), buffered.end(idx))
+    // console.log('GapJump  bufferRange ', buffered.start(idx), buffered.end(idx))
     const jumpTo = buffered.start(idx) + 0.1
     const seekEnd = player.media.duration
 
@@ -73,7 +73,7 @@ export default class GapJump extends BasePlugin {
         player.media.currentTime = this.isSafari ? jumpTo + 0.1 : jumpTo
       }
       this.player && this.player.emit('detectGap')
-      console.log('gapJump gapIndex', idx, ' isGapSamll:', isGapSmall, ' currentTime:', player.media.currentTime, ' jumpSize:', (currentTime - player.media.currentTime))
+      // console.log('gapJump gapIndex', idx, ' isGapSamll:', isGapSmall, ' currentTime:', player.media.currentTime, ' jumpSize:', (currentTime - player.media.currentTime))
       // 目前转码视频首个分片cts存在，在Safari下为0.08，先忽略
       if (jumpTo !== 0.08) {
         player && player.emit('log', {

@@ -1,4 +1,4 @@
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   // slider
   $sliderBgColor: rgba(0, 0, 0, 0.54);
   $sliderBarBgColor: rgba(255, 255, 255, 0.30);
@@ -114,7 +114,7 @@
     }
   }
 
-  &.xgplayer-mobile {
+  &.xgplayer-mobile, &.xgplayer-v3-mobile {
     .xgplayer-volume {
       .xgplayer-slider {
         display: none;

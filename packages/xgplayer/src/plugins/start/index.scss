@@ -1,6 +1,6 @@
 @import "../../style/variable";
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   @keyframes playPause {
     0%{
       transform: scale(1);
@@ -74,7 +74,7 @@
       display: block;
     }
   }
-  &.xgplayer-mobile {
+  &.xgplayer-mobile, &.xgplayer-v3-mobile {
     xg-start-inner {
       background: initial;
       border-radius: 0;

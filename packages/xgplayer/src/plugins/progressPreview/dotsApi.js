@@ -343,6 +343,6 @@ export default function initDotsAPI (plugin) {
     }
   })
   plugin.on('timesegments_change', (data) => {
-    plugin.updateAllDots(ispots)
+    plugin.updateAllDots(plugin._ispots)
   })
 }

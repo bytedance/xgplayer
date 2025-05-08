@@ -1145,8 +1145,19 @@ function checkIsCurrentVideo (element, playerId, key) {
   return false
 }
 
+function checkIsShadowRoot (element) {
+  if (!element) {
+    return false
+  }
+  if (element.shadowRoot) {
+    return true
+  }
+  return false
+}
+
 export {
   util as default,
+  checkIsShadowRoot,
   checkIsCurrentVideo,
   debounce,
   throttle,

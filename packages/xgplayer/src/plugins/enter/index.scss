@@ -50,7 +50,7 @@
   }
 }
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   &.xgplayer-is-enter {
     .xgplayer-enter {
       display: block;
@@ -63,7 +63,7 @@
       display: none;
     }
   }
-  &.xgplayer-mobile {
+  &.xgplayer-mobile, &.xgplayer-v3-mobile {
     .xgplayer-enter .xgplayer-enter-spinner {
       width: 70px;
       height: 70px;

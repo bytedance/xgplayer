@@ -4,7 +4,6 @@ import MagnifierOpen from '../assets/magnifierOn.svg'
 import MagnifierOff from '../assets/magnifierOff.svg'
 import './index.scss'
 
-const TAG = 'Magnifier'
 export default class Magnifier extends Plugin {
   static get pluginName () {
     return 'magnifier'
@@ -21,7 +20,7 @@ export default class Magnifier extends Plugin {
       magnifierRatio: 2,
       interval: 100,
       index: 2,
-      position: POSITIONS.CONTROLS_RIGHT,
+      position: POSITIONS.CONTROLS_RIGHT
     }
   }
 
@@ -76,11 +75,11 @@ export default class Magnifier extends Plugin {
     this.isOpen && this.showTool()
   }
 
-  hideTool() {
+  hideTool () {
     this.renderRoot.style.display = 'none'
   }
 
-  showTool() {
+  showTool () {
     const cs = window.getComputedStyle(this.renderRoot, null)
     const cssDisplayValue = cs.getPropertyValue('display')
     if (cssDisplayValue === 'none') {
@@ -183,14 +182,14 @@ export default class Magnifier extends Plugin {
     contentIcon.appendChild(icons.magnifierOff)
     this.setAttr('data-state', 'off')
   }
-  
+
   registerIcons () {
     return {
       magnifierOpen: { icon: MagnifierOpen, class: 'xg-magnifier-open' },
       magnifierOff: { icon: MagnifierOff, class: 'xg-magnifier-off' }
     }
   }
-  
+
   handleIconSwitch = () => {
     this.switchMagnifier()
     const state = this.isOpen ? 'open' : 'off'

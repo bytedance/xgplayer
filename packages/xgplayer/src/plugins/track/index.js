@@ -159,7 +159,7 @@ export default class TextTrack extends OptionsIcon {
     if (mode === 'native') {
       this._initNativeSubtitle()
     } else {
-      this._initExtSubTitle(defaultIndex)
+      defaultIndex >= 0 && this._initExtSubTitle(defaultIndex)
     }
   }
 
@@ -198,7 +198,8 @@ export default class TextTrack extends OptionsIcon {
       defaultOpen: isDefaultOpen,
       updateMode,
       renderMode,
-      debugger: this.config.debugger
+      debugger: this.config.debugger,
+      domRender: true
     }
     Object.keys(style).map(key => {
       config[key] = style[key]

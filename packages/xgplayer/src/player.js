@@ -1,5 +1,5 @@
 import MediaProxy from './mediaProxy'
-import Util, { checkIsCurrentVideo } from './utils/util'
+import Util, { checkIsCurrentVideo, checkIsShadowRoot } from './utils/util'
 import Sniffer from './utils/sniffer'
 import Database from './utils/database'
 import Errors from './error'
@@ -36,6 +36,13 @@ let AVG_SPEED = 0 // 平均下载速率, kb/s
 let instManager = null
 
 class Player extends MediaProxy {
+  /**
+   * @type { string }
+   * @description the version number of the current player
+   */
+  static get version () {
+    return version
+  }
   /**
    * @type {number}
    * @description set debugger level
@@ -107,13 +114,14 @@ class Player extends MediaProxy {
     bindDebug(this)
     // resolve default preset
     const defaultPreset = this.constructor.defaultPreset
-    if (this.config.presets.length) {
-      const defaultIdx = this.config.presets.indexOf('default')
+    const { presets } = this.config
+    if (presets.length) {
+      const defaultIdx = presets.indexOf('default')
       if (defaultIdx >= 0 && defaultPreset) {
-        this.config.presets[defaultIdx] = defaultPreset
+        presets[defaultIdx] = defaultPreset
       }
     } else if (defaultPreset) {
-      this.config.presets.push(defaultPreset)
+      presets.push(defaultPreset)
     }
 
     // timer and flags
@@ -357,8 +365,10 @@ class Player extends MediaProxy {
      * @type {InstManager}
      */
     this.instManager = instManager
-    const rootInit = this._initDOM()
-    if (!rootInit) {
+    this._initMedia()
+    const {isNoRoot} = this.config
+    const rootInit = !isNoRoot && this._initDOM()
+    if (!isNoRoot && !rootInit) {
       console.error(
         new Error(
           `can't find the dom which id is ${this.config.id} or this.config.el does not exist`
@@ -404,17 +414,30 @@ class Player extends MediaProxy {
     }
   }
 
+  _initMedia () {
+    // 允许自定义video对象的构造
+    const XgVideoProxy = this.constructor.XgVideoProxy
+    if (XgVideoProxy && this.mediaConfig.mediaType === XgVideoProxy.mediaType) {
+      const el = this.innerContainer || this.root
+      this.detachVideoEvents(this.media)
+      const _nVideo = new XgVideoProxy(el, this.config, this.mediaConfig)
+      this.attachVideoEvents(_nVideo)
+      this.media = _nVideo
+    }
+    this.media.setAttribute(PLATER_ID, this.playerId)
+  }
+
   /**
    * init control domElement
    * @private
    */
   _initDOM () {
-    this.root = this.config.id ? document.getElementById(this.config.id) : null
+    const { id, el, isCustomRoot, controls, autoplay, isMobileSimulateMode } = this.config
+    this.root = id ? document.getElementById(id) : null
     if (!this.root) {
-      const el = this.config.el
       if (el && el.nodeType === 1) {
         this.root = el
-      } else {
+      } else if (isCustomRoot) {
         this.emit(
           Events.ERROR,
           new Errors('use', this.config.vid, {
@@ -425,6 +448,8 @@ class Player extends MediaProxy {
         )
         console.error('this.confg.id or this.config.el can\'t be empty')
         return false
+      } else {
+        this.root = Util.createDom('div', '', { id, class: STATE_CLASS.BUILTIN_CLASS })
       }
     }
     const ret = checkPlayerRoot(this.root)
@@ -449,19 +474,20 @@ class Player extends MediaProxy {
       this.media = _nVideo
     }
     this.media.setAttribute(PLATER_ID, this.playerId)
-    if (this.config.controls) {
-      const _root = this.config.controls.root || null
-      const controls = pluginsManager.register(this, Controls, { root: _root })
-      this.controls = controls
+    if (controls) {
+      const _root = controls.root || null
+      const controlsPlugin = pluginsManager.register(this, Controls, { root: _root })
+      this.controls = controlsPlugin
     }
-    const device =
-      this.config.isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
+    const device = isMobileSimulateMode === 'mobile' ? 'mobile' : Sniffer.device
+    const { useStyleNameSpace } = this.config
+    const defaultClass = useStyleNameSpace ? STATE_CLASS.VERSION3 : STATE_CLASS.DEFAULT
     this.addClass(
-      `${STATE_CLASS.DEFAULT} ${STATE_CLASS.INACTIVE} xgplayer-${device} ${
-        this.config.controls ? '' : STATE_CLASS.NO_CONTROLS
+      `${defaultClass} ${STATE_CLASS.INACTIVE} ${defaultClass}-${device} ${
+        controls ? '' : STATE_CLASS.NO_CONTROLS
       }`
     )
-    if (this.config.autoplay) {
+    if (autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
       this.addClass(STATE_CLASS.NO_START)
@@ -565,7 +591,7 @@ class Player extends MediaProxy {
    * @private
    */
   _unbindEvents () {
-    this.root.removeEventListener('mousemove', this.mousemoveFunc)
+    this.root && this.root.removeEventListener('mousemove', this.mousemoveFunc)
     FULLSCREEN_EVENTS.forEach((item) => {
       document.removeEventListener(item, this.onFullscreenChange)
     })
@@ -623,7 +649,7 @@ class Player extends MediaProxy {
     }
 
     const _root = this.innerContainer ? this.innerContainer : this.root
-    if (this.media instanceof window.Element && !_root.contains(this.media)) {
+    if (_root && this.media instanceof window.Element && !_root.contains(this.media)) {
       _root.insertBefore(this.media, _root.firstChild)
     }
 
@@ -792,7 +818,7 @@ class Player extends MediaProxy {
       )
     }
     if (!options.root) {
-      options.root = this._getRootByPosition(position)
+      options.root = PLUFGIN.pluginName === 'controls' ? this.root : this._getRootByPosition(position)
     }
     return pluginsManager.register(this, PLUFGIN, options)
   }
@@ -1307,12 +1333,12 @@ class Player extends MediaProxy {
    */
   destroy () {
     const { innerContainer, root, media } = this
-    if (!root || !media) {
+    if (!media) {
       return
     }
     this.hasStart = false
     this._useAutoplay = false
-    root.removeAttribute(PLATER_ID)
+    root && root.removeAttribute(PLATER_ID)
     this.updateAcc('destroy')
     this._unbindEvents()
     this._detachSourceEvents(this.media)
@@ -1323,7 +1349,7 @@ class Player extends MediaProxy {
     delHooksDescriptor(this)
     super.destroy()
     // 退出全屏
-    if (this.fullscreen && this._fullscreenEl === this.root) {
+    if (this.fullscreen && this._fullscreenEl === root) {
       this.exitFullscreen()
     }
 
@@ -1333,7 +1359,7 @@ class Player extends MediaProxy {
         innerContainer.removeChild(_c[i])
       }
     }
-    !innerContainer &&
+    root && !innerContainer &&
     media instanceof window.Node &&
       root.contains(media) &&
       root.removeChild(media);
@@ -1341,13 +1367,14 @@ class Player extends MediaProxy {
       this[item] && root.removeChild(this[item])
       this[item] = null
     })
-    const cList = root.className.split(' ')
+    const cList = root ? root.className.split(' ') : []
+    const isBuildIn = root && Util.hasClass(root, STATE_CLASS.BUILTIN_CLASS)
     if (cList.length > 0) {
       root.className = cList
         .filter((name) => name.indexOf('xgplayer') < 0)
         .join(' ')
     } else {
-      root.className = ''
+      root && (root.className = '')
     }
     this.removeAttribute('data-xgfill');
 
@@ -1360,6 +1387,8 @@ class Player extends MediaProxy {
     ].forEach((key) => {
       this[key] = false
     })
+    // 内建的root，在销毁的时候需要移除
+    isBuildIn && this.root.parentNode && this.root.parentNode.removeChild(this.root)
   }
 
   replay () {
@@ -1780,7 +1809,8 @@ class Player extends MediaProxy {
       })
     }
     const isVideo = checkIsCurrentVideo(fullEl, this.playerId, PLATER_ID)
-    if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || isVideo))) {
+    const isShawdom = checkIsShadowRoot(fullEl)
+    if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || isVideo)) || (isShawdom && this._fullscreenEl)) {
       delayResize()
       !this.config.closeFocusVideoFocus && this.media.focus()
       this.fullscreen = true
@@ -2181,7 +2211,7 @@ class Player extends MediaProxy {
   }
 
   resize () {
-    if (!this.media) {
+    if (!this.media || !this.root) {
       return
     }
     const containerSize = this.root.getBoundingClientRect()

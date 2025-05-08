@@ -1,7 +1,7 @@
 @import '../common/thumbnail.scss';
 $color: #FF0000;
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   xg-trigger {
     -webkit-user-select:none;
     -moz-user-select:none;
@@ -135,7 +135,7 @@ $color: #FF0000;
     }
   }
 }
-.xgplayer-mobile {
+.xgplayer-mobile, .xgplayer-v3-mobile {
   .xgplayer-controls {
     background-image: initial;
   }
@@ -166,7 +166,7 @@ $color: #FF0000;
 }
 
 @media (prefers-color-scheme: dark) {
-  .xgplayer-mobile {
+  .xgplayer-mobile, .xgplayer-v3-mobile {
     xg-trigger .time-preview  {
       color: #fff;
       span.xg-cur {

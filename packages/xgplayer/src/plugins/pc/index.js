@@ -39,7 +39,7 @@ export default class PCPlugin extends BasePlugin {
 
     root && root.addEventListener('click', this.onVideoClick, false)
     root && root.addEventListener('dblclick', this.onVideoDblClick, false)
-    Object.keys(MOUSE_EVENTS).map(item => {
+    root && Object.keys(MOUSE_EVENTS).map(item => {
       root.addEventListener(item, this[MOUSE_EVENTS[item]], false)
     })
     !enableContextmenu && media && media.addEventListener('contextmenu', this.onContextmenu, false)

@@ -1,7 +1,7 @@
 $timeColor: #fff;
 $timeDurationColor: rgba(255, 255, 255, 0.50);
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .xgplayer-time {
     pointer-events: none;
     min-width: 40px;
@@ -43,7 +43,7 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
       margin-right: 0;
     }
   }
-  &.xgplayer-mobile {
+  &.xgplayer-mobile, &.xgplayer-v3-mobile {
     .xgplayer-time {
       min-width: 30px;
       font-size: 12px;

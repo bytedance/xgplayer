@@ -121,7 +121,8 @@ class Keyboard extends BasePlugin {
       tt: 0,
       playbackRate: 0
     }
-    this.player.root.addEventListener('keydown', this.onKeydown)
+    const {root} = this.player
+    root && root.addEventListener('keydown', this.onKeydown)
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
 

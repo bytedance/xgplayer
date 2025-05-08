@@ -246,9 +246,6 @@ class Plugin extends BasePlugin {
    */
   __init (args) {
     super.__init(args)
-    if (!args.root) {
-      return
-    }
     const _parent = args.root
     let _el = null
     /**
@@ -265,7 +262,9 @@ class Plugin extends BasePlugin {
      * @type { HTMLElement }
      */
     this.parent = null
-
+    if (!args.root) {
+      return
+    }
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
     /**

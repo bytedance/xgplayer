@@ -42,14 +42,14 @@
   // &.xgplayer-mobile {
   //   width: 90%;
   // }
-  .xgplayer-mobile {
+  .xgplayer-mobile, .xgplayer-v3-mobile {
     video {
       z-index: -1;
     }
   }
 }
 
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   position: relative;
   width: 100%;
   height: 100%;
@@ -121,8 +121,10 @@
     // &.xgplayer-mobile {
     //   width: 90vh;
     // }
-    &.xgplayer-mobile video {
-      z-index: -1;
+    &.xgplayer-mobile, &.xgplayer-v3-mobile {
+      video {
+        z-index: -1;
+      }
     }
   }
 
@@ -314,7 +316,7 @@
 }
 
 // 移动端适配
-.xgplayer-mobile {
+.xgplayer-mobile, .xgplayer-v3-mobile {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   * {
     text-decoration: none;
@@ -370,7 +372,7 @@
 
 // 移动端小屏幕
 @media only screen and (max-width: 480px) {
-  .xgplayer-mobile {
+  .xgplayer-mobile, .xgplayer-v3-mobile {
     xg-icon {
       margin-right: $miniMargin;
       margin-left: $miniMargin;
@@ -410,7 +412,7 @@
 
 // 竖屏兼容
 @media screen and (orientation: portrait) {
-  .xgplayer-mobile {
+  .xgplayer-mobile, .xgplayer-v3-mobile {
     &.xgplayer-is-fullscreen,
     &.xgplayer-is-cssfullscreen {
       //.flex-controls {
@@ -434,7 +436,7 @@
 
 // 横屏兼容
 @media only screen and (orientation: landscape) {
-  .xgplayer-mobile {
+  .xgplayer-mobile, .xgplayer-v3-mobile {
     &.xgplayer-is-fullscreen {
       .xg-top-bar,
       .xg-pos {
@@ -452,7 +454,7 @@
 }
 
 // 自定义mse使用 不能删除
-.xgplayer {
+.xgplayer, .xgplayer-v3 {
   .xgplayer-screen-container {
     display: block;
     width: 100%;
