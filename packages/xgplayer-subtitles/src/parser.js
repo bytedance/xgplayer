@@ -1,4 +1,4 @@
-const VTT_CHECK = /^WEBVTT/
+const VTT_CHECK = /^WEBVTT/i
 const VTT_STYLE = /^STYLE+$/
 // eslint-disable-next-line no-useless-escape
 const VTT_CUE = /^\:\:cue/
