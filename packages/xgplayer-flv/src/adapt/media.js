@@ -45,10 +45,10 @@ export default class Media {
       const cb = e => {
         if (e.data.type === 'loadSuccess') {
           r()
+          this._worker.removeEventListener('message', cb)
         }
       }
       this._worker.addEventListener('message', cb)
-      this._worker.removeEventListener('message', cb)
     })
   }
 

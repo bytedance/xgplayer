@@ -11,9 +11,6 @@ export class FlvPlugin extends BasePlugin {
   /** @type {Flv} */
   flv = null;
 
-  /** @type {PluginExtension} */
-  pluginExtension = null
-
 
   /** @type {Flv} */
   get core () {
@@ -25,8 +22,12 @@ export class FlvPlugin extends BasePlugin {
     return this.flv?.version
   }
 
+  get loader () {
+    return this.flv?.loader
+  }
+
   get transferCost () {
-    return this.flv._transferCost.transferCost
+    return this.flv.transferCost
   }
 
   beforePlayerInit () {
@@ -91,7 +92,7 @@ export class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
 
     if (!flvOpts.manualLoad) {
-      this.loadSource(config.url, flvOpts.streamRes)
+      this.loadSource(config.url, flvOpts.stream)
     }
   }
 
@@ -102,8 +103,8 @@ export class FlvPlugin extends BasePlugin {
     return this.flv?.getStats()
   }
 
-  loadSource = (url = this.player.config.url, streamRes) => {
-    this.flv?.load(this.player.config.url, true, streamRes)
+  loadSource = (url = this.player.config.url, stream) => {
+    this.flv?.load(this.player.config.url, true, stream)
   }
 
   destroy = () => {
@@ -111,8 +112,6 @@ export class FlvPlugin extends BasePlugin {
       this.flv.destroy()
       this.flv = null
     }
-    this.pluginExtension?.destroy()
-    this.pluginExtension = null
   }
 
   /**

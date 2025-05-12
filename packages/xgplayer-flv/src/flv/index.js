@@ -163,11 +163,11 @@ export class Flv extends EventEmitter {
    * @param {string} [url]
    * @return {Promise}
    */
-  async load (url, reuseMse = false, streamRes) {
+  async load (url, reuseMse = false, stream) {
     if (!this._bufferService) return
     await this._reset(reuseMse)
 
-    this._loadData(url, this._opts.isLive ? [] : [0, this._opts.defaultVodLoadSize], streamRes)
+    this._loadData(url, this._opts.isLive ? [] : [0, this._opts.defaultVodLoadSize], stream)
 
     clearTimeout(this._tickTimer)
     this._tickTimer = setTimeout(this._tick, this._tickInterval)
@@ -298,7 +298,7 @@ export class Flv extends EventEmitter {
     await this._bufferService.reset(reuseMse)
   }
 
-  async _loadData (url, range, streamRes) {
+  async _loadData (url, range, stream) {
     if (url) this._opts.url = url
     let finnalUrl = (url = this._opts.url)
     if (!url) throw new Error('Source url is missing')
@@ -322,7 +322,7 @@ export class Flv extends EventEmitter {
 
     this._loading = true
     try {
-      await this._mediaLoader.load({ url: finnalUrl, range, streamRes, firstMaxChunkSize: this._opts.firstMaxChunkSize })
+      await this._mediaLoader.load({ url: finnalUrl, range, stream, firstMaxChunkSize: this._opts.firstMaxChunkSize })
     } catch (error) {
       this._loading = false
       return this._emitError(StreamingError.network(error), false)

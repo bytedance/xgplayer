@@ -51,7 +51,7 @@ export class FetchLoader extends EventEmitter {
     referrerPolicy,
     onProcessMinLen,
     priOptions,
-    streamRes,
+    stream,
     firstMaxChunkSize
   }) {
     this._logger = logger
@@ -112,12 +112,12 @@ export class FetchLoader extends EventEmitter {
     const startTime = Date.now()
     this._logger.debug('[fetch load start], index,', index, ',range,', range)
     return new Promise((resolve, reject) => {
-      const promise = streamRes
+      const promise = stream
         ? new Promise(r => {
-          // const response = new Response(streamRes)
-          // Object.defineProperty(response, 'url', { value: url })
-          // r(response)
-          r(streamRes)
+          const response = new Response(stream)
+          Object.defineProperty(response, 'url', { value: url })
+          r(response)
+          // r(streamRes)
         })
         : fetch(request || url, request ? undefined : init)
       promise.then(async (response) => {

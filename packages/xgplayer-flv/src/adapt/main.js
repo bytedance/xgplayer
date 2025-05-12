@@ -1,4 +1,5 @@
 import EventEmitter from 'eventemitter3'
+import { Events } from 'xgplayer'
 import PlayerWorker from './worker'
 import { EVENT } from 'xgplayer-streaming-shared'
 
@@ -13,6 +14,9 @@ export default class Main extends EventEmitter {
     this._worker = new PlayerWorker()
     this._bindInteractionEvent()
     this.postMessage('init', this._opts)
+    this.unbindvts = []
+    this._bindpostMediaEvent()
+    this.loader = {}
   }
 
   get version () {
@@ -58,24 +62,88 @@ export default class Main extends EventEmitter {
         this.media.load()
         this.postMessage({ type: 'loadSuccess'})
         break
+      case 'core_event':
+        this.emit(data.eventName, data.data)
+        break
+      case 'transferCost':
+        this.transferCost = data.transferCost
+        break
       default:
         break
     }
   }
 
-  _postMessage = (type, data) => {
+  _postMessage = (type, data, transfer) => {
     this._worker.postMessage({
       type,
       data
+    }, transfer)
+  }
+
+  _bindpostMediaEvent () {
+    Events.VIDEO_EVENTS.forEach(evtName => {
+      const listener = e => {
+        const buffered = []
+        if (this.media.buffered.length) {
+          for (let i = 0; i < this.media.buffered.length; i++) {
+            buffered.push([this.media.buffered.start(i), this.media.buffered.end(i)])
+          }
+        }
+        this._postMessage('media_event', {
+          eventName: evtName,
+          data: {
+            seeking: this.media.seeking,
+            currentTime: this.media.currentTime,
+            buffered: JSON.stringify(buffered)
+          }
+        })
+      }
+      this.media.addEventListener(evtName, listener)
+      this.unbindvts.push(() => {
+        this.media.removeEventListener(evtName, listener)
+      })
     })
   }
 
   replay () {
-    this._postMessage('replay')
+    this._postMessage({
+      type: 'replay'
+    })
+  }
+
+  load (url, reuseMse = false, stream) {
+    const transfor = []
+    if (stream) {
+      transfor.push(stream)
+    }
+    this._postMessage('load', {
+      url: this.getFinalUrl(url),
+      reuseMse,
+      stream
+    }, transfor)
+  }
+
+  switchURL (url, seamless) {
+    this._postMessage('switchURL', {
+      url: this.getFinalUrl(url),
+      seamless
+    })
+  }
+
+  getFinalUrl (url) {
+    let finnalUrl = (url = this._opts.url)
+    if (this._opts.preProcessUrl) {
+      finnalUrl = this._opts.preProcessUrl(url).url
+    }
+    this.loader.finnalUrl = finnalUrl
+    return finnalUrl
   }
 
   destroy () {
     this._worker.terminate()
+    this.unbindvts.forEach(unbind => {
+      unbind()
+    })
   }
 
   static isSupported () {
