@@ -64,9 +64,9 @@ export class AdUIManager {
           player.registerPlugin(decoratorClass)
           newDecoratorPlugin = player.getPlugin(decoratorClass.pluginName)
           fragment.appendChild(newDecoratorPlugin.root)
-          if (newDecoratorPlugin.extraDom?.length) {
-            newDecoratorPlugin.extraDom.forEach(dom => {
-              fragment.appendChild(dom)
+          if (newDecoratorPlugin.extraEls?.length) {
+            newDecoratorPlugin.extraEls.forEach(el => {
+              fragment.appendChild(el)
             })
           }
         }
@@ -138,23 +138,23 @@ export class AdUIManager {
       if (!overrideAdPlugin) {
         return
       }
-      const { root: adRoot, extraDom: adExtraDom } = overrideAdPlugin
-      const { root: normalRoot, extraDom: normalExtraDom } = normalPlugin
+      const { root: adRoot, extraEls: adExtraEls } = overrideAdPlugin
+      const { root: normalRoot, extraEls: normalExtraEls } = normalPlugin
       if (fragmentContainer.contains(adRoot)) {
         fragmentContainer.removeChild(adRoot)
       }
-      // handle extra dom outside root
-      if (Array.isArray(adExtraDom) && adExtraDom.length) {
-        adExtraDom.forEach((adDom, index) => {
-          if (fragmentContainer.contains(adDom)) {
-            fragmentContainer.removeChild(adDom)
+      // handle extra elements except root
+      if (Array.isArray(adExtraEls) && adExtraEls.length) {
+        adExtraEls.forEach((adEl, index) => {
+          if (fragmentContainer.contains(adEl)) {
+            fragmentContainer.removeChild(adEl)
           }
-          const normalDom = normalExtraDom?.[index]
-          if (normalDom?.parentNode) {
+          const normalEl = normalExtraEls?.[index]
+          if (normalEl?.parentNode) {
             // show ad extra dom
-            normalDom.parentNode.insertBefore(adDom,normalDom)
+            normalEl.parentNode.insertBefore(adEl,normalEl)
             // hide normal extra dom
-            fragmentContainer.appendChild(normalDom)
+            fragmentContainer.appendChild(normalEl)
           }
         })
       }
@@ -200,8 +200,8 @@ export class AdUIManager {
       if (!overrideAdPlugin) {
         return
       }
-      const { root: adRoot, extraDom: adExtraDom } = overrideAdPlugin
-      const { root: normalRoot, extraDom: normalExtraDom } = normalPlugin
+      const { root: adRoot, extraEls: adExtraEl } = overrideAdPlugin
+      const { root: normalRoot, extraEls: normalExtraEl } = normalPlugin
       if (fragmentContainer.contains(normalRoot)) {
         fragmentContainer.removeChild(normalRoot)
       }
@@ -209,18 +209,18 @@ export class AdUIManager {
         adRoot.parentNode.insertBefore(normalRoot, adRoot)
         fragmentContainer.appendChild(adRoot)
       }
-      // handle extra dom outside root
-      if (Array.isArray(normalExtraDom) && normalExtraDom?.length) {
-        normalExtraDom.forEach((normalDom, index) => {
-          if (fragmentContainer.contains(normalDom)) {
-            fragmentContainer.removeChild(normalDom)
+      // handle extra elements except root
+      if (Array.isArray(normalExtraEl) && normalExtraEl?.length) {
+        normalExtraEl.forEach((normalEl, index) => {
+          if (fragmentContainer.contains(normalEl)) {
+            fragmentContainer.removeChild(normalEl)
           }
-          const adDom = adExtraDom?.[index]
-          if (adDom && adDom.parentNode) {
+          const adEl = adExtraEl?.[index]
+          if (adEl && adEl.parentNode) {
             // show normal extra dom
-            adDom.parentNode.insertBefore(normalDom, adDom)
+            adEl.parentNode.insertBefore(normalEl, adEl)
             // hide ad extra dom
-            fragmentContainer.appendChild(adDom)
+            fragmentContainer.appendChild(adEl)
           }
         })
       }
