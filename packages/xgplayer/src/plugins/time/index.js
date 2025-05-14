@@ -145,6 +145,7 @@ class Time extends Plugin {
       ? center.insertBefore(this.centerCurDom, center.children[0])
       : center.appendChild(this.centerCurDom)
     center.appendChild(this.centerDurDom)
+    this.extraDom = [this.centerCurDom, this.centerDurDom]
   }
 
   afterPlayerInit () {
