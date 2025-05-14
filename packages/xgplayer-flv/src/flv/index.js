@@ -343,7 +343,7 @@ export class Flv extends EventEmitter {
   _onProgress = async (
     chunk,
     done,
-    { startTime, endTime, st, firstByteTime },
+    { startTime, endTime, st, firstByteTime, is_redirect },
     response
   ) => {
     this._loading = !done
@@ -355,9 +355,10 @@ export class Flv extends EventEmitter {
       const headers = response.headers
       const elapsed = st ? firstByteTime - st : endTime - startTime
       this.emit(EVENT.TTFB, {
-        url: this._opts.url,
+        url: this._mediaLoader.finnalUrl,
         responseUrl: response.url,
-        elapsed
+        elapsed,
+        is_redirect
       })
       this.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers })
       this._transferCost.set(TRANSFER_EVENT.TTFB, elapsed)

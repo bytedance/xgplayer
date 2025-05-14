@@ -143,7 +143,7 @@ export class FetchLoader extends EventEmitter {
           if (onProgress) {
             this.resolve = resolve
             this.reject = reject
-            this._loadChunk(response, onProgress, startTime, firstByteTime)
+            this._loadChunk(response, onProgress, startTime, firstByteTime, url || request?.url)
             return
           } else {
             data = await response.arrayBuffer()
@@ -211,7 +211,7 @@ export class FetchLoader extends EventEmitter {
     }
   }
 
-  _loadChunk (response, onProgress, st, firstByteTime) {
+  _loadChunk (response, onProgress, st, firstByteTime, url) {
     if (!response.body || !response.body.getReader) {
       this._running = false
       const err = new NetError(response.url, '', response, 'onProgress of bad response.body.getReader')
@@ -303,7 +303,8 @@ export class FetchLoader extends EventEmitter {
           endTime,
           st,
           firstByteTime,
-          priOptions:this._priOptions
+          priOptions: this._priOptions,
+          is_redirect: url !== response.url
         }, response)
       }
       if (!data.done) {

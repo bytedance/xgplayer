@@ -1,3 +1,17 @@
+class Buffer {
+  constructor (buffered) {
+    this._buffered = buffered
+  }
+
+  start (i) {
+    return this._buffered[i][0]
+  }
+
+  end (i) {
+    return this._buffered[i][1]
+  }
+}
+
 export default class Media {
   constructor (worker) {
     this._worker = worker
@@ -24,6 +38,9 @@ export default class Media {
 
   // 一些方法
   addEventListener (evtName, cb) {
+    if (!this.evts[evtName]) {
+      this.evts[evtName] = []
+    }
     this.evts[evtName].push(cb)
   }
 
@@ -54,10 +71,10 @@ export default class Media {
 
   // 同步一些事件，属性
   emit (evtName, params) {
-    this.evts[evtName].forEach(cb => {cb()})
+    (this.evts[evtName] || []).forEach(cb => {cb()})
     // 同步属性
     this._seeking = params.seeking
     this._currentTime = params.currentTime
-    this._buffered = JSON.parse(params.buffered)
+    this._buffered = new Buffer(JSON.parse(params.buffered))
   }
 }

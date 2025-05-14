@@ -2,7 +2,7 @@ import { BasePlugin, Events, Errors } from 'xgplayer'
 import { EVENT } from 'xgplayer-streaming-shared'
 import Flv from './adapt/main'
 
-export class FlvPlugin extends BasePlugin {
+export default class FlvPlugin extends BasePlugin {
 
   static get pluginName () {
     return 'flv'

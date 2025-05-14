@@ -1,7 +1,6 @@
 /* eslint-disable no-case-declarations */
-import { Events } from 'xgplayer'
 import { EVENT } from 'xgplayer-streaming-shared'
-import { Flv } from './flv'
+import { Flv } from '../flv'
 import Media from './media'
 
 export default class PlayerWorker {
@@ -26,11 +25,11 @@ export default class PlayerWorker {
     switch (data.type) {
       case 'init':
         this.flv = new Flv({
-          media: new Media(this),
-          ...data.data
+          ...data.data,
+          media: new Media(this)
         })
-        const setPre = this.flv._transferCost.set
-        const endPre = this.flv._transferCost.end
+        const setPre = this.flv._transferCost.set.bind(this.flv._transferCost)
+        const endPre = this.flv._transferCost.end.bind(this.flv._transferCost)
         this.flv._transferCost.set = (event, val) => {
           setPre(event, val)
           this.postMessage('transferCost', {
@@ -46,7 +45,7 @@ export default class PlayerWorker {
         this._transError()
         this._transCoreEvent(EVENT.TTFB)
         this._transCoreEvent(EVENT.LOAD_START)
-        this._transCoreEvent(EVENT.LOAD_RESPONSE_HEADERS)
+        // this._transCoreEvent(EVENT.LOAD_RESPONSE_HEADERS)
         this._transCoreEvent(EVENT.LOAD_COMPLETE)
         this._transCoreEvent(EVENT.LOAD_RETRY)
         this._transCoreEvent(EVENT.SOURCEBUFFER_CREATED)
@@ -84,7 +83,7 @@ export default class PlayerWorker {
   _transError () {
     this.flv.on(EVENT.ERROR, (err) => {
       this.postMessage('core_event', {
-        eventName: Events.ERROR,
+        eventName: 'ERROR',
         data: {
           errorCode: err.errorCode,
           errorMessage: err.errorMessage,

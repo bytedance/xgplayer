@@ -7,7 +7,10 @@ import { createPublicPromise, nowTime, SafeJSON } from './utils'
 
 function getMediaSource (preferMMS = true) {
   try {
-    if (!isBrowser) return null
+    if (!isBrowser) {
+      if (typeof MediaSource !== 'undefined') return MediaSource
+      return null
+    }
 
     if (preferMMS && typeof ManagedMediaSource !== 'undefined') return ManagedMediaSource
 
@@ -25,13 +28,11 @@ function isMMS (mediaSource) {
 function getTimeRanges (buffered) {
   const ranges = []
 
-  if (buffered instanceof TimeRanges) {
-    for (let i = 0; i < buffered.length; i++) {
-      ranges.push({
-        start: buffered.start(i),
-        end: buffered.end(i)
-      })
-    }
+  for (let i = 0; i < buffered.length; i++) {
+    ranges.push({
+      start: buffered.start(i),
+      end: buffered.end(i)
+    })
   }
   return ranges
 }
@@ -258,8 +259,8 @@ export class MSE {
 
     if (globalThis.inPlayerWorker) {
       globalThis.postMessage({
-        type: 'handle', handle
-      }, [handle])
+        type: 'handle', handle: ms.handle
+      }, [ms.handle])
     } else {
       this._url = URL.createObjectURL(ms)
       media.src = this._url

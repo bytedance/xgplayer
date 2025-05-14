@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3'
 import { Events } from 'xgplayer'
-import PlayerWorker from './worker'
+import PlayerWorker from './worker?worker&inline'
 import { EVENT } from 'xgplayer-streaming-shared'
 
 export default class Main extends EventEmitter {
@@ -13,7 +13,7 @@ export default class Main extends EventEmitter {
     this._opts.preProcessUrl = null
     this._worker = new PlayerWorker()
     this._bindInteractionEvent()
-    this.postMessage('init', this._opts)
+    this._postMessage('init', this._opts)
     this.unbindvts = []
     this._bindpostMediaEvent()
     this.loader = {}
