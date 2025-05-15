@@ -3,6 +3,10 @@ class Buffer {
     this._buffered = buffered
   }
 
+  get length () {
+    return this._buffered.length
+  }
+
   start (i) {
     return this._buffered[i][0]
   }
@@ -18,6 +22,10 @@ export default class Media {
     this._buffered = []
     this._currentTime = 0
     this._seeking = false
+    this._readyState = 0
+    this._paused = false
+    this._ended = false
+    this._playbackRate = 1
     this.postMessage = worker.postMessage
     this.evts = {}
   }
@@ -30,8 +38,31 @@ export default class Media {
     return this._currentTime
   }
 
+  set currentTime (val) {
+    this.postMessage({type: 'setCurrentTime', data: { currentTime: val }})
+  }
+
   get seeking () {
     return this._seeking
+  }
+
+  get readyState () {
+    return this._readyState
+  }
+
+  get paused () {
+    return this._paused
+  }
+
+  get ended () {
+    return this._ended
+  }
+
+  get playbackRate () {
+    return this._playbackRate
+  }
+  set playbackRate (val) {
+    this.postMessage({type:'setPlaybackRate', data: { playbackRate: val }})
   }
 
   set disableRemotePlayback (val) {}
@@ -49,7 +80,8 @@ export default class Media {
   }
 
   play () {
-    this.postMessage({type: 'play'})
+    this.postMessage({ type: 'play' })
+    return Promise.resolve()
   }
 
   removeAttribute (attr) {
@@ -75,6 +107,10 @@ export default class Media {
     // 同步属性
     this._seeking = params.seeking
     this._currentTime = params.currentTime
+    this._readyState = params.readyState
+    this._paused = params.paused
+    this._ended = params.ended
+    this._playbackRate = params.playbackRate
     this._buffered = new Buffer(JSON.parse(params.buffered))
   }
 }

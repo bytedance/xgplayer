@@ -50,7 +50,7 @@ export default class Main extends EventEmitter {
         this.media.srcObject = e.data.handle
         break
       case 'play':
-        this.media.play()
+        this.media.play().catch(() => { })
         break
       case 'removeAttribute':
         this.media.removeAttribute(data.data.attr)
@@ -67,6 +67,12 @@ export default class Main extends EventEmitter {
         break
       case 'transferCost':
         this.transferCost = data.transferCost
+        break
+      case 'setCurrentTime':
+        this.media.currentTime = data.data.currentTime
+        break
+      case 'setPlaybackRate':
+        this.media.playbackRate = data.data.playbackRate
         break
       default:
         break
@@ -94,6 +100,10 @@ export default class Main extends EventEmitter {
           data: {
             seeking: this.media.seeking,
             currentTime: this.media.currentTime,
+            readyState: this.media.readyState,
+            paused: this.media.paused,
+            ended: this.media.ended,
+            playbackRate: this.media.playbackRate,
             buffered: JSON.stringify(buffered)
           }
         })
