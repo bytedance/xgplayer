@@ -1,7 +1,7 @@
 @import "../../style/variable";
 
 .xgplayer, .xgplayer-v3 {
-  @keyframes playPause {
+  @keyframes v3-playPause {
     0%{
       transform: scale(1);
       opacity:1;
@@ -63,7 +63,7 @@
     }
     &.interact {
       xg-start-inner {
-        animation: playPause .4s 0.1s ease-out forwards;
+        animation: v3-playPause .4s 0.1s ease-out forwards;
       }
       display: block;
     }
