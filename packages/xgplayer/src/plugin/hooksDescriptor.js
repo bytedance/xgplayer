@@ -38,7 +38,7 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
     }
     if (this.__hooks && this.__hooks[hookName]) {
       try {
-        const preRet = runHooks(this, hookName, handler)
+        const preRet = runHooks(this, hookName, handler, ...arguments)
         if (preRet) {
           if (preRet.then) {
             preRet.then((isContinue) => {
