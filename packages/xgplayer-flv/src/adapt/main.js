@@ -141,7 +141,8 @@ export default class Main extends EventEmitter {
   }
 
   getFinalUrl (url) {
-    let finnalUrl = (url = this._opts.url)
+    this._opts.url = url
+    let finnalUrl = url
     if (this._opts.preProcessUrl) {
       finnalUrl = this._opts.preProcessUrl(url).url
     }
