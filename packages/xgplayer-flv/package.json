@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "3.0.22",
+  "version": "3.0.23-beta.2",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
