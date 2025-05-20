@@ -94,6 +94,7 @@ export default class FlvPlugin extends BasePlugin {
     if (!flvOpts.manualLoad) {
       this.loadSource(config.url, flvOpts.stream)
     }
+    this.player.handleSource = false
   }
 
   /**

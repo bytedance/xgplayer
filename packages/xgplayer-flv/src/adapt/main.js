@@ -141,7 +141,7 @@ export default class Main extends EventEmitter {
   }
 
   getFinalUrl (url) {
-    if (url) this._opts.url = url
+    if (url) this._opts.url = url.startsWith('http') ? url : `${location.protocol}${url}`
     let finnalUrl = (url = this._opts.url)
     if (this._opts.preProcessUrl) {
       finnalUrl = this._opts.preProcessUrl(url).url

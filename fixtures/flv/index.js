@@ -22,7 +22,7 @@ function defaultOpt() {
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
 try { cachedOpt = JSON.parse(cachedOpt) } catch (error) { cachedOpt = undefined }
-cachedOpt.manualLoad = true
+cachedOpt.manualLoad = false
 var opts = Object.assign({
   // url: 'https://1011.hlsplay.aodianyun.com/demo/game.flv',
   url: 'https://pull-demo.volcfcdnrd.com/live/st-4536524.flv',
@@ -32,9 +32,9 @@ var testPoint = Number(localStorage.getItem('xg:test:flv:point'))
 if (isNaN(testPoint)) testPoint = 0
 
 window.onload = function () {
-  fetch('https://pull-demo.volcfcdnrd.com/live/st-4536524.flv').then(res => {
-    window.streamRes = res.body
-  })
+  // fetch('https://pull-demo.volcfcdnrd.com/live/st-4536524.flv').then(res => {
+  //   window.streamRes = res.body
+  // })
   var dTestPoint = document.getElementById('test-point')
   var dTestPointDesc = document.getElementById('test-point-desc')
 
