@@ -39,7 +39,8 @@ export default class Media {
   }
 
   set currentTime (val) {
-    this.postMessage({type: 'setCurrentTime', data: { currentTime: val }})
+    // this.postMessage({type: 'setCurrentTime', data: { currentTime: val }})
+    this.postMessage('setCurrentTime', { currentTime: val })
   }
 
   get seeking () {
@@ -62,7 +63,8 @@ export default class Media {
     return this._playbackRate
   }
   set playbackRate (val) {
-    this.postMessage({type:'setPlaybackRate', data: { playbackRate: val }})
+    // this.postMessage({type:'setPlaybackRate', data: { playbackRate: val }})
+    this.postMessage('setPlaybackRate', { playbackRate: val })
   }
 
   set disableRemotePlayback (val) {}
@@ -80,16 +82,19 @@ export default class Media {
   }
 
   play () {
-    this.postMessage({ type: 'play' })
+    // this.postMessage({ type: 'play' })
+    this.postMessage('play')
     return Promise.resolve()
   }
 
   removeAttribute (attr) {
-    this.postMessage({type: 'removeAttribute', data: {attr}})
+    // this.postMessage({type: 'removeAttribute', data: {attr}})
+    this.postMessage('removeAttribute', {attr})
   }
 
   load () {
-    this.postMessage({ type: 'load' })
+    // this.postMessage({ type: 'load' })
+    this.postMessage('load')
     return new Promise(r => {
       const cb = e => {
         if (e.data.type === 'loadSuccess') {

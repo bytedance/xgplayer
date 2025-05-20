@@ -60,7 +60,7 @@ export default class Main extends EventEmitter {
       //   break
       case 'load':
         this.media.load()
-        this.postMessage({ type: 'loadSuccess'})
+        this._postMessage({ type: 'loadSuccess'})
         break
       case 'core_event':
         this.emit(data.eventName, data.data)
@@ -141,6 +141,7 @@ export default class Main extends EventEmitter {
   }
 
   getFinalUrl (url) {
+    if (url) this._opts.url = url
     let finnalUrl = (url = this._opts.url)
     if (this._opts.preProcessUrl) {
       finnalUrl = this._opts.preProcessUrl(url).url
