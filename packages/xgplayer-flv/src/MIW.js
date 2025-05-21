@@ -110,6 +110,7 @@ export default class FlvPlugin extends BasePlugin {
       this.flv.destroy()
       this.flv = null
     }
+    this.player.handleSource = true
   }
 
   /**
