@@ -97,11 +97,8 @@ export default class FlvPlugin extends BasePlugin {
     this.player.handleSource = false
   }
 
-  /**
-   * @return {import('./flv').Stats | undefined}
-   */
   getStats = () => {
-    return this.flv?.getStats()
+    return {}
   }
 
   loadSource = (url = this.player.config.url, stream) => {
