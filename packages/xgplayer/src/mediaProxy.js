@@ -760,7 +760,7 @@ class MediaProxy extends EventEmitter {
     this._currentTime = 0
     this._duration = 0
     // Some firefox versions firefox Cannot recognize currentSrc of type Blob
-    if (Util.isMSE(this.media)) {
+    if (Util.isMSE(this.media) || this.media.srcObject) {
       this.onWaiting()
       return
     }
