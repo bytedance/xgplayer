@@ -1,3 +1,10 @@
+## 3.0.22
+>* fix: tv shouldBlockVideoContent
+>* fix: 🐛 (Ads) content video is blocked to play in TV
+>* fix: 🐛 (Ads) fix ads plugin umd exports
+>* fix: 🐛 (Ads) always autoplay for LG & Samsung TV
+## 3.0.21
+-
 ## 3.0.20
 >* feat: 🎸 (xgplayer-ads) 增加xgplayer-ads插件，丰富xgplayer货币化能力
 >* refactor: 💡 (xgplayer-ads) 完善IMA SDK集成能力

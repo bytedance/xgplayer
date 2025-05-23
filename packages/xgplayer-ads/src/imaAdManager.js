@@ -1,6 +1,6 @@
 /* global google */
 import canAutoplay from 'can-autoplay'
-import { Events, Util } from 'xgplayer'
+import { Events, Util, Sniffer } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
 import { BaseAdManager } from './baseAdManager'
 import * as ADEvents from './events'
@@ -499,11 +499,11 @@ export class ImaAdManager extends BaseAdManager {
             ad
           })
 
-          // For a linear ad, a timer can be started to poll for
-          // the remaining time.
-          intervalTimer = setInterval(function () {
-            // Example: const remainingTime = adsManager.getRemainingTime();
-          }, 300) // every 300ms
+          // // For a linear ad, a timer can be started to poll for
+          // // the remaining time.
+          // intervalTimer = setInterval(function () {
+          //   // Example: const remainingTime = adsManager.getRemainingTime();
+          // }, 300) // every 300ms
         }
         break
       }
@@ -675,13 +675,14 @@ export class ImaAdManager extends BaseAdManager {
     const autoplay = this.player.config.autoplay
     // Safari 自动启播时间比较久，可能超过500ms+，因此考虑可能的其他浏览器低端机，将兜底timeout默认值`250ms`调高
     const timeout = 800
+    const isKnownAutoplayPlatform = Sniffer.os.isTizen || Sniffer.os.isWebOS
 
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
       autoplay
-        ? canAutoplay.video({ timeout }).then(({ result }) => result)
+        ? isKnownAutoplayPlatform || canAutoplay.video({ timeout }).then(({ result }) => result)
         : Promise.resolve(false),
       autoplay && this.player.config.autoplayMuted
-        ? canAutoplay.video({ timeout, muted: true }).then(({ result }) => result)
+        ? isKnownAutoplayPlatform || canAutoplay.video({ timeout, muted: true }).then(({ result }) => result)
         : Promise.resolve(false)
     ])
 

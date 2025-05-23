@@ -151,6 +151,11 @@ export default class ProgressPreview extends Plugin {
     this.handlerPreviewClick = (e) => {
       e.stopPropagation()
       fun(parseInt(this._state.now * 1000, 10) / 1000, e)
+
+      if (progress) {
+        // Make sure the mouse event is unlocked, otherwise the progress bar will still slide
+        progress.onMouseUp(e)
+      }
     }
 
     this.bind('.xg-spot-content', 'mouseup', this.handlerPreviewClick)

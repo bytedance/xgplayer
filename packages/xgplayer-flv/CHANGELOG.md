@@ -1,3 +1,15 @@
+## 3.0.22
+>* fix: 修复reader长任务阻塞
+>* fix: 同步音频
+>* feat: 支持对首次加流进行裁剪
+>* fix: 支持初始化传入stream res
+>* feat: 支持flv预拉流
+>* fix: firstMaxChunkSize可动态变化
+
+## 3.0.21
+>* test: 💍 add test case for annex-b nalu split
+>* fix: 调整插件内软解判断
+
 ## 3.0.20
 feat: 🎸 (xgplayer-transmuxer) support opus codec for audio
 feat: 🎸 (flv&hls) support g711 play by AudioContext

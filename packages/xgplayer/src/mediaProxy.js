@@ -26,6 +26,9 @@ import { URL_CHANGE, WAITING, VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from 
  *   pause: Function,
  * } } IMediaProxy
  */
+/**
+ * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
+ */
 
 function emitVideoEvent (eventKey, e) {
   if (!this || !this.emit) {
@@ -103,6 +106,9 @@ function getVideoEventHandler (eventKey, player) {
  * @extends { EventEmitter }
  */
 class MediaProxy extends EventEmitter {
+  /**
+   * @param { IPlayerOptions } options
+   */
   constructor (options) {
     super(options)
     /**
@@ -185,7 +191,12 @@ class MediaProxy extends EventEmitter {
     /**
      * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IMediaProxy | null }
      */
-    this.media = Util.createDom(this.mediaConfig.mediaType, '', this.mediaConfig, '')
+    this.media =
+      options.mediaEl instanceof HTMLMediaElement
+        ? options.mediaEl
+        : typeof options.mediaEl === 'function'
+          ? options.mediaEl(this.mediaConfig)
+          : Util.createDom(this.mediaConfig.mediaType, '', this.mediaConfig, '')
 
     if (options.defaultPlaybackRate) {
       this.media.defaultPlaybackRate = this.media.playbackRate = options.defaultPlaybackRate

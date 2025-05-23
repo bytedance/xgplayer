@@ -450,20 +450,12 @@ class Player extends MediaProxy {
       ret.destroy()
     }
     this.root.setAttribute(PLATER_ID, this.playerId)
+    this.media.setAttribute(PLATER_ID, this.playerId)
+
     instManager?.add(this)
     pluginsManager.init(this)
     this._initBaseDoms()
 
-    // 允许自定义video对象的构造
-    const XgVideoProxy = this.constructor.XgVideoProxy
-    if (XgVideoProxy && this.mediaConfig.mediaType === XgVideoProxy.mediaType) {
-      const el = this.innerContainer || this.root
-      this.detachVideoEvents(this.media)
-      const _nVideo = new XgVideoProxy(el, this.config, this.mediaConfig)
-      this.attachVideoEvents(_nVideo)
-      this.media = _nVideo
-    }
-    this.media.setAttribute(PLATER_ID, this.playerId)
     if (this.config.controls) {
       const _root = this.config.controls.root || null
       const controls = pluginsManager.register(this, Controls, { root: _root })
@@ -1321,6 +1313,7 @@ class Player extends MediaProxy {
     this.hasStart = false
     this._useAutoplay = false
     root.removeAttribute(PLATER_ID)
+    media.removeAttribute(PLATER_ID)
     this.updateAcc('destroy')
     this._unbindEvents()
     this._detachSourceEvents(this.media)
@@ -1343,7 +1336,7 @@ class Player extends MediaProxy {
     }
     !innerContainer &&
     media instanceof window.Node &&
-      root.contains(media) &&
+      root.contains(media) && !this.config.remainMediaAfterDestroy &&
       root.removeChild(media);
     ['topBar', 'leftBar', 'rightBar', 'innerContainer'].map((item) => {
       this[item] && root.removeChild(this[item])
@@ -1624,7 +1617,9 @@ class Player extends MediaProxy {
     this.fullscreen = true
     this.setRotateDeg(90)
     this._rootStyle = this.root.getAttribute('style')
-    this.root.style.width = `${window.innerHeight}px`
+    const isRotate90 = Math.abs(window.orientation) === 90 || Math.abs(screen.orientation.angle) === 90
+    // 如果已经是横屏状态，则取innerWidth，否则取innerHeight
+    this.root.style.width = isRotate90 ? `${window.innerWidth}px` : `${window.innerHeight}px`
     this.emit(Events.FULLSCREEN_CHANGE, true)
   }
 
@@ -2199,7 +2194,7 @@ class Player extends MediaProxy {
   }
 
   resize () {
-    if (!this.media) {
+    if (!this.media || !this.root) {
       return
     }
     const containerSize = this.root.getBoundingClientRect()

@@ -16,6 +16,7 @@ export class FetchLoader extends EventEmitter {
   _running = false
   _logger = null
   _vid = ''
+  _firtstByte = 0
   _onProcessMinLen = 0
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
@@ -49,7 +50,9 @@ export class FetchLoader extends EventEmitter {
     referrer,
     referrerPolicy,
     onProcessMinLen,
-    priOptions
+    priOptions,
+    streamRes,
+    firstMaxChunkSize
   }) {
     this._logger = logger
     this._aborted = false
@@ -61,6 +64,7 @@ export class FetchLoader extends EventEmitter {
     this._range = range || [0, 0]
     this._vid = vid || url
     this._priOptions = priOptions || {}
+    this._firstMaxChunkSize = firstMaxChunkSize
     const init = {
       method,
       headers,
@@ -108,7 +112,15 @@ export class FetchLoader extends EventEmitter {
     const startTime = Date.now()
     this._logger.debug('[fetch load start], index,', index, ',range,', range)
     return new Promise((resolve, reject) => {
-      fetch(request || url, request ? undefined : init).then(async (response) => {
+      const promise = streamRes
+        ? new Promise(r => {
+          // const response = new Response(streamRes)
+          // Object.defineProperty(response, 'url', { value: url })
+          // r(response)
+          r(streamRes)
+        })
+        : fetch(request || url, request ? undefined : init)
+      promise.then(async (response) => {
         clearTimeout(this._timeoutTimer)
         this._response = response
         if (this._aborted || !this._running) return
@@ -269,6 +281,20 @@ export class FetchLoader extends EventEmitter {
         retData = data.value
       }
       if (retData && retData.byteLength > 0 || data.done) {
+        if (this._firstMaxChunkSize) {
+          if (!this._firtstByte) {
+            this._firtstByte++
+            const tmp = retData.slice(0, this._firstMaxChunkSize)
+            this._cacheData = retData.slice(this._firstMaxChunkSize)
+            retData = tmp
+          } else if (this._cacheData) {
+            const tmp = new Uint8Array(this._cacheData.byteLength + retData.byteLength)
+            tmp.set(this._cacheData, 0)
+            tmp.set(retData, this._cacheData.byteLength)
+            retData = tmp
+            this._cacheData = null
+          }
+        }
         onProgress(retData, data.done, {
           range: [this._range[0] + this._receivedLength - (retData ? retData.byteLength : 0), this._range[0] + this._receivedLength],
           vid: this._vid,
@@ -281,7 +307,15 @@ export class FetchLoader extends EventEmitter {
         }, response)
       }
       if (!data.done) {
-        pump()
+        if (this._firstMaxChunkSize) {
+          // this._firtstByte++
+          setTimeout(() => {
+            pump()
+          }, 0)
+        } else {
+          pump()
+        }
+        // pump()
       } else {
         const costTime = Date.now() - st
         const speed = calculateSpeed(this._receivedLength, costTime)

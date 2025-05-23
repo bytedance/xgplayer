@@ -122,7 +122,7 @@ export class AAC {
       objectType = 2
       extensionSamplingIndex = samplingIndex
     } else { // use HE-AAC
-      objectType = (originObjectType === 2 || originObjectType === 5) ? originObjectType : 5
+      objectType = 5
       extensionSamplingIndex = samplingIndex
 
       if (samplingIndex >= 6) {

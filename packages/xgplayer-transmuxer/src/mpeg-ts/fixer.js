@@ -159,7 +159,7 @@ export class TsFixer {
           x.pts += vDelta
         })
       } else {
-        for (let i = 1; i < len - 1; i++) {
+        for (let i = 1; i <= len - 1; i++) {
           const dts = samples[i]?.dts
           const prevDts = samples[i - 1 ].dts
           if (dts && dts - prevDts < 0) {

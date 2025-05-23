@@ -265,6 +265,12 @@ class Plugin extends BasePlugin {
      * @type { HTMLElement }
      */
     this.parent = null
+    /**
+     * store the extra HTMLElements except root
+     * @readonly
+     * @type {HTMLElement[]}
+     */
+    this.extraEls = []
 
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
@@ -676,6 +682,7 @@ class Plugin extends BasePlugin {
     ['root', 'parent'].map(item => {
       this[item] = null
     })
+    this.extraEls = []
   }
 }
 

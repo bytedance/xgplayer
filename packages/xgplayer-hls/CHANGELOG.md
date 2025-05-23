@@ -1,3 +1,6 @@
+## 3.0.22
+>* fix(hls): fix sample duration less zero bug
+
 ## 3.0.21
 >* fix: 🐛 (xgplayer-hls) 非MMS应支持软解
 >* fix: 调整插件内软解判断

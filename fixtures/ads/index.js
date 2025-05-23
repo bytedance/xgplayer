@@ -1,7 +1,7 @@
-import AdPlugin, { AdEvents } from '../../packages/xgplayer-ads/src'
-import HlsPlugin from '../../packages/xgplayer-hls/src'
-import { Logger } from '../../packages/xgplayer-streaming-shared/src/logger'
-import Player from '../../packages/xgplayer/src/index.umd'
+import Player from 'xgplayer'
+import AdPlugin, { AdEvents } from 'xgplayer-ads'
+import HlsPlugin from 'xgplayer-hls'
+import { Logger } from 'xgplayer-streaming-shared'
 
 let settings = {}
 const dbApplyOpt = document.getElementById('apply-opt')
