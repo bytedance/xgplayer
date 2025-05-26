@@ -13,6 +13,9 @@ export default class Main extends EventEmitter {
     this._opts.preProcessUrl = null
     this._worker = new PlayerWorker()
     this._bindInteractionEvent()
+    if (this._opts.streamRes) {
+      delete this._opts.streamRes
+    }
     this._postMessage('init', this._opts)
     this.unbindvts = []
     this._bindpostMediaEvent()
