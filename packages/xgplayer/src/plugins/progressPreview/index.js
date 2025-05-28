@@ -262,30 +262,63 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
+  getCumulativeScale (element) {
+    let scale = 1
+    let current = element
+
+    while (current && current !== document.body) {
+      const transform = getComputedStyle(current).transform
+      if (transform && transform !== 'none') {
+        const matrix = transform.match(/^matrix\((.+)\)$/)
+        if (matrix) {
+          const values = matrix[1].split(', ')
+          const currentScale = Math.sqrt(values[0] * values[0] + values[1] * values[1])
+          scale *= currentScale
+        }
+      }
+      current = current.parentElement
+    }
+
+    return scale
+  }
+
   updateLinePos (offset, cwidth) {
-    const { root, previewLine, player, config } = this
+    const { root, previewLine, player, config, getCumulativeScale } = this
     const { mode } = player.controls
     const isflex = mode === 'flex'
-    let lwidth = root.getBoundingClientRect().width
-    // 如果当前预览图宽度获取不到，无法计算位移，不做渲染
+
+    // 获取累积缩放比例
+    const cumulativeScale = getCumulativeScale(root.parentElement)
+
+    const rawWidth = root.offsetWidth
+    let lwidth = rawWidth
+
     if (!lwidth && this._hasThumnail) {
       return
     }
+
     lwidth = this._hasThumnail && lwidth < config.width ? config.width : lwidth
-    let x = offset - lwidth / 2
+
+    const scaledCWidth = cwidth / cumulativeScale
+    const scaledOffset = offset / cumulativeScale
+
+    let x = scaledOffset - lwidth / 2
     let _t
+
     if (x < 0 && !isflex) {
       x = 0
-      _t = offset - lwidth / 2
-    } else if (x > cwidth - lwidth && !isflex) {
-      _t = x - (cwidth - lwidth)
-      x = cwidth - lwidth
+      _t = scaledOffset - lwidth / 2
+    } else if (x > scaledCWidth - lwidth && !isflex) {
+      _t = x - (scaledCWidth - lwidth)
+      x = scaledCWidth - lwidth
     } else {
       _t = 0
     }
+
     _t !== undefined && (previewLine.style.transform = `translateX(${_t.toFixed(2)}px)`)
     root.style.transform = `translateX(${x.toFixed(2)}px) translateZ(0)`
   }
+
 
   updateTimeText (timeStr) {
     const { timeText, timePoint } = this
