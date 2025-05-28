@@ -60,6 +60,11 @@ export default class CssFullScreen extends IconPlugin {
       }
     })
     this.bind(['click', 'touchend'], this.handleCssFullscreen)
+
+    this.checkTooltipBounds(this.find('.xg-tips'))
+    this._resizeObserver = new ResizeObserver(() => {
+      this._checkTooltipBounds(this.find('.xg-tips'))
+    })
   }
 
   initIcons () {
@@ -87,6 +92,44 @@ export default class CssFullScreen extends IconPlugin {
     }
     isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
     this.switchTips(isFullScreen)
+  }
+
+  _lastTooltipData = {
+    text: '',
+    overflowLeft: false,
+    overflowRight: false
+  };
+
+  checkTooltipBounds (tipDom) {
+    if (!tipDom || !this.player) return
+
+    const currentText = tipDom.innerText || tipDom.textContent
+    if (currentText === this._lastTooltipData.text) {
+      tipDom.classList.toggle('xg-tips-left-aligned', this._lastTooltipData.overflowLeft)
+      tipDom.classList.toggle('xg-tips-right-aligned', this._lastTooltipData.overflowRight)
+      return
+    }
+
+    const originalDisplay = tipDom.style.display
+    tipDom.style.visibility = 'hidden'
+    tipDom.style.display = 'block'
+
+    const tooltipRect = tipDom.getBoundingClientRect()
+    const parentRect = this.player.root.getBoundingClientRect()
+
+    tipDom.style.display = originalDisplay
+    tipDom.style.visibility = ''
+
+    const overflowLeft = tooltipRect.left < parentRect.left
+    const overflowRight = tooltipRect.right > parentRect.right
+
+    this._lastTooltipData = {
+      text: currentText,
+      overflowLeft,
+      overflowRight
+    }
+    tipDom.classList.toggle('xg-tips-left-aligned', overflowLeft)
+    tipDom.classList.toggle('xg-tips-right-aligned', overflowRight)
   }
 
   switchTips (isFullScreen) {

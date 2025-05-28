@@ -208,6 +208,17 @@
       top: -30px;
       left: 50%;
       transform: translateX(-50%);
+      // 文本溢出取消默认居中偏移
+      &.xg-tips-left-aligned {
+        left: 0;
+        right: auto;
+        transform: none;
+      }
+      &.xg-tips-right-aligned {
+        right: 0;
+        left: auto;
+        transform: none;
+      }
     }
     &:active,
     &:hover {
