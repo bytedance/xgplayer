@@ -268,16 +268,23 @@ export default class ProgressPreview extends Plugin {
 
     while (current && current !== document.body) {
       const transform = getComputedStyle(current).transform
+
       if (transform && transform !== 'none') {
-        const matrix = transform.match(/^matrix\((.+)\)$/)
-        if (matrix) {
-          const values = matrix[1].split(', ')
-          const currentScale = Math.sqrt(values[0] * values[0] + values[1] * values[1])
-          scale *= currentScale
+        if (typeof DOMMatrix !== 'undefined') {
+          try {
+            scale *= new DOMMatrix(transform).a
+          } catch (e) {
+            console.warn('DOMMatrix parse error:', e)
+          }
+        } else {
+          const values = transform.match(/^matrix\((.+)\)$/)?.[1]?.split(/,\s*/)
+          if (values) scale *= parseFloat(values[0]) || 1
         }
       }
+
       current = current.parentElement
     }
+
 
     return scale
   }
