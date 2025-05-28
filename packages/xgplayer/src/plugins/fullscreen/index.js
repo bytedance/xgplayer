@@ -96,6 +96,11 @@ export default class Fullscreen extends IconPlugin {
     if (Sniffer.device === 'mobile') {
       window.addEventListener('orientationchange', this._onOrientationChange)
     }
+
+    this.checkTooltipBounds(this.find('.xg-tips'))
+    this._resizeObserver = new ResizeObserver(() => {
+      this._checkTooltipBounds(this.find('.xg-tips'))
+    })
   }
 
   /**
@@ -191,6 +196,44 @@ export default class Fullscreen extends IconPlugin {
         this.show()
       }
     }
+  }
+
+  _lastTooltipData = {
+    text: '',
+    overflowLeft: false,
+    overflowRight: false
+  };
+
+  checkTooltipBounds (tipDom) {
+    if (!tipDom || !this.player) return
+
+    const currentText = tipDom.innerText || tipDom.textContent
+    if (currentText === this._lastTooltipData.text) {
+      tipDom.classList.toggle('xg-tips-left-aligned', this._lastTooltipData.overflowLeft)
+      tipDom.classList.toggle('xg-tips-right-aligned', this._lastTooltipData.overflowRight)
+      return
+    }
+
+    const originalDisplay = tipDom.style.display
+    tipDom.style.visibility = 'hidden'
+    tipDom.style.display = 'block'
+
+    const tooltipRect = tipDom.getBoundingClientRect()
+    const parentRect = this.player.root.getBoundingClientRect()
+
+    tipDom.style.display = originalDisplay
+    tipDom.style.visibility = ''
+
+    const overflowLeft = tooltipRect.left < parentRect.left
+    const overflowRight = tooltipRect.right > parentRect.right
+
+    this._lastTooltipData = {
+      text: currentText,
+      overflowLeft,
+      overflowRight
+    }
+    tipDom.classList.toggle('xg-tips-left-aligned', overflowLeft)
+    tipDom.classList.toggle('xg-tips-right-aligned', overflowRight)
   }
 
   /**
