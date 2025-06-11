@@ -202,6 +202,8 @@ function runHooks (obj, hookName, handler, ...args) {
         })
       } else if (ret !== false) {
         return runHooksRecursive(obj, hookName, handler, ...args)
+      } else if (ret === false) {
+        return false
       }
     }
 
