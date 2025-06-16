@@ -1,5 +1,5 @@
 import Player from '../../packages/xgplayer/src'
-import FlvPlayer from '../../packages/xgplayer-flv/src'
+import FlvPlayer, { MIW } from '../../packages/xgplayer-flv/src'
 
 // localStorage.setItem('xgd', 1)
 function defaultOpt() {
@@ -22,18 +22,19 @@ function defaultOpt() {
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
 try { cachedOpt = JSON.parse(cachedOpt) } catch (error) { cachedOpt = undefined }
+cachedOpt.manualLoad = false
 var opts = Object.assign({
   // url: 'https://1011.hlsplay.aodianyun.com/demo/game.flv',
-  url: 'https://pull-flv-l1.douyincdn.com/stage/stream-399911386870710302_ld.flv?keeptime=00093a80&wsSecret=84c8c84e064fb6c6aaad6ec54c5c8247&wsTime=63315a10&abr_pts=1950715',
+  url: 'https://pull-demo.volcfcdnrd.com/live/st-4536524.flv',
 }, defaultOpt(), cachedOpt)
 var testPoint = Number(localStorage.getItem('xg:test:flv:point'))
 
 if (isNaN(testPoint)) testPoint = 0
 
 window.onload = function () {
-  fetch('https://pull-demo.volcfcdnrd.com/live/st-4536524.flv').then(res => {
-    window.streamRes = res
-  })
+  // fetch('https://pull-demo.volcfcdnrd.com/live/st-4536524.flv').then(res => {
+  //   window.streamRes = res.body
+  // })
   var dTestPoint = document.getElementById('test-point')
   var dTestPointDesc = document.getElementById('test-point-desc')
 
@@ -113,7 +114,7 @@ window.onload = function () {
       window.timeStart = Date.now()
       window.player = player = new Player({
         el: document.getElementById('player'),
-        plugins: [FlvPlayer],
+        plugins: [MIW],
         url: opts.url,
         isLive: opts.isLive,
         autoplay: opts.autoplay,
@@ -136,7 +137,7 @@ window.onload = function () {
       function pushEvent(name, value, container) {
         if (name === 'loadeddata') {
           console.log('loadeddata', Date.now() - window.timeStart)
-          player.plugins.flv.flv._mediaLoader._currentTask._loader._firstMaxChunkSize = null
+          // player.plugins.flv.flv._mediaLoader._currentTask._loader._firstMaxChunkSize = null
         }
         container = container || dlEvent
         if (container === dlEvent && dlLogPause.checked) return
@@ -305,40 +306,40 @@ window.onload = function () {
     resetOpts()
   }
 
-  setTimeout(function () {
-    var lastPlayback = null
-    var fps = 0
-    var prevTime = 0
-    setInterval(function () {
-      if (player && player.plugins.flv) {
-        var t = player.currentTime
-        prevTime = t
-        var flv = player.plugins.flv.core
-        var buf = flv.bufferInfo()
-        var pq = flv.playbackQuality()
-        var sp = flv.speedInfo()
-        if (lastPlayback) {
-          fps = Math.round((pq.totalVideoFrames - lastPlayback.totalVideoFrames) / (pq.creationTime - lastPlayback.creationTime) * 1000)
-        }
-        lastPlayback = pq
+  // setTimeout(function () {
+  //   var lastPlayback = null
+  //   var fps = 0
+  //   var prevTime = 0
+  //   setInterval(function () {
+  //     if (player && player.plugins.flv) {
+  //       var t = player.currentTime
+  //       prevTime = t
+  //       var flv = player.plugins.flv.core
+  //       var buf = flv.bufferInfo()
+  //       var pq = flv.playbackQuality()
+  //       var sp = flv.speedInfo()
+  //       if (lastPlayback) {
+  //         fps = Math.round((pq.totalVideoFrames - lastPlayback.totalVideoFrames) / (pq.creationTime - lastPlayback.creationTime) * 1000)
+  //       }
+  //       lastPlayback = pq
 
-        dsBuffer.innerHTML =
-          '<p>当前时间：' + t + 's</p>' +
-          '<p>剩余缓存时长：' + buf.remaining + 's</p>' +
-          '<p>当前时间之前缓存时长：' + buf.behind + 's</p>' +
-          '<p>总缓存时长：' + buf.length + 's</p>' +
-          '<p>buffers：' + JSON.stringify(buf.buffers) + '</p>'
+  //       dsBuffer.innerHTML =
+  //         '<p>当前时间：' + t + 's</p>' +
+  //         '<p>剩余缓存时长：' + buf.remaining + 's</p>' +
+  //         '<p>当前时间之前缓存时长：' + buf.behind + 's</p>' +
+  //         '<p>总缓存时长：' + buf.length + 's</p>' +
+  //         '<p>buffers：' + JSON.stringify(buf.buffers) + '</p>'
 
-        dsFrame.innerHTML =
-          '<p>总渲染帧数：' + pq.totalVideoFrames + '</p>' +
-          '<p>掉帧数量：' + pq.droppedVideoFrames + '</p>' +
-          '<p>fps:' + fps + '</p>'
+  //       dsFrame.innerHTML =
+  //         '<p>总渲染帧数：' + pq.totalVideoFrames + '</p>' +
+  //         '<p>掉帧数量：' + pq.droppedVideoFrames + '</p>' +
+  //         '<p>fps:' + fps + '</p>'
 
-        dsSpeed.innerHTML =
-          '<p>当前速度：' + Math.round(sp.speed / (8 * 1024)) + 'KB/s</p>' +
-          '<p>平均速度：' + Math.round(sp.avgSpeed / (8 * 1024)) + 'KB/s</p>'
+  //       dsSpeed.innerHTML =
+  //         '<p>当前速度：' + Math.round(sp.speed / (8 * 1024)) + 'KB/s</p>' +
+  //         '<p>平均速度：' + Math.round(sp.avgSpeed / (8 * 1024)) + 'KB/s</p>'
 
-      }
-    }, 1000)
-  })
+  //     }
+  //   }, 1000)
+  // })
 }

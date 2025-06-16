@@ -7,7 +7,10 @@ import { createPublicPromise, nowTime, SafeJSON } from './utils'
 
 function getMediaSource (preferMMS = true) {
   try {
-    if (!isBrowser) return null
+    if (!isBrowser) {
+      if (typeof MediaSource !== 'undefined') return MediaSource
+      return null
+    }
 
     if (preferMMS && typeof ManagedMediaSource !== 'undefined') return ManagedMediaSource
 
@@ -25,13 +28,11 @@ function isMMS (mediaSource) {
 function getTimeRanges (buffered) {
   const ranges = []
 
-  if (buffered instanceof TimeRanges) {
-    for (let i = 0; i < buffered.length; i++) {
-      ranges.push({
-        start: buffered.start(i),
-        end: buffered.end(i)
-      })
-    }
+  for (let i = 0; i < buffered.length; i++) {
+    ranges.push({
+      start: buffered.start(i),
+      end: buffered.end(i)
+    })
   }
   return ranges
 }
@@ -245,7 +246,9 @@ export class MSE {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      URL.revokeObjectURL(media.src)
+      if (!(typeof window === 'undefined' && globalThis?.inPlayerWorker)) {
+        URL.revokeObjectURL(media.src)
+      }
       this._openPromise.resolve({costtime: costTime})
     }
     ms.addEventListener('sourceopen', onOpen)
@@ -254,9 +257,15 @@ export class MSE {
       ms.addEventListener('endstreaming', this._onEndStreaming)
     }
 
-    this._url = URL.createObjectURL(ms)
-    media.src = this._url
-    media.disableRemotePlayback = useMMS
+    if (typeof window === 'undefined' && globalThis?.inPlayerWorker) {
+      globalThis.postMessage({
+        type: 'handle', handle: ms.handle
+      }, [ms.handle])
+    } else {
+      this._url = URL.createObjectURL(ms)
+      media.src = this._url
+      media.disableRemotePlayback = useMMS
+    }
 
     return this._openPromise
   }
@@ -303,7 +312,7 @@ export class MSE {
       this.media.disableRemotePlayback = false
       this.media.removeAttribute('src')
       try {
-        this.media.load()
+        await this.media.load()
       } catch (error) {
         // ignore
       }

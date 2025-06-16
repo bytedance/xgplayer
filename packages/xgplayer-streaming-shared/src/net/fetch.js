@@ -51,7 +51,7 @@ export class FetchLoader extends EventEmitter {
     referrerPolicy,
     onProcessMinLen,
     priOptions,
-    streamRes,
+    stream,
     firstMaxChunkSize
   }) {
     this._logger = logger
@@ -112,12 +112,12 @@ export class FetchLoader extends EventEmitter {
     const startTime = Date.now()
     this._logger.debug('[fetch load start], index,', index, ',range,', range)
     return new Promise((resolve, reject) => {
-      const promise = streamRes
+      const promise = stream
         ? new Promise(r => {
-          // const response = new Response(streamRes)
-          // Object.defineProperty(response, 'url', { value: url })
-          // r(response)
-          r(streamRes)
+          const response = new Response(stream)
+          Object.defineProperty(response, 'url', { value: url })
+          r(response)
+          // r(streamRes)
         })
         : fetch(request || url, request ? undefined : init)
       promise.then(async (response) => {
@@ -143,7 +143,7 @@ export class FetchLoader extends EventEmitter {
           if (onProgress) {
             this.resolve = resolve
             this.reject = reject
-            this._loadChunk(response, onProgress, startTime, firstByteTime)
+            this._loadChunk(response, onProgress, startTime, firstByteTime, url || request?.url)
             return
           } else {
             data = await response.arrayBuffer()
@@ -211,7 +211,7 @@ export class FetchLoader extends EventEmitter {
     }
   }
 
-  _loadChunk (response, onProgress, st, firstByteTime) {
+  _loadChunk (response, onProgress, st, firstByteTime, url) {
     if (!response.body || !response.body.getReader) {
       this._running = false
       const err = new NetError(response.url, '', response, 'onProgress of bad response.body.getReader')
@@ -303,7 +303,8 @@ export class FetchLoader extends EventEmitter {
           endTime,
           st,
           firstByteTime,
-          priOptions:this._priOptions
+          priOptions: this._priOptions,
+          is_redirect: url !== response.url
         }, response)
       }
       if (!data.done) {
