@@ -6,7 +6,9 @@ import Media from './media'
 export default class PlayerWorker {
   constructor () {
     this._bindWorkerEvent()
-    globalThis.inPlayerWorker = true
+    if (typeof window === 'undefined') {
+      globalThis.inPlayerWorker = true
+    }
   }
 
   postMessage (type, data = {}) {

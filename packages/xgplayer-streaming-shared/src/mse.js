@@ -246,7 +246,7 @@ export class MSE {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      if (!globalThis.inPlayerWorker) {
+      if (!(typeof window === 'undefined' && globalThis?.inPlayerWorker)) {
         URL.revokeObjectURL(media.src)
       }
       this._openPromise.resolve({costtime: costTime})
@@ -257,7 +257,7 @@ export class MSE {
       ms.addEventListener('endstreaming', this._onEndStreaming)
     }
 
-    if (globalThis.inPlayerWorker) {
+    if (typeof window === 'undefined' && globalThis?.inPlayerWorker) {
       globalThis.postMessage({
         type: 'handle', handle: ms.handle
       }, [ms.handle])
