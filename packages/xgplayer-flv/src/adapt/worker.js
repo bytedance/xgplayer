@@ -85,12 +85,12 @@ export default class PlayerWorker {
   _transError () {
     this.flv.on(EVENT.ERROR, (err) => {
       this.postMessage('core_event', {
-        eventName: 'ERROR',
+        eventName: EVENT.ERROR,
         data: {
           errorCode: err.errorCode,
           errorMessage: err.errorMessage,
-          errorType: err.errorType,
-          ext: err.ext
+          errorType: err.errorType
+          // ext: err.ext
         }
       })
     })

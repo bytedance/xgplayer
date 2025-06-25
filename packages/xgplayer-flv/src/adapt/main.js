@@ -35,7 +35,7 @@ export default class Main extends EventEmitter {
   }
 
   _bindInteractionEvent () {
-    this._worker.addEventListener('message', e=>{this._handleMessage(e)})
+    this._worker.addEventListener('message', this._handleMessage)
     this._workerSink?.addEventListener('error', e => {
       this.emit(EVENT.ERROR, {
         errorType: 'WORKER_RUNTIME_ERROR',
@@ -66,7 +66,7 @@ export default class Main extends EventEmitter {
         this._postMessage({ type: 'loadSuccess'})
         break
       case 'core_event':
-        this.emit(data.eventName, data.data)
+        this.emit(data.data.eventName, data.data.data)
         break
       case 'transferCost':
         this.transferCost = data.transferCost
