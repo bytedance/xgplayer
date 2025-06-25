@@ -35,7 +35,7 @@ export default class Main extends EventEmitter {
   }
 
   _bindInteractionEvent () {
-    this._worker.addEventListener('message', this._handleMessage)
+    this._worker.addEventListener('message', e=>{this._handleMessage(e)})
     this._workerSink?.addEventListener('error', e => {
       this.emit(EVENT.ERROR, {
         errorType: 'WORKER_RUNTIME_ERROR',
