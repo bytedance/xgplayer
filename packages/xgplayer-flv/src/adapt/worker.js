@@ -98,6 +98,10 @@ export default class PlayerWorker {
 
   _transCoreEvent (eventName) {
     this.flv.on(eventName, (e) => {
+      if ([EVENT.SWITCH_URL_FAILED, EVENT.LOAD_RETRY].includes(eventName)) {
+        e.ext = null
+        e.originError = null
+      }
       this.postMessage('core_event', {
         eventName,
         data: {
