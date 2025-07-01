@@ -1,11 +1,18 @@
 # 版本更新记录
+## 3.0.23
+>* refactor: 💡 (xgplayer) add playSessionId for once play process
+>* fix: 🐛 (xgplayer) usePluginHooks not use arguments, fixed #1773
+>* fix: 🐛 (xgplayer) plugin插件增加存储除root外的额外dom的extraEls属性
+>* fix: 🐛 (xgplayer) 修复ad修饰插件timeIcon的额外dom不能正常显示隐藏的问题
+>* fix: 🐛 (xgplayer) 修复横屏状态下进入全屏时播放器宽度不对的问题
+>* fix: 🐛 (xgplayer) null is not an object (evaluating 'this.root.getBoundingClientRect')
 ## 3.0.22
-refactor: 💡 (xgplayer) add umd ui plugins exports for ads, eg. PlayIcon、Progress、TimeIcon etc.
-fix: 🐛 (ads) always autoplay for LG & Samsung TV
-fix: 🐛 progress bar mouseup event is not fired, due to preview
-fix: 🐛 typo in zh-hk.js
-fix(xgplayer): fix percent NaN and fix to currentTime percent
-feat: add update function for miniscreen
+>* refactor: 💡 (xgplayer) add umd ui plugins exports for ads, eg. PlayIcon、Progress、TimeIcon etc.
+>* fix: 🐛 (ads) always autoplay for LG & Samsung TV
+>* fix: 🐛 progress bar mouseup event is not fired, due to preview
+>* >* fix: 🐛 typo in zh-hk.js
+>* fix(xgplayer): fix percent NaN and fix to currentTime percent
+>* feat: add update function for miniscreen
 ## 3.0.21
 >* fix: 🐛 (xgplayer) 修复播放器seeked时，播放器未启动播放而弹幕自动播放问题
 >* fix player destroy  control plugins memeory leak
