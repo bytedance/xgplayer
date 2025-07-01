@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "3.0.23-rc.2",
+  "version": "3.0.23-rc.3",
   "description": "web video player",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -37,6 +37,6 @@
   },
   "peerDependencies": {
     "core-js": ">=3.12.1",
-    "xgplayer": "3.0.23-rc.2"
+    "xgplayer": "3.0.23-rc.3"
   }
 }
