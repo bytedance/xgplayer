@@ -17,7 +17,7 @@ function defaultOpt() {
     maxReaderInterval: 5000,
     seamlesslyReload: false,
     firstMaxChunkSize: 20000,
-    manualLoad: true
+    manualLoad: false
   }
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
@@ -111,10 +111,12 @@ window.onload = function () {
       init()
     }
     function init() {
+      // MIW.preParePlayerWorker();//初始化worker
       window.timeStart = Date.now()
       window.player = player = new Player({
         el: document.getElementById('player'),
         plugins: [MIW],
+        // plugins:[FlvPlayer],
         url: opts.url,
         isLive: opts.isLive,
         autoplay: opts.autoplay,
@@ -135,7 +137,7 @@ window.onload = function () {
       dlError.innerHTML = ''
 
       function pushEvent(name, value, container) {
-        if (name === 'loadeddata') {
+         if (name === 'loadeddata') {
           console.log('loadeddata', Date.now() - window.timeStart)
           // player.plugins.flv.flv._mediaLoader._currentTask._loader._firstMaxChunkSize = null
         }
@@ -272,10 +274,10 @@ window.onload = function () {
   inp(doMaxLatency).onchange = function () { updateOpts('maxLatency', this.value, 'number') }
   inp(doDisconnectTime).onchange = function () { updateOpts('disconnectTime', this.value, 'number') }
   inp(doMaxReaderInterval).onchange = function () { updateOpts('maxReaderInterval', this.value, 'number') }
-
+  // MIW._playerWorker();//初始化worker
   setTimeout(() => {
     initPlayer()
-  }, 3000)
+  },200)
 
   dbResetOpt.onclick = resetOpts
   dbApplyOpt.onclick = initPlayer
