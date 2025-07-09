@@ -1,3 +1,3 @@
-import MIW from './MIW'
+import MIW, { preParePlayerWorker } from './MIW'
 export { FlvPlugin as default } from './plugin'
-export { MIW }
+export { MIW, preParePlayerWorker }
