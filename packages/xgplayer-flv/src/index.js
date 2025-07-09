@@ -1,6 +1,6 @@
 /* c8 ignore next 12 */
 import { FlvPlugin } from './plugin'
-import MIW from './MIW'
+import MIW, { preParePlayerWorker } from './MIW'
 
 export {
   ERR,
@@ -10,5 +10,5 @@ export {
 } from 'xgplayer-streaming-shared'
 
 export * from './flv'
-export { FlvPlugin, MIW }
+export { FlvPlugin, MIW, preParePlayerWorker }
 export default FlvPlugin

@@ -12,13 +12,13 @@ export default class Main extends EventEmitter {
     this._opts.media = null
     this._opts.preProcessUrl = null
     // this._worker = new PlayerWorker()
-    this._worker = opts?._worker
+    this._worker = opts?.worker
     this._bindInteractionEvent()
     if (this._opts.streamRes) {
       delete this._opts.streamRes
     }
-    if (this._opts?._worker) {
-      delete this._opts._worker
+    if (this._opts?.worker) {
+      delete this._opts.worker
     }
     this._postMessage('init', this._opts)
     this.unbindvts = []

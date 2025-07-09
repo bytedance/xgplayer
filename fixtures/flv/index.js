@@ -1,5 +1,5 @@
 import Player from '../../packages/xgplayer/src'
-import FlvPlayer, { MIW } from '../../packages/xgplayer-flv/src'
+import FlvPlayer, { MIW, preParePlayerWorker } from '../../packages/xgplayer-flv/src'
 
 // localStorage.setItem('xgd', 1)
 function defaultOpt() {
@@ -111,7 +111,6 @@ window.onload = function () {
       init()
     }
     function init() {
-      // MIW.preParePlayerWorker();//初始化worker
       window.timeStart = Date.now()
       window.player = player = new Player({
         el: document.getElementById('player'),
@@ -123,7 +122,8 @@ window.onload = function () {
         autoplayMuted: opts.autoplayMuted,
         flv: {
           // streamRes: window.streamRes,
-          ...opts
+          ...opts,
+          worker: preParePlayerWorker()
         }
       });
       player.once('ready', () => {

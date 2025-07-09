@@ -8,10 +8,6 @@ export default class FlvPlugin extends BasePlugin {
   static get pluginName () {
     return 'flv'
   }
-  static _playerWorkerIns;
-  static preParePlayerWorker = ()=>{
-    FlvPlugin._playerWorkerIns = new PlayerWorker()
-  }
 
   /** @type {Flv} */
   flv = null;
@@ -49,13 +45,12 @@ export default class FlvPlugin extends BasePlugin {
     if (flvOpts.disconnectTime === null || flvOpts.disconnectTime === undefined) {
       flvOpts.disconnectTime = 0
     }
-    if (!FlvPlugin._playerWorkerIns){
-      FlvPlugin.preParePlayerWorker()
+    if (!flvOpts.worker) {
+      flvOpts.worker = preParePlayerWorker()
     }
     this.flv = new Flv({
       isLive: config.isLive,
       media: mediaElem,
-      _worker: FlvPlugin._playerWorkerIns,
       preProcessUrl: (url, ext) => this.player?.preProcessUrl?.(url, ext) || {url, ext},
       ...flvOpts
     })
@@ -182,4 +177,8 @@ export default class FlvPlugin extends BasePlugin {
       }
     })
   }
+}
+
+export function preParePlayerWorker () {
+  return new PlayerWorker()
 }
