@@ -170,10 +170,12 @@ export class MSE {
       ms.removeEventListener('sourceopen', onOpen)
       URL.revokeObjectURL(media.src)
       this._openPromise.resolve({costtime})
+      media.dispatchEvent(new CustomEvent('mseAttached'))
     }
     ms.addEventListener('sourceopen', onOpen)
     this._url = URL.createObjectURL(ms)
     media.src = this._url
+    media.dispatchEvent(new CustomEvent('mseAttaching'))
     return this._openPromise
   }
 
