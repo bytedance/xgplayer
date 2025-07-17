@@ -1303,7 +1303,7 @@ class Player extends MediaProxy {
 
     if (isResetConfig) {
       const de = getDefaultConfig()
-      Object.keys(this.config).keys((k) => {
+      Object.keys(this.config).forEach((k) => {
         if (
           this.config[k] !== 'undefined' &&
           (k === 'plugins' || k === 'presets' || k === 'el' || k === 'id')
