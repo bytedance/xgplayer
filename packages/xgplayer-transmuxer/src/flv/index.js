@@ -152,8 +152,11 @@ export class FlvDemuxer {
           videoTrack.duration = metaData.duration * 1000
         }
 
-        if (metaData.hasOwnProperty('width') && metaData.hasOwnProperty('height')) {
+        // Prefer to use SPS Info; if unavailable, use customed Meta Info
+        if (!videoTrack.width && metaData.hasOwnProperty('width')) {
           videoTrack.width = metaData.width
+        }
+        if (!videoTrack.height && metaData.hasOwnProperty('height')) {
           videoTrack.height = metaData.height
         }
       }
