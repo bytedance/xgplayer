@@ -378,7 +378,7 @@ class MP4 extends EventEmitter {
       }
     }
     i = 1
-    if (this.audioTrak) {
+    if (this.audioTrak && this.audioTrak.length > 0) {
       const audioSeg = fragIndex < this.audioTrak.length ? this.audioTrak[fragIndex] : this.audioTrak[this.audioTrak.length - 1]
       if (audioSeg.frames.length === 0) {
         this.log('>>>>>getSubRange video, no frames')
