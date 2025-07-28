@@ -349,7 +349,7 @@ class MP4 extends EventEmitter {
     let i = 1
     let find = false
     this.log('>>>>>getSubRange time,',time, JSON.stringify(range))
-    if (this.videoTrak) {
+    if (this.videoTrak && this.videoTrak.length > 0) {
       const videoSeg = fragIndex < this.videoTrak.length ? this.videoTrak[fragIndex] : this.videoTrak[this.videoTrak.length - 1]
       if (videoSeg.frames.length === 0) {
         this.log('>>>>>getSubRange video, no frames')
@@ -378,7 +378,7 @@ class MP4 extends EventEmitter {
       }
     }
     i = 1
-    if (this.audioTrak) {
+    if (this.audioTrak && this.audioTrak.length > 0) {
       const audioSeg = fragIndex < this.audioTrak.length ? this.audioTrak[fragIndex] : this.audioTrak[this.audioTrak.length - 1]
       if (audioSeg.frames.length === 0) {
         this.log('>>>>>getSubRange video, no frames')
