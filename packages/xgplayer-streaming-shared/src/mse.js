@@ -343,15 +343,15 @@ export class MSE {
       this._queue[type] = []
       return
     }
-    if (!Array.isArray(queue) || queue.length < 5) return
-    const initOpque = []
-    queue.forEach(op => {
-      if (op.context && op.context.isinit) {
-        initOpque.push(op)
-      }
-    })
-    this._queue[type] = queue.slice(0, 2)
-    initOpque.length > 0 && this._queue[type].push(...initOpque)
+    // if (!Array.isArray(queue) || queue.length < 5) return
+    // const initOpque = []
+    // queue.forEach(op => {
+    //   if (op.context && op.context.isinit) {
+    //     initOpque.push(op)
+    //   }
+    // })
+    // this._queue[type] = queue.slice(0, 2)
+    // initOpque.length > 0 && this._queue[type].push(...initOpque)
   }
 
   /**
