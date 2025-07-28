@@ -336,14 +336,14 @@ export class MSE {
     return p
   }
 
-  clearOpQueues (type, allClear) {
+  clearOpQueues (type, allClear = true) {
     this._logger.debug('MSE clearOpQueue START')
     const queue = this._queue[type]
     if (allClear && queue) {
       this._queue[type] = []
       return
     }
-    if (!queue || !queue[type] || queue.length < 5) return
+    if (!Array.isArray(queue) || queue.length < 5) return
     const initOpque = []
     queue.forEach(op => {
       if (op.context && op.context.isinit) {
