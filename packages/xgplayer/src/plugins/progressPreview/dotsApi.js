@@ -1,4 +1,4 @@
-import { Util, Events } from '../../plugin'
+import { Events, Util } from '../../plugin'
 
 const ISPOT = {
   time: 0, // 进度条在此时间戳打点 单位为s
@@ -11,7 +11,7 @@ const ISPOT = {
   height: 6
 }
 
-function mergeISPOT (iSpot) {
+function mergeISPOT(iSpot) {
   Object.keys(ISPOT).map(key => {
     if (iSpot[key] === undefined) {
       iSpot[key] = ISPOT[key]
@@ -20,7 +20,7 @@ function mergeISPOT (iSpot) {
 }
 
 const APIS = {
-  _updateDotDom (iSpot, dotDom) {
+  _updateDotDom(iSpot, dotDom) {
     if (!dotDom) {
       return
     }
@@ -39,7 +39,7 @@ const APIS = {
       dotDom.style[key] = style[key]
     })
   },
-  initDots () {
+  initDots() {
     this._ispots.map(item => {
       this.createDot(item, false)
     })
@@ -51,7 +51,7 @@ const APIS = {
    * @param { object } iSpot
    * @param { boolean } isNew
    */
-  createDot (iSpot, isNew = true) {
+  createDot(iSpot, isNew = true) {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -69,16 +69,23 @@ const APIS = {
     style.width = `${ret.width}%`
     let className = `xgspot_${iSpot.id} xgplayer-spot`
     ret.isMini && (className += ' mini')
-    const _t = iSpot.template ? `<div class="xgplayer-spot-pop">${iSpot.template}</div>` : ''
-    const dotDom = Util.createDom('xg-spot', _t, {
-      'data-text': iSpot.text,
-      'data-time': iSpot.time,
-      'data-id': iSpot.id
-    }, className)
+    const _t = iSpot.template
+      ? `<div class="xgplayer-spot-pop">${iSpot.template}</div>`
+      : ''
+    const dotDom = Util.createDom(
+      'xg-spot',
+      _t,
+      {
+        'data-text': iSpot.text,
+        'data-time': iSpot.time,
+        'data-id': iSpot.id
+      },
+      className
+    )
     Object.keys(style).map(key => {
       dotDom.style[key] = style[key]
     })
-    progress.outer && progress.outer.appendChild(dotDom)
+    progress.outer?.appendChild(dotDom)
     this.positionDot(dotDom, iSpot.id)
   },
 
@@ -86,11 +93,11 @@ const APIS = {
    * 根据id查找节点
    * @param {string} id
    */
-  findDot (id) {
+  findDot(id) {
     if (!this.player.plugins.progress) {
       return
     }
-    const ret = this._ispots.filter((cur, index) => {
+    const ret = this._ispots.filter((cur, _index) => {
       return cur.id === id
     })
     return ret.length > 0 ? ret[0] : null
@@ -101,7 +108,7 @@ const APIS = {
    * @param {any} iSpot
    * @param {boolean} needShow
    */
-  updateDot (iSpot, needShow = false) {
+  updateDot(iSpot, needShow = false) {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -129,7 +136,7 @@ const APIS = {
    * 删除某个故事点
    * @param {string | number } id
    */
-  deleteDot (id) {
+  deleteDot(id) {
     const { _ispots } = this
     const { progress } = this.player.plugins
     if (!progress) {
@@ -156,7 +163,7 @@ const APIS = {
   /**
    * 移除所有的故事点
    */
-  deleteAllDots () {
+  deleteAllDots() {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -175,7 +182,7 @@ const APIS = {
    * 批量全部更新当前故事点
    * @param {Array} iSpots
    */
-  updateAllDots (iSpots = []) {
+  updateAllDots(iSpots = []) {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -203,7 +210,7 @@ const APIS = {
     })
   },
 
-  positionDots () {
+  positionDots() {
     const { _ispots, playerSize } = this
     const { sizeInfo } = this.player
     const { progress } = this.player.plugins
@@ -218,7 +225,7 @@ const APIS = {
     })
   },
 
-  positionDot (dotDom, id) {
+  positionDot(dotDom, _id) {
     const _pop = Util.findDom(dotDom, '.xgplayer-spot-pop')
     if (!_pop) {
       return
@@ -240,7 +247,7 @@ const APIS = {
     }
   },
 
-  updateDuration () {
+  updateDuration() {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -252,7 +259,7 @@ const APIS = {
     })
   },
 
-  getAllDotsDom () {
+  getAllDotsDom() {
     const { progress } = this.player.plugins
     if (!progress) {
       return []
@@ -261,7 +268,7 @@ const APIS = {
     return dotDoms
   },
 
-  getDotDom (id) {
+  getDotDom(id) {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -270,7 +277,7 @@ const APIS = {
   }
 }
 
-export default function initDotsAPI (plugin) {
+export default function initDotsAPI(plugin) {
   const { config, player } = plugin
   Object.keys(APIS).map(item => {
     plugin[item] = APIS[item].bind(plugin)

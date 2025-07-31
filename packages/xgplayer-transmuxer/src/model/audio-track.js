@@ -1,4 +1,4 @@
-import { TrackType, AudioCodecType } from './types'
+import { AudioCodecType, TrackType } from './types'
 
 export class AudioTrack {
   id = 2
@@ -57,7 +57,7 @@ export class AudioTrack {
   /** @type {any} */
   ext
 
-  reset () {
+  reset() {
     this.sequenceNumber = 0
     this.timescale = 0
     this.sampleDuration = 0
@@ -75,7 +75,7 @@ export class AudioTrack {
   /**
    * @returns {boolean}
    */
-  exist () {
+  exist() {
     return !!(
       this.sampleRate &&
       this.channelCount &&
@@ -83,30 +83,31 @@ export class AudioTrack {
       (this.codecType === AudioCodecType.AAC ||
         this.codecType === AudioCodecType.G711PCMA ||
         this.codecType === AudioCodecType.G711PCMU ||
-        this.codecType === AudioCodecType.OPUS || this.codecType === AudioCodecType.MP3)
+        this.codecType === AudioCodecType.OPUS ||
+        this.codecType === AudioCodecType.MP3)
     )
   }
 
   /**
    * @returns {boolean}
    */
-  hasSample () {
+  hasSample() {
     return !!this.samples.length
   }
 
-  get isEncryption () {
+  get isEncryption() {
     return this.isAudioEncryption
   }
 
-  get firstDts () {
+  get firstDts() {
     return this.samples.length ? this.samples[0].dts : null
   }
 
-  get firstPts () {
+  get firstPts() {
     return this.samples.length ? this.samples[0].pts : null
   }
 
-  get samplesDuration () {
+  get samplesDuration() {
     if (this.samples.length > 0) {
       const first = this.samples[0]
       const last = this.samples[this.samples.length - 1]

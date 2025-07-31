@@ -47,12 +47,12 @@ const H264_MIMETYPES = [
  * @type ISniffer
  */
 const sniffer = {
-  get device () {
+  get device() {
     const r = sniffer.os
     return r.isPc ? 'pc' : 'mobile'
     // return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile'
   },
-  get browser () {
+  get browser() {
     if (typeof navigator === 'undefined') {
       return ''
     }
@@ -66,18 +66,20 @@ const sniffer = {
     }
     return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0]
   },
-  get os () {
+  get os() {
     if (typeof navigator === 'undefined') {
       return {}
     }
     const ua = navigator.userAgent
     const isWindowsPhone = /(?:Windows Phone)/.test(ua)
     const isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
-    const isTizen = /(?:Tizen)/ig.test(ua) // Samsung Tizen TV
-    const isWebOS = /(?:Web0S)/ig.test(ua) // LG TV
+    const isTizen = /(?:Tizen)/gi.test(ua) // Samsung Tizen TV
+    const isWebOS = /(?:Web0S)/gi.test(ua) // LG TV
     const isAndroid = /(?:Android)/.test(ua)
     const isFireFox = /(?:Firefox)/.test(ua)
-    const isIpad = /(?:iPad|PlayBook)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    const isIpad =
+      /(?:iPad|PlayBook)/.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
     const isTablet =
       isIpad ||
       (isAndroid && !/(?:Mobile)/.test(ua)) ||
@@ -99,7 +101,7 @@ const sniffer = {
     }
   },
 
-  get osVersion () {
+  get osVersion() {
     if (typeof navigator === 'undefined') {
       return 0
     }
@@ -120,7 +122,7 @@ const sniffer = {
     return 0
   },
 
-  get isWeixin () {
+  get isWeixin() {
     if (typeof navigator === 'undefined') {
       return false
     }
@@ -139,7 +141,7 @@ const sniffer = {
    *   mime: string
    * }}
    */
-  isSupportMP4 () {
+  isSupportMP4() {
     const result = {
       isSupport: false,
       mime: ''
@@ -152,7 +154,7 @@ const sniffer = {
     }
     let a = document.createElement('video')
     if (typeof a.canPlayType === 'function') {
-      H264_MIMETYPES.map((key) => {
+      H264_MIMETYPES.map(key => {
         if (a.canPlayType(`video/mp4; codecs="${key}"`) === 'probably') {
           result.isSupport = true
           result.mime += `||${key}`
@@ -169,7 +171,7 @@ const sniffer = {
    * @param {string} [mime]
    * @returns { boolean }
    */
-  isMSESupport (mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"') {
+  isMSESupport(mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"') {
     if (typeof MediaSource === 'undefined' || !MediaSource) return false
     try {
       return MediaSource.isTypeSupported(mime)
@@ -183,7 +185,7 @@ const sniffer = {
    * Is HEVC Hardware decoding supported by current browser
    * @returns {boolean}
    */
-  isHevcSupported () {
+  isHevcSupported() {
     if (typeof MediaSource === 'undefined' || !MediaSource.isTypeSupported) {
       return false
     }
@@ -199,7 +201,7 @@ const sniffer = {
    * @param { MediaDecodingConfiguration } info
    * @returns { Promise<MediaCapabilitiesDecodingInfo> }
    */
-  probeConfigSupported (info) {
+  probeConfigSupported(info) {
     const defaults = {
       supported: false,
       smooth: false,
@@ -208,28 +210,21 @@ const sniffer = {
     if (!info || typeof navigator === 'undefined') {
       return Promise.resolve(defaults)
     }
-    if (
-      navigator.mediaCapabilities &&
-      navigator.mediaCapabilities.decodingInfo
-    ) {
+    if (navigator.mediaCapabilities?.decodingInfo) {
       return navigator.mediaCapabilities.decodingInfo(info)
     } else {
       const videoConfig = info.video || {}
       const audioConfig = info.audio || {}
       try {
-        const videoSupported = MediaSource.isTypeSupported(
-          videoConfig.contentType
-        )
-        const audioSupported = MediaSource.isTypeSupported(
-          audioConfig.contentType
-        )
+        const videoSupported = MediaSource.isTypeSupported(videoConfig.contentType)
+        const audioSupported = MediaSource.isTypeSupported(audioConfig.contentType)
 
         return Promise.resolve({
           supported: videoSupported && audioSupported,
           smooth: false,
           powerEfficient: false
         })
-      } catch (e) {
+      } catch (_e) {
         return Promise.resolve(defaults)
       }
     }

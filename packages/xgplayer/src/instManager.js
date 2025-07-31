@@ -20,12 +20,12 @@ let instance = null
  * Design as a class so that can be inherited to enhance functionality
  */
 export class InstManager extends EventEmitter {
-  static getInstance () {
+  static getInstance() {
     instance ||= new InstManager()
     return instance
   }
 
-  add (player) {
+  add(player) {
     if (!player) {
       return
     }
@@ -37,7 +37,7 @@ export class InstManager extends EventEmitter {
     }
   }
 
-  remove (player) {
+  remove(player) {
     if (!player) {
       return
     }
@@ -47,10 +47,10 @@ export class InstManager extends EventEmitter {
 
     if (isUserActive) {
       // 暂时注释，有需求再打开
-    //   const keys = Object.keys(this.store)
-    //   if (keys.length > 0) {
-    //     this.setActive(keys[keys.length - 1], true)
-    //   }
+      //   const keys = Object.keys(this.store)
+      //   if (keys.length > 0) {
+      //     this.setActive(keys[keys.length - 1], true)
+      //   }
     }
   }
 
@@ -59,7 +59,7 @@ export class InstManager extends EventEmitter {
    * @param {IterateFunction} fn
    * @param {?boolean} endEarly
    */
-  _iterate (fn, endEarly = false) {
+  _iterate(fn, endEarly = false) {
     for (const key in store) {
       if (Object.prototype.hasOwnProperty.call(store, key)) {
         const player = store[key]
@@ -78,7 +78,7 @@ export class InstManager extends EventEmitter {
   /**
    * @param {IterateFunction} fn
    */
-  forEach (fn) {
+  forEach(fn) {
     this._iterate(fn)
   }
 
@@ -87,10 +87,10 @@ export class InstManager extends EventEmitter {
    * @param {IterateFunction} fn
    * @returns {Player}
    */
-  find (fn) {
+  find(fn) {
     let result = null
 
-    this._iterate((player) => {
+    this._iterate(player => {
       const flag = fn(player)
       if (flag) {
         result = player
@@ -105,10 +105,10 @@ export class InstManager extends EventEmitter {
    * @param {IterateFunction} fn
    * @returns {Player[]}
    */
-  findAll (fn) {
+  findAll(fn) {
     const results = []
 
-    this._iterate((player) => {
+    this._iterate(player => {
       if (fn(player)) {
         results.push(player)
       }
@@ -123,7 +123,7 @@ export class InstManager extends EventEmitter {
    * @param { boolean } isActive
    * @returns { number | null }
    */
-  setActive (playerId, isActive = true) {
+  setActive(playerId, isActive = true) {
     if (!store[playerId]) {
       return
     }
@@ -146,11 +146,11 @@ export class InstManager extends EventEmitter {
    * 获取当前处理激活态的实例id
    * @returns { number | null }
    */
-  getActiveId () {
+  getActiveId() {
     const keys = Object.keys(store)
     for (let i = 0; i < keys.length; i++) {
       const c = store[keys[i]]
-      if (c && c.isUserActive) {
+      if (c?.isUserActive) {
         return keys[i]
       }
     }
@@ -163,7 +163,7 @@ export class InstManager extends EventEmitter {
    * @param { boolean } isNext
    * @returns { number | null }
    */
-  setNext (playerId, isNext = true) {
+  setNext(playerId, isNext = true) {
     if (!store[playerId]) {
       return
     }
@@ -185,10 +185,10 @@ export class InstManager extends EventEmitter {
 }
 
 /**
-* Check whether there is a player instance in the current dom
-* @param {Element} root
-*/
-export function checkPlayerRoot (root) {
+ * Check whether there is a player instance in the current dom
+ * @param {Element} root
+ */
+export function checkPlayerRoot(root) {
   const keys = Object.keys(store)
   for (let i = 0; i < keys.length; i++) {
     const p = store[keys[i]]

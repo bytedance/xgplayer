@@ -1,4 +1,4 @@
-import Plugin, { Events, Util, Sniffer } from '../../plugin'
+import Plugin, { Events, Sniffer, Util } from '../../plugin'
 import XG_DEBUG from '../../utils/debug'
 import './index.scss'
 
@@ -9,11 +9,11 @@ const MODES = {
   POSTER: 'poster'
 }
 
-function nowTime () {
+function nowTime() {
   try {
     return parseInt(window.performance.now(), 10)
-  } catch (e) {
-    return new Date().getTime()
+  } catch (_e) {
+    return Date.now()
   }
 }
 
@@ -21,14 +21,14 @@ function nowTime () {
  * Check whether the current environment supports canvas
  * @returns { boolean }
  */
-function checkIsSupportCanvas () {
+function checkIsSupportCanvas() {
   try {
     const ctx = document.createElement('canvas').getContext
     if (ctx) {
       return true
     }
     return false
-  } catch (e) {
+  } catch (_e) {
     return false
   }
 }
@@ -48,14 +48,14 @@ function checkIsSupportCanvas () {
 
 let isSupportCanvas = null
 class DynamicBg extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'dynamicBg'
   }
 
   /**
    * @type IDynamicBgConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       isInnerRender: false,
       disable: true,
@@ -82,7 +82,7 @@ class DynamicBg extends Plugin {
    * @type {boolean}
    * @description Does the current environment support Canvas
    */
-  static get isSupport () {
+  static get isSupport() {
     if (typeof isSupportCanvas === 'boolean') {
       return isSupportCanvas
     }
@@ -90,11 +90,11 @@ class DynamicBg extends Plugin {
     return isSupportCanvas
   }
 
-  static supportCanvasFilter () {
+  static supportCanvasFilter() {
     return !(Sniffer.browser === 'safari' || Sniffer.browser === 'firefox')
   }
 
-  afterCreate () {
+  afterCreate() {
     if (this.playerConfig.dynamicBg === true) {
       this.config.disable = false
     }
@@ -147,7 +147,10 @@ class DynamicBg extends Plugin {
 
     this._frameCount = 0
 
-    this._loopType = this.config.mode !== MODES.REAL_TIME && this.interval >= 1000 ? 'timer' : 'animation'
+    this._loopType =
+      this.config.mode !== MODES.REAL_TIME && this.interval >= 1000
+        ? 'timer'
+        : 'animation'
 
     this.once(Events.COMPLETE, () => {
       if (!this.player) {
@@ -185,7 +188,7 @@ class DynamicBg extends Plugin {
     document.addEventListener('visibilitychange', this.onVisibilitychange)
   }
 
-  setConfig (config) {
+  setConfig(config) {
     Object.keys(config).forEach(key => {
       if (key === 'root' && config[key] !== this.config[key]) {
         this.reRender(config[key])
@@ -198,8 +201,10 @@ class DynamicBg extends Plugin {
     })
   }
 
-  onLoadedData = (e) => {
-    if (!this.player) { return }
+  onLoadedData = e => {
+    if (!this.player) {
+      return
+    }
     this._frameCount = this.config.startFrameCount
     this.stop()
     this.renderOnTimeupdate(e)
@@ -207,7 +212,7 @@ class DynamicBg extends Plugin {
     this.on(Events.TIME_UPDATE, this.renderOnTimeupdate)
   }
 
-  onVisibilitychange = (e) => {
+  onVisibilitychange = _e => {
     if (document.visibilityState === 'visible') {
       this._checkIfCanStart() && this.start()
     } else if (document.visibilityState === 'hidden') {
@@ -219,18 +224,22 @@ class DynamicBg extends Plugin {
    * @private
    * 初始化 canvas对象并使用海报图先渲染首帧w11
    */
-  init (_root) {
+  init(_root) {
     const { player, config } = this
     this.canvasFilter = DynamicBg.supportCanvasFilter()
     try {
       // 保证节点插入到video之前
       let parent = _root || config.root
       if (!parent) {
-        parent = !config.isInnerRender ? player.root : (player.innerContainer || player.root)
+        parent = !config.isInnerRender
+          ? player.root
+          : player.innerContainer || player.root
       }
-      parent.insertAdjacentHTML('afterbegin',
+      parent.insertAdjacentHTML(
+        'afterbegin',
         `<div class="xgplayer-dynamic-bg" data-index="${config.index}"><canvas>
-        </canvas><xgmask></xgmask></div>`)
+        </canvas><xgmask></xgmask></div>`
+      )
       this.root = parent.children[0]
       this.canvas = this.find('canvas')
       // safari中canvas filter不生效, 使用css滤镜
@@ -247,7 +256,7 @@ class DynamicBg extends Plugin {
     }
   }
 
-  reRender (root) {
+  reRender(root) {
     const { disable } = this.config
     if (!disable && !this.root) {
       return
@@ -268,15 +277,22 @@ class DynamicBg extends Plugin {
   }
 
   /**
- * Check whether the current video object supports screenshots
- * @param { Object } video
- * @returns { DomElement | null }
- */
-  checkVideoIsSupport (video) {
+   * Check whether the current video object supports screenshots
+   * @param { Object } video
+   * @returns { DomElement | null }
+   */
+  checkVideoIsSupport(video) {
     if (!video) {
       return null
     }
-    const _tVideo = video && video instanceof window.HTMLVideoElement ? video : (video.canvas ? video.canvas : (video.flyVideo ? video.flyVideo : null))
+    const _tVideo =
+      video && video instanceof window.HTMLVideoElement
+        ? video
+        : video.canvas
+          ? video.canvas
+          : video.flyVideo
+            ? video.flyVideo
+            : null
     if (_tVideo && !(Sniffer.browser === 'safari' && Util.isMSE(_tVideo))) {
       return _tVideo
     }
@@ -289,15 +305,20 @@ class DynamicBg extends Plugin {
     return null
   }
 
-  renderByPoster () {
+  renderByPoster() {
     const { poster } = this.playerConfig
     if (poster) {
-      const url = Util.typeOf(poster) === 'String' ? poster : (Util.typeOf(poster.poster) === 'String' ? poster.poster : null)
+      const url =
+        Util.typeOf(poster) === 'String'
+          ? poster
+          : Util.typeOf(poster.poster) === 'String'
+            ? poster.poster
+            : null
       this.updateImg(url)
     }
   }
 
-  renderOnTimeupdate = (e) => {
+  renderOnTimeupdate = _e => {
     if (this._frameCount > 0) {
       this.renderOnce()
       this._frameCount--
@@ -309,27 +330,32 @@ class DynamicBg extends Plugin {
     }
   }
 
-  _checkIfCanStart () {
+  _checkIfCanStart() {
     const { mode } = this.config
-    return this._isLoaded && !this.player.paused && mode !== MODES.FIRST_FRAME && mode !== MODES.POSTER
+    return (
+      this._isLoaded &&
+      !this.player.paused &&
+      mode !== MODES.FIRST_FRAME &&
+      mode !== MODES.POSTER
+    )
   }
 
   /**
    * just render once
    * @returns
    */
-  renderOnce () {
+  renderOnce() {
     const video = this.player.video
     if (!video.videoWidth || !video.videoHeight) {
       return
     }
-    this.videoPI = parseInt(video.videoWidth / video.videoHeight * 100, 10)
+    this.videoPI = parseInt((video.videoWidth / video.videoHeight) * 100, 10)
     const _sVideo = this.checkVideoIsSupport(video)
     // console.log('>>>renderOnce, update', _sVideo, this.videoPI)
     _sVideo && this.update(_sVideo, this.videoPI)
   }
 
-  start = (time, interval) => {
+  start = (_time, interval) => {
     const video = this.player.video
     const _now = nowTime()
     const _sVideo = this.checkVideoIsSupport(video)
@@ -342,27 +368,35 @@ class DynamicBg extends Plugin {
     }
     this.stop()
     if (video.videoWidth && video.videoHeight) {
-      this.videoPI = video.videoHeight > 0 ? parseInt(video.videoWidth / video.videoHeight * 100, 10) : 0
+      this.videoPI =
+        video.videoHeight > 0
+          ? parseInt((video.videoWidth / video.videoHeight) * 100, 10)
+          : 0
       if (this.config.mode === MODES.REAL_TIME) {
-        video && video.videoWidth && this.update(_sVideo, this.videoPI)
+        video?.videoWidth && this.update(_sVideo, this.videoPI)
         this.preTime = _now
       } else if (_now - this.preTime >= interval) {
-        video && video.videoWidth && this.update(_sVideo, this.videoPI)
+        video?.videoWidth && this.update(_sVideo, this.videoPI)
         this.preTime = _now
       }
     }
-    this.frameId = this._loopType === 'timer' ? Util.setTimeout(this, this.start, interval) : Util.requestAnimationFrame(this.start)
+    this.frameId =
+      this._loopType === 'timer'
+        ? Util.setTimeout(this, this.start, interval)
+        : Util.requestAnimationFrame(this.start)
   }
 
   stop = () => {
     if (this.frameId) {
-      this._loopType === 'timer' ? Util.clearTimeout(this, this.frameId) : Util.cancelAnimationFrame(this.frameId)
+      this._loopType === 'timer'
+        ? Util.clearTimeout(this, this.frameId)
+        : Util.cancelAnimationFrame(this.frameId)
       // window.clearTimeout(this.frameId)
       this.frameId = null
     }
   }
 
-  updateImg (url) {
+  updateImg(url) {
     // TODO: 需要改造，使用domcss样式渲染，不再使用canvas渲染
     if (!url) {
       return
@@ -376,7 +410,7 @@ class DynamicBg extends Plugin {
       }
       this.canvas.height = height
       this.canvas.width = width
-      const pi = parseInt(width / height * 100, 10)
+      const pi = parseInt((width / height) * 100, 10)
       // console.log('>>>updateImg update', image, pi)
       this.update(image, pi)
       image = null
@@ -384,7 +418,7 @@ class DynamicBg extends Plugin {
     image.src = url
   }
 
-  update (video, sourcePI) {
+  update(video, sourcePI) {
     if (!this.canvas || !this.canvasCtx || !sourcePI) {
       return
     }
@@ -392,16 +426,16 @@ class DynamicBg extends Plugin {
       const { _pos, config } = this
       const { width, height } = this.canvas.getBoundingClientRect()
       if (width !== _pos.width || height !== _pos.height || _pos.pi !== sourcePI) {
-        const pi = parseInt(width / height * 100, 10)
+        const pi = parseInt((width / height) * 100, 10)
         _pos.pi = sourcePI
         _pos.width !== width && (_pos.width = this.canvas.width = width)
         _pos.height !== height && (_pos.height = this.canvas.height = height)
         let rheight = height
         let rwidth = width
         if (pi < sourcePI) {
-          rwidth = parseInt(height * sourcePI / 100, 10)
+          rwidth = parseInt((height * sourcePI) / 100, 10)
         } else if (pi > sourcePI) {
-          rheight = parseInt(width * 100 / sourcePI, 10)
+          rheight = parseInt((width * 100) / sourcePI, 10)
         }
         _pos.rwidth = rwidth * config.multiple
         _pos.rheight = rheight * config.multiple
@@ -416,14 +450,14 @@ class DynamicBg extends Plugin {
     }
   }
 
-  destroy () {
+  destroy() {
     this.stop()
     document.removeEventListener('visibilitychange', this.onVisibilitychange)
     this.canvasCtx = null
     this.canvas = null
   }
 
-  render () {
+  render() {
     return ''
   }
 }

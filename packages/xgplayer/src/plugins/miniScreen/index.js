@@ -1,9 +1,9 @@
-import Plugin, { Util, Events } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import PlayIcon from '../assets/play.svg'
-import PauseIcon from '../assets/pause.svg'
-import MiniScreenIcon from './miniScreenIcon'
+import Plugin, { Events, Util } from '../../plugin'
 import Draggabilly from '../../utils/draggabilly'
+import PauseIcon from '../assets/pause.svg'
+import PlayIcon from '../assets/play.svg'
+import { xgIconTips } from '../common/iconTools'
+import MiniScreenIcon from './miniScreenIcon'
 import './index.scss'
 
 /**
@@ -22,14 +22,14 @@ import './index.scss'
  * }} IMiniScreenConfig
  */
 class MiniScreen extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'miniscreen'
   }
 
   /**
    * @type IMiniScreenConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       index: 10,
       disable: false,
@@ -44,7 +44,7 @@ class MiniScreen extends Plugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.isMini = false
     this.isClose = false
@@ -59,13 +59,13 @@ class MiniScreen extends Plugin {
     this.lastStyle = null
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     if (typeof args.player.config.mini === 'boolean') {
       args.config.isShowIcon = args.player.config.mini
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.initIcons()
     this.on(Events.PAUSE, () => {
       this.setAttr('data-state', 'pause')
@@ -75,7 +75,7 @@ class MiniScreen extends Plugin {
     })
   }
 
-  onPluginsReady () {
+  onPluginsReady() {
     const { player, config } = this
     if (config.disable) {
       return
@@ -103,33 +103,36 @@ class MiniScreen extends Plugin {
     }
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       play: { icon: PlayIcon, class: 'xg-icon-play' },
       pause: { icon: PauseIcon, class: 'xg-icon-pause' }
     }
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     this.appendChild('.play-icon', icons.play)
     this.appendChild('.play-icon', icons.pause)
   }
 
-  onCancelClick = (e) => {
+  onCancelClick = _e => {
     // e.preventDefault()
     // e.stopPropagation()
     this.exitMini()
     this.isClose = true
   }
 
-  onCenterClick = (e) => {
+  onCenterClick = _e => {
     const { player } = this
     player.paused ? player.play() : player.pause()
   }
 
-  onScroll = (e) => {
-    if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
+  onScroll = _e => {
+    if (
+      (!window.scrollY && window.scrollY !== 0) ||
+      Math.abs(window.scrollY - this.pos.scrollY) < 50
+    ) {
       return
     }
     let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
@@ -143,15 +146,15 @@ class MiniScreen extends Plugin {
     }
   }
 
-  getMini () {
+  getMini() {
     if (this.isMini) {
       return
     }
     const { player, playerConfig } = this
     const target = this.config.target || this.player.root
     this.lastStyle = {}
-    Util.addClass(player.root, 'xgplayer-mini');
-    ['width', 'height', 'top', 'left'].map(key => {
+    Util.addClass(player.root, 'xgplayer-mini')
+    ;['width', 'height', 'top', 'left'].map(key => {
       this.lastStyle[key] = target.style[key]
       target.style[key] = `${this.pos[key]}px`
     })
@@ -162,7 +165,7 @@ class MiniScreen extends Plugin {
     player.isMini = this.isMini = true
   }
 
-  exitMini () {
+  exitMini() {
     if (!this.isMini) {
       return false
     }
@@ -178,14 +181,14 @@ class MiniScreen extends Plugin {
     if (playerConfig.fluid) {
       player.root.style.width = '100%'
       player.root.style.height = '0'
-      player.root.style['padding-top'] = `${playerConfig.height * 100 / playerConfig.width}%`
+      player.root.style['padding-top'] =
+        `${(playerConfig.height * 100) / playerConfig.width}%`
     }
     this.emit(Events.MINI_STATE_CHANGE, false)
     this.isMini = player.isMini = false
   }
 
-
-  updatePos (pos) {
+  updatePos(pos) {
     this.pos = Object.assign(this.pos, pos)
     if (this.isMini) {
       this.player.root.style.left = `${this.pos.left}px`
@@ -195,17 +198,17 @@ class MiniScreen extends Plugin {
     }
   }
 
-  destroy () {
+  destroy() {
     window.removeEventListener('scroll', this.onScroll)
     const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
     this.unbind('.mini-cancel-btn', eventName, this.onCancelClick)
     this.unbind('.play-icon', eventName, this.onCenterClick)
-    this._draggabilly && this._draggabilly.destroy()
+    this._draggabilly?.destroy()
     this._draggabilly = null
     this.exitMini()
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }
@@ -225,7 +228,4 @@ class MiniScreen extends Plugin {
   }
 }
 
-export {
-  MiniScreen as default,
-  MiniScreenIcon
-}
+export { MiniScreen as default, MiniScreenIcon }

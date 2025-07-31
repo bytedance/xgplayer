@@ -1,13 +1,13 @@
 jest.mock('xgplayer')
 jest.mock('../src/hls')
 
-import { HlsPlugin, parseSwitchUrlArgs } from '../src/plugin'
 import { Hls } from '../src/hls'
+import { HlsPlugin, parseSwitchUrlArgs } from '../src/plugin'
 
 describe('Plugin', () => {
   describe('Named Exports', () => {
     test('parseSwitchUrlArgs', () => {
-      const plugin = {player: {}}
+      const plugin = { player: {} }
       expect(Object.keys(parseSwitchUrlArgs(false, plugin))).toContain('startTime')
       expect(Object.keys(parseSwitchUrlArgs(false, plugin))).toContain('seamless')
       expect(Object.keys(parseSwitchUrlArgs(undefined, plugin))).not.toContain('seamless')
@@ -45,7 +45,7 @@ describe('Plugin', () => {
         useHooks: jest.fn()
       }
 
-      jest.spyOn(Hls.prototype, 'load').mockImplementation(async function () {})
+      jest.spyOn(Hls.prototype, 'load').mockImplementation(async () => {})
 
       plugin.beforePlayerInit()
 

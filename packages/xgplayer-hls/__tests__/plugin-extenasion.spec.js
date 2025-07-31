@@ -4,17 +4,19 @@ import { HlsPlugin } from '../src/plugin'
 import PluginExtension from '../src/plugin-extension'
 
 describe('HlsPluginExtension', () => {
-
   const media = document.createElement('video')
 
   test('init', () => {
     const addEvent = jest.spyOn(media, 'addEventListener')
 
-    new PluginExtension({
-      media,
-      innerDegrade: 1,
-      preloadTime: 2
-    }, new HlsPlugin())
+    new PluginExtension(
+      {
+        media,
+        innerDegrade: 1,
+        preloadTime: 2
+      },
+      new HlsPlugin()
+    )
 
     expect(media.getAttribute('innerdegrade')).toBe('1')
     expect(media.getAttribute('preloadtime')).toBe('2')
@@ -28,7 +30,13 @@ describe('HlsPluginExtension', () => {
       degradeVideo: {},
       degrade: jest.fn()
     }
-    plugin.player = { video, config: {}, root: { replaceChild: jest.fn(), firstChild: {} }, unRegisterPlugin: jest.fn(), once: jest.fn() }
+    plugin.player = {
+      video,
+      config: {},
+      root: { replaceChild: jest.fn(), firstChild: {} },
+      unRegisterPlugin: jest.fn(),
+      once: jest.fn()
+    }
     HlsPlugin.pluginName = 'name'
     const opts = { media, innerDegrade: 2 }
     const ext = new PluginExtension(opts, plugin)
@@ -49,5 +57,4 @@ describe('HlsPluginExtension', () => {
 
     expect(removeEvent.mock.calls[0][0]).toBe('lowdecode')
   })
-
 })

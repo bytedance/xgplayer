@@ -1,8 +1,8 @@
 import drawBars from './drawBars'
-import drawVertLines from './drawVertlines'
-import drawLightning from './drawLightning'
-import drawDoubleline from './drawDoubleline'
 import drawDoubleBars from './drawDoubleBars'
+import drawDoubleline from './drawDoubleline'
+import drawLightning from './drawLightning'
+import drawVertLines from './drawVertlines'
 import drawWaves from './drawWaves'
 
 const modeMap = {
@@ -31,7 +31,7 @@ const MODES = {
   WAVES: 'waves'
 }
 
-function render (data, canvas, options = {}, frame) {
+function render(data, canvas, options = {}, frame) {
   if (!canvas) {
     return
   }
@@ -47,7 +47,11 @@ function render (data, canvas, options = {}, frame) {
   ctx.lineWidth = options.stroke
 
   const context = {
-    data, options, ctx, h, w
+    data,
+    options,
+    ctx,
+    h,
+    w
   }
   if (typeof options.mode === 'string') options.mode = [options.mode]
   options.mode.forEach(mode => {
@@ -62,7 +66,4 @@ function render (data, canvas, options = {}, frame) {
   })
 }
 
-export {
-  render as default,
-  MODES
-}
+export { render as default, MODES }

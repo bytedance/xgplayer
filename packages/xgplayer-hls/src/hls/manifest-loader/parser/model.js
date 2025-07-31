@@ -18,12 +18,19 @@ const MediaType = {
 // urn:uuid: https://dashif.org/identifiers/content_protection/
 const KeySystems = {
   CLEAR_KEY: 'org.w3.clearkey',
-  FAIRPLAY: ['urn:uuid:94ce86fb-07ff-4f43-adb8-93d2fa968ca2', 'com.apple.streamingkeydelivery'],
-  WIDEVINE: ['urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed', 'com.widevine.alpha', 'com.widevine'],
+  FAIRPLAY: [
+    'urn:uuid:94ce86fb-07ff-4f43-adb8-93d2fa968ca2',
+    'com.apple.streamingkeydelivery'
+  ],
+  WIDEVINE: [
+    'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed',
+    'com.widevine.alpha',
+    'com.widevine'
+  ],
   PLAYREADY: ['urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95', 'com.microsoft.playready']
 }
 
-function flatArray (arr) {
+function flatArray(arr) {
   let ret = []
 
   for (let i = 0; i < arr.length; i++) {
@@ -136,20 +143,20 @@ export class MediaSegment {
   independent = false
   partIndex = 0
 
-  constructor (parentUrl) {
+  constructor(parentUrl) {
     this.parentUrl = parentUrl
   }
 
-  get end () {
+  get end() {
     return this.start + this.duration
   }
 
-  setTrackExist (v, a) {
+  setTrackExist(v, a) {
     this.hasVideo = v
     this.hasAudio = a
   }
 
-  setByteRange (data, prevSegment) {
+  setByteRange(data, prevSegment) {
     this.byteRange = [0]
     const bytes = data.split('@')
     if (bytes.length === 1 && prevSegment && prevSegment.byteRange) {
@@ -170,7 +177,7 @@ export class MediaSegmentKey {
   keyFormat = ''
   keyFormatVersions = ''
 
-  constructor (segKey) {
+  constructor(segKey) {
     if (segKey instanceof MediaSegmentKey) {
       this.method = segKey.method
       this.url = segKey.url
@@ -180,13 +187,13 @@ export class MediaSegmentKey {
     }
   }
 
-  clone (sn) {
+  clone(sn) {
     const key = new MediaSegmentKey(this)
     if (sn !== null && sn !== undefined) key.setIVFromSN(sn)
     return key
   }
 
-  setIVFromSN (sn) {
+  setIVFromSN(sn) {
     if (!this.iv && this.method === 'AES-128' && typeof sn === 'number' && this.url) {
       this.iv = new Uint8Array(16)
       for (let i = 12; i < 16; i++) {
@@ -195,19 +202,19 @@ export class MediaSegmentKey {
     }
   }
 
-  isSegmentEncrypted () {
+  isSegmentEncrypted() {
     const { method } = this
     return method === 'AES-128' // || method === 'AES-256' || method === 'AES-256-CTR'
   }
 
-  isValidKeySystem () {
+  isValidKeySystem() {
     const isKeyFormatValid =
-    flatArray([
-      KeySystems.CLEAR_KEY,
-      KeySystems.FAIRPLAY,
-      KeySystems.WIDEVINE,
-      KeySystems.PLAYREADY
-    ]).indexOf(this.keyFormat) > -1
+      flatArray([
+        KeySystems.CLEAR_KEY,
+        KeySystems.FAIRPLAY,
+        KeySystems.WIDEVINE,
+        KeySystems.PLAYREADY
+      ]).indexOf(this.keyFormat) > -1
     if (!isKeyFormatValid) {
       return false
     }
@@ -220,7 +227,7 @@ export class MediaSegmentKey {
     return true
   }
 
-  isSupported () {
+  isSupported() {
     if (!this.method) {
       return false
     }
@@ -234,13 +241,13 @@ export class MediaSegmentKey {
 }
 
 export class HlsUrlParameters {
-  constructor (msn, part, skip) {
+  constructor(msn, part, skip) {
     this.msn = msn
     this.part = part
     this.skip = skip
   }
 
-  addDirectives (uri) {
+  addDirectives(uri) {
     const url = new self.URL(uri)
     if (this.msn !== undefined) {
       url.searchParams.set('_HLS_msn', this.msn.toString())

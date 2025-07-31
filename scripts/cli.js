@@ -27,17 +27,13 @@ cli
     build(pkg, { all })
   })
 
-cli
-  .command('build-demo <dir>', 'Build demo')
-  .action((dir) => {
-    buildDemo(dir)
-  })
+cli.command('build-demo <dir>', 'Build demo').action(dir => {
+  buildDemo(dir)
+})
 
-cli
-  .command('link', 'Link all packages')
-  .action(() => {
-    link()
-  })
+cli.command('link', 'Link all packages').action(() => {
+  link()
+})
 
 cli
   .command('changelog', 'Generate or update CHANGELOG.md')
@@ -53,7 +49,7 @@ cli
   .option('-b, --skipBuild', 'Skip build step')
   .option('-p, --skipPublish', 'Skip publish step')
   .option('-s, --buildScript', 'Custom build npm script')
-  .action(({ skipLint, skipTest, skipBuild, skipPublish, buildScript}) => {
+  .action(({ skipLint, skipTest, skipBuild, skipPublish, buildScript }) => {
     release(skipLint, skipTest, skipBuild, skipPublish, buildScript)
   })
 

@@ -4,17 +4,19 @@ import { FlvPlugin } from '../src/plugin'
 import PluginExtension from '../src/plugin-extension'
 
 describe('FlvPluginExtension', () => {
-
   const media = document.createElement('video')
 
   test('init', () => {
     const addEvent = jest.spyOn(media, 'addEventListener')
 
-    new PluginExtension({
-      media,
-      innerDegrade: 1,
-      preloadTime: 2
-    }, new FlvPlugin())
+    new PluginExtension(
+      {
+        media,
+        innerDegrade: 1,
+        preloadTime: 2
+      },
+      new FlvPlugin()
+    )
 
     expect(media.getAttribute('innerdegrade')).toBe('1')
     expect(media.getAttribute('preloadtime')).toBe('2')
@@ -28,7 +30,13 @@ describe('FlvPluginExtension', () => {
       degradeVideo: {},
       degrade: jest.fn()
     }
-    plugin.player = { video, config: {}, root: { replaceChild: jest.fn(), firstChild: {} }, unRegisterPlugin: jest.fn(), once: jest.fn() }
+    plugin.player = {
+      video,
+      config: {},
+      root: { replaceChild: jest.fn(), firstChild: {} },
+      unRegisterPlugin: jest.fn(),
+      once: jest.fn()
+    }
     FlvPlugin.pluginName = 'name'
     const opts = { media, innerDegrade: 2 }
     const ext = new PluginExtension(opts, plugin)
@@ -49,5 +57,4 @@ describe('FlvPluginExtension', () => {
 
     expect(removeEvent.mock.calls[0][0]).toBe('lowdecode')
   })
-
 })

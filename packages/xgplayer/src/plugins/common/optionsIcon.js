@@ -1,6 +1,6 @@
-
-import Plugin, { Events, Util, Sniffer, POSITIONS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, Util } from '../../plugin'
 import OptionList from './optionList'
+
 // import './optionsIcon.scss'
 
 const LIST_TYPES = {
@@ -14,9 +14,11 @@ const TOGGLE_MODES = {
   HOVER: 'hover'
 }
 
-function getListClassName (listType, position) {
+function getListClassName(listType, position) {
   if (listType === LIST_TYPES.SIDE) {
-    return position === POSITIONS.CONTROLS_LEFT ? 'xg-side-list xg-left-side' : 'xg-side-list xg-right-side'
+    return position === POSITIONS.CONTROLS_LEFT
+      ? 'xg-side-list xg-left-side'
+      : 'xg-side-list xg-right-side'
   } else {
     return ''
   }
@@ -36,14 +38,14 @@ function getListClassName (listType, position) {
 let IS_MOBILE = Sniffer.device === 'mobile'
 
 export default class OptionsIcon extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'optionsIcon'
   }
 
   /**
    * @type { IOptionsIconConfig }
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 100,
@@ -58,7 +60,7 @@ export default class OptionsIcon extends Plugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.isIcons = false
     this.isActive = false
@@ -66,15 +68,19 @@ export default class OptionsIcon extends Plugin {
     this.curIndex = 0
   }
 
-  updateLang (value) {
+  updateLang(_value) {
     this.renderItemList(this.config.list, this.curIndex)
   }
 
-  afterCreate () {
+  afterCreate() {
     const { config } = this
     this.initIcons()
     IS_MOBILE = IS_MOBILE || this.domEventType === 'touch'
-    if (IS_MOBILE && Sniffer.device === 'mobile' && config.listType === LIST_TYPES.DEFAULT) {
+    if (
+      IS_MOBILE &&
+      Sniffer.device === 'mobile' &&
+      config.listType === LIST_TYPES.DEFAULT
+    ) {
       config.listType = LIST_TYPES.SIDE
     }
 
@@ -91,13 +97,14 @@ export default class OptionsIcon extends Plugin {
       }
     })
     // 移动端控制栏和列表互斥
-    IS_MOBILE && this.on(Events.PLAYER_FOCUS, () => {
-      if (!this.isActive) {
-        return
-      }
-      this.optionsList && this.optionsList.hide()
-      this.isActive = false
-    })
+    IS_MOBILE &&
+      this.on(Events.PLAYER_FOCUS, () => {
+        if (!this.isActive) {
+          return
+        }
+        this.optionsList?.hide()
+        this.isActive = false
+      })
 
     if (IS_MOBILE) {
       config.toggleMode = TOGGLE_MODES.CLICK
@@ -115,7 +122,7 @@ export default class OptionsIcon extends Plugin {
     this.isIcons && this.bind('click', this.onIconClick)
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     const _c = Object.keys(icons)
     let _isIcons = false
@@ -137,24 +144,24 @@ export default class OptionsIcon extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
+  show(_value) {
     if (!this.config.list || this.config.list.length < 2) {
       return
     }
     Util.addClass(this.root, 'show')
   }
 
-  hide () {
+  hide() {
     Util.removeClass(this.root, 'show')
   }
 
-  getTextByLang (item, key, lang) {
+  getTextByLang(item, key, lang) {
     if (item === undefined) {
       return ''
     }
     const { list } = this.config
     !lang && (lang = this.player.lang)
-    key = (!key || Util.isUndefined(item[key])) ? 'text' : key
+    key = !key || Util.isUndefined(item[key]) ? 'text' : key
     typeof item === 'number' && (item = list[item])
     try {
       if (typeof item[key] === 'object') {
@@ -168,7 +175,7 @@ export default class OptionsIcon extends Plugin {
     }
   }
 
-  onEnter = (e) => {
+  onEnter = e => {
     e.stopPropagation()
     this.emit('icon_mouseenter', {
       pluginName: this.pluginName
@@ -176,7 +183,7 @@ export default class OptionsIcon extends Plugin {
     this.switchActiveState(e)
   }
 
-  switchActiveState = (e) => {
+  switchActiveState = e => {
     e.stopPropagation()
     const { toggleMode } = this.config
     if (toggleMode === TOGGLE_MODES.CLICK) {
@@ -186,7 +193,7 @@ export default class OptionsIcon extends Plugin {
     }
   }
 
-  onLeave = (e) => {
+  onLeave = e => {
     e.stopPropagation()
     this.emit('icon_mouseleave', {
       pluginName: this.pluginName
@@ -196,48 +203,48 @@ export default class OptionsIcon extends Plugin {
     }
   }
 
-  onListEnter = (e) => {
+  onListEnter = _e => {
     // console.log('onListEnter')
     this.enterType = 2
   }
 
-  onListLeave = (e) => {
+  onListLeave = _e => {
     // console.log('onListLeave', e.target)
     this.enterType = 0
     this.isActive && this.toggle(false)
   }
 
   // 状态切换
-  toggle (isActive) {
+  toggle(isActive) {
     if (isActive === this.isActive || this.config.disable) return
     const { controls } = this.player
     const { listType } = this.config
     if (isActive) {
       listType === LIST_TYPES.SIDE ? controls.blur() : controls.focus()
-      this.optionsList && this.optionsList.show()
+      this.optionsList?.show()
     } else {
       listType === LIST_TYPES.SIDE ? controls.focus() : controls.focusAwhile()
-      this.optionsList && this.optionsList.hide()
+      this.optionsList?.hide()
     }
     this.isActive = isActive
   }
 
   // 列表点击回调
-  onItemClick (e, data) {
+  onItemClick(e, data) {
     e.stopPropagation()
     const { listType, list } = this.config
     this.curIndex = data.to.index
     this.curItem = list[this.curIndex]
     this.changeCurrentText()
-    const { isItemClickHide } = this.config;
-    (isItemClickHide || IS_MOBILE || listType === LIST_TYPES.SIDE) && this.toggle(false)
+    const { isItemClickHide } = this.config
+    ;(isItemClickHide || IS_MOBILE || listType === LIST_TYPES.SIDE) && this.toggle(false)
   }
 
-  onIconClick (e) {
+  onIconClick(_e) {
     //
   }
 
-  changeCurrentText () {
+  changeCurrentText() {
     if (this.isIcons) {
       return
     }
@@ -248,7 +255,7 @@ export default class OptionsIcon extends Plugin {
     this.find('.icon-text').innerHTML = this.getTextByLang(curItem, 'iconText')
   }
 
-  renderItemList (itemList, curIndex) {
+  renderItemList(itemList, curIndex) {
     const { config, optionsList, player } = this
     if (typeof curIndex === 'number') {
       this.curIndex = curIndex
@@ -270,7 +277,10 @@ export default class OptionsIcon extends Plugin {
         },
         domEventType: IS_MOBILE ? 'touch' : 'mouse'
       },
-      root: config.listType === LIST_TYPES.SIDE ? (player.innerContainer || player.root) : this.root
+      root:
+        config.listType === LIST_TYPES.SIDE
+          ? player.innerContainer || player.root
+          : this.root
     }
 
     if (this.config.isShowIcon) {
@@ -286,16 +296,16 @@ export default class OptionsIcon extends Plugin {
     this._resizeList()
   }
 
-  _resizeList () {
+  _resizeList() {
     if (!this.config.heightLimit) {
       return
     }
     const { height } = this.player.root.getBoundingClientRect()
     const _maxH = this.config.listType === LIST_TYPES.MIDDLE ? height - 50 : height
-    this.optionsList && this.optionsList.setStyle({ maxHeight: `${_maxH}px` })
+    this.optionsList?.setStyle({ maxHeight: `${_maxH}px` })
   }
 
-  destroy () {
+  destroy() {
     const { config } = this
     if (config.toggleMode === TOGGLE_MODES.CLICK) {
       this.unbind(this.activeEvent, this.switchActiveState)
@@ -310,7 +320,7 @@ export default class OptionsIcon extends Plugin {
     }
   }
 
-  render () {
+  render() {
     if (!this.config.isShowIcon) {
       return
     }

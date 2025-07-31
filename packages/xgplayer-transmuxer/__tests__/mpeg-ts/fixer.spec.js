@@ -1,4 +1,11 @@
-import { AudioTrack, MetadataTrack, VideoTrack, VideoSample, AudioSample, WarningType } from '../../src'
+import {
+  AudioSample,
+  AudioTrack,
+  MetadataTrack,
+  VideoSample,
+  VideoTrack,
+  WarningType
+} from '../../src'
 import { TsFixer } from '../../src/mpeg-ts/fixer'
 
 describe('TsFixer', () => {
@@ -59,7 +66,7 @@ describe('TsFixer', () => {
     expect(audioTrack.samples[0].pts).toBe(10)
   })
 
-  test("audio sample dts gap >= 1000ms", () => {
+  test('audio sample dts gap >= 1000ms', () => {
     videoTrack.samples.push(new VideoSample(5108000, 5108000))
     videoTrack.samples.push(new VideoSample(5108040, 5108040))
     videoTrack.samples.push(new VideoSample(5108080, 5108080))
@@ -104,7 +111,8 @@ describe('TsFixer', () => {
     fixer.fix()
 
     expect(audioTrack.samples.length).toBe(6)
-    expect(audioTrack.warnings.filter(x => x.type === WarningType.AUDIO_FILLED)[0].count).toBe(3)
+    expect(
+      audioTrack.warnings.filter(x => x.type === WarningType.AUDIO_FILLED)[0].count
+    ).toBe(3)
   })
-
 })

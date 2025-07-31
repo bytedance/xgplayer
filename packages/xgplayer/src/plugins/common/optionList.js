@@ -1,10 +1,15 @@
 import Plugin, { Util } from '../../plugin'
 
 export default class OptionList {
-  constructor (args) {
+  constructor(args) {
     this.config = args.config
     this.parent = args.root
-    this.root = Util.createDom('ul', '', {}, `xg-options-list xg-list-slide-scroll ${this.config.className}`)
+    this.root = Util.createDom(
+      'ul',
+      '',
+      {},
+      `xg-options-list xg-list-slide-scroll ${this.config.className}`
+    )
     args.root.appendChild(this.root)
     const { maxHeight } = this.config
     if (maxHeight) {
@@ -13,10 +18,16 @@ export default class OptionList {
     this.onItemClick = this.onItemClick.bind(this)
     this.renderItemList()
     const eventName = this.config.domEventType === 'touch' ? 'touchend' : 'click'
-    this._delegates = Plugin.delegate.call(this, this.root, 'li', eventName, this.onItemClick)
+    this._delegates = Plugin.delegate.call(
+      this,
+      this.root,
+      'li',
+      eventName,
+      this.onItemClick
+    )
   }
 
-  renderItemList (data) {
+  renderItemList(data) {
     const { config, root } = this
     if (data) {
       config.data = data
@@ -39,11 +50,13 @@ export default class OptionList {
     data.map((item, index) => {
       const className = item.selected ? 'option-item selected' : 'option-item'
       item['data-index'] = index
-      this.root.appendChild(Util.createDom('li', `<span>${item.showText}</span>`, item, className))
+      this.root.appendChild(
+        Util.createDom('li', `<span>${item.showText}</span>`, item, className)
+      )
     })
   }
 
-  onItemClick (e) {
+  onItemClick(e) {
     if (!e.delegateTarget) {
       e.delegateTarget = e.target
     }
@@ -51,7 +64,8 @@ export default class OptionList {
     if (target && Util.hasClass(target, 'selected')) {
       return false
     }
-    const changeCallback = typeof this.config.onItemClick === 'function' ? this.config.onItemClick : null
+    const changeCallback =
+      typeof this.config.onItemClick === 'function' ? this.config.onItemClick : null
     const curSelected = this.root.querySelector('.selected')
     Util.addClass(target, 'selected')
     curSelected && Util.removeClass(curSelected, 'selected')
@@ -61,7 +75,7 @@ export default class OptionList {
     })
   }
 
-  getAttrObj (dom, keys) {
+  getAttrObj(dom, keys) {
     if (!dom || !keys) {
       return {}
     }
@@ -76,27 +90,26 @@ export default class OptionList {
     return obj
   }
 
-
-  show () {
+  show() {
     Util.removeClass(this.root, 'hide')
     Util.addClass(this.root, 'active')
   }
 
-  hide () {
+  hide() {
     Util.removeClass(this.root, 'active')
     Util.addClass(this.root, 'hide')
   }
 
-  setStyle (style) {
-    Object.keys(style).forEach((key) => {
+  setStyle(style) {
+    Object.keys(style).forEach(key => {
       this.root.style[key] = style[key]
     })
   }
 
-  destroy () {
+  destroy() {
     if (this._delegates) {
       this._delegates.map(item => {
-        item.destroy && item.destroy()
+        item.destroy?.()
       })
       this._delegates = null
     }

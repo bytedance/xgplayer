@@ -1,7 +1,6 @@
-import { VideoTrack, TrackType, VideoCodecType } from '../../src'
+import { TrackType, VideoCodecType, VideoTrack } from '../../src'
 
 describe('VideoTrack', () => {
-
   test('All', () => {
     const track = new VideoTrack()
     expect(track.id).toBe(1)
@@ -36,5 +35,4 @@ describe('VideoTrack', () => {
     track.reset()
     expect(track.exist()).toBe(false)
   })
-
 })

@@ -1,16 +1,16 @@
 import { POSITIONS, Util } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import IconPlugin from '../common/iconPlugin'
 import { Events } from '../../plugin/basePlugin'
 import RotateSvg from '../assets/rotate.svg'
+import IconPlugin from '../common/iconPlugin'
+import { xgIconTips } from '../common/iconTools'
 import './index.scss'
 
 export default class Rotate extends IconPlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'rotate'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 6,
@@ -21,12 +21,12 @@ export default class Rotate extends IconPlugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.rotateDeg = this.config.rotateDeg || 0
   }
 
-  afterCreate () {
+  afterCreate() {
     if (this.config.disable) {
       return
     }
@@ -37,9 +37,13 @@ export default class Rotate extends IconPlugin {
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on(Events.VIDEO_RESIZE, () => {
       if (this.rotateDeg && this.config.innerRotate) {
-        Util.setTimeout(this, () => {
-          this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
-        }, 100)
+        Util.setTimeout(
+          this,
+          () => {
+            this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
+          },
+          100
+        )
       }
     })
 
@@ -52,19 +56,19 @@ export default class Rotate extends IconPlugin {
     }
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     this.unbind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
   }
 
-  onBtnClick (e) {
+  onBtnClick(e) {
     e.preventDefault()
     e.stopPropagation()
     this.emitUserAction(e, 'rotate')
     this.rotate(this.config.clockwise, this.config.innerRotate, 1)
   }
 
-  updateRotateDeg (rotateDeg, innerRotate) {
+  updateRotateDeg(rotateDeg, innerRotate) {
     if (!rotateDeg) {
       rotateDeg = 0
     }
@@ -76,7 +80,8 @@ export default class Rotate extends IconPlugin {
     const { root, innerContainer } = player
     const video = player.media
     const width = root.offsetWidth
-    const height = innerContainer && innerRotate ? innerContainer.offsetHeight : root.offsetHeight
+    const height =
+      innerContainer && innerRotate ? innerContainer.offsetHeight : root.offsetHeight
     let rWidth = rootWidth
     let rHeight = rootHeight
     let x = 0
@@ -100,11 +105,11 @@ export default class Rotate extends IconPlugin {
     const poster = innerRotate ? player.getPlugin('poster') : null
     Object.keys(_styles).map(key => {
       _target.style[key] = _styles[key]
-      poster && poster.root && (poster.root.style[key] = _styles[key])
+      poster?.root && (poster.root.style[key] = _styles[key])
     })
   }
 
-  rotate (clockwise = false, innerRotate = true, times = 1) {
+  rotate(clockwise = false, innerRotate = true, times = 1) {
     const player = this.player
     if (!this.rotateDeg) {
       this.rotateDeg = 0
@@ -116,13 +121,13 @@ export default class Rotate extends IconPlugin {
     player.emit(Events.ROTATE, this.rotateDeg * 360)
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       rotate: RotateSvg
     }
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }

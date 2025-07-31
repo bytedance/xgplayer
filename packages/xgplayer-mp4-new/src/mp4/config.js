@@ -1,4 +1,4 @@
-export function getConfig (cfg) {
+export function getConfig(cfg) {
   const media = cfg?.media || document.createElement('video')
   return {
     softDecode: false,

@@ -1,7 +1,7 @@
-import { AudioSample, WarningType } from '../model'
 import { AAC } from '../codec'
-import { isSafari } from '../utils'
+import { AudioSample, WarningType } from '../model'
 import { AudioCodecType } from '../model/types'
+import { isSafari } from '../utils'
 
 const LARGE_AV_FIRST_FRAME_GAP = 90000 / 2 // 500ms
 const AUDIO_GAP_OVERLAP_THRESHOLD_COUNT = 3
@@ -12,7 +12,7 @@ const MAX_DTS_DELTA_WITH_NEXT_CHUNK = 90000 / 2 // 500ms
 const LARGE_AV_FIRST_FRAME_FORCE_FIX_THRESHOLD = 90000 * 5 // 5s
 
 export class TsFixer {
-  constructor (videoTrack, audioTrack, metadataTrack, fixerConfig) {
+  constructor(videoTrack, audioTrack, metadataTrack, fixerConfig) {
     this.videoTrack = videoTrack
     this.audioTrack = audioTrack
     this.metadataTrack = metadataTrack
@@ -33,10 +33,11 @@ export class TsFixer {
     this._lastAudioExceptionLargeGapDot = 0
 
     this._needForceFixLargeGap = fixerConfig?.forceFixLargeGap
-    this._largeGapThreshold = fixerConfig?.largeGapThreshold || LARGE_AV_FIRST_FRAME_FORCE_FIX_THRESHOLD
+    this._largeGapThreshold =
+      fixerConfig?.largeGapThreshold || LARGE_AV_FIRST_FRAME_FORCE_FIX_THRESHOLD
   }
 
-  fix (startTime = 0, discontinuity = false, contiguous = true) {
+  fix(startTime = 0, discontinuity = false, contiguous = true) {
     startTime = Math.round(startTime * 90000)
     const videoTrack = this.videoTrack
     const audioTrack = this.audioTrack
@@ -80,12 +81,16 @@ export class TsFixer {
       this._videoNextDts = vaDelta > 0 ? startTime + vaDelta : startTime
       this._audioNextPts = vaDelta > 0 ? startTime : startTime - vaDelta
 
-      if (this._needForceFixLargeGap){
+      if (this._needForceFixLargeGap) {
         this._videoNextDts = 0
         this._audioNextPts = 0
       }
-      const vDeltaToNextDts = firstVideoSample ? firstVideoSample.dts - this._baseDts - this._videoNextDts : 0
-      const aDeltaToNextDts = firstAudioSample ? firstAudioSample.pts - this._baseDts - this._audioNextPts : 0
+      const vDeltaToNextDts = firstVideoSample
+        ? firstVideoSample.dts - this._baseDts - this._videoNextDts
+        : 0
+      const aDeltaToNextDts = firstAudioSample
+        ? firstAudioSample.pts - this._baseDts - this._audioNextPts
+        : 0
 
       if (Math.abs(vDeltaToNextDts || aDeltaToNextDts) > MAX_VIDEO_FRAME_DURATION) {
         this._calculateBaseDts(this.audioTrack, this.videoTrack)
@@ -112,11 +117,12 @@ export class TsFixer {
       videoTrack.baseMediaDecodeTime = videoTrack.samples[0].dts
     }
     if (audioTrack.samples.length) {
-      audioTrack.baseMediaDecodeTime = audioTrack.samples[0].pts * audioTrack.timescale / 90000
+      audioTrack.baseMediaDecodeTime =
+        (audioTrack.samples[0].pts * audioTrack.timescale) / 90000
     }
   }
 
-  _fixVideo (videoTrack) {
+  _fixVideo(videoTrack) {
     const samples = videoTrack.samples
 
     if (!samples.length) return
@@ -149,9 +155,11 @@ export class TsFixer {
       firstSample.dts += vDelta
       firstSample.pts += vDelta
 
-
       // check to ajust the whole segment
-      if (nextSample && Math.abs(nextSample.dts - firstSample.dts) > MAX_VIDEO_FRAME_DURATION) {
+      if (
+        nextSample &&
+        Math.abs(nextSample.dts - firstSample.dts) > MAX_VIDEO_FRAME_DURATION
+      ) {
         this._videoTimestampBreak = true
         samples.forEach((x, i) => {
           if (i === 0) return
@@ -161,7 +169,7 @@ export class TsFixer {
       } else {
         for (let i = 1; i <= len - 1; i++) {
           const dts = samples[i]?.dts
-          const prevDts = samples[i - 1 ].dts
+          const prevDts = samples[i - 1].dts
           if (dts && dts - prevDts < 0) {
             samples[i].dts += vDelta
             samples[i].pts += vDelta
@@ -172,11 +180,13 @@ export class TsFixer {
 
     let refSampleDurationInt
     if (videoTrack.fpsNum && videoTrack.fpsDen) {
-      refSampleDurationInt = videoTrack.timescale * (videoTrack.fpsDen / videoTrack.fpsNum)
+      refSampleDurationInt =
+        videoTrack.timescale * (videoTrack.fpsDen / videoTrack.fpsNum)
     }
 
     // fps inaccuracy
-    if (refSampleDurationInt < 90 * 10) { // < 10ms per frame
+    if (refSampleDurationInt < 90 * 10) {
+      // < 10ms per frame
       refSampleDurationInt = 0
     }
 
@@ -184,7 +194,7 @@ export class TsFixer {
       const first = videoTrack.samples[0]
       const second = videoTrack.samples[1]
       // 100ms default
-      refSampleDurationInt = len === 1 ? 9000 : Math.floor((second.dts - first.dts))
+      refSampleDurationInt = len === 1 ? 9000 : Math.floor(second.dts - first.dts)
     }
 
     for (let i = 0; i < len; i++) {
@@ -203,10 +213,12 @@ export class TsFixer {
         this._videoTimestampBreak = true
 
         // check if only video breaked!
-        sampleDuration = this._audioTimestampBreak ? refSampleDurationInt : Math.max(sampleDuration, 30 * 90) // 30ms
+        sampleDuration = this._audioTimestampBreak
+          ? refSampleDurationInt
+          : Math.max(sampleDuration, 30 * 90) // 30ms
 
         // check if sample breaked within current fragment
-        const expectFragEnd = (this._audioNextPts || 0)
+        const expectFragEnd = this._audioNextPts || 0
         if (nextSample && nextSample.dts > expectFragEnd) {
           sampleDuration = refSampleDurationInt
         }
@@ -227,7 +239,7 @@ export class TsFixer {
     }
   }
 
-  _fixAudio (audioTrack) {
+  _fixAudio(audioTrack) {
     const samples = audioTrack.samples
 
     if (!samples.length) return
@@ -256,7 +268,7 @@ export class TsFixer {
     this._doFixAudioInternal(audioTrack, samples, 90000)
   }
 
-  _calculateBaseDts (audioTrack, videoTrack) {
+  _calculateBaseDts(audioTrack, videoTrack) {
     const audioSamps = audioTrack.samples
     const videoSamps = videoTrack.samples
 
@@ -290,10 +302,13 @@ export class TsFixer {
         delta
       })
     }
-    if (Number.isFinite(delta) && Math.abs(delta) > this._largeGapThreshold * MAX_SILENT_FRAME_DURATION) {
+    if (
+      Number.isFinite(delta) &&
+      Math.abs(delta) > this._largeGapThreshold * MAX_SILENT_FRAME_DURATION
+    ) {
       largeGap = true
     }
-    if (!this._baseDtsInited){
+    if (!this._baseDtsInited) {
       if (largeGap && this._needForceFixLargeGap) {
         this._needForceFixLargeGap = true
       } else {
@@ -304,7 +319,7 @@ export class TsFixer {
     return true
   }
 
-  _resetBaseDtsWhenStreamBreaked () {
+  _resetBaseDtsWhenStreamBreaked() {
     if (this._baseDtsInited && this._videoTimestampBreak && this._audioTimestampBreak) {
       /**
        * timestamp breaked
@@ -333,8 +348,9 @@ export class TsFixer {
     }
   }
 
-  _doFixAudioInternal (audioTrack, samples, timescale) {
-    if (!audioTrack.sampleDuration) audioTrack.sampleDuration = AAC.getFrameDuration(audioTrack.timescale, timescale)
+  _doFixAudioInternal(audioTrack, samples, timescale) {
+    if (!audioTrack.sampleDuration)
+      audioTrack.sampleDuration = AAC.getFrameDuration(audioTrack.timescale, timescale)
     const refSampleDuration = audioTrack.sampleDuration
 
     if (this._audioNextPts === undefined) {
@@ -350,11 +366,21 @@ export class TsFixer {
       // fill frames
       // delta >= 3 * refSampleDurationInt
       // delta <= 500s
-      if (!this._audioTimestampBreak && delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration && delta <= MAX_SILENT_FRAME_DURATION && !isSafari) {
-        const silentFrame = AAC.getSilentFrame(audioTrack.codec, audioTrack.channelCount) || samples[0].data.subarray()
+      if (
+        !this._audioTimestampBreak &&
+        delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration &&
+        delta <= MAX_SILENT_FRAME_DURATION &&
+        !isSafari
+      ) {
+        const silentFrame =
+          AAC.getSilentFrame(audioTrack.codec, audioTrack.channelCount) ||
+          samples[0].data.subarray()
         const count = Math.floor(delta / refSampleDuration)
 
-        if (Math.abs(sample.pts - this._lastAudioExceptionGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+        if (
+          Math.abs(sample.pts - this._lastAudioExceptionGapDot) >
+          AUDIO_EXCETION_LOG_EMIT_DURATION
+        ) {
           this._lastAudioExceptionGapDot = sample.pts
         }
 
@@ -378,9 +404,15 @@ export class TsFixer {
         i--
         // delta  <= -3 * refSampleDurationInt
         // delta  >= -500ms
-      } else if (delta <= -AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration && delta >= -1 * MAX_SILENT_FRAME_DURATION) {
+      } else if (
+        delta <= -AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration &&
+        delta >= -1 * MAX_SILENT_FRAME_DURATION
+      ) {
         // need discard frames
-        if (Math.abs(sample.pts - this._lastAudioExceptionOverlapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+        if (
+          Math.abs(sample.pts - this._lastAudioExceptionOverlapDot) >
+          AUDIO_EXCETION_LOG_EMIT_DURATION
+        ) {
           this._lastAudioExceptionOverlapDot = sample.pts
           audioTrack.warnings.push({
             type: WarningType.AUDIO_DROPPED,
@@ -396,7 +428,10 @@ export class TsFixer {
         if (Math.abs(delta) >= MAX_SILENT_FRAME_DURATION) {
           this._audioTimestampBreak = true
 
-          if (Math.abs(sample.pts - this._lastAudioExceptionLargeGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
+          if (
+            Math.abs(sample.pts - this._lastAudioExceptionLargeGapDot) >
+            AUDIO_EXCETION_LOG_EMIT_DURATION
+          ) {
             this._lastAudioExceptionLargeGapDot = sample.pts
             audioTrack.warnings.push({
               type: WarningType.LARGE_AUDIO_GAP,

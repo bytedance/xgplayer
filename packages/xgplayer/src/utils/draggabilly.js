@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3'
 
-function getStyleSize (value) {
+function getStyleSize(value) {
   const num = parseFloat(value)
   // not a percent like '100%', and a number
   const isValid = value.indexOf('%') === -1 && !Number.isNaN(num)
@@ -24,7 +24,7 @@ const measurements = [
 
 const measurementsLength = measurements.length
 
-function getZeroSize () {
+function getZeroSize() {
   const size = {
     width: 0,
     height: 0,
@@ -40,7 +40,7 @@ function getZeroSize () {
   return size
 }
 
-function getStyle (elem) {
+function getStyle(elem) {
   const style = window.getComputedStyle(elem)
   // if ( !style ) {
   //   logError( 'Style returned ' + style +
@@ -50,7 +50,7 @@ function getStyle (elem) {
   return style
 }
 
-function getSize (elem) {
+function getSize(elem) {
   // use querySeletor if elem is string
   if (typeof elem === 'string') {
     elem = document.querySelector(elem)
@@ -72,7 +72,7 @@ function getSize (elem) {
   size.width = elem.offsetWidth
   size.height = elem.offsetHeight
 
-  const isBorderBox = size.isBorderBox = style.boxSizing === 'border-box'
+  const isBorderBox = (size.isBorderBox = style.boxSizing === 'border-box')
 
   // get all measurements
   for (let i = 0; i < measurementsLength; i++) {
@@ -90,19 +90,21 @@ function getSize (elem) {
   const borderWidth = size.borderLeftWidth + size.borderRightWidth
   const borderHeight = size.borderTopWidth + size.borderBottomWidth
 
-  const isBorderBoxSizeOuter = isBorderBox// isBorderBox && isBoxSizeOuter;
+  const isBorderBoxSizeOuter = isBorderBox // isBorderBox && isBoxSizeOuter;
 
   // overwrite width and height if we can get it from style
   const styleWidth = getStyleSize(style.width)
   if (styleWidth !== false) {
-    size.width = styleWidth +
+    size.width =
+      styleWidth +
       // add padding and border unless it's already including it
       (isBorderBoxSizeOuter ? 0 : paddingWidth + borderWidth)
   }
 
   const styleHeight = getStyleSize(style.height)
   if (styleHeight !== false) {
-    size.height = styleHeight +
+    size.height =
+      styleHeight +
       // add padding and border unless it's already including it
       (isBorderBoxSizeOuter ? 0 : paddingHeight + borderHeight)
   }
@@ -116,7 +118,7 @@ function getSize (elem) {
   return size
 }
 
-function getTouch (touches, dentifier) {
+function getTouch(touches, dentifier) {
   for (let i = 0; i < touches.length; i++) {
     const touch = touches[i]
     if (touch.identifier === dentifier) {
@@ -138,7 +140,7 @@ const POST_START_EVENTS = {
 }
 
 export default class Draggabilly extends EventEmitter {
-  constructor (root, options = {}) {
+  constructor(root, options = {}) {
     super()
     this.isEnabled = true
     this.isDragging = false
@@ -150,7 +152,10 @@ export default class Draggabilly extends EventEmitter {
     // eslint-disable-next-line no-undef
     this._root = root instanceof Element ? root : document.querySelector(root)
     // eslint-disable-next-line no-undef
-    this._handlerDom = options.handle instanceof Element ? options.handle : document.querySelector(options.handle)
+    this._handlerDom =
+      options.handle instanceof Element
+        ? options.handle
+        : document.querySelector(options.handle)
     if (!this._root || !this._handlerDom) {
       return
     }
@@ -171,7 +176,7 @@ export default class Draggabilly extends EventEmitter {
     this._bindStartEvent()
   }
 
-  _bindStartEvent () {
+  _bindStartEvent() {
     if ('ontouchstart' in window) {
       this._startKey = 'touchstart'
     } else {
@@ -184,11 +189,11 @@ export default class Draggabilly extends EventEmitter {
     })
   }
 
-  _unbindStartEvent () {
+  _unbindStartEvent() {
     this._handlerDom.removeEventListener(this._startKey, this[`on${this._startKey}`])
   }
 
-  _bindPostStartEvents (event) {
+  _bindPostStartEvents(event) {
     if (!event) {
       return
     }
@@ -201,7 +206,7 @@ export default class Draggabilly extends EventEmitter {
     this._boundPointerEvents = events
   }
 
-  _unbindPostStartEvents () {
+  _unbindPostStartEvents() {
     if (!this._boundPointerEvents) {
       return
     }
@@ -213,22 +218,22 @@ export default class Draggabilly extends EventEmitter {
     delete this._boundPointerEvents
   }
 
-  enable () {
+  enable() {
     this.isEnabled = true
   }
 
-  disable () {
+  disable() {
     this.isEnabled = false
     if (this.isDragging) {
       this.onUp()
     }
   }
 
-  onDocUp (e) {
+  onDocUp(_e) {
     this.onUp()
   }
 
-  animate () {
+  animate() {
     // only render and animate if dragging
     if (!this.isDragging) {
       return
@@ -241,7 +246,7 @@ export default class Draggabilly extends EventEmitter {
     })
   }
 
-  positionDrag () {
+  positionDrag() {
     // this._root.style.transform = 'translate3d( ' + this.dragPoint.x +
     // 'px, ' + this.dragPoint.y + 'px, 0)';
     const transform = `translate3d(${this.dragPoint.x}px, ${this.dragPoint.y}px, 0)`
@@ -249,40 +254,39 @@ export default class Draggabilly extends EventEmitter {
     this._root.style.webKitTransform = transform
   }
 
-  setLeftTop () {
-    this._root.style.left = this.position.x + 'px'
-    this._root.style.top = this.position.y + 'px'
+  setLeftTop() {
+    this._root.style.left = `${this.position.x}px`
+    this._root.style.top = `${this.position.y}px`
   }
 
-  onmousedown (e) {
+  onmousedown(e) {
     this.dragStart(e, e)
   }
 
-  onmousemove (e) {
+  onmousemove(e) {
     this.dragMove(e, e)
   }
 
-  onmouseup (e) {
+  onmouseup(e) {
     this.dragEnd(e, e)
   }
 
-  ontouchstart (e) {
+  ontouchstart(e) {
     const touch = e.changedTouches[0]
     this.dragStart(e, touch)
-    this.touchIdentifier = touch.pointerId !== undefined
-      ? touch.pointerId
-      : touch.identifier
+    this.touchIdentifier =
+      touch.pointerId !== undefined ? touch.pointerId : touch.identifier
     e.preventDefault()
   }
 
-  ontouchmove (e) {
+  ontouchmove(e) {
     const touch = getTouch(e.changedTouches, this.touchIdentifier)
     if (touch) {
       this.dragMove(e, touch)
     }
   }
 
-  ontouchend (e) {
+  ontouchend(e) {
     const touch = getTouch(e.changedTouches, this.touchIdentifier)
     if (touch) {
       this.dragEnd(e, touch)
@@ -290,14 +294,14 @@ export default class Draggabilly extends EventEmitter {
     e.preventDefault()
   }
 
-  ontouchcancel (e) {
+  ontouchcancel(e) {
     const touch = getTouch(e.changedTouches, this.touchIdentifier)
     if (touch) {
       this.dragCancel(e, touch)
     }
   }
 
-  dragStart (e, pointer) {
+  dragStart(e, pointer) {
     if (!this._root || this.isDown || !this.isEnabled) {
       return
     }
@@ -319,13 +323,13 @@ export default class Draggabilly extends EventEmitter {
     this._bindPostStartEvents(e)
   }
 
-  dragRealStart (e, pointer) {
+  dragRealStart(_e, _pointer) {
     this.isDragging = true
     this.animate()
     this.emit(EVENTS.START, this.startPos)
   }
 
-  dragEnd (e, pointer) {
+  dragEnd(_e, _pointer) {
     if (!this._root) {
       return
     }
@@ -338,7 +342,7 @@ export default class Draggabilly extends EventEmitter {
     this.presetInfo()
   }
 
-  _dragPointerMove (e, pointer) {
+  _dragPointerMove(e, pointer) {
     const moveVector = {
       x: pointer.pageX - this.downPoint.pageX,
       y: pointer.pageY - this.downPoint.pageY
@@ -350,7 +354,7 @@ export default class Draggabilly extends EventEmitter {
     return moveVector
   }
 
-  dragMove (e, pointer) {
+  dragMove(e, pointer) {
     e = e || window.event
     if (!this.isDown) {
       return
@@ -368,11 +372,11 @@ export default class Draggabilly extends EventEmitter {
     this.emit(EVENTS.MOVE, this.position)
   }
 
-  dragCancel (e, pointer) {
+  dragCancel(e, pointer) {
     this.dragEnd(e, pointer)
   }
 
-  presetInfo () {
+  presetInfo() {
     this.isDragging = false
     this.startPos = {
       x: 0,
@@ -385,7 +389,7 @@ export default class Draggabilly extends EventEmitter {
     this.isDown = false
   }
 
-  destroy () {
+  destroy() {
     this._unbindStartEvent()
     this._unbindPostStartEvents()
     if (this.isDragging) {
@@ -395,11 +399,11 @@ export default class Draggabilly extends EventEmitter {
     this._handlerDom = null
   }
 
-  hasDragStarted (moveVector) {
+  hasDragStarted(moveVector) {
     return Math.abs(moveVector.x) > 3 || Math.abs(moveVector.y) > 3
   }
 
-  checkContain (axis, drag, grid) {
+  checkContain(axis, drag, grid) {
     if (drag + grid < 0) {
       return 0 - grid
     }
@@ -413,7 +417,7 @@ export default class Draggabilly extends EventEmitter {
     return drag
   }
 
-  _getPosition () {
+  _getPosition() {
     const style = window.getComputedStyle(this._root)
     const x = this._getPositionCoord(style.left, 'width')
     const y = this._getPositionCoord(style.top, 'height')
@@ -424,7 +428,7 @@ export default class Draggabilly extends EventEmitter {
     this._addTransformPosition(style)
   }
 
-  _addTransformPosition (style) {
+  _addTransformPosition(style) {
     const transform = style.transform
     // bail out if value is 'none'
     if (transform.indexOf('matrix') !== 0) {
@@ -441,14 +445,12 @@ export default class Draggabilly extends EventEmitter {
     this.position.y += translateY
   }
 
-  _getPositionCoord (styleSide, measure) {
+  _getPositionCoord(styleSide, measure) {
     if (styleSide.indexOf('%') !== -1) {
       // convert percent into pixel for Safari, #75
       const parentSize = getSize(this._root.parentNode)
       // prevent not-in-DOM element throwing bug, #131
-      return !parentSize
-        ? 0
-        : (parseFloat(styleSide) / 100) * parentSize[measure]
+      return !parentSize ? 0 : (parseFloat(styleSide) / 100) * parentSize[measure]
     }
     return parseInt(styleSide, 10)
   }

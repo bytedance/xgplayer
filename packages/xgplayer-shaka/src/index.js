@@ -1,31 +1,31 @@
-import { BasePlugin, Events, Sniffer } from 'xgplayer'
 import Shaka from 'shaka-player'
+import { BasePlugin, Events, Sniffer } from 'xgplayer'
 
 class ShakaJsPlugin extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'ShakaPlugin'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       shakaOpts: {}
     }
   }
 
-  static isSupported () {
+  static isSupported() {
     return Shaka.Player.isBrowserSupported()
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     Shaka.polyfill.installAll()
   }
 
-  afterCreate () {
+  afterCreate() {
     this.content = []
     this.url = this.player.config.url
     if (Shaka.Player.isBrowserSupported()) {
-      this.on(Events.URL_CHANGE, (url) => {
+      this.on(Events.URL_CHANGE, url => {
         if (/^blob/.test(url)) {
           return
         }
@@ -35,7 +35,7 @@ class ShakaJsPlugin extends BasePlugin {
     }
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     if (!Shaka.Player.isBrowserSupported()) {
       throw new Error('Browser not supported!')
     } else {
@@ -43,17 +43,17 @@ class ShakaJsPlugin extends BasePlugin {
     }
   }
 
-  destroy () {
+  destroy() {
     if (this.shakaplayer) {
       this.shakaplayer.destroy()
       this.shakaplayer = null
     }
   }
 
-  _initShaka () {
+  _initShaka() {
     const { player } = this
     this.shakaplayer = new Shaka.Player(player.video)
-    this.shakaplayer.addEventListener('error', (event) => {
+    this.shakaplayer.addEventListener('error', event => {
       console.error('Error code', event.detail.code, 'object', event.detail) // eslint-disable-line no-console
     })
     if (this.config.shakaOpts) {
@@ -69,8 +69,7 @@ class ShakaJsPlugin extends BasePlugin {
 
     // this.player_.addEventListener(
     //     'trackschanged', self.onTracksChanged_);
-    this.shakaplayer.addEventListener(
-      'adaptation', this.onAdaptation_)
+    this.shakaplayer.addEventListener('adaptation', this.onAdaptation_)
 
     const config = { abr: { enabled: false } }
     this.shakaplayer.configure(config)
@@ -83,17 +82,20 @@ class ShakaJsPlugin extends BasePlugin {
     // }
   }
 
-  loadUrl (url) {
-    this.shakaplayer.load(url).then(() => {
-      console.log(' this.onTracksChanged_')
-      this.onTracksChanged_()
-    }).catch((event) => {
-      console.trace('event', event)
-      console.error('Error code', event.detail.code, 'object', event.detail) // eslint-disable-line no-console
-    })
+  loadUrl(url) {
+    this.shakaplayer
+      .load(url)
+      .then(() => {
+        console.log(' this.onTracksChanged_')
+        this.onTracksChanged_()
+      })
+      .catch(event => {
+        console.trace('event', event)
+        console.error('Error code', event.detail.code, 'object', event.detail) // eslint-disable-line no-console
+      })
   }
 
-  onTracksChanged_ () {
+  onTracksChanged_() {
     this.updateVariantTracks_()
   }
 
@@ -117,28 +119,26 @@ class ShakaJsPlugin extends BasePlugin {
     })
   }
 
-  updateVariantTracks_ () {
+  updateVariantTracks_() {
     const tracks = this.shakaplayer.getVariantTracks()
-    tracks.sort(function (t1, t2) {
-      return t1.bandwidth - t2.bandwidth
-    })
+    tracks.sort((t1, t2) => t1.bandwidth - t2.bandwidth)
     this.updateTrackOptions_(tracks)
   }
 
-  updateTrackOptions_ (tracks) {
+  updateTrackOptions_(tracks) {
     // console.log(tracks); // eslint-disable-line no-console
     const formatters = {
-      variant: function (track) {
+      variant: track => {
         let trackInfo = ''
         if (track.width && track.height) {
-          trackInfo += track.height + 'P'
+          trackInfo += `${track.height}P`
         }
         // trackInfo += track.bandwidth + ' bits/s';
         return trackInfo
       }
     }
     this.content = []
-    tracks.forEach((track) => {
+    tracks.forEach(track => {
       const option = {}
       option.textContent = formatters[track.type](track)
       option.track = track
@@ -149,7 +149,7 @@ class ShakaJsPlugin extends BasePlugin {
     this.updateDefinition()
   }
 
-  updateDefinition () {
+  updateDefinition() {
     if (Sniffer.device === 'mobile') {
       return
     }

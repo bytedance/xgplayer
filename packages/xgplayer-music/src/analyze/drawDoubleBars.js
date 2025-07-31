@@ -1,4 +1,4 @@
-export default (context) => {
+export default context => {
   const { data, options, ctx, h, w } = context
   const count = data.length > options.count ? options.count : data.length
   const percent = h / 255
@@ -13,7 +13,7 @@ export default (context) => {
   for (let i = 0; i < count; i++) {
     barHeight = data[i] * percent
     ctx.fillStyle = gradient
-    ctx.fillRect(x, h / 2 + barHeight / 2, barWidth, -(barHeight))
+    ctx.fillRect(x, h / 2 + barHeight / 2, barWidth, -barHeight)
     x += step
   }
 }

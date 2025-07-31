@@ -19,17 +19,17 @@
  *  disconnectTime?: number,
  *  fetchOptions?: RequestInit,
  *  seamlesslyReload: boolean,
-*   keepStatusAfterSwitch?: boolean,
-*   onlyVideo?: boolean,
-*   onlyAudio?: boolean,
-*   preferMMS?: boolean,
-*   mseLowLatency?: boolean,
-*   durationForLowLatency?: number, // s
-*   chunkCountForSpeed?: number,
-*   skipChunkSize?: number, // Byte
-*   longtimeNoReceived?: number,
-*   preProcessUrl?: (url: string, ext?: { [propName: string]: any }) => { url: string, [propName: string]: any }
-*   enableStartGapJump?: boolean
+ *   keepStatusAfterSwitch?: boolean,
+ *   onlyVideo?: boolean,
+ *   onlyAudio?: boolean,
+ *   preferMMS?: boolean,
+ *   mseLowLatency?: boolean,
+ *   durationForLowLatency?: number, // s
+ *   chunkCountForSpeed?: number,
+ *   skipChunkSize?: number, // Byte
+ *   longtimeNoReceived?: number,
+ *   preProcessUrl?: (url: string, ext?: { [propName: string]: any }) => { url: string, [propName: string]: any }
+ *   enableStartGapJump?: boolean
  * }} FlvOption
  */
 
@@ -37,7 +37,7 @@
  * @param {FlvOption} opts
  * @returns {FlvOption}
  */
-export function getOption (opts) {
+export function getOption(opts) {
   const ret = {
     retryCount: 3,
     retryDelay: 1000,

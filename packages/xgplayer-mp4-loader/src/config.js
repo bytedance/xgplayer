@@ -1,4 +1,4 @@
-export function getConfig (cfg) {
+export function getConfig(cfg) {
   return {
     vid: '',
     moovEnd: 80000,

@@ -10,11 +10,11 @@ export class IExternalDecryptor {
    * @param {BufferSource} iv
    * @returns {Promise.<Uint8Array>}
    */
-  async decrypt (data, key, iv) {}
+  async decrypt(_data, _key, _iv) {}
 }
 
 export class Decryptor {
-  constructor () {
+  constructor() {
     const crypto = window.crypto || window.msCrypto
     this.subtle = crypto && (crypto.subtle || crypto.webkitSubtle)
 
@@ -24,13 +24,13 @@ export class Decryptor {
     this.externalDecryptor = null
   }
 
-  destroy () {
+  destroy() {
     if (this.externalDecryptor?.destroy) {
       this.externalDecryptor.destroy()
     }
   }
 
-  decrypt (video, audio) {
+  decrypt(video, audio) {
     if (!video && !audio) return
     const ret = []
     if (video) {
@@ -42,7 +42,7 @@ export class Decryptor {
     return Promise.all(ret)
   }
 
-  async _decryptSegment (seg) {
+  async _decryptSegment(seg) {
     let data = seg.data
     if (seg.key) {
       data = await this._decryptData(seg.data, seg.key, seg.keyIv)
@@ -51,12 +51,15 @@ export class Decryptor {
     return concatUint8Array(seg.map, data)
   }
 
-  async _decryptData (data, key, iv) {
+  async _decryptData(data, key, iv) {
     if (this.externalDecryptor) {
       return await this.externalDecryptor.decrypt(data, key, iv)
     } else {
       if (!this.subtle) throw new Error('crypto is not defined')
-      const aesKey = await this.subtle.importKey('raw', key, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt'])
+      const aesKey = await this.subtle.importKey('raw', key, { name: 'AES-CBC' }, false, [
+        'encrypt',
+        'decrypt'
+      ])
       return new Uint8Array(
         await this.subtle.decrypt({ name: 'AES-CBC', iv }, aesKey, data)
       )

@@ -1,25 +1,25 @@
-import Plugin, { Events, Util, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, STATE_CLASS, Util } from '../../plugin'
 import './index.scss'
 
 /**
-  * @typedef {{
-  *   disable?: boolean,
-  *   autoHide?: boolean,
-  *   mode?: "flex"|"normal"|"bottom",
-  *   initShow?: boolean,
-  *   [propName: string]: any
-  * }} IControlsConfig
-  */
+ * @typedef {{
+ *   disable?: boolean,
+ *   autoHide?: boolean,
+ *   mode?: "flex"|"normal"|"bottom",
+ *   initShow?: boolean,
+ *   [propName: string]: any
+ * }} IControlsConfig
+ */
 
 class Controls extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'controls'
   }
 
   /**
    * @type IControlsConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       disable: false,
       autoHide: true, // Whether to hide automatically
@@ -28,7 +28,7 @@ class Controls extends Plugin {
     }
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     if (!args.config.mode && Sniffer.device === 'mobile') {
       args.config.mode = 'flex'
     }
@@ -37,7 +37,7 @@ class Controls extends Plugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     const { disable, height, mode } = this.config
     if (disable) {
       return
@@ -72,8 +72,10 @@ class Controls extends Plugin {
     this.innerRoot = this.find('xg-inner-controls')
 
     // The progress bar is switched synchronously when switching to the small window state
-    this.on(Events.MINI_STATE_CHANGE, (isMini) => {
-      isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
+    this.on(Events.MINI_STATE_CHANGE, isMini => {
+      isMini
+        ? Util.addClass(this.root, 'mini-controls')
+        : Util.removeClass(this.root, 'mini-controls')
     })
 
     const { isMobileSimulateMode } = this.playerConfig
@@ -83,34 +85,34 @@ class Controls extends Plugin {
     }
   }
 
-  onMouseEnter = (e) => {
+  onMouseEnter = _e => {
     const { player, playerConfig } = this
     playerConfig.closeControlsBlur && player.focus({ autoHide: false })
   }
 
-  onMouseLeave = (e) => {
+  onMouseLeave = _e => {
     const { player } = this
     player.focus()
   }
 
-  focus () {
+  focus() {
     this.player.focus({ autoHide: false })
   }
 
-  focusAwhile () {
+  focusAwhile() {
     this.player.focus({ autoHide: true })
   }
 
-  blur () {
+  blur() {
     this.player.blur({ ignorePaused: true })
   }
 
-  recoverAutoHide () {
+  recoverAutoHide() {
     // this.config.autoHide && Util.addClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
     this.config.autoHide && Util.addClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
   }
 
-  pauseAutoHide () {
+  pauseAutoHide() {
     // Util.removeClass(this.player.root, STATE_CLASS.CONTROLS_AUTOHIDE)
     Util.removeClass(this.root, STATE_CLASS.CONTROLS_AUTOHIDE)
   }
@@ -119,19 +121,19 @@ class Controls extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
+  show(_value) {
     this.root.style.display = ''
     this.player.focus()
   }
 
-  hide () {
+  hide() {
     this.root.style.display = 'none'
   }
 
   /**
    * @type {string}
    */
-  get mode () {
+  get mode() {
     return this.config.mode
   }
 
@@ -142,13 +144,17 @@ class Controls extends Plugin {
    * @param { string } name
    * @returns { any }
    */
-  registerPlugin (plugin, options = {}, name) {
+  registerPlugin(plugin, options = {}, name) {
     if (!this.root) {
       return
     }
     const defaultConfig = plugin.defaultConfig || {}
     if (!options.root) {
-      const position = options.position ? options.position : options.config && options.config.position ? options.config.position : defaultConfig.position
+      const position = options.position
+        ? options.position
+        : options.config?.position
+          ? options.config.position
+          : defaultConfig.position
       switch (position) {
         case POSITIONS.CONTROLS_LEFT:
           options.root = this.left
@@ -169,7 +175,7 @@ class Controls extends Plugin {
     }
   }
 
-  destroy () {
+  destroy() {
     if (Sniffer.device !== 'mobile') {
       this.unbind('mouseenter', this.onMouseEnter)
       this.unbind('mouseleave', this.onMouseLeave)
@@ -180,7 +186,7 @@ class Controls extends Plugin {
     this.innerRoot = null
   }
 
-  render () {
+  render() {
     const { mode, autoHide, initShow, disable } = this.config
     if (disable) {
       return
@@ -192,7 +198,8 @@ class Controls extends Plugin {
       { 'flex-controls': mode === 'flex' },
       { 'bottom-controls': mode === 'bottom' },
       { [STATE_CLASS.CONTROLS_AUTOHIDE]: autoHide },
-      { 'xgplayer-controls-initshow': initShow || !autoHide })
+      { 'xgplayer-controls-initshow': initShow || !autoHide }
+    )
     return `<xg-controls class="${className}" unselectable="on">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">

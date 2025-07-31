@@ -1,7 +1,7 @@
-import Plugin, { Events, Util, Sniffer, STATES } from '../../plugin'
-import Touche from './touch'
-import SeekTipIcon from '../assets/seekicon.svg'
+import Plugin, { Events, Sniffer, STATES, Util } from '../../plugin'
 import { runHooks } from '../../plugin/hooksDescriptor'
+import SeekTipIcon from '../assets/seekicon.svg'
+import Touche from './touch'
 // import BackSvg from './back.svg'
 import './index.scss'
 
@@ -43,14 +43,14 @@ const ACTIONS = {
 const HOOKS = ['videoClick', 'videoDbClick']
 
 class MobilePlugin extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'mobile'
   }
 
   /**
    * @type IMobileConfig & { [propName: string]: any}
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       index: 0,
       disableGesture: false, // Whether to disable gestures
@@ -78,7 +78,7 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  constructor (options) {
+  constructor(options) {
     super(options)
     /**
      * @readonly
@@ -105,21 +105,21 @@ class MobilePlugin extends Plugin {
     this.timer = null
   }
 
-  get duration () {
+  get duration() {
     return this.playerConfig.customDuration || this.player.duration
   }
 
-  get timeOffset () {
+  get timeOffset() {
     return this.playerConfig.timeOffset || 0
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       seekTipIcon: { icon: SeekTipIcon, class: 'xg-seek-pre' }
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     HOOKS.map(item => {
       this.__hooks[item] = null
     })
@@ -141,7 +141,10 @@ class MobilePlugin extends Plugin {
     this.registerThumbnail()
 
     const eventType = this.domEventType === 'mouse' ? 'mouse' : 'touch'
-    this.touch = new Touche(this.root, { eventType, needPreventDefault: !this.config.disableGesture })
+    this.touch = new Touche(this.root, {
+      eventType,
+      needPreventDefault: !this.config.disableGesture
+    })
 
     this.root.addEventListener('contextmenu', e => {
       e.preventDefault()
@@ -154,7 +157,7 @@ class MobilePlugin extends Plugin {
     player.root.addEventListener('touchend', this.onRootTouchEnd, true)
     player.root.addEventListener('touchcancel', this.onRootTouchEnd, true)
     const { controls } = this.player
-    if (controls && controls.center) {
+    if (controls?.center) {
       controls.center.addEventListener('touchmove', this.onRootTouchMove, true)
       controls.center.addEventListener('touchend', this.onRootTouchEnd, true)
       controls.center.addEventListener('touchcancel', this.onRootTouchEnd, true)
@@ -184,7 +187,7 @@ class MobilePlugin extends Plugin {
     }
 
     Object.keys(eventsMap).map(key => {
-      this.touch.on(key, (e) => {
+      this.touch.on(key, e => {
         this[eventsMap[key]](e)
       })
     })
@@ -193,10 +196,10 @@ class MobilePlugin extends Plugin {
       // Add progress bar drag event callback
       const progressPlugin = player.plugins.progress
       if (progressPlugin) {
-        progressPlugin.addCallBack('dragmove', (data) => {
+        progressPlugin.addCallBack('dragmove', data => {
           this.activeSeekNote(data.currentTime, data.forward)
-        });
-        ['dragend', 'click'].forEach(key => {
+        })
+        ;['dragend', 'click'].forEach(key => {
           progressPlugin.addCallBack(key, () => {
             this.changeAction(ACTIONS.AUTO)
           })
@@ -205,19 +208,20 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  registerThumbnail () {
+  registerThumbnail() {
     const { player } = this
     const { thumbnail } = player.plugins
-    if (thumbnail && thumbnail.usable) {
+    if (thumbnail?.usable) {
       this.thumbnail = thumbnail.createThumbnail(null, 'mobile-thumbnail')
       const timePreview = this.find('.time-preview')
       timePreview.insertBefore(this.thumbnail, timePreview.children[0])
     }
   }
 
-  initCustomStyle () {
+  initCustomStyle() {
     const { commonStyle } = this.playerConfig || {}
-    const { playedColor, progressColor, timePreviewStyle, curTimeColor, durationColor } = commonStyle
+    const { playedColor, progressColor, timePreviewStyle, curTimeColor, durationColor } =
+      commonStyle
     if (playedColor) {
       this.find('.xg-curbar').style.backgroundColor = playedColor
     }
@@ -237,13 +241,15 @@ class MobilePlugin extends Plugin {
     this.config.disableTimeProgress && Util.addClass(this.find('.xg-timebar'), 'hide')
   }
 
-  resetPos (time = 0) {
+  resetPos(_time = 0) {
     if (this.pos) {
       this.pos.isStart = false
-      this.pos.scope = -1;
-      ['x', 'y', 'width', 'height', 'scopeL', 'scopeR', 'scopeM1', 'scopeM2'].map(item => {
-        this.pos[item] = 0
-      })
+      this.pos.scope = -1
+      ;['x', 'y', 'width', 'height', 'scopeL', 'scopeR', 'scopeM1', 'scopeM2'].map(
+        item => {
+          this.pos[item] = 0
+        }
+      )
     } else {
       this.pos = {
         isStart: false,
@@ -264,14 +270,14 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  changeAction (action) {
+  changeAction(action) {
     const { player, root } = this
     root.setAttribute('data-xg-action', action)
     const startPlugin = player.plugins.start
-    startPlugin && startPlugin.recover()
+    startPlugin?.recover()
   }
 
-  getTouche (e) {
+  getTouche(e) {
     const rotateDeg = this.player.rotateDeg
     const touche = e.touches && e.touches.length > 0 ? e.touches[e.touches.length - 1] : e
     // if (touches && touches.length > 0) {
@@ -291,13 +297,13 @@ class MobilePlugin extends Plugin {
     // }
     return rotateDeg === 0
       ? {
-        pageX: touche.pageX,
-        pageY: touche.pageY
-      }
+          pageX: touche.pageX,
+          pageY: touche.pageY
+        }
       : {
-        pageX: touche.pageX,
-        pageY: touche.pageY
-      }
+          pageX: touche.pageX,
+          pageY: touche.pageY
+        }
   }
 
   /**
@@ -309,7 +315,7 @@ class MobilePlugin extends Plugin {
    * @param { any } pos 当前操作区域位置信息 包含{width, height}
    * @return { number } scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    */
-  checkScope (x, y, diffx, diffy, pos) {
+  checkScope(x, _y, diffx, diffy, pos) {
     const { width } = pos
     let scope = -1
     if (x < 0 || x > width) {
@@ -319,7 +325,7 @@ class MobilePlugin extends Plugin {
     if (Math.abs(diffx) > 0 && mold >= 1.73 && x > pos.scopeM1 && x < pos.scopeM2) {
       scope = 0
     } else if (Math.abs(diffx) === 0 || mold <= 0.57) {
-      scope = x < pos.scopeL ? 1 : (x > pos.scopeR ? 2 : 3)
+      scope = x < pos.scopeL ? 1 : x > pos.scopeR ? 2 : 3
     }
     return scope
   }
@@ -332,10 +338,10 @@ class MobilePlugin extends Plugin {
    * @param {number} width 总体宽度
    * @param {number} height 总高度
    */
-  executeMove (diffx, diffy, scope, width, height) {
+  executeMove(diffx, diffy, scope, width, height) {
     switch (scope) {
       case 0:
-        this.updateTime(diffx / width * this.config.scopeM)
+        this.updateTime((diffx / width) * this.config.scopeM)
         break
       case 1:
         this.updateBrightness(diffy / height)
@@ -355,7 +361,7 @@ class MobilePlugin extends Plugin {
    * @param {number} scope 当前手势类型 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    * @param {number} lastScope 上一次手势类型
    */
-  endLastMove (lastScope) {
+  endLastMove(lastScope) {
     const { pos, player, config } = this
 
     const time = (pos.time - this.timeOffset) / 1000
@@ -367,21 +373,20 @@ class MobilePlugin extends Plugin {
           this.pos.time = 0
         }, 500)
         break
-      case 1:
-      case 2:
       default:
     }
     this.changeAction(ACTIONS.AUTO)
   }
 
-  onTouchStart = (e) => {
+  onTouchStart = e => {
     const { player, config, pos, playerConfig } = this
     const touche = this.getTouche(e)
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
       this.timer && clearTimeout(this.timer)
       // e.cancelable && e.preventDefault()
-      Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
+      Util.checkIsFunction(playerConfig.disableSwipeHandler) &&
+        playerConfig.disableSwipeHandler()
       this.find('.xg-dur').innerHTML = Util.format(this.duration)
       // pos.volume = player.volume * 100
       const rect = this.root.getBoundingClientRect()
@@ -403,12 +408,12 @@ class MobilePlugin extends Plugin {
       pos.y = player.rotateDeg === 90 ? _x : _y // parseInt(touche.pageY - pos.top, 10)
       pos.scopeL = config.scopeL * pos.width
       pos.scopeR = (1 - config.scopeR) * pos.width
-      pos.scopeM1 = pos.width * (1 - config.scopeM) / 2
+      pos.scopeM1 = (pos.width * (1 - config.scopeM)) / 2
       pos.scopeM2 = pos.width - pos.scopeM1
     }
   }
 
-  onTouchMove = (e) => {
+  onTouchMove = e => {
     const touche = this.getTouche(e)
     const { pos, config, player } = this
     if (!touche || config.disableGesture || !this.duration || !pos.isStart) {
@@ -431,11 +436,16 @@ class MobilePlugin extends Plugin {
         // 手势为快进快退记录起始操作时间
         if (scope === 0) {
           !hideControlsActive ? player.focus({ autoHide: false }) : player.blur()
-          !pos.time && (pos.time = parseInt(player.currentTime * 1000, 10) + this.timeOffset * 1000)
+          !pos.time &&
+            (pos.time = parseInt(player.currentTime * 1000, 10) + this.timeOffset * 1000)
         }
         pos.scope = scope
       }
-      if (scope === -1 || (scope > 0 && !config.gestureY) || (scope === 0 && !config.gestureX)) {
+      if (
+        scope === -1 ||
+        (scope > 0 && !config.gestureY) ||
+        (scope === 0 && !config.gestureX)
+      ) {
         return
       }
       // e.cancelable && e.preventDefault()
@@ -447,10 +457,10 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  onTouchEnd = (e) => {
+  onTouchEnd = e => {
     const { player, pos, playerConfig } = this
     setTimeout(() => {
-      player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
+      player.getPlugin('progress')?.resetSeekState()
     }, 10)
     if (!pos.isStart) {
       return
@@ -467,19 +477,22 @@ class MobilePlugin extends Plugin {
     }
     pos.scope = -1
     this.resetPos()
-    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) &&
+      playerConfig.enableSwipeHandler()
     this.changeAction(ACTIONS.AUTO)
   }
 
-  checkIsRootTarget (e) {
+  checkIsRootTarget(e) {
     const plugins = this.player.plugins || {}
-    if (plugins.progress && plugins.progress.root.contains(e.target)) {
+    if (plugins.progress?.root.contains(e.target)) {
       return false
     }
-    return (plugins.start && plugins.start.root.contains(e.target)) || (plugins.controls && plugins.controls.root.contains(e.target))
+    return (
+      plugins.start?.root.contains(e.target) || plugins.controls?.root.contains(e.target)
+    )
   }
 
-  onRootTouchMove = (e) => {
+  onRootTouchMove = e => {
     if (this.config.disableGesture || !this.config.gestureX) {
       return
     }
@@ -493,7 +506,7 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  onRootTouchEnd = (e) => {
+  onRootTouchEnd = e => {
     if (this.pos.scope > -1) {
       this.onTouchEnd(e)
       // const { controls } = this.player
@@ -501,7 +514,7 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  sendUseAction (event) {
+  sendUseAction(event) {
     const { paused } = this.player
     this.emitUserAction(event, 'switch_play_pause', {
       prop: 'paused',
@@ -510,7 +523,7 @@ class MobilePlugin extends Plugin {
     })
   }
 
-  clickHandler (e) {
+  clickHandler(_e) {
     const { player, config, playerConfig } = this
     if (player.state < STATES.RUNNING) {
       if (!playerConfig.closeVideoClick) {
@@ -531,7 +544,7 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  dbClickHandler (e) {
+  dbClickHandler(_e) {
     const { config, player } = this
     if (!config.closedbClick && player.state >= STATES.RUNNING) {
       this.sendUseAction(Util.createEvent('dblclick'))
@@ -539,21 +552,31 @@ class MobilePlugin extends Plugin {
     }
   }
 
-  onClick (e) {
+  onClick(e) {
     const { player } = this
-    runHooks(this, HOOKS[0], (plugin, data) => {
-      this.clickHandler(data.e)
-    }, { e, paused: player.paused })
+    runHooks(
+      this,
+      HOOKS[0],
+      (_plugin, data) => {
+        this.clickHandler(data.e)
+      },
+      { e, paused: player.paused }
+    )
   }
 
-  onDbClick (e) {
+  onDbClick(e) {
     const { player } = this
-    runHooks(this, HOOKS[1], (plugin, data) => {
-      this.dbClickHandler(data.e)
-    }, { e, paused: player.paused })
+    runHooks(
+      this,
+      HOOKS[1],
+      (_plugin, data) => {
+        this.dbClickHandler(data.e)
+      },
+      { e, paused: player.paused }
+    )
   }
 
-  onPress (e) {
+  onPress(_e) {
     const { pos, config, player } = this
     if (config.disablePress) {
       return
@@ -568,26 +591,30 @@ class MobilePlugin extends Plugin {
     this.changeAction(ACTIONS.PLAYBACK)
   }
 
-  onPressEnd (e) {
+  onPressEnd(_e) {
     const { pos, config, player } = this
     if (config.disablePress) {
       return
     }
-    this.emitUserAction('pressend', 'change_rate', { prop: 'playbackRate', from: player.playbackRate, to: pos.rate })
+    this.emitUserAction('pressend', 'change_rate', {
+      prop: 'playbackRate',
+      from: player.playbackRate,
+      to: pos.rate
+    })
     player.playbackRate = pos.rate
     pos.rate = 1
     this.changeAction(ACTIONS.AUTO)
   }
 
-  updateTime (percent) {
+  updateTime(percent) {
     const { player, config } = this
     const { duration } = this.player
     percent = Number(percent.toFixed(4))
     let time = parseInt(percent * config.moveDuration, 10) + this.timeOffset
     time += this.pos.time
-    time = time < 0 ? 0 : (time > duration * 1000 ? duration * 1000 - 200 : time)
-    player.getPlugin('time') && player.getPlugin('time').updateTime(time / 1000)
-    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / 1000 / this.duration, true)
+    time = time < 0 ? 0 : time > duration * 1000 ? duration * 1000 - 200 : time
+    player.getPlugin('time')?.updateTime(time / 1000)
+    player.getPlugin('progress')?.updatePercent(time / 1000 / this.duration, true)
     this.activeSeekNote(time / 1000, percent > 0)
     // 在滑动的同时实时seek
     if (config.isTouchingSeek) {
@@ -597,7 +624,7 @@ class MobilePlugin extends Plugin {
     this.pos.time = time
   }
 
-  updateVolume (percent) {
+  updateVolume(percent) {
     if (this.player.rotateDeg) {
       percent = -percent
     }
@@ -608,12 +635,12 @@ class MobilePlugin extends Plugin {
       return
     }
     let volume = parseInt(player.volume * 10, 10) - parseInt(pos.volume / 10, 10)
-    volume = volume > 10 ? 10 : (volume < 1 ? 0 : volume)
+    volume = volume > 10 ? 10 : volume < 1 ? 0 : volume
     player.volume = volume / 10
     pos.volume = 0
   }
 
-  updateBrightness (percent) {
+  updateBrightness(percent) {
     const { pos, config, xgMask } = this
     if (!config.darkness) {
       return
@@ -621,15 +648,15 @@ class MobilePlugin extends Plugin {
     if (this.player.rotateDeg) {
       percent = -percent
     }
-    let light = pos.light + (0.8 * percent)
-    light = light > config.maxDarkness ? config.maxDarkness : (light < 0 ? 0 : light)
+    let light = pos.light + 0.8 * percent
+    light = light > config.maxDarkness ? config.maxDarkness : light < 0 ? 0 : light
     if (xgMask) {
       xgMask.style.backgroundColor = `rgba(0,0,0,${light})`
     }
     pos.light = light
   }
 
-  activeSeekNote (time, isForward = true) {
+  activeSeekNote(time, isForward = true) {
     const { player, config } = this
     const isLive = !(this.duration !== Infinity && this.duration > 0)
     if (!time || typeof time !== 'number' || isLive || config.disableActive) {
@@ -643,11 +670,11 @@ class MobilePlugin extends Plugin {
     this.changeAction(ACTIONS.SEEKING)
 
     const startPlugin = player.plugins.start
-    startPlugin && startPlugin.focusHide()
+    startPlugin?.focusHide()
 
     this.find('.xg-dur').innerHTML = Util.format(this.duration)
     this.find('.xg-cur').innerHTML = Util.format(time)
-    this.find('.xg-curbar').style.width = `${time / this.duration * 100}%`
+    this.find('.xg-curbar').style.width = `${(time / this.duration) * 100}%`
     if (isForward) {
       Util.removeClass(this.find('.xg-seek-show'), 'xg-back')
     } else {
@@ -658,16 +685,16 @@ class MobilePlugin extends Plugin {
     // this.thumbnailPlugin && thumbnail.update(time)
   }
 
-  updateThumbnails (time) {
+  updateThumbnails(time) {
     const { player } = this
     const { thumbnail } = player.plugins
-    if (thumbnail && thumbnail.usable) {
+    if (thumbnail?.usable) {
       this.thumbnail && thumbnail.update(this.thumbnail, time, 160, 90)
       // this.videothumbnail && thumbnail.update(this.videothumbnail, time, rect.width, rect.height)
     }
   }
 
-  switchPlayPause () {
+  switchPlayPause() {
     const { player } = this
     if (player.state < STATES.ATTACHED) {
       return false
@@ -681,36 +708,37 @@ class MobilePlugin extends Plugin {
   }
 
   // 动态禁用手势
-  disableGesture () {
+  disableGesture() {
     this.config.disableGesture = true
   }
 
   // 动态启用手势
-  enableGesture () {
+  enableGesture() {
     this.config.disableGesture = false
   }
 
-  destroy () {
+  destroy() {
     const { player } = this
     this.timer && clearTimeout(this.timer)
     this.thumbnail = null
     player.root.removeChild(this.xgMask)
     this.xgMask = null
-    this.touch && this.touch.destroy()
+    this.touch?.destroy()
     this.touch = null
     player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
     player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
     player.root.removeEventListener('touchcancel', this.onRootTouchEnd, true)
     const { controls } = this.player
-    if (controls && controls.center) {
+    if (controls?.center) {
       controls.center.removeEventListener('touchmove', this.onRootTouchMove, true)
       controls.center.removeEventListener('touchend', this.onRootTouchEnd, true)
       controls.center.removeEventListener('touchcancel', this.onRootTouchEnd, true)
     }
   }
 
-  render () {
-    const className = this.config.gradient !== 'normal' ? `gradient ${this.config.gradient}` : 'gradient'
+  render() {
+    const className =
+      this.config.gradient !== 'normal' ? `gradient ${this.config.gradient}` : 'gradient'
     return `
      <xg-trigger class="trigger">
      <div class="${className}"></div>

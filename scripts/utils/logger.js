@@ -7,28 +7,29 @@ if (process.env.FORCE_COLOR === '0' || process.env.NO_COLOR) {
 const stderr = console.error.bind(console)
 
 module.exports = {
-  error (msg) {
+  error(msg) {
     console.log(bold(bgRedBright('\nERROR: ' + msg)))
   },
-  success (msg) {
+  success(msg) {
     console.log(green(msg))
   },
-  warning (msg) {
+  warning(msg) {
     console.log(bold(yellow('\nWARNING: ' + msg)))
   },
-  info (msg) {
+  info(msg) {
     console.log(cyan(msg))
   },
-  dim (msg) {
+  dim(msg) {
     console.log(dim(msg))
   },
-  step (msg) {
+  step(msg) {
     console.log(bold(cyan(msg)))
   },
-  handleError (err, recover = false) {
+  handleError(err, recover = false) {
     let description = err.message || err
     if (err.name) description = `${err.name}: ${description}`
-    const message = (err.plugin ? `(plugin ${err.plugin}) ${description}` : description) || err
+    const message =
+      (err.plugin ? `(plugin ${err.plugin}) ${description}` : description) || err
 
     stderr(bold(red(`[!] ${bold(message.toString())}`)))
 

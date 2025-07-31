@@ -2,7 +2,6 @@ import { FlvDemuxer } from '../../src'
 import { readFile, readMovie, trackSnapshotTest } from '../test-utils'
 
 describe('FlvDemuxer', () => {
-
   beforeAll(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {})
   })
@@ -31,7 +30,7 @@ describe('FlvDemuxer', () => {
     expect(videoTrack.vps.length).toBeTruthy()
   })
 
-  test('parse pcma audio: h264_pcma_channel1_8000' , () => {
+  test('parse pcma audio: h264_pcma_channel1_8000', () => {
     const file = readFile('flv/h264_pcma_channel1_8000.flv')
     const demuxer = new FlvDemuxer()
     const { audioTrack } = demuxer.demuxAndFix(file)
@@ -45,7 +44,7 @@ describe('FlvDemuxer', () => {
     // expect(audioTrack.sampleDuration).toBe(40)
   })
 
-  test('parse pcmu audio: h264_pcmu_channel1_8000' , () => {
+  test('parse pcmu audio: h264_pcmu_channel1_8000', () => {
     const file = readFile('flv/h264_pcmu_channel1_8000.flv')
     const demuxer = new FlvDemuxer()
     const { audioTrack } = demuxer.demuxAndFix(file)
@@ -57,7 +56,7 @@ describe('FlvDemuxer', () => {
     // expect(audioTrack.sampleSize).toBe(16)
   })
 
-  test("parse mp3, no support: mp3.flv", () => {
+  test('parse mp3, no support: mp3.flv', () => {
     const file = readFile('flv/mp3.flv')
     const demuxer = new FlvDemuxer()
     const { videoTrack, audioTrack } = demuxer.demuxAndFix(file)
@@ -91,7 +90,7 @@ describe('FlvDemuxer', () => {
     expect(videoTrack.codec).toBe('avc1.640034')
   })
 
-  test("parse metadataTrack" , () => {
+  test('parse metadataTrack', () => {
     const file = readFile('flv/h265_aac_44100.flv')
     const demuxer = new FlvDemuxer()
     const { metadataTrack } = demuxer.demuxAndFix(file)

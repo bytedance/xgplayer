@@ -1,14 +1,13 @@
-
 export const LogCacheLevel = {
-  'DEBUG': 1,
-  'LOG': 2,
-  'WARN': 3,
-  'ERROR': 4
+  DEBUG: 1,
+  LOG: 2,
+  WARN: 3,
+  ERROR: 4
 }
 const LOG_MAX_SIZE = 200 * 1024
-const SIMPLE_TYPE = ['Boolean', 'Number' ,'String', 'Undefined','Null', 'Date','Object']
+const SIMPLE_TYPE = ['Boolean', 'Number', 'String', 'Undefined', 'Null', 'Date', 'Object']
 export class Logger {
-  constructor (name,config) {
+  constructor(name, config) {
     this.name = name || ''
     this._prefix = `[${this.name}]`
     this.logCacheLevel = config?.logCacheLevel || 3
@@ -17,37 +16,37 @@ export class Logger {
     this.logTextArray = []
   }
 
-  debug (...args) {
-    this.logCache(LogCacheLevel.DEBUG,...args)
+  debug(...args) {
+    this.logCache(LogCacheLevel.DEBUG, ...args)
     if (Logger.disabled) return
     console.debug(`[${nowTime()}]`, this._prefix, ...args)
   }
 
-  log (...args) {
-    this.logCache(LogCacheLevel.LOG,...args)
+  log(...args) {
+    this.logCache(LogCacheLevel.LOG, ...args)
     if (Logger.disabled) return
     console.log(`[${nowTime()}]`, this._prefix, ...args)
   }
 
-  warn (...args) {
-    this.logCache(LogCacheLevel.WARN,...args)
+  warn(...args) {
+    this.logCache(LogCacheLevel.WARN, ...args)
     if (Logger.disabled) return
     console.warn(`[${nowTime()}]`, this._prefix, ...args)
   }
 
-  error (...args) {
-    this.logCache(LogCacheLevel.ERROR,...args)
+  error(...args) {
+    this.logCache(LogCacheLevel.ERROR, ...args)
     if (Logger.disabled) return
     console.error(`[${nowTime()}]`, this._prefix, ...args)
   }
 
-  logCache (logCacheLevel, ...logText) {
+  logCache(logCacheLevel, ...logText) {
     if (logCacheLevel < this.logCacheLevel) return
     let text = ''
     try {
-      const finLogText = logText.map( item => logable(item))
-      text = `[${nowTime()}]` + this._prefix + (JSON.stringify(finLogText))
-    } catch (e) {
+      const finLogText = logText.map(item => logable(item))
+      text = `[${nowTime()}]${this._prefix}${JSON.stringify(finLogText)}`
+    } catch (_e) {
       return
     }
     if (logCacheLevel >= this.logCacheLevel) {
@@ -60,18 +59,18 @@ export class Logger {
     }
   }
 
-  getLogCache () {
+  getLogCache() {
     const logText = this.logTextArray.join('\n')
     this.reset()
     return logText
   }
 
-  reset () {
+  reset() {
     this.logTextArray = []
     this.logSize = 0
   }
 
-  table (...args) {
+  table(...args) {
     if (Logger.disabled) return
     console.group(this._prefix)
     console.table(...args)
@@ -80,23 +79,23 @@ export class Logger {
 
   static disabled = true
 
-  static enable () {
+  static enable() {
     Logger.disabled = false
   }
 
-  static disable () {
+  static disable() {
     Logger.disabled = true
   }
 
-  setLogLevel (val) {
+  setLogLevel(val) {
     this.logCacheLevel = val
   }
 }
-function nowTime () {
+function nowTime() {
   return new Date().toLocaleString()
 }
 
-function reduceDepth (val) {
+function reduceDepth(val) {
   if (typeof val !== 'object') {
     return val
   }
@@ -105,8 +104,7 @@ function reduceDepth (val) {
     case 'Array':
     case 'Uint8Array':
     case 'ArrayBuffer':
-
-      return objType + '[' + val.length + ']'
+      return `${objType}[${val.length}]`
     case 'Object':
       return '{}'
     default:
@@ -114,7 +112,7 @@ function reduceDepth (val) {
   }
 }
 
-function logable (obj, maxDepth, depth) {
+function logable(obj, maxDepth, depth) {
   if (!depth) depth = 1
   if (!maxDepth) maxDepth = 2
   const result = {}
@@ -132,7 +130,6 @@ function logable (obj, maxDepth, depth) {
     return undefined
   }
 
-
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (depth === maxDepth) {
@@ -146,4 +143,3 @@ function logable (obj, maxDepth, depth) {
   }
   return result
 }
-

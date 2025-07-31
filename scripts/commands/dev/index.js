@@ -5,7 +5,7 @@ const { cyan, bold } = require('colorette')
 const { getBuildConfig } = require('../../utils')
 const ctx = require('../../context')
 
-async function dev (dir, p, open) {
+async function dev(dir, p, open) {
   const replace = ctx.getReplace(ctx.config, undefined, true)
   let cfg = await getBuildConfig(true, { replace, plugins: ctx.config.plugins })
   cfg.build.sourcemap = !!ctx.config.devSourceMap
@@ -24,7 +24,7 @@ async function dev (dir, p, open) {
     cfg.plugins.push({
       enforce: 'post',
       name: 'libd-dev-progress-hook',
-      buildEnd () {
+      buildEnd() {
         setTimeout(() => {
           ctx.runDevProgress()
         })
@@ -43,9 +43,9 @@ async function dev (dir, p, open) {
   const port = server.httpServer.address().port
   console.log()
   Object.values(os.networkInterfaces())
-    .flatMap((nInterface) => nInterface ?? [])
-    .filter((detail) => detail && detail.address && detail.family === 'IPv4')
-    .forEach((detail) => {
+    .flatMap(nInterface => nInterface ?? [])
+    .filter(detail => detail && detail.address && detail.family === 'IPv4')
+    .forEach(detail => {
       const type = detail.address.includes('127.0.0.1') ? 'Local:   ' : 'Network: '
       const url = `${protocol}://${detail.address}:${bold(port)}${dir}`
       console.log(`  > ${type} ${cyan(url)}`)

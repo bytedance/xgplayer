@@ -1,17 +1,17 @@
 export default class XgplayerTimeRange {
-  constructor (bufferedList) {
+  constructor(bufferedList) {
     this.bufferedList = bufferedList
   }
 
-  start (index) {
+  start(index) {
     return this.bufferedList[index].start
   }
 
-  end (index) {
+  end(index) {
     return this.bufferedList[index].end
   }
 
-  get length () {
+  get length() {
     return this.bufferedList.length
   }
 }

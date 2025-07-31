@@ -18,14 +18,14 @@ import './index.scss'
  * }} IDefinitionConfig
  */
 export default class DefinitionIcon extends OptionsIcon {
-  static get pluginName () {
+  static get pluginName() {
     return 'definition'
   }
 
   /**
    * @type IDefinitionConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       ...OptionsIcon.defaultConfig,
       position: POSITIONS.CONTROLS_RIGHT,
@@ -39,7 +39,7 @@ export default class DefinitionIcon extends OptionsIcon {
     }
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     const { list } = args.config
     if (Array.isArray(list) && list.length > 0) {
       args.config.list = list.map(item => {
@@ -54,20 +54,20 @@ export default class DefinitionIcon extends OptionsIcon {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     // 记录切换的时候的播放器状态
     this.curTime = 0
     this.isPaused = true
   }
 
-  afterCreate () {
+  afterCreate() {
     super.afterCreate()
-    this.on('resourceReady', (list) => {
+    this.on('resourceReady', list => {
       this.changeDefinitionList(list)
     })
 
-    this.on(Events.DEFINITION_CHANGE, (data) => {
+    this.on(Events.DEFINITION_CHANGE, data => {
       this.renderItemList(this.config.list, data.to)
     })
     if (this.player.definitionList.length < 2) {
@@ -79,14 +79,14 @@ export default class DefinitionIcon extends OptionsIcon {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
-    if (!this.config.list || this.config.list.length < 2){
+  show(_value) {
+    if (!this.config.list || this.config.list.length < 2) {
       return
     }
     Util.addClass(this.root, 'show')
   }
 
-  initDefinition () {
+  initDefinition() {
     const { list, defaultDefinition } = this.config
     if (list.length > 0) {
       let to = null
@@ -102,10 +102,10 @@ export default class DefinitionIcon extends OptionsIcon {
     }
   }
 
-  renderItemList (list = this.config.list || [], to) {
-    const targetDef = to && to.definition ? to.definition : this.config.defaultDefinition
+  renderItemList(list = this.config.list || [], to) {
+    const targetDef = to?.definition ? to.definition : this.config.defaultDefinition
     if (to) {
-      list.forEach((item) => {
+      list.forEach(item => {
         item.selected = false
       })
     }
@@ -117,9 +117,11 @@ export default class DefinitionIcon extends OptionsIcon {
         selected: false
       }
 
-      if (item.selected || (item.definition
-        // eslint-disable-next-line eqeqeq
-        && item.definition == targetDef)
+      if (
+        item.selected ||
+        (item.definition &&
+          // eslint-disable-next-line eqeqeq
+          item.definition === targetDef)
       ) {
         showItem.selected = true
         curIndex = index
@@ -130,7 +132,7 @@ export default class DefinitionIcon extends OptionsIcon {
   }
 
   // 对外暴露 切换清晰度
-  changeDefinitionList (list) {
+  changeDefinitionList(list) {
     if (!Array.isArray(list)) {
       return
     }
@@ -147,11 +149,11 @@ export default class DefinitionIcon extends OptionsIcon {
     this.config.list.length < 2 ? this.hide() : this.show()
   }
 
-  changeDefinition (to, from) {
+  changeDefinition(to, from) {
     this.player.changeDefinition(to, from)
   }
 
-  onItemClick (e, data) {
+  onItemClick(e, data) {
     const { definitionList } = this.player
     super.onItemClick(...arguments)
     this.emitUserAction(e, 'change_definition', { from: data.from, to: data.to })
@@ -160,7 +162,7 @@ export default class DefinitionIcon extends OptionsIcon {
         data.to.url = definitionList[i].url
       }
 
-      if (data.from && (definitionList[i].definition === data.from.definition)) {
+      if (data.from && definitionList[i].definition === data.from.definition) {
         data.from.url = definitionList[i].url
       }
     }

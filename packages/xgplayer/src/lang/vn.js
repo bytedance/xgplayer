@@ -35,16 +35,15 @@ export default {
         msg: 'lỗi khác'
       }
     },
-    HAVE_NOTHING:
-        'Không có thông tin về việc âm thanh/video đã sẵn sàng hay chưa',
+    HAVE_NOTHING: 'Không có thông tin về việc âm thanh/video đã sẵn sàng hay chưa',
     HAVE_METADATA: 'Siêu dữ liệu về âm thanh/video đã sẵn sàng ',
     HAVE_CURRENT_DATA:
-        'Đã có dữ liệu về vị trí phát hiện tại, nhưng không có đủ dữ liệu để phát khung hình/mili giây tiếp theo',
+      'Đã có dữ liệu về vị trí phát hiện tại, nhưng không có đủ dữ liệu để phát khung hình/mili giây tiếp theo',
     HAVE_FUTURE_DATA: 'Hiện tại và có ít nhất một khung dữ liệu khả dụng',
     HAVE_ENOUGH_DATA: 'Dữ liệu khả dụng đã đủ để bắt đầu phát',
     NETWORK_EMPTY: 'Chưa khởi tạo âm thanh/video',
     NETWORK_IDLE:
-        'Âm thanh/video đang hoạt động và đã được chọn làm tài nguyên nhưng không có mạng nào được sử dụng',
+      'Âm thanh/video đang hoạt động và đã được chọn làm tài nguyên nhưng không có mạng nào được sử dụng',
     NETWORK_LOADING: 'Trình duyệt đang tải dữ liệu về',
     NETWORK_NO_SOURCE: 'Không tìm thấy nguồn âm thanh/video',
     MEDIA_ERR_ABORTED: 'Người dùng đã hủy bỏ quy trình tìm nạp',

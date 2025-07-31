@@ -13,5 +13,4 @@ module.exports = function (context, github) {
     title,
     body
   })
-
 }

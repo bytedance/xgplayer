@@ -13,9 +13,11 @@ import webWorkerLoader from 'rollup-plugin-web-worker-loader'
 import { babel } from '@rollup/plugin-babel'
 
 const packagesDir = path.resolve(__dirname, '../packages')
-const entries = fs.readdirSync(packagesDir).reduce((p, c) => (p[c] = path.resolve(packagesDir, c, 'src/index.js'), p), {})
+const entries = fs
+  .readdirSync(packagesDir)
+  .reduce((p, c) => ((p[c] = path.resolve(packagesDir, c, 'src/index.js')), p), {})
 
-export function commonPlugins (pkgInfo) {
+export function commonPlugins(pkgInfo) {
   return [
     alias({ entries }),
     nodeResolve(),
@@ -38,16 +40,14 @@ export function commonPlugins (pkgInfo) {
   ]
 }
 
-export function createCssConfig (input, output, pkgDir) {
+export function createCssConfig(input, output, pkgDir) {
   const config = {
     input,
     plugins: [
       scss({
         output,
         processor: () => postcss([autoprefixer()]),
-        includePaths: [
-          path.resolve(__dirname, '../node_modules')
-        ],
+        includePaths: [path.resolve(__dirname, '../node_modules')],
 
         // watch mode
         outputStyle: pkgDir ? undefined : 'compressed',
@@ -58,11 +58,16 @@ export function createCssConfig (input, output, pkgDir) {
   return config
 }
 
-export function getUmdName (pkg, pathName) {
-  return pkg.umdName || pathName.replace(/^xgplayer/i, 'XGPlayer').replace(/-([A-Za-z])/g, (_, c) => c.toUpperCase())
+export function getUmdName(pkg, pathName) {
+  return (
+    pkg.umdName ||
+    pathName
+      .replace(/^xgplayer/i, 'XGPlayer')
+      .replace(/-([A-Za-z])/g, (_, c) => c.toUpperCase())
+  )
 }
 
-export function getJsEntry (pkgDir, esEntry = []) {
+export function getJsEntry(pkgDir, esEntry = []) {
   const esIndex = path.resolve(pkgDir, 'src/index.js')
   let entryFileJsUmd = path.resolve(pkgDir, 'src/index.umd.js')
   entryFileJsUmd = fs.existsSync(entryFileJsUmd) ? entryFileJsUmd : esIndex
@@ -73,14 +78,17 @@ export function getJsEntry (pkgDir, esEntry = []) {
   return [esEntryFiles, entryFileJsUmd]
 }
 
-export function getCssEntry (pkgDir) {
+export function getCssEntry(pkgDir) {
   const entryFileCss = path.resolve(pkgDir, 'src/index.scss')
   const entryFileCssMobile = path.resolve(pkgDir, 'src/index.mobile.scss')
 
-  return [fs.existsSync(entryFileCss) && entryFileCss, fs.existsSync(entryFileCssMobile) && entryFileCssMobile]
+  return [
+    fs.existsSync(entryFileCss) && entryFileCss,
+    fs.existsSync(entryFileCssMobile) && entryFileCssMobile
+  ]
 }
 
-export function getUmdGlobals (peerDependencies, custom) {
+export function getUmdGlobals(peerDependencies, custom) {
   let globals = {}
   if (peerDependencies.length) {
     const pkgNames = fs.readdirSync(packagesDir).reduce((ret, p) => {

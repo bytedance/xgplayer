@@ -3,27 +3,27 @@ import loadingIcon from '../assets/loading.svg'
 import './index.scss'
 
 class Loading extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'loading'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.ROOT
     }
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       loadingIcon: loadingIcon
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.appendChild('xg-loading-inner', this.icons.loadingIcon)
   }
 
-  render () {
+  render() {
     return `
     <xg-loading class="xgplayer-loading">
       <xg-loading-inner></xg-loading-inner>

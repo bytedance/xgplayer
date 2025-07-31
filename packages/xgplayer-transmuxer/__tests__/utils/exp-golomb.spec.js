@@ -1,7 +1,6 @@
 import { ExpGolomb } from '../../src/utils'
 
 describe('ExpGolomb', () => {
-
   test('Throw error when not enough data', () => {
     expect(() => {
       new ExpGolomb()
@@ -19,7 +18,7 @@ describe('ExpGolomb', () => {
   })
 
   test('Read and skip data', () => {
-    let eg = new ExpGolomb(new Uint8Array([0x00, 0x00, 0x00, 0x00, 0xff]));
+    let eg = new ExpGolomb(new Uint8Array([0x00, 0x00, 0x00, 0x00, 0xff]))
     expect(eg.skipLZ()).toBe(32)
     expect(eg.readBits(8)).toBe(0xff)
 
@@ -37,17 +36,16 @@ describe('ExpGolomb', () => {
   })
 
   test('Parse AVC SPS', () => {
-    const eg = new ExpGolomb(new Uint8Array([
-      0x27, 0x42, 0xe0, 0x0b,
-      0xa9, 0x18, 0x60, 0x9d,
-      0x80, 0x35, 0x06, 0x01,
-      0x06, 0xb6, 0xc2, 0xb5,
-      0xef, 0x7c, 0x04
-    ]))
+    const eg = new ExpGolomb(
+      new Uint8Array([
+        0x27, 0x42, 0xe0, 0x0b, 0xa9, 0x18, 0x60, 0x9d, 0x80, 0x35, 0x06, 0x01, 0x06,
+        0xb6, 0xc2, 0xb5, 0xef, 0x7c, 0x04
+      ])
+    )
 
     expect(eg.readUByte()).toBe(0x27) // NAL type
     expect(eg.readUByte()).toBe(66) // profile_idc
-    expect(eg.readBits(4)).toBe(0x0E) // constraints
+    expect(eg.readBits(4)).toBe(0x0e) // constraints
     eg.skipBits(4)
     expect(eg.readUByte()).toBe(11) // level_idc
     expect(eg.readUEG()).toBe(0) // seq_parameter_set_id
@@ -62,5 +60,4 @@ describe('ExpGolomb', () => {
     expect(eg.readBits(1)).toBe(1) // direct_8x8_inference_flag
     expect(eg.readBits(1)).toBe(0) // frame_cropping_flag
   })
-
 })

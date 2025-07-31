@@ -3,32 +3,32 @@ import './index.scss'
 
 /**
  * @typedef {{
-*   lineWidth?: number,
-*   dpi?: number,
-*   alpha?: number,
-*   gradient?: Array<number>,
-*   gradientColors?: Array<{ start: number, color:number }>,
-*   strokeStyle?: string,
-*   fillColor?: string,
-*   height?: number,
-*   data?: Array<number>,
-*   maxValue?: number,
-*   minValue?: number,
-*   maxLength?: number,
-*   mode?: string,
-*   [propName: string]: any
-* }} IHeatMapConfig
-*/
+ *   lineWidth?: number,
+ *   dpi?: number,
+ *   alpha?: number,
+ *   gradient?: Array<number>,
+ *   gradientColors?: Array<{ start: number, color:number }>,
+ *   strokeStyle?: string,
+ *   fillColor?: string,
+ *   height?: number,
+ *   data?: Array<number>,
+ *   maxValue?: number,
+ *   minValue?: number,
+ *   maxLength?: number,
+ *   mode?: string,
+ *   [propName: string]: any
+ * }} IHeatMapConfig
+ */
 
 export default class HeatMap extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'heatmap'
   }
 
   /**
    * @type IHeatMapConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       lineWidth: 0,
       dpi: 2, // 分辨率
@@ -46,7 +46,7 @@ export default class HeatMap extends Plugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     // 画布高度
     this.canvasHeight = 0
@@ -66,7 +66,7 @@ export default class HeatMap extends Plugin {
     // 本次热图数据
     this.curData = []
   }
-  afterPlayerInit () {
+  afterPlayerInit() {
     if (this.root) {
       return
     }
@@ -74,7 +74,7 @@ export default class HeatMap extends Plugin {
     this.reset()
   }
 
-  afterCreate () {
+  afterCreate() {
     this.on(Events.VIDEO_RESIZE, () => {
       this.resize()
     })
@@ -84,25 +84,25 @@ export default class HeatMap extends Plugin {
     })
   }
 
-  setConfig (config) {
+  setConfig(config) {
     Object.keys(config).forEach(key => {
       this.config[key] = config[key]
     })
     this.reset()
   }
 
-  reset () {
-    const {data} = this.config
+  reset() {
+    const { data } = this.config
     this.setData(data)
     this.resize()
   }
 
-  createRoot () {
+  createRoot() {
     if (this.root) {
       return
     }
     const { mode } = this.config
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     const parent = progress.root
     const _class = mode === 'activeShow' ? 'xg-heatmap-active-show' : 'xg-heatmap-normal'
     const root = Util.createDom('div', '', {}, `xg-heatmap ${_class}`)
@@ -115,7 +115,7 @@ export default class HeatMap extends Plugin {
     this.canvas = canvas
   }
 
-  resize () {
+  resize() {
     const { dpi } = this.config
     const { width, height } = this.root.getBoundingClientRect()
     if (width === this.width && height * dpi === this.height) {
@@ -132,7 +132,7 @@ export default class HeatMap extends Plugin {
     }
   }
 
-  formatData (data, duration, minValue) {
+  formatData(data, duration, minValue) {
     const nData = []
     if (data.length < 1) {
       return nData
@@ -171,7 +171,7 @@ export default class HeatMap extends Plugin {
       // 结束的时间不是duration则插入最小值
       const last = nData[nData.length - 1]
       if (duration - last.time > step) {
-        [last.time + step, duration].forEach(item => {
+        ;[last.time + step, duration].forEach(item => {
           const dur = parseInt(item * 1000, 10)
           nData.push({
             time: item,
@@ -188,15 +188,15 @@ export default class HeatMap extends Plugin {
     return nData
   }
 
-  _getX (index, stepX, item, width) {
+  _getX(index, stepX, item, width) {
     if (item.percent !== undefined) {
-      return this.fixFloat (width * item.percent, this.dataFloatLen)
+      return this.fixFloat(width * item.percent, this.dataFloatLen)
     } else {
       return this.fixFloat((index - 1) * stepX, this.dataFloatLen)
     }
   }
 
-  _getY (item, stepY, maxY) {
+  _getY(item, stepY, maxY) {
     const { maxValue, minValue } = this.config
     let y = minValue
     y = item.score !== undefined ? item.score : item
@@ -212,9 +212,9 @@ export default class HeatMap extends Plugin {
     return y
   }
 
-  setData (data) {
+  setData(data) {
     const { maxValue, minValue, maxLength } = this.config
-    if (data && data.length) {
+    if (data?.length) {
       this.curData = this.formatData(data, this._duration, minValue)
     }
     data = this.curData
@@ -231,7 +231,10 @@ export default class HeatMap extends Plugin {
     // 取值间隔（原始数据一秒一个点）
     let curDataLength = data.length
     // 采样率, 大于最大数据量需要做采样
-    const step_D = curDataLength > maxLength ? this.fixFloat(curDataLength / maxLength, this.dataFloatLen) : 1
+    const step_D =
+      curDataLength > maxLength
+        ? this.fixFloat(curDataLength / maxLength, this.dataFloatLen)
+        : 1
     // 由于数据是1秒一个点，防止数据过多导致性能下降，所以要挑数据
     curDataLength = parseInt(curDataLength / step_D)
 
@@ -262,11 +265,16 @@ export default class HeatMap extends Plugin {
     // this.yData.push(minValue)
   }
 
-  _getFillStyle (ctx) {
-    const {gradient, gradientColors, fillStyle } = this.config
+  _getFillStyle(ctx) {
+    const { gradient, gradientColors, fillStyle } = this.config
     let fStyle = fillStyle
     if (gradient && gradient.length === 4) {
-      const gradientStyle = ctx.createLinearGradient(gradient[0], gradient[1], gradient[2], gradient[3])
+      const gradientStyle = ctx.createLinearGradient(
+        gradient[0],
+        gradient[1],
+        gradient[2],
+        gradient[3]
+      )
       if (gradientColors.length < 2) {
         console.warn(this.pluginName, '渐变颜色配置gradientColors异常')
       } else {
@@ -279,7 +287,7 @@ export default class HeatMap extends Plugin {
     return fStyle
   }
 
-  drawLinePath () {
+  drawLinePath() {
     this.clearCanvas()
     const ctx = this.canvas.getContext('2d')
     const { xData, yData } = this
@@ -308,12 +316,12 @@ export default class HeatMap extends Plugin {
     ctx.fill()
   }
 
-  clearCanvas () {
+  clearCanvas() {
     this.canvas.width = this.canvasWidth
     this.canvas.height = this.canvasHeight
   }
 
-  fixFloat (_num, _length) {
+  fixFloat(_num, _length) {
     if (typeof _num === 'number') {
       return parseFloat(_num.toFixed(_length))
     }
@@ -321,7 +329,7 @@ export default class HeatMap extends Plugin {
     return NaN
   }
 
-  render () {
+  render() {
     return ''
   }
 }

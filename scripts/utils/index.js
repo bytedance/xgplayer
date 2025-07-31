@@ -3,19 +3,22 @@ const fs = require('fs-extra')
 const execa = require('execa')
 const ctx = require('../context')
 
-function getUmdName (pkg, config) {
+function getUmdName(pkg, config) {
   return config.umdName || pkg.name
 }
 
-function getJsEntry (pkgDir, isTs) {
+function getJsEntry(pkgDir, isTs) {
   const esIndex = path.resolve(pkgDir, 'src/index' + (isTs ? '.ts' : '.js'))
-  let entryFileJsUmd = path.resolve(pkgDir, 'src/index.umd' + (isTsUmdEntry(pkgDir) ? '.ts' : '.js'))
+  let entryFileJsUmd = path.resolve(
+    pkgDir,
+    'src/index.umd' + (isTsUmdEntry(pkgDir) ? '.ts' : '.js')
+  )
   entryFileJsUmd = fs.existsSync(entryFileJsUmd) ? entryFileJsUmd : esIndex
 
   return [esIndex, entryFileJsUmd]
 }
 
-function getUmdGlobals (peerDependencies, custom) {
+function getUmdGlobals(peerDependencies, custom) {
   let globals = {}
   if (peerDependencies.length && ctx.isMonorepo) {
     const pkgNames = Object.values(ctx.pkgs).reduce((ret, p) => {
@@ -37,12 +40,12 @@ function getUmdGlobals (peerDependencies, custom) {
   return Object.assign(globals, custom)
 }
 
-function isTsUmdEntry (folder) {
+function isTsUmdEntry(folder) {
   return fs.existsSync(path.resolve(folder, 'src/index.umd.ts'))
 }
 
 let pkgM
-function installPkgs (pkgs) {
+function installPkgs(pkgs) {
   if (!pkgs || !pkgs.length) return
   if (!pkgM) {
     try {
@@ -54,7 +57,10 @@ function installPkgs (pkgs) {
   }
 
   const isWorkspaces = !!require(path.resolve(process.cwd(), 'package.json')).workspaces
-  const args = pkgM === 'yarn' ? ['add', isWorkspaces ? '-W' : '', '-D', ...pkgs] : ['i', '-D', ...pkgs]
+  const args =
+    pkgM === 'yarn'
+      ? ['add', isWorkspaces ? '-W' : '', '-D', ...pkgs]
+      : ['i', '-D', ...pkgs]
 
   execa.sync(pkgM, args.filter(Boolean), {
     stdio: 'inherit',
@@ -62,7 +68,7 @@ function installPkgs (pkgs) {
   })
 }
 
-function splitSubArrays (inputArray, max = 4) {
+function splitSubArrays(inputArray, max = 4) {
   if (!Array.isArray(inputArray)) {
     throw new TypeError('输入必须是一个数组')
   }
@@ -85,7 +91,6 @@ function splitSubArrays (inputArray, max = 4) {
 
   return outputArray
 }
-
 
 module.exports = {
   installPkgs,

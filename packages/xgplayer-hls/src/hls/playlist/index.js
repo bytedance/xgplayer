@@ -1,6 +1,6 @@
+import { Event } from '../constants'
 import { clamp } from '../utils'
 import { Stream } from './stream'
-import { Event } from '../constants'
 
 export class Playlist {
   /** @type {import('./stream').Stream[]} */
@@ -13,102 +13,99 @@ export class Playlist {
 
   _segmentPointer = -1
 
-  constructor (hls) {
+  constructor(hls) {
     this.hls = hls
   }
 
-  get lowLatency () {
+  get lowLatency() {
     return this.currentStream?.lowLatency
   }
 
-  get lastSegment () {
+  get lastSegment() {
     return this.currentStream?.lastSegment
   }
 
-  get currentSegment () {
+  get currentSegment() {
     return this.currentSegments?.[this._segmentPointer]
   }
 
-  get nextSegment () {
+  get nextSegment() {
     return this.currentSegments?.[this._segmentPointer + 1]
   }
 
-  get currentSegments () {
+  get currentSegments() {
     return this.currentStream?.segments
   }
 
-  get currentSubtitleEndSn () {
+  get currentSubtitleEndSn() {
     return this.currentStream?.currentSubtitleEndSn
   }
 
-  get liveEdge () {
+  get liveEdge() {
     return this.currentStream?.liveEdge
   }
 
-  set liveEdge (end) {
+  set liveEdge(end) {
     if (this.currentStream) {
       this.currentStream.liveEdge = end
     }
   }
 
-  get totalDuration () {
+  get totalDuration() {
     return this.currentStream?.totalDuration || 0
   }
 
-  get seekRange () {
+  get seekRange() {
     const segments = this.currentSegments
-    if (!segments || !segments.length) return
-    return [
-      segments[0].start,
-      segments[segments.length - 1].end
-    ]
+    if (!segments || !segments.length) return null
+    return [segments[0].start, segments[segments.length - 1].end]
   }
 
-  get nbSegments () {
+  get nbSegments() {
     return this.currentSegments?.length || 0
   }
 
-  get isEmpty () {
+  get isEmpty() {
     return !this.currentSegments?.length
   }
 
-  get isLive () {
+  get isLive() {
     return this.currentStream?.live
   }
 
-  get hadSegmentLoaded () {
+  get hadSegmentLoaded() {
     return this._segmentPointer !== -1
   }
 
-  get hasSubtitle () {
+  get hasSubtitle() {
     return !!this.currentStream?.currentSubtitleStream
   }
 
-  getAudioSegment (seg) {
+  getAudioSegment(seg) {
     return this.currentStream?.getAudioSegment(seg)
   }
 
-  moveSegmentPointer (pos) {
+  moveSegmentPointer(pos) {
     if (pos === null || pos === undefined) pos = this._segmentPointer + 1
     this._segmentPointer = clamp(pos, -1, this.currentSegments?.length)
   }
 
-  reset () {
+  reset() {
     this.streams = []
     this.currentStream = null
     this.dvrWindow = 0
     this._segmentPointer = -1
   }
 
-  getSegmentByIndex (index) {
+  getSegmentByIndex(index) {
     return this.currentSegments?.[index]
   }
 
-  setNextSegmentByIndex (index = 0) {
+  setNextSegmentByIndex(index = 0) {
     this._segmentPointer = index - 1
   }
 
-  setNextSegmentBySN (sn = 0) {
+  setNextSegmentBySN(sn = 0) {
     const preIndex = this.currentSegments?.findIndex(x => x.sn === sn)
     if (preIndex !== -1) {
       this.setNextSegmentByIndex(preIndex + 1)
@@ -116,7 +113,7 @@ export class Playlist {
     return preIndex
   }
 
-  findSegmentIndexByTime (time) {
+  findSegmentIndexByTime(time) {
     const segments = this.currentSegments
     if (segments) {
       for (let i = 0, l = segments.length, seg; i < l; i++) {
@@ -131,17 +128,19 @@ export class Playlist {
     }
   }
 
-  upsertPlaylist (playlist, audioPlaylist, subtitlePlaylist) {
+  upsertPlaylist(playlist, audioPlaylist, subtitlePlaylist) {
     if (!playlist) return
     if (playlist.isMaster) {
       this.streams.length = playlist.streams.length
-      playlist.streams.filter(x => x.url).forEach((stream, i) => {
-        if (this.streams[i]) {
-          this.streams[i].update(stream)
-        } else {
-          this.streams[i] = new Stream(stream)
-        }
-      })
+      playlist.streams
+        .filter(x => x.url)
+        .forEach((stream, i) => {
+          if (this.streams[i]) {
+            this.streams[i].update(stream)
+          } else {
+            this.streams[i] = new Stream(stream)
+          }
+        })
       this.currentStream = this.streams[0]
       // update media
     } else if (Array.isArray(playlist.segments)) {
@@ -156,7 +155,11 @@ export class Playlist {
         }
       } else {
         this.reset()
-        this.currentStream = this.streams[0] = new Stream(playlist, audioPlaylist, subtitlePlaylist)
+        this.currentStream = this.streams[0] = new Stream(
+          playlist,
+          audioPlaylist,
+          subtitlePlaylist
+        )
       }
     }
 
@@ -172,7 +175,7 @@ export class Playlist {
     }
   }
 
-  updateSegmentsRanges (sn, start) {
+  updateSegmentsRanges(sn, start) {
     const segs = this.currentSegments?.filter(x => x.sn >= sn)
     segs.forEach(s => {
       s.start = start
@@ -180,11 +183,11 @@ export class Playlist {
     })
   }
 
-  switchSubtitle (lang) {
+  switchSubtitle(lang) {
     this.currentStream?.switchSubtitle(lang)
   }
 
-  clearOldSegment (maxPlaylistSize = (this.hls.config.maxPlaylistSize || 50)) {
+  clearOldSegment(maxPlaylistSize = this.hls.config.maxPlaylistSize || 50) {
     const stream = this.currentStream
     if (!this.dvrWindow || !stream) return
     const startTime = stream.endTime - this.dvrWindow
@@ -195,7 +198,7 @@ export class Playlist {
     this._segmentPointer = stream.clearOldSegment(startTime, this._segmentPointer)
   }
 
-  checkSegmentTrackChange (cTime, nbSb) {
+  checkSegmentTrackChange(cTime, nbSb) {
     const index = this.findSegmentIndexByTime(cTime)
     const seg = this.getSegmentByIndex(index)
 
@@ -215,10 +218,10 @@ export class Playlist {
 
     if (!next.hasAudio && !next.hasVideo) return
 
-    if ((next.hasAudio !== seg.hasAudio || next.hasVideo !== seg.hasVideo)) return next
+    if (next.hasAudio !== seg.hasAudio || next.hasVideo !== seg.hasVideo) return next
   }
 
-  feedbackLiveEdge (segment, bufferEnd) {
+  feedbackLiveEdge(segment, bufferEnd) {
     const segs = this.currentSegments
     if (!segs) return
     const isLast = this.lastSegment?.sn === segment.sn
@@ -229,5 +232,4 @@ export class Playlist {
 
     this.updateSegmentsRanges(segment.sn + 1, bufferEnd)
   }
-
 }

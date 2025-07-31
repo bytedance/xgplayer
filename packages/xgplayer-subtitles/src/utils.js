@@ -1,39 +1,45 @@
-import SubTitleParser from './parser'
 import { _ERROR } from './error'
-import XHR from './xhr'
+import SubTitleParser from './parser'
 import ProxyPromise from './proxyPromise'
+import XHR from './xhr'
 
-export function hasClass (el, className) {
+export function hasClass(el, className) {
   if (!el) {
     return false
   }
   if (el.classList) {
     return Array.prototype.some.call(el.classList, item => item === className)
   } else {
-    const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
-    return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+    const orgClassName =
+      el.className && typeof el.className === 'object'
+        ? el.getAttribute('class')
+        : el.className
+    return orgClassName && !!orgClassName.match(new RegExp(`(\\s|^)${className}(\\s|$)`))
   }
 }
 
-export function addClass (el, className) {
+export function addClass(el, className) {
   if (!el) {
     return
   }
 
   if (el.classList) {
-    className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
-      item && el.classList.add(item)
-    })
+    className
+      .replace(/(^\s+|\s+$)/g, '')
+      .split(/\s+/g)
+      .forEach(item => {
+        item && el.classList.add(item)
+      })
   } else if (!hasClass(el, className)) {
     if (el.className && typeof el.className === 'object') {
-      el.setAttribute('class', el.getAttribute('class') + ' ' + className)
+      el.setAttribute('class', `${el.getAttribute('class')} ${className}`)
     } else {
-      el.className += ' ' + className
+      el.className += ` ${className}`
     }
   }
 }
 
-export function removeClass (el, className) {
+export function removeClass(el, className) {
   if (!el) {
     return
   }
@@ -43,7 +49,7 @@ export function removeClass (el, className) {
     })
   } else if (hasClass(el, className)) {
     className.split(/\s+/g).forEach(item => {
-      const reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
+      const reg = new RegExp(`(\\s|^)${item}(\\s|$)`)
       if (el.className && typeof el.className === 'object') {
         el.setAttribute('class', el.getAttribute('class').replace(reg, ' '))
       } else {
@@ -53,12 +59,12 @@ export function removeClass (el, className) {
   }
 }
 
-export function findIndexByTime (currentTime, list, index) {
+export function findIndexByTime(currentTime, list, index) {
   const len = list.length
   if (len < 1) {
     return -1
   }
-  index = index < 0 ? 0 : (index >= len ? len - 1 : index)
+  index = index < 0 ? 0 : index >= len ? len - 1 : index
   if (list[index].start <= currentTime && currentTime < list[index].end) {
     return index
   } else {
@@ -66,7 +72,11 @@ export function findIndexByTime (currentTime, list, index) {
     for (; i < len; i++) {
       if (list[i].start <= currentTime && currentTime < list[i].end) {
         return i
-      } else if (currentTime > list[i].end && i + 1 < len && currentTime < list[i + 1].start) {
+      } else if (
+        currentTime > list[i].end &&
+        i + 1 < len &&
+        currentTime < list[i + 1].start
+      ) {
         return -1
       } else if (currentTime > list[i].end && i + 1 >= len) {
         return -1
@@ -76,12 +86,12 @@ export function findIndexByTime (currentTime, list, index) {
   }
 }
 
-export function findCIndexByTime (currentTime, list, index) {
+export function findCIndexByTime(currentTime, list, index) {
   const len = list.length
   if (len < 1) {
     return []
   }
-  index = index < 0 ? 0 : (index >= len ? len - 1 : index)
+  index = index < 0 ? 0 : index >= len ? len - 1 : index
   const ids = []
   if (index < len) {
     let i = list[index].end <= currentTime ? index : 0
@@ -104,7 +114,7 @@ export function findCIndexByTime (currentTime, list, index) {
  * @param {number} gid 一级存储索引
  * @param {number} cid 二级存储索引
  */
-export function removeItemByIndex (list, gid, cid) {
+export function removeItemByIndex(list, gid, cid) {
   if (list.length === 0 || gid < 0 || gid > list.length - 1) {
     return
   }
@@ -119,7 +129,7 @@ export function removeItemByIndex (list, gid, cid) {
   gList.splice(cid, 1)
 }
 
-export function getItemsByIndex (list, gid, cids) {
+export function getItemsByIndex(list, gid, cids) {
   if (list.length === 0 || gid < 0 || gid > list.length - 1) {
     return []
   }
@@ -142,7 +152,7 @@ export function getItemsByIndex (list, gid, cids) {
   return ret
 }
 
-export function typeOf (obj) {
+export function typeOf(obj) {
   // eslint-disable-next-line no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
@@ -155,7 +165,7 @@ export function typeOf (obj) {
  * @param { string } [cname='']
  * @returns { HTMLElement | null }
  */
-export function createDom (el = 'div', tpl = '', attrs = {}, cname = '') {
+export function createDom(el = 'div', tpl = '', attrs = {}, cname = '') {
   const dom = document.createElement(el)
   dom.className = cname
   dom.innerHTML = tpl
@@ -173,18 +183,21 @@ export function createDom (el = 'div', tpl = '', attrs = {}, cname = '') {
   return dom
 }
 
-export function isMobile () {
+export function isMobile() {
   const ua = navigator.userAgent
   const isWindowsPhone = /(?:Windows Phone)/.test(ua)
   const isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
   const isAndroid = /(?:Android)/.test(ua)
   const isFireFox = /(?:Firefox)/.test(ua)
-  const isTablet = /(?:iPad|PlayBook)/.test(ua) || (isAndroid && !/(?:Mobile)/.test(ua)) || (isFireFox && /(?:Tablet)/.test(ua))
+  const isTablet =
+    /(?:iPad|PlayBook)/.test(ua) ||
+    (isAndroid && !/(?:Mobile)/.test(ua)) ||
+    (isFireFox && /(?:Tablet)/.test(ua))
   const isPhone = /(?:iPhone)/.test(ua) && !isTablet
   return isPhone || isAndroid || isSymbian || isTablet
 }
 
-export function addCSS (styles, preTag = '') {
+export function addCSS(styles, preTag = '') {
   let cssText = ''
   styles.map(item => {
     cssText += ` ${preTag} ${item.key} {${item.style}}`
@@ -193,13 +206,13 @@ export function addCSS (styles, preTag = '') {
   const head = document.head || document.getElementsByTagName('head')[0] // 获取head元素
   styleTag.type = 'text/css' // 这里必须显示设置style元素的type属性为text/css，否则在ie中不起作用
   styleTag.id = 'ssss'
-  if (styleTag.styleSheet) { // IE
-    const func = function () {
-      try { // 防止IE中stylesheet数量超过限制而发生错误
+  if (styleTag.styleSheet) {
+    // IE
+    const func = () => {
+      try {
+        // 防止IE中stylesheet数量超过限制而发生错误
         styleTag.styleSheet.cssText = cssText
-      } catch (e) {
-
-      }
+      } catch (_e) {}
     }
     // 如果当前styleSheet还不能用，则放到异步中则行
     if (styleTag.styleSheet.disabled) {
@@ -207,7 +220,8 @@ export function addCSS (styles, preTag = '') {
     } else {
       func()
     }
-  } else { // w3c
+  } else {
+    // w3c
     // w3c浏览器中只要创建文本节点插入到style元素中就行了
     const textNode = document.createTextNode(cssText)
     styleTag.appendChild(textNode)
@@ -215,7 +229,7 @@ export function addCSS (styles, preTag = '') {
   head.appendChild(styleTag) // 把创建的style元素插入到head中
 }
 
-export function parseResult (textTrack, resolve, reject, data, error) {
+export function parseResult(textTrack, resolve, reject, data, error) {
   if (error) {
     const err = _ERROR(2, error)
     reject(err, { format: data.format })
@@ -230,7 +244,7 @@ export function parseResult (textTrack, resolve, reject, data, error) {
   }
 }
 
-export function parse (content, format, promise) {
+export function parse(content, format, promise) {
   if (!promise) {
     promise = new ProxyPromise()
   }
@@ -246,7 +260,7 @@ export function parse (content, format, promise) {
     SubTitleParser.parse(content, (data, error) => {
       if (error) {
         const err = _ERROR(2, error)
-        promise.reject(err, { format: data.format})
+        promise.reject(err, { format: data.format })
       } else if (!data.format) {
         const err = _ERROR(3)
         promise.reject(err)
@@ -262,23 +276,34 @@ export function parse (content, format, promise) {
   return promise
 }
 
-export function loadSubTitle (object, promise) {
+export function loadSubTitle(object, promise) {
   if (!promise) {
     promise = new ProxyPromise()
   }
-  new XHR({ url: object.url, type: 'text' }).then(data => {
-    parse(data.res.response, 'string').then((data) => {
-      promise.resolve({
-        ...data,
+  new XHR({ url: object.url, type: 'text' })
+    .then(data => {
+      parse(data.res.response, 'string')
+        .then(data => {
+          promise.resolve({
+            ...data,
+            ...object
+          })
+        })
+        .catch(e => {
+          promise.reject(e)
+        })
+    })
+    .catch(err => {
+      const _err = _ERROR(1, {
+        statusText: err.statusText,
+        status: err.status,
+        type: err.type,
+        message: 'http load error',
+        url: object.src,
         ...object
       })
-    }).catch(e => {
-      promise.reject(e)
+      promise.reject(_err)
     })
-  }).catch(err => {
-    const _err = _ERROR(1, { statusText: err.statusText, status: err.status, type: err.type, message: 'http load error', url: object.src, ...object })
-    promise.reject(_err)
-  })
   return promise
 }
 
@@ -287,7 +312,7 @@ export function loadSubTitle (object, promise) {
  * @param {*} textTrack
  * @param {string} 类型
  */
-export function __loadText (textTrack, type) {
+export function __loadText(textTrack, _type) {
   return new Promise((resolve, reject) => {
     if (textTrack.list) {
       resolve(textTrack)
@@ -317,8 +342,15 @@ export function __loadText (textTrack, type) {
             console.log('SubTitleParser.parse data', data)
             parseResult(textTrack, resolve, reject, data, error)
           })
-        }).catch(err => {
-          const _err = _ERROR(1, { statusText: err.statusText, status: err.status, type: err.type, message: 'http load error', url: textTrack.url })
+        })
+        .catch(err => {
+          const _err = _ERROR(1, {
+            statusText: err.statusText,
+            status: err.status,
+            type: err.type,
+            message: 'http load error',
+            url: textTrack.url
+          })
           reject(_err)
         })
     }
@@ -331,14 +363,17 @@ export function __loadText (textTrack, type) {
  * @param {*} dist
  * @returns
  */
-export function checkSubtitle (src, dist) {
-  if ((src.id && dist.id && src.id === dist.id) || (src.language && dist.language && src.language === dist.language)) {
+export function checkSubtitle(src, dist) {
+  if (
+    (src.id && dist.id && src.id === dist.id) ||
+    (src.language && dist.language && src.language === dist.language)
+  ) {
     return true
   }
   return false
 }
 
-export function isEnglish (str) {
+export function isEnglish(str) {
   // 判断字符串是否为空
   if (str === null || str.trim() === '') {
     return false
@@ -351,9 +386,9 @@ export function isEnglish (str) {
  * @param {*} str
  * @returns
  */
-export function patchABCbiaodian (str) {
+export function patchABCbiaodian(str) {
   const reg = /[\x21-\x2f\x3a-\x40\x5b-\x60\x7B-\x7F]/
-  if (reg.test(str)){
+  if (reg.test(str)) {
     return true
   } else {
     return false
@@ -364,16 +399,17 @@ export function patchABCbiaodian (str) {
  * @param {*} temp
  * @returns
  */
-export function patchCn (temp) {
-  const reg = /[\u3002|\uff1f|\uff01|\uff0c|\u3001|\uff1b|\uff1a|\u201c|\u201d|\u2018|\u2019|\uff08|\uff09|\u300a|\u300b|\u3008|\u3009|\u3010|\u3011|\u300e|\u300f|\u300c|\u300d|\ufe43|\ufe44|\u3014|\u3015|\u2026|\u2014|\uff5e|\ufe4f|\uffe5]/
-  if (reg.test(temp)){
+export function patchCn(temp) {
+  const reg =
+    /[\u3002|\uff1f|\uff01|\uff0c|\u3001|\uff1b|\uff1a|\u201c|\u201d|\u2018|\u2019|\uff08|\uff09|\u300a|\u300b|\u3008|\u3009|\u3010|\u3011|\u300e|\u300f|\u300c|\u300d|\ufe43|\ufe44|\u3014|\u3015|\u2026|\u2014|\uff5e|\ufe4f|\uffe5]/
+  if (reg.test(temp)) {
     return true
   } else {
     return false
   }
 }
 
-export function splitWords (str) {
+export function splitWords(str) {
   const arr = str.split('')
   const retArr = []
   let lastIsEn = false
@@ -387,7 +423,7 @@ export function splitWords (str) {
         const _lIdx = retArr.length - 1
         retArr[_lIdx] = `${retArr[_lIdx]}${_str}`
       }
-    } else if (_str.match(/^[ ]*$/) || patchABCbiaodian(_str) || patchCn(_str)){
+    } else if (_str.match(/^[ ]*$/) || patchABCbiaodian(_str) || patchCn(_str)) {
       lastIsEn = false
       const _lIdx = retArr.length - 1
       retArr[_lIdx] = `${retArr[_lIdx]}${_str}`

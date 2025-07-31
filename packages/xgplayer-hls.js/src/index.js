@@ -1,23 +1,23 @@
-import { BasePlugin, Events } from 'xgplayer'
 import Hls from 'hls.js/dist/hls.light.js'
+import { BasePlugin, Events } from 'xgplayer'
 import utils from './utils'
 
 class HlsJsPlugin extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'HlsJsPlugin'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       hlsOpts: {}
     }
   }
 
-  static get isSupported () {
+  static get isSupported() {
     return Hls.isSupported
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.browser = utils.getBrowserVersion()
     this.hls = null
@@ -28,7 +28,7 @@ class HlsJsPlugin extends BasePlugin {
   /**
    * @private
    */
-  _adaptHlsJsConfig (hlsOpts = {}) {
+  _adaptHlsJsConfig(hlsOpts = {}) {
     const { playerConfig } = this
 
     if (!hlsOpts?.startPosition && typeof playerConfig.startTime === 'number') {
@@ -38,11 +38,11 @@ class HlsJsPlugin extends BasePlugin {
     return hlsOpts
   }
 
-  afterCreate () {
+  afterCreate() {
     const { hlsOpts } = this.config
     this.hlsOpts = this._adaptHlsJsConfig(hlsOpts)
 
-    this.on(Events.URL_CHANGE, (url) => {
+    this.on(Events.URL_CHANGE, url => {
       if (/^blob/.test(url)) {
         return
       }
@@ -55,31 +55,31 @@ class HlsJsPlugin extends BasePlugin {
           get: () => {
             try {
               return this.player.video.src
-            } catch (error) {
+            } catch (_error) {
               return null
             }
           },
           configurable: true
         }
       })
-    } catch (e) {
+    } catch (_e) {
       // NOOP
     }
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     this.register(this.player.config.url)
   }
 
-  destroy () {
-    this.hls && this.hls.destroy()
+  destroy() {
+    this.hls?.destroy()
     const { player } = this
     BasePlugin.defineGetterOrSetter(player, {
       url: {
         get: () => {
           try {
             return player.__url
-          } catch (error) {
+          } catch (_error) {
             return null
           }
         },
@@ -88,7 +88,7 @@ class HlsJsPlugin extends BasePlugin {
     })
   }
 
-  register (url) {
+  register(url) {
     const { player } = this
     if (this.hls) {
       this.hls.destroy()
@@ -98,7 +98,7 @@ class HlsJsPlugin extends BasePlugin {
       this.hls.loadSource(url)
     })
 
-    this.hls.on(Hls.Events.ERROR, (event, data) => {
+    this.hls.on(Hls.Events.ERROR, (_event, data) => {
       player.emit('HLS_ERROR', {
         errorType: data.type,
         errorDetails: data.details,
@@ -123,7 +123,7 @@ class HlsJsPlugin extends BasePlugin {
     this._statistics()
   }
 
-  _statistics () {
+  _statistics() {
     const statsInfo = {
       speed: 0,
       playerType: 'HlsPlayer'
@@ -135,33 +135,35 @@ class HlsJsPlugin extends BasePlugin {
     }
     const { player, hls } = this
 
-    hls.on(Hls.Events.FRAG_LOAD_PROGRESS, (flag, payload) => {
+    hls.on(Hls.Events.FRAG_LOAD_PROGRESS, (_flag, payload) => {
       statsInfo.speed = payload.stats.loaded / 1000
     })
-    hls.on(Hls.Events.FRAG_PARSING_DATA, (flag, payload) => {
+    hls.on(Hls.Events.FRAG_PARSING_DATA, (_flag, payload) => {
       if (payload.type === 'video') {
         mediainfo.fps = parseInt(payload.nb / (payload.endPTS - payload.startPTS))
       }
     })
 
-    hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (flag, payload) => {
-      mediainfo.hasAudio = !!((payload.tracks && payload.tracks.audio))
-      mediainfo.hasVideo = !!((payload.tracks && payload.tracks.video))
+    hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (_flag, payload) => {
+      mediainfo.hasAudio = !!payload.tracks?.audio
+      mediainfo.hasVideo = !!payload.tracks?.video
 
       if (mediainfo.hasAudio) {
         const track = payload.tracks.audio
-        mediainfo.audioChannelCount = (track.metadata && track.metadata.channelCount) ? track.metadata.channelCount : 0
+        mediainfo.audioChannelCount = track.metadata?.channelCount
+          ? track.metadata.channelCount
+          : 0
         mediainfo.audioCodec = track.codec
       }
 
       if (mediainfo.hasVideo) {
         const track = payload.tracks.video
         mediainfo.videoCodec = track.codec
-        mediainfo.width = (track.metadata && track.metadata.width) ? track.metadata.width : 0
-        mediainfo.height = (track.metadata && track.metadata.height) ? track.metadata.height : 0
+        mediainfo.width = track.metadata?.width ? track.metadata.width : 0
+        mediainfo.height = track.metadata?.height ? track.metadata.height : 0
       }
-      mediainfo.duration = (payload.frag && payload.frag.duration) ? payload.frag.duration : 0
-      mediainfo.level = (payload.frag && payload.frag.levels) ? payload.frag.levels : 0
+      mediainfo.duration = payload.frag?.duration ? payload.frag.duration : 0
+      mediainfo.level = payload.frag?.levels ? payload.frag.levels : 0
       if (mediainfo.videoCodec || mediainfo.audioCodec) {
         mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"`
       }

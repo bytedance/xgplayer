@@ -17,11 +17,11 @@ class Stats {
   _bitsAccumulateDuration = 0
   _startGopId = -1
 
-  constructor (timescale) {
+  constructor(timescale) {
     this._timescale = timescale
   }
 
-  getStats () {
+  getStats() {
     return {
       encodeType: this.encodeType,
       audioCodec: this.audioCodec,
@@ -37,18 +37,18 @@ class Stats {
     }
   }
 
-  setEncodeType (encode) {
+  setEncodeType(encode) {
     this.encodeType = encode
   }
 
-  setFpsFromScriptData ({data}) {
+  setFpsFromScriptData({ data }) {
     const fps = data?.onMetaData?.framerate
     if (fps && fps > 0 && fps < 100) {
       this.fps = fps
     }
   }
 
-  setVideoMeta (track) {
+  setVideoMeta(track) {
     this.width = track.width
     this.height = track.height
     this.videoCodec = track.codec
@@ -61,20 +61,20 @@ class Stats {
     }
   }
 
-  setAudioMeta (track) {
+  setAudioMeta(track) {
     this.audioCodec = track.codec
     this.samplerate = track.sampleRate
     this.channelCount = track.channelCount
   }
 
-  setDomain (responseUrl) {
+  setDomain(responseUrl) {
     this.domain = responseUrl.split('/').slice(2, 3)[0]
   }
 
-  updateBitrate (samples) {
+  updateBitrate(samples) {
     if (!this.fps || this.fps >= 100) {
       if (samples.length) {
-        const duration = samples.reduce((a,b) => a += b.duration, 0) / samples.length
+        const duration = samples.reduce((a, b) => (a += b.duration), 0) / samples.length
         this.fps = Math.round(this._timescale / duration)
       }
     }
@@ -96,7 +96,6 @@ class Stats {
   }
 }
 
-
 /**
  * @typedef {Object} StatsInfo
  * @property {number} downloadSpeed
@@ -117,21 +116,19 @@ class Stats {
  * @property {number} gop
  */
 class MediaStatsService {
-
   _core = null
 
   _samples = []
 
-  constructor (core, timescale = 1000) {
+  constructor(core, timescale = 1000) {
     this._core = core
     this._timescale = timescale
     this._stats = new Stats(timescale)
     this._bindEvents()
   }
 
-
   /** @returns {StatsInfo} */
-  getStats () {
+  getStats() {
     const { currentTime = 0, decodeFps = 0 } = this._core?.media || {}
     return {
       ...this._stats.getStats(),
@@ -145,8 +142,10 @@ class MediaStatsService {
     }
   }
 
-  _bindEvents () {
-    this._core.on(EVENT.DEMUXED_TRACK, ({videoTrack}) => this._stats.updateBitrate(videoTrack.samples))
+  _bindEvents() {
+    this._core.on(EVENT.DEMUXED_TRACK, ({ videoTrack }) =>
+      this._stats.updateBitrate(videoTrack.samples)
+    )
 
     this._core.on(EVENT.FLV_SCRIPT_DATA, data => {
       this._stats.setFpsFromScriptData(data)
@@ -163,14 +162,12 @@ class MediaStatsService {
     this._core.on(EVENT.TTFB, e => {
       this._stats.setDomain(e.responseUrl)
     })
-
   }
 
-  reset () {
+  reset() {
     this._samples = []
     this._stats = new Stats(this._timescale)
   }
-
 }
 
 export { MediaStatsService }

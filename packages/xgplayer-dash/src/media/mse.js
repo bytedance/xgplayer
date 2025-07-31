@@ -3,59 +3,64 @@ import { Util } from 'xgplayer'
 import Errors from '../error'
 
 class MSE extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
-    const self = this
     this.codecs = []
     this.sourceBuffer = {}
     this.mediaSource = new MediaSource()
     this.url = URL.createObjectURL(this.mediaSource)
     this.queue = {}
     this.updating = false
-    this.mediaSource.addEventListener('sourceopen', function () {
-      self.emit('sourceopen')
+    this.mediaSource.addEventListener('sourceopen', () => {
+      this.emit('sourceopen')
     })
-    this.mediaSource.addEventListener('sourceclose', function () {
-      self.emit('sourceclose')
+    this.mediaSource.addEventListener('sourceclose', () => {
+      this.emit('sourceclose')
     })
   }
 
-  get state () {
+  get state() {
     return this.mediaSource.readyState
   }
 
-  get duration () {
+  get duration() {
     return this.mediaSource.duration
   }
 
-  set duration (value) {
+  set duration(value) {
     this.mediaSource.duration = value
   }
 
-  addSourceBuffer (codecs) {
-    const self = this
+  addSourceBuffer(codecs) {
     this.codecs.push(codecs)
     const sourceBuffer = this.mediaSource.addSourceBuffer(codecs)
     this.sourceBuffer[codecs] = sourceBuffer
-    sourceBuffer.addEventListener('error', function (e) {
-      self.emit('error', new Errors('mse', '', { line: 16, handle: '[MSE] constructor sourceopen', msg: e.message }))
+    sourceBuffer.addEventListener('error', e => {
+      this.emit(
+        'error',
+        new Errors('mse', '', {
+          line: 16,
+          handle: '[MSE] constructor sourceopen',
+          msg: e.message
+        })
+      )
     })
-    sourceBuffer.addEventListener('updateend', function (e) {
-      self.emit(codecs + ' updateend')
-      if (self.queue[codecs] && Util.typeOf(self.queue[codecs]) === 'Array') {
-        const buffer = self.queue[codecs].shift()
+    sourceBuffer.addEventListener('updateend', _e => {
+      this.emit(`${codecs} updateend`)
+      if (this.queue[codecs] && Util.typeOf(this.queue[codecs]) === 'Array') {
+        const buffer = this.queue[codecs].shift()
         if (buffer) {
-          if (sourceBuffer.updating === false && self.state === 'open') {
+          if (sourceBuffer.updating === false && this.state === 'open') {
             sourceBuffer.appendBuffer(buffer)
           } else {
-            self.queue[codecs].unshift(buffer)
+            this.queue[codecs].unshift(buffer)
           }
         }
       }
     })
   }
 
-  appendBuffer (codecs, buffer) {
+  appendBuffer(codecs, buffer) {
     const sourceBuffer = this.sourceBuffer[codecs]
     if (sourceBuffer.updating === false && this.state === 'open') {
       // console.log('appendBuffer true')
@@ -71,20 +76,20 @@ class MSE extends EventEmitter {
     }
   }
 
-  removeBuffer (codecs, start, end) {
+  removeBuffer(codecs, start, end) {
     if (this.sourceBuffer[codecs].updating === false && this.state === 'open') {
       this.sourceBuffer[codecs].remove(start, end)
     }
   }
 
-  endOfStream () {
+  endOfStream() {
     if (this.state === 'open') {
       this.mediaSource.endOfStream()
     }
   }
 
-  static isSupported (codecs) {
-    return window.MediaSource && window.MediaSource.isTypeSupported(codecs)
+  static isSupported(codecs) {
+    return window.MediaSource?.isTypeSupported(codecs)
   }
 }
 

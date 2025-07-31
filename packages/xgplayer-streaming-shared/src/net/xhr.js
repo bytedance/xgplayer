@@ -1,10 +1,9 @@
-import { NetError } from './error'
-import { createResponse, getRangeValue, setUrlParams, calculateSpeed } from './helper'
-import { ResponseType } from './types'
-import { EVENT } from '../event'
 import EventEmitter from 'eventemitter3'
+import { EVENT } from '../event'
+import { NetError } from './error'
+import { calculateSpeed, createResponse, getRangeValue, setUrlParams } from './helper'
+import { ResponseType } from './types'
 export class XhrLoader extends EventEmitter {
-
   _xhr = null
   _aborted = false
   _timeoutTimer = null
@@ -37,19 +36,15 @@ export class XhrLoader extends EventEmitter {
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
 
-
-  constructor () {
-    super()
-  }
-
-  load (req) {
+  load(req) {
     clearTimeout(this._timeoutTimer)
     this._logger = req.logger
     this._range = req.range
     this._onProgress = req.onProgress
     this._index = req.index
     this._headers = req.headers
-    this._withCredentials = req.credentials === 'include' || req.credentials === 'same-origin'
+    this._withCredentials =
+      req.credentials === 'include' || req.credentials === 'same-origin'
     this._body = req.body || null
     req.method && (this._method = req.method)
     this._timeout = req.timeout || null
@@ -70,21 +65,29 @@ export class XhrLoader extends EventEmitter {
       this._loadCompleteResolve = resolve
       this._loadCompleteReject = reject
       this._startLoad()
-    }).catch((error) => {
+    }).catch(error => {
       clearTimeout(this._timeoutTimer)
       this._runing = false
       if (this._aborted) return
       error = error instanceof NetError ? error : new NetError(this._url, this._request)
       error.startTime = startTime
       error.endTime = Date.now()
-      error.options = {index: this._index, vid: this._vid, priOptions: this._priOptions}
+      error.options = {
+        index: this._index,
+        vid: this._vid,
+        priOptions: this._priOptions
+      }
       throw error
     })
   }
 
-  _startLoad () {
+  _startLoad() {
     let range = null
-    if (this._responseType === ResponseType.ARRAY_BUFFER && this._range && this._range.length > 1) {
+    if (
+      this._responseType === ResponseType.ARRAY_BUFFER &&
+      this._range &&
+      this._range.length > 1
+    ) {
       if (this._onProgress) {
         this._firstRtt = -1
         const chunkSize = this._currentChunkSizeKB * 1024
@@ -103,30 +106,53 @@ export class XhrLoader extends EventEmitter {
     this._internalOpen(range)
   }
 
-  _internalOpen (range) {
+  _internalOpen(range) {
     try {
       this._startTime = Date.now()
-      const xhr = this._xhr = new XMLHttpRequest()
+      const xhr = (this._xhr = new XMLHttpRequest())
       xhr.open(this._method || 'GET', this._url, true)
       xhr.responseType = this._responseType
       this._timeout && (xhr.timeout = this._timeout)
       xhr.withCredentials = this._withCredentials
       xhr.onload = this._onLoad.bind(this)
       xhr.onreadystatechange = this._onReadyStatechange.bind(this)
-      xhr.onerror = (errorEvent) => {
+      xhr.onerror = errorEvent => {
         this._running = false
-        const error = new NetError(this._url, this._request, errorEvent?.currentTarget?.response, ('xhr.onerror.status:' + errorEvent?.currentTarget?.status + ',statusText,' + errorEvent?.currentTarget?.statusText))
-        error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+        const error = new NetError(
+          this._url,
+          this._request,
+          errorEvent?.currentTarget?.response,
+          'xhr.onerror.status:' +
+            errorEvent?.currentTarget?.status +
+            ',statusText,' +
+            errorEvent?.currentTarget?.statusText
+        )
+        error.options = {
+          index: this._index,
+          range: this._range,
+          vid: this._vid,
+          priOptions: this._priOptions
+        }
         this._loadCompleteReject(error)
       }
-      xhr.ontimeout = (event) => {
+      xhr.ontimeout = _event => {
         this.cancel()
-        const error = new NetError(this._url, this._request, {status:408}, 'timeout')
+        const error = new NetError(this._url, this._request, { status: 408 }, 'timeout')
         if (this._onTimeout) {
           error.isTimeout = true
-          this._onTimeout(error,{index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions})
+          this._onTimeout(error, {
+            index: this._index,
+            range: this._range,
+            vid: this._vid,
+            priOptions: this._priOptions
+          })
         }
-        error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+        error.options = {
+          index: this._index,
+          range: this._range,
+          vid: this._vid,
+          priOptions: this._priOptions
+        }
         this._loadCompleteReject(error)
       }
       const headers = this._headers || {}
@@ -142,29 +168,44 @@ export class XhrLoader extends EventEmitter {
       this._logger.debug('[xhr.send->] tast,', this._range, ',load sub range, ', range)
       xhr.send(this._body)
     } catch (e) {
-      e.options = {index: this._index, range, vid: this._vid, priOptions: this._priOptions}
+      e.options = {
+        index: this._index,
+        range,
+        vid: this._vid,
+        priOptions: this._priOptions
+      }
       this._loadCompleteReject(e)
     }
   }
 
-  _onReadyStatechange (e) {
+  _onReadyStatechange(e) {
     const xhr = e.target
     if (xhr.readyState === 2) {
       this._firstRtt < 0 && (this._firstRtt = Date.now())
     }
   }
 
-  _onLoad (e) {
+  _onLoad(e) {
     const status = e.target.status
     if (status < 200 || status > 299) {
-      const error = new NetError(this._url, null, { ...e.target.response, status }, 'bad response,status:' + status)
-      error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+      const error = new NetError(
+        this._url,
+        null,
+        { ...e.target.response, status },
+        `bad response,status:${status}`
+      )
+      error.options = {
+        index: this._index,
+        range: this._range,
+        vid: this._vid,
+        priOptions: this._priOptions
+      }
       return this._loadCompleteReject(error)
     }
     let data = null
     let done = false
     let byteStart
-    const startRange = (this._range?.length > 0 ? this._range [0] : 0 )
+    const startRange = this._range?.length > 0 ? this._range[0] : 0
     if (this._responseType === ResponseType.ARRAY_BUFFER) {
       const chunk = new Uint8Array(e.target.response)
       byteStart = startRange + this._receivedLength
@@ -172,15 +213,42 @@ export class XhrLoader extends EventEmitter {
         this._receivedLength += chunk.byteLength
         const costTime = Date.now() - this._startTime
         const speed = calculateSpeed(this._receivedLength, costTime)
-        this.emit(EVENT.REAL_TIME_SPEED, {speed, len: this._receivedLength, time: costTime, vid: this._vid, index: this._index, range: [byteStart, startRange + this._receivedLength], priOptions: this._priOptions})
+        this.emit(EVENT.REAL_TIME_SPEED, {
+          speed,
+          len: this._receivedLength,
+          time: costTime,
+          vid: this._vid,
+          index: this._index,
+          range: [byteStart, startRange + this._receivedLength],
+          priOptions: this._priOptions
+        })
       }
       data = chunk
-      if (this._range?.length > 1 && this._range[1] && this._receivedLength < this._range[1] - this._range[0]) {
+      if (
+        this._range?.length > 1 &&
+        this._range[1] &&
+        this._receivedLength < this._range[1] - this._range[0]
+      ) {
         done = false
       } else {
         done = true
       }
-      this._logger.debug('[xhr load done->], tast :', this._range, ', start', byteStart, 'end ', startRange + this._receivedLength, ',dataLen,', (chunk ? chunk.byteLength : 0), ',receivedLength', this._receivedLength, ',index,', this._index, ', done,', done)
+      this._logger.debug(
+        '[xhr load done->], tast :',
+        this._range,
+        ', start',
+        byteStart,
+        'end ',
+        startRange + this._receivedLength,
+        ',dataLen,',
+        chunk ? chunk.byteLength : 0,
+        ',receivedLength',
+        this._receivedLength,
+        ',index,',
+        this._index,
+        ', done,',
+        done
+      )
     } else {
       done = true
       data = e.target.response
@@ -197,59 +265,78 @@ export class XhrLoader extends EventEmitter {
       response = this._transformResponse(response, this._url) || response
     }
     if (this._onProgress) {
-      this._onProgress(data, done, { index: this._index, vid: this._vid, range: [byteStart, startRange + this._receivedLength], startTime: this._startTime, endTime: Date.now(), priOptions: this._priOptions }, response)
+      this._onProgress(
+        data,
+        done,
+        {
+          index: this._index,
+          vid: this._vid,
+          range: [byteStart, startRange + this._receivedLength],
+          startTime: this._startTime,
+          endTime: Date.now(),
+          priOptions: this._priOptions
+        },
+        response
+      )
     }
 
     if (!done) {
       this._startLoad()
     } else {
       this._runing = false
-      this._loadCompleteResolve && this._loadCompleteResolve(createResponse(
-        this._onProgress ? null : data,
-        done,
-        response,
-        response.headers['content-length'],
-        response.headers.age,
-        this._startTime,
-        this._firstRtt,
-        this._index,
-        this._range,
-        this._vid,
-        this._priOptions
-      ))
+      this._loadCompleteResolve?.(
+        createResponse(
+          this._onProgress ? null : data,
+          done,
+          response,
+          response.headers['content-length'],
+          response.headers.age,
+          this._startTime,
+          this._firstRtt,
+          this._index,
+          this._range,
+          this._vid,
+          this._priOptions
+        )
+      )
     }
   }
 
-  cancel () {
+  cancel() {
     if (this._aborted) return
     this._aborted = true
     this._runing = false
     super.removeAllListeners()
     if (this._onCancel) {
-      this._onCancel({index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions})
+      this._onCancel({
+        index: this._index,
+        range: this._range,
+        vid: this._vid,
+        priOptions: this._priOptions
+      })
     }
     if (this._xhr) {
       return this._xhr.abort()
     }
   }
 
-  static isSupported () {
+  static isSupported() {
     return typeof XMLHttpRequest !== 'undefined'
   }
 
-  get receiveLen () {
+  get receiveLen() {
     return this._receivedLength
   }
 
-  get running () {
+  get running() {
     return this._running
   }
 
-  set running (status) {
+  set running(status) {
     this._running = status
   }
 
-  _getHeaders (xhr) {
+  _getHeaders(xhr) {
     const headerLines = xhr.getAllResponseHeaders().trim().split('\r\n')
     const headers = {}
     for (const header of headerLines) {

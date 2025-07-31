@@ -1,7 +1,6 @@
 import { clamp } from '../src/hls/utils'
 
 describe('Utils', () => {
-
   test('clamp', () => {
     expect(clamp(1, 0, 2)).toBe(1)
     expect(clamp(-1, 0, 2)).toBe(0)
@@ -10,5 +9,4 @@ describe('Utils', () => {
     expect(clamp(2, 0, 2)).toBe(2)
     expect(clamp(2, 0, -1)).toBe(0)
   })
-
 })

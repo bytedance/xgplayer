@@ -1,7 +1,7 @@
 const VTT_CHECK = /^WEBVTT/i
 const VTT_STYLE = /^STYLE+$/
 // eslint-disable-next-line no-useless-escape
-const VTT_CUE = /^\:\:cue/
+const VTT_CUE = /^::cue/
 const VTT_CUEND = /^}+$/
 const ASS_CHECK = /^\[Script Info\].*/
 
@@ -28,10 +28,12 @@ const ASS_STYLE = /^Style:\s/
 const ASS_DIALOGUE = /^Dialogue:\s/
 // const ASS_EVENTS = /^\[Events\]:\s/
 
-function getSecond (arr) {
+function getSecond(arr) {
   const len = arr.length
   if (len === 3) {
-    return ((Number(arr[0]) * 60 + Number(arr[1])) * 60 * 1000 + Number(arr[2]) * 1000) / 1000
+    return (
+      ((Number(arr[0]) * 60 + Number(arr[1])) * 60 * 1000 + Number(arr[2]) * 1000) / 1000
+    )
   } else if (len === 2) {
     return (Number(arr[0]) * 60 * 1000 + Number(arr[1]) * 1000) / 1000
   } else {
@@ -43,9 +45,9 @@ function getSecond (arr) {
  * 校验是否是数字
  * @param {String} str
  */
-function isNumber (str) {
+function isNumber(str) {
   // eslint-disable-next-line no-useless-escape
-  return /^(\-|\+)?\d+(\.\d+)?$/.test(str)
+  return /^(-|\+)?\d+(\.\d+)?$/.test(str)
 }
 
 /**
@@ -53,12 +55,12 @@ function isNumber (str) {
  * @param  {[type]} e [description]
  * @return {[type]}   [description]
  */
-function htmlEncodeAll (e) {
+function htmlEncodeAll(e) {
   return e
   // return null === e ? '' : e.replace(/\&/g, '&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-function getByIndex (i, arr) {
+function getByIndex(i, arr) {
   if (i >= 0 && i < arr.length) {
     return arr[i]
   }
@@ -74,7 +76,7 @@ export default class SubTitleParser {
    * }>} list
    * @returns
    */
-  static parseJson (list) {
+  static parseJson(list) {
     const ret = []
     let count = 0
     for (let i = 0; i < list.length; i++) {
@@ -97,7 +99,7 @@ export default class SubTitleParser {
     return ret
   }
 
-  static parse (str, fun) {
+  static parse(str, fun) {
     const format = SubTitleParser.checkFormat(str)
     if (!format) {
       fun({ format })
@@ -116,16 +118,16 @@ export default class SubTitleParser {
     }
   }
 
-  static parseASSItem (str = '', mode = []) {
+  static parseASSItem(str = '', mode = []) {
     const values = str.split(',')
     const item = {}
     let text = ''
     try {
       const len = values.length - mode.length
       if (len > 0) {
-        text = values.splice(mode.length - 1, len + 1).join(',') + ''
+        text = `${values.splice(mode.length - 1, len + 1).join(',')}`
       } else {
-        text = values[values.length - 1] + ''
+        text = `${values[values.length - 1]}`
       }
       text = text.replace(/\\n+/g, '')
       text = htmlEncodeAll(text)
@@ -151,10 +153,11 @@ export default class SubTitleParser {
     }
   }
 
-  static parseASS (str) {
+  static parseASS(str) {
     const arr = str.split('\n')
     const retData = []
-    let i = 0; let groupCount = 0
+    let i = 0
+    let groupCount = 0
     const styles = []
     let mode = []
     let lastSubTitle = null
@@ -167,8 +170,14 @@ export default class SubTitleParser {
       } else if (ASS_STYLE.test(arr[i])) {
         styles.push(arr[i].replace(ASS_STYLE, '').replace(/\s+/g, ''))
       } else if (ASS_DIALOGUE.test(arr[i])) {
-        const subTitle = SubTitleParser.parseASSItem(arr[i].replace(ASS_DIALOGUE, ''), mode)
-        if (!lastSubTitle || !(subTitle.start === lastSubTitle.start && subTitle.end === lastSubTitle.end)) {
+        const subTitle = SubTitleParser.parseASSItem(
+          arr[i].replace(ASS_DIALOGUE, ''),
+          mode
+        )
+        if (
+          !lastSubTitle ||
+          !(subTitle.start === lastSubTitle.start && subTitle.end === lastSubTitle.end)
+        ) {
           lastSubTitle = subTitle
           let group = null
           if (groupCount % MAX_COUNT === 0) {
@@ -204,7 +213,7 @@ export default class SubTitleParser {
     }
   }
 
-  static parseVTTStyle (str, style) {
+  static parseVTTStyle(str, style) {
     const arr = str.split(':')
     if (arr.length > 1) {
       const keyArr = arr[0].trim().split('-')
@@ -221,7 +230,7 @@ export default class SubTitleParser {
     return style
   }
 
-  static parseVTT (str) {
+  static parseVTT(str) {
     str = str.replace(VTT_CHECK, '')
     const arr = str.split('\n')
     const retData = []
@@ -263,10 +272,13 @@ export default class SubTitleParser {
         }
       } else if (str) {
         isLastSpace = false
-        const time = this.checkIsTime(arr[i])
+        const time = SubTitleParser.checkIsTime(arr[i])
         if (time) {
-          const subTitle = this.parseVttTime(time)
-          if (!lastSubTitle || !(subTitle.start === lastSubTitle.start && subTitle.end === lastSubTitle.end)) {
+          const subTitle = SubTitleParser.parseVttTime(time)
+          if (
+            !lastSubTitle ||
+            !(subTitle.start === lastSubTitle.start && subTitle.end === lastSubTitle.end)
+          ) {
             lastSubTitle = subTitle
             lastSubTitle.text = []
             lastSubTitle.textTag = []
@@ -289,23 +301,23 @@ export default class SubTitleParser {
         } else {
           if (lastSubTitle) {
             const { text, textTag } = lastSubTitle
-            const ret = this.parseVttText(arr[i])
+            const ret = SubTitleParser.parseVttText(arr[i])
             /**
-                         * 兼容多种方式的多语言字幕
-                         * demo1 每个语言独立时间标记
-                         * =============================
-                         * 00:00:06.470 --> 00:00:06.890
-                         * Hello,
-                         * 00:00:06.470 --> 00:00:06.890
-                         * 你好，
-                         * =============================
-                         *
-                         * demo2 多个语言公用一个时间标记，由尖括号组成的tag包裹
-                         * =============================
-                         * <cmn-Hans-CN>你好，</cmn-Hans-CN>
-                         * <eng-US>hello,</eng-US>
-                         * =============================
-                         */
+             * 兼容多种方式的多语言字幕
+             * demo1 每个语言独立时间标记
+             * =============================
+             * 00:00:06.470 --> 00:00:06.890
+             * Hello,
+             * 00:00:06.470 --> 00:00:06.890
+             * 你好，
+             * =============================
+             *
+             * demo2 多个语言公用一个时间标记，由尖括号组成的tag包裹
+             * =============================
+             * <cmn-Hans-CN>你好，</cmn-Hans-CN>
+             * <eng-US>hello,</eng-US>
+             * =============================
+             */
             // if (textTag.length === 0 || lastTime || (ret.tag && ret.tag !== textTag[textTag.length - 1])) {
             //   text.push(ret.text)
             //   textTag.push(ret.tag)
@@ -320,7 +332,6 @@ export default class SubTitleParser {
         isLastSpace = false
       }
       i++
-      continue
     }
     return {
       list: retData,
@@ -328,7 +339,7 @@ export default class SubTitleParser {
     }
   }
 
-  static checkIsTime (str) {
+  static checkIsTime(str) {
     str = str.replace(/\s+/g, '')
     let i = 0
     let match = null
@@ -342,13 +353,14 @@ export default class SubTitleParser {
     return match ? match[0] : null
   }
 
-  static parseVttText (text) {
+  static parseVttText(text) {
     // 检测是否有语言标记包裹
     const langMatch = /^(<?.+?>)/g.exec(text)
-    let retText = ''; let tag = 'default'
+    let retText = ''
+    let tag = 'default'
     if (langMatch) {
       // eslint-disable-next-line no-useless-escape
-      tag = langMatch[0].replace(/\<|\>|\&/g, '')
+      tag = langMatch[0].replace(/<|>|&/g, '')
       // 动态构造语言匹配规则
       // eslint-disable-next-line no-useless-escape
       const newReg = RegExp(`^<${tag}>(([\\s\\S])*?)<\/${tag}>$`)
@@ -376,9 +388,10 @@ export default class SubTitleParser {
     }
   }
 
-  static parseVttTime (str) {
+  static parseVttTime(str) {
     const arr = str.split('-->')
-    let start; let end = 0
+    let start
+    let end = 0
     if (arr.length === 2) {
       const aArr = arr[0].split(':')
       const bArr = arr[1].split(':')
@@ -392,15 +405,15 @@ export default class SubTitleParser {
     }
   }
 
-  static isVTT (str) {
+  static isVTT(str) {
     return VTT_CHECK.test(str)
   }
 
-  static isASS (str) {
+  static isASS(str) {
     return ASS_CHECK.test(str)
   }
 
-  static checkFormat (str) {
+  static checkFormat(str) {
     if (!str) {
       return null
     }

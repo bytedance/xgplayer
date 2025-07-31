@@ -41,7 +41,7 @@
 //   marginControls: true,
 //   // presets: ['default', MusicPreset],
 //   plugins: [Music],
-//   ignores: ['start', 'fullscreen', 'cssfullscreen', 'playbackrate'], 
+//   ignores: ['start', 'fullscreen', 'cssfullscreen', 'playbackrate'],
 //   mediaType: 'audio',
 //   videoConfig: {
 //     crossOrigin: 'anonymous'
@@ -63,7 +63,6 @@
 // window.player.on('user_action', (data) => {
 //   console.log('[user_action]', data)
 // })
-
 
 // function init() {
 //   window.analyze = new Analyze(player, document.querySelector('canvas'), {

@@ -24,12 +24,12 @@ Box.sidx = function () {
     this.references.push(ref)
     let tmp_32 = stream.readUint32()
     ref.reference_type = (tmp_32 >> 31) & 0x1
-    ref.referenced_size = tmp_32 & 0x7FFFFFFF
+    ref.referenced_size = tmp_32 & 0x7fffffff
     ref.subsegment_duration = stream.readUint32()
     tmp_32 = stream.readUint32()
     ref.starts_with_SAP = (tmp_32 >> 31) & 0x1
     ref.SAP_type = (tmp_32 >> 28) & 0x7
-    ref.SAP_delta_time = tmp_32 & 0xFFFFFFF
+    ref.SAP_delta_time = tmp_32 & 0xfffffff
   }
   // this.first_offset += stream.position;
 

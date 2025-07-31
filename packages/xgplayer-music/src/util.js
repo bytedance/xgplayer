@@ -12,29 +12,33 @@ for (let i = 0; i < prefixes.length; i++) {
     break
   }
   prefix = prefixes[i]
-  requestAnimationFrame = requestAnimationFrame || window[prefix + 'RequestAnimationFrame']
-  cancelAnimationFrame = cancelAnimationFrame || window[prefix + 'CancelAnimationFrame'] || window[prefix + 'CancelRequestAnimationFrame']
+  requestAnimationFrame =
+    requestAnimationFrame || window[`${prefix}RequestAnimationFrame`]
+  cancelAnimationFrame =
+    cancelAnimationFrame ||
+    window[`${prefix}CancelAnimationFrame`] ||
+    window[`${prefix}CancelRequestAnimationFrame`]
 }
 
 // 如果当前浏览器不支持requestAnimationFrame和cancelAnimationFrame，则会退到setTimeout
 if (!requestAnimationFrame || !cancelAnimationFrame) {
-  requestAnimationFrame = function (callback, element) {
-    const currTime = new Date().getTime()
+  requestAnimationFrame = (callback, _element) => {
+    const currTime = Date.now()
     // 为了使setTimteout的尽可能的接近每秒60帧的效果
     const timeToCall = Math.max(0, 16 - (currTime - lastTime))
-    const id = window.setTimeout(function () {
+    const id = window.setTimeout(() => {
       callback.call(currTime + timeToCall)
     }, timeToCall)
     lastTime = currTime + timeToCall
     return id
   }
 
-  cancelAnimationFrame = function (id) {
+  cancelAnimationFrame = id => {
     window.clearTimeout(id)
   }
 }
 
-const isSqrt = function (num, base) {
+const isSqrt = (num, base) => {
   if (num !== 1) {
     while (num !== 1) {
       if (num % base === 0) {
@@ -50,34 +54,34 @@ const isSqrt = function (num, base) {
 }
 
 class Color {
-  constructor (color, opacity = 1) {
+  constructor(color, opacity = 1) {
     this.color = Color.Valid.test(color) ? color : '#ffffff'
     this.opacity = opacity
   }
 
-  toArray () {
+  toArray() {
     let color = this.color.slice(1)
     let rgb = []
     if (color.length === 6) {
       color = color.match(/\d{2}/g)
-      rgb = color.map((item) => {
+      rgb = color.map(item => {
         return Number(`0x${item}`)
       })
     }
     return rgb
   }
 
-  toRGB () {
+  toRGB() {
     const rgb = this.toArray()
     return rgb.length === 3 ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : ''
   }
 
-  toGRBA () {
+  toGRBA() {
     const rgb = this.toArray()
     return rgb.length === 3 ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${this.opacity})` : ''
   }
 
-  static get Valid () {
+  static get Valid() {
     return /^#[0-9A-F]{6}$|^#[0-9A-F]{3}$/i
   }
 }

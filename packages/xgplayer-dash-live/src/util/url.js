@@ -1,4 +1,4 @@
-export function parseBaseUrl (url) {
+export function parseBaseUrl(url) {
   const slashIndex = url.indexOf('/')
   const lastSlashIndex = url.lastIndexOf('/')
 

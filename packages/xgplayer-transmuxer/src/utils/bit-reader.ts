@@ -1,4 +1,4 @@
-import { ByteReader } from './byte-reader'
+import type { ByteReader } from './byte-reader'
 
 export class BitReader {
   private val: number
@@ -18,21 +18,24 @@ export class BitReader {
     const unreadLength = this.size - this.offset - len
 
     if (unreadLength >= 0) {
-      let bits = 0, i = 0
+      let bits = 0,
+        i = 0
       this.offset += len
       // 32位及以上的整数不支持位移运算，使用 / + Math.pow 规避
       if (this.size > 31) {
         for (; i < len; i++) {
-          bits += Math.pow(2, i)
+          bits += 2 ** i
         }
-        return this.val / Math.pow(2, unreadLength) & bits
+        return (this.val / 2 ** unreadLength) & bits
       } else {
         for (; i < len; i++) {
           bits += 1 << i
         }
-        return this.val >>> unreadLength & bits
+        return (this.val >>> unreadLength) & bits
       }
     }
-    throw new Error(`the number of the read operation exceeds the total length limit of bits`)
+    throw new Error(
+      `the number of the read operation exceeds the total length limit of bits`
+    )
   }
 }

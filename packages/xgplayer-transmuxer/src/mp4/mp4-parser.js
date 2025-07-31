@@ -1,10 +1,18 @@
-import { AudioCodecType, VideoCodecType } from '../model'
-import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, combineToFloat, toDegree } from '../utils'
 import { AAC } from '../codec'
-import { ByteReader } from '../utils/byte-reader'
+import { AudioCodecType, VideoCodecType } from '../model'
+import {
+  combineToFloat,
+  getAvcCodec,
+  readBig16,
+  readBig24,
+  readBig32,
+  readBig64,
+  toDegree
+} from '../utils'
 import { BitReader } from '../utils/bit-reader'
+import { ByteReader } from '../utils/byte-reader'
 export class MP4Parser {
-  static findBox (data, names, start = 0) {
+  static findBox(data, names, start = 0) {
     const ret = []
     if (!data) return ret
 
@@ -32,7 +40,11 @@ export class MP4Parser {
             data: subData
           })
         } else {
-          return MP4Parser.findBox(subData.subarray(headerSize), names.slice(1), start + headerSize)
+          return MP4Parser.findBox(
+            subData.subarray(headerSize),
+            names.slice(1),
+            start + headerSize
+          )
         }
       }
 
@@ -43,15 +55,15 @@ export class MP4Parser {
     return ret
   }
 
-  static tfhd (box) {
+  static tfhd(box) {
     return parseBox(box, true, (ret, data) => {
       ret.trackId = readBig32(data)
       let start = 4
-      const baseDataOffsetPresent = (ret.flags & 0xff) & 0x01
-      const sampleDescriptionIndexPresent = (ret.flags & 0xff) & 0x02
-      const defaultSampleDurationPresent = (ret.flags & 0xff) & 0x08
-      const defaultSampleSizePresent = (ret.flags & 0xff) & 0x10
-      const defaultSampleFlagsPresent = (ret.flags & 0xff) & 0x20
+      const baseDataOffsetPresent = ret.flags & 0xff & 0x01
+      const sampleDescriptionIndexPresent = ret.flags & 0xff & 0x02
+      const defaultSampleDurationPresent = ret.flags & 0xff & 0x08
+      const defaultSampleSizePresent = ret.flags & 0xff & 0x10
+      const defaultSampleFlagsPresent = ret.flags & 0xff & 0x20
 
       if (baseDataOffsetPresent) {
         start += 4 // truncate top 4 bytes
@@ -76,10 +88,10 @@ export class MP4Parser {
     })
   }
 
-  static sidx (box) {
+  static sidx(box) {
     return parseBox(box, true, (ret, data) => {
       let start = 0
-      ret.reference_ID = readBig32(data, start)// stream.readUint32();
+      ret.reference_ID = readBig32(data, start) // stream.readUint32();
       start += 4
       ret.timescale = readBig32(data, start)
       start += 4
@@ -104,27 +116,29 @@ export class MP4Parser {
         let tmp32 = readBig32(data, start)
         start += 4
         ref.reference_type = (tmp32 >> 31) & 0x1
-        ref.referenced_size = tmp32 & 0x7FFFFFFF
+        ref.referenced_size = tmp32 & 0x7fffffff
         ref.subsegment_duration = readBig32(data, start)
         start += 4
         tmp32 = readBig32(data, start)
         start += 4
         ref.starts_with_SAP = (tmp32 >> 31) & 0x1
         ref.SAP_type = (tmp32 >> 28) & 0x7
-        ref.SAP_delta_time = tmp32 & 0xFFFFFFF
+        ref.SAP_delta_time = tmp32 & 0xfffffff
       }
     })
   }
 
-  static moov (box) {
+  static moov(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.mvhd = MP4Parser.mvhd(MP4Parser.findBox(data, ['mvhd'], start)[0])
-      ret.trak = MP4Parser.findBox(data, ['trak'], start).map(trak => MP4Parser.trak(trak))
+      ret.trak = MP4Parser.findBox(data, ['trak'], start).map(trak =>
+        MP4Parser.trak(trak)
+      )
       ret.pssh = MP4Parser.pssh(MP4Parser.findBox(data, ['pssh'], start)[0])
     })
   }
 
-  static mvhd (box) {
+  static mvhd(box) {
     return parseBox(box, true, (ret, data) => {
       let start = 0
       if (ret.version === 1) {
@@ -140,14 +154,14 @@ export class MP4Parser {
     })
   }
 
-  static trak (box) {
+  static trak(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.tkhd = MP4Parser.tkhd(MP4Parser.findBox(data, ['tkhd'], start)[0])
       ret.mdia = MP4Parser.mdia(MP4Parser.findBox(data, ['mdia'], start)[0])
     })
   }
 
-  static tkhd (box) {
+  static tkhd(box) {
     return parseBox(box, true, (ret, data) => {
       const byte = ByteReader.fromUint8(data)
       if (ret.version === 1) {
@@ -182,7 +196,7 @@ export class MP4Parser {
     })
   }
 
-  static mdia (box) {
+  static mdia(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.mdhd = MP4Parser.mdhd(MP4Parser.findBox(data, ['mdhd'], start)[0])
       ret.hdlr = MP4Parser.hdlr(MP4Parser.findBox(data, ['hdlr'], start)[0])
@@ -190,7 +204,7 @@ export class MP4Parser {
     })
   }
 
-  static mdhd (box) {
+  static mdhd(box) {
     return parseBox(box, true, (ret, data) => {
       let start = 0
       if (ret.version === 1) {
@@ -203,11 +217,15 @@ export class MP4Parser {
         start += 16
       }
       const lang = readBig16(data, start)
-      ret.language = String.fromCharCode(((lang >> 10) & 0x1F) + 0x60, ((lang >> 5) & 0x1F) + 0x60, (lang & 0x1F) + 0x60)
+      ret.language = String.fromCharCode(
+        ((lang >> 10) & 0x1f) + 0x60,
+        ((lang >> 5) & 0x1f) + 0x60,
+        (lang & 0x1f) + 0x60
+      )
     })
   }
 
-  static hdlr (box) {
+  static hdlr(box) {
     return parseBox(box, true, (ret, data) => {
       if (ret.version === 0) {
         ret.handlerType = String.fromCharCode.apply(null, data.subarray(4, 8))
@@ -215,7 +233,7 @@ export class MP4Parser {
     })
   }
 
-  static minf (box) {
+  static minf(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.vmhd = MP4Parser.vmhd(MP4Parser.findBox(data, ['vmhd'], start)[0])
       ret.smhd = MP4Parser.smhd(MP4Parser.findBox(data, ['smhd'], start)[0])
@@ -223,20 +241,20 @@ export class MP4Parser {
     })
   }
 
-  static vmhd (box) {
+  static vmhd(box) {
     return parseBox(box, true, (ret, data) => {
       ret.graphicsmode = readBig16(data)
       ret.opcolor = [readBig16(data, 2), readBig16(data, 4), readBig16(data, 6)]
     })
   }
 
-  static smhd (box) {
+  static smhd(box) {
     return parseBox(box, true, (ret, data) => {
       ret.balance = readBig16(data)
     })
   }
 
-  static stbl (box) {
+  static stbl(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.stsd = MP4Parser.stsd(MP4Parser.findBox(data, ['stsd'], start)[0])
       ret.stts = MP4Parser.stts(MP4Parser.findBox(data, ['stts'], start)[0])
@@ -250,11 +268,14 @@ export class MP4Parser {
       }
       const default_IV_size = ret.stsd.entries[0]?.sinf?.schi?.tenc.default_IV_size
       ret.stss = MP4Parser.stss(MP4Parser.findBox(data, ['stss'], start)[0])
-      ret.senc = MP4Parser.senc(MP4Parser.findBox(data, ['senc'], start)[0], default_IV_size)
+      ret.senc = MP4Parser.senc(
+        MP4Parser.findBox(data, ['senc'], start)[0],
+        default_IV_size
+      )
     })
   }
 
-  static senc (box, iv = 8) {
+  static senc(box, iv = 8) {
     return parseBox(box, true, (ret, data) => {
       let start = 0
       const sampleCount = readBig32(data, start)
@@ -263,7 +284,7 @@ export class MP4Parser {
       for (let i = 0; i < sampleCount; i++) {
         const sample = {}
         sample.InitializationVector = []
-        for (let j = 0; j < iv; j++){
+        for (let j = 0; j < iv; j++) {
           sample.InitializationVector[j] = data[start + j]
         }
         start += iv
@@ -285,7 +306,7 @@ export class MP4Parser {
     })
   }
 
-  static pssh (box) {
+  static pssh(box) {
     return parseBox(box, true, (ret, data) => {
       const keyIds = []
       const systemId = []
@@ -297,7 +318,7 @@ export class MP4Parser {
       if (ret.version > 0) {
         const numKeyIds = readBig32(data, start)
         start += 4
-        for (let i = 0; i < ('' + numKeyIds).length; i++) {
+        for (let i = 0; i < `${numKeyIds}`.length; i++) {
           for (let j = 0; j < 16; j++) {
             const keyId = data[start]
             start += 1
@@ -314,56 +335,58 @@ export class MP4Parser {
     })
   }
 
-  static stsd (box) {
+  static stsd(box) {
     return parseBox(box, true, (ret, data, start) => {
       ret.entryCount = readBig32(data)
-      ret.entries = MP4Parser.findBox(data.subarray(4), [], start + 4).map(b => {
-        switch (b.type) {
-          case 'av01':
-            return MP4Parser.av01(b)
-          case 'avc1':
-          case 'avc2':
-          case 'avc3':
-          case 'avc4':
-            return MP4Parser.avc1(b)
-          case 'hvc1':
-          case 'hev1':
-            return MP4Parser.hvc1(b)
-          case 'mp4a':
-            return MP4Parser.mp4a(b)
-          case 'alaw':
-          case 'ulaw':
-            return MP4Parser.alaw(b)
-          case 'enca':
-            // sinf->schi->tenc
-            return parseBox(b, false, (ret, data, start) => {
-              ret.channelCount = readBig16(data, 16)
-              ret.samplesize = readBig16(data, 18)
-              ret.sampleRate = (readBig32(data, 24) / (1 << 16))
-              data = data.subarray(28)
-              ret.sinf = MP4Parser.sinf(MP4Parser.findBox(data, ['sinf'], start)[0])
-              ret.esds = MP4Parser.esds(MP4Parser.findBox(data, ['esds'], start)[0])
-            })
-          case 'encv':
-            // sinf->schi->tenc
-            return parseBox(b, false, (ret, data, start) => {
-              ret.width = readBig16(data, 24)
-              ret.height = readBig16(data, 26)
-              ret.horizresolution = readBig32(data, 28)
-              ret.vertresolution = readBig32(data, 32)
-              data = data.subarray(78)
-              ret.sinf = MP4Parser.sinf(MP4Parser.findBox(data, ['sinf'], start)[0])
-              ret.avcC = MP4Parser.avcC(MP4Parser.findBox(data, ['avcC'], start)[0])
-              ret.hvcC = MP4Parser.hvcC(MP4Parser.findBox(data, ['hvcC'], start)[0])
-              ret.pasp = MP4Parser.pasp(MP4Parser.findBox(data, ['pasp'], start)[0])
-            })
-          default:
-        }
-      }).filter(Boolean)
+      ret.entries = MP4Parser.findBox(data.subarray(4), [], start + 4)
+        .map(b => {
+          switch (b.type) {
+            case 'av01':
+              return MP4Parser.av01(b)
+            case 'avc1':
+            case 'avc2':
+            case 'avc3':
+            case 'avc4':
+              return MP4Parser.avc1(b)
+            case 'hvc1':
+            case 'hev1':
+              return MP4Parser.hvc1(b)
+            case 'mp4a':
+              return MP4Parser.mp4a(b)
+            case 'alaw':
+            case 'ulaw':
+              return MP4Parser.alaw(b)
+            case 'enca':
+              // sinf->schi->tenc
+              return parseBox(b, false, (ret, data, start) => {
+                ret.channelCount = readBig16(data, 16)
+                ret.samplesize = readBig16(data, 18)
+                ret.sampleRate = readBig32(data, 24) / (1 << 16)
+                data = data.subarray(28)
+                ret.sinf = MP4Parser.sinf(MP4Parser.findBox(data, ['sinf'], start)[0])
+                ret.esds = MP4Parser.esds(MP4Parser.findBox(data, ['esds'], start)[0])
+              })
+            case 'encv':
+              // sinf->schi->tenc
+              return parseBox(b, false, (ret, data, start) => {
+                ret.width = readBig16(data, 24)
+                ret.height = readBig16(data, 26)
+                ret.horizresolution = readBig32(data, 28)
+                ret.vertresolution = readBig32(data, 32)
+                data = data.subarray(78)
+                ret.sinf = MP4Parser.sinf(MP4Parser.findBox(data, ['sinf'], start)[0])
+                ret.avcC = MP4Parser.avcC(MP4Parser.findBox(data, ['avcC'], start)[0])
+                ret.hvcC = MP4Parser.hvcC(MP4Parser.findBox(data, ['hvcC'], start)[0])
+                ret.pasp = MP4Parser.pasp(MP4Parser.findBox(data, ['pasp'], start)[0])
+              })
+            default:
+          }
+        })
+        .filter(Boolean)
     })
   }
 
-  static tenc (box) {
+  static tenc(box) {
     return parseBox(box, false, (ret, data) => {
       let start = 6
       ret.default_IsEncrypted = data[start]
@@ -378,20 +401,20 @@ export class MP4Parser {
     })
   }
 
-  static schi (box) {
+  static schi(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.tenc = MP4Parser.tenc(MP4Parser.findBox(data, ['tenc'], start)[0])
     })
   }
 
-  static sinf (box) {
+  static sinf(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.schi = MP4Parser.schi(MP4Parser.findBox(data, ['schi'], start)[0])
       ret.frma = MP4Parser.frma(MP4Parser.findBox(data, ['frma'], start)[0])
     })
   }
 
-  static frma (box) {
+  static frma(box) {
     return parseBox(box, false, (ret, data) => {
       ret.data_format = ''
       for (let i = 0; i < 4; i++) {
@@ -400,7 +423,7 @@ export class MP4Parser {
     })
   }
 
-  static colr (box) {
+  static colr(box) {
     return parseBox(box, false, (ret, data) => {
       const byte = ByteReader.fromUint8(data)
       ret.data = box.data
@@ -417,7 +440,7 @@ export class MP4Parser {
     })
   }
 
-  static av01 (box) {
+  static av01(box) {
     return parseBox(box, false, (ret, data, start) => {
       const bodyStart = parseVisualSampleEntry(ret, data)
       const bodyData = data.subarray(bodyStart)
@@ -427,7 +450,7 @@ export class MP4Parser {
     })
   }
 
-  static av1C (box) {
+  static av1C(box) {
     return parseBox(box, false, (ret, data) => {
       ret.data = box.data
 
@@ -466,13 +489,14 @@ export class MP4Parser {
       ret.codec = [
         'av01',
         ret.seqProfile,
-        (ret.seqLevelIdx0 < 10 ? '0' + ret.seqLevelIdx0 : ret.seqLevelIdx0) + (ret.seqTier0 ? 'H' : 'M'),
+        (ret.seqLevelIdx0 < 10 ? `0${ret.seqLevelIdx0}` : ret.seqLevelIdx0) +
+          (ret.seqTier0 ? 'H' : 'M'),
         bitdepth
       ].join('.')
     })
   }
 
-  static avc1 (box) {
+  static avc1(box) {
     return parseBox(box, false, (ret, data, start) => {
       const bodyStart = parseVisualSampleEntry(ret, data)
       const bodyData = data.subarray(bodyStart)
@@ -482,7 +506,7 @@ export class MP4Parser {
     })
   }
 
-  static avcC (box) {
+  static avcC(box) {
     return parseBox(box, false, (ret, data) => {
       ret.data = box.data
       ret.configurationVersion = data[0]
@@ -491,7 +515,7 @@ export class MP4Parser {
       ret.AVCLevelIndication = data[3]
       ret.codec = getAvcCodec([data[1], data[2], data[3]])
       ret.lengthSizeMinusOne = data[4] & 0x3
-      ret.spsLength = data[5] & 0x1F
+      ret.spsLength = data[5] & 0x1f
       ret.sps = []
       let start = 6
       for (let i = 0; i < ret.spsLength; i++) {
@@ -508,13 +532,13 @@ export class MP4Parser {
       for (let i = 0; i < ret.ppsLength; i++) {
         const size = readBig16(data, start)
         start += 2
-        ret.pps.push(data.subarray(start, start += size))
+        ret.pps.push(data.subarray(start, (start += size)))
         start += size
       }
     })
   }
 
-  static hvc1 (box) {
+  static hvc1(box) {
     return parseBox(box, false, (ret, data, start) => {
       const bodyStart = parseVisualSampleEntry(ret, data)
       const bodyData = data.subarray(bodyStart)
@@ -524,7 +548,7 @@ export class MP4Parser {
     })
   }
 
-  static hvcC (box) {
+  static hvcC(box) {
     return parseBox(box, false, (ret, data) => {
       ret.data = box.data
       ret.codec = 'hev1.1.6.L93.B0'
@@ -532,7 +556,7 @@ export class MP4Parser {
       const tmp = data[1]
       ret.generalProfileSpace = tmp >> 6
       ret.generalTierFlag = (tmp & 0x20) >> 5
-      ret.generalProfileIdc = tmp & 0x1F
+      ret.generalProfileIdc = tmp & 0x1f
       ret.generalProfileCompatibility = readBig32(data, 2)
       ret.generalConstraintIndicatorFlags = data.subarray(6, 12)
       ret.generalLevelIdc = data[12]
@@ -546,7 +570,7 @@ export class MP4Parser {
       let numNalus = 0
       let size = 0
       for (let i = 0; i < ret.numOfArrays; i++) {
-        type = data[start] & 0x3F
+        type = data[start] & 0x3f
         numNalus = readBig16(data, start + 1)
         start += 3
         const nalus = []
@@ -568,21 +592,23 @@ export class MP4Parser {
     })
   }
 
-  static pasp (box) {
+  static pasp(box) {
     return parseBox(box, false, (ret, data) => {
       ret.hSpacing = readBig32(data)
       ret.vSpacing = readBig32(data, 4)
     })
   }
 
-  static mp4a (box) {
+  static mp4a(box) {
     return parseBox(box, false, (ret, data, start) => {
       const bodyStart = parseAudioSampleEntry(ret, data)
-      ret.esds = MP4Parser.esds(MP4Parser.findBox(data.subarray(bodyStart), ['esds'], start + bodyStart)[0])
+      ret.esds = MP4Parser.esds(
+        MP4Parser.findBox(data.subarray(bodyStart), ['esds'], start + bodyStart)[0]
+      )
     })
   }
 
-  static esds (box) {
+  static esds(box) {
     return parseBox(box, true, (ret, data) => {
       ret.codec = 'mp4a.'
       let start = 0
@@ -595,21 +621,21 @@ export class MP4Parser {
         byteRead = data[start + 1]
         start += 2
         while (byteRead & 0x80) {
-          size = (byteRead & 0x7F) << 7
+          size = (byteRead & 0x7f) << 7
           byteRead = data[start]
           start += 1
         }
-        size += byteRead & 0x7F
+        size += byteRead & 0x7f
         if (tag === 3) {
           data = data.subarray(start + 3)
         } else if (tag === 4) {
-          ret.codec += (data[start].toString(16) + '.').padStart(3, '0')
+          ret.codec += `${data[start].toString(16)}.`.padStart(3, '0')
           data = data.subarray(start + 13)
         } else if (tag === 5) {
-          const config = ret.config = data.subarray(start, start + size)
-          let objectType = (config[0] & 0xF8) >> 3
+          const config = (ret.config = data.subarray(start, start + size))
+          let objectType = (config[0] & 0xf8) >> 3
           if (objectType === 31 && config.length >= 2) {
-            objectType = 32 + ((config[0] & 0x7) << 3) + ((config[1] & 0xE0) >> 5)
+            objectType = 32 + ((config[0] & 0x7) << 3) + ((config[1] & 0xe0) >> 5)
           }
           ret.objectType = objectType
           ret.codec += objectType.toString(16)
@@ -627,13 +653,13 @@ export class MP4Parser {
     })
   }
 
-  static alaw (box) {
+  static alaw(box) {
     return parseBox(box, false, (ret, data) => {
       parseAudioSampleEntry(ret, data)
     })
   }
 
-  static stts (box) {
+  static stts(box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
       const entries = []
@@ -650,7 +676,7 @@ export class MP4Parser {
     })
   }
 
-  static ctts (box) {
+  static ctts(box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
       const entries = []
@@ -677,7 +703,7 @@ export class MP4Parser {
     })
   }
 
-  static stsc (box) {
+  static stsc(box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
       const entries = []
@@ -695,7 +721,7 @@ export class MP4Parser {
     })
   }
 
-  static stsz (box) {
+  static stsz(box) {
     return parseBox(box, true, (ret, data) => {
       const sampleSize = readBig32(data)
       const sampleCount = readBig32(data, 4)
@@ -713,7 +739,7 @@ export class MP4Parser {
     })
   }
 
-  static stco (box) {
+  static stco(box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
       const entries = []
@@ -727,7 +753,7 @@ export class MP4Parser {
     })
   }
 
-  static co64 (box) {
+  static co64(box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
       const entries = []
@@ -741,7 +767,7 @@ export class MP4Parser {
     })
   }
 
-  static stss (box) {
+  static stss(box) {
     return parseBox(box, true, (ret, data) => {
       const entryCount = readBig32(data)
       const entries = []
@@ -755,20 +781,20 @@ export class MP4Parser {
     })
   }
 
-  static moof (box) {
+  static moof(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.mfhd = MP4Parser.mfhd(MP4Parser.findBox(data, ['mfhd'], start)[0])
       ret.traf = MP4Parser.findBox(data, ['traf'], start).map(t => MP4Parser.traf(t))
     })
   }
 
-  static mfhd (box) {
+  static mfhd(box) {
     return parseBox(box, true, (ret, data) => {
       ret.sequenceNumber = readBig32(data)
     })
   }
 
-  static traf (box) {
+  static traf(box) {
     return parseBox(box, false, (ret, data, start) => {
       ret.tfhd = MP4Parser.tfhd(MP4Parser.findBox(data, ['tfhd'], start)[0])
       ret.tfdt = MP4Parser.tfdt(MP4Parser.findBox(data, ['tfdt'], start)[0])
@@ -776,11 +802,11 @@ export class MP4Parser {
     })
   }
 
-  static trun (box) {
+  static trun(box) {
     return parseBox(box, true, (ret, data) => {
       const { version, flags } = ret
       const dataLen = data.length
-      const sampleCount = ret.sampleCount = readBig32(data)
+      const sampleCount = (ret.sampleCount = readBig32(data))
       let offset = 4
       if (dataLen > offset && flags & 1) {
         ret.dataOffset = -(~readBig32(data, offset) + 1)
@@ -821,7 +847,7 @@ export class MP4Parser {
     })
   }
 
-  static tfdt (box) {
+  static tfdt(box) {
     return parseBox(box, true, (ret, data) => {
       if (ret.version === 1) {
         ret.baseMediaDecodeTime = readBig64(data)
@@ -831,11 +857,11 @@ export class MP4Parser {
     })
   }
 
-  static probe (data) {
+  static probe(data) {
     return !!MP4Parser.findBox(data, ['ftyp'])
   }
 
-  static parseSampleFlags (flags) {
+  static parseSampleFlags(flags) {
     return {
       isLeading: (flags[0] & 0x0c) >>> 2,
       dependsOn: flags[0] & 0x03,
@@ -847,7 +873,7 @@ export class MP4Parser {
     }
   }
 
-  static moovToTrack (moov, videoTrack, audioTrack) {
+  static moovToTrack(moov, videoTrack, audioTrack) {
     const tracks = moov.trak
     if (!tracks || !tracks.length) return
     const vTrack = tracks.find(t => t.mdia?.hdlr?.handlerType === 'vide')
@@ -860,7 +886,8 @@ export class MP4Parser {
       v.mvhdDurtion = moov.mvhd.duration
       v.mvhdTimecale = moov.mvhd.timescale
       v.timescale = v.formatTimescale = vTrack.mdia.mdhd.timescale
-      v.duration = vTrack.mdia.mdhd.duration || (v.mvhdDurtion / v.mvhdTimecale * v.timescale)
+      v.duration =
+        vTrack.mdia.mdhd.duration || (v.mvhdDurtion / v.mvhdTimecale) * v.timescale
       v.rotation = vTrack.tkhd.rotation
       v.matrix = vTrack.tkhd.matrix
       const e1 = vTrack.mdia.minf.stbl.stsd.entries[0]
@@ -900,7 +927,7 @@ export class MP4Parser {
         e1.default_KID = e1.sinf?.schi?.tenc.default_KID
         e1.default_IsEncrypted = e1.sinf?.schi?.tenc.default_IsEncrypted
         e1.default_IV_size = e1.sinf?.schi?.tenc.default_IV_size
-        v.videoSenc = vTrack.mdia.minf.stbl.senc && vTrack.mdia.minf.stbl.senc.samples
+        v.videoSenc = vTrack.mdia.minf.stbl.senc?.samples
         e1.data_format = e1.sinf?.frma?.data_format
         v.useEME = moov.useEME
         v.kidValue = moov.kidValue
@@ -917,7 +944,8 @@ export class MP4Parser {
       a.mvhdDurtion = moov.mvhd.duration
       a.mvhdTimecale = moov.mvhd.timescale
       a.timescale = a.formatTimescale = aTrack.mdia.mdhd.timescale
-      a.duration = aTrack.mdia.mdhd.duration || (a.mvhdDurtion / a.mvhdTimecale * a.timescale)
+      a.duration =
+        aTrack.mdia.mdhd.duration || (a.mvhdDurtion / a.mvhdTimecale) * a.timescale
       const e1 = aTrack.mdia.minf.stbl.stsd.entries[0]
       a.sampleSize = e1.sampleSize
       a.sampleRate = e1.sampleRate
@@ -962,20 +990,22 @@ export class MP4Parser {
         e1.default_KID = e1.sinf?.schi?.tenc.default_KID
         e1.default_IsEncrypted = e1.sinf?.schi?.tenc.default_IsEncrypted
         e1.default_IV_size = e1.sinf?.schi?.tenc.default_IV_size
-        a.audioSenc = aTrack.mdia.minf.stbl.senc && aTrack.mdia.minf.stbl.senc.samples
+        a.audioSenc = aTrack.mdia.minf.stbl.senc?.samples
         a.useEME = moov.useEME
         a.kidValue = moov.kidValue
         a.enca = e1
       }
     }
 
-    audioTrack && (audioTrack.isVideoEncryption = videoTrack ? videoTrack.isVideoEncryption : false)
-    videoTrack && (videoTrack.isAudioEncryption = audioTrack ? audioTrack.isAudioEncryption : false)
+    audioTrack &&
+      (audioTrack.isVideoEncryption = videoTrack ? videoTrack.isVideoEncryption : false)
+    videoTrack &&
+      (videoTrack.isAudioEncryption = audioTrack ? audioTrack.isAudioEncryption : false)
 
     if (videoTrack?.encv || audioTrack?.enca) {
       const vkid = videoTrack?.encv?.default_KID
       const akid = audioTrack?.enca?.default_KID
-      const kid = (vkid || akid) ? (vkid || akid).join('') : null
+      const kid = vkid || akid ? (vkid || akid).join('') : null
       videoTrack && (videoTrack.kid = kid)
       audioTrack && (audioTrack.kid = kid)
     }
@@ -989,18 +1019,18 @@ export class MP4Parser {
     }
   }
 
-  static evaluateDefaultDuration (videoTrack, audioTrack, videoSampleCount) {
+  static evaluateDefaultDuration(videoTrack, audioTrack, videoSampleCount) {
     const audioSampleCount = audioTrack?.samples?.length
 
     // audio
     if (!audioSampleCount) return 1024
 
-    const segmentDuration = 1024 * audioSampleCount / audioTrack.timescale
+    const segmentDuration = (1024 * audioSampleCount) / audioTrack.timescale
 
-    return segmentDuration * videoTrack.timescale / videoSampleCount
+    return (segmentDuration * videoTrack.timescale) / videoSampleCount
   }
 
-  static moofToSamples (moof, videoTrack, audioTrack) {
+  static moofToSamples(moof, videoTrack, audioTrack) {
     const ret = {}
 
     if (moof.mfhd) {
@@ -1011,11 +1041,19 @@ export class MP4Parser {
     moof.traf.forEach(({ tfhd, tfdt, trun }) => {
       if (!tfhd || !trun) return
       if (tfdt) {
-        if (videoTrack && videoTrack.id === tfhd.trackId) videoTrack.baseMediaDecodeTime = tfdt.baseMediaDecodeTime
-        if (audioTrack && audioTrack.id === tfhd.trackId) audioTrack.baseMediaDecodeTime = tfdt.baseMediaDecodeTime
+        if (videoTrack && videoTrack.id === tfhd.trackId)
+          videoTrack.baseMediaDecodeTime = tfdt.baseMediaDecodeTime
+        if (audioTrack && audioTrack.id === tfhd.trackId)
+          audioTrack.baseMediaDecodeTime = tfdt.baseMediaDecodeTime
       }
       const defaultSize = tfhd.defaultSampleSize || 0
-      const defaultDuration = tfhd.defaultSampleDuration || MP4Parser.evaluateDefaultDuration(videoTrack, audioTrack, trun.samples.length || trun.sampleCount)
+      const defaultDuration =
+        tfhd.defaultSampleDuration ||
+        MP4Parser.evaluateDefaultDuration(
+          videoTrack,
+          audioTrack,
+          trun.samples.length || trun.sampleCount
+        )
       let offset = trun.dataOffset || 0
       let dts = 0
       let gopId = -1
@@ -1040,7 +1078,11 @@ export class MP4Parser {
             duration: s.duration || defaultDuration,
             size: s.size || defaultSize,
             gopId,
-            keyframe: index === 0 || ((s.flags !== null && s.flags !== undefined) && ((s.flags & 65536) >>> 0) !== 65536)
+            keyframe:
+              index === 0 ||
+              (s.flags !== null &&
+                s.flags !== undefined &&
+                (s.flags & 65536) >>> 0 !== 65536)
           }
           if (s.keyframe) {
             gopId++
@@ -1056,7 +1098,7 @@ export class MP4Parser {
     return ret
   }
 
-  static moovToSamples (moov) {
+  static moovToSamples(moov) {
     const tracks = moov.trak
     if (!tracks || !tracks.length) return
     const vTrack = tracks.find(t => t.mdia?.hdlr?.handlerType === 'vide')
@@ -1087,7 +1129,7 @@ export class MP4Parser {
   }
 }
 
-function getSamples (stts, stsc, stsz, stco, ctts, stss) {
+function getSamples(stts, stsc, stsz, stco, ctts, stss) {
   const samples = []
   const cttsEntries = ctts?.entries
   const stscEntries = stsc.entries
@@ -1097,7 +1139,9 @@ function getSamples (stts, stsc, stsz, stco, ctts, stss) {
   let keyframeMap
   if (stssEntries) {
     keyframeMap = {}
-    stssEntries.forEach(x => { keyframeMap[x - 1] = true })
+    stssEntries.forEach(x => {
+      keyframeMap[x - 1] = true
+    })
   }
   let cttsArr
   if (cttsEntries) {
@@ -1154,7 +1198,9 @@ function getSamples (stts, stsc, stsz, stco, ctts, stss) {
         offsetInChunk = 0
         if (chunkIndex >= lastChunkInRun) {
           chunkRunIndex++
-          lastChunkInRun = stscEntries[chunkRunIndex + 1] ? stscEntries[chunkRunIndex + 1].firstChunk - 1 : Infinity
+          lastChunkInRun = stscEntries[chunkRunIndex + 1]
+            ? stscEntries[chunkRunIndex + 1].firstChunk - 1
+            : Infinity
         }
         lastSampleInChunk += stscEntries[chunkRunIndex].samplesPerChunk
       }
@@ -1164,7 +1210,7 @@ function getSamples (stts, stsc, stsz, stco, ctts, stss) {
   return samples
 }
 
-function parseVisualSampleEntry (ret, data) {
+function parseVisualSampleEntry(ret, data) {
   ret.dataReferenceIndex = readBig16(data, 6)
   ret.width = readBig16(data, 24)
   ret.height = readBig16(data, 26)
@@ -1175,7 +1221,7 @@ function parseVisualSampleEntry (ret, data) {
   return 78
 }
 
-function parseAudioSampleEntry (ret, data) {
+function parseAudioSampleEntry(ret, data) {
   ret.dataReferenceIndex = readBig16(data, 6)
   ret.channelCount = readBig16(data, 16)
   ret.sampleSize = readBig16(data, 18)
@@ -1183,7 +1229,7 @@ function parseAudioSampleEntry (ret, data) {
   return 28
 }
 
-function parseBox (box, isFullBox, parse) {
+function parseBox(box, isFullBox, parse) {
   if (!box) return
   if (box.size !== box.data.length) {
     throw new Error(`box ${box.type} size !== data.length`)
@@ -1203,7 +1249,7 @@ function parseBox (box, isFullBox, parse) {
   return ret
 }
 
-const padStart = function (str, length, pad) {
+const padStart = (str, length, pad) => {
   const charstr = String(pad)
   const len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
@@ -1215,7 +1261,7 @@ const padStart = function (str, length, pad) {
   return chars.join('').substring(0, len - r.length) + r
 }
 
-const toHex = function (...value) {
+const toHex = (...value) => {
   const hex = []
   value.forEach(item => {
     hex.push(padStart(Number(item).toString(16), 2, 0))

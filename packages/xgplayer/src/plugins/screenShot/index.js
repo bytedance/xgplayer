@@ -1,13 +1,13 @@
-import { POSITIONS, Events } from '../../plugin'
+import { Events, POSITIONS } from '../../plugin'
 import IconPlugin from '../common/iconPlugin'
 import './index.scss'
 
 export default class ScreenShot extends IconPlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'screenShot'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 5,
@@ -23,17 +23,17 @@ export default class ScreenShot extends IconPlugin {
     }
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     if (typeof args.player.config.screenShot === 'boolean') {
       args.config.disable = !args.player.config.screenShot
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     super.afterCreate()
     this.appendChild('.xgplayer-icon', this.icons.screenshotIcon)
     const { config } = this
-    this.initSize = (data) => {
+    this.initSize = data => {
       if (config.fitVideo) {
         config.width = data.vWidth
         config.height = data.vHeight
@@ -42,13 +42,13 @@ export default class ScreenShot extends IconPlugin {
     this.once(Events.VIDEO_RESIZE, this.initSize)
   }
 
-  onPluginsReady () {
+  onPluginsReady() {
     this.show()
     this.onClickBtn = this.onClickBtn.bind(this)
     this.bind(['click', 'touchend'], this.onClickBtn)
   }
 
-  saveScreenShot (data, filename) {
+  saveScreenShot(data, filename) {
     const saveLink = document.createElement('a')
     saveLink.href = data
     saveLink.download = filename
@@ -63,7 +63,23 @@ export default class ScreenShot extends IconPlugin {
         })
       } else {
         event = document.createEvent('MouseEvents')
-        event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        event.initMouseEvent(
+          'click',
+          true,
+          false,
+          window,
+          0,
+          0,
+          0,
+          0,
+          0,
+          false,
+          false,
+          false,
+          false,
+          0,
+          null
+        )
       }
     } catch (e) {
       console.error('MouseEvent unsupported', e)
@@ -74,7 +90,7 @@ export default class ScreenShot extends IconPlugin {
     }
   }
 
-  createCanvas (width, height) {
+  createCanvas(width, height) {
     const canvas = document.createElement('canvas')
     const canvasCtx = canvas.getContext('2d')
 
@@ -92,12 +108,12 @@ export default class ScreenShot extends IconPlugin {
     }
   }
 
-  onClickBtn (e) {
+  onClickBtn(e) {
     e.preventDefault()
     e.stopPropagation()
     this.emitUserAction(e, 'shot')
     const { config } = this
-    this.shot(config.width, config.height).then((data) => {
+    this.shot(config.width, config.height).then(data => {
       this.emit(Events.SCREEN_SHOT, data)
       if (config.saveImg) {
         this.saveScreenShot(data, config.name + config.format)
@@ -105,11 +121,11 @@ export default class ScreenShot extends IconPlugin {
     })
   }
 
-  shot (width, height, option = { quality: 0.92, type: 'image/png' }) {
+  shot(width, height, option = { quality: 0.92, type: 'image/png' }) {
     const { config, player } = this
     const quality = option.quality || config.quality
     const type = option.type || config.type
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       let canvas = null
       let canvasCtx
 
@@ -127,7 +143,10 @@ export default class ScreenShot extends IconPlugin {
 
         const mediaRatio = player.media.videoWidth / player.media.videoHeight
         const canvasRatio = canvas.width / canvas.height
-        const sx = 0, sy = 0, sw = player.media.videoWidth, sh = player.media.videoHeight
+        const sx = 0,
+          sy = 0,
+          sw = player.media.videoWidth,
+          sh = player.media.videoHeight
         let dx, dy, dw, dh
 
         if (mediaRatio > canvasRatio) {
@@ -156,23 +175,25 @@ export default class ScreenShot extends IconPlugin {
     })
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       screenshotIcon: null
     }
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     this.unbind(['click', 'touchend'], this.onClickBtn)
     this.off(Events.VIDEO_RESIZE, this.initSize)
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }
-    const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
+    const className = this.icons.screenshotIcon
+      ? 'xgplayer-icon'
+      : 'xgplayer-icon btn-text'
     const langKey = 'SCREENSHOT'
     return `
       <xg-icon class="xgplayer-shot">

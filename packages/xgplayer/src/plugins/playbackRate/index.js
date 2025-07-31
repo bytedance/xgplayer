@@ -14,14 +14,14 @@ import './index.scss'
  */
 
 export default class PlaybackRate extends OptionsIcon {
-  static get pluginName () {
+  static get pluginName() {
     return 'playbackRate'
   }
 
   /**
    * @type IPlaybackRateConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       ...OptionsIcon.defaultConfig,
       position: POSITIONS.CONTROLS_RIGHT,
@@ -33,14 +33,18 @@ export default class PlaybackRate extends OptionsIcon {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.curRate = 1
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     const { playbackRate } = args.player.config
-    const list = !playbackRate ? [] : Array.isArray(playbackRate) ? playbackRate : args.config.list
+    const list = !playbackRate
+      ? []
+      : Array.isArray(playbackRate)
+        ? playbackRate
+        : args.config.list
     if (Array.isArray(list)) {
       args.config.list = list.map(item => {
         if (typeof item === 'number') {
@@ -56,7 +60,7 @@ export default class PlaybackRate extends OptionsIcon {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     super.afterCreate()
     this.on(Events.RATE_CHANGE, () => {
       if (this.curValue === this.player.playbackRate) {
@@ -71,14 +75,14 @@ export default class PlaybackRate extends OptionsIcon {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
+  show(_value) {
     if (!this.config.list || this.config.list.length === 0) {
       return
     }
     super.show()
   }
 
-  onItemClick (e, _data) {
+  onItemClick(e, _data) {
     super.onItemClick(e, _data)
     const target = e.delegateTarget
     const rate = Number(target.getAttribute('rate'))
@@ -96,7 +100,7 @@ export default class PlaybackRate extends OptionsIcon {
     this.player.playbackRate = rate
   }
 
-  renderItemList () {
+  renderItemList() {
     const playbackRate = this.player.playbackRate || 1
     this.curValue = playbackRate
     let curIndex = -1
@@ -114,7 +118,7 @@ export default class PlaybackRate extends OptionsIcon {
     super.renderItemList(items, curIndex)
   }
 
-  changeCurrentText () {
+  changeCurrentText() {
     if (this.isIcons) {
       return
     }
@@ -131,7 +135,7 @@ export default class PlaybackRate extends OptionsIcon {
     this.find('.icon-text').innerHTML = _text
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
   }
 }

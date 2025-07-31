@@ -90,7 +90,7 @@ export const ERR_CODE = {
 }
 
 export class StreamingError extends Error {
-  constructor (type, subType, origin, payload, msg) {
+  constructor(type, subType, origin, payload, msg) {
     super(msg || origin?.message)
     this.errorType = type === ERR.NETWORK_TIMEOUT ? ERR.NETWORK : type
     this.originError = origin
@@ -103,7 +103,7 @@ export class StreamingError extends Error {
     }
   }
 
-  static create (type, subType, origin, payload, msg) {
+  static create(type, subType, origin, payload, msg) {
     if (type instanceof StreamingError) {
       return type
     } else if (type instanceof Error) {
@@ -116,7 +116,7 @@ export class StreamingError extends Error {
     return new StreamingError(type, subType, origin, payload, msg)
   }
 
-  static network (error) {
+  static network(error) {
     return new StreamingError(
       error?.isTimeout ? ERR.NETWORK_TIMEOUT : ERR.NETWORK,
       null,

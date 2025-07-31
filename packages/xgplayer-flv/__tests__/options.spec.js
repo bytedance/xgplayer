@@ -1,7 +1,6 @@
 import { getOption } from '../src/flv/options'
 
 describe('getOption', () => {
-
   test('default options', () => {
     const opts = getOption()
 
@@ -45,5 +44,4 @@ describe('getOption', () => {
     expect(opts.isLive).toBe(true)
     expect(opts.url).toBe('xxx')
   })
-
 })

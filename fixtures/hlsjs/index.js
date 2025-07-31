@@ -46,7 +46,6 @@ window.onload = function () {
 
   var player
 
-
   function initPlayer() {
     if (player) {
       player.destroy()
@@ -61,7 +60,7 @@ window.onload = function () {
         url: opts.url,
         isLive: opts.isLive,
         autoplay: opts.autoplay,
-        autoplayMuted: opts.autoplayMuted,
+        autoplayMuted: opts.autoplayMuted
       })
       dlEvent.innerHTML = ''
       dlError.innerHTML = ''

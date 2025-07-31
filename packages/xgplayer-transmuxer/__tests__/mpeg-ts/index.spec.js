@@ -2,7 +2,6 @@ import { TsDemuxer } from '../../src'
 import { readMovie, trackSnapshotTest } from '../test-utils'
 
 describe('TsDemuxer', () => {
-
   beforeAll(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {})
   })
@@ -47,5 +46,4 @@ describe('TsDemuxer', () => {
 
     trackSnapshotTest(snap, videoTrack, audioTrack)
   })
-
 })

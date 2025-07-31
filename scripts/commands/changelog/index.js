@@ -4,18 +4,22 @@ const changelog = require('conventional-changelog')
 const addStream = require('add-stream')
 const ctx = require('../../context')
 
-function gChangelog (input, s, pkg) {
+function gChangelog(input, s, pkg) {
   let gitCfg
   if (!s) {
     gitCfg = { path: input }
   }
 
-  const changelogStream = changelog({
-    preset: 'angular',
-    pkg: {
-      path: path.resolve(input, 'package.json')
-    }
-  }, undefined, gitCfg).on('error', function (err) {
+  const changelogStream = changelog(
+    {
+      preset: 'angular',
+      pkg: {
+        path: path.resolve(input, 'package.json')
+      }
+    },
+    undefined,
+    gitCfg
+  ).on('error', function (err) {
     console.error(err.toString())
     process.exit(1)
   })
@@ -26,7 +30,10 @@ function gChangelog (input, s, pkg) {
   if (inputExist) {
     if (pkg) {
       const data = fs.readFileSync(changelogPath).toString().slice(0, 100)
-      if (data.includes(`# ${pkg.version} `) || data.includes(`${pkg.name}@${pkg.version}`)) {
+      if (
+        data.includes(`# ${pkg.version} `) ||
+        data.includes(`${pkg.name}@${pkg.version}`)
+      ) {
         return
       }
     }
@@ -40,13 +47,11 @@ function gChangelog (input, s, pkg) {
           .on('finish', () => fs.removeSync(tmp))
       })
   } else {
-    changelogStream
-      .pipe(fs.createWriteStream(changelogPath))
+    changelogStream.pipe(fs.createWriteStream(changelogPath))
   }
-
 }
 
-function main (s) {
+function main(s) {
   if (ctx.isMonorepo && !s) {
     Object.keys(ctx.pkgs).forEach(k => {
       gChangelog(ctx.pkgs[k].path, false, ctx.pkgs[k].pkg)

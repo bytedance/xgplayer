@@ -1,6 +1,14 @@
-import { XhrLoader, FetchLoader, Mse } from 'xgplayer-helper-utils'
 // import { CompatHls as Compatibility } from 'xgplayer-helper-codec'
-import { Buffer as XgBuffer, Tracks, RemuxedBufferManager, AudioTrack, VideoTrack, AudioTrackMeta, VideoTrackMeta } from 'xgplayer-helper-models'
+import {
+  AudioTrack,
+  AudioTrackMeta,
+  RemuxedBufferManager,
+  Tracks,
+  VideoTrack,
+  VideoTrackMeta,
+  Buffer as XgBuffer
+} from 'xgplayer-helper-models'
+import { FetchLoader, Mse, XhrLoader } from 'xgplayer-helper-utils'
 
 export default {
   Mse,

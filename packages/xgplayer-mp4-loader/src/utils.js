@@ -26,26 +26,45 @@ const SampleFlag = {
   DEPENDS_YES: 16777216
 }
 
-export function trafToSegments (traf, trex = {}, moofOffset, segDuration, timescale) {
+export function trafToSegments(traf, trex = {}, moofOffset, segDuration, timescale) {
   const { tfhd, trun, tfdt } = traf
   const { samples: trunSamples, flags: trunFlags } = trun
   const { flags: tfhdFlags } = tfhd
 
   // const defaultSampleDescriptionIndex = tfhdFlags & TFHDFlag.SAMPLE_DESC ? tfhd.sampleDescriptionIndex : (trex.defaultSampleDescriptionIndex || 1)
-  const defaultSampleDuration = tfhdFlags & TFHDFlag.SAMPLE_DUR ? tfhd.defaultSampleDuration : (trex.defaultSampleDuration || 0)
-  const defaultSampleSize = tfhdFlags & TFHDFlag.SAMPLE_SIZE ? tfhd.defaultSampleSize : (trex.defaultSampleSize || 0)
-  const defaultSampleFlags = tfhdFlags & TFHDFlag.SAMPLE_FLAG ? tfhd.defaultSampleFlags : (trex.defaultSampleFlags || 0)
-  const startOffset = tfhdFlags & TFHDFlag.BASE_DATA_OFFSET ? tfhd.baseDataOffset : (tfhdFlags & TFHDFlag.DEFAULT_BASE_IS_MOOF ? moofOffset : 0)
+  const defaultSampleDuration =
+    tfhdFlags & TFHDFlag.SAMPLE_DUR
+      ? tfhd.defaultSampleDuration
+      : trex.defaultSampleDuration || 0
+  const defaultSampleSize =
+    tfhdFlags & TFHDFlag.SAMPLE_SIZE
+      ? tfhd.defaultSampleSize
+      : trex.defaultSampleSize || 0
+  const defaultSampleFlags =
+    tfhdFlags & TFHDFlag.SAMPLE_FLAG
+      ? tfhd.defaultSampleFlags
+      : trex.defaultSampleFlags || 0
+  const startOffset =
+    tfhdFlags & TFHDFlag.BASE_DATA_OFFSET
+      ? tfhd.baseDataOffset
+      : tfhdFlags & TFHDFlag.DEFAULT_BASE_IS_MOOF
+        ? moofOffset
+        : 0
 
   const frames = []
   const gops = []
 
-  for (let lastDts = 0, startTime = 0, gopId = 0, totalOffset = startOffset, i = 0; i < trunSamples.length; i++) {
+  for (
+    let lastDts = 0, startTime = 0, gopId = 0, totalOffset = startOffset, i = 0;
+    i < trunSamples.length;
+    i++
+  ) {
     const frame = {}
     frame.index = i
     frame.size = trunFlags & TRUNFlag.SIZE ? trunSamples[i].size : defaultSampleSize
-    frame.duration = trunFlags & TRUNFlag.DURATION ? trunSamples[i].duration : defaultSampleDuration
-    frame.dts = lastDts > 0 ? lastDts : (tfdt ? tfdt.baseMediaDecodeTime : 0)
+    frame.duration =
+      trunFlags & TRUNFlag.DURATION ? trunSamples[i].duration : defaultSampleDuration
+    frame.dts = lastDts > 0 ? lastDts : tfdt ? tfdt.baseMediaDecodeTime : 0
     frame.startTime = startTime
     if (trunFlags & TRUNFlag.CTS_OFFSET) {
       frame.pts = frame.dts + trunSamples[i].cts
@@ -75,7 +94,7 @@ export function trafToSegments (traf, trex = {}, moofOffset, segDuration, timesc
   }
 
   const len = frames.length
-  if (!len || (!frames[0].keyframe)) return []
+  if (!len || !frames[0].keyframe) return []
 
   let time = 0
   let lastFrame
@@ -92,7 +111,9 @@ export function trafToSegments (traf, trex = {}, moofOffset, segDuration, timesc
       lastFrame = segmentFrames[segmentFrames.length - 1]
       segments.push({
         index: segments.length,
-        startTime: (segments[segments.length - 1]?.endTime || segmentFrames[0].startTime / timescale),
+        startTime:
+          segments[segments.length - 1]?.endTime ||
+          segmentFrames[0].startTime / timescale,
         endTime: (lastFrame.startTime + lastFrame.duration) / timescale,
         duration: time / timescale,
         range: [segmentFrames[0].offset, lastFrame.offset + lastFrame.size],
@@ -106,7 +127,7 @@ export function trafToSegments (traf, trex = {}, moofOffset, segDuration, timesc
   return segments
 }
 
-export function sidxToSegments (moov, sidx) {
+export function sidxToSegments(moov, sidx) {
   const tracks = moov.trak
   if (!tracks || !tracks.length) return
   const videoTrack = tracks.find(t => t.mdia?.hdlr?.handlerType === 'vide')
@@ -123,7 +144,7 @@ export function sidxToSegments (moov, sidx) {
       segments.push({
         index: i,
         startTime: prevTime,
-        endTime: prevTime + (ref.subsegment_duration / sidx.timescale),
+        endTime: prevTime + ref.subsegment_duration / sidx.timescale,
         duration: ref.subsegment_duration / sidx.timescale,
         range: [prevOffset, prevOffset + ref.referenced_size],
         frames: []
@@ -136,19 +157,25 @@ export function sidxToSegments (moov, sidx) {
   } else {
     // 如果sidx不存在，则代表后续的segments无法通过seek读取
     // 把整段fmp4当作一个segment，使用开区间range即可
-    const getTrakSegments = (box) => {
+    const getTrakSegments = box => {
       if (!box) return []
-      return [{
-        index: 0,
-        startTime: 0,
-        endTime: box.duration / box.timescale,
-        duration: box.duration / box.timescale,
-        range: [moov.start + moov.size, ''],
-        frames: []
-      }]
+      return [
+        {
+          index: 0,
+          startTime: 0,
+          endTime: box.duration / box.timescale,
+          duration: box.duration / box.timescale,
+          range: [moov.start + moov.size, ''],
+          frames: []
+        }
+      ]
     }
-    videoSegments = getTrakSegments(moov.mvhd.duration ? moov.mvhd : videoTrack.mdia?.mdhd)
-    audioSegments = getTrakSegments(moov.mvhd.duration ? moov.mvhd : audioTrack.mdia?.mdhd)
+    videoSegments = getTrakSegments(
+      moov.mvhd.duration ? moov.mvhd : videoTrack.mdia?.mdhd
+    )
+    audioSegments = getTrakSegments(
+      moov.mvhd.duration ? moov.mvhd : audioTrack.mdia?.mdhd
+    )
   }
 
   return {
@@ -157,7 +184,7 @@ export function sidxToSegments (moov, sidx) {
   }
 }
 
-export function moovToSegments (moov, duration) {
+export function moovToSegments(moov, duration) {
   const tracks = moov.trak
   if (!tracks || !tracks.length) return
   const videoTrack = tracks.find(t => t.mdia?.hdlr?.handlerType === 'vide')
@@ -183,7 +210,17 @@ export function moovToSegments (moov, duration) {
     const timescale = audioTrack.mdia.mdhd?.timescale
     const { stts, stsc, stsz, stco } = audioStbl
     if (!timescale || !stts || !stsc || !stsz || !stco) return
-    audioSegments = getSegments(duration, timescale, stts, stsc, stsz, stco, null, null, segmentDurations)
+    audioSegments = getSegments(
+      duration,
+      timescale,
+      stts,
+      stsc,
+      stsz,
+      stco,
+      null,
+      null,
+      segmentDurations
+    )
   }
 
   return {
@@ -192,7 +229,17 @@ export function moovToSegments (moov, duration) {
   }
 }
 
-function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts, segmentDurations) {
+function getSegments(
+  segDuration,
+  timescale,
+  stts,
+  stsc,
+  stsz,
+  stco,
+  stss,
+  ctts,
+  segmentDurations
+) {
   const frames = []
   const gop = []
   const gopDuration = []
@@ -213,7 +260,9 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   let keyframeMap
   if (stssEntries) {
     keyframeMap = {}
-    stssEntries.forEach(x => { keyframeMap[x - 1] = true })
+    stssEntries.forEach(x => {
+      keyframeMap[x - 1] = true
+    })
   }
 
   let frame
@@ -268,7 +317,9 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
         offsetInChunk = 0
         if (chunkIndex >= lastChunkInRun) {
           chunkRunIndex++
-          lastChunkInRun = stscEntries[chunkRunIndex + 1] ? stscEntries[chunkRunIndex + 1].firstChunk - 1 : Infinity
+          lastChunkInRun = stscEntries[chunkRunIndex + 1]
+            ? stscEntries[chunkRunIndex + 1].firstChunk - 1
+            : Infinity
         }
         lastSampleInChunk += stscEntries[chunkRunIndex].samplesPerChunk
       }
@@ -283,11 +334,12 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   let time = 0
   let lastFrame
   let adjust = 0
-  const pushSegment = (duration) => {
+  const pushSegment = duration => {
     lastFrame = segFrames[segFrames.length - 1]
     segments.push({
       index: segments.length,
-      startTime: (segments[segments.length - 1]?.endTime || segFrames[0].startTime / timescale),
+      startTime:
+        segments[segments.length - 1]?.endTime || segFrames[0].startTime / timescale,
       endTime: (lastFrame.startTime + lastFrame.duration) / timescale,
       duration: duration,
       range: [segFrames[0].offset, lastFrame.offset + lastFrame.size],
@@ -327,7 +379,7 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   return segments
 }
 
-export function moovToMeta (moov, isFragmentMP4) {
+export function moovToMeta(moov, isFragmentMP4) {
   let videoCodec = ''
   let audioCodec = ''
   let width = 0
@@ -389,6 +441,6 @@ export function moovToMeta (moov, isFragmentMP4) {
   }
 }
 
-export function isNumber (n) {
+export function isNumber(n) {
   return typeof n === 'number' && !Number.isNaN(n)
 }

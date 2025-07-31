@@ -5,18 +5,18 @@ export class AdTimeIcon extends TimeIcon {
   /**
    * @override
    */
-  static get pluginName () {
+  static get pluginName() {
     return 'adTime'
   }
 
-  getAdPlugin () {
+  getAdPlugin() {
     return this.player.getPlugin('ad')
   }
 
   /**
    * @override
    */
-  get duration () {
+  get duration() {
     const adPlugin = this.getAdPlugin()
     return adPlugin?.duration || 0
   }
@@ -24,7 +24,7 @@ export class AdTimeIcon extends TimeIcon {
   /**
    * @override
    */
-  get currentTime () {
+  get currentTime() {
     const adPlugin = this.getAdPlugin()
     return adPlugin?.currentTime || 0
   }
@@ -32,8 +32,8 @@ export class AdTimeIcon extends TimeIcon {
   /**
    * @override
    */
-  listenEvents () {
-    this.on([AdEvents.AD_TIME_UPDATE], (e) => {
+  listenEvents() {
+    this.on([AdEvents.AD_TIME_UPDATE], _e => {
       this.onTimeUpdate()
     })
   }

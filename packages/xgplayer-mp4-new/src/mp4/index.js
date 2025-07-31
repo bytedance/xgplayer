@@ -1,6 +1,12 @@
 import EventEmitter from 'eventemitter3'
 import MP4Loader from 'xgplayer-mp4-loader'
-import { MSE, StreamingError, EVENT, Buffer, isMediaPlaying } from 'xgplayer-streaming-shared'
+import {
+  Buffer,
+  EVENT,
+  isMediaPlaying,
+  MSE,
+  StreamingError
+} from 'xgplayer-streaming-shared'
 import { BufferService } from './buffer-service'
 import { getConfig } from './config'
 
@@ -9,7 +15,7 @@ export class MP4 extends EventEmitter {
   _tickTimer = null
   _loading = false
 
-  constructor (config) {
+  constructor(config) {
     super()
     config = this._config = getConfig(config)
     this.media = this._config.media
@@ -28,11 +34,11 @@ export class MP4 extends EventEmitter {
 
   static version = __VERSION__
 
-  static isSupported () {
+  static isSupported() {
     return MSE.isSupported() || !!WebAssembly
   }
 
-  async load (url) {
+  async load(url) {
     await this._reset()
     if (url) await this._loader.changeUrl(url)
     this._startTick(this._config.tickInterval)
@@ -48,13 +54,13 @@ export class MP4 extends EventEmitter {
   //   }
   // }
 
-  async destroy () {
+  async destroy() {
     this.media.removeEventListener('seeking', this._onSeeking)
     await this._reset()
     await this._bufferService.destroy()
   }
 
-  async _reset () {
+  async _reset() {
     this._stopTick()
     await this._loader.reset()
     await this._bufferService.reset()
@@ -62,10 +68,10 @@ export class MP4 extends EventEmitter {
     this._loading = false
   }
 
-  async _loadSegment (time) {
+  async _loadSegment(time) {
     if (this._loading) return
     const currentTime = this.media.currentTime
-    if (this._prevSegmentEndTime > (currentTime + this._config.preloadTime)) return
+    if (this._prevSegmentEndTime > currentTime + this._config.preloadTime) return
 
     this._loading = true
     let res
@@ -82,9 +88,18 @@ export class MP4 extends EventEmitter {
       this._loading = false
       return
     }
-    this._prevSegmentEndTime = Math.min(res.video?.endTime || Infinity, res.audio?.endTime || Infinity)
+    this._prevSegmentEndTime = Math.min(
+      res.video?.endTime || Infinity,
+      res.audio?.endTime || Infinity
+    )
     try {
-      await this._bufferService.appendBuffer(res.data, res.option.range[0], res.video?.frames, res.audio?.frames, this._loader.meta.moov)
+      await this._bufferService.appendBuffer(
+        res.data,
+        res.option.range[0],
+        res.video?.frames,
+        res.audio?.frames,
+        this._loader.meta.moov
+      )
       await this._bufferService.evictBuffer(this._config.bufferBehind)
     } catch (error) {
       return this._emitError(StreamingError.create(error))
@@ -98,39 +113,39 @@ export class MP4 extends EventEmitter {
     }
   }
 
-  _end () {
+  _end() {
     this._bufferService.endOfStream()
     this._stopTick()
   }
 
-   _onSeeking = async () => {
-     if (!this.media) return
-     const seekTime = this.media.currentTime
-     const loader = this._loader
-     const { video, audio } = loader.getSegmentByTime(seekTime)
-     const seg = video || audio
-     if (!seg) return
-     if (loader.isSegmentLoading(seg.index)) {
-       return
-     }
-     const info = Buffer.info(Buffer.get(this.media), seekTime, 0.1)
-     if (info.end && (info.end >= seg.endTime || info.end >= this.media.duration)) return
+  _onSeeking = async () => {
+    if (!this.media) return
+    const seekTime = this.media.currentTime
+    const loader = this._loader
+    const { video, audio } = loader.getSegmentByTime(seekTime)
+    const seg = video || audio
+    if (!seg) return
+    if (loader.isSegmentLoading(seg.index)) {
+      return
+    }
+    const info = Buffer.info(Buffer.get(this.media), seekTime, 0.1)
+    if (info.end && (info.end >= seg.endTime || info.end >= this.media.duration)) return
 
-     await loader.cancel()
-     this._loading = false
-     this._prevSegmentEndTime = 0
-     this._loadSegment(seekTime)
-     this._startTick()
-   }
+    await loader.cancel()
+    this._loading = false
+    this._prevSegmentEndTime = 0
+    this._loadSegment(seekTime)
+    this._startTick()
+  }
 
-   _startTick (time = 0) {
-     this._stopTick()
-     this._tickTimer = setTimeout(this._tick, time)
-   }
+  _startTick(time = 0) {
+    this._stopTick()
+    this._tickTimer = setTimeout(this._tick, time)
+  }
 
-   _stopTick () {
-     clearTimeout(this._tickTimer)
-   }
+  _stopTick() {
+    clearTimeout(this._tickTimer)
+  }
 
   _tick = () => {
     this._stopTick()
@@ -143,7 +158,7 @@ export class MP4 extends EventEmitter {
     }
   }
 
-  _emitError (error, endOfStream = true) {
+  _emitError(error, endOfStream = true) {
     console.error(error)
     console.table(error)
     this.emit(EVENT.ERROR, error)

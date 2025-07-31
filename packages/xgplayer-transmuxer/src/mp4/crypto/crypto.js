@@ -1,14 +1,13 @@
-import { WordArray, Hex } from 'crypto-es/lib/core'
-import { CipherParams } from 'crypto-es/lib/cipher-core'
 import { AES } from 'crypto-es/lib/aes'
+import { CipherParams } from 'crypto-es/lib/cipher-core'
+import { Hex, WordArray } from 'crypto-es/lib/core'
 import { CTR } from 'crypto-es/lib/mode-ctr'
 import { NoPadding } from 'crypto-es/lib/pad-nopadding'
 import { formatIV } from '../../utils'
 import Buffer from '../buffer'
 
 const Crypto = {
-
-  decryptWordArray: function (raw, key, iv) {
+  decryptWordArray: (raw, key, iv) => {
     const realKey = Hex.parse(key)
 
     const realIV = Hex.parse(formatIV(iv))
@@ -26,27 +25,35 @@ const Crypto = {
     )
     return Crypto.wordArrayToUint8Array(decryptWord)
   },
-  wordArrayToUint8Array: function (wordArray) {
+  wordArrayToUint8Array: wordArray => {
     const l = wordArray.sigBytes
     const words = wordArray.words
     const result = new Uint8Array(l)
     let i = 0
     let j = 0
     while (true) {
-      if (i === l) { break }
+      if (i === l) {
+        break
+      }
       const w = words[j++]
       result[i++] = (w & 0xff000000) >>> 24
-      if (i === l) { break }
+      if (i === l) {
+        break
+      }
       result[i++] = (w & 0x00ff0000) >>> 16
-      if (i === l) { break }
+      if (i === l) {
+        break
+      }
       result[i++] = (w & 0x0000ff00) >>> 8
-      if (i === l) { break }
-      result[i++] = (w & 0x000000ff)
+      if (i === l) {
+        break
+      }
+      result[i++] = w & 0x000000ff
     }
     return result
   },
 
-  decoderAESCTRData (videoTrack, audioTrack, customDescryptHandler) {
+  decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler) {
     if (videoTrack.videoSenc) {
       const key = videoTrack.kidValue
       const senc = videoTrack.videoSenc
@@ -56,8 +63,8 @@ const Crypto = {
         const encodeBuffers = []
         const decodeBuffers = []
         const iv = sencBox.InitializationVector
-        if (sencBox.subsamples && sencBox.subsamples.length) {
-          sencBox.subsamples.forEach(function (value) {
+        if (sencBox.subsamples?.length) {
+          sencBox.subsamples.forEach(value => {
             const len = value.BytesOfClearData + value.BytesOfProtectedData
             const sampleData = encodeWord.slice(0, len)
             encodeBuffers.push(sampleData.slice(0, value.BytesOfClearData))
@@ -72,7 +79,9 @@ const Crypto = {
         }
         const tempBuffer = new Buffer()
         tempBuffer.write(...decodeBuffers)
-        let decrypted = customDescryptHandler ? customDescryptHandler(tempBuffer.buffer, key, iv) : Crypto.decryptWordArray(tempBuffer.buffer, key, iv)
+        let decrypted = customDescryptHandler
+          ? customDescryptHandler(tempBuffer.buffer, key, iv)
+          : Crypto.decryptWordArray(tempBuffer.buffer, key, iv)
         const buffer = new Buffer()
         encodeBuffers.forEach((clearDataBuf, i) => {
           const protectedDataLen = decodeBuffers[i].length
@@ -90,7 +99,9 @@ const Crypto = {
       const senc = audioTrack.audioSenc
       audioTrack.samples.forEach((item, index) => {
         const sencBox = senc[index]
-        const dec = customDescryptHandler ? customDescryptHandler(item.data, key, sencBox.InitializationVector) : Crypto.decryptWordArray(item.data, key, sencBox.InitializationVector)
+        const dec = customDescryptHandler
+          ? customDescryptHandler(item.data, key, sencBox.InitializationVector)
+          : Crypto.decryptWordArray(item.data, key, sencBox.InitializationVector)
         audioTrack.samples[index].data = dec
       })
     }

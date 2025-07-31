@@ -3,17 +3,20 @@ const REGEXP_ATTR = /([^=]+)=(?:"([^"]*)"|([^",]*))(?:,|$)/g
 const REGEXP_ABSOLUTE_URL = /^(?:[a-zA-Z0-9+\-.]+:)?\/\//
 const REGEXP_URL_PAIR = /^((?:[a-zA-Z0-9+\-.]+:)?\/\/[^/?#]*)?([^?#]*\/)?/
 
-export function getLines (text) {
-  return text.split(/[\r\n]/).map((x) => x.trim()).filter(Boolean)
+export function getLines(text) {
+  return text
+    .split(/[\r\n]/)
+    .map(x => x.trim())
+    .filter(Boolean)
 }
 
-export function parseTag (text) {
+export function parseTag(text) {
   const ret = text.match(REGEXP_TAG)
   if (!ret || !ret[1]) return
   return [ret[1].replace('EXT-X-', ''), ret[2]]
 }
 
-export function parseAttr (text) {
+export function parseAttr(text) {
   const ret = {}
   let match = REGEXP_ATTR.exec(text)
   while (match) {
@@ -23,7 +26,7 @@ export function parseAttr (text) {
   return ret
 }
 
-export function getAbsoluteUrl (url, parentUrl) {
+export function getAbsoluteUrl(url, parentUrl) {
   if (!parentUrl || !url || REGEXP_ABSOLUTE_URL.test(url)) return url
   const pairs = REGEXP_URL_PAIR.exec(parentUrl)
   if (!pairs) return url
@@ -42,7 +45,7 @@ const CODECS_REGEXP = {
  * @param {Array<string>} codecs
  * @returns {string | undefined}
  */
-export function getCodecs (type, codecs) {
+export function getCodecs(type, codecs) {
   const re = CODECS_REGEXP[type]
   if (!re || !codecs || !codecs.length) return
   for (let i = 0; i < re.length; i++) {
@@ -52,7 +55,7 @@ export function getCodecs (type, codecs) {
   }
 }
 
-export function isValidDaterange (attr, dateRangeWithSameId) {
+export function isValidDaterange(attr, dateRangeWithSameId) {
   let _badValueForSameId
   if (dateRangeWithSameId) {
     for (const key in dateRangeWithSameId) {
@@ -88,21 +91,16 @@ export function isValidDaterange (attr, dateRangeWithSameId) {
     Number.isFinite(attr._startDate.getTime()) &&
     (duration === null || duration >= 0) &&
     (!(attr.END_ON_NEXT === 'YES') || !!attr.CLASS) &&
-    (!attr.CUE ||
-      (!cue.pre && !cue.post) ||
-      cue.pre !== cue.post) &&
+    (!attr.CUE || (!cue.pre && !cue.post) || cue.pre !== cue.post) &&
     (!(attr.CLASS === 'com.apple.hls.interstitial') ||
       'X-ASSET-URI' in attr ||
       'X-ASSET-LIST' in attr)
   )
 }
 
-function enumeratedStringList (attrValue, dict) {
-  return (attrValue ? attrValue.split(/[ ,]+/) : []).reduce(
-    (result, identifier) => {
-      result[identifier.toLowerCase()] = true
-      return result
-    },
-    dict
-  )
+function enumeratedStringList(attrValue, dict) {
+  return (attrValue ? attrValue.split(/[ ,]+/) : []).reduce((result, identifier) => {
+    result[identifier.toLowerCase()] = true
+    return result
+  }, dict)
 }

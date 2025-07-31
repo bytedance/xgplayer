@@ -1,12 +1,12 @@
-import Plugin, { Util, Events, POSITIONS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Util } from '../../plugin'
 import './index.scss'
 
 class Time extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'time'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_LEFT,
       index: 2,
@@ -14,26 +14,26 @@ class Time extends Plugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.isActiving = false
   }
 
-  get duration () {
+  get duration() {
     const { offsetDuration, duration } = this.player
     return this.playerConfig.customDuration || offsetDuration || duration
   }
 
-  get currentTime () {
+  get currentTime() {
     const { offsetCurrentTime, currentTime } = this.player
     return offsetCurrentTime >= 0 ? offsetCurrentTime : currentTime
   }
 
-  get timeOffset () {
+  get timeOffset() {
     return this.playerConfig.timeOffset || 0
   }
 
-  afterCreate () {
+  afterCreate() {
     const constrolsMode = this.player.controls.config.mode
     this.mode = constrolsMode === 'flex' ? 'flex' : 'normal'
     if (this.config.disable) {
@@ -53,8 +53,8 @@ class Time extends Plugin {
    * This method can be overridden.
    * Eg. xgplayer-ads/ui/adTime.js
    */
-  listenEvents () {
-    this.on([Events.DURATION_CHANGE, Events.SEEKED, Events.TIME_UPDATE], (e) => {
+  listenEvents() {
+    this.on([Events.DURATION_CHANGE, Events.SEEKED, Events.TIME_UPDATE], e => {
       if (e.eventName === 'durationchange') {
         this.isActiving = false
       }
@@ -75,7 +75,7 @@ class Time extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
+  show(_value) {
     if (this.mode === 'flex') {
       this.centerCurDom && (this.centerCurDom.style.display = 'block')
       this.centerDurDom && (this.centerDurDom.style.display = 'block')
@@ -84,7 +84,7 @@ class Time extends Plugin {
     this.root.style.display = 'block'
   }
 
-  hide () {
+  hide() {
     if (this.mode === 'flex') {
       this.centerCurDom && (this.centerCurDom.style.display = 'none')
       this.centerDurDom && (this.centerDurDom.style.display = 'none')
@@ -93,7 +93,7 @@ class Time extends Plugin {
     this.root.style.display = 'none'
   }
 
-  onTimeUpdate (isEnded) {
+  onTimeUpdate(isEnded) {
     const { player, config, duration } = this
     if (config.disable || this.isActiving || !player.hasStart) {
       return
@@ -113,7 +113,7 @@ class Time extends Plugin {
     }
   }
 
-  onReset () {
+  onReset() {
     if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = this.minWidthTime(Util.format(0))
       this.centerDurDom.innerHTML = Util.format(0)
@@ -123,7 +123,7 @@ class Time extends Plugin {
     }
   }
 
-  createCenterTime () {
+  createCenterTime() {
     const { player } = this
     if (!player.controls || !player.controls.center) {
       return
@@ -148,7 +148,7 @@ class Time extends Plugin {
     this.extraEls = [this.centerCurDom, this.centerDurDom]
   }
 
-  afterPlayerInit () {
+  afterPlayerInit() {
     const { config } = this
     if (this.duration === Infinity || this.playerConfig.isLive) {
       Util.hide(this.durationDom)
@@ -165,7 +165,7 @@ class Time extends Plugin {
     this.show()
   }
 
-  changeLiveState (isLive) {
+  changeLiveState(isLive) {
     if (isLive) {
       Util.hide(this.durationDom)
       Util.hide(this.timeDom)
@@ -179,7 +179,7 @@ class Time extends Plugin {
     }
   }
 
-  updateTime (time) {
+  updateTime(time) {
     this.isActiving = true
     if ((!time && time !== 0) || time > this.duration) {
       return
@@ -191,14 +191,14 @@ class Time extends Plugin {
     this.timeDom.innerHTML = this.minWidthTime(Util.format(time))
   }
 
-  minWidthTime (timeStr) {
+  minWidthTime(timeStr) {
     return timeStr
       .split(':')
       .map(value => `<span class="time-min-width">${value}</span>`)
       .join(':')
   }
 
-  resetActive () {
+  resetActive() {
     const { player } = this
     const updateState = () => {
       this.isActiving = false
@@ -211,7 +211,7 @@ class Time extends Plugin {
     }
   }
 
-  destroy () {
+  destroy() {
     const { center } = this.player.controls
     this.centerCurDom && center.removeChild(this.centerCurDom)
     this.centerCurDom = null
@@ -219,7 +219,7 @@ class Time extends Plugin {
     this.centerDurDom = null
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }

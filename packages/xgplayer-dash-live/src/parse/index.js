@@ -1,20 +1,20 @@
-import xml2json from './xml2json'
-import { durationConvert, isAudio, isVideo, timeToSecond } from '../util'
 import MediaList from '../mediaList'
+import { durationConvert, isAudio, isVideo, timeToSecond } from '../util'
+import xml2json from './xml2json'
 
 /* eslint-disable max-lines-per-function, prefer-destructuring */
 export default class Parser {
-  constructor () {
+  constructor() {
     this.baseURL = ''
     this.mediaList = new MediaList()
   }
 
-  parse (res, url) {
+  parse(res, url) {
     const result = xml2json.xml_str2json(res)
     if (result.type && result.type !== 'dynamic') {
       throw new Error('The stream is not living')
     }
-    if (result.BaseURL && result.BaseURL[0]) {
+    if (result.BaseURL?.[0]) {
       this.baseURL = result.BaseURL[0]
     } else {
       this.baseURL = this.getBaseURL(url)
@@ -32,11 +32,11 @@ export default class Parser {
     this.parseAdaptationSet(Period.AdaptationSet, duration, this.baseURL)
   }
 
-  getBaseURL (url) {
+  getBaseURL(url) {
     return url.slice(0, url.lastIndexOf('/') + 1)
   }
 
-  parseAdaptationSet (adaptationSet, duration, url) {
+  parseAdaptationSet(adaptationSet, duration, url) {
     const { mediaList } = this
     let isSegmentBase = false
 
@@ -61,7 +61,8 @@ export default class Parser {
           baseURL += rItem.BaseURL[0]
         }
         isSegmentBase =
-          (adaptation.SegmentBase && adaptation.SegmentBase.length > 0) || (rItem.SegmentBase && rItem.SegmentBase.length > 0)
+          (adaptation.SegmentBase && adaptation.SegmentBase.length > 0) ||
+          (rItem.SegmentBase && rItem.SegmentBase.length > 0)
         // 直播不存在SegmentBase节点
         if (!isSegmentBase) {
           let ST
@@ -76,12 +77,20 @@ export default class Parser {
 
           const already = alreadys.find(({ id }) => id === rItem.id)
 
-          const { initSegment, mediaSegments, timescale } = this.parseSegmentTemplate(ST, rItem, baseURL)
+          const { initSegment, mediaSegments, timescale } = this.parseSegmentTemplate(
+            ST,
+            rItem,
+            baseURL
+          )
 
           const options = {
             id: rItem.id,
             baseURL,
-            initSegment: baseURL + initSegment.replace(/\$RepresentationID\$/g, rItem.id).replace(/\$Bandwidth\$/g, bandwidth),
+            initSegment:
+              baseURL +
+              initSegment
+                .replace(/\$RepresentationID\$/g, rItem.id)
+                .replace(/\$Bandwidth\$/g, bandwidth),
             mediaSegments,
             mimeType,
             codecs,
@@ -110,7 +119,7 @@ export default class Parser {
       })
     })
     if (!isSegmentBase) {
-      ['video', 'audio'].forEach(mediaType => {
+      ;['video', 'audio'].forEach(mediaType => {
         mediaList[mediaType].selectedIdx = 0
         mediaList[mediaType].sort((a, b) => {
           return b.bandwidth - a.bandwidth
@@ -119,7 +128,7 @@ export default class Parser {
     }
   }
 
-  parseSegmentTemplate (segmentTemplate, representation, baseURL) {
+  parseSegmentTemplate(segmentTemplate, representation, baseURL) {
     let initSegment = ''
     const mediaSegments = []
     let timescale = 1000
@@ -152,7 +161,13 @@ export default class Parser {
           idx: item.t,
           start: parseFloat(item.t),
           end: parseFloat(item.t) + parseFloat(item.d),
-          url: baseURL + segmentTemplate.media.replace(/\$Time\$/g, item.t).replace(/\$RepresentationID\$/g, representation.id).replace(/\$Number\$/g, currentNumber).replace(/\$Bandwidth\$/g, representation.bandwidth),
+          url:
+            baseURL +
+            segmentTemplate.media
+              .replace(/\$Time\$/g, item.t)
+              .replace(/\$RepresentationID\$/g, representation.id)
+              .replace(/\$Number\$/g, currentNumber)
+              .replace(/\$Bandwidth\$/g, representation.bandwidth),
           segmentDuration: parseFloat(item.d),
           number: currentNumber
         })
@@ -165,7 +180,7 @@ export default class Parser {
     }
   }
 
-  getMPDAttributes (result) {
+  getMPDAttributes(result) {
     return {
       minBufferTime: durationConvert(result.minBufferTime),
       minimumUpdatePeriod: durationConvert(result.minimumUpdatePeriod),

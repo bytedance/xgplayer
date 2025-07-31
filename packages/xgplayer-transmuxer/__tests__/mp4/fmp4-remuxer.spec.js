@@ -2,7 +2,6 @@ import { AudioTrack, FMP4Remuxer, TsDemuxer, VideoTrack } from '../../src'
 import { readMovie } from '../test-utils'
 
 describe('FMP4Remuxer', () => {
-
   beforeAll(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {})
   })
@@ -46,7 +45,7 @@ describe('FMP4Remuxer', () => {
 
     demuxer.audioTrack.samples = []
 
-    let result = remuxer.remux(true)
+    const result = remuxer.remux(true)
     expect(result.videoInitSegment).toBeDefined()
     expect(result.audioInitSegment).toBeDefined()
     expect(result.videoSegment).toBeDefined()
@@ -60,12 +59,11 @@ describe('FMP4Remuxer', () => {
     const [file] = readMovie('ts-hevc.ts')
     demuxer.demuxAndFix(file)
 
-    let result = remuxer.remux(true)
+    const result = remuxer.remux(true)
 
     expect(result.videoInitSegment).toBeDefined()
     expect(result.audioInitSegment).toBeDefined()
     expect(result.videoSegment).toBeDefined()
     expect(result.audioSegment).toBeDefined()
   })
-
 })

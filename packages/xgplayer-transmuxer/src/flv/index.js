@@ -1,10 +1,20 @@
-import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample, VideoCodecType, AudioCodecType, FlvScriptSample, SeiSample } from '../model'
-import { FlvFixer } from './fixer'
-import { concatUint8Array, Logger, readBig32 } from '../utils'
 import { AAC, AVC, HEVC, NALu } from '../codec'
-import { AMF } from './amf'
-import { FlvSoundFormat } from './soundFormat'
 import { OPUS } from '../codec/opus'
+import {
+  AudioCodecType,
+  AudioSample,
+  AudioTrack,
+  FlvScriptSample,
+  MetadataTrack,
+  SeiSample,
+  VideoCodecType,
+  VideoSample,
+  VideoTrack
+} from '../model'
+import { concatUint8Array, Logger, readBig32 } from '../utils'
+import { AMF } from './amf'
+import { FlvFixer } from './fixer'
+import { FlvSoundFormat } from './soundFormat'
 
 const logger = new Logger('FlvDemuxer')
 
@@ -28,7 +38,7 @@ export class FlvDemuxer {
    * @param {AudioTrack} [audioTrack]
    * @param {MetadataTrack} [metadataTrack]
    */
-  constructor (videoTrack, audioTrack, metadataTrack) {
+  constructor(videoTrack, audioTrack, metadataTrack) {
     this.videoTrack = videoTrack || new VideoTrack()
     this.audioTrack = audioTrack || new AudioTrack()
     this.metadataTrack = metadataTrack || new MetadataTrack()
@@ -41,7 +51,7 @@ export class FlvDemuxer {
    * @param {boolean} [contiguous=true]
    * @returns {DemuxResult}
    */
-  demux (data, discontinuity = false, contiguous = true, seamlessLoadingSwitching) {
+  demux(data, discontinuity = false, contiguous = true, seamlessLoadingSwitching) {
     const { audioTrack, videoTrack, metadataTrack } = this
 
     if (discontinuity || !contiguous) {
@@ -83,7 +93,7 @@ export class FlvDemuxer {
       if (!FlvDemuxer.probe(data)) {
         throw new Error('Invalid flv file')
       }
-      audioTrack.present = ((data[4] & 4) >>> 2) !== 0
+      audioTrack.present = (data[4] & 4) >>> 2 !== 0
       videoTrack.present = (data[4] & 1) !== 0
       this._headerParsed = true
       offset = readBig32(data, 5) + 4 // skip prev tag size
@@ -96,16 +106,16 @@ export class FlvDemuxer {
     let timestamp
     let bodyData
     let prevTagSize
-    while ((offset + 15) < dataLen) { // header and prev tag size
+    while (offset + 15 < dataLen) {
+      // header and prev tag size
       tagType = data[offset]
       dataSize = (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3]
       if (offset + 15 + dataSize > dataLen) break
-      timestamp = (
-        (data[offset + 7] << 24 >>> 0) +
+      timestamp =
+        ((data[offset + 7] << 24) >>> 0) +
         (data[offset + 4] << 16) +
         (data[offset + 5] << 8) +
         data[offset + 6]
-      )
 
       offset += 11
       bodyData = data.subarray(offset, offset + dataSize)
@@ -133,8 +143,13 @@ export class FlvDemuxer {
       this._remainingData = data.subarray(offset)
     }
 
-    audioTrack.formatTimescale = videoTrack.formatTimescale = videoTrack.timescale = metadataTrack.timescale = 1000
-    audioTrack.timescale = audioTrack.codecType === AudioCodecType.OPUS ? 1000 : audioTrack.sampleRate || 0
+    audioTrack.formatTimescale =
+      videoTrack.formatTimescale =
+      videoTrack.timescale =
+      metadataTrack.timescale =
+        1000
+    audioTrack.timescale =
+      audioTrack.codecType === AudioCodecType.OPUS ? 1000 : audioTrack.sampleRate || 0
 
     if (!audioTrack.exist() && audioTrack.hasSample()) {
       audioTrack.reset()
@@ -143,7 +158,8 @@ export class FlvDemuxer {
       videoTrack.reset()
     }
 
-    const scriptDataObject = metadataTrack.flvScriptSamples[metadataTrack.flvScriptSamples.length - 1]
+    const scriptDataObject =
+      metadataTrack.flvScriptSamples[metadataTrack.flvScriptSamples.length - 1]
     const metaData = scriptDataObject?.data?.onMetaData
 
     if (metaData) {
@@ -168,7 +184,6 @@ export class FlvDemuxer {
       }
     }
 
-
     return {
       videoTrack,
       audioTrack,
@@ -182,7 +197,7 @@ export class FlvDemuxer {
    * @param {boolean} [contiguous=true]
    * @returns {DemuxResult}
    */
-  fix (startTime, discontinuity, contiguous) {
+  fix(startTime, discontinuity, contiguous) {
     this._fixer.fix(startTime, discontinuity, contiguous)
     return {
       videoTrack: this.videoTrack,
@@ -198,7 +213,7 @@ export class FlvDemuxer {
    * @param {number} [startTime=0]
    * @returns {DemuxResult}
    */
-  demuxAndFix (data, discontinuity, contiguous, startTime, seamlessLoadingSwitching) {
+  demuxAndFix(data, discontinuity, contiguous, startTime, seamlessLoadingSwitching) {
     this.demux(data, discontinuity, contiguous, seamlessLoadingSwitching)
     return this.fix(startTime, discontinuity, contiguous)
   }
@@ -207,8 +222,8 @@ export class FlvDemuxer {
    * @param { Uint8Array } data
    * @returns {boolean}
    */
-  static probe (data) {
-    if (data[0] !== 0x46 || data[1] !== 0x4C || data[2] !== 0x56 || data[3] !== 0x01) {
+  static probe(data) {
+    if (data[0] !== 0x46 || data[1] !== 0x4c || data[2] !== 0x56 || data[3] !== 0x01) {
       return false
     }
     return readBig32(data, 5) >= 9
@@ -219,7 +234,7 @@ export class FlvDemuxer {
    * @param {number} pts
    * @private
    */
-  _parseAudio (data, pts) {
+  _parseAudio(data, pts) {
     if (!data.length) return
 
     const format = (data[0] & 0xf0) >>> 4
@@ -239,7 +254,7 @@ export class FlvDemuxer {
     if (format !== FlvSoundFormat.AAC && format !== FlvSoundFormat.OPUS) {
       const soundRate = (data[0] & 0x0c) >> 2
       const soundSize = (data[0] & 0x02) >> 1
-      const soundType = (data[0] & 0x01)
+      const soundType = data[0] & 0x01
       track.sampleRate = FlvDemuxer.AUDIO_RATE[soundRate]
       track.sampleSize = soundSize ? 16 : 8
       track.channelCount = soundType + 1
@@ -266,7 +281,7 @@ export class FlvDemuxer {
    * @param {number} pts
    * @private
    */
-  _parseOpus (data, pts) {
+  _parseOpus(data, pts) {
     const track = this.audioTrack
     const packetType = data[1]
 
@@ -304,7 +319,7 @@ export class FlvDemuxer {
    * @param {number} pts
    * @param {import('./soundFormat').FlvSoundFormat} format
    */
-  _parseG711 (data, pts, format) {
+  _parseG711(data, pts, format) {
     const track = this.audioTrack
     const audioData = data.subarray(1)
 
@@ -317,11 +332,12 @@ export class FlvDemuxer {
     track.samples.push(sample)
   }
 
-  _parseAac (data, pts) {
+  _parseAac(data, pts) {
     const track = this.audioTrack
     track.codecType = AudioCodecType.AAC
 
-    if (data[1] === 0) { // AACPacketType
+    if (data[1] === 0) {
+      // AACPacketType
       const ret = AAC.parseAudioSpecificConfig(data.subarray(2))
       if (ret) {
         track.codec = ret.codec
@@ -334,7 +350,8 @@ export class FlvDemuxer {
         track.reset()
         logger.warn('Cannot parse AudioSpecificConfig', data)
       }
-    } else if (data[1] === 1) { // Raw AAC frame data
+    } else if (data[1] === 1) {
+      // Raw AAC frame data
       if (pts === undefined || pts === null) return
       track.samples.push(new AudioSample(pts, data.subarray(2)))
     } else {
@@ -342,7 +359,7 @@ export class FlvDemuxer {
     }
   }
 
-  _parseVideo (data, dts) {
+  _parseVideo(data, dts) {
     if (data.length < 6) return
 
     const frameType = (data[0] & 0xf0) >>> 4
@@ -363,9 +380,10 @@ export class FlvDemuxer {
     track.codecType = isHevc ? VideoCodecType.HEVC : VideoCodecType.AVC
 
     const packetType = data[1]
-    const cts = (((data[2] << 16) | (data[3] << 8) | (data[4])) << 8) >> 8
+    const cts = (((data[2] << 16) | (data[3] << 8) | data[4]) << 8) >> 8
 
-    if (packetType === 0) { // DecoderConfigurationRecord
+    if (packetType === 0) {
+      // DecoderConfigurationRecord
       const configData = data.subarray(5)
       const ret = isHevc
         ? HEVC.parseHEVCDecoderConfigurationRecord(configData)
@@ -385,17 +403,21 @@ export class FlvDemuxer {
         }
         if (spsArr.length) track.sps = spsArr
         if (ppsArr.length) track.pps = ppsArr
-        if (vpsArr && vpsArr.length) track.vps = vpsArr
+        if (vpsArr?.length) track.vps = vpsArr
         if (nalUnitSize) track.nalUnitSize = nalUnitSize
       } else {
-        logger.warn(`Cannot parse ${isHevc ? 'HEVC' : 'AVC'}DecoderConfigurationRecord`, data)
+        logger.warn(
+          `Cannot parse ${isHevc ? 'HEVC' : 'AVC'}DecoderConfigurationRecord`,
+          data
+        )
       }
-    } else if (packetType === 1) { // One or more NALUs
+    } else if (packetType === 1) {
+      // One or more NALUs
       let units = NALu.parseAvcC(data.subarray(5), track.nalUnitSize)
 
       units = this._checkAddMetaNalToUnits(isHevc, units, track)
 
-      if (units && units.length) {
+      if (units?.length) {
         const sample = new VideoSample(dts + cts, dts, units)
         if (this.seamlessLoadingSwitching && dts < track.lastKeyFrameDts) {
           return
@@ -426,10 +448,9 @@ export class FlvDemuxer {
             case 39: // HEVC PREFIX_SEI
             case 40: // HEVC SUFFIX_SEI
               if ((!isHevc && type !== 6) || (isHevc && type === 6)) break
-              this.metadataTrack.seiSamples.push(new SeiSample(
-                NALu.parseSEI(NALu.removeEPB(unit), isHevc),
-                dts + cts
-              ))
+              this.metadataTrack.seiSamples.push(
+                new SeiSample(NALu.parseSEI(NALu.removeEPB(unit), isHevc), dts + cts)
+              )
               break
             default:
           }
@@ -449,7 +470,7 @@ export class FlvDemuxer {
     }
   }
 
-  _checkAddMetaNalToUnits (hevc, units, track) {
+  _checkAddMetaNalToUnits(hevc, units, track) {
     if (!hevc || !this._needAddMetaBeforeKeyFrameNal) {
       this._needAddMetaBeforeKeyFrameNal = false
       return units
@@ -469,7 +490,7 @@ export class FlvDemuxer {
     return units.filter(Boolean)
   }
 
-  _parseScript (data, pts) {
+  _parseScript(data, pts) {
     this.metadataTrack.flvScriptSamples.push(new FlvScriptSample(AMF.parse(data), pts))
   }
 }

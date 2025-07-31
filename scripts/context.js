@@ -2,9 +2,9 @@ const path = require('path')
 const fs = require('fs-extra')
 const execa = require('execa')
 const logger = require('./utils/logger')
-const { Configuration, Project , Workspace } = require('@yarnpkg/core')
+const { Configuration, Project, Workspace } = require('@yarnpkg/core')
 const { npath } = require('@yarnpkg/fslib')
-function createContext () {
+function createContext() {
   const rootPath = fs.realpathSync(process.cwd())
   const rootPkgPath = path.resolve(rootPath, 'package.json')
 
@@ -54,23 +54,27 @@ function createContext () {
     return false
   })()
 
-  const config = Object.assign({
-    legacy: {
-      enabled: true,
-      needPolyfills: false,
-      esEnabled: false,
-      esNeedPolyfills: false
+  const config = Object.assign(
+    {
+      legacy: {
+        enabled: true,
+        needPolyfills: false,
+        esEnabled: false,
+        esNeedPolyfills: false
+      },
+      projects: [],
+      plugins: [],
+      replace: {},
+      declaration: true,
+      bundleDts: false,
+      umdName: '',
+      umdGlobals: {},
+      devSourceMap: true,
+      prodSourceMap: true
     },
-    projects: [],
-    plugins: [],
-    replace: {},
-    declaration: true,
-    bundleDts: false,
-    umdName: '',
-    umdGlobals: {},
-    devSourceMap: true,
-    prodSourceMap: true
-  }, rootPkg.libd, configFile)
+    rootPkg.libd,
+    configFile
+  )
 
   if (isMonorepo) {
     fs.readdirSync(pkgsPath).reduce((p, c) => {
@@ -94,47 +98,47 @@ function createContext () {
     pkgsPath,
     isMonorepo,
     pkgs,
-    getBanner (cfg, name, pkg) {
+    getBanner(cfg, name, pkg) {
       if (!cfg.banner) return
       if (typeof cfg.banner === 'function') return cfg.banner(pkg, name)
       return cfg.banner
     },
-    getReplace (cfg, pkg, isDev) {
+    getReplace(cfg, pkg, isDev) {
       const user = typeof cfg.replace === 'function' ? cfg.replace(pkg) : cfg.replace
       return Object.assign(this.getDefaultReplace(pkg, isDev), user)
     },
-    runPreBuildDemo (cfg, dir, pkg) {
+    runPreBuildDemo(cfg, dir, pkg) {
       if (config.onPreBuildDemo) return config.onPreBuildDemo(cfg, pkg, dir)
     },
-    runPreBuild (cfg, name, pkg) {
+    runPreBuild(cfg, name, pkg) {
       if (config.onPreBuild) return config.onPreBuild(cfg, pkg, name)
     },
-    runPostBuild (name, pkg) {
+    runPostBuild(name, pkg) {
       if (config.onPostBuild) return config.onPostBuild(pkg, name)
     },
-    runPreDev (cfg) {
+    runPreDev(cfg) {
       if (config.onPreDev) return config.onPreDev(cfg)
     },
-    runPostDev () {
+    runPostDev() {
       if (config.onPostDev) return config.onPostDev()
     },
-    runDevProgress () {
+    runDevProgress() {
       if (config.onDevProgress) return config.onDevProgress()
     },
-    runPrePublish (name, pkg) {
+    runPrePublish(name, pkg) {
       if (config.onPrePublish) return config.onPrePublish(pkg, name)
     },
-    runPostPublish (name, pkg) {
+    runPostPublish(name, pkg) {
       if (config.onPostPublish) return config.onPostPublish(pkg, name)
     },
     /**
      * @returns {import('.').Config}
      */
-    getConfig (pkg) {
+    getConfig(pkg) {
       if (!pkg) return config
       return Object.assign({}, config, pkg.libd)
     },
-    getDefaultReplace (pkgInfo, isDev) {
+    getDefaultReplace(pkgInfo, isDev) {
       return {
         __VERSION__: `"${pkgInfo?.version || 'unknown'}"`,
         __DEV__: isDev,
@@ -143,36 +147,41 @@ function createContext () {
         'process.env.NODE_ENV': isDev ? '"development"' : '"production"'
       }
     },
-    getAllPublicPkgs () {
-      return fs.readdirSync(pkgsPath).map(d => {
-        try {
-          const pkg = require(path.resolve(pkgsPath, d, 'package.json'))
-          pkg.__path = path.resolve(pkgsPath, d)
-          pkg.__dir = d
-          return pkg
-        } catch (e) {
-          return false
-        }
-      }).filter(x => x && !x.private)
+    getAllPublicPkgs() {
+      return fs
+        .readdirSync(pkgsPath)
+        .map(d => {
+          try {
+            const pkg = require(path.resolve(pkgsPath, d, 'package.json'))
+            pkg.__path = path.resolve(pkgsPath, d)
+            pkg.__dir = d
+            return pkg
+          } catch (e) {
+            return false
+          }
+        })
+        .filter(x => x && !x.private)
     },
-    async getPkgDeps () {
-      const getConfiguration = (p) => {
+    async getPkgDeps() {
+      const getConfiguration = p => {
         return Configuration.create(p, p, new Map([]))
       }
 
       const portablePath = npath.toPortablePath(path.resolve(process.cwd()))
       const configuration = await getConfiguration(portablePath)
-      const {project} = await Project.find(configuration, portablePath)
+      const { project } = await Project.find(configuration, portablePath)
 
-
-      const workspace = new Workspace(portablePath, {project})
+      const workspace = new Workspace(portablePath, { project })
       await workspace.setup()
 
       let packages = workspace.getRecursiveWorkspaceChildren()
       const topArr = []
       const depdended = (idHash, manifestList) => {
         return manifestList.find(
-          manifest => manifest.dependencies.get(idHash) || manifest.devDependencies.get(idHash) || manifest.peerDependencies.get(idHash)
+          manifest =>
+            manifest.dependencies.get(idHash) ||
+            manifest.devDependencies.get(idHash) ||
+            manifest.peerDependencies.get(idHash)
         )
       }
       let maxLoop = 100
@@ -184,7 +193,10 @@ function createContext () {
         packages = packages.filter(c => !noDeps.includes(c))
         maxLoop--
         if (maxLoop === 0) {
-          console.warn('There might be cycle dependencies in packages: ', packages.map(pkg => pkg.manifest.name).join(','))
+          console.warn(
+            'There might be cycle dependencies in packages: ',
+            packages.map(pkg => pkg.manifest.name).join(',')
+          )
         }
       }
 
@@ -192,7 +204,6 @@ function createContext () {
     },
     isTs
   }
-
 }
 
 module.exports = createContext()

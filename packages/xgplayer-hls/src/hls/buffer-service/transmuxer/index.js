@@ -1,5 +1,11 @@
-import { ERR, Logger, StreamingError, concatUint8Array } from 'xgplayer-streaming-shared'
-import { FMP4Demuxer, FMP4Remuxer, TrackType, TsDemuxer, WarningType } from 'xgplayer-transmuxer'
+import { concatUint8Array, ERR, Logger, StreamingError } from 'xgplayer-streaming-shared'
+import {
+  FMP4Demuxer,
+  FMP4Remuxer,
+  TrackType,
+  TsDemuxer,
+  WarningType
+} from 'xgplayer-transmuxer'
 import { Event } from '../../constants'
 
 const logger = new Logger('Transmuxer')
@@ -7,20 +13,28 @@ const logger = new Logger('Transmuxer')
 export class Transmuxer {
   _initSegmentId = ''
 
-  constructor (hls, isMP4, needRemux, fixerConfig) {
+  constructor(hls, isMP4, needRemux, fixerConfig) {
     this.hls = hls
-    this._demuxer = isMP4 ? new FMP4Demuxer() : new TsDemuxer(null, null, null, fixerConfig)
+    this._demuxer = isMP4
+      ? new FMP4Demuxer()
+      : new TsDemuxer(null, null, null, fixerConfig)
     this._isMP4 = isMP4
-    if (needRemux) this._remuxer = new FMP4Remuxer(this._demuxer.videoTrack, this._demuxer.audioTrack)
+    if (needRemux)
+      this._remuxer = new FMP4Remuxer(this._demuxer.videoTrack, this._demuxer.audioTrack)
   }
 
-  transmux (videoChunk, audioChunk, discontinuity, contiguous, startTime, needInit) {
+  transmux(videoChunk, audioChunk, discontinuity, contiguous, startTime, needInit) {
     const demuxer = this._demuxer
     try {
       if (this._isMP4) {
         demuxer.demux(videoChunk, audioChunk)
       } else {
-        demuxer.demuxAndFix(concatUint8Array(videoChunk, audioChunk), discontinuity, contiguous, startTime)
+        demuxer.demuxAndFix(
+          concatUint8Array(videoChunk, audioChunk),
+          discontinuity,
+          contiguous,
+          startTime
+        )
       }
     } catch (error) {
       throw new StreamingError(ERR.DEMUX, ERR.SUB_TYPES.HLS, error)
@@ -50,7 +64,7 @@ export class Transmuxer {
 
     this._fireEvents(videoTrack, audioTrack, metadataTrack, discontinuity || needInit)
 
-    this.hls.emit(Event.DEMUXED_TRACK, {videoTrack, audioTrack})
+    this.hls.emit(Event.DEMUXED_TRACK, { videoTrack, audioTrack })
 
     if (this._remuxer) {
       // LG webos5.4系统上发现, 直播流开启low latency mode渲染的话，出首帧后需要等一段时间才触发loadeddata、canplay事件,影响首帧统计
@@ -61,12 +75,8 @@ export class Transmuxer {
       }
 
       try {
-        const {
-          videoInitSegment,
-          videoSegment,
-          audioInitSegment,
-          audioSegment
-        } = this._remuxer.remux(needInit)
+        const { videoInitSegment, videoSegment, audioInitSegment, audioSegment } =
+          this._remuxer.remux(needInit)
         const v = concatUint8Array(videoInitSegment, videoSegment)
         const a = concatUint8Array(audioInitSegment, audioSegment)
         return [
@@ -81,7 +91,7 @@ export class Transmuxer {
     }
   }
 
-  _fireEvents (videoTrack, audioTrack, metadataTrack, discontinuity) {
+  _fireEvents(videoTrack, audioTrack, metadataTrack, discontinuity) {
     const tracks = [videoTrack, audioTrack]
     let logCC = `discontinuity: ${discontinuity}`
 
@@ -104,16 +114,13 @@ export class Transmuxer {
             codec: track.codec,
             timescale: track.timescale,
             baseDts: track.baseDts,
-            ... (track.type === TrackType.VIDEO
-              ? {width: track.width,
-                height: track.height,
-                sarRatio: track.sarRatio
-              }
+            ...(track.type === TrackType.VIDEO
+              ? { width: track.width, height: track.height, sarRatio: track.sarRatio }
               : {
-                codec: track.codec,
-                channelCount: track.channelCount,
-                sampleRate: track.sampleRate
-              })
+                  codec: track.codec,
+                  channelCount: track.channelCount,
+                  sampleRate: track.sampleRate
+                })
           }
         })
       }
@@ -158,7 +165,7 @@ export class Transmuxer {
       logger.warn('audio exception', warn)
     })
 
-    videoTrack.samples.forEach((sample) => {
+    videoTrack.samples.forEach(sample => {
       if (sample.keyframe) {
         this.hls.emit(Event.KEYFRAME, { pts: sample.pts })
       }

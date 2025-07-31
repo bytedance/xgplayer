@@ -8,8 +8,8 @@ import Subtitle from '../../packages/xgplayer-subtitles/src'
 console.log('vconsole')
 window.Util = Util
 window.POS = {
-  "h": 0.40625,
-  "y": 0.1899999976158142
+  h: 0.40625,
+  y: 0.1899999976158142
 }
 // 全局配置语言
 I18N.extend([
@@ -51,7 +51,7 @@ function init(index = 0, config = {}) {
     videoInit: true,
     preloadTime: 20,
     width: '80%',
-    ignores:['playbackrate'],
+    ignores: ['playbackrate'],
     plugins: [],
     rotate: true,
     // controls: {
@@ -92,28 +92,32 @@ function init(index = 0, config = {}) {
     seekedStatus: 'auto',
     texttrack: {
       debugger: false,
-      list: [{
-        label: '双语',
-        language: 'double',
-        id: '0',
-        isDefault: true,
-        url: '../subtitle/vtt/double.vtt',
-      }, {
-        label: '中文',
-        language: 'cn',
-        id: '1',
-        isDefault: undefined,
-        url: '../subtitle/vtt/cn.vtt'
-      }, {
-        label: '英文',
-        url: '../subtitle/vtt/en.vtt',
-        id: '2',
-        isDefault: false,
-        language: 'en'
-      }],
+      list: [
+        {
+          label: '双语',
+          language: 'double',
+          id: '0',
+          isDefault: true,
+          url: '../subtitle/vtt/double.vtt'
+        },
+        {
+          label: '中文',
+          language: 'cn',
+          id: '1',
+          isDefault: undefined,
+          url: '../subtitle/vtt/cn.vtt'
+        },
+        {
+          label: '英文',
+          url: '../subtitle/vtt/en.vtt',
+          id: '2',
+          isDefault: false,
+          language: 'en'
+        }
+      ],
       updateMode: 'vod',
       isDefaultOpen: true,
-      mode: 'external',
+      mode: 'external'
     },
     definition: {
       position: 'controlsLeft',
@@ -125,23 +129,23 @@ function init(index = 0, config = {}) {
     startTime: 40,
     ...config
   })
-  window._onClick = function(id) {
+  window._onClick = function (id) {
     console.log(id)
   }
 
   // setTimeout(() => {
   //   window[p].registerPlugin(Poster)
   // }, 10)
-  window[p].once('canplay',() => {
+  window[p].once('canplay', () => {
     console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
     // window[p].seek(30)
     // window[p].play()
   })
 
-  window[p].on('source_success', (data) => {
+  window[p].on('source_success', data => {
     console.log('source_success', data)
   })
-  window[p].on('source_error', (data) => {
+  window[p].on('source_error', data => {
     console.error('source_error', data)
   })
   // window[p].usePluginHooks('progresspreview', 'transformTime', (plugin, time) => {
@@ -176,12 +180,12 @@ function init(index = 0, config = {}) {
     console.log('useHooks play dddd')
     return true
   })
-  window[p].usePluginHooks('mobile', 'videoClick', (plugin, event, data) =>{
+  window[p].usePluginHooks('mobile', 'videoClick', (plugin, event, data) => {
     console.log('mobile videoClick', event, data)
     return true
   })
 
-  window[p].usePluginHooks('mobile', 'videoDbClick', (plugin, event, data) =>{
+  window[p].usePluginHooks('mobile', 'videoDbClick', (plugin, event, data) => {
     console.log('mobile videoDbClick', event, data)
     return true
   })
@@ -206,29 +210,32 @@ function init(index = 0, config = {}) {
   })
 }
 
-
 function initSubtitle(player) {
   const options = {
     player: player,
-    subTitles: [{
-      label: '中文',
-      language: 'cn',
-      id: '0',
-      isDefault: false,
-      url: './subtitle/double.vtt'
-    }, {
-      label: '中文',
-      language: 'cn',
-      id: '1',
-      isDefault: true,
-      url: './subtitle/cn1.vtt'
-    }, {
-      label: '英文',
-      language: 'en',
-      id: '1',
-      isDefault: false,
-      url: './subtitle/en2.vtt'
-    }],
+    subTitles: [
+      {
+        label: '中文',
+        language: 'cn',
+        id: '0',
+        isDefault: false,
+        url: './subtitle/double.vtt'
+      },
+      {
+        label: '中文',
+        language: 'cn',
+        id: '1',
+        isDefault: true,
+        url: './subtitle/cn1.vtt'
+      },
+      {
+        label: '英文',
+        language: 'en',
+        id: '1',
+        isDefault: false,
+        url: './subtitle/en2.vtt'
+      }
+    ],
     defaultOpen: true,
     mode: 'stroke',
     // line: 'single',
@@ -243,7 +250,7 @@ function initSubtitle(player) {
     renderMode: 'step'
   }
   let subTitle = new Subtitle(options)
-  subTitle.on('resize', (data) => {
+  subTitle.on('resize', data => {
     console.log('subTitle resize', data)
   })
   window.subTitle = subTitle
@@ -332,7 +339,7 @@ window.playNext = playNext
 window.destroy = destroy
 window.initPlayer = init
 window.initSubtitle = initSubtitle
-window.createDot = (index) => {
+window.createDot = index => {
   const player = window[`player${index}`]
   const time = parseInt(Math.random(1) * player.duration, 10)
   const duration = parseInt(Math.random(1) * 30 + 10, 10)

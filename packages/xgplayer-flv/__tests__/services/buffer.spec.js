@@ -1,36 +1,35 @@
 jest.mock('xgplayer-transmuxer')
 jest.mock('xgplayer-streaming-shared')
 
+import { Buffer, MSE } from 'xgplayer-streaming-shared'
 import { FlvDemuxer, FMP4Remuxer } from 'xgplayer-transmuxer'
-import { MSE, Buffer } from 'xgplayer-streaming-shared'
 import { BufferService } from '../../src/flv/services'
 
 describe('BufferService', () => {
   const data = new Uint8Array([1, 2, 3])
 
   const { EVENT } = jest.requireActual('xgplayer-streaming-shared')
-  const { VideoTrack, AudioTrack, MetadataTrack, WarningType } = jest.requireActual('xgplayer-transmuxer')
+  const { VideoTrack, AudioTrack, MetadataTrack, WarningType } =
+    jest.requireActual('xgplayer-transmuxer')
   const videoTrack = new VideoTrack()
   const audioTrack = new AudioTrack()
   const metadataTrack = new MetadataTrack()
   videoTrack.samples = [
     { keyframe: true, pts: 1 },
     { keyframe: false, pts: 2 },
-    { keyframe: true, pts: 3 },
+    { keyframe: true, pts: 3 }
   ]
-  metadataTrack.seiSamples = [
-    { data: {} }
-  ]
+  metadataTrack.seiSamples = [{ data: {} }]
   metadataTrack.flvScriptSamples = [{}]
   videoTrack.warnings = [
     { type: WarningType.LARGE_AV_SHIFT },
     { type: WarningType.LARGE_VIDEO_GAP },
-    { type: WarningType.LARGE_VIDEO_GAP_BETWEEN_CHUNK },
+    { type: WarningType.LARGE_VIDEO_GAP_BETWEEN_CHUNK }
   ]
   audioTrack.warnings = [
     { type: WarningType.LARGE_AUDIO_GAP },
     { type: WarningType.AUDIO_FILLED },
-    { type: WarningType.AUDIO_DROPPED },
+    { type: WarningType.AUDIO_DROPPED }
   ]
   videoTrack.codec = 'video-codec'
   audioTrack.codec = 'audio-codec'
@@ -61,7 +60,7 @@ describe('BufferService', () => {
   const audioInitSegment = 2
   const audioSegment = 11
   const videoSegment = 22
-  const remux = jest.fn().mockImplementation((init) => {
+  const remux = jest.fn().mockImplementation(init => {
     if (init) {
       return { videoInitSegment, audioInitSegment, videoSegment, audioSegment }
     }
@@ -111,8 +110,16 @@ describe('BufferService', () => {
     expect(demuxAndFix).toHaveBeenCalledTimes(1)
     expect(demuxAndFix).toHaveBeenLastCalledWith(data, true, false, 0)
     expect(createSource).toHaveBeenCalledTimes(2)
-    expect(createSource).toHaveBeenNthCalledWith(1, videoTrack.type, `video/mp4;codecs=${videoTrack.codec}`)
-    expect(createSource).toHaveBeenNthCalledWith(2, audioTrack.type, `audio/mp4;codecs=${audioTrack.codec}`)
+    expect(createSource).toHaveBeenNthCalledWith(
+      1,
+      videoTrack.type,
+      `video/mp4;codecs=${videoTrack.codec}`
+    )
+    expect(createSource).toHaveBeenNthCalledWith(
+      2,
+      audioTrack.type,
+      `audio/mp4;codecs=${audioTrack.codec}`
+    )
     expect(remux).toHaveBeenCalledTimes(1)
     expect(remux).toHaveBeenLastCalledWith(true)
     expect(append).toHaveBeenCalledTimes(4)
@@ -122,16 +129,31 @@ describe('BufferService', () => {
     expect(append).toHaveBeenNthCalledWith(4, audioTrack.type, audioSegment)
 
     expect(flv.emit).toHaveBeenCalledTimes(14)
-    
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_AV_FIRST_FRAME_GAP_DETECT })
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_VIDEO_DTS_GAP_DETECT })
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT })
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_AUDIO_DTS_GAP_DETECT })
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.AUDIO_GAP_DETECT })
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.AUDIO_OVERLAP_DETECT })
+
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, {
+      type: EVENT.LARGE_AV_FIRST_FRAME_GAP_DETECT
+    })
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, {
+      type: EVENT.LARGE_VIDEO_DTS_GAP_DETECT
+    })
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, {
+      type: EVENT.MAX_DTS_DELTA_WITH_NEXT_SEGMENT_DETECT
+    })
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, {
+      type: EVENT.LARGE_AUDIO_DTS_GAP_DETECT
+    })
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, {
+      type: EVENT.AUDIO_GAP_DETECT
+    })
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, {
+      type: EVENT.AUDIO_OVERLAP_DETECT
+    })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.KEYFRAME, { pts: 1 })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.KEYFRAME, { pts: 3 })
-    expect(flv.emit).toHaveBeenCalledWith(EVENT.SEI, { data: {}, sei: { code: undefined, content: undefined, dts: undefined } })
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.SEI, {
+      data: {},
+      sei: { code: undefined, content: undefined, dts: undefined }
+    })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.FLV_SCRIPT_DATA, {})
 
     await bs.appendBuffer(data)
@@ -214,5 +236,4 @@ describe('BufferService', () => {
     await bs.destroy()
     expect(unbindMedia).toHaveBeenCalledTimes(1)
   })
-
 })

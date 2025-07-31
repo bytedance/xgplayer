@@ -1,7 +1,7 @@
 import Plugin from '../../plugin'
 
 export default class Icon extends Plugin {
-  afterCreate () {
+  afterCreate() {
     this.bind('mouseenter', this._onMouseenter)
     this.bind('mouseleave', this._onMouseLeave)
     if (this.config.disable) {
@@ -9,19 +9,19 @@ export default class Icon extends Plugin {
     }
   }
 
-  _onMouseenter = (e) => {
+  _onMouseenter = _e => {
     this.emit('icon_mouseenter', {
       pluginName: this.pluginName
     })
   }
 
-  _onMouseLeave = (e) => {
+  _onMouseLeave = _e => {
     this.emit('icon_mouseleave', {
       pluginName: this.pluginName
     })
   }
 
-  destroy () {
+  destroy() {
     this.unbind('mouseenter', this._onMouseenter)
     this.unbind('mouseleave', this._onMouseLeave)
   }

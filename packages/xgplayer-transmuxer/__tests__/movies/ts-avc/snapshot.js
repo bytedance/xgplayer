@@ -6,10 +6,15 @@ module.exports = {
   height: 300,
   sarRatio: [237, 235],
   pps: [new Uint8Array([104, 206, 60, 128])],
-  sps: [new Uint8Array([103, 66, 192, 21, 171, 64, 200, 79, 207, 127, 248, 7, 104, 7, 88, 128, 0, 0, 3, 0, 128, 0, 0, 15, 7, 139, 23, 80])],
+  sps: [
+    new Uint8Array([
+      103, 66, 192, 21, 171, 64, 200, 79, 207, 127, 248, 7, 104, 7, 88, 128, 0, 0, 3, 0,
+      128, 0, 0, 15, 7, 139, 23, 80
+    ])
+  ],
   videoFrameCount: 134,
   firstVideoFramePts: 126000,
-  firstVideoFrameDts: 126000,  
+  firstVideoFrameDts: 126000,
   lastVideoFramePts: 924000,
   lastVideoFrameDts: 924000,
   firstVideoFrameUnitsByteLength: 1046,

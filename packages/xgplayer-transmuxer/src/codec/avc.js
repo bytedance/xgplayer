@@ -1,8 +1,8 @@
-import { NALu } from './nalu'
 import { ExpGolomb, getAvcCodec } from '../utils'
+import { NALu } from './nalu'
 
 export class AVC {
-  static parseAVCDecoderConfigurationRecord (data) {
+  static parseAVCDecoderConfigurationRecord(data) {
     if (data.length < 7) return
     const nalUnitSize = (data[4] & 3) + 1
 
@@ -46,7 +46,7 @@ export class AVC {
     }
   }
 
-  static parseSPS (unit) {
+  static parseSPS(unit) {
     const eg = new ExpGolomb(unit)
     eg.readUByte()
 
@@ -132,22 +132,54 @@ export class AVC {
       if (eg.readBool()) {
         const aspectRatioIdc = eg.readUByte()
         switch (aspectRatioIdc) {
-          case 1: sarRatio = [1, 1]; break
-          case 2: sarRatio = [12, 11]; break
-          case 3: sarRatio = [10, 11]; break
-          case 4: sarRatio = [16, 11]; break
-          case 5: sarRatio = [40, 33]; break
-          case 6: sarRatio = [24, 11]; break
-          case 7: sarRatio = [20, 11]; break
-          case 8: sarRatio = [32, 11]; break
-          case 9: sarRatio = [80, 33]; break
-          case 10: sarRatio = [18, 11]; break
-          case 11: sarRatio = [15, 11]; break
-          case 12: sarRatio = [64, 33]; break
-          case 13: sarRatio = [160, 99]; break
-          case 14: sarRatio = [4, 3]; break
-          case 15: sarRatio = [3, 2]; break
-          case 16: sarRatio = [2, 1]; break
+          case 1:
+            sarRatio = [1, 1]
+            break
+          case 2:
+            sarRatio = [12, 11]
+            break
+          case 3:
+            sarRatio = [10, 11]
+            break
+          case 4:
+            sarRatio = [16, 11]
+            break
+          case 5:
+            sarRatio = [40, 33]
+            break
+          case 6:
+            sarRatio = [24, 11]
+            break
+          case 7:
+            sarRatio = [20, 11]
+            break
+          case 8:
+            sarRatio = [32, 11]
+            break
+          case 9:
+            sarRatio = [80, 33]
+            break
+          case 10:
+            sarRatio = [18, 11]
+            break
+          case 11:
+            sarRatio = [15, 11]
+            break
+          case 12:
+            sarRatio = [64, 33]
+            break
+          case 13:
+            sarRatio = [160, 99]
+            break
+          case 14:
+            sarRatio = [4, 3]
+            break
+          case 15:
+            sarRatio = [3, 2]
+            break
+          case 16:
+            sarRatio = [2, 1]
+            break
           case 255: {
             sarRatio = [
               (eg.readUByte() << 8) | eg.readUByte(),
@@ -189,13 +221,11 @@ export class AVC {
       levelIdc,
       chromaFormat,
       width: Math.ceil(
-        (picWidthInMbsMinus1 + 1) * 16 -
-          2 * (frameCropLeftOffset + frameCropRightOffset)
+        (picWidthInMbsMinus1 + 1) * 16 - 2 * (frameCropLeftOffset + frameCropRightOffset)
       ),
       height:
         (2 - frameMbsOnlyFlag) * (picHeightInMapUnitsMinus1 + 1) * 16 -
-        (frameMbsOnlyFlag ? 2 : 4) *
-          (frameCropTopOffset + frameCropBottomOffset),
+        (frameMbsOnlyFlag ? 2 : 4) * (frameCropTopOffset + frameCropBottomOffset),
       sarRatio,
       fpsNum,
       fpsDen,

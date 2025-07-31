@@ -1,5 +1,5 @@
-import { MSE, StreamingError, ERR, MSEErrorType, Buffer } from 'xgplayer-streaming-shared'
-import { MP4Demuxer, FMP4Remuxer } from 'xgplayer-transmuxer'
+import { Buffer, ERR, MSE, MSEErrorType, StreamingError } from 'xgplayer-streaming-shared'
+import { FMP4Remuxer, MP4Demuxer } from 'xgplayer-transmuxer'
 
 export class BufferService {
   _demuxer = new MP4Demuxer()
@@ -9,7 +9,7 @@ export class BufferService {
   _needInitSegment = true
   _sourceCreated = false
 
-  constructor (mp4, softDecode) {
+  constructor(mp4, softDecode) {
     this.mp4 = mp4
     if (softDecode) {
       this._softVideo = mp4.media
@@ -20,7 +20,7 @@ export class BufferService {
     }
   }
 
-  async appendBuffer (data, dataStart, videoFrames, audioFrames, moov) {
+  async appendBuffer(data, dataStart, videoFrames, audioFrames, moov) {
     if (!data || !data.length) return
     let videoIndexRange
     let audioIndexRange
@@ -31,7 +31,13 @@ export class BufferService {
       audioIndexRange = [audioFrames[0].index, audioFrames[audioFrames.length - 1].index]
     }
     if (!videoIndexRange && !audioIndexRange) return
-    const { videoTrack, audioTrack } = this._demuxer.demux(data, dataStart, videoIndexRange, audioIndexRange, moov)
+    const { videoTrack, audioTrack } = this._demuxer.demux(
+      data,
+      dataStart,
+      videoIndexRange,
+      audioIndexRange,
+      moov
+    )
     const videoType = videoTrack.type
     const audioType = audioTrack.type
 
@@ -57,10 +63,14 @@ export class BufferService {
       this._needInitSegment = false
 
       const p = []
-      if (remuxResult.videoInitSegment) p.push(mse.append(videoType, remuxResult.videoInitSegment))
-      if (remuxResult.audioInitSegment) p.push(mse.append(audioType, remuxResult.audioInitSegment))
-      if (remuxResult.videoSegment) p.push(mse.append(videoType, remuxResult.videoSegment))
-      if (remuxResult.audioSegment) p.push(mse.append(audioType, remuxResult.audioSegment))
+      if (remuxResult.videoInitSegment)
+        p.push(mse.append(videoType, remuxResult.videoInitSegment))
+      if (remuxResult.audioInitSegment)
+        p.push(mse.append(audioType, remuxResult.audioInitSegment))
+      if (remuxResult.videoSegment)
+        p.push(mse.append(videoType, remuxResult.videoSegment))
+      if (remuxResult.audioSegment)
+        p.push(mse.append(audioType, remuxResult.audioSegment))
 
       return Promise.all(p).catch(error => {
         if (error.type === MSEErrorType.CANCELLED) return
@@ -71,9 +81,10 @@ export class BufferService {
     }
   }
 
-  async evictBuffer (bufferBehind) {
+  async evictBuffer(bufferBehind) {
     const media = this.mp4.media
-    if (!this._mse || !this._demuxer || !media || !bufferBehind || bufferBehind < 0) return
+    if (!this._mse || !this._demuxer || !media || !bufferBehind || bufferBehind < 0)
+      return
     const currentTime = media.currentTime
     const removeEnd = currentTime - bufferBehind
     if (removeEnd <= 0) return
@@ -81,21 +92,20 @@ export class BufferService {
     if (start + 1 >= removeEnd) return
     const demuxer = this._demuxer
 
-    const p = [];
-    [demuxer.videoTrack, demuxer.audioTrack].forEach((track) => {
+    const p = []
+    ;[demuxer.videoTrack, demuxer.audioTrack].forEach(track => {
       if (track.exist()) {
         p.push(this._mse.remove(track.type, 0, removeEnd))
       }
     })
 
-    return Promise.all(p)
-      .catch((error) => {
-        if (error.type === MSEErrorType.CANCELLED) return
-        throw new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error)
-      })
+    return Promise.all(p).catch(error => {
+      if (error.type === MSEErrorType.CANCELLED) return
+      throw new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error)
+    })
   }
 
-  async reset () {
+  async reset() {
     if (this._mse) {
       await this._mse.unbindMedia()
       await this._mse.bindMedia(this.mp4.media)
@@ -105,7 +115,7 @@ export class BufferService {
     this._needInitSegment = true
   }
 
-  async endOfStream () {
+  async endOfStream() {
     if (this._mse) {
       if (this._sourceCreated) {
         try {
@@ -121,7 +131,7 @@ export class BufferService {
     }
   }
 
-  async destroy () {
+  async destroy() {
     const mse = this._mse
     this._mse = null
     this._softVideo = null

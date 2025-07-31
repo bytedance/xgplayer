@@ -13,20 +13,21 @@ export class TransferCost {
   _appendEnd = 0
   _appendCost = 0
 
-  set (event, value) {
+  set(event, value) {
     this[`_${event}`] = value
   }
 
-  start (event){
+  start(event) {
     this[`_${event}Start`] = Date.now()
   }
 
-  end (event){
+  end(event) {
     this[`_${event}End`] = Date.now()
-    this[`_${event}Cost`] = this[`_${event}Cost`] + (this[`_${event}End`] - this[`_${event}Start`])
+    this[`_${event}Cost`] =
+      this[`_${event}Cost`] + (this[`_${event}End`] - this[`_${event}Start`])
   }
 
-  get transferCost (){
+  get transferCost() {
     return {
       ttfbCost: this._ttfb,
       demuxCost: this._demuxCost,

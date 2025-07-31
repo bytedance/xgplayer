@@ -3,19 +3,19 @@ jest.mock('xgplayer-transmuxer')
 jest.mock('../src/hls/buffer-service')
 jest.mock('../src/hls/playlist')
 
+import {
+  BandwidthService,
+  Buffer,
+  getVideoPlaybackQuality,
+  Logger,
+  MediaStatsService,
+  MSE,
+  NetLoader
+} from 'xgplayer-streaming-shared'
+import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import { Hls } from '../src/hls'
 import { BufferService } from '../src/hls/buffer-service'
 import { Playlist } from '../src/hls/playlist'
-import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
-import {
-  NetLoader,
-  BandwidthService,
-  getVideoPlaybackQuality,
-  Buffer,
-  MSE,
-  Logger,
-  MediaStatsService
-} from 'xgplayer-streaming-shared'
 
 describe('Hls', () => {
   const { EVENT } = jest.requireActual('xgplayer-streaming-shared')
@@ -168,7 +168,7 @@ describe('Hls', () => {
 
   test('load', async () => {
     const hls = new Hls({ media })
-    const emit = jest.spyOn(hls, 'emit')
+    const _emit = jest.spyOn(hls, 'emit')
     jest.useFakeTimers()
     currentSegment.url = 'url'
     currentSegment.byteRange = [0, 1]
@@ -199,23 +199,22 @@ describe('Hls', () => {
     expect(media.play).toHaveBeenCalled()
 
     // argument `options` should not support incorrect type
-    expect
-      .extend({
-        async switchUrlFailureByReceivedUnExpectedArgs() {
-          let passed = true
-          try {
-            await hls.switchURL('url', function () {})
-          } catch {
-            passed = false
-          }
-
-          return {
-            message: () =>
-              passed ? '' : `switchUrl failed while receiving unExpected args`,
-            pass: passed
-          }
+    expect.extend({
+      async switchUrlFailureByReceivedUnExpectedArgs() {
+        let passed = true
+        try {
+          await hls.switchURL('url', () => {})
+        } catch {
+          passed = false
         }
-      })
+
+        return {
+          message: () =>
+            passed ? '' : `switchUrl failed while receiving unExpected args`,
+          pass: passed
+        }
+      }
+    })
 
     await expect().not.switchUrlFailureByReceivedUnExpectedArgs()
   })

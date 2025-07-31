@@ -9,14 +9,14 @@ import './index.scss'
  * }} IPosterConfig
  */
 class Poster extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'poster'
   }
 
   /**
    * @type IPosterConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       isEndedShow: true, // 是否在播放结束之后显示
       hideCanplay: false, // 设置为true时，播放后才隐藏，在视频地址更新后会重新显示poster。默认为false，即在play事件触发后隐藏poster
@@ -26,15 +26,15 @@ class Poster extends Plugin {
     }
   }
 
-  set isEndedShow (value) {
+  set isEndedShow(value) {
     this.config.isEndedShow = value
   }
 
-  get isEndedShow () {
+  get isEndedShow() {
     return this.config.isEndedShow
   }
 
-  hide () {
+  hide() {
     Util.addClass(this.root, 'hide')
   }
 
@@ -42,17 +42,17 @@ class Poster extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
+  show(_value) {
     Util.removeClass(this.root, 'hide')
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     if (typeof args.player.config.poster === 'string') {
       args.config.poster = args.player.config.poster
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.on(Events.ENDED, () => {
       if (this.isEndedShow) {
         Util.removeClass(this.root, 'hide')
@@ -77,7 +77,7 @@ class Poster extends Plugin {
     }
   }
 
-  setConfig (config) {
+  setConfig(config) {
     Object.keys(config).forEach(key => {
       this.config[key] = config[key]
     })
@@ -85,7 +85,7 @@ class Poster extends Plugin {
     this.update(poster)
   }
 
-  onTimeUpdate () {
+  onTimeUpdate() {
     if (!this.player.currentTime) {
       this.once(Events.TIME_UPDATE, () => {
         this.onTimeUpdate()
@@ -95,7 +95,7 @@ class Poster extends Plugin {
     }
   }
 
-  update (poster) {
+  update(poster) {
     if (!poster) {
       return
     }
@@ -103,7 +103,7 @@ class Poster extends Plugin {
     this.root.style.backgroundImage = `url(${poster})`
   }
 
-  getBgSize (mode) {
+  getBgSize(mode) {
     let _bg = ''
     switch (mode) {
       case 'cover':
@@ -121,11 +121,11 @@ class Poster extends Plugin {
     return _bg ? `background-size: ${_bg};` : ''
   }
 
-  render () {
+  render() {
     const { poster, hideCanplay, fillMode, notHidden } = this.config
     const _bg = this.getBgSize(fillMode)
     const style = poster ? `background-image:url(${poster});${_bg}` : _bg
-    const className = notHidden ? 'xg-not-hidden' : (hideCanplay ? 'xg-showplay' : '')
+    const className = notHidden ? 'xg-not-hidden' : hideCanplay ? 'xg-showplay' : ''
     return `<xg-poster class="xgplayer-poster ${className}" style="${style}">
     </xg-poster>`
   }

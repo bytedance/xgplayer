@@ -1,7 +1,6 @@
 import { VideoSample } from '../../src'
 
 describe('AudioSample', () => {
-
   test('All', () => {
     const sample = new VideoSample(3, 2, [1])
     expect(sample.duration).toBe(0)
@@ -19,5 +18,4 @@ describe('AudioSample', () => {
     expect(sample.flag.dependsOn).toBe(2)
     expect(sample.flag.isNonSyncSample).toBe(0)
   })
-
 })

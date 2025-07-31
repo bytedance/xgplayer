@@ -1,7 +1,6 @@
-import { AudioTrack, TrackType, AudioCodecType } from '../../src'
+import { AudioCodecType, AudioTrack, TrackType } from '../../src'
 
 describe('AudioTrack', () => {
-
   test('All', () => {
     const track = new AudioTrack()
     expect(track.id).toBe(2)
@@ -32,5 +31,4 @@ describe('AudioTrack', () => {
     track.reset()
     expect(track.exist()).toBe(false)
   })
-
 })

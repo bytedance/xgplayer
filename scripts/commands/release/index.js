@@ -7,10 +7,17 @@ const build = require('../build')
 const ctx = require('../../context')
 const { logger } = require('../../utils')
 
-const versions = [['prerelease', 'alpha'], ['prerelease', 'beta'], ['prerelease', 'rc'], ['patch'], ['minor'], ['major']]
+const versions = [
+  ['prerelease', 'alpha'],
+  ['prerelease', 'beta'],
+  ['prerelease', 'rc'],
+  ['patch'],
+  ['minor'],
+  ['major']
+]
 const verIndex = { alpha: 0, beta: 1, rc: 2 }
 
-async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
+async function main(skipLint, skipTest, skipBuild, skipPublish, buildScript) {
   const [allPackages, pkgGroups] = getPkgGroups()
 
   if (ctx.isMonorepo) checkGroup(pkgGroups)
@@ -21,7 +28,9 @@ async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
     logger.warning('Git working directory is NOT clean')
   }
 
-  logger.warning(`Current branch is ${run('git', ['branch', '--show-current'], { stdio: 'pipe' })}`)
+  logger.warning(
+    `Current branch is ${run('git', ['branch', '--show-current'], { stdio: 'pipe' })}`
+  )
 
   let group
   if (ctx.isMonorepo) {
@@ -29,7 +38,9 @@ async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
       type: 'autocomplete',
       name: 'group',
       message: 'Select release group',
-      choices: Object.entries(pkgGroups).map(([name, items]) => `${name}${(items.length - 1) ? ` (${items.length})` : ''}`)
+      choices: Object.entries(pkgGroups).map(
+        ([name, items]) => `${name}${items.length - 1 ? ` (${items.length})` : ''}`
+      )
     })
     group = ret.group.match(/^([^\s]+)\s?/)[1]
   } else {
@@ -49,7 +60,9 @@ async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
     type: 'select',
     name: 'release',
     message: `Select release type (${currentVersion})`,
-    choices: ['custom'].concat(versions.slice(preIndex || 0).map(([x, pre]) => `${x} (${inc(x, pre)})`))
+    choices: ['custom'].concat(
+      versions.slice(preIndex || 0).map(([x, pre]) => `${x} (${inc(x, pre)})`)
+    )
   })
   let targetVersion = ''
   if (release === 'custom') {
@@ -68,7 +81,7 @@ async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
     return logger.error(`Invalid target version: ${targetVersion}`)
   }
 
-  let { npmTag = ''} = await prompt({
+  let { npmTag = '' } = await prompt({
     type: 'input',
     name: 'npmTag',
     message: 'Input npm tag',
@@ -150,27 +163,33 @@ async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
   logger.success('\nDone\n')
 }
 
-function getPkgGroups () {
+function getPkgGroups() {
   if (!ctx.isMonorepo) return [[], {}]
   const allPackages = ctx.getAllPublicPkgs()
-  return [allPackages, allPackages.reduce((ret, pkg) => {
-    const config = ctx.getConfig(pkg)
-    const group = config.group || pkg.name
-    ret[group] = ret[group] || []
-    ret[group].push(pkg)
-    return ret
-  }, Object.create(null))]
+  return [
+    allPackages,
+    allPackages.reduce((ret, pkg) => {
+      const config = ctx.getConfig(pkg)
+      const group = config.group || pkg.name
+      ret[group] = ret[group] || []
+      ret[group].push(pkg)
+      return ret
+    }, Object.create(null))
+  ]
 }
 
-async function buildPackages (packages) {
+async function buildPackages(packages) {
   for await (const p of packages) {
     logger.step(`\nBuilding ${p.name}`)
     await build(p.__dir)
   }
 }
 
-function updateVersions (version, npmTag, packages, allPackages) {
-  const packagesMap = packages.reduce((ret, c) => { ret[c.name] = c; return ret }, {})
+function updateVersions(version, npmTag, packages, allPackages) {
+  const packagesMap = packages.reduce((ret, c) => {
+    ret[c.name] = c
+    return ret
+  }, {})
   const allPackageMap = allPackages.reduce((ret, c) => {
     ret[c.name] = c
     // update to be released version
@@ -192,7 +211,9 @@ function updateVersions (version, npmTag, packages, allPackages) {
           if (allPackageMap[d]) {
             const oriVer = semver.clean(pkgObj.peerDependencies[d])
             if (oriVer !== allPackageMap[d].version) {
-              logger.warning(`${pkg.name}: Change peerDeps ${allPackageMap[d].name} ${oriVer} -> ${allPackageMap[d].version}`)
+              logger.warning(
+                `${pkg.name}: Change peerDeps ${allPackageMap[d].name} ${oriVer} -> ${allPackageMap[d].version}`
+              )
               pkgObj.peerDependencies[d] = allPackageMap[d].version
             }
           }
@@ -203,7 +224,9 @@ function updateVersions (version, npmTag, packages, allPackages) {
           if (allPackageMap[d]) {
             const oriVer = semver.clean(pkgObj.dependencies[d])
             if (oriVer !== allPackageMap[d].version) {
-              logger.warning(`${pkg.name}: Change deps ${allPackageMap[d].name} ${oriVer} -> ${allPackageMap[d].version}`)
+              logger.warning(
+                `${pkg.name}: Change deps ${allPackageMap[d].name} ${oriVer} -> ${allPackageMap[d].version}`
+              )
               pkgObj.dependencies[d] = allPackageMap[d].version
             }
           }
@@ -215,7 +238,7 @@ function updateVersions (version, npmTag, packages, allPackages) {
   })
 }
 
-function publishPackages (packages, tag) {
+function publishPackages(packages, tag) {
   packages.forEach(pkg => {
     const p = fs.readJsonSync(path.resolve(pkg.__path, 'package.json'))
     logger.info(`\nPublishing ${pkg.name} ${tag ? `with tag: ${tag}` : ''}\n`)
@@ -225,7 +248,7 @@ function publishPackages (packages, tag) {
   })
 }
 
-function checkGroup (pkgGroups) {
+function checkGroup(pkgGroups) {
   if (!Object.keys(pkgGroups).length) {
     logger.error('No public package')
     process.exit(1)
@@ -241,7 +264,7 @@ function checkGroup (pkgGroups) {
   })
 }
 
-function run (file, args, opts) {
+function run(file, args, opts) {
   return execa.sync(file, args, { stdio: 'inherit', ...opts }).stdout
 }
 

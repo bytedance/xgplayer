@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 export function readFile(name) {
   return new Uint8Array(fs.readFileSync(path.resolve(__dirname, '../movies', name)))
@@ -10,7 +10,7 @@ export function readMovie(name) {
 
   const folder = path.resolve(__dirname, '../movies', folderName)
   const file = fs.readFileSync(path.resolve(folder, `index.${ext}`))
-  const snap = require(`../movies/${folderName}/snapshot.js`) 
+  const snap = require(`../movies/${folderName}/snapshot.js`)
 
   return [new Uint8Array(file), snap]
 }
