@@ -1,6 +1,6 @@
 const util = {}
 
-util.ArrayBufferToString = function (arr) {
+util.ArrayBufferToString = arr => {
   let str = ''
   const view = new Uint8Array(arr)
   for (let i = 0; i < view.length; i++) {
@@ -9,7 +9,7 @@ util.ArrayBufferToString = function (arr) {
   return str
 }
 
-util.StringToArrayBuffer = function (str) {
+util.StringToArrayBuffer = str => {
   const arr = new ArrayBuffer(str.length)
   const view = new Uint8Array(arr)
   for (let i = 0; i < str.length; i++) {
@@ -18,16 +18,16 @@ util.StringToArrayBuffer = function (str) {
   return arr
 }
 
-util.Base64ToHex = function (str) {
+util.Base64ToHex = str => {
   const bin = window.atob(str.replace(/-/g, '+').replace(/_/g, '/'))
   let res = ''
   for (let i = 0; i < bin.length; i++) {
-    res += ('0' + bin.charCodeAt(i).toString(16)).substr(-2)
+    res += `0${bin.charCodeAt(i).toString(16)}`.substr(-2)
   }
   return res
 }
 
-util.HexToBase64 = function (hex) {
+util.HexToBase64 = hex => {
   let bin = ''
   for (let i = 0; i < hex.length; i += 2) {
     bin += String.fromCharCode(parseInt(hex.substr(i, 2), 16))
@@ -42,9 +42,9 @@ util.HexToBase64 = function (hex) {
  * @param  {String} type [box的类型]
  * @return {Object}      [box]
  */
-util.findBox = function (root, type, result = []) {
+util.findBox = (root, type, result = []) => {
   if (root.type !== type) {
-    if (root && root.subBox) {
+    if (root?.subBox) {
       const box = root.subBox.filter(item => item.type === type)
       if (box.length) {
         box.forEach(item => result.push(item))
@@ -59,7 +59,7 @@ util.findBox = function (root, type, result = []) {
   return result.length > 1 ? result : result[0]
 }
 
-util.padStart = function (str, length, pad) {
+util.padStart = (str, length, pad) => {
   const charstr = String(pad)
   const len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
@@ -76,7 +76,7 @@ util.padStart = function (str, length, pad) {
  * @param  {Number} value [要转换的mpd时间]
  * @return {String}       [秒数]
  */
-util.durationConvert = function (value) {
+util.durationConvert = value => {
   let Hours = 0
   let Minutes = 0
   let Seconds = 0
@@ -85,10 +85,18 @@ util.durationConvert = function (value) {
     Hours = parseFloat(value.slice(0, value.indexOf('H')))
     Minutes = parseFloat(value.slice(value.indexOf('H') + 1, value.indexOf('M')))
     Seconds = parseFloat(value.slice(value.indexOf('M') + 1, value.indexOf('S')))
-  } else if (value.indexOf('H') < 0 && value.indexOf('M') > 0 && value.indexOf('S') > -1) {
+  } else if (
+    value.indexOf('H') < 0 &&
+    value.indexOf('M') > 0 &&
+    value.indexOf('S') > -1
+  ) {
     Minutes = parseFloat(value.slice(0, value.indexOf('M')))
     Seconds = parseFloat(value.slice(value.indexOf('M') + 1, value.indexOf('S')))
-  } else if (value.indexOf('H') < 0 && value.indexOf('M') < 0 && value.indexOf('S') > -1) {
+  } else if (
+    value.indexOf('H') < 0 &&
+    value.indexOf('M') < 0 &&
+    value.indexOf('S') > -1
+  ) {
     Seconds = parseFloat(value.slice(0, value.indexOf('S')))
   }
   return Hours * 3600 + Minutes * 60 + Seconds
@@ -100,16 +108,14 @@ util.durationConvert = function (value) {
  * @param  {Number} n [要保留的字符的长度]
  * @return {String}       [补充后的字符串]
  */
-util.preFixInterge = function (num, n) {
-  return (Array(n).join(0) + num).slice(-n)
-}
+util.preFixInterge = (num, n) => (Array(n).join(0) + num).slice(-n)
 
 /**
  * [十进制转十六进制]
  * @param  {Number} value [要转换的十进制数字]
  * @return {String}       [十六进制]
  */
-util.toHex = function (...value) {
+util.toHex = (...value) => {
   const hex = []
   value.forEach(item => {
     hex.push(util.padStart(Number(item).toString(16), 2, 0))
@@ -122,13 +128,15 @@ util.toHex = function (...value) {
  * @param  {[type]} rst [description]
  * @return {[type]}     [description]
  */
-util.sum = function (...rst) {
+util.sum = (...rst) => {
   let count = 0
-  rst.forEach(item => { count += item })
+  rst.forEach(item => {
+    count += item
+  })
   return count
 }
 
-util.toUTF8 = function (str) {
+util.toUTF8 = str => {
   // http://stackoverflow.com/a/13691499
   // Converts the given string to a URI encoded string.  If a character falls
   // in the ASCII range, it is not converted; otherwise it will be converted to
@@ -155,7 +163,7 @@ util.toUTF8 = function (str) {
  * @return {!Uint8Array}
  * @export
  */
-util.fromHex = function (str) {
+util.fromHex = str => {
   const arr = new Uint8Array(str.length / 2)
   for (let i = 0; i < str.length; i += 2) {
     arr[i / 2] = window.parseInt(str.substr(i, 2), 16)
@@ -173,7 +181,7 @@ util.fromHex = function (str) {
  * @param {!TypedArray} array
  * @return {string}
  */
-util.fromCharCode = function (array) {
+util.fromCharCode = array => {
   const max = 16000
   let ret = ''
   for (let i = 0; i < array.length; i += max) {
@@ -193,10 +201,10 @@ util.fromCharCode = function (array) {
  * @return {string}
  * @export
  */
-util.toBase64 = function (arr, padding) {
+util.toBase64 = (arr, padding) => {
   // btoa expects a "raw string" where each character is interpreted as a byte.
   const bytes = util.fromCharCode(arr)
-  padding = (padding === undefined) ? true : padding
+  padding = padding === undefined ? true : padding
   const base64 = window.btoa(bytes).replace(/\+/g, '-').replace(/\//g, '_')
   return padding ? base64 : base64.replace(/=*$/, '')
 }

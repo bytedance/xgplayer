@@ -1,9 +1,9 @@
 /* global documentPictureInPicture */
-import { Events, Util, POSITIONS } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import IconPlugin from '../common/iconPlugin'
+import { Events, POSITIONS, Util } from '../../plugin'
 import PipIcon from '../assets/pipIcon.svg'
 import PipIconExit from '../assets/pipIconExit.svg'
+import IconPlugin from '../common/iconPlugin'
+import { xgIconTips } from '../common/iconTools'
 import './index.scss'
 
 /**
@@ -20,11 +20,11 @@ const PresentationMode = {
 }
 
 class PIP extends IconPlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'pip'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 6,
@@ -37,17 +37,17 @@ class PIP extends IconPlugin {
     }
   }
 
-  static checkWebkitSetPresentationMode (video) {
+  static checkWebkitSetPresentationMode(video) {
     return typeof video.webkitSetPresentationMode === 'function'
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     if (typeof args.player.config.pip === 'boolean') {
       args.config.showIcon = args.player.config.pip
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     // 非可用状态不做初始化
     if (!this.isPIPAvailable()) {
       return
@@ -68,35 +68,39 @@ class PIP extends IconPlugin {
     })
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       pipIcon: { icon: PipIcon, class: 'xg-get-pip' },
       pipIconExit: { icon: PipIconExit, class: 'xg-exit-pip' }
     }
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     this.appendChild('.xgplayer-icon', icons.pipIcon)
     this.appendChild('.xgplayer-icon', icons.pipIconExit)
   }
 
-  initPipEvents () {
+  initPipEvents() {
     const { player } = this
     this.leavePIPCallback = () => {
       // 处理点击x关闭画中画的时候暂停问题
       const paused = player.paused
-      Util.setTimeout(this, () => {
-        // 使用mediaPlay避免多次触发 playhooks
-        !paused && player.mediaPlay()
-      }, 0)
+      Util.setTimeout(
+        this,
+        () => {
+          // 使用mediaPlay避免多次触发 playhooks
+          !paused && player.mediaPlay()
+        },
+        0
+      )
       !paused && player.mediaPlay()
       this.setAttr('data-state', 'normal')
       this.pipWindow = null
       player.emit(Events.PIP_CHANGE, false)
     }
 
-    this.enterPIPCallback = (e) => {
+    this.enterPIPCallback = e => {
       player.emit(Events.PIP_CHANGE, true)
       if (e?.pictureInPictureWindow) {
         this.pipWindow = e.pictureInPictureWindow
@@ -104,10 +108,13 @@ class PIP extends IconPlugin {
       this.setAttr('data-state', 'pip')
     }
 
-    this.onWebkitpresentationmodechanged = (e) => {
+    this.onWebkitpresentationmodechanged = e => {
       const mode = player.media.webkitPresentationMode
       // 如果在全屏下进入了该逻辑,调用退出全屏处理
-      if (this.pMode === PresentationMode.FULLSCREEN && mode !== PresentationMode.FULLSCREEN) {
+      if (
+        this.pMode === PresentationMode.FULLSCREEN &&
+        mode !== PresentationMode.FULLSCREEN
+      ) {
         player.onFullscreenChange(null, false)
       }
       this.pMode = mode
@@ -121,15 +128,19 @@ class PIP extends IconPlugin {
     if (player.media) {
       player.media.addEventListener('enterpictureinpicture', this.enterPIPCallback)
       player.media.addEventListener('leavepictureinpicture', this.leavePIPCallback)
-      PIP.checkWebkitSetPresentationMode(player.media) && player.media.addEventListener('webkitpresentationmodechanged', this.onWebkitpresentationmodechanged)
+      PIP.checkWebkitSetPresentationMode(player.media) &&
+        player.media.addEventListener(
+          'webkitpresentationmodechanged',
+          this.onWebkitpresentationmodechanged
+        )
     }
   }
 
-  switchPIP = (e) => {
+  switchPIP = e => {
     if (!this.isPIPAvailable()) {
       return false
     }
-    e.stopPropagation && e.stopPropagation()
+    e.stopPropagation?.()
     if (this.isPip) {
       this.exitPIP()
       this.emitUserAction(e, 'change_pip', { props: 'pip', from: true, to: false })
@@ -141,12 +152,12 @@ class PIP extends IconPlugin {
     }
   }
 
-  copyStyleIntoPiPWindow (pipWin) {
+  copyStyleIntoPiPWindow(pipWin) {
     const textContent = [...document.styleSheets]
-      .map((style) => {
+      .map(style => {
         try {
-          return [...style.cssRules].map((rule) => rule.cssText).join('')
-        } catch (e) {
+          return [...style.cssRules].map(rule => rule.cssText).join('')
+        } catch (_e) {
           const link = document.createElement('link')
           link.rel = 'stylesheet'
           link.type = style.type
@@ -166,8 +177,8 @@ class PIP extends IconPlugin {
 
   /*
    * 进入画中画
-  */
-  requestPIP () {
+   */
+  requestPIP() {
     const { player, playerConfig, config } = this
     if (!this.isPIPAvailable() || this.isPip) {
       return
@@ -190,7 +201,7 @@ class PIP extends IconPlugin {
           pipOptions.height = playerRect.height
         }
 
-        documentPictureInPicture.requestWindow(pipOptions).then((pipWin) => {
+        documentPictureInPicture.requestWindow(pipOptions).then(pipWin => {
           const { docPiPNode, docPiPStyle } = config
 
           this.enterPIPCallback()
@@ -227,29 +238,32 @@ class PIP extends IconPlugin {
           pipWin.document.body.append(pipRoot)
 
           // Listen for the PiP closing event to put the video back.
-          pipWin.addEventListener('pagehide', (event) => {
-            // Restore nodes to their original location
-            if (parentNode) {
-              if (nextSibling) {
-                parentNode.insertBefore(pipRoot, nextSibling)
-              } else if (previousSibling) {
-                parentNode.insertBefore(pipRoot, previousSibling.nextSibling)
+          pipWin.addEventListener(
+            'pagehide',
+            _event => {
+              // Restore nodes to their original location
+              if (parentNode) {
+                if (nextSibling) {
+                  parentNode.insertBefore(pipRoot, nextSibling)
+                } else if (previousSibling) {
+                  parentNode.insertBefore(pipRoot, previousSibling.nextSibling)
+                } else {
+                  parentNode.appendChild(pipRoot)
+                }
               } else {
-                parentNode.appendChild(pipRoot)
+                // console.log('无法找到原始父节点')
               }
-            } else {
-              // console.log('无法找到原始父节点')
-            }
 
-            this.leavePIPCallback()
-          }, { once: true })
+              this.leavePIPCallback()
+            },
+            { once: true }
+          )
         })
       } else if (PIP.checkWebkitSetPresentationMode(player.media)) {
         player.media.webkitSetPresentationMode('picture-in-picture')
       } else {
         player.media.requestPictureInPicture()
       }
-
 
       return true
     } catch (reason) {
@@ -261,7 +275,7 @@ class PIP extends IconPlugin {
   /**
    * 退出画中画
    */
-  exitPIP () {
+  exitPIP() {
     const { player } = this
     try {
       if (this.isPIPAvailable() && this.isPip) {
@@ -283,7 +297,7 @@ class PIP extends IconPlugin {
   /**
    * 处于画中画状态
    */
-  get isPip () {
+  get isPip() {
     const { player } = this
     return (
       !!(this.isDocPIPAvailable() && documentPictureInPicture?.window) ||
@@ -293,30 +307,41 @@ class PIP extends IconPlugin {
     )
   }
 
-  isPIPAvailable () {
+  isPIPAvailable() {
     const video = this.player.media
-    const _isEnabled = Util.typeOf(document.pictureInPictureEnabled) === 'Boolean' ? document.pictureInPictureEnabled : false
-    return _isEnabled &&
-    ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
-     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function')) ||
-     this.isDocPIPAvailable()
+    const _isEnabled =
+      Util.typeOf(document.pictureInPictureEnabled) === 'Boolean'
+        ? document.pictureInPictureEnabled
+        : false
+    return (
+      (_isEnabled &&
+        ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' &&
+          !video.disablePictureInPicture) ||
+          (video.webkitSupportsPresentationMode &&
+            Util.typeOf(video.webkitSetPresentationMode) === 'Function'))) ||
+      this.isDocPIPAvailable()
+    )
   }
 
-  isDocPIPAvailable () {
+  isDocPIPAvailable() {
     return 'documentPictureInPicture' in window && /^(https|file)/.test(location.protocol)
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     const { player } = this
     player.media.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.media.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
-    PIP.checkWebkitSetPresentationMode(player.media) && player.media.removeEventListener('webkitpresentationmodechanged', this.onWebkitpresentationmodechanged)
+    PIP.checkWebkitSetPresentationMode(player.media) &&
+      player.media.removeEventListener(
+        'webkitpresentationmodechanged',
+        this.onWebkitpresentationmodechanged
+      )
     this.exitPIP()
     this.unbind('click', this.btnClick)
   }
 
-  render () {
+  render() {
     if (!this.config.showIcon || !this.isPIPAvailable()) {
       return
     }

@@ -1,11 +1,11 @@
 import BasePlugin, { Events } from '../../plugin'
 
 export default class WaitingTimeoutJump extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'waitingTimeoutJump'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       useWaitingTimeoutJump: false,
       waitingTime: 15, // wait超过此时间没恢复，则向前跳jumpSize,单位s
@@ -14,7 +14,7 @@ export default class WaitingTimeoutJump extends BasePlugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     const { useWaitingTimeoutJump, jumpSize } = this.config
     if (useWaitingTimeoutJump === false) {
       return
@@ -39,7 +39,11 @@ export default class WaitingTimeoutJump extends BasePlugin {
 
   onWaiting = () => {
     const { config } = this
-    if (this.jumpCnt > config.jumpCntMax || this.timer || config.useWaitingTimeoutJump === false) {
+    if (
+      this.jumpCnt > config.jumpCntMax ||
+      this.timer ||
+      config.useWaitingTimeoutJump === false
+    ) {
       return
     }
     this.timer = setTimeout(this.onJump, config.waitingTime * 1000)

@@ -3,7 +3,7 @@ import { EVENT } from '../event'
 export class SeiService {
   _seiSet = new Set()
 
-  constructor (emitter) {
+  constructor(emitter) {
     this.emitter = emitter
 
     emitter.on(EVENT.SEI, sei => {
@@ -11,7 +11,7 @@ export class SeiService {
     })
   }
 
-  throw (currentTime, isLive) {
+  throw(currentTime, isLive) {
     if (currentTime === null || currentTime === undefined || !this._seiSet.size) return
     const min = currentTime - 0.2
     const max = currentTime + 0.2
@@ -36,7 +36,7 @@ export class SeiService {
     })
   }
 
-  reset () {
+  reset() {
     this._seiSet.clear()
   }
 }

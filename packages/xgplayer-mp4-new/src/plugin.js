@@ -1,30 +1,30 @@
-import { BasePlugin, Events, Errors } from 'xgplayer'
+import { BasePlugin, Errors, Events } from 'xgplayer'
 import { EVENT } from 'xgplayer-streaming-shared'
 import { MP4 } from './mp4'
 
 export class MP4Plugin extends BasePlugin {
   static MP4 = MP4
 
-  static get pluginName () {
+  static get pluginName() {
     return 'mp4'
   }
 
   mp4 = null
 
-  get core () {
+  get core() {
     return this.mp4
   }
 
-  get version () {
+  get version() {
     return MP4.version
   }
 
-  get softDecode () {
+  get softDecode() {
     const mediaType = this.player?.config?.mediaType
     return !!mediaType && mediaType !== 'video' && mediaType !== 'offscreen-video'
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     const config = this.player.config
     if (this.mp4) this.mp4.destroy()
     this.player.switchURL = this._onSwitchURL
@@ -65,7 +65,7 @@ export class MP4Plugin extends BasePlugin {
     }
   }
 
-  static isSupported (softDecode) {
+  static isSupported(softDecode) {
     return MP4.isSupported(softDecode)
   }
 
@@ -81,7 +81,7 @@ export class MP4Plugin extends BasePlugin {
     })
   }
 
-  _onSwitchURL = (url) => {
+  _onSwitchURL = url => {
     if (this.mp4) {
       this.player.config.url = url
       this.mp4.load(url)
@@ -103,8 +103,8 @@ export class MP4Plugin extends BasePlugin {
     if (this.mp4) this.mp4.load(to)
   }
 
-  _transError () {
-    this.mp4.on(EVENT.ERROR, (err) => {
+  _transError() {
+    this.mp4.on(EVENT.ERROR, err => {
       if (this.player) {
         this.player.emit(Events.ERROR, new Errors(this.player, err))
       }

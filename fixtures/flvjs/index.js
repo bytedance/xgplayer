@@ -47,7 +47,6 @@ window.onload = function () {
 
   var player
 
-
   function initPlayer() {
     if (player) {
       player.destroy()

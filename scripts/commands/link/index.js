@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const ctx = require('../../context')
 const logger = require('../../utils/logger')
 
-function link () {
+function link() {
   if (!ctx.isMonorepo) return
 
   let write = false
@@ -37,10 +37,13 @@ function link () {
     }, {})
 
     rootSetting.compilerOptions = rootSetting.compilerOptions || {}
-    rootSetting.compilerOptions.paths = Object.assign({
-      '@/*': ['src/*'],
-      ...nameMap
-    }, rootSetting.compilerOptions.paths)
+    rootSetting.compilerOptions.paths = Object.assign(
+      {
+        '@/*': ['src/*'],
+        ...nameMap
+      },
+      rootSetting.compilerOptions.paths
+    )
     rootSetting.compilerOptions.types = rootSetting.compilerOptions.types || []
     if (!rootSetting.compilerOptions.types.includes('libd/client')) {
       rootSetting.compilerOptions.types.push('libd/client')
@@ -48,7 +51,6 @@ function link () {
 
     fs.writeFileSync(tsSettingPath, JSON.stringify(rootSetting, null, 2))
   }
-
 }
 
 module.exports = link

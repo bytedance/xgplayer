@@ -1,10 +1,15 @@
-function X2JS () {
-  function xml_str2json (xmlDocStr) { // eslint-disable-line
+function X2JS() {
+  function xml_str2json(xmlDocStr) {
+    // eslint-disable-line
     const xmlDoc = parseXmlString(xmlDocStr)
-    if (!xmlDoc) { return parseDOMChildren(xmlDoc) } else { return null }
+    if (!xmlDoc) {
+      return parseDOMChildren(xmlDoc)
+    } else {
+      return null
+    }
   }
 
-  function parseXmlString (xmlDocStr) {
+  function parseXmlString(xmlDocStr) {
     if (xmlDocStr === undefined) {
       return null
     }
@@ -16,7 +21,7 @@ function X2JS () {
         if (xmlDoc.getElementsByTagNameNS('*', 'parsererror').length > 0) {
           xmlDoc = null
         }
-      } catch (err) {
+      } catch (_err) {
         xmlDoc = null
       }
     } else {
@@ -39,7 +44,7 @@ function X2JS () {
     DOCUMENT_NODE: 9
   }
 
-  function parseDOMChildren (node, path) {
+  function parseDOMChildren(node, path) {
     if (node.nodeType === DOMNodeTypes.DOCUMENT_NODE) {
       let result = {}
       const nodeChildren = node.childNodes
@@ -64,7 +69,7 @@ function X2JS () {
         const childName = getNodeLocalName(child)
 
         if (child.nodeType !== DOMNodeTypes.COMMENT_NODE) {
-          const childPath = path + '.' + childName
+          const childPath = `${path}.${childName}`
           result.__cnt++
           if (!result[childName]) {
             const c = parseDOMChildren(child, childPath)
@@ -76,18 +81,19 @@ function X2JS () {
             result[childName] = c
             toArrayAccessForm(result, childName)
           } else {
-            if (!(result[childName] instanceof Array)) {
+            if (!Array.isArray(result[childName])) {
               result[childName] = [result[childName]]
               toArrayAccessForm(result, childName, childPath)
             }
 
             const c = parseDOMChildren(child, childPath)
-            if (childName !== '#text' || /[^\s]/.test(c)) { // Don't add white-space text nodes
+            if (childName !== '#text' || /[^\s]/.test(c)) {
+              // Don't add white-space text nodes
               const o = {}
               o[childName] = c
               children.push(o)
             }
-            (result[childName])[result[childName].length] = c
+            result[childName][result[childName].length] = c
           }
         }
       }
@@ -110,7 +116,7 @@ function X2JS () {
 
       if (result['#text'] !== null) {
         result.__text = result['#text']
-        if (result.__text instanceof Array) {
+        if (Array.isArray(result.__text)) {
           result.__text = result.__text.join('\n')
         }
         // if(config.escapeMode)
@@ -132,20 +138,27 @@ function X2JS () {
       delete result.__cnt
 
       return result
-    } else if (node.nodeType === DOMNodeTypes.TEXT_NODE || node.nodeType === DOMNodeTypes.CDATA_SECTION_NODE) {
+    } else if (
+      node.nodeType === DOMNodeTypes.TEXT_NODE ||
+      node.nodeType === DOMNodeTypes.CDATA_SECTION_NODE
+    ) {
       return node.nodeValue
     }
   }
 
-  function getNodeLocalName (node) {
+  function getNodeLocalName(node) {
     let nodeLocalName = node.localName
-    if (nodeLocalName === null) { nodeLocalName = node.baseName } // Yeah, this is IE!!
-    if (nodeLocalName === null || nodeLocalName === '') { nodeLocalName = node.nodeName } // =="" is IE too
+    if (nodeLocalName === null) {
+      nodeLocalName = node.baseName
+    } // Yeah, this is IE!!
+    if (nodeLocalName === null || nodeLocalName === '') {
+      nodeLocalName = node.nodeName
+    } // =="" is IE too
     return nodeLocalName
   }
 
-  function toArrayAccessForm (obj, childName) {
-    if (!(obj[childName] instanceof Array)) {
+  function toArrayAccessForm(obj, childName) {
+    if (!Array.isArray(obj[childName])) {
       obj[childName] = [obj[childName]]
     }
   }

@@ -1,6 +1,6 @@
-import { MP4 } from './mp4'
 import { concatUint8Array } from '../utils'
 import { Logger } from './logger'
+import { MP4 } from './mp4'
 
 /**
  * @typedef {Object} RemuxResult
@@ -15,19 +15,19 @@ export class FMP4Remuxer {
    * @param {import('../model').VideoTrack} videoTrack
    * @param {import('../model').AudioTrack} audioTrack
    */
-  constructor (videoTrack, audioTrack, options) {
+  constructor(videoTrack, audioTrack, options) {
     this.videoTrack = videoTrack
     this.audioTrack = audioTrack
     const browserVersions = /Chrome\/([^.]+)/.exec(navigator.userAgent)
     this.forceFirstIDR = browserVersions && Number(browserVersions[1]) < 50
-    this.log = new Logger('FMP4Remuxer', options && options.openLog ? !options.openLog : true)
+    this.log = new Logger('FMP4Remuxer', options?.openLog ? !options.openLog : true)
   }
 
   /**
    * @param {boolean} [createInit=false]
    * @returns {RemuxResult}
    */
-  remux (createInit = false, options = {}) {
+  remux(createInit = false, options = {}) {
     const videoTrack = this.videoTrack
     const audioTrack = this.audioTrack
     const hasVideo = videoTrack.exist()
@@ -40,7 +40,7 @@ export class FMP4Remuxer {
     const tracks = []
 
     if (createInit) {
-      if (options && options.initMerge) {
+      if (options?.initMerge) {
         if (hasVideo) {
           tracks.push(this.videoTrack)
         }
@@ -76,7 +76,7 @@ export class FMP4Remuxer {
     }
   }
 
-  _remuxVideo () {
+  _remuxVideo() {
     const track = this.videoTrack
     if (this.forceFirstIDR) {
       track.samples[0].flag = { dependsOn: 2, isNonSyncSample: 0 }
@@ -87,13 +87,13 @@ export class FMP4Remuxer {
     let mdatSize = 0
 
     if (isAV01) {
-      samples.forEach((s) => {
+      samples.forEach(s => {
         mdatSize += s.data.byteLength
       })
     } else {
-      samples.forEach((s) => {
-        mdatSize += s.units.reduce((t, c) => (t + c.byteLength), 0)
-        mdatSize += (s.units.length * 4)
+      samples.forEach(s => {
+        mdatSize += s.units.reduce((t, c) => t + c.byteLength, 0)
+        mdatSize += s.units.length * 4
       })
     }
 
@@ -114,12 +114,12 @@ export class FMP4Remuxer {
         sample = samples[i]
 
         let sampleSize = 0
-        sample.units.forEach((u) => {
+        sample.units.forEach(u => {
           mdatView.setUint32(offset, u.byteLength)
           offset += 4
           mdata.set(u, offset)
           offset += u.byteLength
-          sampleSize += (4 + u.byteLength)
+          sampleSize += 4 + u.byteLength
         })
         sample.size = sampleSize
       }
@@ -128,12 +128,11 @@ export class FMP4Remuxer {
 
     const moof = MP4.moof([track])
     return concatUint8Array(moof, mdat)
-
   }
 
-  _remuxAudio () {
+  _remuxAudio() {
     const track = this.audioTrack
-    const mdata = new Uint8Array(track.samples.reduce((t, c) => (t + c.size), 0))
+    const mdata = new Uint8Array(track.samples.reduce((t, c) => t + c.size, 0))
     track.samples.reduce((offset, s) => {
       mdata.set(s.data, offset)
       return offset + s.size
@@ -143,7 +142,7 @@ export class FMP4Remuxer {
     return concatUint8Array(moof, mdat)
   }
 
-  reset () {
+  reset() {
     this.videoTrack.reset()
     this.audioTrack.reset()
   }

@@ -1,4 +1,3 @@
-
 export const EVENTS = {
   RESIZE: 'resize',
   CHANGE: 'change',

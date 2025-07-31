@@ -2,13 +2,13 @@ jest.mock('xgplayer-transmuxer')
 jest.mock('xgplayer-streaming-shared')
 jest.mock('../../src/hls/buffer-service/transmuxer')
 
-import { TsDemuxer, FMP4Remuxer, MP4Parser } from 'xgplayer-transmuxer'
-import { MSE, Buffer } from 'xgplayer-streaming-shared'
+import { Buffer, MSE } from 'xgplayer-streaming-shared'
+import { FMP4Remuxer, MP4Parser, TsDemuxer } from 'xgplayer-transmuxer'
 import { BufferService } from '../../src/hls/buffer-service'
 import { Transmuxer } from '../../src/hls/buffer-service/transmuxer'
 
 describe('BufferService', () => {
-  const data = new Uint8Array([1, 2, 3])
+  const _data = new Uint8Array([1, 2, 3])
   const { EVENT } = jest.requireActual('xgplayer-streaming-shared')
   const {
     MP4Parser: RealMP4Parser,
@@ -90,7 +90,7 @@ describe('BufferService', () => {
   const append = jest.fn()
   const remove = jest.fn()
   const unbindMedia = jest.fn()
-  const bindMedia = jest.fn().mockImplementation(() => Promise.resolve(true));
+  const bindMedia = jest.fn().mockImplementation(() => Promise.resolve(true))
   const endOfStream = jest.fn()
   const setLiveSeekableRange = jest.fn()
   const updateDuration = jest.fn()

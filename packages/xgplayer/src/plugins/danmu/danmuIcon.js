@@ -1,37 +1,37 @@
 import Plugin, { POSITIONS } from '../../plugin'
 import { xgIconTips } from '../common/iconTools'
+
 const DANMU_OPEN = `<dk-switch class="danmu-switch">
 <span class="txt">弹</span>
 </dk-switch>`
 
 class DanmuIcon extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'danmuIcon'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 11,
-      onSwitch: (event, state) => {
-      }
+      onSwitch: (_event, _state) => {}
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.initIcons()
     this.onStateChange = this.onStateChange.bind(this)
     this.bind(['click', 'touchend'], this.onStateChange)
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       openDanmu: { icon: DANMU_OPEN, class: 'danmu-switch-open' },
       closeDanmu: { icon: DANMU_OPEN, class: 'danmu-switch-closed' }
     }
   }
 
-  switchState (isOpen) {
+  switchState(isOpen) {
     if (isOpen) {
       this.setAttr('data-state', 'active')
     } else {
@@ -40,32 +40,32 @@ class DanmuIcon extends Plugin {
     this.switchTips(isOpen)
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.openDanmu)
     contentIcon.appendChild(icons.closeDanmu)
   }
 
-  switchTips (isOpen) {
+  switchTips(isOpen) {
     const tipDom = this.find('.xg-tips')
     tipDom && this.changeLangTextKey(tipDom, isOpen ? 'OFF' : 'OPEN')
   }
 
-  onStateChange (e) {
+  onStateChange(e) {
     e.preventDefault()
     e.stopPropagation()
     const state = this.root.getAttribute('data-state')
     const isOpen = state === 'active'
     this.switchState(!isOpen)
-    this.config.onSwitch && this.config.onSwitch(e, !isOpen)
+    this.config.onSwitch?.(e, !isOpen)
   }
 
-  destroy () {
+  destroy() {
     this.unbind(['click', 'touchend'], this.getMini)
   }
 
-  render () {
+  render() {
     const langKey = 'OPEN'
     return `
     <xg-icon class="danmu-icon">

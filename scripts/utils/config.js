@@ -8,13 +8,13 @@ const legacy = require('./legacy')
 const ctx = require('../context')
 const logger = require('./logger')
 
-function loadPkg (pkg, p) {
+function loadPkg(pkg, p) {
   return {
     find: pkg.name,
     replacement: path.join(p, 'src')
   }
 }
-function loadProject (p) {
+function loadProject(p) {
   const rootPkgPath = path.resolve(p, 'package.json')
   if (!fs.existsSync(rootPkgPath)) {
     logger.warning(`${p} is not libd project`)
@@ -30,7 +30,7 @@ function loadProject (p) {
     return [loadPkg(require(rootPkgPath), p)]
   }
 }
-function checkFileExist (p, suffixes) {
+function checkFileExist(p, suffixes) {
   let pa
   for (let i = 0, l = suffixes.length; i < l; i++) {
     pa = p + suffixes[i]
@@ -59,7 +59,7 @@ if (ctx.config.projects) {
 alias.push({
   find: /^@\/(.*)/,
   replacement: '$1',
-  customResolver (a, b) {
+  customResolver(a, b) {
     const p = b.slice(0, b.lastIndexOf('/src/')) + '/src/' + a
     let ret = aliasCache[p]
     if (ret && fs.existsSync(ret)) return ret
@@ -67,7 +67,16 @@ alias.push({
     if (fs.existsSync(p) && fs.statSync(p).isFile()) {
       ret = p
     } else {
-      ret = checkFileExist(p, ['.js', '.ts', '/index.js', '/index.ts', '.tsx', '/index.tsx', '.jsx', '/index.jsx'])
+      ret = checkFileExist(p, [
+        '.js',
+        '.ts',
+        '/index.js',
+        '/index.ts',
+        '.tsx',
+        '/index.tsx',
+        '.jsx',
+        '/index.jsx'
+      ])
     }
 
     aliasCache[p] = ret
@@ -82,10 +91,8 @@ try {
   // ignore
 }
 
-const sassImporter = (url) => {
-  if (
-    url.startsWith('.') || url.startsWith('url') || url.startsWith('http')
-  ) {
+const sassImporter = url => {
+  if (url.startsWith('.') || url.startsWith('url') || url.startsWith('http')) {
     return null
   }
   const cleanUrl = url.startsWith('~') ? url.replace('~', '') : url
@@ -99,7 +106,7 @@ const sassImporter = (url) => {
 
 const assetCache = new Map()
 
-async function getBuildConfig (isDev, cfg = {}, isEs) {
+async function getBuildConfig(isDev, cfg = {}, isEs) {
   let viteTerser
   let viteWorker
 
@@ -119,12 +126,12 @@ async function getBuildConfig (isDev, cfg = {}, isEs) {
     publicDir: false,
     server: isDev
       ? {
-        host: '0.0.0.0',
-        fs: {
-          strict: false
-        },
-        ...ctx.config.server
-      }
+          host: '0.0.0.0',
+          fs: {
+            strict: false
+          },
+          ...ctx.config.server
+        }
       : undefined,
     resolve: {
       alias
@@ -161,50 +168,56 @@ async function getBuildConfig (isDev, cfg = {}, isEs) {
       hasReact ? react() : undefined,
       cfg.banner
         ? {
-          name: 'libd:banner',
-          enforce: 'post',
-          generateBundle (_, bundle) {
-            Object.values(bundle).forEach(x => {
-              if (x.code) {
-                x.code = cfg.banner + '\n' + x.code
-              }
-            })
+            name: 'libd:banner',
+            enforce: 'post',
+            generateBundle(_, bundle) {
+              Object.values(bundle).forEach(x => {
+                if (x.code) {
+                  x.code = cfg.banner + '\n' + x.code
+                }
+              })
+            }
           }
-        }
         : undefined,
       // Vite Externals
       cfg.externals ? viteExternalsPlugin(cfg.externals) : undefined,
-      (isDev || !cfg.legacy) ? undefined : legacy({ needPolyfills: cfg.needPolyfills, exclude: cfg.babelExclude }),
+      isDev || !cfg.legacy
+        ? undefined
+        : legacy({ needPolyfills: cfg.needPolyfills, exclude: cfg.babelExclude }),
       isDev
         ? undefined
         : {
-          name: 'libd-worker',
-          enforce: 'pre',
-          configResolved (c) {
-            if (viteTerser) {
-              const i = c.worker.plugins.findIndex(x => x.name === 'vite:terser')
-              if (i >= 0) {
-                c.worker.plugins[i] = viteTerser
-              } else {
-                c.worker.plugins.push(viteTerser)
+            name: 'libd-worker',
+            enforce: 'pre',
+            configResolved(c) {
+              if (viteTerser) {
+                const i = c.worker.plugins.findIndex(x => x.name === 'vite:terser')
+                if (i >= 0) {
+                  c.worker.plugins[i] = viteTerser
+                } else {
+                  c.worker.plugins.push(viteTerser)
+                }
+              }
+              if (viteWorker) {
+                const i = c.plugins.findIndex(x => x.name === 'vite:worker')
+                if (i >= 0) {
+                  c.plugins[i] = viteWorker
+                }
               }
             }
-            if (viteWorker) {
-              const i = c.plugins.findIndex(x => x.name === 'vite:worker')
-              if (i >= 0) {
-                c.plugins[i] = viteWorker
-              }
-            }
-          }
-        },
+          },
       // Rollup Visualizer Plugin
-      cfg.visualizer && !isDev && !isEs ? visualizerPlugin(typeof cfg.visualizer === 'object' ? cfg.visualizer : undefined) : undefined,
+      cfg.visualizer && !isDev && !isEs
+        ? visualizerPlugin(
+            typeof cfg.visualizer === 'object' ? cfg.visualizer : undefined
+          )
+        : undefined,
       ...cfg.plugins
     ].filter(Boolean),
     worker: {
-      plugins: [
-        !isDev ? legacy({ exclude: cfg.babelExclude }) : undefined
-      ].filter(Boolean),
+      plugins: [!isDev ? legacy({ exclude: cfg.babelExclude }) : undefined].filter(
+        Boolean
+      ),
       rollupOptions: {
         external: [],
         output: {
@@ -215,18 +228,22 @@ async function getBuildConfig (isDev, cfg = {}, isEs) {
   }
 
   if (!isDev) {
-    const workerConfig = await resolveConfig({
-      ...c,
-      command: 'build',
-      build: {
-        ...c.build,
-        sourcemap: false,
-        minify: 'terser',
-        terserOptions: {
-          output: { comments: false }
+    const workerConfig = await resolveConfig(
+      {
+        ...c,
+        command: 'build',
+        build: {
+          ...c.build,
+          sourcemap: false,
+          minify: 'terser',
+          terserOptions: {
+            output: { comments: false }
+          }
         }
-      }
-    }, 'build', 'production')
+      },
+      'build',
+      'production'
+    )
 
     if (isEs) {
       viteTerser = workerConfig.plugins.find(x => x.name === 'vite:terser')
@@ -241,7 +258,7 @@ async function getBuildConfig (isDev, cfg = {}, isEs) {
 /**
  * @returns {import('vite').UserConfig}
  */
-async function getEsBuildConfig (pkgDir, target, input, allExternal, c) {
+async function getEsBuildConfig(pkgDir, target, input, allExternal, c) {
   let viteConfig
   const cssRE = /(?:s[ac]ss|less|css)$/
   const emptyCssRE = /\/\*\sempty\scss\s+\*\//g
@@ -252,7 +269,7 @@ async function getEsBuildConfig (pkgDir, target, input, allExternal, c) {
   cfg.build.minify = false
   cfg.plugins.push({
     name: 'libd-css-es',
-    transform (a, b) {
+    transform(a, b) {
       if (!cssRE.test(b)) return
       let p = path.relative(pkgDir, b).replace('src/', 'es/')
       const i = p.lastIndexOf('.')
@@ -261,17 +278,17 @@ async function getEsBuildConfig (pkgDir, target, input, allExternal, c) {
       }
       fs.outputFileSync(p, a)
     },
-    generateBundle (_, bundle) {
+    generateBundle(_, bundle) {
       Object.keys(bundle).forEach(k => {
         if (cssRE.test(k)) {
           delete bundle[k]
         }
       })
     },
-    configResolved (resolvedConfig) {
+    configResolved(resolvedConfig) {
       viteConfig = resolvedConfig
     },
-    options () {
+    options() {
       // hack inline svg
       viteConfig.build.lib = true
     }
@@ -279,7 +296,7 @@ async function getEsBuildConfig (pkgDir, target, input, allExternal, c) {
   cfg.plugins.push({
     name: 'libd-css-es-post',
     enforce: 'post',
-    generateBundle (_, bundle) {
+    generateBundle(_, bundle) {
       Object.keys(bundle).forEach(k => {
         if (bundle[k].type === 'chunk') {
           bundle[k].code = bundle[k].code.replace(emptyCssRE, '')
@@ -299,7 +316,7 @@ async function getEsBuildConfig (pkgDir, target, input, allExternal, c) {
       preserveModulesRoot: ctx.isMonorepo ? `packages/${target}/src` : 'src',
       entryFileNames: '[name].js',
       assetFileNames: '[name][extname]',
-      sanitizeFileName (name) {
+      sanitizeFileName(name) {
         // commonjs plugin add query suffix
         // @see https://github.com/rollup/plugins/blob/master/packages/commonjs/src/helpers.js#L5
         if (name.includes('.js?')) name += '.js'

@@ -38,12 +38,12 @@ export default {
     HAVE_NOTHING: 'Tidak ada informasi mengenai apakah audio/video sudah siap',
     HAVE_METADATA: 'Metadata audio/video siap ',
     HAVE_CURRENT_DATA:
-        'Data mengenai lokasi pemutaran saat ini tersedia, tetapi data tidak cukup untuk memutar bingkai berikutnya/milidetik',
+      'Data mengenai lokasi pemutaran saat ini tersedia, tetapi data tidak cukup untuk memutar bingkai berikutnya/milidetik',
     HAVE_FUTURE_DATA: 'Data saat ini dan setidaknya satu bingkai data tersedia',
     HAVE_ENOUGH_DATA: 'Data yang tersedia cukup untuk mulai memutar',
     NETWORK_EMPTY: 'Audio/video belum diinisialisasi',
     NETWORK_IDLE:
-        'Audio/video sedang aktif dan telah dipilih untuk sumber daya, tetapi tidak ada jaringan yang digunakan',
+      'Audio/video sedang aktif dan telah dipilih untuk sumber daya, tetapi tidak ada jaringan yang digunakan',
     NETWORK_LOADING: 'Peramban sedang mengunduh data',
     NETWORK_NO_SOURCE: 'Tidak ada sumber audio/video yang ditemukan',
     MEDIA_ERR_ABORTED: 'Proses pengambilan dihentikan oleh pengguna',

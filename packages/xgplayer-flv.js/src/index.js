@@ -1,36 +1,36 @@
-import { BasePlugin, Errors, Events } from 'xgplayer'
 import Flv from 'flv.js'
+import { BasePlugin, Errors, Events } from 'xgplayer'
 
 try {
   Flv.LoggingControl.enableAll = false
-} catch (e) {}
+} catch (_e) {}
 
 class FlvJsPlugin extends BasePlugin {
-  static get isSupported () {
+  static get isSupported() {
     return Flv.isSupported
   }
 
-  static get pluginName () {
+  static get pluginName() {
     return 'FlvJsPlugin'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       mediaDataSource: { type: 'flv' },
       flvConfig: {}
     }
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     if (this.playerConfig.url) {
       this.flvLoad(this.playerConfig.url)
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     const { player } = this
     this.flv = null
-    player.video.addEventListener('contextmenu', function (e) {
+    player.video.addEventListener('contextmenu', e => {
       e.preventDefault()
     })
 
@@ -50,19 +50,19 @@ class FlvJsPlugin extends BasePlugin {
           get: () => {
             try {
               return this.player.video.src
-            } catch (error) {
+            } catch (_error) {
               return null
             }
           },
           configurable: true
         }
       })
-    } catch (e) {
+    } catch (_e) {
       // NOOP
     }
   }
 
-  destroy () {
+  destroy() {
     const { player } = this
     this.destroyInstance()
     BasePlugin.defineGetterOrSetter(player, {
@@ -70,7 +70,7 @@ class FlvJsPlugin extends BasePlugin {
         get: () => {
           try {
             return player.__url
-          } catch (error) {
+          } catch (_error) {
             return null
           }
         },
@@ -79,7 +79,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 
-  destroyInstance () {
+  destroyInstance() {
     if (!this.flv) {
       return
     }
@@ -91,7 +91,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flv = null
   }
 
-  createInstance (flv) {
+  createInstance(flv) {
     const { player } = this
     if (!flv) {
       return
@@ -100,7 +100,7 @@ class FlvJsPlugin extends BasePlugin {
     flv.load()
     flv.play()
 
-    flv.on(Flv.Events.ERROR, e => {
+    flv.on(Flv.Events.ERROR, _e => {
       player.emit('error', new Errors('other', player.config.url))
     })
     flv.on(Flv.Events.LOADED_SEI, (timestamp, data) => {
@@ -123,7 +123,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 
-  flvLoad (newUrl) {
+  flvLoad(newUrl) {
     const mediaDataSource = this.config.mediaDataSource
     mediaDataSource.segments = [
       {
@@ -145,7 +145,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flvLoadMds(mediaDataSource)
   }
 
-  flvLoadMds (mediaDataSource) {
+  flvLoadMds(mediaDataSource) {
     const { player } = this
     if (typeof this.flv !== 'undefined') {
       this.destroyInstance()
@@ -156,7 +156,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flv.load()
   }
 
-  switchURL (url) {
+  switchURL(url) {
     const { player, playerConfig } = this
     let curTime = 0
     if (!playerConfig.isLive) {
@@ -166,11 +166,11 @@ class FlvJsPlugin extends BasePlugin {
     // const oldVol = player.volume
     player.video.muted = true
     // Util.addClass(player.root, 'xgplayer-is-enter')
-    this.once('playing', function () {
+    this.once('playing', () => {
       // Util.removeClass(player.root, 'xgplayer-is-enter')
       player.video.muted = false
     })
-    this.once('canplay', function () {
+    this.once('canplay', () => {
       if (!playerConfig.isLive) {
         player.currentTime = curTime
       }

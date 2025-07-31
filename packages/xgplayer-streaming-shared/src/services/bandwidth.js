@@ -1,5 +1,3 @@
-
-
 const SKIP_SMALL_CHUNK = 1000
 const MAX_CHUNK_SAVE_SIZE = 50
 const MAX_SEGMENT_SAVE_SIZE = 3
@@ -21,23 +19,24 @@ export class BandwidthService {
    *
    * @param {Opts} opts
    */
-  constructor (opts) {
+  constructor(opts) {
     this._opts = opts || {}
   }
 
-  addRecord (totalByte, ms) {
+  addRecord(totalByte, ms) {
     if (!totalByte || !ms) return
-    this._speeds.push(8000 * totalByte / ms)
+    this._speeds.push((8000 * totalByte) / ms)
     this._speeds = this._speeds.slice(-MAX_SEGMENT_SAVE_SIZE)
   }
 
-  addChunkRecord (totalByte, ms) {
-    if (!totalByte || !ms || totalByte < (this._opts?.skipChunkSize || SKIP_SMALL_CHUNK)) return
+  addChunkRecord(totalByte, ms) {
+    if (!totalByte || !ms || totalByte < (this._opts?.skipChunkSize || SKIP_SMALL_CHUNK))
+      return
 
     this._totalSize += totalByte
     this._totalCost += ms
 
-    this._chunkSpeed = 8000 * totalByte / ms
+    this._chunkSpeed = (8000 * totalByte) / ms
     this._chunkCache.push({
       size: totalByte,
       duration: ms,
@@ -55,7 +54,7 @@ export class BandwidthService {
    *
    * @returns { number }
    */
-  getAvgSpeed () {
+  getAvgSpeed() {
     if (!this._chunkCache.length && !this._speeds.length) return 0
     if (this._speeds.length) {
       return this._speeds.reduce((a, c) => (a += c)) / this._speeds.length
@@ -64,7 +63,7 @@ export class BandwidthService {
     // for long time no chunk received, append 0 size chunk
     const lastSample = this._chunkCache[this._chunkCache.length - 1]
     const cost = performance.now() - lastSample.timestamp
-    if ( cost > (this._opts?.longtimeNoReceived || LONGTIME_NO_RECEIVE)) {
+    if (cost > (this._opts?.longtimeNoReceived || LONGTIME_NO_RECEIVE)) {
       this._chunkCache.push({
         size: 0,
         duration: cost,
@@ -72,16 +71,16 @@ export class BandwidthService {
       })
     }
 
-    const totalSize = this._chunkCache.reduce((a, c) => a += c.size, 0)
-    const totalDuration = this._chunkCache.reduce((a, c) => a += c.duration, 0)
-    return 8000 * totalSize / totalDuration
+    const totalSize = this._chunkCache.reduce((a, c) => (a += c.size), 0)
+    const totalDuration = this._chunkCache.reduce((a, c) => (a += c.duration), 0)
+    return (8000 * totalSize) / totalDuration
   }
 
   /**
    *
    * @returns { number }
    */
-  getLatestSpeed () {
+  getLatestSpeed() {
     if (!this._chunkCache.length && !this._speeds.length) return 0
     if (this._speeds.length) {
       return this._speeds[this._speeds.length - 1]
@@ -93,7 +92,7 @@ export class BandwidthService {
    *
    * @returns { number }
    */
-  getTotalSize () {
+  getTotalSize() {
     return this._totalSize
   }
 
@@ -101,15 +100,14 @@ export class BandwidthService {
    *
    * @returns { number }
    */
-  getTotalCost () {
+  getTotalCost() {
     return this._totalCost
   }
 
-  reset () {
+  reset() {
     this._chunkCache = []
     this._speeds = []
     this._totalSize = 0
     this._totalCost = 0
   }
 }
-

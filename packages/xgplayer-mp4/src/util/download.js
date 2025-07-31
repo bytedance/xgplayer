@@ -1,5 +1,5 @@
 class Download {
-  constructor (filename, content) {
+  constructor(filename, content) {
     const aLink = document.createElement('a')
     const blob = new Blob(content)
     const evt = document.createEvent('MouseEvents')

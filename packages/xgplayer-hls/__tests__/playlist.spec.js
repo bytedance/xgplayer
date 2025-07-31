@@ -1,8 +1,12 @@
+import {
+  MasterPlaylist,
+  MasterStream,
+  MediaPlaylist,
+  MediaSegment
+} from '../src/hls/manifest-loader/parser/model'
 import { Playlist } from '../src/hls/playlist'
-import { MasterPlaylist, MasterStream, MediaPlaylist, MediaSegment } from '../src/hls/manifest-loader/parser/model'
 
 describe('Playlist', () => {
-
   test('empty playlist', () => {
     const playlist = new Playlist()
 
@@ -84,18 +88,20 @@ describe('Playlist', () => {
 
     const media2 = new MediaPlaylist()
     media2.endSN = 5
-    media2.segments.push(...[
-      { url: '4', start: 0, duration: 10 },
-      { url: '5', start: 10, duration: 10 },
-      { url: '6', start: 20, duration: 10 }
-    ].map((x, i) => {
-      const seg = new MediaSegment()
-      seg.url = x.url
-      seg.start = x.start
-      seg.duration = x.duration
-      seg.sn = i + 3
-      return seg
-    }))
+    media2.segments.push(
+      ...[
+        { url: '4', start: 0, duration: 10 },
+        { url: '5', start: 10, duration: 10 },
+        { url: '6', start: 20, duration: 10 }
+      ].map((x, i) => {
+        const seg = new MediaSegment()
+        seg.url = x.url
+        seg.start = x.start
+        seg.duration = x.duration
+        seg.sn = i + 3
+        return seg
+      })
+    )
 
     playlist.upsertPlaylist(media2)
 
@@ -104,7 +110,9 @@ describe('Playlist', () => {
     expect(playlist.nextSegment).toEqual(media.segments[0])
     expect(playlist.prevSegment).toBe(undefined)
     expect(playlist.currentSegments).toEqual(media.segments.concat(media2.segments))
-    expect(playlist.currentStream.segments).toEqual(media.segments.concat(media2.segments))
+    expect(playlist.currentStream.segments).toEqual(
+      media.segments.concat(media2.segments)
+    )
     expect(playlist.seekRange).toEqual([0, 60])
 
     expect(playlist.findSegmentIndexByTime(0)).toEqual(0)
@@ -115,7 +123,7 @@ describe('Playlist', () => {
     expect(playlist.getSegmentByIndex(-1)).toBe(undefined)
     expect(playlist.getSegmentByIndex(6)).toBe(undefined)
     expect(playlist.getSegmentByIndex(3)).toBe(media2.segments[0])
-    
+
     playlist.moveSegmentPointer()
     expect(playlist.nextSegment).toEqual(media.segments[1])
     playlist.moveSegmentPointer(2)
@@ -135,5 +143,4 @@ describe('Playlist', () => {
     expect(playlist.seekRange).toBe(undefined)
     expect(playlist.streams).toEqual([])
   })
-
 })

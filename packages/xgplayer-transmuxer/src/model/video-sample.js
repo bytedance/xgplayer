@@ -32,7 +32,7 @@ export class VideoSample {
    * @param {number} dts
    * @param {Uint8Array[]} [units]
    */
-  constructor (pts, dts, units) {
+  constructor(pts, dts, units) {
     this.originPts = this.pts = pts
     this.originDts = this.dts = dts
     if (units) this.units = units
@@ -41,11 +41,11 @@ export class VideoSample {
   /**
    * @returns {number}
    */
-  get cts () {
+  get cts() {
     return this.pts - this.dts
   }
 
-  setToKeyframe () {
+  setToKeyframe() {
     this.keyframe = true
     this.flag.dependsOn = 2
     this.flag.isNonSyncSample = 0

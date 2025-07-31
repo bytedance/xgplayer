@@ -108,7 +108,7 @@ import { getLang } from './utils/util'
 /**
  * @returns { IPlayerOptions }
  */
-export default function getDefaultConfig () {
+export default function getDefaultConfig() {
   return {
     id: '', // container DOM id
     el: null, // container domElement
@@ -147,10 +147,8 @@ export default function getDefaultConfig () {
     startTime: 0, // auto play start time
     seekedStatus: 'play', // play state after seek ends play/pause/auto
     miniprogress: false, // whether to enable the mini progress bar
-    disableSwipeHandler: () => {
-    },
-    enableSwipeHandler: () => {
-    },
+    disableSwipeHandler: () => {},
+    enableSwipeHandler: () => {},
     preProcessUrl: null, // url preprocessing callback
     ignores: [], // list of plug-in names to be disabled
     whitelist: [],
@@ -180,7 +178,8 @@ export default function getDefaultConfig () {
     videoConfig: {}, // video attribute configuration
     isHideTips: false, // if hide the icon tips
     minWaitDelay: 200, // The min threshold of waiting delay time
-    commonStyle: { // General style configuration
+    commonStyle: {
+      // General style configuration
       progressColor: '', // Background color of progress bar
       playedColor: '', // The background color of played part in the progress bar
       cachedColor: '', // The background color of cached part in the progress bar

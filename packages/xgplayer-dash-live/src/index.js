@@ -1,18 +1,18 @@
 import { BasePlugin, Events } from 'xgplayer'
-import Dash from './dash-live'
-import defaultConfig from './config'
 import { Context } from 'xgplayer-helper-utils'
+import defaultConfig from './config'
+import Dash from './dash-live'
 
 export default class DashPlayer extends BasePlugin {
-  static isSupported () {
+  static isSupported() {
     return window.MediaSource || window.WebKitMediaSource
   }
 
-  static get pluginName () {
+  static get pluginName() {
     return 'dashLive'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return Object.assign({}, defaultConfig, {
       options: {},
       loadTimeout: 10000,
@@ -23,17 +23,20 @@ export default class DashPlayer extends BasePlugin {
     })
   }
 
-  constructor (options) {
+  constructor(options) {
     super(options)
     this.autoPlayStarted = false
     // this.player.useHooks('play', this.reload.bind(this))
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     const { url } = this.player.config
     this._context = new Context(this.player, this.config)
 
-    this.dash = this._context.registry('DASH_CONTROLLER', Dash)({
+    this.dash = this._context.registry(
+      'DASH_CONTROLLER',
+      Dash
+    )({
       isMobile: false,
       ...this.config
     })
@@ -49,16 +52,16 @@ export default class DashPlayer extends BasePlugin {
           configurable: true
         }
       })
-    } catch (e) {
+    } catch (_e) {
       // NOOP
     }
   }
 
-  _initEvents () {
+  _initEvents() {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
-    const canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
+    const canUse = this.player.useHooks?.('play', this.playForHooks.bind(this))
     if (this.playerConfig.autoplay) {
       this.on(Events.AUTOPLAY_STARTED, () => {
         this.autoPlayStarted = true
@@ -69,14 +72,14 @@ export default class DashPlayer extends BasePlugin {
     }
   }
 
-  _offEvents () {
+  _offEvents() {
     this.off(Events.URL_CHANGE, this.handleUrlChange)
     this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.off(Events.DESTROY, this.destroy)
     this.off(Events.PLAY, this.play)
   }
 
-  handleUrlChange = (url) => {
+  handleUrlChange = url => {
     this.player.config.url = url
     let request
     if (this.dash.mse) {
@@ -107,12 +110,12 @@ export default class DashPlayer extends BasePlugin {
     })
   }
 
-  handleDefinitionChange = (change) => {
+  handleDefinitionChange = change => {
     const { to } = change
     this.handleUrlChange(to)
   }
 
-  playForHooks () {
+  playForHooks() {
     if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
       // autoplay not started
       return
@@ -137,7 +140,7 @@ export default class DashPlayer extends BasePlugin {
     this._destroy()
   }
 
-  reload () {
+  reload() {
     return this._destroy().then(() => {
       this._context = new Context(this.player, this.config)
       this.player.hasStart = false
@@ -149,22 +152,25 @@ export default class DashPlayer extends BasePlugin {
     })
   }
 
-  _destroy () {
+  _destroy() {
     if (!this.dash || !this.dash.mse || !this._context) return Promise.resolve()
-    return this.dash.mse.destroy().then(() => {
-      if (!this._context) return
-      this._context.destroy()
-      this.dash = null
-      this._context = null
-    }).catch(e => {})
+    return this.dash.mse
+      .destroy()
+      .then(() => {
+        if (!this._context) return
+        this._context.destroy()
+        this.dash = null
+        this._context = null
+      })
+      .catch(_e => {})
   }
 
-  destroy () {
+  destroy() {
     super.offAll()
     this._destroy()
   }
 
-  get core () {
+  get core() {
     return this.dash
   }
 }

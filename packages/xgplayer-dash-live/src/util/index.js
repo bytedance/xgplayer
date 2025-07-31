@@ -1,5 +1,4 @@
-
-export function durationConvert (value) {
+export function durationConvert(value) {
   let Hours = 0
   let Minutes = 0
   let Seconds = 0
@@ -8,23 +7,31 @@ export function durationConvert (value) {
     Hours = parseFloat(value.slice(0, value.indexOf('H')))
     Minutes = parseFloat(value.slice(value.indexOf('H') + 1, value.indexOf('M')))
     Seconds = parseFloat(value.slice(value.indexOf('M') + 1, value.indexOf('S')))
-  } else if (value.indexOf('H') < 0 && value.indexOf('M') > 0 && value.indexOf('S') > -1) {
+  } else if (
+    value.indexOf('H') < 0 &&
+    value.indexOf('M') > 0 &&
+    value.indexOf('S') > -1
+  ) {
     Minutes = parseFloat(value.slice(0, value.indexOf('M')))
     Seconds = parseFloat(value.slice(value.indexOf('M') + 1, value.indexOf('S')))
-  } else if (value.indexOf('H') < 0 && value.indexOf('M') < 0 && value.indexOf('S') > -1) {
+  } else if (
+    value.indexOf('H') < 0 &&
+    value.indexOf('M') < 0 &&
+    value.indexOf('S') > -1
+  ) {
     Seconds = parseFloat(value.slice(0, value.indexOf('S')))
   }
   return Hours * 3600 + Minutes * 60 + Seconds
 }
 
-export function timeToSecond (str) {
+export function timeToSecond(str) {
   return new Date(str).valueOf()
 }
 
-export function isAudio (type) {
+export function isAudio(type) {
   return type.indexOf('audio') > -1
 }
 
-export function isVideo (type) {
+export function isVideo(type) {
   return type.indexOf('video') > -1
 }

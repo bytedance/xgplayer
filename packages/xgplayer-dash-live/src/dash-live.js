@@ -1,18 +1,14 @@
-import Parser from './parse'
 import { EVENTS, logger } from 'xgplayer-helper-utils'
+import Parser from './parse'
 
-const {
-  LOADER_EVENTS,
-  MSE_EVENTS,
-  CORE_EVENTS
-} = EVENTS
+const { LOADER_EVENTS, MSE_EVENTS, CORE_EVENTS } = EVENTS
 
 const log = logger.log.bind(logger, 'DashLiveController')
 // const warn = logger.warn.bind(logger, 'DashLiveController')
 
 /* eslint-disable no-undefined */
 export default class DashLiveController {
-  constructor (config, player) {
+  constructor(config, player) {
     this.player = player
     this.config = config
     this.isInit = false
@@ -29,18 +25,34 @@ export default class DashLiveController {
     this.audioFirstChunkLoaded = false
   }
 
-  init () {
+  init() {
     log('init')
-    const { XgBuffer, Tracks, FetchLoader, XhrLoader, Mse, RemuxedBufferManager } = this._pluginConfig
+    const { XgBuffer, Tracks, FetchLoader, XhrLoader, Mse, RemuxedBufferManager } =
+      this._pluginConfig
 
     const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader
-    this._mpdLoader = this._context.registry('MPD_LOADER', Loader)({ buffer: 'MPD_BUFFER', readtype: 1 })
+    this._mpdLoader = this._context.registry(
+      'MPD_LOADER',
+      Loader
+    )({ buffer: 'MPD_BUFFER', readtype: 1 })
     // 分片通过chunk方式进行加载
-    this._videoSegmentLoader = this._context.registry('VIDEO_LOADER', Loader)({ buffer: 'VIDEO_BUFFER', readtype: 0 })
-    this._audioSegmentLoader = this._context.registry('AUDIO_LOADER', Loader)({ buffer: 'AUDIO_BUFFER', readtype: 0 })
+    this._videoSegmentLoader = this._context.registry(
+      'VIDEO_LOADER',
+      Loader
+    )({ buffer: 'VIDEO_BUFFER', readtype: 0 })
+    this._audioSegmentLoader = this._context.registry(
+      'AUDIO_LOADER',
+      Loader
+    )({ buffer: 'AUDIO_BUFFER', readtype: 0 })
     // 初始化分片加载
-    this._videoInitSegmentLoader = this._context.registry('VIDEO_INIT_LOADER', Loader)({ buffer: 'VIDEO_BUFFER', readtype: 3 })
-    this._audioInitSegmentLoader = this._context.registry('AUDIO_INIT_LOADER', Loader)({ buffer: 'AUDIO_BUFFER', readtype: 3 })
+    this._videoInitSegmentLoader = this._context.registry(
+      'VIDEO_INIT_LOADER',
+      Loader
+    )({ buffer: 'VIDEO_BUFFER', readtype: 3 })
+    this._audioInitSegmentLoader = this._context.registry(
+      'AUDIO_INIT_LOADER',
+      Loader
+    )({ buffer: 'AUDIO_BUFFER', readtype: 3 })
     this._segmentVideoBuffer = this._context.registry('VIDEO_BUFFER', XgBuffer)()
     this._segmentAudioBuffer = this._context.registry('AUDIO_BUFFER', XgBuffer)()
     this._parse = this._context.registry('PARSE', Parser)()
@@ -61,7 +73,7 @@ export default class DashLiveController {
     this.on('CHUNK_LOADED', this._onChunkLoaded)
   }
 
-  _onChunkLoaded = (type) => {
+  _onChunkLoaded = type => {
     // 标记音视频都有部分数据加载
     if (!this[`${type}FirstChunkLoaded`]) {
       this[`${type}FirstChunkLoaded`] = true
@@ -87,7 +99,8 @@ export default class DashLiveController {
 
     if (!video.currentTime) {
       log('set start currentTime')
-      video.currentTime = video.buffered.start(0) + parseFloat(this.availabilityTimeOffset)
+      video.currentTime =
+        video.buffered.start(0) + parseFloat(this.availabilityTimeOffset)
     }
 
     // emit to out
@@ -101,7 +114,7 @@ export default class DashLiveController {
     }
   }
 
-  _onLoaderDataLoaded = (buffer) => {
+  _onLoaderDataLoaded = buffer => {
     switch (buffer.TAG) {
       case 'VIDEO_BUFFER':
         this._onLoadChunkVideo(buffer.shift())
@@ -110,13 +123,13 @@ export default class DashLiveController {
         this._onLoadChunkAudio(buffer.shift())
         break
       default:
-        return function () {
+        return () => {
           console.log('===========chunk loaded', buffer.TAG)
         }
     }
   }
 
-  _onLoaderComplete = (buffer) => {
+  _onLoaderComplete = buffer => {
     if (!buffer) {
       console.error('请求数据超时')
     } else {
@@ -131,7 +144,7 @@ export default class DashLiveController {
         case 'AUDIO_BUFFER':
           this._onLoadAudio(buffer.shift(), buffer)
           break
-        default :
+        default:
           return this._onLoadMPD(buffer)
       }
     }
@@ -156,27 +169,27 @@ export default class DashLiveController {
   /**
    * @description 检查是否请求下一个分片
    */
-  _loadNextSegment () {
+  _loadNextSegment() {
     if (this.audioSegmentLoadEnd && this.videoSegmentLoadEnd) {
       this._loadSegment()
     }
   }
 
-  _onLoadChunkVideo (buffer) {
+  _onLoadChunkVideo(buffer) {
     // console.log('load fragment video')
     this._writeToPreSourceBuffer('video', buffer)
     this.videoTotle += buffer.length
     this.emit('CHUNK_LOADED', 'video')
   }
 
-  _onLoadChunkAudio (buffer) {
+  _onLoadChunkAudio(buffer) {
     // console.log('load fragment audio')
     this._writeToPreSourceBuffer('audio', buffer)
     this.audioTotle += buffer.length
     this.emit('CHUNK_LOADED', 'audio')
   }
 
-  _onLoadVideo (buffer, bufferArray) {
+  _onLoadVideo(buffer, bufferArray) {
     // console.log('videoBuffer', buffer)
     if (!this.isVideoInit) {
       this.isVideoInit = true
@@ -189,7 +202,13 @@ export default class DashLiveController {
       this._writeToPreSourceBuffer('video', buffer)
       this.videoSegmentLoadEnd = true
       this.mse.doAppend()
-      console.log('>>>>>>video read done', this.loadedNumber, buffer.length, this.videoTotle, bufferArray.array.length)
+      console.log(
+        '>>>>>>video read done',
+        this.loadedNumber,
+        buffer.length,
+        this.videoTotle,
+        bufferArray.array.length
+      )
       this.videoTotle = 0
       if (this.audioSegmentLoadEnd) {
         this.emit('SEGMENT_LOADED', 'video')
@@ -197,7 +216,7 @@ export default class DashLiveController {
     }
   }
 
-  _onLoadAudio (buffer, bufferArray) {
+  _onLoadAudio(buffer, bufferArray) {
     // console.log('audioBuffer', buffer)
     if (!this.isAudioInit) {
       this.isAudioInit = true
@@ -210,7 +229,13 @@ export default class DashLiveController {
       this._writeToPreSourceBuffer('audio', buffer)
       this.audioSegmentLoadEnd = true
       this.mse.doAppend()
-      console.log('>>>>>>audio read done', this.loadedNumber, buffer.length, this.audioTotle, bufferArray.array.length)
+      console.log(
+        '>>>>>>audio read done',
+        this.loadedNumber,
+        buffer.length,
+        this.audioTotle,
+        bufferArray.array.length
+      )
       this.audioTotle = 0
       if (this.videoSegmentLoadEnd) {
         this.emit('SEGMENT_LOADED', 'video')
@@ -218,7 +243,7 @@ export default class DashLiveController {
     }
   }
 
-  _addInitSourceBuffer () {
+  _addInitSourceBuffer() {
     if (!this.isAddSourceBuffer) {
       log('add initSourceBuffer')
       this.isAddSourceBuffer = true
@@ -226,7 +251,7 @@ export default class DashLiveController {
     }
   }
 
-  _onLoadMPD (buffer) {
+  _onLoadMPD(buffer) {
     let mediaList
     try {
       this._parse.parse(buffer, this.url)
@@ -234,8 +259,11 @@ export default class DashLiveController {
       const minimumUpdatePeriod = this._parse.mpdAttributes.minimumUpdatePeriod || 2
       log('mpd parsed')
       if (!this.isInit) {
-        ['video', 'audio'].forEach((item) => {
-          this._initPreSourceBuffer(item, mediaList[item][mediaList[item].selectedIdx].codecs)
+        ;['video', 'audio'].forEach(item => {
+          this._initPreSourceBuffer(
+            item,
+            mediaList[item][mediaList[item].selectedIdx].codecs
+          )
         })
         this._getAvailabilityTimeOffset()
         this._initTracks()
@@ -261,7 +289,7 @@ export default class DashLiveController {
     }
   }
 
-  _writeToPreSourceBuffer (type, buffer) {
+  _writeToPreSourceBuffer(type, buffer) {
     if (!buffer.length) {
       return
     }
@@ -270,7 +298,7 @@ export default class DashLiveController {
     source.data.push({ buffer: buffer })
   }
 
-  _initPreSourceBuffer (type, codec, initBuffer) {
+  _initPreSourceBuffer(type, codec, initBuffer) {
     const preSourceBuffer = this._context.getInstance('PRE_SOURCE_BUFFER')
     let source = preSourceBuffer.getSource(type)
     if (!source) {
@@ -281,7 +309,7 @@ export default class DashLiveController {
     source.init = { buffer: initBuffer }
   }
 
-  _initTracks () {
+  _initTracks() {
     const { AudioTrack, VideoTrack, AudioTrackMeta, VideoTrackMeta } = this._pluginConfig
     const tracks = this._context.getInstance('TRACKS')
 
@@ -297,10 +325,10 @@ export default class DashLiveController {
     tracks.audioTrack = audioTrack
   }
 
-  _loadInitSegment (mediaList) {
-    const url = this._getInitSegmentURL(mediaList);
+  _loadInitSegment(mediaList) {
+    const url = this._getInitSegmentURL(mediaList)
 
-    ['video', 'audio'].forEach((item) => {
+    ;['video', 'audio'].forEach(item => {
       if (item === 'video') {
         this._videoInitSegmentLoader.load(url.video)
       }
@@ -311,7 +339,7 @@ export default class DashLiveController {
     })
   }
 
-  _getInitSegmentURL (mediaList) {
+  _getInitSegmentURL(mediaList) {
     const vInitURL = mediaList.video[mediaList.video.selectedIdx].initSegment
     const aInitURL = mediaList.audio[mediaList.audio.selectedIdx].initSegment
 
@@ -327,7 +355,11 @@ export default class DashLiveController {
     let aList = list.audio
     // console.log('_loadSegment:', vList.length, aList.length)
     // 加载下一个分片的时候，要求分片列表中最后一个音视频的number是相同的，有时会出现不相同的情况.确保每次请求的音视频的number都是相同的
-    if (aList.length && vList.length && vList[vList.length - 1].number === aList[aList.length - 1].number) {
+    if (
+      aList.length &&
+      vList.length &&
+      vList[vList.length - 1].number === aList[aList.length - 1].number
+    ) {
       let audioSegmentItem
       let videoSegmentItem
       if (this.loadedNumber > -1) {
@@ -343,7 +375,11 @@ export default class DashLiveController {
       // console.log(videoSegmentItem.idx, this.loadedNumber)
       if (parseFloat(videoSegmentItem.number) > parseFloat(this.loadedNumber)) {
         if (videoSegmentItem.number !== audioSegmentItem.number) {
-          console.error('load segment error:', videoSegmentItem.number, audioSegmentItem.number)
+          console.error(
+            'load segment error:',
+            videoSegmentItem.number,
+            audioSegmentItem.number
+          )
         }
         this.videoSegmentLoadEnd = false
         this.audioSegmentLoadEnd = false
@@ -363,7 +399,7 @@ export default class DashLiveController {
     }
   }
 
-  _getSegmentURL (mediaList) {
+  _getSegmentURL(mediaList) {
     const vList = mediaList.video[mediaList.video.selectedIdx].mediaSegments
     const aList = mediaList.audio[mediaList.audio.selectedIdx].mediaSegments
 
@@ -373,21 +409,24 @@ export default class DashLiveController {
     }
   }
 
-  _getAvailabilityTimeOffset () {
+  _getAvailabilityTimeOffset() {
     const mediaList = this.mediaList
     const videoInfo = mediaList.video[mediaList.video.selectedIdx]
     const audioInfo = mediaList.audio[mediaList.audio.selectedIdx]
 
-    this.availabilityTimeOffset = Math.max(videoInfo.availabilityTimeOffset, audioInfo.availabilityTimeOffset)
+    this.availabilityTimeOffset = Math.max(
+      videoInfo.availabilityTimeOffset,
+      audioInfo.availabilityTimeOffset
+    )
   }
 
-  load (url = this.player.config.url) {
+  load(url = this.player.config.url) {
     this.url = url
     this._mpdLoader.load(url)
     log('load', url)
   }
 
-  destroy () {
+  destroy() {
     log('destroy')
     if (this.refreshMPDTimer) {
       clearTimeout(this.refreshMPDTimer)

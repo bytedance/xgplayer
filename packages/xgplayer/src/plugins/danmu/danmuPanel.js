@@ -1,31 +1,31 @@
-import Plugin, { Sniffer, Util, POSITIONS } from '../../plugin'
+import Plugin, { POSITIONS, Sniffer, Util } from '../../plugin'
 import PanelIcon from '../assets/panel.svg'
 
 /**
-  * @typedef {{
-  *   position?: string,
-  *   index?: number,
-  *   onChangeSet?: () => any,
-  *   speed?: number,
-  *   area?: any,
-  *   opacity?: number,
-  *   fonSize?: number
-  * }} IDanmuPanelConfig
-  */
+ * @typedef {{
+ *   position?: string,
+ *   index?: number,
+ *   onChangeSet?: () => any,
+ *   speed?: number,
+ *   area?: any,
+ *   opacity?: number,
+ *   fonSize?: number
+ * }} IDanmuPanelConfig
+ */
 
 class DanmuPanel extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'danmuPanel'
   }
 
   /**
    * @type IDanmuPanelConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 11,
-      onChangeSet: (set) => {
+      onChangeSet: set => {
         console.log(`DanmuPanel:${set}`)
       },
       speed: 1,
@@ -35,7 +35,7 @@ class DanmuPanel extends Plugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.set = {
       speed: 1, // 速度
@@ -45,7 +45,7 @@ class DanmuPanel extends Plugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     if (Sniffer.device === 'mobile') {
       this.activeEvent = 'click'
     } else {
@@ -59,21 +59,23 @@ class DanmuPanel extends Plugin {
     // this.bind(['click', 'touchend'], this.onStateChange)
   }
 
-  onStateChange (e) {
-    this.config.onChangeSet && this.config.onChangeSet(this.set)
+  onStateChange(_e) {
+    this.config.onChangeSet?.(this.set)
   }
 
-  onToggle (e) {
+  onToggle(e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.root, 'slider-show') ? Util.removeClass(this.root, 'slider-show') : Util.addClass(this.root, 'slider-show')
+    Util.hasClass(this.root, 'slider-show')
+      ? Util.removeClass(this.root, 'slider-show')
+      : Util.addClass(this.root, 'slider-show')
   }
 
-  destroy () {
+  destroy() {
     this.unbind(['click', 'touchend'], this.onStateChange)
   }
 
-  render () {
+  render() {
     return `
       <xg-icon class="xgplayer-panel">
           <xg-panel-icon class="xgplayer-panel-icon">

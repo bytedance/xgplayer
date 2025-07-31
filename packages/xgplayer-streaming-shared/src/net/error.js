@@ -8,7 +8,7 @@ export class NetError extends Error {
   endTime = 0
   options = {}
 
-  constructor (url, request, response, msg) {
+  constructor(url, request, response, msg) {
     super(msg)
     this.url = url
     this.request = request

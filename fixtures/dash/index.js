@@ -5,10 +5,9 @@ new Player({
   id: 'mse',
   url: 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd',
   dashOpts: {
-    drm: {
-    }
+    drm: {}
   },
   height: window.innerHeight,
   width: window.innerWidth,
   plugins: [DashPlugin]
-});
+})

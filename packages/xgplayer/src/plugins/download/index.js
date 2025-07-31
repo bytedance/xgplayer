@@ -1,8 +1,8 @@
 import downloadUtil from 'downloadjs'
 import { POSITIONS, Util } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import IconPlugin from '../common/iconPlugin'
 import DownloadSvg from '../assets/download.svg'
+import IconPlugin from '../common/iconPlugin'
+import { xgIconTips } from '../common/iconTools'
 import './index.scss'
 /**
  * @typedef { {
@@ -13,14 +13,14 @@ import './index.scss'
  *  } } IDownloadConfig
  */
 export default class Download extends IconPlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'download'
   }
 
   /**
    * @type IDownloadConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 3,
@@ -28,20 +28,20 @@ export default class Download extends IconPlugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.timer = null
     this.isLock = false
   }
 
-  afterCreate () {
+  afterCreate() {
     super.afterCreate()
     if (this.config.disable) {
       return
     }
     this.appendChild('.xgplayer-icon', this.icons.download)
     this._handler = this.hook('click', this.download, {
-      pre: (e) => {
+      pre: e => {
         e.preventDefault()
         e.stopPropagation()
       }
@@ -49,12 +49,12 @@ export default class Download extends IconPlugin {
     this.bind(['click', 'touchend'], this._handler)
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       download: DownloadSvg
     }
   }
-  download = (e) => {
+  download = e => {
     if (this.isLock) {
       return
     }
@@ -76,7 +76,7 @@ export default class Download extends IconPlugin {
     }, 300)
   }
 
-  getAbsoluteURL (url) {
+  getAbsoluteURL(url) {
     // Check if absolute URL
     if (!url.match(/^https?:\/\//)) {
       const div = document.createElement('div')
@@ -86,14 +86,14 @@ export default class Download extends IconPlugin {
     return url
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     this.unbind(['click', 'touchend'], this.download)
     window.clearTimeout(this.timer)
     this.timer = null
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }

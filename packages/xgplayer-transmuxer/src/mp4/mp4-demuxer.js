@@ -1,8 +1,9 @@
-import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample } from '../model'
+import { AudioSample, AudioTrack, MetadataTrack, VideoSample, VideoTrack } from '../model'
 import { readBig32 } from '../utils'
-import { MP4Parser } from './mp4-parser'
-import { Logger } from './logger'
 import Crypto from './crypto/crypto'
+import { Logger } from './logger'
+import { MP4Parser } from './mp4-parser'
+
 const NEW_ARRAY_MAX_CNT = 20
 export class MP4Demuxer {
   _videoSamples = []
@@ -10,21 +11,21 @@ export class MP4Demuxer {
   _lastRemainBuffer = []
   _lastRemainBufferStartPos = 0
 
-  constructor (videoSegmnents, audioSegmnents, metadataTrack, options) {
+  constructor(videoSegmnents, audioSegmnents, metadataTrack, options) {
     this.videoTrack = new VideoTrack()
     this.audioTrack = new AudioTrack()
     this.metadataTrack = metadataTrack || new MetadataTrack()
-    this.log = new Logger('MP4Demuxer', options && options.openLog ? !options.openLog : true)
+    this.log = new Logger('MP4Demuxer', options?.openLog ? !options.openLog : true)
 
-    videoSegmnents && videoSegmnents.forEach(item => {
+    videoSegmnents?.forEach(item => {
       this._videoSamples.push(...item.frames)
     })
-    audioSegmnents && audioSegmnents.forEach(item => {
+    audioSegmnents?.forEach(item => {
       this._audioSamples.push(...item.frames)
     })
   }
 
-  parseSamples (moov) {
+  parseSamples(moov) {
     if (!moov) {
       throw new Error('moov is required')
     }
@@ -41,7 +42,7 @@ export class MP4Demuxer {
     }
   }
 
-  demux (data, dataStart, videoIndexRange, audioIndexRange, moov) {
+  demux(data, dataStart, videoIndexRange, audioIndexRange, moov) {
     this.parseSamples(moov)
 
     const videoTrack = this.videoTrack
@@ -100,17 +101,34 @@ export class MP4Demuxer {
     }
   }
 
-  demuxPart (data, dataStart, videoIndexRange, audioIndexRange, moov, useEME, kidValue, customDescryptHandler) {
+  demuxPart(
+    data,
+    dataStart,
+    videoIndexRange,
+    audioIndexRange,
+    moov,
+    useEME,
+    kidValue,
+    customDescryptHandler
+  ) {
     this.parseSamples(moov)
 
     this.videoTrack.useEME = useEME
     this.audioTrack.useEME = useEME
     // this.log.debug('[demuxPart start],dataStart,', dataStart, ',dataLen,', data.byteLength, ', lastRemain,', this._lastRemainBuffer ? this._lastRemainBuffer.byteLength : 0)
-    if (this._lastRemainBuffer && this._lastRemainBuffer.byteLength > 0 && dataStart > this._lastRemainBufferStartPos && dataStart <= this._lastRemainBufferStartPos + this._lastRemainBuffer.byteLength) {
+    if (
+      this._lastRemainBuffer &&
+      this._lastRemainBuffer.byteLength > 0 &&
+      dataStart > this._lastRemainBufferStartPos &&
+      dataStart <= this._lastRemainBufferStartPos + this._lastRemainBuffer.byteLength
+    ) {
       let tryCnt = 0
       while (tryCnt < NEW_ARRAY_MAX_CNT) {
         try {
-          const buffer = this._lastRemainBuffer.subarray(0, dataStart - this._lastRemainBufferStartPos)
+          const buffer = this._lastRemainBuffer.subarray(
+            0,
+            dataStart - this._lastRemainBufferStartPos
+          )
           const temp = new Uint8Array(data.byteLength + buffer.byteLength)
           temp.set(buffer, 0)
           temp.set(new Uint8Array(data), buffer.byteLength)
@@ -124,7 +142,7 @@ export class MP4Demuxer {
           if (tryCnt < NEW_ARRAY_MAX_CNT) {
             tryCnt++
           } else {
-            throw new Error('new Uint8Array error:,' + e.errorMessage)
+            throw new Error(`new Uint8Array error:,${e.errorMessage}`)
           }
         }
       }
@@ -171,10 +189,14 @@ export class MP4Demuxer {
         videoTrack.gopId = videoTrack.samples[0].gopId
         videoTrack.baseMediaDecodeTime = videoTrack.samples[0].dts
         videoTrack.startPts = videoTrack.samples[0].pts / videoTrack.timescale
-        videoTrack.endPts = videoTrack.samples[videoTrack.samples.length - 1].pts / videoTrack.timescale
+        videoTrack.endPts =
+          videoTrack.samples[videoTrack.samples.length - 1].pts / videoTrack.timescale
         // this.log.debug('[demux video],frame,startPts，', videoTrack.startPts, ', endPts,', videoTrack.endPts)
         if (this.videoSenc) {
-          videoTrack.videoSenc = this.videoSenc.slice(videoTrack.samples[0].sampleOffset, videoTrack.samples[0].sampleOffset + videoTrack.samples.length)
+          videoTrack.videoSenc = this.videoSenc.slice(
+            videoTrack.samples[0].sampleOffset,
+            videoTrack.samples[0].sampleOffset + videoTrack.samples.length
+          )
           videoTrack.kidValue = kidValue
         }
       }
@@ -185,24 +207,33 @@ export class MP4Demuxer {
         if (!sample) {
           throw new Error(`cannot found video frame #${i}`)
         }
-        if (sample.offset >= dataStart && sample.offset + sample.size <= data.byteLength + dataStart) {
+        if (
+          sample.offset >= dataStart &&
+          sample.offset + sample.size <= data.byteLength + dataStart
+        ) {
           startByte = sample.offset - dataStart
           audioEndByte = startByte + sample.size
           sampleData = data.subarray(startByte, audioEndByte)
           // this.log.debug('[audio !!!!!!!!],audio frame,index，', sample.index, ',segmentIdx', segmentIdx, ', Samplestart,', sample.offset, ', SampleEnd,', sample.offset + sample.size, ',size,', sample.size, 'dts,', sample.dts, ',pts,', sample.pts || sample.dts)
           // frame.gopId = sample.gopId
           // this.log.debug('[demux audio frame],index ,', sample.index, ', size,', sampleData.byteLength, ', hash,', hashVal(sampleData.toString()))
-          audioTrack.samples.push(new AudioSample(sample.dts, sampleData, sample.duration, sample.index))
+          audioTrack.samples.push(
+            new AudioSample(sample.dts, sampleData, sample.duration, sample.index)
+          )
         }
       }
       if (audioTrack.samples.length > 0) {
         audioTrack.gopId = audioTrack.samples[0].gopId || videoTrack.gopId
         audioTrack.baseMediaDecodeTime = audioTrack.samples[0].dts
         audioTrack.startPts = audioTrack.samples[0].pts / audioTrack.timescale
-        audioTrack.endPts = audioTrack.samples[audioTrack.samples.length - 1].pts / audioTrack.timescale
+        audioTrack.endPts =
+          audioTrack.samples[audioTrack.samples.length - 1].pts / audioTrack.timescale
         // this.log.debug('[demux audio],frame,startPts，', audioTrack.startPts, ', endPts,', audioTrack.endPts)
         if (this.audioSenc) {
-          audioTrack.audioSenc = this.audioSenc.slice(audioTrack.samples[0].sampleOffset, audioTrack.samples[0].sampleOffset + audioTrack.samples.length)
+          audioTrack.audioSenc = this.audioSenc.slice(
+            audioTrack.samples[0].sampleOffset,
+            audioTrack.samples[0].sampleOffset + audioTrack.samples.length
+          )
           audioTrack.kidValue = kidValue
         }
       }
@@ -222,7 +253,8 @@ export class MP4Demuxer {
     }
     this._lastRemainBuffer = data.subarray(Math.max(videoEndByte, audioEndByte))
     if (this._lastRemainBuffer.byteLength > 0) {
-      this._lastRemainBufferStartPos = dataStart + data.byteLength - this._lastRemainBuffer.byteLength
+      this._lastRemainBufferStartPos =
+        dataStart + data.byteLength - this._lastRemainBuffer.byteLength
     } else {
       this._lastRemainBufferStartPos = 0
     }
@@ -233,7 +265,7 @@ export class MP4Demuxer {
     }
   }
 
-  reset () {
+  reset() {
     this._videoSamples = []
     this._audioSamples = []
     this._lastRemainBuffer = null
@@ -243,12 +275,12 @@ export class MP4Demuxer {
     this.metadataTrack.reset()
   }
 
-  decoderData (videoTrack, audioTrack, customDescryptHandler) {
+  decoderData(videoTrack, audioTrack, customDescryptHandler) {
     if (videoTrack.useEME || audioTrack.useEME) return
     Crypto.decoderAESCTRData(videoTrack, audioTrack, customDescryptHandler)
   }
 
-  static probe (data) {
+  static probe(data) {
     return MP4Parser.probe(data)
   }
 }

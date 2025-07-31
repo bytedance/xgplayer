@@ -1,7 +1,7 @@
 import DanmuJs from 'danmu.js'
 import Plugin, { Events, Util } from '../../plugin'
-import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
+import DanmuPanel from './danmuPanel'
 import './index.scss'
 
 const MIN_INTERVAL = 300
@@ -29,7 +29,7 @@ const MIN_INTERVAL = 300
  */
 
 class Danmu extends Plugin {
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.danmujs = null
     this.danmuPanel = null
@@ -49,17 +49,18 @@ class Danmu extends Plugin {
   /**
    * @type { string }
    */
-  static get pluginName () {
+  static get pluginName() {
     return 'danmu'
   }
 
   /**
    * @type IDanmuConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       comments: [], // initial barrage list组,
-      area: { // Barrage display area
+      area: {
+        // Barrage display area
         start: 0,
         end: 1
       },
@@ -80,7 +81,7 @@ class Danmu extends Plugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     if (this.playerConfig.isLive) {
       this.config.isLive = true
     }
@@ -119,18 +120,22 @@ class Danmu extends Plugin {
       const now = window.performance.now()
       const delayTime = now - this.seekCost > MIN_INTERVAL ? 100 : MIN_INTERVAL
 
-      this.intervalId = Util.setTimeout(this, () => {
-        this.danmujs.start()
-        this.intervalId = null
+      this.intervalId = Util.setTimeout(
+        this,
+        () => {
+          this.danmujs.start()
+          this.intervalId = null
 
-        if (this.player.paused) {
-          this.danmujs.pause()
-        }
-      }, delayTime)
+          if (this.player.paused) {
+            this.danmujs.pause()
+          }
+        },
+        delayTime
+      )
     })
   }
 
-  onPluginsReady () {
+  onPluginsReady() {
     // Add click trigger event trigger, rely on pc plug-in
     const pcPlugin = this.player.plugins.pc
     if (pcPlugin) {
@@ -139,9 +144,17 @@ class Danmu extends Plugin {
     }
   }
 
-  initDanmu () {
+  initDanmu() {
     const { player, config } = this
-    const { channelSize, fontSize, opacity, mouseControl, mouseControlPause, area, defaultOff } = this.config
+    const {
+      channelSize,
+      fontSize,
+      opacity,
+      mouseControl,
+      mouseControlPause,
+      area,
+      defaultOff
+    } = this.config
     const danmuConfig = {
       container: this.root,
       player: player.media,
@@ -166,17 +179,21 @@ class Danmu extends Plugin {
     opacity !== 1 && this.setOpacity(opacity)
   }
 
-  registerExtIcons () {
+  registerExtIcons() {
     const { player, config } = this
     if (config.panel && player.controls) {
       const panelOptions = {
         config: {
-          onChangeset: (set) => {
+          onChangeset: set => {
             this.changeSet(set)
           }
         }
       }
-      this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName)
+      this.danmuPanel = player.controls.registerPlugin(
+        DanmuPanel,
+        panelOptions,
+        DanmuPanel.pluginName
+      )
     }
     const { switchConfig } = config
     if (!config.closeDefaultBtn && player.controls) {
@@ -190,15 +207,18 @@ class Danmu extends Plugin {
       Object.keys(switchConfig).map(key => {
         buttonOptions.config[key] = switchConfig[key]
       })
-      this.danmuButton = player.controls.registerPlugin(DanmuIcon, buttonOptions, DanmuIcon.pluginName)
+      this.danmuButton = player.controls.registerPlugin(
+        DanmuIcon,
+        buttonOptions,
+        DanmuIcon.pluginName
+      )
       this.config.defaultOpen && this.danmuButton.switchState(true)
     }
   }
 
-  changeSet (set) {
-  }
+  changeSet(_set) {}
 
-  onSwitch (event, defaultOpen) {
+  onSwitch(event, defaultOpen) {
     this.emitUserAction(event, 'switch_danmu', {
       prop: 'isOpen',
       from: !defaultOpen,
@@ -211,7 +231,7 @@ class Danmu extends Plugin {
     }
   }
 
-  start () {
+  start() {
     if (this.isOpen || !this.danmujs) {
       return
     }
@@ -219,16 +239,20 @@ class Danmu extends Plugin {
     this.show()
     this.resize()
     // 避免弹幕弹层还没展开 导致轨道计算异常
-    Util.setTimeout(this, () => {
-      this.danmujs.start()
-      if (this.player.paused) {
-        this.danmujs.pause()
-      }
-      this.isOpen = true
-    }, 0)
+    Util.setTimeout(
+      this,
+      () => {
+        this.danmujs.start()
+        if (this.player.paused) {
+          this.danmujs.pause()
+        }
+        this.isOpen = true
+      },
+      0
+    )
   }
 
-  stop () {
+  stop() {
     // 用户行为关闭弹幕
     this.isUseClose = true
     if (!this.isOpen || !this.danmujs) {
@@ -241,94 +265,90 @@ class Danmu extends Plugin {
   }
 
   // 清除当前弹幕池中的弹幕数据
-  clear () {
-    this.danmujs && this.danmujs.clear()
+  clear() {
+    this.danmujs?.clear()
   }
 
-  setCommentLike (id, data) {
-    this.danmujs && this.danmujs.setCommentLike(id, data)
+  setCommentLike(id, data) {
+    this.danmujs?.setCommentLike(id, data)
   }
 
   // 按照id改变某一个弹幕的持续显示时间
-  setCommentDuration (id, duration) {
-    this.danmujs && this.danmujs.setCommentDuration(id, duration)
+  setCommentDuration(id, duration) {
+    this.danmujs?.setCommentDuration(id, duration)
   }
 
   // 改变所有已加入队列弹幕的持续显示时间
-  setAllDuration (mode, duration) {
-    this.danmujs && this.danmujs.setAllDuration(mode, duration)
+  setAllDuration(mode, duration) {
+    this.danmujs?.setAllDuration(mode, duration)
   }
 
   // 改变某一个弹幕的id
-  setCommentID (oldID, newID) {
-    this.danmujs && this.danmujs.setCommentID(oldID, newID)
+  setCommentID(oldID, newID) {
+    this.danmujs?.setCommentID(oldID, newID)
   }
 
   // 屏蔽某一类弹幕(参数可选值 scroll | top | bottom | color)
-  hideMode (mode) {
-    this.danmujs && this.danmujs.hide(mode)
+  hideMode(mode) {
+    this.danmujs?.hide(mode)
   }
 
   // 显示某一类弹幕(参数可选值 scroll | top | bottom | color)
-  showMode (mode) {
-    this.danmujs && this.danmujs.show(mode)
+  showMode(mode) {
+    this.danmujs?.show(mode)
   }
 
   // 修改弹幕显示区域
-  setArea (area) {
-    this.danmujs && this.danmujs.setArea(area)
+  setArea(area) {
+    this.danmujs?.setArea(area)
   }
 
   // 设置透明度
-  setOpacity (opacity) {
-    this.danmujs && this.danmujs.setOpacity(opacity)
+  setOpacity(opacity) {
+    this.danmujs?.setOpacity(opacity)
   }
 
   // 设置字体
-  setFontSize (size, channelSize) {
-    this.danmujs && this.danmujs.setFontSize(size, channelSize)
+  setFontSize(size, channelSize) {
+    this.danmujs?.setFontSize(size, channelSize)
   }
 
-  resize () {
-    this.danmujs && this.danmujs.resize()
+  resize() {
+    this.danmujs?.resize()
   }
 
-  sendComment (comments) {
-    this.danmujs && this.danmujs.sendComment(comments)
+  sendComment(comments) {
+    this.danmujs?.sendComment(comments)
   }
 
-  updateComments (comments, isClear) {
-    this.danmujs && this.danmujs.updateComments(comments, isClear)
+  updateComments(comments, isClear) {
+    this.danmujs?.updateComments(comments, isClear)
   }
 
-  hideIcon () {
-    this.danmuButton && this.danmuButton.hide()
+  hideIcon() {
+    this.danmuButton?.hide()
   }
 
-  showIcon () {
-    this.danmuButton && this.danmuButton.show()
+  showIcon() {
+    this.danmuButton?.show()
   }
 
-  destroy () {
+  destroy() {
     this.danmujs.stop()
     this.danmujs.destroy()
     this.danmujs = null
     this.player.danmu = null
     const { danmuButton, danmuPanel } = this
-    this.danmuButton && this.danmuButton.root && danmuButton.__destroy && danmuButton.__destroy()
-    this.danmuPanel && this.danmuPanel.root && danmuPanel.__destroy && danmuPanel.__destroy()
+    this.danmuButton?.root && danmuButton.__destroy && danmuButton.__destroy()
+    this.danmuPanel?.root && danmuPanel.__destroy && danmuPanel.__destroy()
     this.danmuButton = null
     this.danmuPanel = null
   }
 
-  render () {
+  render() {
     return `<xg-danmu class="xgplayer-danmu">
     </xg-danmu>`
   }
 }
 
-export {
-  Danmu as default,
-  DanmuIcon,
-  DanmuPanel
-}
+export { Danmu as default, DanmuIcon, DanmuPanel }

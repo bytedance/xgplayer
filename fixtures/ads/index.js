@@ -76,8 +76,11 @@ function initIMAConfigure() {
   }
 
   if (settings.adsResponse) {
-    const parser = new DOMParser();
-    obj.adsResponse = parser.parseFromString(settings.adsResponse.trim(), "application/xml")
+    const parser = new DOMParser()
+    obj.adsResponse = parser.parseFromString(
+      settings.adsResponse.trim(),
+      'application/xml'
+    )
   } else if (settings.useAdsRequest) {
     obj.adsRequest = generateAdsRequest()
   } else if (settings.adTagUrl) {

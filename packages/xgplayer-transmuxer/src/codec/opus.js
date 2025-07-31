@@ -21,7 +21,7 @@
  *    'Beginning Of Stream'
  */
 export class OPUS {
-  static getFrameDuration (samples, timescale = 1000) {
+  static getFrameDuration(_samples, _timescale = 1000) {
     return 20
   }
 
@@ -29,7 +29,7 @@ export class OPUS {
    * Identification Header + Comment Header
    * @param {Uint8Array} data
    */
-  static parseHeaderPackets (data) {
+  static parseHeaderPackets(data) {
     if (!data.length) return
 
     const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)

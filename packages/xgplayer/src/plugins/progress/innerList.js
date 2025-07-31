@@ -6,7 +6,7 @@ const TPL = [
 ]
 
 export default class InnerList {
-  constructor (args) {
+  constructor(args) {
     this.fragments = args.fragments || []
     if (this.fragments.length === 0) {
       this.fragments.push({ percent: 1 })
@@ -28,7 +28,7 @@ export default class InnerList {
     this.focusIndex = -1
   }
 
-  updateDuration (duration) {
+  updateDuration(duration) {
     this.duration = duration
     let start = 0
     const { fragments } = this
@@ -41,7 +41,7 @@ export default class InnerList {
     })
   }
 
-  updateProgress (type = 'played', data = { newIndex: 0, curIndex: 0, millisecond: 0 }) {
+  updateProgress(type = 'played', data = { newIndex: 0, curIndex: 0, millisecond: 0 }) {
     const { progressList, fragments } = this
     if (progressList.length < 1) {
       return
@@ -61,7 +61,7 @@ export default class InnerList {
     progressList[newIndex][type].style.width = per < 0 ? 0 : `${per * 100}%`
   }
 
-  updateFocus (data) {
+  updateFocus(data) {
     if (!this.fragConfig.fragAutoFocus || this.fragments.length < 2) {
       return
     }
@@ -74,7 +74,7 @@ export default class InnerList {
           preIndex: this.focusIndex,
           fragment: null
         }
-        this._callBack && this._callBack(_data)
+        this._callBack?.(_data)
         this.focusIndex = -1
       }
       return
@@ -89,11 +89,11 @@ export default class InnerList {
         fragment: this.fragments[this.focusIndex]
       }
       this.focusIndex = newPIndex
-      this._callBack && this._callBack(_data)
+      this._callBack?.(_data)
     }
   }
 
-  update (data = { cached: 0, played: 0 }, duration) {
+  update(data = { cached: 0, played: 0 }, duration) {
     if (!this.duration || parseInt(duration * 1000, 10) !== this.duration) {
       if (!duration && duration !== 0) {
         return
@@ -128,7 +128,7 @@ export default class InnerList {
     }
   }
 
-  findIndex (time, curIndex) {
+  findIndex(time, curIndex) {
     const { fragments } = this
     if (!fragments || fragments.length === 0) {
       return -1
@@ -136,7 +136,12 @@ export default class InnerList {
     if (fragments.length === 1) {
       return 0
     }
-    if (curIndex > -1 && curIndex < fragments.length && time > fragments[curIndex].start && time < fragments[curIndex].end) {
+    if (
+      curIndex > -1 &&
+      curIndex < fragments.length &&
+      time > fragments[curIndex].start &&
+      time < fragments[curIndex].end
+    ) {
       return curIndex
     }
     if (time > fragments[fragments.length - 1].start) {
@@ -152,7 +157,7 @@ export default class InnerList {
     return curIndex
   }
 
-  findHightLight () {
+  findHightLight() {
     const children = this.root.children
     for (let i = 0; i < children.length; i++) {
       if (Util.hasClass(children[i], this.fragConfig.fragFocusClass)) {
@@ -165,7 +170,7 @@ export default class InnerList {
   }
 
   // 根据索引获取进度条片段
-  findFragment (index) {
+  findFragment(index) {
     const children = this.root.children
     if (index < 0 || index >= children.length) {
       return null
@@ -176,14 +181,14 @@ export default class InnerList {
     }
   }
 
-  unHightLight () {
+  unHightLight() {
     const children = this.root.children
     for (let i = 0; i < children.length; i++) {
       Util.removeClass(children[i], this.fragConfig.fragFocusClass)
     }
   }
 
-  setHightLight (index) {
+  setHightLight(index) {
     const children = this.root.children
     if (index < children.length) {
       Util.addClass(children[index], this.fragConfig.fragFocusClass)
@@ -194,7 +199,7 @@ export default class InnerList {
     }
   }
 
-  destroy () {
+  destroy() {
     this.progressList = null
     this.fragments = null
     this.root.innerHTML = ''
@@ -204,7 +209,7 @@ export default class InnerList {
    * 重置当前
    * @param {*} newOptions
    */
-  reset (newOptions) {
+  reset(newOptions) {
     // 更新fragConfig
     Object.keys(this.fragConfig).forEach(key => {
       if (newOptions[key] !== undefined) {
@@ -212,7 +217,8 @@ export default class InnerList {
       }
     })
     if (newOptions.fragments) {
-      this.fragments = newOptions.fragments.length === 0 ? [{ percent: 1 }] : newOptions.fragments
+      this.fragments =
+        newOptions.fragments.length === 0 ? [{ percent: 1 }] : newOptions.fragments
       this.updateDuration(this.duration)
       this.playedIndex = 0
       this.cachedIndex = 0
@@ -228,24 +234,40 @@ export default class InnerList {
     }
   }
 
-  render () {
+  render() {
     const { progressColor } = this.style
     if (!this.root) {
       this.root = Util.createDom('xg-inners', '', {}, 'progress-list')
     }
     if (this.fragments) {
       const { fragClass, fragFocusClass } = this.fragConfig
-      this.progressList = this.fragments.map((item) => {
-        const inner = Util.createDom('xg-inner', '', {
-          style: progressColor ? `background:${progressColor}; flex: ${item.percent}` : `flex: ${item.percent}`
-        }, `${item.isFocus ? fragFocusClass : ''} xgplayer-progress-inner ${fragClass}`)
+      this.progressList = this.fragments.map(item => {
+        const inner = Util.createDom(
+          'xg-inner',
+          '',
+          {
+            style: progressColor
+              ? `background:${progressColor}; flex: ${item.percent}`
+              : `flex: ${item.percent}`
+          },
+          `${item.isFocus ? fragFocusClass : ''} xgplayer-progress-inner ${fragClass}`
+        )
 
         this.root.appendChild(inner)
 
         TPL.forEach(item => {
-          inner.appendChild(Util.createDom(item.tag, '', {
-            style: item.styleKey ? `background: ${this.style[item.styleKey]}; width:0;` : 'width:0;'
-          }, item.className))
+          inner.appendChild(
+            Util.createDom(
+              item.tag,
+              '',
+              {
+                style: item.styleKey
+                  ? `background: ${this.style[item.styleKey]}; width:0;`
+                  : 'width:0;'
+              },
+              item.className
+            )
+          )
         })
 
         return {

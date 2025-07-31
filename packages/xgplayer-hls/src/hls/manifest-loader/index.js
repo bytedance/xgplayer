@@ -1,10 +1,10 @@
-import { NetLoader, StreamingError, EVENT, ERR } from 'xgplayer-streaming-shared'
-import { M3U8Parser } from './parser'
+import { ERR, EVENT, NetLoader, StreamingError } from 'xgplayer-streaming-shared'
 import { Event } from '../constants'
+import { M3U8Parser } from './parser'
 import { HlsUrlParameters } from './parser/model'
 
 export class ManifestLoader {
-  constructor (hls) {
+  constructor(hls) {
     this.hls = hls
     this._timer = null
     this._useLowLatency = hls.config.useLowLatency
@@ -35,10 +35,9 @@ export class ManifestLoader {
       timeout: manifestLoadTimeout,
       onRetryError: this._onLoaderRetry
     })
-
   }
 
-  async load (url, audioUrl, subtitleUrl) {
+  async load(url, audioUrl, subtitleUrl) {
     const toLoad = [this._loader.load(url)]
     if (audioUrl) {
       toLoad.push(this._audioLoader.load(audioUrl))
@@ -76,7 +75,6 @@ export class ManifestLoader {
         subtitleResUrl = audio?.response?.url || subtitleUrl
         subtitleText && this._emitOnLoaded(audio, subtitleUrl)
       }
-
     } catch (error) {
       throw StreamingError.network(error)
     }
@@ -90,7 +88,8 @@ export class ManifestLoader {
       if (onPreM3U8Parse) {
         videoText = onPreM3U8Parse(videoText) || videoText
         if (audioText) audioText = onPreM3U8Parse(audioText, true) || audioText
-        if (subtitleText) subtitleText = onPreM3U8Parse(subtitleText, true) || subtitleText
+        if (subtitleText)
+          subtitleText = onPreM3U8Parse(subtitleText, true) || subtitleText
       }
       playlist = M3U8Parser.parse(videoText, videoResUrl, this._useLowLatency)
       if (playlist?.live === false && playlist.segments && !playlist.segments.length) {
@@ -100,9 +99,12 @@ export class ManifestLoader {
         audioPlaylist = M3U8Parser.parse(audioText, audioResUrl, this._useLowLatency)
       }
       if (subtitleText) {
-        subtitlePlaylist = M3U8Parser.parse(subtitleText, subtitleResUrl, this._useLowLatency)
+        subtitlePlaylist = M3U8Parser.parse(
+          subtitleText,
+          subtitleResUrl,
+          this._useLowLatency
+        )
       }
-
     } catch (error) {
       throw new StreamingError(ERR.MANIFEST, ERR.SUB_TYPES.HLS, error)
     }
@@ -112,7 +114,11 @@ export class ManifestLoader {
       } else {
         if (this._useLowLatency) {
           if (playlist.canBlockReload) {
-            this.deliveryDirectives = new HlsUrlParameters(playlist.nextSN, playlist.nextIndex, '')
+            this.deliveryDirectives = new HlsUrlParameters(
+              playlist.nextSN,
+              playlist.nextIndex,
+              ''
+            )
           } else {
             this.deliveryDirectives = null
           }
@@ -124,7 +130,7 @@ export class ManifestLoader {
     return [playlist, audioPlaylist, subtitlePlaylist]
   }
 
-  parseText (videoText, url) {
+  parseText(videoText, url) {
     const { onPreM3U8Parse } = this.hls.config
 
     let playlist
@@ -149,7 +155,7 @@ export class ManifestLoader {
     return [playlist]
   }
 
-  poll (url, audioUrl, subtitleUrl, cb, errorCb, time) {
+  poll(url, audioUrl, subtitleUrl, cb, errorCb, time) {
     clearTimeout(this._timer)
     time = time || 3000
     let retryCount = this.hls.config.pollRetryCount
@@ -175,16 +181,13 @@ export class ManifestLoader {
     this._timer = setTimeout(fn, time)
   }
 
-  stopPoll () {
+  stopPoll() {
     clearTimeout(this._timer)
     return this.cancel()
   }
 
-  cancel () {
-    return Promise.all([
-      this._loader.cancel(),
-      this._audioLoader.cancel()
-    ])
+  cancel() {
+    return Promise.all([this._loader.cancel(), this._audioLoader.cancel()])
   }
 
   _emitOnLoaded = (res, url) => {
@@ -194,7 +197,11 @@ export class ManifestLoader {
 
     this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
     this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
-    this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
+    this.hls.emit(EVENT.TTFB, {
+      url,
+      responseUrl: response.url,
+      elapsed: firstByteTime - startTime
+    })
     this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers, url })
   }
 

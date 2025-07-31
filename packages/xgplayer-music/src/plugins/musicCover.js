@@ -1,20 +1,20 @@
 import { Plugin } from 'xgplayer'
 
 export class MusicCover extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'musiccover'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       index: 6,
       position: Plugin.POSITIONS.CONTROLS_LEFT
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.on('change', item => {
-      if (item && item.poster) {
+      if (item?.poster) {
         if (this.find('img')) {
           this.find('img').src = item.poster
         } else {
@@ -36,7 +36,7 @@ export class MusicCover extends Plugin {
     }
   }
 
-  render () {
+  render() {
     return '<xg-icon class="xgplayer-cover"></xg-icon>'
   }
 }

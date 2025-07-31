@@ -1,15 +1,14 @@
 import EventEmitter from 'eventemitter3'
+import { EVENTS } from './constants'
+import { _ERROR } from './error'
+import { addObserver, unObserver } from './observer'
+import ProxyPromise from './proxyPromise'
 // import XHR from './xhr'
 // import SubTitleParser from './parser'
 // import { addClass, removeClass, typeOf, findIndexByTime, findCIndexByTime, isMobile, addCSS, createDom, __loadText, checkSubtitle } from './utils'
 import * as Util from './utils'
-import { addObserver, unObserver } from './observer'
-import { EVENTS } from './constants'
-import { _ERROR } from './error'
-import ProxyPromise from './proxyPromise'
 
 import './style/index.scss'
-
 
 /**
  * @typedef { {
@@ -24,7 +23,7 @@ import './style/index.scss'
  */
 
 // eslint-disable-next-line no-unused-vars
-const SubtitleItem = {
+const _SubtitleItem = {
   label: '', // 字幕标记
   language: '', // 字幕语言
   id: '', // 字幕id
@@ -35,10 +34,10 @@ const SubtitleItem = {
   list: [] // json格式
 }
 
-function formatUrl (url) {
+function formatUrl(url) {
   const ret = []
   if (url && Util.typeOf(url) === 'String') {
-    ret.push({ url: url, index: 0, start: -1, end: -1})
+    ret.push({ url: url, index: 0, start: -1, end: -1 })
   } else if (Util.typeOf(url) === 'Array') {
     url.forEach((item, i) => {
       ret.push({
@@ -58,11 +57,11 @@ export default class Subtitle extends EventEmitter {
    * @type {string}
    * @description the version of sdk
    */
-  get version () {
+  get version() {
     return __VERSION__
   }
 
-  constructor (options) {
+  constructor(options) {
     super()
     IS_MOBILE = Util.isMobile()
     this.currentText = null // 当前字幕信息
@@ -130,14 +129,13 @@ export default class Subtitle extends EventEmitter {
     this.setSubTitles(options.subTitles, this.config.defaultOpen)
   }
 
-
   /**
    * @description 更新字幕列表
    * @param {*} subTitles // 更新的字幕列表
    * @param {*} isOpen  // 是否默认开启
    * @param {*} ieRemoveFirst // 是否移除之前的数据
    */
-  setSubTitles (subTitles = [], isOpen = false, ieRemoveFirst = true) {
+  setSubTitles(subTitles = [], isOpen = false, ieRemoveFirst = true) {
     const _isOpen = this._isOpen || isOpen
     ieRemoveFirst && this.innerRoot && this.switchOff()
     this.currentText = null
@@ -159,20 +157,21 @@ export default class Subtitle extends EventEmitter {
         this._log('[switch]', e)
       })
     }
-    this.currentText && this._loadTrack(this.currentText).then((textTrack) => {
-      this.addStyles(textTrack)
-      // if (_isOpen) {
-      //   this.switch()
-      // }
-    })
-    this.emit('reset', {list: this.textTrack, isOpen: _isOpen})
+    this.currentText &&
+      this._loadTrack(this.currentText).then(textTrack => {
+        this.addStyles(textTrack)
+        // if (_isOpen) {
+        //   this.switch()
+        // }
+      })
+    this.emit('reset', { list: this.textTrack, isOpen: _isOpen })
   }
 
   /**
    * @description 更新更新单个语言数据
    * @param {*} subTitle
    */
-  updateSubTitle (subTitle) {
+  updateSubTitle(subTitle) {
     let index = -1
     for (let i = 0; i < this.textTrack.length; i++) {
       if (Util.checkSubtitle(subTitle, this.textTrack[i])) {
@@ -183,7 +182,14 @@ export default class Subtitle extends EventEmitter {
     this._log('updateSubTitle', index, subTitle)
     if (index > -1) {
       const _isCurrent = Util.checkSubtitle(this.currentText, this.textTrack[index])
-      this._log('updateSubTitle', '_isCurrent', _isCurrent, 'this.isOpen', this.isOpen, this.currentText)
+      this._log(
+        'updateSubTitle',
+        '_isCurrent',
+        _isCurrent,
+        'this.isOpen',
+        this.isOpen,
+        this.currentText
+      )
       if (!_isCurrent) {
         return
       }
@@ -200,7 +206,7 @@ export default class Subtitle extends EventEmitter {
     }
   }
 
-  addStyles (textTrack) {
+  addStyles(textTrack) {
     const { styles, format } = textTrack
     if (styles && format === 'vtt') {
       styles.map(item => {
@@ -212,7 +218,7 @@ export default class Subtitle extends EventEmitter {
     }
   }
 
-  attachPlayer (player) {
+  attachPlayer(player) {
     this._log('attachPlayer')
     if (!player) {
       return
@@ -234,7 +240,7 @@ export default class Subtitle extends EventEmitter {
         this.root.style.color = fontColor
       }
       if (this.currentText) {
-        ['language', 'id', 'label'].map(key => {
+        ;['language', 'id', 'label'].map(key => {
           this.root.setAttribute(`data-${key}`, this.currentText[key] || '')
         })
       }
@@ -253,7 +259,7 @@ export default class Subtitle extends EventEmitter {
     }
   }
 
-  detachPlayer () {
+  detachPlayer() {
     const { player, config } = this
     if (!player) {
       return
@@ -274,7 +280,7 @@ export default class Subtitle extends EventEmitter {
     this.player = null
   }
 
-  switch (subtitle = { id: '', language: '' }) {
+  switch(subtitle = { id: '', language: '' }) {
     this._log('switch', subtitle)
     this._loadingTrack = subtitle
     return new Promise((resolve, reject) => {
@@ -321,25 +327,36 @@ export default class Subtitle extends EventEmitter {
             this._log('this._loadTrack', nextSubtitle)
             this._updateCurrent(nextSubtitle)
             this._loadTrack(nextSubtitle)
-              .then((textTrack) => {
+              .then(textTrack => {
                 this.addStyles(textTrack)
                 // 比对最近一次的信息
-                if (this._loadingTrack.id === nextSubtitle.id || this._loadingTrack.language === textTrack.language) {
+                if (
+                  this._loadingTrack.id === nextSubtitle.id ||
+                  this._loadingTrack.language === textTrack.language
+                ) {
                   this._loadingTrack = {}
                   this._updateCurrent(textTrack)
                   this.switchOn()
                   resolve(_ERROR(0))
                 } else {
-                  const err = _ERROR(6, { message: `check _loadingTrack fail id: ${this._loadingTrack.id}  nextSubtitle:${textTrack.id}` })
+                  const err = _ERROR(6, {
+                    message: `check _loadingTrack fail id: ${this._loadingTrack.id}  nextSubtitle:${textTrack.id}`
+                  })
                   // console.trace(err)
                   reject(err)
                 }
-              }).catch(err => {
+              })
+              .catch(err => {
                 reject(err)
               })
           }
         } else {
-          const err = _ERROR(4, new Error(`The is no subtitle with id:[{${subtitle.id}}] or language:[${subtitle.language}]`))
+          const err = _ERROR(
+            4,
+            new Error(
+              `The is no subtitle with id:[{${subtitle.id}}] or language:[${subtitle.language}]`
+            )
+          )
           // console.trace(err)
           reject(err)
         }
@@ -355,8 +372,8 @@ export default class Subtitle extends EventEmitter {
    * }} subtitle
    * @returns
    */
-  switchExt (subtitle = { id: '', language: '' }) {
-    return new Promise((resolve, reject) => {
+  switchExt(subtitle = { id: '', language: '' }) {
+    return new Promise((resolve, _reject) => {
       if (!subtitle.id && !subtitle.language) {
         this.currentExtText = null
         resolve(_ERROR(0))
@@ -369,7 +386,7 @@ export default class Subtitle extends EventEmitter {
           }
         }
         if (nextSubtitle && !Util.checkSubtitle(nextSubtitle, this.currentText)) {
-          this._loadTrack(nextSubtitle).then((textTrack) => {
+          this._loadTrack(nextSubtitle).then(textTrack => {
             this.currentExtText = textTrack
             resolve(_ERROR(0))
           })
@@ -378,7 +395,7 @@ export default class Subtitle extends EventEmitter {
     })
   }
 
-  switchOn () {
+  switchOn() {
     this._log('switchOn')
     this._isOpen = true
     this.show()
@@ -388,23 +405,23 @@ export default class Subtitle extends EventEmitter {
   /**
    * 关闭字幕
    */
-  switchOff () {
+  switchOff() {
     this._isOpen = false
     this.hide()
     this.emit(EVENTS.OFF)
   }
 
-  get isOpen () {
+  get isOpen() {
     return this._isOpen
   }
 
-  _log (...msg) {
+  _log(...msg) {
     if (this.config.debugger) {
       console.log('[xgSubtitle]', ...msg)
     }
   }
 
-  _loadTrack (textTrack) {
+  _loadTrack(textTrack) {
     this._log('_loadTrack', textTrack.language, textTrack)
     const promise = new ProxyPromise()
     let contentType = ''
@@ -417,47 +434,51 @@ export default class Subtitle extends EventEmitter {
       content = textTrack.stringContent
     }
     if (content) {
-      Util.parse(content, contentType).then(data => {
-        textTrack.format = data.format
-        textTrack.styles = data.styles
-        textTrack.list = data.list
-        promise.resolve(textTrack)
-      }).catch(e=>{
-        promise.reject(e)
-      })
+      Util.parse(content, contentType)
+        .then(data => {
+          textTrack.format = data.format
+          textTrack.styles = data.styles
+          textTrack.list = data.list
+          promise.resolve(textTrack)
+        })
+        .catch(e => {
+          promise.reject(e)
+        })
       return promise
     }
 
     const urls = textTrack.url
-    if (urls.length === 0){
+    if (urls.length === 0) {
       promise.resolve(textTrack)
       return promise
     }
-    const url = urls.splice(0,1)
-    Util.loadSubTitle(url[0]).then((data) => {
-      textTrack.format = data.format
-      textTrack.styles = data.styles
-      if (!textTrack.list) {
-        textTrack.list = []
-      }
-      this._pushList(textTrack.list, data.list)
-      urls.length > 1 && this._loadTrackUrls(textTrack, 2)
-      promise.resolve(textTrack)
-    }).catch(e => {
-      promise.reject(e)
-    })
+    const url = urls.splice(0, 1)
+    Util.loadSubTitle(url[0])
+      .then(data => {
+        textTrack.format = data.format
+        textTrack.styles = data.styles
+        if (!textTrack.list) {
+          textTrack.list = []
+        }
+        this._pushList(textTrack.list, data.list)
+        urls.length > 1 && this._loadTrackUrls(textTrack, 2)
+        promise.resolve(textTrack)
+      })
+      .catch(e => {
+        promise.reject(e)
+      })
     return promise
   }
 
-  _emitPlayerSwitch (curSubtitle, nextSubTitle) {
+  _emitPlayerSwitch(curSubtitle, nextSubTitle) {
     // 清空当前字幕的列表
     if (curSubtitle && this.config.updateMode === 'live') {
       curSubtitle.list = []
       curSubtitle.url = []
     }
-    const data = { lang: nextSubTitle.language, ...nextSubTitle}
+    const data = { lang: nextSubTitle.language, ...nextSubTitle }
     this._log('emit subtile_switch ', nextSubTitle, data)
-    this.player && this.player.emit('switch_subtitle', data)
+    this.player?.emit('switch_subtitle', data)
   }
 
   /**
@@ -465,9 +486,10 @@ export default class Subtitle extends EventEmitter {
    * @param {*} textTrack
    * @param {*} maxCount
    */
-  _loadTrackUrls (textTrack, maxCount, promise) {
+  _loadTrackUrls(textTrack, maxCount, promise) {
     const len = textTrack.url.length
-    const urls = len > maxCount ? textTrack.url.splice(0, maxCount) : textTrack.url.splice(0, len)
+    const urls =
+      len > maxCount ? textTrack.url.splice(0, maxCount) : textTrack.url.splice(0, len)
     let loadingCount = urls.length
     this._log('_loadTrackUrls', textTrack.language, len, urls.length, loadingCount)
     urls.forEach((item, i) => {
@@ -475,22 +497,25 @@ export default class Subtitle extends EventEmitter {
         ...item,
         index: i
       }
-      Util.loadSubTitle(obj).then((data) => {
-        textTrack.format = data.format
-        textTrack.styles = data.format
-        if (!textTrack.list) {
-          textTrack.list = []
-        }
-        this._pushList(textTrack.list, data.list)
-        loadingCount--
-      }).catch((e) => {
-        loadingCount--
-      }).finally(e => {
-        if (loadingCount === 0) {
-          promise && promise.resolve(textTrack)
-          this._loadTrackUrls(textTrack, 2)
-        }
-      })
+      Util.loadSubTitle(obj)
+        .then(data => {
+          textTrack.format = data.format
+          textTrack.styles = data.format
+          if (!textTrack.list) {
+            textTrack.list = []
+          }
+          this._pushList(textTrack.list, data.list)
+          loadingCount--
+        })
+        .catch(_e => {
+          loadingCount--
+        })
+        .finally(_e => {
+          if (loadingCount === 0) {
+            promise?.resolve(textTrack)
+            this._loadTrackUrls(textTrack, 2)
+          }
+        })
     })
   }
   /**
@@ -498,7 +523,7 @@ export default class Subtitle extends EventEmitter {
    * @param {*} textTrack
    * @param {*} data
    */
-  _freshUrl (textTrack, data = {url: ''}) {
+  _freshUrl(textTrack, data = { url: '' }) {
     let i = -1
     textTrack.url.forEach((item, index) => {
       if (item.url === data.url) {
@@ -516,7 +541,7 @@ export default class Subtitle extends EventEmitter {
    * @param {Array} src
    * @returns
    */
-  _pushList (dist, src) {
+  _pushList(dist, src) {
     const _start = src[0].start
     const _end = src[src.length - 1].end
     if (dist.length === 0 || _start >= dist[dist.length - 1].end) {
@@ -546,11 +571,11 @@ export default class Subtitle extends EventEmitter {
    * @param {} subtitle
    * @returns
    */
-  _updateCurrent (subtitle) {
+  _updateCurrent(subtitle) {
     // console.trace('_updateCurrent')
     this.currentText = subtitle
     if (this.config.domRender && this.root) {
-      ['language', 'id', 'label'].map(key => {
+      ;['language', 'id', 'label'].map(key => {
         this.root.setAttribute(`data-${key}`, this.currentText[key] || '')
       })
       this.__remove(this._cids)
@@ -560,16 +585,19 @@ export default class Subtitle extends EventEmitter {
     this._cid = -1
     this._curTexts = []
     const curTime = this._getPlayerCurrentTime()
-    curTime && (this.config.updateMode === 'live' ? this._liveUpdate(curTime) : this._update(curTime))
+    curTime &&
+      (this.config.updateMode === 'live'
+        ? this._liveUpdate(curTime)
+        : this._update(curTime))
   }
 
-  __loadAll () {
+  __loadAll() {
     this.textTrack.forEach(item => {
       this._loadTrack(item)
     })
   }
 
-  getDelCid (oldArr, newArr) {
+  getDelCid(oldArr, newArr) {
     const ret = []
     for (let i = 0; i < oldArr.length; i++) {
       if (!newArr.includes(oldArr[i])) {
@@ -579,7 +607,7 @@ export default class Subtitle extends EventEmitter {
     return ret
   }
 
-  getNewCid (oldArr, newArr) {
+  getNewCid(oldArr, newArr) {
     const ret = []
     for (let i = 0; i < newArr.length; i++) {
       if (!oldArr.includes(newArr[i])) {
@@ -594,17 +622,28 @@ export default class Subtitle extends EventEmitter {
    * @param {number} currentTime 当前时间
    * @returns
    */
-  _liveUpdate (currentTime) {
+  _liveUpdate(currentTime) {
     if (!this.currentText || !this.currentText.list || !this.currentText.list.length) {
       return
     }
     let _cids = []
     const _gid = Util.findIndexByTime(currentTime, this.currentText.list, this._gid)
     if (_gid > -1) {
-      _cids = Util.findCIndexByTime(currentTime, this.currentText.list[_gid].list, this._cid)
+      _cids = Util.findCIndexByTime(
+        currentTime,
+        this.currentText.list[_gid].list,
+        this._cid
+      )
     }
     this.__removeByTime(this._curTexts, currentTime)
-    this._log('_liveUpdate',currentTime, _gid, _cids, this.currentText.list[0].list[0].start, this.currentText.list[0].list[0].end)
+    this._log(
+      '_liveUpdate',
+      currentTime,
+      _gid,
+      _cids,
+      this.currentText.list[0].list[0].start,
+      this.currentText.list[0].list[0].end
+    )
     if (_cids.length > 0) {
       const ret = Util.getItemsByIndex(this.currentText.list, _gid, _cids)
       const _len = this._curTexts.length
@@ -618,14 +657,18 @@ export default class Subtitle extends EventEmitter {
     this.emit('update', this._curTexts)
   }
 
-  _update (currentTime) {
+  _update(currentTime) {
     if (!this.currentText || !this.currentText.list || !this.currentText.list.length) {
       return
     }
     const _gid = Util.findIndexByTime(currentTime, this.currentText.list, this._gid)
     let _cids = []
     if (_gid > -1) {
-      _cids = Util.findCIndexByTime(currentTime, this.currentText.list[_gid].list, this._cid)
+      _cids = Util.findCIndexByTime(
+        currentTime,
+        this.currentText.list[_gid].list,
+        this._cid
+      )
     }
 
     // 当前没有数据，清空
@@ -668,13 +711,15 @@ export default class Subtitle extends EventEmitter {
     this.__render(texts, currentTime)
   }
 
-  _getPlayerCurrentTime () {
+  _getPlayerCurrentTime() {
     if (!this.player) {
       return 0
     }
     const { currentTime } = this.player
     // 如果是直播，有sei事件触发，需要对时间做校准
-    const curTime = parseInt(currentTime * 1000 + this.seiTime * 1000 - this.lastSeiTime * 1000, 10) / 1000
+    const curTime =
+      parseInt(currentTime * 1000 + this.seiTime * 1000 - this.lastSeiTime * 1000, 10) /
+      1000
     return curTime
   }
 
@@ -701,11 +746,13 @@ export default class Subtitle extends EventEmitter {
       return
     }
     this._ctime = curTime * 1000
-    if (this.currentText && this.currentText.list) {
-      this.config.updateMode === 'live' ? this._liveUpdate(curTime) : this._update(curTime)
+    if (this.currentText?.list) {
+      this.config.updateMode === 'live'
+        ? this._liveUpdate(curTime)
+        : this._update(curTime)
     }
   }
-  _onResize = (target) => {
+  _onResize = target => {
     const { _videoMeta, config } = this
     if (!config.domRender) {
       return
@@ -725,7 +772,7 @@ export default class Subtitle extends EventEmitter {
       if (videoWidth && videoHeight) {
         _videoMeta.videoWidth = videoWidth
         _videoMeta.videoHeight = videoHeight
-        _videoMeta.scale = parseInt(videoHeight / videoWidth * 100, 10)
+        _videoMeta.scale = parseInt((videoHeight / videoWidth) * 100, 10)
       } else {
         return
       }
@@ -733,7 +780,7 @@ export default class Subtitle extends EventEmitter {
     this.__startResize(target)
   }
 
-  _onCoreEvents = (e) => {
+  _onCoreEvents = e => {
     try {
       switch (e.eventName) {
         // 字幕更新
@@ -749,14 +796,14 @@ export default class Subtitle extends EventEmitter {
           this._onCoreSeiintime(e)
           break
         default:
-          //
+        //
       }
     } catch (e) {
       console.error(e)
     }
   }
 
-  _onSubtitlePlaylist (subtitleList) {
+  _onSubtitlePlaylist(subtitleList) {
     this._log('_onSubtitlePlaylist', subtitleList)
     const list = subtitleList.map(item => {
       return {
@@ -771,8 +818,16 @@ export default class Subtitle extends EventEmitter {
     this.setSubTitles(list)
   }
 
-  _onSubtitleSegment (urlList) {
-    this._log('_onSubtitleSegment', urlList.length, urlList[0].lang, urlList[0].sn, urlList[urlList.length - 1].sn, urlList[0].start, urlList[urlList.length - 1].end)
+  _onSubtitleSegment(urlList) {
+    this._log(
+      '_onSubtitleSegment',
+      urlList.length,
+      urlList[0].lang,
+      urlList[0].sn,
+      urlList[urlList.length - 1].sn,
+      urlList[0].start,
+      urlList[urlList.length - 1].end
+    )
     if (!urlList || urlList.length === 0) {
       return
     }
@@ -800,28 +855,29 @@ export default class Subtitle extends EventEmitter {
     this.updateSubTitle(_sub)
   }
 
-  _onCoreSeiintime (e) {
+  _onCoreSeiintime(e) {
     try {
       const sei = e.time / 1000
       this._log('_onCoreSeiintime sei', sei, this.seiTime, this.lastSeiTime)
       this.seiTime = sei
       this.lastSeiTime = this.player ? this.player.currentTime : 0
-    } catch (e) {}
+    } catch (_e) {}
   }
 
-
-  resize (width, height) {
-    const { baseSizeX, baseSizeY, minMobileSize, minSize, fitVideo, offsetBottom } = this.config
+  resize(width, height) {
+    const { baseSizeX, baseSizeY, minMobileSize, minSize, fitVideo, offsetBottom } =
+      this.config
     const { scale } = this._videoMeta
     this._videoMeta.lwidth = width
     this._videoMeta.lheight = height
-    let vWidth; let vHeight = 0
-    if (height / width * 100 >= scale) {
+    let vWidth
+    let vHeight = 0
+    if ((height / width) * 100 >= scale) {
       vHeight = parseInt(scale * width, 10) / 100
       vWidth = width
     } else {
       vHeight = height
-      vWidth = parseInt(height / scale * 100, 10)
+      vWidth = parseInt((height / scale) * 100, 10)
     }
     // this._log(`height:${height} width:${width} vWidth:${vWidth} vHeight:${vHeight} this._videoMeta.vWidth:${this._videoMeta.vWidth} this._videoMeta.vHeight:${this._videoMeta.vHeight}`)
     this._videoMeta.vWidth = vWidth
@@ -830,13 +886,13 @@ export default class Subtitle extends EventEmitter {
     let fontSize = 0
     if (scale > 120) {
       _size = baseSizeY
-      fontSize = parseInt(_size * vHeight / 1080, 10)
+      fontSize = parseInt((_size * vHeight) / 1080, 10)
     } else {
       _size = baseSizeX
-      fontSize = parseInt(_size * vWidth / 1920, 10)
+      fontSize = parseInt((_size * vWidth) / 1920, 10)
     }
     const mini = IS_MOBILE ? minMobileSize : minSize
-    fontSize = fontSize < mini ? mini : (fontSize > _size ? _size : fontSize)
+    fontSize = fontSize < mini ? mini : fontSize > _size ? _size : fontSize
     const style = {
       fontSize
     }
@@ -865,7 +921,7 @@ export default class Subtitle extends EventEmitter {
     })
   }
 
-  __startResize (target) {
+  __startResize(target) {
     const rect = target.getBoundingClientRect()
     const { _videoMeta } = this
     const { width, height } = rect
@@ -874,7 +930,11 @@ export default class Subtitle extends EventEmitter {
       this._iId = null
     }
     // this._log(`__startResize width:${width} height:${height} lwidth:${this._videoMeta.lwidth} lheight:${this._videoMeta.lheight}`)
-    if (width > 0 && height > 0 && (width !== _videoMeta.lwidth || height !== _videoMeta.lheight)) {
+    if (
+      width > 0 &&
+      height > 0 &&
+      (width !== _videoMeta.lwidth || height !== _videoMeta.lheight)
+    ) {
       this._iC = 0
       this.resize(width, height)
     } else {
@@ -895,7 +955,7 @@ export default class Subtitle extends EventEmitter {
    * @param {number} time 需要移除的时间点
    * @returns
    */
-  __removeByTime (list, time) {
+  __removeByTime(list, time) {
     const ids = []
     for (let i = 0; i < list.length; i++) {
       if (!time || list[i].end < time) {
@@ -906,7 +966,7 @@ export default class Subtitle extends EventEmitter {
       return
     }
     list.splice(ids[0], ids.length)
-    this.config.domRender && this.__remove (ids)
+    this.config.domRender && this.__remove(ids)
   }
 
   /**
@@ -914,7 +974,7 @@ export default class Subtitle extends EventEmitter {
    * @param {Array<number>} ids
    * @returns
    */
-  __remove (ids) {
+  __remove(ids) {
     if (!ids || ids.length < 1) {
       return
     }
@@ -936,7 +996,7 @@ export default class Subtitle extends EventEmitter {
    * @description 渲染新增dom
    * @param {Array<any>} jsonItems
    */
-  __render (jsonItems = []) {
+  __render(jsonItems = []) {
     this._log('__render', jsonItems.length, this.config.domRender)
     const { renderMode, domRender } = this.config
     if (jsonItems.length > 0 && domRender) {
@@ -956,7 +1016,12 @@ export default class Subtitle extends EventEmitter {
           this.innerRoot.appendChild(_dom)
           if (renderMode === 'step') {
             // 用于宽度占位
-            const _dom1 = Util.createDom('xg-text-track-span', '', attr, `${className} text-track-space`)
+            const _dom1 = Util.createDom(
+              'xg-text-track-span',
+              '',
+              attr,
+              `${className} text-track-space`
+            )
             this.innerRoot.appendChild(_dom1)
             _dom1.innerHTML = itemText
             setTimeout(() => {
@@ -970,7 +1035,7 @@ export default class Subtitle extends EventEmitter {
     }
   }
 
-  _renderByWords (_dom, index, start, end, itemText) {
+  _renderByWords(_dom, index, start, end, itemText) {
     const _textNode = document.createTextNode('')
     _dom.appendChild(_textNode)
     const _words = Util.splitWords(itemText)
@@ -1011,7 +1076,7 @@ export default class Subtitle extends EventEmitter {
     this.startRender(-1)
   }
 
-  startRender = (timer) => {
+  startRender = timer => {
     if (timer > 0 && this._renderIntervalId) {
       window.cancelAnimationFrame(this._renderIntervalId)
       this._renderIntervalId = -1
@@ -1020,11 +1085,15 @@ export default class Subtitle extends EventEmitter {
       return
     }
     const { _curRenderTask } = this
-    this._lastTimeStamp = new Date().getTime()
+    this._lastTimeStamp = Date.now()
     const emptyArr = [] // 单词列表为空需要清空的索引
     _curRenderTask.forEach((item, index) => {
       const { lastTime, wordList, interval, dom, ids } = item
-      if (timer < 0 || this._lastTimeStamp < 0 || this._lastTimeStamp - lastTime >= interval) {
+      if (
+        timer < 0 ||
+        this._lastTimeStamp < 0 ||
+        this._lastTimeStamp - lastTime >= interval
+      ) {
         const _words = wordList.shift()
         _words && dom.appendData(_words)
         item.lastTime = this._lastTimeStamp
@@ -1046,20 +1115,20 @@ export default class Subtitle extends EventEmitter {
     }
   }
 
-  stopRender () {
+  stopRender() {
     if (this._renderIntervalId) {
       window.cancelAnimationFrame(this._renderIntervalId)
     }
   }
 
-  show () {
+  show() {
     if (!this.config.domRender) {
       return
     }
     Util.removeClass(this.root, 'text-track-hide')
   }
 
-  hide () {
+  hide() {
     if (!this.config.domRender) {
       return
     }
@@ -1082,7 +1151,7 @@ export default class Subtitle extends EventEmitter {
    * @param { any } [data]
    * @returns
    */
-  emit (event, data, ...args) {
+  emit(event, data, ...args) {
     super.emit(event, data, ...args)
   }
 
@@ -1092,7 +1161,7 @@ export default class Subtitle extends EventEmitter {
    * @param { (data?: any) => any } callback
    * @returns
    */
-  on (event, callback, ...args) {
+  on(event, callback, ...args) {
     super.on(event, callback, ...args)
   }
 
@@ -1102,7 +1171,7 @@ export default class Subtitle extends EventEmitter {
    * @param { (data?: any) => any } callback
    * @returns
    */
-  once (event, callback, ...args) {
+  once(event, callback, ...args) {
     super.once(event, callback, ...args)
   }
 
@@ -1112,18 +1181,18 @@ export default class Subtitle extends EventEmitter {
    * @param { (data?: any) => any } callback
    * @returns
    */
-  off (event, callback, ...args) {
+  off(event, callback, ...args) {
     super.off(event, callback, ...args)
   }
 
-  offAll () {
+  offAll() {
     super.removeAllListeners()
   }
 
   /**
    * @description 获取底部边距
    */
-  get marginBottom () {
+  get marginBottom() {
     const { bottom, marginBottom } = this._videoMeta
     return this.config.fitVideo ? bottom + marginBottom : marginBottom
   }

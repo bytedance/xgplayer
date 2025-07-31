@@ -14,14 +14,14 @@ export class ByteReader {
   static concatUint8s(args: Uint8Array[]) {
     const uint8 = new Uint8Array(args.reduce((ret, v) => ret + v.byteLength, 0))
     let offset = 0
-    args.forEach((v) => {
+    args.forEach(v => {
       uint8.set(v, offset)
       offset += v.byteLength
     })
     return uint8
   }
   static concatUint8(...args: Uint8Array[]) {
-    return this.concatUint8s(args)
+    return ByteReader.concatUint8s(args)
   }
   get buffer() {
     return this.dv.buffer
@@ -82,7 +82,7 @@ export class ByteReader {
       default:
         this.back(byteNum - 4)
         // js不支持32位左移，可通过+、Math.pow运算达到64位以内运算的目的
-        return this.read(byteNum - 4) + this.dv.getUint32(offset) * Math.pow(256, byteNum - 4)
+        return this.read(byteNum - 4) + this.dv.getUint32(offset) * 256 ** (byteNum - 4)
     }
   }
   write(byteNum: number, val: number) {
@@ -94,8 +94,8 @@ export class ByteReader {
       case 2:
         return this.dv.setUint16(offset, val)
       case 3:
-        return this.dv.setUint8(offset, val >>> 16),
-          this.dv.setUint16(offset + 1, 0xffff & val)
+        this.dv.setUint8(offset, val >>> 16)
+        return this.dv.setUint16(offset + 1, 0xffff & val)
       case 4:
         return this.dv.setUint32(offset, val)
       default:
@@ -118,7 +118,8 @@ export class ByteReader {
     return uint8
   }
   readString(len: number) {
-    let i = 0, str = ''
+    let i = 0,
+      str = ''
     for (; i < len; i++) {
       str += String.fromCharCode(this.dv.getUint8(this.offset))
       this.offset++

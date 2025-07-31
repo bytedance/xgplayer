@@ -1,6 +1,6 @@
 /* global google */
 import canAutoplay from 'can-autoplay'
-import { Events, Util, Sniffer } from 'xgplayer'
+import { Events, Sniffer, Util } from 'xgplayer'
 import { Logger } from 'xgplayer-streaming-shared'
 import { BaseAdManager } from './baseAdManager'
 import * as ADEvents from './events'
@@ -39,7 +39,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @param {ImaAdManagerOptions} options
    */
-  constructor (options = {}) {
+  constructor(options = {}) {
     super(options)
 
     this.displayContainer = null
@@ -48,8 +48,12 @@ export class ImaAdManager extends BaseAdManager {
     this._resumeCallback = null
   }
 
-  async init () {
-    this.shouldBlockVideoContent = !!(this.config.adTagUrl || this.config.adsResponse || this.config.adsRequest)
+  async init() {
+    this.shouldBlockVideoContent = !!(
+      this.config.adTagUrl ||
+      this.config.adsResponse ||
+      this.config.adsRequest
+    )
 
     try {
       this.emit(ADEvents.IMA_SDK_LOAD_START)
@@ -69,7 +73,7 @@ export class ImaAdManager extends BaseAdManager {
     this._initAdsRequest()
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     this.reset()
     this.displayContainer.destroy()
@@ -77,14 +81,14 @@ export class ImaAdManager extends BaseAdManager {
     this._destroyLoader()
   }
 
-  set resumeCallback (resumeCallbackFunc) {
+  set resumeCallback(resumeCallbackFunc) {
     this._resumeCallback = resumeCallbackFunc
   }
 
   /**
    * @private
    */
-  _initConfig () {
+  _initConfig() {
     const { locale } = this.config
 
     if (locale) {
@@ -95,7 +99,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _loadIMASdk () {
+  _loadIMASdk() {
     return new Promise((resolve, reject) => {
       if (typeof google !== 'undefined' && google.ima) {
         resolve()
@@ -123,7 +127,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _initMediaEvents () {
+  _initMediaEvents() {
     const { player } = this
 
     player.on(Events.VIDEO_RESIZE, this._onMediaResize)
@@ -136,7 +140,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _removeMediaEvents () {
+  _removeMediaEvents() {
     const { player } = this
 
     player.off(Events.VIDEO_RESIZE, this._onMediaResize)
@@ -149,7 +153,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _initContainer () {
+  _initContainer() {
     const { displayContainer } = this.options
 
     this.displayContainer = new google.ima.AdDisplayContainer(
@@ -162,7 +166,7 @@ export class ImaAdManager extends BaseAdManager {
    * Initializes the ads loader.
    * @private
    */
-  _initLoader () {
+  _initLoader() {
     // Create ads loader.
     const adsLoader = (this.adsLoader = new google.ima.AdsLoader(this.displayContainer))
 
@@ -185,7 +189,7 @@ export class ImaAdManager extends BaseAdManager {
    * Destroy the ads loader.
    * @private
    */
-  _destroyLoader () {
+  _destroyLoader() {
     const { adsLoader } = this
 
     if (adsLoader) {
@@ -207,7 +211,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  async _initAdsRequest () {
+  async _initAdsRequest() {
     const { adsRequest, adsResponse, adTagUrl } = this.config
     if (adsRequest || adsResponse || adTagUrl) {
       await this._checkAutoplaySupport()
@@ -309,7 +313,7 @@ export class ImaAdManager extends BaseAdManager {
     this.player.emit(ADEvents.IMA_AD_MANAGER_READY, { adsManager })
   }
 
-  playAds () {
+  playAds() {
     try {
       this._onMediaVolumeChange()
 
@@ -369,7 +373,7 @@ export class ImaAdManager extends BaseAdManager {
    * Handles the ad manager loading and sets ad event listeners.
    * @private
    */
-  _initAdsManagerEventListeners () {
+  _initAdsManagerEventListeners() {
     const adsManager = this.adsManager
 
     // https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdErrorEvent
@@ -413,7 +417,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  _resumeContent () {
+  _resumeContent() {
     this.isLinearAdRunning = false
     this.shouldBlockVideoContent = false
     Util.removeClass(this.player.root, CLASS_NAME)
@@ -433,7 +437,7 @@ export class ImaAdManager extends BaseAdManager {
     // ALL_ADS_COMPLETED) don't have ad object associated.
     const ad = ev?.getAd()
     const adData = ev?.getAdData() || ad?.data
-    let intervalTimer
+    const intervalTimer = null
     let printJsonLog = false
 
     switch (ev?.type) {
@@ -610,7 +614,7 @@ export class ImaAdManager extends BaseAdManager {
     )
   }
 
-  reset () {
+  reset() {
     this.isLinearAdRunning = false
     this.adsManager?.destroy()
     this.adsManager = null
@@ -621,7 +625,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * Creates the AdsRequest and request ads through the AdsLoader.
    */
-  requestAds () {
+  requestAds() {
     const { adsRequest: providedAdsRequest, adsResponse, adTagUrl } = this.config
     const { player } = this
 
@@ -652,14 +656,14 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @public
    */
-  pause () {
+  pause() {
     return this.adsManager?.pause()
   }
 
   /**
    * @public
    */
-  play () {
+  play() {
     return this.adsManager?.resume()
   }
 
@@ -670,11 +674,11 @@ export class ImaAdManager extends BaseAdManager {
    * After the skip is completed the AdsManager fires an AdEvent.SKIPPED event.
    * AdsManager.skip() only skips ads if IMA does not render the 'Skip ad' button.
    */
-  skip () {
+  skip() {
     return this.adsManager?.skip()
   }
 
-  updateConfig (config) {
+  updateConfig(config) {
     super.updateConfig(config)
     this._initConfig()
   }
@@ -682,7 +686,7 @@ export class ImaAdManager extends BaseAdManager {
   /**
    * @private
    */
-  async _checkAutoplaySupport () {
+  async _checkAutoplaySupport() {
     const autoplay = this.player.config.autoplay
     // Safari 自动启播时间比较久，可能超过500ms+，因此考虑可能的其他浏览器低端机，将兜底timeout默认值`250ms`调高
     const timeout = 800
@@ -690,10 +694,12 @@ export class ImaAdManager extends BaseAdManager {
 
     const [autoplayAllowed, autoplayMutedAllowed] = await Promise.all([
       autoplay
-        ? isKnownAutoplayPlatform || canAutoplay.video({ timeout }).then(({ result }) => result)
+        ? isKnownAutoplayPlatform ||
+          canAutoplay.video({ timeout }).then(({ result }) => result)
         : Promise.resolve(false),
       autoplay && this.player.config.autoplayMuted
-        ? isKnownAutoplayPlatform || canAutoplay.video({ timeout, muted: true }).then(({ result }) => result)
+        ? isKnownAutoplayPlatform ||
+          canAutoplay.video({ timeout, muted: true }).then(({ result }) => result)
         : Promise.resolve(false)
     ])
 

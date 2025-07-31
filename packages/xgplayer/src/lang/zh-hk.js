@@ -37,7 +37,8 @@ export default {
     },
     HAVE_NOTHING: '沒有關於音頻/視頻是否就緒的信息',
     HAVE_METADATA: '音頻/視頻的元數據已就緒',
-    HAVE_CURRENT_DATA: '關於當前播放位置的數據是可用的，但沒有足夠的數據來播放下壹幀/毫秒',
+    HAVE_CURRENT_DATA:
+      '關於當前播放位置的數據是可用的，但沒有足夠的數據來播放下壹幀/毫秒',
     HAVE_FUTURE_DATA: '當前及至少下壹幀的數據是可用的',
     HAVE_ENOUGH_DATA: '可用數據足以開始播放',
     NETWORK_EMPTY: '音頻/視頻尚未初始化',

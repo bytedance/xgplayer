@@ -1,4 +1,4 @@
-export function searchKeyframeIndex (list, value) {
+export function searchKeyframeIndex(list, value) {
   let idx = 0
 
   const last = list.length - 1

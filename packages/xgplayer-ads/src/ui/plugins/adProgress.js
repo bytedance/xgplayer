@@ -5,18 +5,18 @@ export class AdProgress extends Progress {
   /**
    * @override
    */
-  static get pluginName () {
+  static get pluginName() {
     return 'adProgress'
   }
 
-  getAdPlugin () {
+  getAdPlugin() {
     return this.player.getPlugin('ad')
   }
 
   /**
    * @override
    */
-  get duration () {
+  get duration() {
     const adPlugin = this.getAdPlugin()
     return adPlugin?.duration || 0
   }
@@ -24,26 +24,26 @@ export class AdProgress extends Progress {
   /**
    * @override
    */
-  get offsetDuration () {
+  get offsetDuration() {
     return this.duration
   }
 
   /**
    * @override
    */
-  get timeOffset () {
+  get timeOffset() {
     return 0
   }
 
   /**
    * @override
    */
-  get currentTime () {
+  get currentTime() {
     const adPlugin = this.getAdPlugin()
     return adPlugin?.currentTime || 0
   }
 
-  afterCreate () {
+  afterCreate() {
     Object.assign(this.config, {
       isCloseClickSeek: true,
       isDraggingSeek: true,
@@ -55,7 +55,7 @@ export class AdProgress extends Progress {
   /**
    * @override
    */
-  listenEvents () {
+  listenEvents() {
     this.on(AdEvents.AD_TIME_UPDATE, () => {
       this.onTimeupdate()
     })

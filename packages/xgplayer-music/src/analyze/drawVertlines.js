@@ -1,4 +1,4 @@
-export default (context) => {
+export default context => {
   const { data, options, ctx, h, w } = context
   let count = options.count || 128
   if (data.length < count) {

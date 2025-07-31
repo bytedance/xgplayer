@@ -1,7 +1,6 @@
 import { MetadataTrack, TrackType } from '../../src'
 
 describe('MetadataTrack', () => {
-
   test('All', () => {
     const track = new MetadataTrack()
     expect(track.id).toBe(3)
@@ -19,5 +18,4 @@ describe('MetadataTrack', () => {
     expect(track.exist()).toBe(false)
     expect(track.hasSample()).toBe(false)
   })
-
 })

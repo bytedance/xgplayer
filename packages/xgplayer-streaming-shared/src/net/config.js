@@ -1,6 +1,6 @@
 import { LoaderType, ResponseType } from './types'
 
-export function getConfig (cfg) {
+export function getConfig(cfg) {
   return {
     loaderType: LoaderType.FETCH,
     retry: 0,

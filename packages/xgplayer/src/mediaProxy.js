@@ -1,8 +1,9 @@
 import EventEmitter from 'eventemitter3'
-import Util from './utils/util'
-import Sniffer from './utils/sniffer'
 import Errors, { ERROR_TYPE_MAP } from './error'
-import { URL_CHANGE, WAITING, VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from './events'
+import { SOURCE_ERROR, SOURCE_SUCCESS, URL_CHANGE, VIDEO_EVENTS, WAITING } from './events'
+import Sniffer from './utils/sniffer'
+import Util from './utils/util'
+
 /**
  * @typedef { import ('eventemitter3') } EventEmitter
  */
@@ -30,7 +31,7 @@ import { URL_CHANGE, WAITING, VIDEO_EVENTS, SOURCE_ERROR, SOURCE_SUCCESS } from 
  * @typedef { import ('./defaultConfig').IPlayerOptions } IPlayerOptions
  */
 
-function emitVideoEvent (eventKey, e) {
+function emitVideoEvent(eventKey, e) {
   if (!this || !this.emit) {
     return
   }
@@ -42,7 +43,7 @@ function emitVideoEvent (eventKey, e) {
 }
 
 // 获取包装EventsMiddleware后的VIDEO_EVENT
-function getVideoEventHandler (eventKey, player) {
+function getVideoEventHandler(eventKey, player) {
   return (e, _err) => {
     const eData = {
       player,
@@ -62,7 +63,7 @@ function getVideoEventHandler (eventKey, player) {
     }
     player.removeInnerOP(e.type)
     if (eventKey === 'timeupdate') {
-      player._currentTime = player.media && player.media.currentTime
+      player._currentTime = player.media?.currentTime
     }
 
     // 避免playbackRate和defaultPlaybackRate同时设置导致多次触发事件
@@ -71,7 +72,7 @@ function getVideoEventHandler (eventKey, player) {
       if (_rate && player._rate === _rate) {
         return
       }
-      player._rate = player.media && player.media.playbackRate
+      player._rate = player.media?.playbackRate
     }
 
     if (eventKey === 'durationchange') {
@@ -109,7 +110,7 @@ class MediaProxy extends EventEmitter {
   /**
    * @param { IPlayerOptions } options
    */
-  constructor (options) {
+  constructor(options) {
     super(options)
     /**
      * @type { boolean }
@@ -152,20 +153,27 @@ class MediaProxy extends EventEmitter {
      * @description 初始化时添加在video上的属性集合
      * @type { {[propName: string]: any } }
      */
-    this.mediaConfig = Object.assign({}, {
-      controls: false,
-      autoplay: options.autoplay,
-      playsinline: options.playsinline,
-      'x5-playsinline': options.playsinline,
-      'webkit-playsinline': options.playsinline,
-      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'] || options.x5VideoPlayerFullscreen,
-      'x5-video-orientation': options['x5-video-orientation'] || options.x5VideoOrientation,
-      airplay: options.airplay,
-      'webkit-airplay': options.airplay,
-      tabindex: options.tabindex | 0,
-      mediaType: options.mediaType || 'video',
-      'data-index': -1
-    }, options.videoConfig, options.videoAttributes)
+    this.mediaConfig = Object.assign(
+      {},
+      {
+        controls: false,
+        autoplay: options.autoplay,
+        playsinline: options.playsinline,
+        'x5-playsinline': options.playsinline,
+        'webkit-playsinline': options.playsinline,
+        'x5-video-player-fullscreen':
+          options['x5-video-player-fullscreen'] || options.x5VideoPlayerFullscreen,
+        'x5-video-orientation':
+          options['x5-video-orientation'] || options.x5VideoOrientation,
+        airplay: options.airplay,
+        'webkit-airplay': options.airplay,
+        tabindex: options.tabindex | 0,
+        mediaType: options.mediaType || 'video',
+        'data-index': -1
+      },
+      options.videoConfig,
+      options.videoAttributes
+    )
     /**
      * @description Compatible with WeChat webview
      * "x5-playsinline' and 'x5-video-player-type' only one needs to exist
@@ -184,7 +192,10 @@ class MediaProxy extends EventEmitter {
     }
 
     // Warning：一些移动端浏览器需要设置DOM属性，否则会导致非静音切换频地址后开播失败
-    if (options.autoplayMuted && !Object.prototype.hasOwnProperty.call(this.mediaConfig, 'muted')) {
+    if (
+      options.autoplayMuted &&
+      !Object.prototype.hasOwnProperty.call(this.mediaConfig, 'muted')
+    ) {
       this.mediaConfig.muted = true
     }
 
@@ -199,7 +210,8 @@ class MediaProxy extends EventEmitter {
           : Util.createDom(this.mediaConfig.mediaType, '', this.mediaConfig, '')
 
     if (options.defaultPlaybackRate) {
-      this.media.defaultPlaybackRate = this.media.playbackRate = options.defaultPlaybackRate
+      this.media.defaultPlaybackRate = this.media.playbackRate =
+        options.defaultPlaybackRate
     }
 
     if (Util.typeOf(options.volume) === 'Number') {
@@ -234,7 +246,7 @@ class MediaProxy extends EventEmitter {
    * @description set middleware
    * @param { {[propName: string]: (e: {player: any, eventName: string}, callback: () => void) => any} } middlewares
    */
-  setEventsMiddleware (middlewares) {
+  setEventsMiddleware(middlewares) {
     Object.keys(middlewares).map(key => {
       this.mediaEventMiddleware[key] = middlewares[key]
     })
@@ -244,7 +256,7 @@ class MediaProxy extends EventEmitter {
    * @description remove middleware
    * @param { { [propName: string]: (e: {player: any, eventName: string}, callback: () => void) => any} } middlewares
    */
-  removeEventsMiddleware (middlewares) {
+  removeEventsMiddleware(middlewares) {
     Object.keys(middlewares).map(key => {
       delete this.mediaEventMiddleware[key]
     })
@@ -254,7 +266,7 @@ class MediaProxy extends EventEmitter {
    * Add media eventListener to the video object
    * @param { any } [media]
    */
-  attachVideoEvents (media = this.media) {
+  attachVideoEvents(media = this.media) {
     if (!this._evHandlers) {
       /**
        * @private
@@ -281,7 +293,7 @@ class MediaProxy extends EventEmitter {
    * @description remove media eventListener from the video object
    * @param { any } [media]
    */
-  detachVideoEvents (media = this.media) {
+  detachVideoEvents(media = this.media) {
     this._evHandlers.forEach(item => {
       const eventKey = Object.keys(item)[0]
       media.removeEventListener(eventKey, item[eventKey], false)
@@ -305,15 +317,17 @@ class MediaProxy extends EventEmitter {
    * @param { HTMLVideoElement | HTMLAudioElement } video
    * @param { Array<{src: string, type: string }>} urls
    */
-  _attachSourceEvents (video, urls) {
+  _attachSourceEvents(video, urls) {
     video.removeAttribute('src')
     video.load()
     urls.forEach((item, index) => {
-      this.media.appendChild(Util.createDom('source', '', {
-        src: `${item.src}`,
-        type: `${item.type || ''}`,
-        'data-index': index + 1
-      }))
+      this.media.appendChild(
+        Util.createDom('source', '', {
+          src: `${item.src}`,
+          type: `${item.type || ''}`,
+          'data-index': index + 1
+        })
+      )
     })
     const _c = video.children
     if (!_c) {
@@ -326,8 +340,11 @@ class MediaProxy extends EventEmitter {
 
     this._videoSourceIndex = _c.length
 
-    this._vLoadeddata = (e) => {
-      this.emit(SOURCE_SUCCESS, { src: e.target.currentSrc, host: Util.getHostFromUrl(e.target.currentSrc) })
+    this._vLoadeddata = e => {
+      this.emit(SOURCE_SUCCESS, {
+        src: e.target.currentSrc,
+        host: Util.getHostFromUrl(e.target.currentSrc)
+      })
     }
 
     /**
@@ -342,22 +359,26 @@ class MediaProxy extends EventEmitter {
       }
     }
     // safari有些版本不是所有source都请求，导致单独使用_videoSourceIndex计算会报错
-    !this._sourceError && (this._sourceError = (e) => {
-      const _dIndex = parseInt(e.target.getAttribute('data-index'), 10)
-      this._videoSourceIndex--
-      if (this._videoSourceIndex === 0 || _dIndex >= this._videoSourceCount) {
-        const _err = { code: 4, message: 'sources_load_error' }
-        _eHandler ? _eHandler.error(e, _err) : this.errorHandler('error', _err)
-      }
-      const type = ERROR_TYPE_MAP[4]
-      this.emit(SOURCE_ERROR, new Errors(this, {
-        errorType: type,
-        errorCode: 4,
-        errorMessage: 'sources_load_error',
-        mediaError: { code: 4, message: 'sources_load_error' },
-        src: e.target.src
-      }))
-    })
+    !this._sourceError &&
+      (this._sourceError = e => {
+        const _dIndex = parseInt(e.target.getAttribute('data-index'), 10)
+        this._videoSourceIndex--
+        if (this._videoSourceIndex === 0 || _dIndex >= this._videoSourceCount) {
+          const _err = { code: 4, message: 'sources_load_error' }
+          _eHandler ? _eHandler.error(e, _err) : this.errorHandler('error', _err)
+        }
+        const type = ERROR_TYPE_MAP[4]
+        this.emit(
+          SOURCE_ERROR,
+          new Errors(this, {
+            errorType: type,
+            errorCode: 4,
+            errorMessage: 'sources_load_error',
+            mediaError: { code: 4, message: 'sources_load_error' },
+            src: e.target.src
+          })
+        )
+      })
     for (let i = 0; i < _c.length; i++) {
       _c[i].addEventListener('error', this._sourceError)
     }
@@ -369,7 +390,7 @@ class MediaProxy extends EventEmitter {
    * @protected
    * @param { HTMLVideoElement | HTMLAudioElement } video
    */
-  _detachSourceEvents (video) {
+  _detachSourceEvents(video) {
     const _c = video.children
     if (!_c || _c.length === 0 || !this._sourceError) {
       return
@@ -387,7 +408,7 @@ class MediaProxy extends EventEmitter {
    * @description Media Error handler
    * @param { string } eventName
    */
-  errorHandler (name, error = null) {
+  errorHandler(name, error = null) {
     if (this.media && (this.media.error || error)) {
       let _e = this.media.error || error
       const type = _e.code ? ERROR_TYPE_MAP[_e.code] : 'other'
@@ -399,16 +420,19 @@ class MediaProxy extends EventEmitter {
           message
         }
       }
-      this.emit(name, new Errors(this, {
-        errorType: type,
-        errorCode: _e.code,
-        errorMessage: _e.message || '',
-        mediaError: _e
-      }))
+      this.emit(
+        name,
+        new Errors(this, {
+          errorType: type,
+          errorCode: _e.code,
+          errorMessage: _e.message || '',
+          mediaError: _e
+        })
+      )
     }
   }
 
-  destroy () {
+  destroy() {
     if (this.media) {
       if (this.media.pause) {
         this.media.pause()
@@ -436,7 +460,7 @@ class MediaProxy extends EventEmitter {
    * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IMediaProxy | null }
    * @deprecated Property [video] is renamed to [media],you can access using player.media
    */
-  get video () {
+  get video() {
     return this.media
   }
 
@@ -444,7 +468,7 @@ class MediaProxy extends EventEmitter {
    * @type { HTMLVideoElement | HTMLAudioElement | HTMLElement | IMediaProxy | null }
    * @deprecated Property [video] is renamed to [media],you can access using player.media= xx
    */
-  set video (media) {
+  set video(media) {
     this.media = media
   }
 
@@ -452,17 +476,17 @@ class MediaProxy extends EventEmitter {
    *
    * @returns {  Promise<void> | null }
    */
-  play () {
+  play() {
     const ret = this.media ? this.media.play() : null
     return ret
   }
 
-  pause () {
-    this.media && this.media.pause()
+  pause() {
+    this.media?.pause()
   }
 
-  load () {
-    this.media && this.media.load()
+  load() {
+    this.media?.load()
   }
 
   /**
@@ -470,7 +494,7 @@ class MediaProxy extends EventEmitter {
    * @param { string } type
    * @returns { boolean }
    */
-  canPlayType (type) {
+  canPlayType(type) {
     return this.media ? this.media.canPlayType(type) : false
   }
 
@@ -479,7 +503,7 @@ class MediaProxy extends EventEmitter {
    * @param { any } [buffered]
    * @returns { Array<number> }
    */
-  getBufferedRange (buffered) {
+  getBufferedRange(buffered) {
     const range = [0, 0]
     if (!this.media) {
       return range
@@ -508,11 +532,11 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description 设置/返回 自动播放属性
    */
-  set autoplay (isTrue) {
+  set autoplay(isTrue) {
     this.media && (this.media.autoplay = isTrue)
   }
 
-  get autoplay () {
+  get autoplay() {
     return this.media ? this.media.autoplay : false
   }
 
@@ -520,7 +544,7 @@ class MediaProxy extends EventEmitter {
    * @type { TimeRanges | null }
    * @description  返回当前缓冲的TimeRange对象集合
    */
-  get buffered () {
+  get buffered() {
     return this.media ? this.media.buffered : null
   }
 
@@ -528,14 +552,14 @@ class MediaProxy extends EventEmitter {
    * @type { Array<{start: number, end: number}> | null}
    * @description  返回当前自定义的缓存列表
    */
-  get buffered2 () {
-    return this.media && this.media.buffered ? Util.getBuffered2(this.media.buffered) : null
+  get buffered2() {
+    return this.media?.buffered ? Util.getBuffered2(this.media.buffered) : null
   }
 
   /**
    * @type { {start: number, end: number} }
    */
-  get bufferedPoint () {
+  get bufferedPoint() {
     const ret = {
       start: 0,
       end: 0
@@ -548,7 +572,10 @@ class MediaProxy extends EventEmitter {
       return ret
     }
     for (let i = 0; i < _buffered.length; i++) {
-      if ((_buffered.start(i) <= this.currentTime || _buffered.start(i) < 0.1) && _buffered.end(i) >= this.currentTime) {
+      if (
+        (_buffered.start(i) <= this.currentTime || _buffered.start(i) < 0.1) &&
+        _buffered.end(i) >= this.currentTime
+      ) {
         return {
           start: _buffered.start(i),
           end: _buffered.end(i)
@@ -562,11 +589,11 @@ class MediaProxy extends EventEmitter {
    * @type { string}
    * @description 设置/返回是否跨域
    * */
-  get crossOrigin () {
+  get crossOrigin() {
     return this.media ? this.media.crossOrigin : ''
   }
 
-  set crossOrigin (isTrue) {
+  set crossOrigin(isTrue) {
     this.media && (this.media.crossOrigin = isTrue)
   }
 
@@ -574,11 +601,11 @@ class MediaProxy extends EventEmitter {
    * @type { string }
    * @description 设置/返回视频播放地址
    * */
-  get currentSrc () {
+  get currentSrc() {
     return this.media ? this.media.currentSrc : ''
   }
 
-  set currentSrc (src) {
+  set currentSrc(src) {
     this.media && (this.media.currentSrc = src)
   }
 
@@ -586,14 +613,16 @@ class MediaProxy extends EventEmitter {
    * @type { number }
    * @description 设置/返回视频当前播放时间
    * */
-  get currentTime () {
+  get currentTime() {
     if (!this.media) {
       return 0
     }
-    return this.media.currentTime !== undefined ? this.media.currentTime : this._currentTime
+    return this.media.currentTime !== undefined
+      ? this.media.currentTime
+      : this._currentTime
   }
 
-  set currentTime (time) {
+  set currentTime(time) {
     this.media && (this.media.currentTime = time)
   }
 
@@ -601,11 +630,11 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * 设置/返回视频默认静音
    * */
-  get defaultMuted () {
+  get defaultMuted() {
     return this.media ? this.media.defaultMuted : false
   }
 
-  set defaultMuted (isTrue) {
+  set defaultMuted(isTrue) {
     this.media && (this.media.defaultMuted = isTrue)
   }
 
@@ -613,7 +642,7 @@ class MediaProxy extends EventEmitter {
    * @type { number }
    * @description 返回视频时长，单位：s
    * */
-  get duration () {
+  get duration() {
     return this._duration
   }
 
@@ -621,7 +650,7 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description  回视频是否播放结束
    * */
-  get ended () {
+  get ended() {
     return this.media ? this.media.ended : false
   }
 
@@ -629,7 +658,7 @@ class MediaProxy extends EventEmitter {
    * @type { MediaError }
    * @description the player current error
    */
-  get error () {
+  get error() {
     return this.media.error
   }
 
@@ -637,7 +666,7 @@ class MediaProxy extends EventEmitter {
    * @type { string }
    * @description return error description text
    */
-  get errorNote () {
+  get errorNote() {
     const err = this.media.error
     if (!err) {
       return ''
@@ -655,11 +684,11 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description 否开启了循环播放
    */
-  get loop () {
+  get loop() {
     return this.media ? this.media.loop : false
   }
 
-  set loop (isTrue) {
+  set loop(isTrue) {
     this.media && (this.media.loop = isTrue)
   }
 
@@ -667,11 +696,11 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description 静音
    */
-  get muted () {
+  get muted() {
     return this.media ? this.media.muted : false
   }
 
-  set muted (isTrue) {
+  set muted(isTrue) {
     if (!this.media || this.media.muted === isTrue) {
       return
     }
@@ -683,7 +712,7 @@ class MediaProxy extends EventEmitter {
    * @type { 0 | 1 | 2 | 3 }
    * @description  返回视频的当前网络状态
    */
-  get networkState () {
+  get networkState() {
     return this.media.networkState
   }
 
@@ -691,7 +720,7 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description  回当前视频是否是暂停状态
    */
-  get paused () {
+  get paused() {
     return this.media ? this.media.paused : true
   }
 
@@ -699,11 +728,11 @@ class MediaProxy extends EventEmitter {
    * @type { number }
    * @description 返回/设置倍速
    */
-  get playbackRate () {
+  get playbackRate() {
     return this.media ? this.media.playbackRate : 0
   }
 
-  set playbackRate (rate) {
+  set playbackRate(rate) {
     if (!this.media || rate === Infinity) {
       return
     }
@@ -714,18 +743,18 @@ class MediaProxy extends EventEmitter {
   /**
    * @type { TimeRanges | null}
    */
-  get played () {
+  get played() {
     return this.media ? this.media.played : null
   }
 
   /**
    * @type { boolean }
    */
-  get preload () {
+  get preload() {
     return this.media ? this.media.preload : false
   }
 
-  set preload (isTrue) {
+  set preload(isTrue) {
     this.media && (this.media.preload = isTrue)
   }
 
@@ -733,7 +762,7 @@ class MediaProxy extends EventEmitter {
    * @type { 0 | 1 | 2 | 3 | 4 }
    * @description 回视频的就绪状态
    */
-  get readyState () {
+  get readyState() {
     return this.media.readyState
   }
 
@@ -741,7 +770,7 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description 当前视频是否可以seek
    */
-  get seekable () {
+  get seekable() {
     return this.media ? this.media.seekable : false
   }
 
@@ -749,7 +778,7 @@ class MediaProxy extends EventEmitter {
    * @type { boolean }
    * @description 当前视频是否处于seeking状态下
    */
-  get seeking () {
+  get seeking() {
     return this.media ? this.media.seeking : false
   }
 
@@ -757,11 +786,11 @@ class MediaProxy extends EventEmitter {
    * @type { any }
    * @description 设置/返回当前视频的地址
    */
-  get src () {
+  get src() {
     return this.media ? this.media.src : ''
   }
 
-  set src (url) {
+  set src(url) {
     if (!this.media) {
       return
     }
@@ -790,11 +819,11 @@ class MediaProxy extends EventEmitter {
    * @type { number }
    * @description 设置/返回视频的音量
    */
-  get volume () {
+  get volume() {
     return this.media ? this.media.volume : 0
   }
 
-  set volume (vol) {
+  set volume(vol) {
     if (vol === Infinity || !this.media) {
       return
     }
@@ -805,15 +834,15 @@ class MediaProxy extends EventEmitter {
    * @type { number }
    * @description 返回视频的纵横比
    */
-  get aspectRatio () {
+  get aspectRatio() {
     return this.media ? this.media.videoWidth / this.media.videoHeight : 0
   }
 
-  addInnerOP (event) {
+  addInnerOP(event) {
     this._internalOp[event] = true
   }
 
-  removeInnerOP (event) {
+  removeInnerOP(event) {
     delete this._internalOp[event]
   }
   /** ******************* 以下api只有申明作用,具体实现依赖EventEmitter ******************/
@@ -823,7 +852,7 @@ class MediaProxy extends EventEmitter {
    * @param { any } [data]
    * @returns
    */
-  emit (event, data, ...args) {
+  emit(event, data, ...args) {
     super.emit(event, data, ...args)
   }
 
@@ -832,7 +861,7 @@ class MediaProxy extends EventEmitter {
    * @param { (...args: any[]) => any } callback
    * @returns
    */
-  on (event, callback, ...args) {
+  on(event, callback, ...args) {
     super.on(event, callback, ...args)
   }
 
@@ -841,7 +870,7 @@ class MediaProxy extends EventEmitter {
    * @param { (...args: any[]) => any } callback
    * @returns
    */
-  once (event, callback, ...args) {
+  once(event, callback, ...args) {
     super.once(event, callback, ...args)
   }
 
@@ -851,11 +880,11 @@ class MediaProxy extends EventEmitter {
    * @param { (...args: any[]) => any } callback
    * @returns
    */
-  off (event, callback, ...args) {
+  off(event, callback, ...args) {
     super.off(event, callback, ...args)
   }
 
-  offAll () {
+  offAll() {
     super.removeAllListeners()
   }
 }

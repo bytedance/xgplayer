@@ -1,5 +1,5 @@
 export default class MediaList {
-  constructor () {
+  constructor() {
     this.video = []
     this.audio = []
   }

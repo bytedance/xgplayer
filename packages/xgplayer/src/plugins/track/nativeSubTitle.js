@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3'
-export default class NativeSubTitle extends EventEmitter{
-  constructor (media) {
+export default class NativeSubTitle extends EventEmitter {
+  constructor(media) {
     super()
     this._media = media
     this._list = []
@@ -9,12 +9,12 @@ export default class NativeSubTitle extends EventEmitter{
     this._init()
   }
 
-  _init () {
+  _init() {
     const _list = this._media.textTracks
     _list.addEventListener('change', this._onChange)
   }
 
-  _onChange = (e) => {
+  _onChange = _e => {
     const _list = this._media.textTracks
     if (!_list || _list.length === 0) {
       return
@@ -60,7 +60,7 @@ export default class NativeSubTitle extends EventEmitter{
    *  language: any
    * }} data
    */
-  switch (data) {
+  switch(data) {
     const _tracks = this._media.textTracks
     for (let i = 0; i < _tracks.length; i++) {
       const item = _tracks[i]
@@ -73,7 +73,7 @@ export default class NativeSubTitle extends EventEmitter{
     }
   }
 
-  switchOff () {
+  switchOff() {
     const _tracks = this._media.textTracks
     for (let i = 0; i < _tracks.length; i++) {
       _tracks[i].mode = 'disabled'
@@ -81,7 +81,7 @@ export default class NativeSubTitle extends EventEmitter{
     this.curIndex = -1
   }
 
-  destroy () {
+  destroy() {
     const _list = this._media.textTracks
     _list.removeEventListener('change', this._onChange)
     this._media = null

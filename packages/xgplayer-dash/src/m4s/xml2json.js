@@ -1,11 +1,14 @@
-
 export default class Xml2Json {
-  static parse (xmlDocStr) {
+  static parse(xmlDocStr) {
     const xmlDoc = Xml2Json.parseXmlString(xmlDocStr)
-    if (xmlDoc !== null && xmlDoc !== undefined) { return Xml2Json.parseDOMChildren(xmlDoc) } else { return null }
+    if (xmlDoc !== null && xmlDoc !== undefined) {
+      return Xml2Json.parseDOMChildren(xmlDoc)
+    } else {
+      return null
+    }
   }
 
-  static parseXmlString (xmlDocStr) {
+  static parseXmlString(xmlDocStr) {
     if (xmlDocStr === undefined) {
       return null
     }
@@ -17,13 +20,13 @@ export default class Xml2Json {
       if (xmlDoc.getElementsByTagNameNS('*', 'parsererror').length > 0) {
         xmlDoc = null
       }
-    } catch (err) {
+    } catch (_err) {
       xmlDoc = null
     }
     return xmlDoc
   }
 
-  static parseDOMChildren (node, path) {
+  static parseDOMChildren(node, path) {
     if (node.nodeType === Node.DOCUMENT_NODE) {
       let result = {}
       const nodeChildren = node.childNodes
@@ -48,7 +51,7 @@ export default class Xml2Json {
         const childName = Xml2Json.getNodeLocalName(child)
 
         if (child.nodeType !== Node.COMMENT_NODE) {
-          const childPath = path + '.' + childName
+          const childPath = `${path}.${childName}`
           result.__cnt++
           if (result[childName] === null || result[childName] === undefined) {
             const c = Xml2Json.parseDOMChildren(child, childPath)
@@ -61,19 +64,20 @@ export default class Xml2Json {
             Xml2Json.toArrayAccessForm(result, childName)
           } else {
             if (result[childName] !== null && result[childName] !== undefined) {
-              if (!(result[childName] instanceof Array)) {
+              if (!Array.isArray(result[childName])) {
                 result[childName] = [result[childName]]
                 Xml2Json.toArrayAccessForm(result, childName, childPath)
               }
             }
 
             const c = Xml2Json.parseDOMChildren(child, childPath)
-            if (childName !== '#text' || /[^\s]/.test(c)) { // Don't add white-space text nodes
+            if (childName !== '#text' || /[^\s]/.test(c)) {
+              // Don't add white-space text nodes
               const o = {}
               o[childName] = c
               children.push(o)
             }
-            (result[childName])[result[childName].length] = c
+            result[childName][result[childName].length] = c
           }
         }
       }
@@ -96,7 +100,7 @@ export default class Xml2Json {
 
       if (result['#text'] !== null && result['#text'] !== undefined) {
         result.__text = result['#text']
-        if (result.__text instanceof Array) {
+        if (Array.isArray(result.__text)) {
           result.__text = result.__text.join('\n')
         }
         // if(config.escapeMode)
@@ -112,26 +116,37 @@ export default class Xml2Json {
 
       if (result.__cnt === 1 && result.__text !== null && result.__text !== undefined) {
         result = result.__text
-      } else if (result.__cnt === 1 && result.__cdata !== null && result.__cdata !== undefined) {
+      } else if (
+        result.__cnt === 1 &&
+        result.__cdata !== null &&
+        result.__cdata !== undefined
+      ) {
         result = result.__cdata
       }
       delete result.__cnt
 
       return result
-    } else if (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.CDATA_SECTION_NODE) {
+    } else if (
+      node.nodeType === Node.TEXT_NODE ||
+      node.nodeType === Node.CDATA_SECTION_NODE
+    ) {
       return node.nodeValue
     }
   }
 
-  static getNodeLocalName (node) {
+  static getNodeLocalName(node) {
     let nodeLocalName = node.localName
-    if (nodeLocalName === null || nodeLocalName === undefined) { nodeLocalName = node.baseName } // Yeah, this is IE!!
-    if (nodeLocalName === null || nodeLocalName === undefined || nodeLocalName === '') { nodeLocalName = node.nodeName } // =="" is IE too
+    if (nodeLocalName === null || nodeLocalName === undefined) {
+      nodeLocalName = node.baseName
+    } // Yeah, this is IE!!
+    if (nodeLocalName === null || nodeLocalName === undefined || nodeLocalName === '') {
+      nodeLocalName = node.nodeName
+    } // =="" is IE too
     return nodeLocalName
   }
 
-  static toArrayAccessForm (obj, childName) {
-    if (!(obj[childName] instanceof Array)) {
+  static toArrayAccessForm(obj, childName) {
+    if (!Array.isArray(obj[childName])) {
       obj[childName] = [obj[childName]]
     }
   }

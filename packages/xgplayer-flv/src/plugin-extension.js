@@ -1,13 +1,13 @@
 import { EVENT } from 'xgplayer-streaming-shared'
 
 export default class PluginExtension {
-  constructor (opts, plugin) {
+  constructor(opts, plugin) {
     this._opts = opts
     this._plugin = plugin
     this._init()
   }
 
-  _init () {
+  _init() {
     const { media, isLive, preloadTime, innerDegrade, decodeMode } = this._opts
 
     if (!media) return
@@ -31,30 +31,30 @@ export default class PluginExtension {
     this._bindEvents()
   }
 
-  _bindEvents () {
+  _bindEvents() {
     const { media } = this._opts
 
     media.addEventListener('lowdecode', this._onLowDecode)
   }
 
-    _onLowDecode = () => {
-      const { media, innerDegrade, backupURL } = this._opts
+  _onLowDecode = () => {
+    const { media, innerDegrade, backupURL } = this._opts
 
-      this._plugin?.player?.emit('lowdecode', media.degradeInfo)
-      this._plugin?.player?.emit('core_event', {
-        ...media.degradeInfo,
-        eventName: EVENT.LOWDECODE
-      })
+    this._plugin?.player?.emit('lowdecode', media.degradeInfo)
+    this._plugin?.player?.emit('core_event', {
+      ...media.degradeInfo,
+      eventName: EVENT.LOWDECODE
+    })
 
-      if ((innerDegrade === 1 || innerDegrade === 3) && backupURL) {
-        this._degrade(backupURL)
-      }
+    if ((innerDegrade === 1 || innerDegrade === 3) && backupURL) {
+      this._degrade(backupURL)
     }
+  }
 
-    /**
+  /**
    * @param {string | undefined} url
    */
-  _degrade = (url) => {
+  _degrade = url => {
     const { player } = this._plugin
     const originVideo = player.video
 
@@ -85,7 +85,7 @@ export default class PluginExtension {
     })
   }
 
-  forceDegradeToVideo = (url) => {
+  forceDegradeToVideo = url => {
     const { innerDegrade } = this._opts
 
     // 降级to video+m3u8
@@ -94,7 +94,7 @@ export default class PluginExtension {
     }
   }
 
-  destroy () {
+  destroy() {
     this._opts?.media?.removeEventListener('lowdecode', this._onLowDecode)
     this._plugin = null
   }

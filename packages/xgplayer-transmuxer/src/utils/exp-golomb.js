@@ -5,18 +5,18 @@ export class ExpGolomb {
 
   _word = 0
 
-  constructor (data) {
+  constructor(data) {
     if (!data) throw new Error('ExpGolomb data params is required')
     this._data = data
     this._bytesAvailable = data.byteLength
     if (this._bytesAvailable) this._loadWord()
   }
 
-  get bitsAvailable () {
+  get bitsAvailable() {
     return this._bitsAvailable
   }
 
-  _loadWord () {
+  _loadWord() {
     const position = this._data.byteLength - this._bytesAvailable
     const availableBytes = Math.min(4, this._bytesAvailable)
     if (availableBytes === 0) throw new Error('No bytes available')
@@ -29,14 +29,14 @@ export class ExpGolomb {
     this._bytesAvailable -= availableBytes
   }
 
-  skipBits (count) {
+  skipBits(count) {
     if (this._bitsAvailable > count) {
       this._word <<= count
       this._bitsAvailable -= count
     } else {
       count -= this._bitsAvailable
       const skipBytes = Math.floor(count / 8)
-      count -= (skipBytes * 8)
+      count -= skipBytes * 8
       this._bytesAvailable -= skipBytes
       this._loadWord()
       this._word <<= count
@@ -44,7 +44,7 @@ export class ExpGolomb {
     }
   }
 
-  readBits (size) {
+  readBits(size) {
     if (size > 32) {
       throw new Error('Cannot read more than 32 bits')
     }
@@ -66,7 +66,7 @@ export class ExpGolomb {
     return val
   }
 
-  skipLZ () {
+  skipLZ() {
     let leadingZeroCount
     for (
       leadingZeroCount = 0;
@@ -83,16 +83,16 @@ export class ExpGolomb {
     return leadingZeroCount + this.skipLZ()
   }
 
-  skipUEG () {
+  skipUEG() {
     this.skipBits(1 + this.skipLZ())
   }
 
-  readUEG () {
+  readUEG() {
     const clz = this.skipLZ()
     return this.readBits(clz + 1) - 1
   }
 
-  readEG () {
+  readEG() {
     const val = this.readUEG()
     if (1 & val) {
       return (1 + val) >>> 1
@@ -100,15 +100,15 @@ export class ExpGolomb {
     return -1 * (val >>> 1)
   }
 
-  readBool () {
+  readBool() {
     return this.readBits(1) === 1
   }
 
-  readUByte () {
+  readUByte() {
     return this.readBits(8)
   }
 
-  skipScalingList (count) {
+  skipScalingList(count) {
     let lastScale = 8
     let nextScale = 8
     let deltaScale

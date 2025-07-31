@@ -36,17 +36,15 @@ export default {
       }
     },
     HAVE_NOTHING:
-        'Es sind keine Informationen darüber vorhanden, ob Audio/Video wiedergabebereit ist',
+      'Es sind keine Informationen darüber vorhanden, ob Audio/Video wiedergabebereit ist',
     HAVE_METADATA: 'Audio-/Video-Metadaten können genutzt werden ',
     HAVE_CURRENT_DATA:
-        'Es sind Daten über die aktuelle Wiedergabeposition verfügbar, jedoch reichen diese nicht aus, um den nächsten Frame / die nächste Millisekunde wiederzugeben',
-    HAVE_FUTURE_DATA:
-        'Das aktuelle und mindestens ein Datenframe ist verfügbar',
-    HAVE_ENOUGH_DATA:
-        'Die verfügbaren Daten reichen aus, um die Wiedergabe zu starten',
+      'Es sind Daten über die aktuelle Wiedergabeposition verfügbar, jedoch reichen diese nicht aus, um den nächsten Frame / die nächste Millisekunde wiederzugeben',
+    HAVE_FUTURE_DATA: 'Das aktuelle und mindestens ein Datenframe ist verfügbar',
+    HAVE_ENOUGH_DATA: 'Die verfügbaren Daten reichen aus, um die Wiedergabe zu starten',
     NETWORK_EMPTY: 'Audio/Video wurde nicht initialisiert',
     NETWORK_IDLE:
-        'Audio/Video ist aktiv und wurde für die Ressourcen ausgewählt, aber es wird kein Netzwerk verwendet',
+      'Audio/Video ist aktiv und wurde für die Ressourcen ausgewählt, aber es wird kein Netzwerk verwendet',
     NETWORK_LOADING: 'Der Browser lädt die Daten herunter',
     NETWORK_NO_SOURCE: 'Keine Audio-/Videoquelle gefunden',
     MEDIA_ERR_ABORTED: 'Der Abrufvorgang wurde vom Benutzer abgebrochen',

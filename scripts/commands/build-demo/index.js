@@ -6,7 +6,7 @@ const logger = require('../../utils/logger')
 const ctx = require('../../context')
 const { getBuildConfig } = require('../../utils')
 
-async function main (dir) {
+async function main(dir) {
   if (!dir) {
     logger.error('Demo `dir` is required')
     return

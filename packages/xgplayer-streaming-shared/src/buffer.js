@@ -3,7 +3,7 @@ export class Buffer {
    * @param {TimeRanges} buf
    * @returns {number}
    */
-  static start (buf) {
+  static start(buf) {
     if (!buf || !buf.length) return 0
 
     // Safari bug: https://bit.ly/2trx6O8
@@ -18,7 +18,7 @@ export class Buffer {
    * @param {TimeRanges} buf
    * @returns {number}
    */
-  static end (buf) {
+  static end(buf) {
     if (!buf || !buf.length) return 0
 
     // Safari bug: https://bit.ly/2trx6O8
@@ -31,11 +31,11 @@ export class Buffer {
    * @param {{buffered?: TimeRanges}} b
    * @returns {TimeRanges | void}
    */
-  static get (b) {
+  static get(b) {
     if (!b) return
     try {
       return b.buffered
-    } catch (error) {
+    } catch (_error) {
       // ignore
     }
   }
@@ -45,7 +45,7 @@ export class Buffer {
    * @param {number} [maxHole]
    * @returns {[number,number][]}
    */
-  static buffers (buf, maxHole) {
+  static buffers(buf, maxHole) {
     if (!buf || !buf.length) return []
 
     const buffers = []
@@ -75,9 +75,9 @@ export class Buffer {
    * @param {number} [maxHole]
    * @returns {{buffers:[number,number][],length:number}}
    */
-  static totalLength (buffers) {
+  static totalLength(buffers) {
     if (!buffers || !buffers.length) return 0
-    return buffers.reduce((a, c) => (a += (c[1] - c[0])), 0)
+    return buffers.reduce((a, c) => (a += c[1] - c[0]), 0)
   }
 
   /**
@@ -87,7 +87,7 @@ export class Buffer {
    * @param {number} [maxHole=0]
    * @returns {{start:number,end:number,buffers:[number,number][],remaining:number,index?:number,nextStart?:number,nextEnd?:number,prevStart?:number,prevEnd?:number}}
    */
-  static info (buf, pos = 0, maxHole = 0) {
+  static info(buf, pos = 0, maxHole = 0) {
     if (!buf || !buf.length) return { start: 0, end: 0, buffers: [] }
 
     let start = 0
@@ -127,7 +127,7 @@ export class Buffer {
       currentTime: pos,
       behind: pos - start,
       remaining: end ? end - pos : 0,
-      length: Buffer.totalLength && Buffer.totalLength(buffers)
+      length: Buffer.totalLength?.(buffers)
     }
   }
 
@@ -137,7 +137,7 @@ export class Buffer {
    * @param {number} pos
    * @returns {Boolean}
    */
-  static isBuffered (media, pos) {
+  static isBuffered(media, pos) {
     if (media) {
       const buffered = Buffer.get(media)
 

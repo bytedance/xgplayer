@@ -1,11 +1,11 @@
 import BasePlugin, { Events } from '../../plugin'
 
 export default class GapJump extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'gapJump'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       useGapJump: false,
       smallGapLimit: 0.5,
@@ -13,14 +13,17 @@ export default class GapJump extends BasePlugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     const { useGapJump } = this.config
     if (useGapJump === false) {
       return
     }
     this.hasPlayed = false
     this.seekingEventReceived = false
-    this.isSafari = /(Safari|iPhone|iPad|iPod)/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) && !/BlackBerry/.test(navigator.platform)
+    this.isSafari =
+      /(Safari|iPhone|iPad|iPod)/.test(navigator.userAgent) &&
+      !/Chrome/.test(navigator.userAgent) &&
+      !/BlackBerry/.test(navigator.platform)
     this.on(Events.WAITING, this.onGapJump)
 
     this.on(Events.PLAY, () => {
@@ -38,7 +41,9 @@ export default class GapJump extends BasePlugin {
       return
     }
     if (player.media.seeking) {
-      if (!this.seekingEventReceived) { return }
+      if (!this.seekingEventReceived) {
+        return
+      }
     } else {
       this.seekingEventReceived = false
     }
@@ -72,11 +77,20 @@ export default class GapJump extends BasePlugin {
       if (config.useGapJump !== false) {
         player.media.currentTime = this.isSafari ? jumpTo + 0.1 : jumpTo
       }
-      this.player && this.player.emit('detectGap')
-      console.log('gapJump gapIndex', idx, ' isGapSamll:', isGapSmall, ' currentTime:', player.media.currentTime, ' jumpSize:', (currentTime - player.media.currentTime))
+      this.player?.emit('detectGap')
+      console.log(
+        'gapJump gapIndex',
+        idx,
+        ' isGapSamll:',
+        isGapSmall,
+        ' currentTime:',
+        player.media.currentTime,
+        ' jumpSize:',
+        currentTime - player.media.currentTime
+      )
       // 目前转码视频首个分片cts存在，在Safari下为0.08，先忽略
       if (jumpTo !== 0.08) {
-        player && player.emit('log', {
+        player?.emit('log', {
           type: 'oneevent', // 事件类型
           end_type: 'gap',
           vid: player.config.vid,
@@ -88,7 +102,7 @@ export default class GapJump extends BasePlugin {
     }
   }
 
-  _getIndex (buffered, time, threshold) {
+  _getIndex(buffered, time, threshold) {
     if (!buffered || !buffered.length) {
       return null
     }
@@ -107,7 +121,7 @@ export default class GapJump extends BasePlugin {
     return idx
   }
 
-  _getBuffered (b) {
+  _getBuffered(b) {
     if (!b) {
       return []
     }

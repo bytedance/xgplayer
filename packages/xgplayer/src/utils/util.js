@@ -1,5 +1,6 @@
 import XG_DEBUG from './debug'
 import XgplayerTimeRange from './xgplayerTimeRange'
+
 const util = {}
 
 /**
@@ -10,7 +11,7 @@ const util = {}
  * @param { string } [cname='']
  * @returns { HTMLElement | null }
  */
-util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
+util.createDom = (el = 'div', tpl = '', attrs = {}, cname = '') => {
   const dom = document.createElement(el)
   dom.className = cname
   dom.innerHTML = tpl
@@ -35,7 +36,7 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
  * @param { string } [classname=""]
  * @returns { HTMLElement | null }
  */
-util.createDomFromHtml = function (html, attrs = {}, classname = '') {
+util.createDomFromHtml = (html, attrs = {}, classname = '') => {
   try {
     let doc = document.createElement('div')
     doc.innerHTML = html
@@ -64,15 +65,18 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
  * @param { string } className
  * @returns { boolean }
  */
-util.hasClass = function (el, className) {
+util.hasClass = (el, className) => {
   if (!el || !className) {
     return false
   }
   try {
     return Array.prototype.some.call(el.classList, item => item === className)
-  } catch (e) {
-    const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
-    return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+  } catch (_e) {
+    const orgClassName =
+      el.className && typeof el.className === 'object'
+        ? el.getAttribute('class')
+        : el.className
+    return orgClassName && !!orgClassName.match(new RegExp(`(\\s|^)${className}(\\s|$)`))
   }
 }
 
@@ -82,20 +86,23 @@ util.hasClass = function (el, className) {
  * @param { string } className
  * @returns { void }
  */
-util.addClass = function (el, className) {
+util.addClass = (el, className) => {
   if (!el || !className) {
     return
   }
   try {
-    className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
-      item && el.classList.add(item)
-    })
-  } catch (e) {
+    className
+      .replace(/(^\s+|\s+$)/g, '')
+      .split(/\s+/g)
+      .forEach(item => {
+        item && el.classList.add(item)
+      })
+  } catch (_e) {
     if (!util.hasClass(el, className)) {
       if (el.className && typeof el.className === 'object') {
-        el.setAttribute('class', el.getAttribute('class') + ' ' + className)
+        el.setAttribute('class', `${el.getAttribute('class')} ${className}`)
       } else {
-        el.className += ' ' + className
+        el.className += ` ${className}`
       }
     }
   }
@@ -107,18 +114,21 @@ util.addClass = function (el, className) {
  * @param { string } className
  * @returns { void }
  */
-util.removeClass = function (el, className) {
+util.removeClass = (el, className) => {
   if (!el || !className) {
     return
   }
   try {
-    className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
-      item && el.classList.remove(item)
-    })
-  } catch (e) {
+    className
+      .replace(/(^\s+|\s+$)/g, '')
+      .split(/\s+/g)
+      .forEach(item => {
+        item && el.classList.remove(item)
+      })
+  } catch (_e) {
     if (util.hasClass(el, className)) {
       className.split(/\s+/g).forEach(item => {
-        const reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
+        const reg = new RegExp(`(\\s|^)${item}(\\s|$)`)
         if (el.className && typeof el.className === 'object') {
           el.setAttribute('class', el.getAttribute('class').replace(reg, ' '))
         } else {
@@ -135,7 +145,7 @@ util.removeClass = function (el, className) {
  * @param { string } className
  * @returns { void }
  */
-util.toggleClass = function (el, className) {
+util.toggleClass = (el, className) => {
   if (!el) {
     return
   }
@@ -155,7 +165,7 @@ util.toggleClass = function (el, className) {
  * @param { string } [className]
  * @returns { string }
  */
-util.classNames = function () {
+util.classNames = () => {
   const classname = []
   for (let i = 0; i < arguments.length; i++) {
     if (util.typeOf(arguments[i]) === 'String') {
@@ -182,7 +192,7 @@ util.classNames = function () {
  * @param { string } sel
  * @returns { HTMLElement }
  */
-util.findDom = function (el = document, sel) {
+util.findDom = (el = document, sel) => {
   let dom
   // fix querySelector IDs that start with a digit
   // https://stackoverflow.com/questions/37270787/uncaught-syntaxerror-failed-to-execute-queryselector-on-document
@@ -203,11 +213,12 @@ util.findDom = function (el = document, sel) {
  * @param { string } key
  * @returns { any }
  */
-util.getCss = function (dom, key) {
-  return dom.currentStyle ? dom.currentStyle[key] : document.defaultView.getComputedStyle(dom, false)[key]
-}
+util.getCss = (dom, key) =>
+  dom.currentStyle
+    ? dom.currentStyle[key]
+    : document.defaultView.getComputedStyle(dom, false)[key]
 
-util.padStart = function (str, length, pad) {
+util.padStart = (str, length, pad) => {
   const charstr = String(pad)
   const len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
@@ -224,14 +235,14 @@ util.padStart = function (str, length, pad) {
  * @param { number } time
  * @returns { string }
  */
-util.format = function (time) {
-  if (window.isNaN(time)) {
+util.format = time => {
+  if (window.Number.isNaN(time)) {
     return ''
   }
   time = Math.round(time)
   const hour = util.padStart(Math.floor(time / 3600), 2, 0)
   const minute = util.padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
-  const second = util.padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
+  const second = util.padStart(Math.floor(time - hour * 3600 - minute * 60), 2, 0)
   return (hour === '00' ? [minute, second] : [hour, minute, second]).join(':')
 }
 
@@ -240,7 +251,7 @@ util.format = function (time) {
  * @param { Object } e
  * @returns { Object }
  */
-util.event = function (e) {
+util.event = e => {
   if (e.touches) {
     const touch = e.touches[0] || e.changedTouches[0]
     e.clientX = touch.clientX || 0
@@ -256,7 +267,7 @@ util.event = function (e) {
  * @param { any } obj
  * @returns { string }
  */
-util.typeOf = function (obj) {
+util.typeOf = obj => {
   // eslint-disable-next-line no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
@@ -267,7 +278,7 @@ util.typeOf = function (obj) {
  * @param { any } src
  * @returns { any }
  */
-util.deepCopy = function (dst, src) {
+util.deepCopy = (dst, src) => {
   if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
       // eslint-disable-next-line no-undef
@@ -278,7 +289,8 @@ util.deepCopy = function (dst, src) {
           util.deepCopy(dst[key], src[key])
         }
       } else if (util.typeOf(src[key]) === 'Array') {
-        dst[key] = util.typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : src[key]
+        dst[key] =
+          util.typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : src[key]
       } else {
         dst[key] = src[key]
       }
@@ -293,13 +305,18 @@ util.deepCopy = function (dst, src) {
  * @param { any } src
  * @returns { any }
  */
-util.deepMerge = function (dst, src) {
+util.deepMerge = (dst, src) => {
   Object.keys(src).map(key => {
     if (util.typeOf(src[key]) === 'Array' && util.typeOf(dst[key]) === 'Array') {
       if (util.typeOf(dst[key]) === 'Array') {
         dst[key].push(...src[key])
       }
-    } else if (util.typeOf(dst[key]) === util.typeOf(src[key]) && dst[key] !== null && util.typeOf(dst[key]) === 'Object' && !(src[key] instanceof window.Node)) {
+    } else if (
+      util.typeOf(dst[key]) === util.typeOf(src[key]) &&
+      dst[key] !== null &&
+      util.typeOf(dst[key]) === 'Object' &&
+      !(src[key] instanceof window.Node)
+    ) {
       util.deepMerge(dst[key], src[key])
     } else {
       src[key] !== null && (dst[key] = src[key])
@@ -308,7 +325,7 @@ util.deepMerge = function (dst, src) {
   return dst
 }
 
-util.getBgImage = function (el) {
+util.getBgImage = el => {
   // fix: return current page url when url is none
   const url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
   if (!url || url === 'none') {
@@ -324,10 +341,10 @@ util.getBgImage = function (el) {
  * @param {  HTMLElement } dom
  * @returns { HTMLElement | null }
  */
-util.copyDom = function (dom) {
+util.copyDom = dom => {
   if (dom && dom.nodeType === 1) {
     const back = document.createElement(dom.tagName)
-    Array.prototype.forEach.call(dom.attributes, (node) => {
+    Array.prototype.forEach.call(dom.attributes, node => {
       back.setAttribute(node.name, node.value)
     })
     if (dom.innerHTML) {
@@ -346,9 +363,12 @@ util.copyDom = function (dom) {
  * @param { function } intervalFunc
  * @param { number } frequency
  */
-util.setInterval = function (context, eventName, intervalFunc, frequency) {
+util.setInterval = (context, eventName, intervalFunc, frequency) => {
   if (!context._interval[eventName]) {
-    context._interval[eventName] = window.setInterval(intervalFunc.bind(context), frequency)
+    context._interval[eventName] = window.setInterval(
+      intervalFunc.bind(context),
+      frequency
+    )
   }
 }
 
@@ -358,7 +378,7 @@ util.setInterval = function (context, eventName, intervalFunc, frequency) {
  * @param { string } eventName
  * @returns { void }
  */
-util.clearInterval = function (context, eventName) {
+util.clearInterval = (context, eventName) => {
   clearInterval(context._interval[eventName])
   context._interval[eventName] = null
 }
@@ -370,7 +390,7 @@ util.clearInterval = function (context, eventName) {
  * @param { number } time
  * @returns { number }
  */
-util.setTimeout = function (context, fun, time) {
+util.setTimeout = (context, fun, time) => {
   if (!context._timers) {
     context._timers = []
   }
@@ -387,7 +407,7 @@ util.setTimeout = function (context, fun, time) {
  * @param { any } context
  * @param { number } id
  */
-util.clearTimeout = function (context, id) {
+util.clearTimeout = (context, id) => {
   const { _timers } = context
   if (util.typeOf(_timers) === 'Array') {
     for (let i = 0; i < _timers.length; i++) {
@@ -406,7 +426,7 @@ util.clearTimeout = function (context, id) {
  *
  * @param { any } context
  */
-util.clearAllTimers = function (context) {
+util.clearAllTimers = context => {
   const { _timers } = context
   if (util.typeOf(_timers) === 'Array') {
     _timers.map(item => {
@@ -424,12 +444,12 @@ util.clearAllTimers = function (context) {
  * @param { number } [height]
  * @returns { HTMLElement }
  */
-util.createImgBtn = function (name, imgUrl, width, height) {
+util.createImgBtn = (name, imgUrl, width, height) => {
   const btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
   btn.style.backgroundImage = `url("${imgUrl}")`
   if (width && height) {
     let w, h, unit
-    ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
+    ;['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every(item => {
       if (width.indexOf(item) > -1 && height.indexOf(item) > -1) {
         w = parseFloat(width.slice(0, width.indexOf(item)).trim())
         h = parseFloat(height.slice(0, height.indexOf(item)).trim())
@@ -457,18 +477,18 @@ util.createImgBtn = function (name, imgUrl, width, height) {
  * @param { string | number } alpha
  * @returns { string }
  */
-util.Hex2RGBA = function (hex, alpha) {
+util.Hex2RGBA = (hex, alpha) => {
   const rgb = [] // 定义rgb数组
   // eslint-disable-next-line no-useless-escape
-  if (/^\#[0-9A-F]{3}$/i.test(hex)) {
+  if (/^#[0-9A-F]{3}$/i.test(hex)) {
     let sixHex = '#'
-    hex.replace(/[0-9A-F]/ig, function (kw) {
+    hex.replace(/[0-9A-F]/gi, kw => {
       sixHex += kw + kw
     })
     hex = sixHex
   }
   if (/^#[0-9A-F]{6}$/i.test(hex)) {
-    hex.replace(/[0-9A-F]{2}/ig, function (kw) {
+    hex.replace(/[0-9A-F]{2}/gi, kw => {
       rgb.push(parseInt(kw, 16))
     })
     return `rgba(${rgb.join(',')}, ${alpha})`
@@ -481,30 +501,28 @@ util.Hex2RGBA = function (hex, alpha) {
  *
  * @returns { HTMLElement | null }
  */
-util.getFullScreenEl = function () {
-  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
-}
+util.getFullScreenEl = () =>
+  document.fullscreenElement ||
+  document.webkitFullscreenElement ||
+  document.mozFullScreenElement ||
+  document.msFullscreenElement
 
 /**
  * @param { any }
  * @returns { boolean }
  */
-util.checkIsFunction = function (fun) {
-  return fun && typeof fun === 'function'
-}
+util.checkIsFunction = fun => fun && typeof fun === 'function'
 
 /**
  * @param { any }
  * @returns { boolean }
  */
-util.checkIsObject = function (obj) {
-  return obj !== null && typeof obj === 'object'
-}
+util.checkIsObject = obj => obj !== null && typeof obj === 'object'
 
 /**
  * @param { HTMLElement }
  */
-util.hide = function (dom) {
+util.hide = dom => {
   dom.style.display = 'none'
 }
 
@@ -512,7 +530,7 @@ util.hide = function (dom) {
  * @param { HTMLElement }
  * @param { block | flex | inline-block | inline-flex } [display]
  */
-util.show = function (dom, display) {
+util.show = (dom, display) => {
   dom.style.display = display || 'block'
 }
 
@@ -521,15 +539,13 @@ util.show = function (dom, display) {
  * @param { any } val
  * @returns { boolean }
  */
-util.isUndefined = function (val) {
+util.isUndefined = val => {
   if (typeof val === 'undefined' || val === null) {
     return true
   }
 }
 
-util.isNotNull = function (val) {
-  return !(val === undefined || val === null)
-}
+util.isNotNull = val => !(val === undefined || val === null)
 
 /**
  *
@@ -537,7 +553,7 @@ util.isNotNull = function (val) {
  * @param { string } [text]
  * @returns
  */
-util.setStyleFromCsstext = function (dom, text) {
+util.setStyleFromCsstext = (dom, text) => {
   // dom.setAttribute(style, text)
   if (!text) {
     return
@@ -565,7 +581,7 @@ util.setStyleFromCsstext = function (dom, text) {
  * @param { Array<any>} list
  * @returns { boolean }
  */
-function checkIsIn (key, list) {
+function checkIsIn(key, list) {
   for (let i = 0, len = list.length; i < len; i++) {
     if (key.indexOf(list[i]) > -1) {
       return true
@@ -580,7 +596,22 @@ function checkIsIn (key, list) {
  * @param { Array<string> } [list] attribute names to filter
  * @returns { {} | {[propName: string]: any;} }
  */
-util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'left', 'bottom', 'right', 'position', 'z-index', 'padding', 'margin', 'transform']) {
+util.filterStyleFromText = (
+  dom,
+  list = [
+    'width',
+    'height',
+    'top',
+    'left',
+    'bottom',
+    'right',
+    'position',
+    'z-index',
+    'padding',
+    'margin',
+    'transform'
+  ]
+) => {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
@@ -614,7 +645,7 @@ util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'lef
  * @param { HTMLElement } dom
  * @returns { {} | {[propName: string]: any;} }
  */
-util.getStyleFromCsstext = function (dom) {
+util.getStyleFromCsstext = dom => {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
@@ -637,47 +668,44 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
     return
   }
   let img = new window.Image()
-  img.onload = (e) => {
+  img.onload = e => {
     img = null
-    onload && onload(e)
+    onload?.(e)
   }
-  img.onerror = (e) => {
+  img.onerror = e => {
     img = null
-    onerror && onerror(e)
+    onerror?.(e)
   }
   img.src = url
 }
 
-util.stopPropagation = (e) => {
+util.stopPropagation = e => {
   if (e) {
     e.stopPropagation()
   }
 }
 
-util.scrollTop = function () {
-  return window.pageYOffset ||
-  document.documentElement.scrollTop ||
-  document.body.scrollTop ||
-  0
-}
+util.scrollTop = () =>
+  window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
 
-util.scrollLeft = function () {
-  return window.pageXOffset ||
+util.scrollLeft = () =>
+  window.pageXOffset ||
   document.documentElement.scrollLeft ||
   document.body.scrollLeft ||
   0
-}
 
-util.checkTouchSupport = function () {
-  return 'ontouchstart' in window
-}
+util.checkTouchSupport = () => 'ontouchstart' in window
 
-util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
+util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => {
+  // ref: hls.js
   const buffered = []
   for (let i = 0; i < vbuffered.length; i++) {
-    buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) })
+    buffered.push({
+      start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i),
+      end: vbuffered.end(i)
+    })
   }
-  buffered.sort(function (a, b) {
+  buffered.sort((a, b) => {
     const diff = a.start - b.start
     if (diff) {
       return diff
@@ -691,7 +719,7 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
       const buf2len = buffered2.length
       if (buf2len) {
         const buf2end = buffered2[buf2len - 1].end
-        if ((buffered[i].start - buf2end) < maxHoleDuration) {
+        if (buffered[i].start - buf2end < maxHoleDuration) {
           if (buffered[i].end > buf2end) {
             buffered2[buf2len - 1].end = buffered[i].end
           }
@@ -715,7 +743,7 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
  * @param {number} zoom
  * @returns
  */
-util.getEventPos = function (e, zoom = 1) {
+util.getEventPos = (e, zoom = 1) => {
   if (e.touches && e.touches.length > 0) {
     e = e.touches[0]
   }
@@ -731,25 +759,23 @@ util.getEventPos = function (e, zoom = 1) {
   }
 }
 
-util.requestAnimationFrame = function (callback) {
-  const _fun = window.requestAnimationFrame ||
-  // Older versions Chrome/Webkit
-  window.webkitRequestAnimationFrame ||
-
-   // Firefox < 23
-   window.mozRequestAnimationFrame ||
-
-   // opera
-   window.oRequestAnimationFrame ||
-
-   // ie
-   window.msRequestAnimationFrame
+util.requestAnimationFrame = callback => {
+  const _fun =
+    window.requestAnimationFrame ||
+    // Older versions Chrome/Webkit
+    window.webkitRequestAnimationFrame ||
+    // Firefox < 23
+    window.mozRequestAnimationFrame ||
+    // opera
+    window.oRequestAnimationFrame ||
+    // ie
+    window.msRequestAnimationFrame
   if (_fun) {
     return _fun(callback)
   }
 }
 
-util.getHostFromUrl = function (url) {
+util.getHostFromUrl = url => {
   if (util.typeOf(url) !== 'String') {
     return ''
   }
@@ -761,9 +787,12 @@ util.getHostFromUrl = function (url) {
   return domain
 }
 
-util.cancelAnimationFrame = function (frameId) {
-  const _fun = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.cancelRequestAnimationFrame
-  _fun && _fun(frameId)
+util.cancelAnimationFrame = frameId => {
+  const _fun =
+    window.cancelAnimationFrame ||
+    window.mozCancelAnimationFrame ||
+    window.cancelRequestAnimationFrame
+  _fun?.(frameId)
 }
 
 /**
@@ -771,7 +800,7 @@ util.cancelAnimationFrame = function (frameId) {
  * @param { HTMLVideoElement | HTMLAudioElement | HTMLElement } video
  * @returns { boolean }
  */
-util.isMSE = function (video) {
+util.isMSE = video => {
   if (video.media) {
     video = video.media
   }
@@ -781,34 +810,32 @@ util.isMSE = function (video) {
   return /^blob/.test(video.currentSrc) || /^blob/.test(video.src)
 }
 
-util.isBlob = function (url) {
-  return typeof url === 'string' && /^blob/.test(url)
-}
+util.isBlob = url => typeof url === 'string' && /^blob/.test(url)
 
 /**
  * @param { number } did
  * @returns { string }
  */
-util.generateSessionId = function (did = 0) {
-  let d = new Date().getTime()
+util.generateSessionId = (did = 0) => {
+  let d = Date.now()
   try {
     did = parseInt(did)
-  } catch (e) {
+  } catch (_e) {
     did = 0
   }
   d += did
   if (window.performance && typeof window.performance.now === 'function') {
     d += parseInt(window.performance.now()) // use high-precision timer if available
   }
-  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = (d + Math.random() * 16) % 16 | 0
+  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = ((d + Math.random() * 16) % 16) | 0
     d = Math.floor(d / 16)
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
   })
   return uuid
 }
 
-util.createEvent = function (eventName) {
+util.createEvent = eventName => {
   let event
   if (typeof window.Event === 'function') {
     event = new Event(eventName)
@@ -827,7 +854,7 @@ util.createEvent = function (eventName) {
  * @param { boolean } isEnded
  * @returns { number } Adjusted time
  */
-util.adjustTimeByDuration = function (time, duration, isEnded) {
+util.adjustTimeByDuration = (time, duration, isEnded) => {
   if (!duration || !time) {
     return time
   }
@@ -837,18 +864,16 @@ util.adjustTimeByDuration = function (time, duration, isEnded) {
   return time
 }
 
-util.createPositionBar = function (className, root) {
-  const dom = util.createDom(
-    'xg-bar',
-    '',
-    { 'data-index': -1 },
-    className
-  )
+util.createPositionBar = (className, root) => {
+  const dom = util.createDom('xg-bar', '', { 'data-index': -1 }, className)
   root.appendChild(dom)
   return dom
 }
 
-util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }, transformValue = '') {
+util.getTransformStyle = (
+  pos = { x: 0, y: 0, scale: 1, rotate: 0 },
+  transformValue = ''
+) => {
   const styles = {
     scale: `${pos.scale || 1}`,
     translate: `${pos.x || 0}%, ${pos.y || 0}%`,
@@ -857,7 +882,7 @@ util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }, tr
   const stylesKeys = Object.keys(styles)
 
   // 只复写Transform中已知的函数，对于其他函数不修改。解决全屏或者rotate插件执行时，对于镜像插件的影响
-  stylesKeys.forEach((key) => {
+  stylesKeys.forEach(key => {
     const reg = new RegExp(`${key}\\([^\\(]+\\)`, 'g') // reg match: TransformFunc(values)
     const fn = `${key}(${styles[key]})`
     if (reg.test(transformValue)) {
@@ -875,14 +900,14 @@ util.getTransformStyle = function (pos = { x: 0, y: 0, scale: 1, rotate: 0 }, tr
  * @param {number} val
  * @returns {number}
  */
-util.convertDeg = function (val) {
+util.convertDeg = val => {
   if (Math.abs(val) <= 1) {
     return val * 360
   }
   return val % 360
 }
 
-util.getIndexByTime = function (time, segments) {
+util.getIndexByTime = (time, segments) => {
   const _len = segments.length
   let _index = -1
   if (_len < 1) {
@@ -894,7 +919,7 @@ util.getIndexByTime = function (time, segments) {
     _index = _len - 1
   } else {
     for (let i = 1; i < _len; i++) {
-      if (time > segments[i - 1].end && time <= segments[i].end){
+      if (time > segments[i - 1].end && time <= segments[i].end) {
         _index = i
         break
       }
@@ -902,7 +927,7 @@ util.getIndexByTime = function (time, segments) {
   }
   return _index
 }
-util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
+util.getOffsetCurrentTime = (currentTime, segments, index = -1) => {
   let _index = -1
   if (index >= 0 && index < segments.length) {
     _index = index
@@ -930,7 +955,7 @@ util.getOffsetCurrentTime = function (currentTime, segments, index = -1) {
  * @param {*} segments
  * @returns
  */
-util.getCurrentTimeByOffset = function (offsetTime, segments) {
+util.getCurrentTimeByOffset = (offsetTime, segments) => {
   let _index = -1
   if (!segments || segments.length < 0) {
     return offsetTime
@@ -952,18 +977,13 @@ util.getCurrentTimeByOffset = function (offsetTime, segments) {
   return offsetTime
 }
 
-function isObject (value) {
+function isObject(value) {
   const type = typeof value
   return value !== null && (type === 'object' || type === 'function')
 }
 
-function debounce (func, wait, options) {
-  let lastArgs,
-    lastThis,
-    maxWait,
-    result,
-    timerId,
-    lastCallTime
+function debounce(func, wait, options) {
+  let lastArgs, lastThis, maxWait, result, timerId, lastCallTime
 
   let lastInvokeTime = 0
   let leading = false
@@ -971,7 +991,7 @@ function debounce (func, wait, options) {
   let trailing = true
 
   // Bypass `requestAnimationFrame` by explicitly setting `wait=0`.
-  const useRAF = (!wait && wait !== 0 && typeof window.requestAnimationFrame === 'function')
+  const useRAF = !wait && wait !== 0 && typeof window.requestAnimationFrame === 'function'
 
   if (typeof func !== 'function') {
     throw new TypeError('Expected a function')
@@ -984,7 +1004,7 @@ function debounce (func, wait, options) {
     trailing = 'trailing' in options ? !!options.trailing : trailing
   }
 
-  function invokeFunc (time) {
+  function invokeFunc(time) {
     const args = lastArgs
     const thisArg = lastThis
 
@@ -994,7 +1014,7 @@ function debounce (func, wait, options) {
     return result
   }
 
-  function startTimer (pendingFunc, wait) {
+  function startTimer(pendingFunc, wait) {
     if (useRAF) {
       window.cancelAnimationFrame(timerId)
       return window.requestAnimationFrame(pendingFunc)
@@ -1002,14 +1022,14 @@ function debounce (func, wait, options) {
     return setTimeout(pendingFunc, wait)
   }
 
-  function cancelTimer (id) {
+  function cancelTimer(id) {
     if (useRAF) {
       return window.cancelAnimationFrame(id)
     }
     clearTimeout(id)
   }
 
-  function leadingEdge (time) {
+  function leadingEdge(time) {
     // Reset any `maxWait` timer.
     lastInvokeTime = time
     // Start the timer for the trailing edge.
@@ -1018,28 +1038,30 @@ function debounce (func, wait, options) {
     return leading ? invokeFunc(time) : result
   }
 
-  function remainingWait (time) {
+  function remainingWait(time) {
     const timeSinceLastCall = time - lastCallTime
     const timeSinceLastInvoke = time - lastInvokeTime
     const timeWaiting = wait - timeSinceLastCall
 
-    return maxing
-      ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
-      : timeWaiting
+    return maxing ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke) : timeWaiting
   }
 
-  function shouldInvoke (time) {
+  function shouldInvoke(time) {
     const timeSinceLastCall = time - lastCallTime
     const timeSinceLastInvoke = time - lastInvokeTime
 
     // Either this is the first call, activity has stopped and we're at the
     // trailing edge, the system time has gone backwards and we're treating
     // it as the trailing edge, or we've hit the `maxWait` limit.
-    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
-      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+    return (
+      lastCallTime === undefined ||
+      timeSinceLastCall >= wait ||
+      timeSinceLastCall < 0 ||
+      (maxing && timeSinceLastInvoke >= maxWait)
+    )
   }
 
-  function timerExpired () {
+  function timerExpired() {
     const time = Date.now()
     if (shouldInvoke(time)) {
       return trailingEdge(time)
@@ -1048,7 +1070,7 @@ function debounce (func, wait, options) {
     timerId = startTimer(timerExpired, remainingWait(time))
   }
 
-  function trailingEdge (time) {
+  function trailingEdge(time) {
     timerId = undefined
 
     // Only invoke if we have `lastArgs` which means `func` has been
@@ -1060,7 +1082,7 @@ function debounce (func, wait, options) {
     return result
   }
 
-  function cancel () {
+  function cancel() {
     if (timerId !== undefined) {
       cancelTimer(timerId)
     }
@@ -1068,15 +1090,15 @@ function debounce (func, wait, options) {
     lastArgs = lastCallTime = lastThis = timerId = undefined
   }
 
-  function flush () {
+  function flush() {
     return timerId === undefined ? result : trailingEdge(Date.now())
   }
 
-  function pending () {
+  function pending() {
     return timerId !== undefined
   }
 
-  function debounced (...args) {
+  function debounced(...args) {
     const time = Date.now()
     const isInvoking = shouldInvoke(time)
 
@@ -1105,7 +1127,7 @@ function debounce (func, wait, options) {
   return debounced
 }
 
-function throttle (func, wait, options) {
+function throttle(func, wait, options) {
   let leading = true
   let trailing = true
 
@@ -1126,29 +1148,31 @@ function throttle (func, wait, options) {
 /**
  * @returns { string }
  */
-function getLang () {
-  let lang = (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase()
+function getLang() {
+  let lang = (
+    document.documentElement.getAttribute('lang') ||
+    navigator.language ||
+    'zh-cn'
+  ).toLocaleLowerCase()
   if (lang === 'zh-cn') {
     lang = 'zh'
   }
   return lang
 }
 
-function checkIsCurrentVideo (element, playerId, key) {
+function checkIsCurrentVideo(element, playerId, key) {
   if (!element) {
     return
   }
   const pid = element.getAttribute(key)
-  if (pid && pid === playerId && (element.tagName === 'VIDEO' || element.tagName === 'AUDIO')) {
+  if (
+    pid &&
+    pid === playerId &&
+    (element.tagName === 'VIDEO' || element.tagName === 'AUDIO')
+  ) {
     return true
   }
   return false
 }
 
-export {
-  util as default,
-  checkIsCurrentVideo,
-  debounce,
-  throttle,
-  getLang
-}
+export { util as default, checkIsCurrentVideo, debounce, throttle, getLang }

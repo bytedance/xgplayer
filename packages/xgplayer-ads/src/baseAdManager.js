@@ -18,23 +18,23 @@ const logger = new Logger('AdsPluginBaseAdManager')
 
 /**
  * @template [T=object],[V=object]
-*/
+ */
 export class BaseAdManager extends EventEmitter {
-  get currentTime () {
+  get currentTime() {
     return this.context.currentTime
   }
 
-  get duration () {
+  get duration() {
     return this.context.duration
   }
 
-  get paused () {
+  get paused() {
     return this._isAdPaused
   }
 
-  get shouldBlockVideoContent () {
+  get shouldBlockVideoContent() {
     // TODO: Just block content video to play for mutiple MediaElement, Ad in TV is video reused
-    if (Sniffer.os.isTizen || Sniffer.os.isWebOS){
+    if (Sniffer.os.isTizen || Sniffer.os.isWebOS) {
       return false
     }
     return this.isLinearAdRunning || this._shouldBlockVideoContent
@@ -43,7 +43,7 @@ export class BaseAdManager extends EventEmitter {
   /**
    * @param {boolean} flag
    */
-  set shouldBlockVideoContent (flag) {
+  set shouldBlockVideoContent(flag) {
     // const preIsBlockState = this._shouldBlockVideoContent
     this._shouldBlockVideoContent = flag
   }
@@ -51,7 +51,7 @@ export class BaseAdManager extends EventEmitter {
   /**
    * @param {BaseAdManagerOptions<T>} options
    */
-  constructor (options = {}) {
+  constructor(options = {}) {
     super()
 
     /**
@@ -118,7 +118,7 @@ export class BaseAdManager extends EventEmitter {
     }
   }
 
-  updateConfig (config = {}) {
+  updateConfig(config = {}) {
     if (!config) {
       logger.warn('config is empty')
       return
@@ -132,25 +132,24 @@ export class BaseAdManager extends EventEmitter {
   /**
    * @return {boolean}
    */
-  isFullScreen () {
+  isFullScreen() {
     return !!this.player.fullscreen
   }
 
-
-  destroy () {
+  destroy() {
     this.removeAllListeners()
   }
 
   /**
    * @private
    */
-  tryContentPlay () {
+  tryContentPlay() {
     const { player } = this
 
     // if (player.config.autoplay) {
     const playPromise = player.play()
 
-    if (playPromise !== undefined && playPromise && playPromise.then) {
+    if (playPromise?.then) {
       playPromise
         .then(() => {
           logger.log('content play')
@@ -162,10 +161,10 @@ export class BaseAdManager extends EventEmitter {
             player.emit(Events.AUTOPLAY_STARTED)
           }
         })
-        .catch((e) => {
+        .catch(e => {
           logger.error('content play error', e)
 
-          if (player.media && player.media.error) {
+          if (player.media?.error) {
             player.onError()
             player.removeClass(STATE_CLASS.ENTER)
             return

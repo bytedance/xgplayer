@@ -1,7 +1,6 @@
 import { M3U8Parser } from '../src/hls/manifest-loader/parser'
 
 describe('m3u8 parser', () => {
-
   test('No #EXTM3U', () => {
     expect(() => {
       M3U8Parser.parse('')
@@ -9,7 +8,8 @@ describe('m3u8 parser', () => {
   })
 
   test('Master Playlist', () => {
-    const ret = M3U8Parser.parse(`
+    const ret = M3U8Parser.parse(
+      `
     #EXTM3U
     #EXT-X-VERSION:1
     #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=836280,CODECS="mp4a.40.2,avc1.64001f",RESOLUTION=848x360,NAME="480"
@@ -25,7 +25,8 @@ describe('m3u8 parser', () => {
     #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=460560,CODECS="mp4a.40.5,avc1.420016",RESOLUTION=512x216,NAME="380"
     //xg.com/video/107/282/158282701_mp4_h264_aac.m3u8
     `,
-    'http://xg.com/video/a.m3u8?query=a#hash')
+      'http://xg.com/video/a.m3u8?query=a#hash'
+    )
 
     expect(ret.version).toBe(1)
     expect(ret.streams.length).toBe(6)
@@ -52,10 +53,18 @@ describe('m3u8 parser', () => {
     expect(ret.streams[5].height).toBe(216)
 
     expect(ret.streams[0].url).toBe('http://xg.com/sec()/mp4_h264_aac_hq.m3u8')
-    expect(ret.streams[1].url).toBe('http://xg.com/video/158282701_mp4_h264_aac_hq.m3u8?test=2&test2=3#hh')
-    expect(ret.streams[2].url).toBe('http://xg.xg.com/video/107/282/158282701_mp4_h264_aac_ld.m3u8')
-    expect(ret.streams[3].url).toBe('https://xg.com/video/107/282/158282701_mp4_h264_aac_ld.m3u8')
-    expect(ret.streams[4].url).toBe('http://xg.com/video/video/video/158282701_mp4_h264_aac.m3u8')
+    expect(ret.streams[1].url).toBe(
+      'http://xg.com/video/158282701_mp4_h264_aac_hq.m3u8?test=2&test2=3#hh'
+    )
+    expect(ret.streams[2].url).toBe(
+      'http://xg.xg.com/video/107/282/158282701_mp4_h264_aac_ld.m3u8'
+    )
+    expect(ret.streams[3].url).toBe(
+      'https://xg.com/video/107/282/158282701_mp4_h264_aac_ld.m3u8'
+    )
+    expect(ret.streams[4].url).toBe(
+      'http://xg.com/video/video/video/158282701_mp4_h264_aac.m3u8'
+    )
     expect(ret.streams[5].url).toBe('//xg.com/video/107/282/158282701_mp4_h264_aac.m3u8')
 
     expect(ret.streams[0].audioCodec).toBe('mp4a.40.2')
@@ -128,12 +137,24 @@ describe('m3u8 parser', () => {
     expect(ret.streams[0].videoCodec).toBe('avc1.4d401f')
     expect(ret.streams[0].audioGroup).toBe('default-audio-group')
     expect(ret.streams[0].audioStreams.length).toBe(6)
-    expect(ret.streams[0].audioStreams[0].url).toBe('playlist_a-eng-0128k-aac-2c.mp4.m3u8')
-    expect(ret.streams[0].audioStreams[1].url).toBe('playlist_a-deu-0128k-aac-2c.mp4.m3u8')
-    expect(ret.streams[0].audioStreams[2].url).toBe('playlist_a-ita-0128k-aac-2c.mp4.m3u8')
-    expect(ret.streams[0].audioStreams[3].url).toBe('playlist_a-fra-0128k-aac-2c.mp4.m3u8')
-    expect(ret.streams[0].audioStreams[4].url).toBe('playlist_a-spa-0128k-aac-2c.mp4.m3u8')
-    expect(ret.streams[0].audioStreams[5].url).toBe('playlist_a-eng-0384k-aac-6c.mp4.m3u8')
+    expect(ret.streams[0].audioStreams[0].url).toBe(
+      'playlist_a-eng-0128k-aac-2c.mp4.m3u8'
+    )
+    expect(ret.streams[0].audioStreams[1].url).toBe(
+      'playlist_a-deu-0128k-aac-2c.mp4.m3u8'
+    )
+    expect(ret.streams[0].audioStreams[2].url).toBe(
+      'playlist_a-ita-0128k-aac-2c.mp4.m3u8'
+    )
+    expect(ret.streams[0].audioStreams[3].url).toBe(
+      'playlist_a-fra-0128k-aac-2c.mp4.m3u8'
+    )
+    expect(ret.streams[0].audioStreams[4].url).toBe(
+      'playlist_a-spa-0128k-aac-2c.mp4.m3u8'
+    )
+    expect(ret.streams[0].audioStreams[5].url).toBe(
+      'playlist_a-eng-0384k-aac-6c.mp4.m3u8'
+    )
     expect(ret.streams[0].audioStreams[0].default).toBe(true)
 
     expect(ret.streams[1].id).toBe(1)
@@ -174,7 +195,8 @@ describe('m3u8 parser', () => {
   })
 
   test('Media Playlist', () => {
-    const ret = M3U8Parser.parse(`
+    const ret = M3U8Parser.parse(
+      `
     # comment
     #EX-EXT-X-PLAYLIST-TYPE:common
     #EXTM3U
@@ -214,13 +236,14 @@ describe('m3u8 parser', () => {
     fileSequence53-b.ts
     #EXT-X-ENDLIST
     `,
-    'https://test/video')
+      'https://test/video'
+    )
 
     expect(ret.version).toBe(3)
     expect(ret.type).toBe('VOD')
     expect(ret.live).toBe(false)
     expect(ret.targetDuration).toBe(15)
-    expect(ret.totalDuration).toBe(2.833+15+13.333+15+15.123)
+    expect(ret.totalDuration).toBe(2.833 + 15 + 13.333 + 15 + 15.123)
     expect(ret.startSN).toBe(7794)
     expect(ret.endSN).toBe(7798)
     expect(ret.startCC).toBe(20)
@@ -247,9 +270,9 @@ describe('m3u8 parser', () => {
 
     expect(ret.segments[0].start).toBe(0)
     expect(ret.segments[1].start).toBe(2.833)
-    expect(ret.segments[2].start).toBe(2.833+15)
-    expect(ret.segments[3].start).toBe(2.833+15+13.333)
-    expect(ret.segments[4].start).toBe(2.833+15+13.333+15)
+    expect(ret.segments[2].start).toBe(2.833 + 15)
+    expect(ret.segments[3].start).toBe(2.833 + 15 + 13.333)
+    expect(ret.segments[4].start).toBe(2.833 + 15 + 13.333 + 15)
 
     expect(ret.segments[0].isLast).toBe(false)
     expect(ret.segments[1].isLast).toBe(false)
@@ -263,11 +286,17 @@ describe('m3u8 parser', () => {
     expect(ret.segments[3].url).toBe('https://xg.com/fileSequence53-A.ts')
     expect(ret.segments[4].url).toBe('https://test/fileSequence53-b.ts')
 
-    expect(ret.segments[0].byteRange).toEqual([1039452, 1039452+143068 - 1])
-    expect(ret.segments[1].byteRange).toEqual([943196, 943196+96256 - 1])
-    expect(ret.segments[2].byteRange).toEqual([803136, 803136+140060 - 1])
-    expect(ret.segments[3].byteRange).toEqual([803136+140060, 803136+140060+96256 - 1])
-    expect(ret.segments[4].byteRange).toEqual([803136+140060+96256, 803136+140060+96256+143068 - 1])
+    expect(ret.segments[0].byteRange).toEqual([1039452, 1039452 + 143068 - 1])
+    expect(ret.segments[1].byteRange).toEqual([943196, 943196 + 96256 - 1])
+    expect(ret.segments[2].byteRange).toEqual([803136, 803136 + 140060 - 1])
+    expect(ret.segments[3].byteRange).toEqual([
+      803136 + 140060,
+      803136 + 140060 + 96256 - 1
+    ])
+    expect(ret.segments[4].byteRange).toEqual([
+      803136 + 140060 + 96256,
+      803136 + 140060 + 96256 + 143068 - 1
+    ])
 
     expect(ret.segments[0].isInitSegment).toBe(false)
     expect(ret.segments[1].isInitSegment).toBe(false)
@@ -309,13 +338,20 @@ describe('m3u8 parser', () => {
     expect(ret.segments[2].key.keyFormatVersions).toBe('1/2')
     expect(ret.segments[3].key.keyFormatVersions).toBe('1')
     expect(ret.segments[4].key.keyFormatVersions).toBe('1')
-    
-    const iv = new Uint8Array('7c 3c b5 65 62 d0 a1 08 27 48 99 96 de ad 35 eb'.split(' ').map(x => parseInt(x, 16)))
+
+    const iv = new Uint8Array(
+      '7c 3c b5 65 62 d0 a1 08 27 48 99 96 de ad 35 eb'
+        .split(' ')
+        .map(x => parseInt(x, 16))
+    )
     expect(ret.segments[0].key.iv).toEqual(iv)
     expect(ret.segments[1].key.iv).toEqual(iv)
     expect(ret.segments[2].key.iv).toEqual(iv)
-    expect(ret.segments[3].key.iv).toEqual(new Uint8Array([...Array(14).fill(0), 0x1e, 0x75])) // 7797
-    expect(ret.segments[4].key.iv).toEqual(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 118]))
+    expect(ret.segments[3].key.iv).toEqual(
+      new Uint8Array([...Array(14).fill(0), 0x1e, 0x75])
+    ) // 7797
+    expect(ret.segments[4].key.iv).toEqual(
+      new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 118])
+    )
   })
-
 })

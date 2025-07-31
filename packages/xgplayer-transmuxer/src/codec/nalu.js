@@ -5,7 +5,7 @@ export class NALu {
    * @param {Uint8Array} data
    * @returns {Uint8Array[]}
    */
-  static parseAnnexB (data) {
+  static parseAnnexB(data) {
     let j = data.byteLength - 1
     let dropZerosLength = 0
     // Collect tailing zeros.
@@ -80,14 +80,14 @@ export class NALu {
     return units
   }
 
-  static parseAvcC (data, size = 4) {
+  static parseAvcC(data, size = 4) {
     if (data.length < 4) return
     const dataLen = data.length
     const units = []
 
     let offset = 0
     let length
-    while ((offset + size) < dataLen) {
+    while (offset + size < dataLen) {
       length = readBig32(data, offset)
       if (size === 3) length >>>= 8
       offset += size
@@ -104,7 +104,7 @@ export class NALu {
     return units
   }
 
-  static parseSEI (unit, isHevc) {
+  static parseSEI(unit, isHevc) {
     const len = unit.length
     let i = isHevc ? 2 : 1
     let type = 0
@@ -132,11 +132,14 @@ export class NALu {
     }
 
     return {
-      payload: unit.subarray(i, i + size), type, size, uuid
+      payload: unit.subarray(i, i + size),
+      type,
+      size,
+      uuid
     }
   }
 
-  static removeEPB (uint) {
+  static removeEPB(uint) {
     const length = uint.byteLength
     const emulationPreventionBytesPositions = []
     let i = 1

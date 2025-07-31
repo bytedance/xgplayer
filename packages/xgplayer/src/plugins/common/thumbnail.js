@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import BasePlugin, { Util, Events } from '../../plugin'
+import BasePlugin, { Events, Util } from '../../plugin'
 /**
  * @typedef {{
  *   isShow?: boolean,
@@ -16,14 +16,14 @@ import BasePlugin, { Util, Events } from '../../plugin'
  * }} IThumbnailConfig
  */
 export default class Thumbnail extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'thumbnail'
   }
 
   /**
    * @type IThumbnailConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       isShow: false,
       urls: [], // 有多张大图就多个url就好
@@ -38,24 +38,28 @@ export default class Thumbnail extends BasePlugin {
     }
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.ratio = 1
     this.interval = null
     this._preloadMark = {}
   }
 
-  afterCreate () {
+  afterCreate() {
     if (this.usable) {
       this.initThumbnail()
     }
     this.on([Events.DURATION_CHANGE], () => {
       const { pic_num, interval } = this.config
-      this.usable && (this.interval = interval > 0 ? interval : Math.round(this.player.duration * 1000 / pic_num) / 1000)
+      this.usable &&
+        (this.interval =
+          interval > 0
+            ? interval
+            : Math.round((this.player.duration * 1000) / pic_num) / 1000)
     })
   }
 
-  setConfig (config) {
+  setConfig(config) {
     if (!config) {
       return
     }
@@ -69,14 +73,14 @@ export default class Thumbnail extends BasePlugin {
     this.usable && this.initThumbnail()
   }
 
-  get usable () {
+  get usable() {
     const { urls, pic_num } = this.config
     return urls && urls.length > 0 && pic_num > 0
   }
 
-  initThumbnail () {
+  initThumbnail() {
     const { width, height, pic_num, interval } = this.config
-    this.ratio = width / height * 100
+    this.ratio = (width / height) * 100
     this.interval = interval || Math.round(this.player.duration / pic_num)
     this._preloadMark = {}
     // this.preload(0)
@@ -90,11 +94,11 @@ export default class Thumbnail extends BasePlugin {
     // this.root.style.backgroundSize = `${width * col}px auto`
   }
 
-  getUrlByIndex (index) {
+  getUrlByIndex(index) {
     return index >= 0 && index < this.config.urls.length ? this.config.urls[index] : ''
   }
 
-  preload (index) {
+  preload(index) {
     if (this._preloadMark[index]) {
       return
     }
@@ -114,14 +118,14 @@ export default class Thumbnail extends BasePlugin {
     })
   }
 
-  getPosition (now, containerWidth = 0, containerHeight = 0) {
+  getPosition(now, containerWidth = 0, containerHeight = 0) {
     const { pic_num, row, col, width, height } = this.config
     this.interval = Math.round(this.player.duration / pic_num)
     let index = Math.ceil(now / this.interval) // 当前时间对应的图像索引
     index = index > pic_num ? pic_num : index
-    const urlIndex = index < row * col ? 0 : (Math.ceil(index / (row * col)) - 1)// 当前图像所在的url索引
+    const urlIndex = index < row * col ? 0 : Math.ceil(index / (row * col)) - 1 // 当前图像所在的url索引
     const indexInPage = index - urlIndex * (col * row) // 当前图像在当前url中的索引
-    const rowIndex = indexInPage > 0 ? Math.ceil(indexInPage / col) - 1 : 0// 当前图像在当前url中的行索引
+    const rowIndex = indexInPage > 0 ? Math.ceil(indexInPage / col) - 1 : 0 // 当前图像在当前url中的行索引
     const colIndex = indexInPage > 0 ? indexInPage - rowIndex * col - 1 : 0 // 当前图像在当前url中的列索引
     let swidth = 0 // containerWidth || width
     let sHeight = 0 // swidth * height / width
@@ -163,7 +167,7 @@ export default class Thumbnail extends BasePlugin {
     }
   }
 
-  update (dom, now, containerWidth = 0, containerHeight = 0, customStyle = '') {
+  update(dom, now, containerWidth = 0, containerHeight = 0, customStyle = '') {
     const { pic_num, urls } = this.config
     if (pic_num <= 0 || !urls || urls.length === 0) {
       return
@@ -171,7 +175,7 @@ export default class Thumbnail extends BasePlugin {
     const pos = this.getPosition(now, containerWidth, containerHeight)
     this.preload(pos.urlIndex)
 
-    Object.keys(pos.style).map((key) => {
+    Object.keys(pos.style).map(key => {
       dom.style[key] = pos.style[key]
     })
     Object.keys(customStyle).map(key => {
@@ -180,13 +184,13 @@ export default class Thumbnail extends BasePlugin {
   }
 
   // 对外暴露 切换缩略图配置
-  changeConfig (newConfig = {}) {
+  changeConfig(newConfig = {}) {
     this.setConfig(newConfig)
   }
 
-  createThumbnail (root, className) {
+  createThumbnail(root, className) {
     const dom = Util.createDom('xg-thumbnail', '', {}, `thumbnail ${className}`)
-    root && root.appendChild(dom)
+    root?.appendChild(dom)
     return dom
   }
 }

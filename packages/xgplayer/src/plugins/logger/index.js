@@ -1,7 +1,8 @@
 import BasePlugin, { Events, Util } from '../../plugin'
 import XG_DEBUG from '../../utils/debug'
-function now () {
-  return new Date().getTime()
+
+function now() {
+  return Date.now()
 }
 
 const LOG_TYPES = {
@@ -14,17 +15,17 @@ const LOG_TYPES = {
   SEEK_END: 'seekEnd'
 }
 class XGLogger extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'xgLogger'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       waitTimeout: 10000
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this._onReset()
     this._waitType = 'firstFrame'
 
@@ -40,7 +41,10 @@ class XGLogger extends BasePlugin {
       const { _state } = this
       const { autoplayStart, isFFSend } = _state
       this.startCostTime = now() - this.newPointTime
-      XG_DEBUG.logInfo(`[xgLogger]${this.player.playerId} LOAD_START`, `autoplayStart:${autoplayStart} isFFSend:${isFFSend} startCostTime:${this.startCostTime} newPointTime${this.newPointTime}`)
+      XG_DEBUG.logInfo(
+        `[xgLogger]${this.player.playerId} LOAD_START`,
+        `autoplayStart:${autoplayStart} isFFSend:${isFFSend} startCostTime:${this.startCostTime} newPointTime${this.newPointTime}`
+      )
       if (isFFSend) {
         return
       }
@@ -60,7 +64,10 @@ class XGLogger extends BasePlugin {
       this.fvt = this.vt - this.pt
       this.loadedCostTime = this.vt - this.newPointTime
       const { isTimeUpdate, isFFSend, autoplayStart } = this._state
-      XG_DEBUG.logInfo(`[xgLogger]${this.player.playerId} LOADED_DATA`, `fvt:${this.fvt} isTimeUpdate:${this._state.isTimeUpdate} loadedCostTime:${this.loadedCostTime}`)
+      XG_DEBUG.logInfo(
+        `[xgLogger]${this.player.playerId} LOADED_DATA`,
+        `fvt:${this.fvt} isTimeUpdate:${this._state.isTimeUpdate} loadedCostTime:${this.loadedCostTime}`
+      )
       if (isTimeUpdate || autoplayStart) {
         this._sendFF('loadedData')
       }
@@ -95,22 +102,31 @@ class XGLogger extends BasePlugin {
     })
   }
 
-  _initOnceEvents () {
+  _initOnceEvents() {
     this.off(Events.AUTOPLAY_STARTED, this._onAutoplayStart)
     this.off(Events.TIME_UPDATE, this._onTimeupdate)
     this.once(Events.AUTOPLAY_STARTED, this._onAutoplayStart)
     this.once(Events.TIME_UPDATE, this._onTimeupdate)
   }
 
-  _sendFF (endType) {
+  _sendFF(endType) {
     this.s = now()
     const { isFFLoading, isFFSend } = this._state
-    XG_DEBUG.logInfo(`[xgLogger]${this.player.playerId} _sendFF`, `${endType} fvt:${this.fvt} isFFLoading:${isFFLoading} !isFFSend:${!isFFSend}`)
+    XG_DEBUG.logInfo(
+      `[xgLogger]${this.player.playerId} _sendFF`,
+      `${endType} fvt:${this.fvt} isFFLoading:${isFFLoading} !isFFSend:${!isFFSend}`
+    )
     if (this.vt > 0 && isFFLoading && !isFFSend) {
       XG_DEBUG.logInfo(`[xgLogger]${this.player.playerId} emitLog_firstFrame`, endType)
       this._state.isFFLoading = false
       this._state.isFFSend = true
-      this.emitLog(LOG_TYPES.FIRST_FRAME, { fvt: this.fvt, costTime: this.fvt, vt: this.vt, startCostTime: this.startCostTime, loadedCostTime: this.loadedCostTime })
+      this.emitLog(LOG_TYPES.FIRST_FRAME, {
+        fvt: this.fvt,
+        costTime: this.fvt,
+        vt: this.vt,
+        startCostTime: this.startCostTime,
+        loadedCostTime: this.loadedCostTime
+      })
     }
   }
 
@@ -175,7 +191,12 @@ class XGLogger extends BasePlugin {
     this.waitingStart = now()
     this.fixedWaitingStart = now()
     this._waitType = 1
-    this.emitLog(LOG_TYPES.WAIT_START, { fixedStart: this.fixedWaitingStart, start: this.waitingStart, type: 1, endType: 'loadstart' })
+    this.emitLog(LOG_TYPES.WAIT_START, {
+      fixedStart: this.fixedWaitingStart,
+      start: this.waitingStart,
+      type: 1,
+      endType: 'loadstart'
+    })
   }
 
   _onWaiting = () => {
@@ -194,15 +215,24 @@ class XGLogger extends BasePlugin {
     }
     // 原始卡顿耗时起始时间
     this.fixedWaitingStart = now()
-    this._waitTimer = Util.setTimeout(this, () => {
-      if (this._isWaiting) {
-        this.waitingStart = now()
-        Util.clearTimeout(this, this._waitTimer)
-        this._waitTimer = null
-        this._startWaitTimeout()
-        this.emitLog(LOG_TYPES.WAIT_START, { fixedStart: this.fixedWaitingStart, start: this.waitingStart, type: this._waitType, endType: this._waitType === 2 ? 'seek' : 'playing' })
-      }
-    }, 200)
+    this._waitTimer = Util.setTimeout(
+      this,
+      () => {
+        if (this._isWaiting) {
+          this.waitingStart = now()
+          Util.clearTimeout(this, this._waitTimer)
+          this._waitTimer = null
+          this._startWaitTimeout()
+          this.emitLog(LOG_TYPES.WAIT_START, {
+            fixedStart: this.fixedWaitingStart,
+            start: this.waitingStart,
+            type: this._waitType,
+            endType: this._waitType === 2 ? 'seek' : 'playing'
+          })
+        }
+      },
+      200
+    )
   }
 
   _onError = () => {
@@ -210,27 +240,31 @@ class XGLogger extends BasePlugin {
     this.suspendWaitingStatus('error')
   }
 
-  _startWaitTimeout () {
+  _startWaitTimeout() {
     if (this._waittTimer) {
       Util.clearTimeout(this, this._waittTimer)
     }
-    this._waittTimer = Util.setTimeout(this, () => {
-      this.suspendWaitingStatus('timeout')
-      Util.clearTimeout(this, this._waittTimer)
-      this._waittTimer = null
-    }, this.config.waitTimeout)
+    this._waittTimer = Util.setTimeout(
+      this,
+      () => {
+        this.suspendWaitingStatus('timeout')
+        Util.clearTimeout(this, this._waittTimer)
+        this._waittTimer = null
+      },
+      this.config.waitTimeout
+    )
   }
 
   _onPlaying = () => {
     this._isWaiting && this.suspendWaitingStatus('playing')
   }
 
-  endState (endType) {
+  endState(endType) {
     this.suspendWaitingStatus(endType)
     this.suspendSeekingStatus(endType)
   }
 
-  suspendSeekingStatus (endType) {
+  suspendSeekingStatus(endType) {
     if (!this.seekingStart) {
       return
     }
@@ -240,7 +274,7 @@ class XGLogger extends BasePlugin {
     this.emitLog(LOG_TYPES.SEEK_END, { end: _now, costTime: _cost, endType })
   }
 
-  suspendWaitingStatus (endType) {
+  suspendWaitingStatus(endType) {
     if (this._waitTimer) {
       Util.clearTimeout(this, this._waitTimer)
       this._waitTimer = null
@@ -268,7 +302,7 @@ class XGLogger extends BasePlugin {
     })
   }
 
-  emitLog (eventType, data) {
+  emitLog(eventType, data) {
     const { player } = this
     this.emit(Events.XGLOG, {
       t: now(),
@@ -282,7 +316,4 @@ class XGLogger extends BasePlugin {
     })
   }
 }
-export {
-  LOG_TYPES,
-  XGLogger as default
-}
+export { LOG_TYPES, XGLogger as default }

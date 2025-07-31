@@ -1,7 +1,6 @@
 import { getConfig } from '../src/hls/config'
 
 describe('getOption', () => {
-
   test('default options', () => {
     const opts = getConfig()
 
@@ -39,5 +38,4 @@ describe('getOption', () => {
     expect(opts.isLive).toBe(undefined)
     expect(opts.url).toBe('xxx')
   })
-
 })

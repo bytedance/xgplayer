@@ -1,7 +1,7 @@
-import Plugin, { Util, Events, Sniffer, POSITIONS } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, Util } from '../../plugin'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
-import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
+import volumeSmallSvg from '../assets/volumeSmall.svg'
 import './index.scss'
 
 /**
@@ -16,14 +16,14 @@ import './index.scss'
  */
 
 class Volume extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'volume'
   }
 
   /**
    * @type IVolumeConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT, // [可选]插件挂载的dom
       index: 1, // [可选]插件在播放器中挂载的位置
@@ -34,7 +34,7 @@ class Volume extends Plugin {
     }
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       volumeSmall: { icon: volumeSmallSvg, class: 'xg-volume-small' },
       volumeLarge: { icon: volumeLargeSvg, class: 'xg-volume' },
@@ -42,7 +42,7 @@ class Volume extends Plugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this._timerId = null
     this._d = {
       isStart: false,
@@ -59,19 +59,26 @@ class Volume extends Plugin {
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
-    this.changeMutedHandler = this.hook('mutedChange', (e) => {
-      this.changeMuted(e)
-    }, {
-      pre: (e) => {
-        e.preventDefault()
-        e.stopPropagation()
+    this.changeMutedHandler = this.hook(
+      'mutedChange',
+      e => {
+        this.changeMuted(e)
+      },
+      {
+        pre: e => {
+          e.preventDefault()
+          e.stopPropagation()
+        }
       }
-    })
+    )
 
     this._onMouseenterHandler = this.hook('mouseenter', this.onMouseenter)
     this._onMouseleaveHandler = this.hook('mouseleave', this.onMouseleave)
 
-    if (!(Sniffer.device === 'mobile') && this.playerConfig.isMobileSimulateMode !== 'mobile') {
+    if (
+      !(Sniffer.device === 'mobile') &&
+      this.playerConfig.isMobileSimulateMode !== 'mobile'
+    ) {
       this.bind('mouseenter', this._onMouseenterHandler)
 
       this.bind(['blur', 'mouseleave'], this._onMouseleaveHandler)
@@ -93,7 +100,7 @@ class Volume extends Plugin {
     this.onVolumeChange()
   }
 
-  onBarMousedown = (e) => {
+  onBarMousedown = e => {
     const { player } = this
     const bar = this.find('.xgplayer-bar')
     Util.event(e)
@@ -114,7 +121,7 @@ class Volume extends Plugin {
     return false
   }
 
-  onBarMouseMove = (e) => {
+  onBarMouseMove = e => {
     const { _d } = this
     if (!_d.isStart) {
       return
@@ -132,7 +139,7 @@ class Volume extends Plugin {
     this.updateVolumePos(w, e)
   }
 
-  onBarMouseUp = (e) => {
+  onBarMouseUp = e => {
     Util.event(e)
     document.removeEventListener('mouseup', this.onBarMouseUp)
     const { _d } = this
@@ -140,14 +147,14 @@ class Volume extends Plugin {
     _d.isMoving = false
   }
 
-  updateVolumePos (height, event) {
+  updateVolumePos(height, event) {
     const { player } = this
     const drag = this.find('.xgplayer-drag')
     const bar = this.find('.xgplayer-bar')
     if (!bar || !drag) {
       return
     }
-    const now = parseInt(height / bar.getBoundingClientRect().height * 1000, 10)
+    const now = parseInt((height / bar.getBoundingClientRect().height) * 1000, 10)
     drag.style.height = `${height}px`
     const to = Math.max(Math.min(now / 1000, 1), 0)
     const props = {
@@ -162,7 +169,11 @@ class Volume extends Plugin {
         to: false
       }
     }
-    this.emitUserAction(event, 'change_volume', { muted: player.muted, volume: player.volume, props })
+    this.emitUserAction(event, 'change_volume', {
+      muted: player.muted,
+      volume: player.volume,
+      props
+    })
     player.volume = Math.max(Math.min(now / 1000, 1), 0)
     player.muted && (player.muted = false)
 
@@ -176,7 +187,7 @@ class Volume extends Plugin {
    *
    * @memberof Volume
    */
-  updateVolumeValue () {
+  updateVolumeValue() {
     const { volume, muted } = this.player
     const $labelValue = this.find('.xgplayer-value-label')
     const vol = Math.max(Math.min(volume, 1), 0)
@@ -190,7 +201,7 @@ class Volume extends Plugin {
   /**
    * @desc 聚焦
    */
-  focus () {
+  focus() {
     const { player } = this
     player.focus({ autoHide: false })
     if (this._timerId) {
@@ -207,7 +218,7 @@ class Volume extends Plugin {
    * @param { Event} [e] 事件
    * @returns
    */
-  unFocus (delay = 100, isForce = true, e) {
+  unFocus(delay = 100, isForce = true, e) {
     const { _d, player } = this
     if (_d.isActive) {
       return
@@ -216,17 +227,21 @@ class Volume extends Plugin {
       Util.clearTimeout(this, this._timerId)
       this._timerId = null
     }
-    this._timerId = Util.setTimeout(this, () => {
-      if (!_d.isActive) {
-        isForce ? player.blur() : player.focus()
-        Util.removeClass(this.root, 'slide-show')
-        _d.isStart && this.onBarMouseUp(e)
-      }
-      this._timerId = null
-    }, delay)
+    this._timerId = Util.setTimeout(
+      this,
+      () => {
+        if (!_d.isActive) {
+          isForce ? player.blur() : player.focus()
+          Util.removeClass(this.root, 'slide-show')
+          _d.isStart && this.onBarMouseUp(e)
+        }
+        this._timerId = null
+      },
+      delay
+    )
   }
 
-  onMouseenter = (e) => {
+  onMouseenter = _e => {
     this._d.isActive = true
     this.focus()
     this.emit('icon_mouseenter', {
@@ -234,7 +249,7 @@ class Volume extends Plugin {
     })
   }
 
-  onMouseleave = (e) => {
+  onMouseleave = e => {
     this._d.isActive = false
     this.unFocus(100, false, e)
     this.emit('icon_mouseleave', {
@@ -242,9 +257,9 @@ class Volume extends Plugin {
     })
   }
 
-  changeMuted (e) {
+  changeMuted(e) {
     // e.preventDefault()
-    e && e.stopPropagation()
+    e?.stopPropagation()
     const { player, _d } = this
     // 取消bar的状态
     _d.isStart && this.onBarMouseUp(e)
@@ -266,13 +281,14 @@ class Volume extends Plugin {
     }
   }
 
-  onVolumeChange = (e) => {
+  onVolumeChange = _e => {
     if (!this.player) {
       return
     }
     const { muted, volume } = this.player
     if (!this._d.isMoving) {
-      this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '4px' : `${volume * 100}%`
+      this.find('.xgplayer-drag').style.height =
+        muted || volume === 0 ? '4px' : `${volume * 100}%`
       if (this.config.showValueLabel) {
         this.updateVolumeValue()
       }
@@ -280,7 +296,7 @@ class Volume extends Plugin {
     this.animate(muted, volume)
   }
 
-  animate (muted, volume) {
+  animate(muted, volume) {
     if (muted || volume === 0) {
       this.setAttr('data-state', 'mute')
     } else if (volume < 0.5 && this.icons.volumeSmall) {
@@ -290,14 +306,14 @@ class Volume extends Plugin {
     }
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     this.appendChild('.xgplayer-icon', icons.volumeSmall)
     this.appendChild('.xgplayer-icon', icons.volumeLarge)
     this.appendChild('.xgplayer-icon', icons.volumeMuted)
   }
 
-  destroy () {
+  destroy() {
     if (this._timerId) {
       Util.clearTimeout(this, this._timerId)
       this._timerId = null
@@ -310,10 +326,14 @@ class Volume extends Plugin {
     this.unbind('.xgplayer-slider', 'mousemove', this.onBarMouseMove)
     this.unbind('.xgplayer-slider', 'mouseup', this.onBarMouseUp)
     document.removeEventListener('mouseup', this.onBarMouseUp)
-    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.changeMutedHandler)
+    this.unbind(
+      '.xgplayer-icon',
+      Sniffer.device === 'mobile' ? 'touchend' : 'click',
+      this.changeMutedHandler
+    )
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }

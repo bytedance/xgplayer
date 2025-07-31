@@ -3,7 +3,9 @@ module.exports = {
   width: 720,
   height: 1280,
   pps: [new Uint8Array([40, 238, 60, 176])],
-  sps: [new Uint8Array([39, 100, 0, 31, 172, 86, 128, 180, 10, 26, 106, 4, 4, 5, 72, 16])],
+  sps: [
+    new Uint8Array([39, 100, 0, 31, 172, 86, 128, 180, 10, 26, 106, 4, 4, 5, 72, 16])
+  ],
   videoFrameCount: 135,
   firstVideoFramePts: 126000,
   firstVideoFrameDts: 126000,

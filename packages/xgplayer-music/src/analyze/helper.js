@@ -1,19 +1,21 @@
-function __toRadians__ (degree) {
+function __toRadians__(degree) {
   return (degree * Math.PI) / 180
 }
 
-function __rotatePoint__ ([pointX, pointY], [originX, originY], degree) {
+function __rotatePoint__([pointX, pointY], [originX, originY], degree) {
   // clockwise
   const angle = __toRadians__(degree)
-  const rotatedX = Math.cos(angle) * (pointX - originX) - Math.sin(angle) * (pointY - originY) + originX
-  const rotatedY = Math.sin(angle) * (pointX - originX) + Math.cos(angle) * (pointY - originY) + originY
+  const rotatedX =
+    Math.cos(angle) * (pointX - originX) - Math.sin(angle) * (pointY - originY) + originX
+  const rotatedY =
+    Math.sin(angle) * (pointX - originX) + Math.cos(angle) * (pointY - originY) + originY
 
   return [rotatedX, rotatedY]
 }
 
-export function genLinear (ctx, size, colors, top) {
+export function genLinear(ctx, size, colors, top) {
   const rtv = ctx.createLinearGradient(0, 0, top ? 0 : size, top ? size : 0)
-  for (let i = 0; i < colors.length;) {
+  for (let i = 0; i < colors.length; ) {
     rtv.addColorStop(colors[i++], colors[i++])
   }
   return rtv
@@ -26,17 +28,17 @@ export function genLinear (ctx, size, colors, top) {
  * @param {*} colors
  * @returns
  */
-export function getGradient (ctx, w, colors) {
+export function getGradient(ctx, w, colors) {
   const gradient = ctx.createLinearGradient(0, 0, w, 0)
   const len = colors.length
   const per = 100 / len
   for (let i = 0; i < colors.length; i++) {
-    gradient.addColorStop(per * i / 100, colors[i])
+    gradient.addColorStop((per * i) / 100, colors[i])
   }
   return gradient
 }
 
-export function shrink (data, count) {
+export function shrink(data, count) {
   if (!count || count < 1) {
     count = data.length * count
   }
@@ -45,7 +47,7 @@ export function shrink (data, count) {
   const splitAt = Math.floor(data.length / count)
 
   for (let i = 1; i <= count; i++) {
-    const arraySection = data.slice(i * splitAt, (i * splitAt) + splitAt)
+    const arraySection = data.slice(i * splitAt, i * splitAt + splitAt)
     const middle = arraySection[Math.floor(arraySection.length / 2)]
     rtn.push(middle)
   }
@@ -53,14 +55,14 @@ export function shrink (data, count) {
   return rtn
 }
 
-export function scale (data, max) {
+export function scale(data, max) {
   let scalePercent = max / 255
   if (max <= 3 && max >= 0) scalePercent = max
   const rtn = data.map(value => value * scalePercent)
   return rtn
 }
 
-export function split (data, count) {
+export function split(data, count) {
   const size = Math.floor(data.length / count)
   const rtn = []
   let temp = []
@@ -80,7 +82,14 @@ export function split (data, count) {
   return rtn
 }
 
-export function getPoints (shape = 'line', size, [originX, originY], pointCount, endPoints, options = {}) {
+export function getPoints(
+  shape = 'line',
+  size,
+  [originX, originY],
+  pointCount,
+  endPoints,
+  options = {}
+) {
   const { offset = 0, rotate = 0, customOrigin = [] } = options
   const rtn = {
     start: [],
@@ -96,12 +105,18 @@ export function getPoints (shape = 'line', size, [originX, originY], pointCount,
       const degree = rotate
       const pointOffset = endPoints[i] * (offset / 100)
 
-      const startingPoint = __rotatePoint__([originX + (i * increment), originY - pointOffset],
-        [originX, originY], degree)
+      const startingPoint = __rotatePoint__(
+        [originX + i * increment, originY - pointOffset],
+        [originX, originY],
+        degree
+      )
       rtn.start.push(startingPoint)
 
-      const endingPoint = __rotatePoint__([originX + (i * increment), (originY + endPoints[i]) - pointOffset],
-        [originX, originY], degree)
+      const endingPoint = __rotatePoint__(
+        [originX + i * increment, originY + endPoints[i] - pointOffset],
+        [originX, originY],
+        degree
+      )
       rtn.end.push(endingPoint)
     }
 

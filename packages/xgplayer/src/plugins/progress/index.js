@@ -1,4 +1,4 @@
-import Plugin, { Events, Util, POSITIONS, Sniffer } from '../../plugin'
+import Plugin, { Events, POSITIONS, Sniffer, Util } from '../../plugin'
 import InnerList from './innerList'
 import './index.scss'
 
@@ -31,14 +31,14 @@ const FRAGMENT_FOCUS_CLASS = {
   HIGHLIGHT: 'inner-focus-highlight'
 }
 class Progress extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'progress'
   }
 
   /**
    * @type IProgressConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
@@ -53,18 +53,17 @@ class Progress extends Plugin {
       fragAutoFocus: false, // 是否hover的时候自动高亮
       miniMoveStep: 5,
       miniStartStep: 2,
-      onMoveStart: () => {
-      }, // 手势开始移动回调
+      onMoveStart: () => {}, // 手势开始移动回调
       onMoveEnd: () => {}, // 手势移动结束回调
       endedDiff: 0.2
     }
   }
 
-  static get FRAGMENT_FOCUS_CLASS () {
+  static get FRAGMENT_FOCUS_CLASS() {
     return FRAGMENT_FOCUS_CLASS
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     /**
      * @readonly
@@ -93,29 +92,35 @@ class Progress extends Plugin {
 
     // 兼容旧版本
     if (typeof this.config.isDragingSeek === 'boolean') {
-      console.warn('[XGPLAYER] \'isDragingSeek\' is deprecated, please use \'isDraggingSeek\' instead')
+      console.warn(
+        "[XGPLAYER] 'isDragingSeek' is deprecated, please use 'isDraggingSeek' instead"
+      )
       this.config.isDraggingSeek = this.config.isDragingSeek
     }
   }
 
-  get offsetDuration () {
-    return this.playerConfig.customDuration || this.player.offsetDuration || this.player.duration
+  get offsetDuration() {
+    return (
+      this.playerConfig.customDuration ||
+      this.player.offsetDuration ||
+      this.player.duration
+    )
   }
 
-  get duration () {
+  get duration() {
     return this.playerConfig.customDuration || this.player.duration
   }
 
-  get timeOffset () {
+  get timeOffset() {
     return this.playerConfig.timeOffset || 0
   }
 
-  get currentTime () {
+  get currentTime() {
     const { offsetCurrentTime, currentTime } = this.player
-    return offsetCurrentTime >= 0 ? offsetCurrentTime : (currentTime + this.timeOffset)
+    return offsetCurrentTime >= 0 ? offsetCurrentTime : currentTime + this.timeOffset
   }
 
-  changeState (useable = true) {
+  changeState(useable = true) {
     this.useable = useable
   }
 
@@ -123,7 +128,7 @@ class Progress extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show (value) {
+  show(_value) {
     this.root && (this.root.style.display = 'flex')
   }
   /**
@@ -131,21 +136,21 @@ class Progress extends Plugin {
    *              并把一些对外API绑定在progress上供外部调用
    *
    */
-  _initInner (fragments = [], config = {}) {
+  _initInner(fragments = [], config = {}) {
     if (!fragments || fragments.length === 0) {
       fragments = [{ percent: 1 }]
     }
     const _c = {
       fragments,
       ...config,
-      actionCallback: (data) => {
+      actionCallback: data => {
         this.emitUserAction('fragment_focus', 'fragment_focus', data)
       }
     }
     if (!this.innerList) {
       this.innerList = new InnerList(_c)
-      this.outer.insertBefore(this.innerList.render(), this.outer.children[0]);
-      ['findHightLight', 'unHightLight', 'setHightLight', 'findFragment'].map(item => {
+      this.outer.insertBefore(this.innerList.render(), this.outer.children[0])
+      ;['findHightLight', 'unHightLight', 'setHightLight', 'findFragment'].map(item => {
         this[item] = this.innerList[item].bind(this.innerList)
       })
     } else {
@@ -153,11 +158,11 @@ class Progress extends Plugin {
     }
   }
 
-  _updateInnerFocus (data) {
-    this.innerList && this.innerList.updateFocus(data)
+  _updateInnerFocus(data) {
+    this.innerList?.updateFocus(data)
   }
 
-  afterCreate () {
+  afterCreate() {
     if (this.config.disable || this.playerConfig.isLive) {
       return
     }
@@ -171,7 +176,12 @@ class Progress extends Plugin {
     }
     this.outer = this.find('xg-outer')
     const { fragFocusClass, fragAutoFocus, fragClass } = this.config
-    this._initInner(this.config.fragments, { fragFocusClass, fragAutoFocus, fragClass, style: this.playerConfig.commonStyle || {} })
+    this._initInner(this.config.fragments, {
+      fragFocusClass,
+      fragAutoFocus,
+      fragClass,
+      style: this.playerConfig.commonStyle || {}
+    })
     if (Sniffer.device === 'mobile') {
       this.config.isDraggingSeek = false
       this.isMobile = true
@@ -188,7 +198,7 @@ class Progress extends Plugin {
    * This method can be overridden.
    * Eg. xgplayer-ads/ui/adProgress.js
    */
-  listenEvents () {
+  listenEvents() {
     this.on(Events.DURATION_CHANGE, () => {
       this.onMouseLeave()
     })
@@ -225,7 +235,7 @@ class Progress extends Plugin {
    * @description 配置更新响应，插件内置调用api, 播放器整体配置更新的时候调用
    * @param {IProgressConfig} config
    */
-  setConfig (config) {
+  setConfig(config) {
     let frags = null
     Object.keys(config).forEach(key => {
       this.config[key] = config[key]
@@ -238,7 +248,7 @@ class Progress extends Plugin {
     }
   }
 
-  initCustomStyle () {
+  initCustomStyle() {
     const { commonStyle } = this.playerConfig || {}
     const { sliderBtnStyle } = commonStyle
     const { progressBtn } = this
@@ -258,10 +268,10 @@ class Progress extends Plugin {
    * @param { string } type 类型 drag/dragend
    * @param { any} data 具体数据
    */
-  triggerCallbacks (type, data, event) {
+  triggerCallbacks(type, data, event) {
     if (this.__dragCallBacks.length > 0) {
       this.__dragCallBacks.map(item => {
-        if (item && item.handler && item.type === type) {
+        if (item?.handler && item.type === type) {
           try {
             item.handler(data, event)
           } catch (error) {
@@ -277,7 +287,7 @@ class Progress extends Plugin {
    * @param {string} type 类型 drag/dragend
    * @param {function} handle 回调函数句柄
    */
-  addCallBack (type, handle) {
+  addCallBack(type, handle) {
     if (handle && typeof handle === 'function') {
       this.__dragCallBacks.push({ type: type, handler: handle })
     }
@@ -288,7 +298,7 @@ class Progress extends Plugin {
    * @param {string} type 类型 drag/dragend
    * @param {Function} event 回调函数句柄
    */
-  removeCallBack (type, event) {
+  removeCallBack(type, event) {
     const { __dragCallBacks } = this
     let _index = -1
     __dragCallBacks.map((item, index) => {
@@ -305,7 +315,7 @@ class Progress extends Plugin {
    * @description 解除进度条的所动状态
    * @returns
    */
-  unlock () {
+  unlock() {
     const { player, pos } = this
     pos.isEnter = false
     pos.isLocked = false
@@ -320,7 +330,7 @@ class Progress extends Plugin {
     this.blur()
   }
 
-  bindDomEvents () {
+  bindDomEvents() {
     const { config } = this.player
     this._mouseDownHandlerHook = this.hook('dragstart', this._mouseDownHandler)
     this._mouseUpHandlerHook = this.hook('dragend', this._mouseUpHandler)
@@ -332,7 +342,8 @@ class Progress extends Plugin {
 
     if (this.domEventType === 'mouse' || this.domEventType === 'compatible') {
       this.bind('mousedown', this.onMouseDown)
-      config.isMobileSimulateMode !== 'mobile' && this.bind('mouseenter', this.onMouseEnter)
+      config.isMobileSimulateMode !== 'mobile' &&
+        this.bind('mouseenter', this.onMouseEnter)
       this.bind('mouseover', this.onMouseOver)
       this.bind('mouseout', this.onMouseOut)
       // 避免触发videoClick 暂停/播放切换
@@ -340,12 +351,12 @@ class Progress extends Plugin {
     }
   }
 
-  focus () {
+  focus() {
     this.player.controls.pauseAutoHide()
     Util.addClass(this.root, 'active')
   }
 
-  blur () {
+  blur() {
     if (this._disableBlur) {
       return
     }
@@ -353,11 +364,11 @@ class Progress extends Plugin {
     Util.removeClass(this.root, 'active')
   }
 
-  disableBlur () {
+  disableBlur() {
     this._disableBlur = true
   }
 
-  enableBlur () {
+  enableBlur() {
     this._disableBlur = false
   }
 
@@ -384,7 +395,7 @@ class Progress extends Plugin {
    * @param {*} e
    * @returns
    */
-  onBodyClick = (e) => {
+  onBodyClick = e => {
     if (!this.pos.isLocked) {
       return
     }
@@ -393,13 +404,13 @@ class Progress extends Plugin {
     e.stopPropagation()
   }
 
-  _mouseDownHandler = (event, data) => {
+  _mouseDownHandler = (_event, data) => {
     this._state.time = data.currentTime
     this.updateWidth(data.currentTime, data.seekTime, data.percent, 0)
     this._updateInnerFocus(data)
   }
 
-  _mouseUpHandler = (e, data) => {
+  _mouseUpHandler = (_e, data) => {
     const { pos } = this
     pos.moving && this.updateWidth(data.currentTime, data.seekTime, data.percent, 2)
   }
@@ -423,11 +434,15 @@ class Progress extends Plugin {
     this._updateInnerFocus(data)
   }
 
-  onMouseDown = (e) => {
+  onMouseDown = e => {
     const { _state, player, pos, config, playerConfig } = this
     const _ePos = Util.getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
-    if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
+    if (
+      player.isMini ||
+      config.closeMoveSeek ||
+      (!playerConfig.allowSeekAfterEnded && player.ended)
+    ) {
       return
     }
 
@@ -438,7 +453,8 @@ class Progress extends Plugin {
     e.stopPropagation()
     // e.preventDefault()
     this.focus()
-    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
+    Util.checkIsFunction(playerConfig.disableSwipeHandler) &&
+      playerConfig.disableSwipeHandler()
     Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
     Util.event(e)
     pos.x = x
@@ -470,14 +486,15 @@ class Progress extends Plugin {
     return true
   }
 
-  onMouseUp = (e) => {
+  onMouseUp = e => {
     const { player, config, pos, playerConfig, _state } = this
     if (!pos) {
       return
     }
     e.stopPropagation()
     e.preventDefault()
-    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) &&
+      playerConfig.enableSwipeHandler()
     Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
     Util.event(e)
     Util.removeClass(this.progressBtn, 'active')
@@ -513,18 +530,23 @@ class Progress extends Plugin {
       if (!pos.isEnter) {
         this.onMouseLeave(e)
       } else {
-        playerConfig.isMobileSimulateMode !== 'mobile' && this.bind('mousemove', this.onMoveOnly)
+        playerConfig.isMobileSimulateMode !== 'mobile' &&
+          this.bind('mousemove', this.onMoveOnly)
       }
     }
     // 延迟复位，状态复位要在dom相关时间回调执行之后
-    Util.setTimeout(this, () => {
-      this.resetSeekState()
-    }, 1)
+    Util.setTimeout(
+      this,
+      () => {
+        this.resetSeekState()
+      },
+      1
+    )
     // 交互结束 恢复控制栏的隐藏流程
     player.focus()
   }
 
-  onMouseMove = (e) => {
+  onMouseMove = e => {
     const { _state, pos, player, config } = this
     if (Util.checkTouchSupport()) {
       // e.stopPropagation()
@@ -534,7 +556,10 @@ class Progress extends Plugin {
     const _ePos = Util.getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
     const diff = Math.abs(pos.x - x)
-    if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
+    if (
+      (pos.moving && diff < config.miniMoveStep) ||
+      (!pos.moving && diff < config.miniStartStep)
+    ) {
       return
     }
     pos.x = x
@@ -543,17 +568,22 @@ class Progress extends Plugin {
     this._mouseMoveHandlerHook(e, ret)
   }
 
-  onMouseOut = (e) => {
+  onMouseOut = e => {
     this.triggerCallbacks('mouseout', null, e)
   }
 
-  onMouseOver = (e) => {
+  onMouseOver = e => {
     this.triggerCallbacks('mouseover', null, e)
   }
 
-  onMouseEnter = (e) => {
+  onMouseEnter = e => {
     const { player, pos } = this
-    if (pos.isDown || pos.isEnter || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
+    if (
+      pos.isDown ||
+      pos.isEnter ||
+      player.isMini ||
+      (!player.config.allowSeekAfterEnded && player.ended)
+    ) {
       return
     }
     pos.isEnter = true
@@ -568,7 +598,7 @@ class Progress extends Plugin {
     this.focus()
   }
 
-  onMouseLeave = (e) => {
+  onMouseLeave = e => {
     this.triggerCallbacks('mouseleave', null, e)
     this.unlock()
     this._updateInnerFocus(null)
@@ -589,13 +619,16 @@ class Progress extends Plugin {
    * @param {number} percent 更新时间占比
    * @param {number} type 触发类型 0-down 1-move 2-up
    */
-  updateWidth (currentTime, seekTime, percent, type) {
+  updateWidth(currentTime, seekTime, percent, type) {
     const { config, player } = this
     if (config.isCloseClickSeek && type === 0) {
       return
     }
 
-    const realTime = seekTime = seekTime >= player.duration ? player.duration - config.endedDiff : Number(seekTime).toFixed(1)
+    const realTime = (seekTime =
+      seekTime >= player.duration
+        ? player.duration - config.endedDiff
+        : Number(seekTime).toFixed(1))
 
     this.updatePercent(percent)
     this.updateTime(currentTime)
@@ -607,7 +640,7 @@ class Progress extends Plugin {
     player.seek(realTime)
   }
 
-  computeTime (e, x) {
+  computeTime(e, x) {
     const { player } = this
     const { width, height, top, left } = this.root.getBoundingClientRect()
     let rWidth, rLeft
@@ -620,10 +653,10 @@ class Progress extends Plugin {
       rLeft = left
     }
     let offset = clientX - rLeft
-    offset = offset > rWidth ? rWidth : (offset < 0 ? 0 : offset)
+    offset = offset > rWidth ? rWidth : offset < 0 ? 0 : offset
     let percent = offset / rWidth
-    percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
-    if(Number.isNaN(percent)){
+    percent = percent < 0 ? 0 : percent > 1 ? 1 : percent
+    if (Number.isNaN(percent)) {
       percent = this.player.currentTime / this.offsetDuration
     }
     const currentTime = parseInt(percent * this.offsetDuration * 1000, 10) / 1000
@@ -644,7 +677,7 @@ class Progress extends Plugin {
    *             本位置会和time插件交互
    * @param {number} time 根据拖拽距离计算出的时间
    */
-  updateTime (time) {
+  updateTime(time) {
     const { player, duration } = this
     if (time > duration) {
       time = duration
@@ -660,10 +693,10 @@ class Progress extends Plugin {
   /**
    * @description 复位正在拖拽状态 ，拖拽的时候要避免timeupdate更新
    */
-  resetSeekState () {
+  resetSeekState() {
     this.isProgressMoving = false
     const timeIcon = this.player.plugins.time
-    timeIcon && timeIcon.resetActive()
+    timeIcon?.resetActive()
   }
 
   /**
@@ -671,16 +704,16 @@ class Progress extends Plugin {
    * @param {number} percent 小于0的小数
    *
    */
-  updatePercent (percent, notSeek) {
+  updatePercent(percent, _notSeek) {
     this.isProgressMoving = true
     if (this.config.disable) {
       return
     }
-    percent = percent > 1 ? 1 : (percent < 0 ? 0 : percent)
+    percent = percent > 1 ? 1 : percent < 0 ? 0 : percent
     this.progressBtn.style.left = `${percent * 100}%`
     this.innerList.update({ played: percent * this.offsetDuration }, this.offsetDuration)
     const { miniprogress } = this.player.plugins
-    miniprogress && miniprogress.update({ played: percent * this.offsetDuration }, this.offsetDuration)
+    miniprogress?.update({ played: percent * this.offsetDuration }, this.offsetDuration)
   }
 
   /**
@@ -688,13 +721,18 @@ class Progress extends Plugin {
    * @param { boolean } isEnded 是否是播放结束的时候调用
    * @returns
    */
-  onTimeupdate (isEnded) {
+  onTimeupdate(isEnded) {
     const { player, _state, offsetDuration } = this
-    if ((player.isSeeking && player.media.seeking) || this.isProgressMoving || !player.hasStart) {
+    if (
+      (player.isSeeking && player.media.seeking) ||
+      this.isProgressMoving ||
+      !player.hasStart
+    ) {
       return
     }
     if (_state.now > -1) {
-      const abs = parseInt(_state.now * 1000, 10) - parseInt(player.currentTime * 1000, 10)
+      const abs =
+        parseInt(_state.now * 1000, 10) - parseInt(player.currentTime * 1000, 10)
       if ((_state.direc === 0 && abs > 300) || (_state.direc === 1 && abs > -300)) {
         _state.now = -1
         return
@@ -705,7 +743,7 @@ class Progress extends Plugin {
     let time = this.currentTime // this.timeOffset + player.currentTime
     time = Util.adjustTimeByDuration(time, offsetDuration, isEnded)
     this.innerList.update({ played: time }, offsetDuration)
-    this.progressBtn.style.left = `${time / offsetDuration * 100}%`
+    this.progressBtn.style.left = `${(time / offsetDuration) * 100}%`
   }
 
   /**
@@ -713,7 +751,7 @@ class Progress extends Plugin {
    * @param { boolean } isEnded 是否是结束时触发
    * @returns
    */
-  onCacheUpdate (isEnded) {
+  onCacheUpdate(isEnded) {
     const { player, duration } = this
     if (!player) {
       return
@@ -724,12 +762,12 @@ class Progress extends Plugin {
     this.innerList.update({ cached: _end }, duration)
   }
 
-  onReset () {
+  onReset() {
     this.innerList.update({ played: 0, cached: 0 }, 0)
     this.progressBtn.style.left = '0%'
   }
 
-  destroy () {
+  destroy() {
     const { player } = this
     this.thumbnailPlugin = null
     this.innerList.destroy()
@@ -752,7 +790,7 @@ class Progress extends Plugin {
     }
   }
 
-  render () {
+  render() {
     if (this.config.disable || this.playerConfig.isLive) {
       return
     }

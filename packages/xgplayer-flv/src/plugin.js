@@ -1,4 +1,4 @@
-import { BasePlugin, Events, Errors } from 'xgplayer'
+import { BasePlugin, Errors, Events } from 'xgplayer'
 import { EVENT } from 'xgplayer-streaming-shared'
 import { Flv, logger } from './flv'
 import PluginExtension from './plugin-extension'
@@ -6,44 +6,48 @@ import PluginExtension from './plugin-extension'
 export class FlvPlugin extends BasePlugin {
   static Flv = Flv
 
-  static get pluginName () {
+  static get pluginName() {
     return 'flv'
   }
 
   logger = logger
 
   /** @type {Flv} */
-  flv = null;
+  flv = null
 
   /** @type {PluginExtension} */
   pluginExtension = null
 
-
   /** @type {Flv} */
-  get core () {
+  get core() {
     return this.flv
   }
 
   /** @type {string} */
-  get version () {
+  get version() {
     return this.flv?.version
   }
 
   /** @type {boolean} */
-  get softDecode () {
+  get softDecode() {
     const mediaType = this.player?.config?.mediaType
-    return !!mediaType && mediaType !== 'video' && mediaType !== 'audio' && mediaType !== 'offscreen-video'
+    return (
+      !!mediaType &&
+      mediaType !== 'video' &&
+      mediaType !== 'audio' &&
+      mediaType !== 'offscreen-video'
+    )
   }
 
-  get loader () {
+  get loader() {
     return this.flv?.loader
   }
 
-  get transferCost () {
+  get transferCost() {
     return this.flv._transferCost.transferCost
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     const config = this.player.config
     const mediaElem = this.player.media || this.player.video
 
@@ -62,7 +66,7 @@ export class FlvPlugin extends BasePlugin {
       softDecode: this.softDecode,
       isLive: config.isLive,
       media: mediaElem,
-      preProcessUrl: (url, ext) => this.player?.preProcessUrl?.(url, ext) || {url, ext},
+      preProcessUrl: (url, ext) => this.player?.preProcessUrl?.(url, ext) || { url, ext },
       ...flvOpts
     })
 
@@ -78,12 +82,16 @@ export class FlvPlugin extends BasePlugin {
     }
 
     if (this.softDecode) {
-      this.pluginExtension = new PluginExtension({
-        media: this.player.video,
-        isLive: config.isLive,
-        ...config.flv
-      }, this)
-      this.player.forceDegradeToVideo = (...args) => this.pluginExtension?.forceDegradeToVideo(...args)
+      this.pluginExtension = new PluginExtension(
+        {
+          media: this.player.video,
+          isLive: config.isLive,
+          ...config.flv
+        },
+        this
+      )
+      this.player.forceDegradeToVideo = (...args) =>
+        this.pluginExtension?.forceDegradeToVideo(...args)
     }
 
     if (config.isLive) {
@@ -126,7 +134,7 @@ export class FlvPlugin extends BasePlugin {
     return this.flv?.getStats()
   }
 
-  loadSource = (url = this.player.config.url, streamRes) => {
+  loadSource = (_url = this.player.config.url, streamRes) => {
     this.flv?.load(this.player.config.url, true, streamRes)
   }
 
@@ -146,11 +154,11 @@ export class FlvPlugin extends BasePlugin {
    * - mediaType: 默认检测 MSE 对 H264 codec是否支持，传入 true 或者配置参数的mediaType的取值检测 WebAssembly是否支持
    * - codec: 暂无使用
    */
-  static isSupported (mediaType, codec) {
+  static isSupported(mediaType, codec) {
     return Flv.isSupported(mediaType, codec)
   }
 
-  static isSupportedMMS () {
+  static isSupportedMMS() {
     return typeof ManagedMediaSource !== 'undefined'
   }
 
@@ -187,16 +195,16 @@ export class FlvPlugin extends BasePlugin {
     if (this.flv) this.flv.switchURL(to)
   }
 
-  _transError () {
-    this.flv.on(EVENT.ERROR, (err) => {
+  _transError() {
+    this.flv.on(EVENT.ERROR, err => {
       if (this.player) {
         this.player.emit(Events.ERROR, new Errors(this.player, err))
       }
     })
   }
 
-  _transCoreEvent (eventName) {
-    this.flv.on(eventName, (e) => {
+  _transCoreEvent(eventName) {
+    this.flv.on(eventName, e => {
       if (this.player) {
         this.player.emit('core_event', {
           ...e,

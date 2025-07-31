@@ -35,18 +35,16 @@ export default {
         msg: 'otros errores'
       }
     },
-    HAVE_NOTHING:
-        'No hay información sobre si el audio o el vídeo están listos',
+    HAVE_NOTHING: 'No hay información sobre si el audio o el vídeo están listos',
     HAVE_METADATA: 'Los metadatos de audio o vídeo están listos ',
     HAVE_CURRENT_DATA:
-        'Los datos sobre la ubicación de reproducción actual están disponibles, pero no hay suficientes datos para reproducir el siguiente marco/milisegundo',
-    HAVE_FUTURE_DATA:
-        'El marco de datos actual y al menos uno más están disponibles',
+      'Los datos sobre la ubicación de reproducción actual están disponibles, pero no hay suficientes datos para reproducir el siguiente marco/milisegundo',
+    HAVE_FUTURE_DATA: 'El marco de datos actual y al menos uno más están disponibles',
     HAVE_ENOUGH_DATA:
-        'Los datos disponibles son suficientes para iniciar la reproducción',
+      'Los datos disponibles son suficientes para iniciar la reproducción',
     NETWORK_EMPTY: 'El audio o el vídeo no se han iniciado',
     NETWORK_IDLE:
-        'El audio o el vídeo están activos y se han seleccionado para los recursos, pero no se utiliza ninguna red',
+      'El audio o el vídeo están activos y se han seleccionado para los recursos, pero no se utiliza ninguna red',
     NETWORK_LOADING: 'El navegador está descargando los datos',
     NETWORK_NO_SOURCE: 'No se ha encontrado ninguna fuente de audio o vídeo',
     MEDIA_ERR_ABORTED: 'El usuario ha cancelado el proceso de recuperación',

@@ -1,7 +1,14 @@
 import path from 'path'
 import renameNodeModules from 'rollup-plugin-rename-node-modules'
 import { terser } from 'rollup-plugin-terser'
-import { commonPlugins, createCssConfig, getUmdName, getJsEntry, getCssEntry, getUmdGlobals } from './rollup.base'
+import {
+  commonPlugins,
+  createCssConfig,
+  getUmdName,
+  getJsEntry,
+  getCssEntry,
+  getUmdGlobals
+} from './rollup.base'
 
 const target = process.env.TARGET
 
@@ -18,12 +25,19 @@ const [entryFileCss, entryFileCssMobile] = getCssEntry(pkgDir)
 
 export default [
   ...createJsConfig(pkgInfo),
-  entryFileCss && createCssConfig(entryFileCss, path.resolve(pkgDir, `dist/${pkgInfo.cssFileName || 'index'}.css`)),
-  entryFileCssMobile && createCssConfig(entryFileCssMobile, path.resolve(pkgDir, `dist/${pkgInfo.cssFileNameMobile || 'index.mobile'}.css`))
+  entryFileCss &&
+    createCssConfig(
+      entryFileCss,
+      path.resolve(pkgDir, `dist/${pkgInfo.cssFileName || 'index'}.css`)
+    ),
+  entryFileCssMobile &&
+    createCssConfig(
+      entryFileCssMobile,
+      path.resolve(pkgDir, `dist/${pkgInfo.cssFileNameMobile || 'index.mobile'}.css`)
+    )
 ].filter(Boolean)
 
-
-function createEsConfig (input, peerDependencies, dependencies) {
+function createEsConfig(input, peerDependencies, dependencies) {
   return {
     external: [...peerDependencies, ...dependencies].map(x => new RegExp(`^${x}`)),
     input: input,
@@ -35,7 +49,7 @@ function createEsConfig (input, peerDependencies, dependencies) {
         preserveModulesRoot: `packages/${target}/src`,
         // some plugin generated virtual file
         // The file name is not js suffix, which will cause vite crash
-        sanitizeFileName (name) {
+        sanitizeFileName(name) {
           // commonjs plugin add query suffix
           // @see https://github.com/rollup/plugins/blob/master/packages/commonjs/src/helpers.js#L5
           if (name.includes('.js?')) {
@@ -47,7 +61,10 @@ function createEsConfig (input, peerDependencies, dependencies) {
           name = driveLetter + name.substr(driveLetter.length).replace(/[\0?*:]/g, '_')
           // web-worker-loader plugin not add .js suffix
           // @see https://github.com/darionco/rollup-plugin-web-worker-loader/blob/master/src/helper/auto/createBase64WorkerFactory.js#L2
-          if (name.endsWith('web-worker-loader__helper__browser__createBase64WorkerFactory')) name += '.js'
+          if (
+            name.endsWith('web-worker-loader__helper__browser__createBase64WorkerFactory')
+          )
+            name += '.js'
           return name
         },
         plugins: [
@@ -60,10 +77,12 @@ function createEsConfig (input, peerDependencies, dependencies) {
   }
 }
 
-function createJsConfig (pkgInfo) {
+function createJsConfig(pkgInfo) {
   const peerDependencies = Object.keys(pkgInfo.peerDependencies || {})
   const dependencies = Object.keys(pkgInfo.dependencies || {})
-  const esConfig = esEntryFiles.map(x => createEsConfig(x, peerDependencies, dependencies))
+  const esConfig = esEntryFiles.map(x =>
+    createEsConfig(x, peerDependencies, dependencies)
+  )
 
   return [
     {

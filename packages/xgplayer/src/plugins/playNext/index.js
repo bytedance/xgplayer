@@ -1,17 +1,17 @@
 /**
  * 下一个按钮组件
  */
-import Plugin, { POSITIONS, Sniffer, Events } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
+import Plugin, { Events, POSITIONS, Sniffer } from '../../plugin'
 import Next from '../assets/playNext.svg'
+import { xgIconTips } from '../common/iconTools'
 import './index.scss'
 
 export default class PlayNextIcon extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'playNext'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_LEFT,
       index: 1,
@@ -20,12 +20,12 @@ export default class PlayNextIcon extends Plugin {
     }
   }
 
-  constructor (options) {
+  constructor(options) {
     super(options)
     this.idx = -1
   }
 
-  afterCreate () {
+  afterCreate() {
     if (!this.config.urlList || this.config.urlList.length === 0) {
       return
     }
@@ -33,20 +33,20 @@ export default class PlayNextIcon extends Plugin {
     this.initEvents()
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       playNext: Next
     }
   }
 
-  initEvents () {
+  initEvents() {
     this.nextHandler = this.hook('nextClick', this.changeSrc)
     const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
     this.bind(event, this.playNext)
     this.show()
   }
 
-  playNext = (e) => {
+  playNext = e => {
     const { player } = this
     e.preventDefault()
     e.stopPropagation()
@@ -60,7 +60,7 @@ export default class PlayNextIcon extends Plugin {
     }
   }
 
-  changeSrc (url) {
+  changeSrc(url) {
     const { player } = this
     if (!url) {
       return
@@ -76,11 +76,11 @@ export default class PlayNextIcon extends Plugin {
     player.play()
   }
 
-  destroy () {
+  destroy() {
     this.unbind(['touchend', 'click'], this.playNext)
   }
 
-  render () {
+  render() {
     if (!this.config.urlList || this.config.urlList.length === 0) {
       return
     }

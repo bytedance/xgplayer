@@ -1,26 +1,26 @@
 import { Plugin } from 'xgplayer'
 
 export class MusicMeta extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'musicmeta'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       index: 0
     }
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     const progress = args.player.plugins.progress
     if (progress) {
       args.root = progress.root
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.on('change', item => {
-      if (item && item.title) {
+      if (item?.title) {
         this.root.innerHTML = `${item.title}`
       } else {
         this.root.innerHTML = ''
@@ -28,7 +28,7 @@ export class MusicMeta extends Plugin {
     })
   }
 
-  render () {
+  render() {
     const { playerConfig } = this
     return `<xg-title class="xgplayer-name">
           ${playerConfig.title || ''}

@@ -9,7 +9,7 @@ export class AudioSample {
    * @param {Uint8Array} data
    * @param {number} [duration=1024]
    */
-  constructor (pts, data, duration, sampleOffset) {
+  constructor(pts, data, duration, sampleOffset) {
     this.originPts = this.pts = this.dts = pts
     this.data = data
     this.size = data.byteLength
