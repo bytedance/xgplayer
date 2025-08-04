@@ -339,8 +339,17 @@ export class MSE {
   clearOpQueues (type, allClear = true) {
     this._logger.debug('MSE clearOpQueue START')
     const queue = this._queue[type]
+    const sb = this._sourceBuffer[type]
+
+    let keepLast = false
+    if (sb?.updating) {
+      keepLast = true
+    }
     if (allClear && queue) {
-      this._queue[type] = []
+      const delCount = keepLast ? Math.max(queue.length - 1, 0) : queue.length
+      if (delCount > 0) {
+        queue.splice(0, delCount)
+      }
       return
     }
     // if (!Array.isArray(queue) || queue.length < 5) return
