@@ -1,0 +1,116 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/browser/**",
+      "!**/dist/**",
+      "!**/fixtures/**",
+      "!**/examples/**",
+      "!**/__tests__/**",
+      "!/**/dist/**",
+      "!/**/es/**",
+      "!/**/lib/**",
+      "!/**/liv/**",
+      "!/**/browser/**",
+      "!**/jest.config.js",
+      "!**/jest.setup.js",
+      "!**/babel.config.js",
+      "!**/packages/xgplayer-shaka/**",
+      "!**/packages/xgplayer-helper-transmuxers/**",
+      "!**/packages/xgplayer-helper-utils/**",
+      "!**/packages/xgplayer-m4a/**",
+      "!**/packages/xgplayer-xgvideo/src/decoder/wasm/**",
+      "!**/packages/xgplayer-xgvideo/src/decoder/webcodec/**",
+      "!**/packages/xgplayer-xgvideo/src/polyfills/**",
+      "!**/packages/xgplayer-flv.js/src/flv/**",
+      "!**/packages/xgplayer-hls.js/src/hls.js/**",
+      "!**/packages/xgplayer-transmuxer/__tests__/movies/**",
+      "*.json",
+      "*.js",
+      "*.ts",
+      "*.tsx",
+      "*.jsx",
+      "*.cjs",
+      "*.mjs",
+      "*.md"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 90,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "quoteProperties": "asNeeded",
+      "semicolons": "asNeeded",
+      "trailingCommas": "none",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": true,
+      "bracketSameLine": false
+    },
+    "globals": ["__VERSION__", "__DEV__", "module", "fetch", "Headers", "global"]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noExtraBooleanCast": "off",
+        "noStaticOnlyClass": "off",
+        "useOptionalChain": "warn",
+        "noArguments": "off"
+      },
+      "correctness": {
+        "noConstantCondition": "off",
+        "noConstructorReturn": "error",
+        "useExhaustiveDependencies": "off"
+      },
+      "style": {
+        "useConst": "warn",
+        "useTemplate": "warn"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noControlCharactersInRegex": "off",
+        "noDoubleEquals": "error",
+        "noPrototypeBuiltins": "off",
+        "noShadowRestrictedNames": "off",
+        "noExplicitAny": "off",
+        "noDuplicateClassMembers": "off",
+        "noGlobalAssign": "off",
+        "noImplicitAnyLet": "off"
+      },
+      "nursery": {
+        "noUnassignedVariables": "error"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/**/*.js"],
+      "javascript": {
+        "globals": ["fetch", "Headers", "global"]
+      }
+    }
+  ]
+}
