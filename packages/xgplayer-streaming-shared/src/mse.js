@@ -170,10 +170,12 @@ export class MSE {
       ms.removeEventListener('sourceopen', onOpen)
       URL.revokeObjectURL(media.src)
       this._openPromise.resolve({costtime})
+      media.dispatchEvent(new CustomEvent('mseAttached'))
     }
     ms.addEventListener('sourceopen', onOpen)
     this._url = URL.createObjectURL(ms)
     media.src = this._url
+    media.dispatchEvent(new CustomEvent('mseAttaching'))
     return this._openPromise
   }
 
@@ -334,22 +336,31 @@ export class MSE {
     return p
   }
 
-  clearOpQueues (type, allClear) {
+  clearOpQueues (type, allClear = true) {
     this._logger.debug('MSE clearOpQueue START')
     const queue = this._queue[type]
+    const sb = this._sourceBuffer[type]
+
+    let keepLast = false
+    if (sb?.updating) {
+      keepLast = true
+    }
     if (allClear && queue) {
-      this._queue[type] = []
+      const delCount = keepLast ? Math.max(queue.length - 1, 0) : queue.length
+      if (delCount > 0) {
+        queue.splice(0, delCount)
+      }
       return
     }
-    if (!queue || !queue[type] || queue.length < 5) return
-    const initOpque = []
-    queue.forEach(op => {
-      if (op.context && op.context.isinit) {
-        initOpque.push(op)
-      }
-    })
-    this._queue[type] = queue.slice(0, 2)
-    initOpque.length > 0 && this._queue[type].push(...initOpque)
+    // if (!Array.isArray(queue) || queue.length < 5) return
+    // const initOpque = []
+    // queue.forEach(op => {
+    //   if (op.context && op.context.isinit) {
+    //     initOpque.push(op)
+    //   }
+    // })
+    // this._queue[type] = queue.slice(0, 2)
+    // initOpque.length > 0 && this._queue[type].push(...initOpque)
   }
 
   /**
