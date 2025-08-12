@@ -337,9 +337,10 @@ export class MSE {
   }
 
   clearOpQueues (type, allClear = true) {
-    this._logger.debug('MSE clearOpQueue START')
     const queue = this._queue[type]
     const sb = this._sourceBuffer[type]
+
+    this._logger.debug('MSE clearOpQueue', type, allClear, 'sb updating: ', sb?.updating)
 
     let keepLast = false
     if (sb?.updating) {
@@ -569,6 +570,7 @@ export class MSE {
       return Promise.resolve()
     }
     return this._enqueueOp(type, () => {
+      this._logger.debug('MSE abort', type, context)
       this._sourceBuffer[type]?.abort()
       this._onSBUpdateEnd(type)
     }, 'abort', context)
