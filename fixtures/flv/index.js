@@ -128,11 +128,37 @@ window.onload = function () {
       player.on('core_event', (event) => {
         // player.on('core.metadataparsed', (e) => {
         // console.log('audio_sample', event);
-        if(event.eventName === 'core.metadataparsed') {
-          console.log('audio_sample.metadataparsed', event)
+        if(event.eventName === 'core.metadataparsed') { // 音频meta信息
+          console.log('audio_sample.metadataparsed', event);
+          if(event?.type ==='audio'){
+               window.audioDecoder = new AudioDecoder({
+              output: (frame)=>{
+                // console.log("Got PCM AudioData:", frame);
+                const pcm = new Float32Array(frame.numberOfFrames * frame.numberOfChannels);
+                frame.copyTo(pcm, { planeIndex: 0 });
+                console.log("PCM:", pcm); // 打印 PCM 数据  
+              }, 
+              error: e => console.error("Decoder error:", e)
+            });
+            window.audioDecoder.configure({
+              codec: event?.meta?.codec,   // AAC-LC 常用是 mp4a.40.2
+              sampleRate: event?.meta.sampleRate, 
+              numberOfChannels: event?.meta.channelCount
+            });
+          }
+           
         }
-        if(event.eventName === 'core.audio_sample') {
-          console.log('audio_sample.info', event)
+        if(event.eventName === 'core.audio_sample') { // 每段音频切片
+          console.log('audio_sample.info', event);
+          event?.samples.forEach(sample => {
+                     const chunk = new EncodedAudioChunk({
+                      type: "key",               // 音频都可以标 key
+                      timestamp: sample.dts * 1000, // 注意：WebCodecs 要微秒，mp4 通常是毫秒或采样数
+                      duration: sample.duration, // 可选
+                      data: sample.data
+                    });
+                    window.audioDecoder.decode(chunk);
+          });
         }
       // })
       })
