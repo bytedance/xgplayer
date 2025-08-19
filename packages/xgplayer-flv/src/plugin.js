@@ -113,6 +113,7 @@ export class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.STREAM_EXCEPTION)
     this._transCoreEvent(EVENT.SWITCH_URL_SUCCESS)
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
+    this._transCoreEvent(EVENT.AUDIO_SAMPLE_INFO)
 
     if (!flvOpts.manualLoad) {
       this.loadSource(config.url, flvOpts.streamRes)

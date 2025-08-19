@@ -336,6 +336,14 @@ export class BufferService {
         this.flv.emit(EVENT.KEYFRAME, { pts: sample.originPts })
       }
     })
+    if (this._opts?.canEmitAudioSampleInfo && audioTrack.samples){
+      this.flv.emit(EVENT.AUDIO_SAMPLE_INFO, {
+        samples: audioTrack.samples
+      })
+    }
+
+
+    // AUDIO_SAMPLE_INFO
 
     videoTrack.warnings.forEach(warn => {
       let type

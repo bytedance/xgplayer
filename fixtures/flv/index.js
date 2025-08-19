@@ -17,7 +17,7 @@ function defaultOpt() {
     maxReaderInterval: 5000,
     seamlesslyReload: false,
     firstMaxChunkSize: 20000,
-    manualLoad: true
+    manualLoad: false
   }
 }
 var cachedOpt = localStorage.getItem('xg:test:flv:opt')
@@ -120,9 +120,22 @@ window.onload = function () {
         autoplayMuted: opts.autoplayMuted,
         flv: {
           // streamRes: window.streamRes,
+          canEmitAudioSampleInfo:true,
           ...opts
         }
       });
+      // player.on('core_event', function (event) { pushEvent(event.eventName, event) })
+      player.on('core_event', (event) => {
+        // player.on('core.metadataparsed', (e) => {
+        // console.log('audio_sample', event);
+        if(event.eventName === 'core.metadataparsed') {
+          console.log('audio_sample.metadataparsed', event)
+        }
+        if(event.eventName === 'core.audio_sample') {
+          console.log('audio_sample.info', event)
+        }
+      // })
+      })
       player.once('ready', () => {
         // console.log('streamRes', Date.now() - timeStart, streamRes, player.plugins.flv)
         if (player.config.flv.manualLoad) {
@@ -272,9 +285,9 @@ window.onload = function () {
   inp(doDisconnectTime).onchange = function () { updateOpts('disconnectTime', this.value, 'number') }
   inp(doMaxReaderInterval).onchange = function () { updateOpts('maxReaderInterval', this.value, 'number') }
 
-  setTimeout(() => {
+  // setTimeout(() => {
     initPlayer()
-  }, 3000)
+  // }, 3000)
 
   dbResetOpt.onclick = resetOpts
   dbApplyOpt.onclick = initPlayer
