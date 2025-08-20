@@ -153,6 +153,20 @@ window.onload = function () {
           ...opts
         }
       });
+      function resampleMono(input, srcRate, dstRate) {
+  const ratio = srcRate / dstRate;
+  const outputLength = Math.floor(input.length / ratio);
+  const output = new Float32Array(outputLength);
+  for (let i = 0; i < outputLength; i++) {
+    const index = i * ratio;
+    const low = Math.floor(index);
+    const high = Math.min(Math.ceil(index), input.length - 1);
+    const weight = index - low;
+    output[i] = input[low] * (1 - weight) + input[high] * weight;
+  }
+  return output;
+}
+
       // player.on('core_event', function (event) { pushEvent(event.eventName, event) })
       player.on('core_event', (event) => {
         // player.on('core.metadataparsed', (e) => {
@@ -166,18 +180,50 @@ window.onload = function () {
                 // const pcm = new Float32Array(frame.numberOfFrames * frame.numberOfChannels);
                 //   frame.copyTo(pcm, { planeIndex: 0 });
  
+                 // 1. 合并声道成单声道
+    let monoData = new Float32Array(frame.numberOfFrames);
+    if (frame.numberOfChannels === 1) {
+      frame.copyTo(monoData, { planeIndex: 0 });
+    } else {
+      const temp = new Float32Array(frame.numberOfFrames);
+      for (let ch = 0; ch < frame.numberOfChannels; ch++) {
+        frame.copyTo(temp, { planeIndex: ch });
+        for (let i = 0; i < frame.numberOfFrames; i++) {
+          monoData[i] += temp[i] / frame.numberOfChannels;
+        }
+      }
+    }
+    const targetRate = 16100;
+    // 2. 低延迟线性重采样
+    const resampled = resampleMono(monoData, frame.sampleRate, targetRate);
+     // 3. 转成 AudioBuffer 播放
+    const buffer = audioContext.createBuffer(
+      1,
+      resampled.length,
+      targetRate
+    );
+    buffer.copyToChannel(resampled, 0, 0);
+    console.log('audio_buffer', buffer);
+    console.log('audio_buffer_info', buffer.getChannelData(0));
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
 
-                // 2. 创建 AudioBuffer
-                const audioBuffer = audioContext.createBuffer(
-                  frame.numberOfChannels,
-                  frame.numberOfFrames,
-                  frame.sampleRate
-                );
+    const now = audioContext.currentTime;
+    if (scheduledTime < now) scheduledTime = now;
+    source.start(scheduledTime);
+    scheduledTime += buffer.length / targetRate;
+              //   // 2. 创建 AudioBuffer
+              //   const audioBuffer = audioContext.createBuffer(
+              //     frame.numberOfChannels,
+              //     frame.numberOfFrames,
+              //     frame.sampleRate
+              //   );
 
-                // 2. 直接按声道 plane 拷贝
-              for (let ch = 0; ch < frame.numberOfChannels; ch++) {
-                frame.copyTo(audioBuffer.getChannelData(ch), { planeIndex: ch });
-              }
+              //   // 2. 直接按声道 plane 拷贝
+              // for (let ch = 0; ch < frame.numberOfChannels; ch++) {
+              //   frame.copyTo(audioBuffer.getChannelData(ch), { planeIndex: ch });
+              // }
                 //  // 将交错 PCM 拆分到各声道
                 // for (let ch = 0; ch < frame.numberOfChannels; ch++) {
                 //   const channelData = audioBuffer.getChannelData(ch);
@@ -195,14 +241,14 @@ window.onload = function () {
                 //   audioBuffer.copyToChannel(channelData, ch, 0);
                 // }
 
-                // 4. 播放 AudioBuffer
-                const source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioContext.destination);
-                const now = audioContext.currentTime;
-                if (scheduledTime < now) scheduledTime = now; // 避免累积漂移
-                source.start(scheduledTime);
-                scheduledTime += frame.numberOfFrames / frame.sampleRate;
+                // // 4. 播放 AudioBuffer
+                // const source = audioContext.createBufferSource();
+                // source.buffer = audioBuffer;
+                // source.connect(audioContext.destination);
+                // const now = audioContext.currentTime;
+                // if (scheduledTime < now) scheduledTime = now; // 避免累积漂移
+                // source.start(scheduledTime);
+                // scheduledTime += frame.numberOfFrames / frame.sampleRate;
                 // source.start(audioContext.currentTime + accumulatedTime);
                 // accumulatedTime += frame.numberOfFrames / frame.sampleRate;
 
