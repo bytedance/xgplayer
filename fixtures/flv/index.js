@@ -24,12 +24,37 @@ var cachedOpt = localStorage.getItem('xg:test:flv:opt')
 try { cachedOpt = JSON.parse(cachedOpt) } catch (error) { cachedOpt = undefined }
 var opts = Object.assign({
   // url: 'https://1011.hlsplay.aodianyun.com/demo/game.flv',
-  url: 'https://pull-flv-l1.douyincdn.com/stage/stream-399911386870710302_ld.flv?keeptime=00093a80&wsSecret=84c8c84e064fb6c6aaad6ec54c5c8247&wsTime=63315a10&abr_pts=1950715',
+  url: 'https://pull-flv-f1-spe.zebracdn.com/activity/dev-117820472254531617.flv?auto=1&domain=pull-flv-f1-spe.zebracdn.com&major_anchor_level=common&session_id=2098-20250820115426D15206E7BF78610099CB.1755662066844&t_id=000-20250820115426D15206E7BF78610099CB-whzPk2&unique_id=dev-117820472254531617_2081_flv'
+  // url: 'https://pull-flv-l1.douyincdn.com/stage/stream-399911386870710302_ld.flv?keeptime=00093a80&wsSecret=84c8c84e064fb6c6aaad6ec54c5c8247&wsTime=63315a10&abr_pts=1950715',
 }, defaultOpt(), cachedOpt)
 var testPoint = Number(localStorage.getItem('xg:test:flv:point'))
 
 if (isNaN(testPoint)) testPoint = 0
 
+async function playPCM(float32Data, sampleRate = 48000, channels = 2) {
+  const audioCtx = new AudioContext({ sampleRate });
+
+  // 创建 AudioBuffer（浮点 PCM）
+  const audioBuffer = audioCtx.createBuffer(
+    channels, 
+    float32Data.length / channels, 
+    sampleRate
+  );
+
+  // 填充数据（多声道需要分别填充）
+  for (let ch = 0; ch < channels; ch++) {
+    const channelData = audioBuffer.getChannelData(ch);
+    for (let i = 0; i < channelData.length; i++) {
+      channelData[i] = float32Data[i * channels + ch];
+    }
+  }
+
+  // 创建 buffer source 播放
+  const source = audioCtx.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(audioCtx.destination);
+  source.start();
+}
 window.onload = function () {
   fetch('https://pull-demo.volcfcdnrd.com/live/st-4536524.flv').then(res => {
     window.streamRes = res
@@ -110,6 +135,10 @@ window.onload = function () {
       init()
     }
     function init() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      let accumulatedTime = 0;
+      let scheduledTime = 0;
       window.timeStart = Date.now()
       window.player = player = new Player({
         el: document.getElementById('player'),
@@ -133,10 +162,52 @@ window.onload = function () {
           if(event?.type ==='audio'){
                window.audioDecoder = new AudioDecoder({
               output: (frame)=>{
-                // console.log("Got PCM AudioData:", frame);
-                const pcm = new Float32Array(frame.numberOfFrames * frame.numberOfChannels);
-                frame.copyTo(pcm, { planeIndex: 0 });
-                console.log("PCM:", pcm); // 打印 PCM 数据  
+                console.log("Got PCM AudioData:", frame.format);
+                // const pcm = new Float32Array(frame.numberOfFrames * frame.numberOfChannels);
+                //   frame.copyTo(pcm, { planeIndex: 0 });
+ 
+
+                // 2. 创建 AudioBuffer
+                const audioBuffer = audioContext.createBuffer(
+                  frame.numberOfChannels,
+                  frame.numberOfFrames,
+                  frame.sampleRate
+                );
+
+                // 2. 直接按声道 plane 拷贝
+              for (let ch = 0; ch < frame.numberOfChannels; ch++) {
+                frame.copyTo(audioBuffer.getChannelData(ch), { planeIndex: ch });
+              }
+                //  // 将交错 PCM 拆分到各声道
+                // for (let ch = 0; ch < frame.numberOfChannels; ch++) {
+                //   const channelData = audioBuffer.getChannelData(ch);
+                //   for (let i = 0; i < frame.numberOfFrames; i++) {
+                //     channelData[i] = interleaved[i * frame.numberOfChannels + ch];
+                //   }
+                // }
+
+                // // 3. 把 PCM 塞进 AudioBuffer
+                // for (let ch = 0; ch < frame.numberOfChannels; ch++) {
+                //   const channelData = pcm.subarray(
+                //     ch * frame.numberOfFrames,
+                //     (ch + 1) * frame.numberOfFrames
+                //   );
+                //   audioBuffer.copyToChannel(channelData, ch, 0);
+                // }
+
+                // 4. 播放 AudioBuffer
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                const now = audioContext.currentTime;
+                if (scheduledTime < now) scheduledTime = now; // 避免累积漂移
+                source.start(scheduledTime);
+                scheduledTime += frame.numberOfFrames / frame.sampleRate;
+                // source.start(audioContext.currentTime + accumulatedTime);
+                // accumulatedTime += frame.numberOfFrames / frame.sampleRate;
+
+                
+                frame.close(); // 记得释放 frame
               }, 
               error: e => console.error("Decoder error:", e)
             });
@@ -151,13 +222,13 @@ window.onload = function () {
         if(event.eventName === 'core.audio_sample') { // 每段音频切片
           console.log('audio_sample.info', event);
           event?.samples.forEach(sample => {
-                     const chunk = new EncodedAudioChunk({
-                      type: "key",               // 音频都可以标 key
-                      timestamp: sample.dts * 1000, // 注意：WebCodecs 要微秒，mp4 通常是毫秒或采样数
-                      duration: sample.duration, // 可选
-                      data: sample.data
-                    });
-                    window.audioDecoder.decode(chunk);
+          const chunk = new EncodedAudioChunk({
+            type: "key",               // 音频都可以标 key
+            timestamp: sample.dts * 1000, // 注意：WebCodecs 要微秒，mp4 通常是毫秒或采样数
+            duration: sample.duration, // 可选
+            data: sample.data
+          });
+          window.audioDecoder.decode(chunk);
           });
         }
       // })
