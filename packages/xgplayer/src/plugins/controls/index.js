@@ -1,5 +1,6 @@
 import Plugin, { Events, Util, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
 import './index.scss'
+import './ai.scss'
 
 /**
   * @typedef {{

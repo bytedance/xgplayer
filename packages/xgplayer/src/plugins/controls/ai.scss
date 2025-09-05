@@ -1,0 +1,38 @@
+.xgplayer.ai-player {
+  border-radius: 10px;
+  .xgplayer-controls {
+    height: 77px;
+    background: #fff;
+    border: 1px solid #eaedf1;
+  }
+  .xg-center-grid {
+    top: -35px;
+  }
+  .progress-list {
+    background: #f1f3f5;
+  }
+  .xgplayer-progress-btn {
+    width: 15px;
+    height: 15px;
+    background: #1664ff;
+    &::before {
+      background: #1664ff;
+    }
+  }
+  .xgplayer-progress-played {
+    background: #1664ff;
+  }
+  .xgplayer-time {
+    font-size: 13px;
+    color: #000;
+    font-weight: 500;
+    .time-duration {
+      color: #737a87;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    span {
+      color: #0c0d0e;
+    }
+  }
+}

@@ -3,6 +3,8 @@ import { TextTrack } from '../../packages/xgplayer/src/index'
 // import HeatMap from '../../packages/xgplayer/src/plugins/heatmap'
 import { I18N } from '../../packages/xgplayer/src'
 // import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
+import Highlight from '../../packages/xgplayer/src/plugins/highlight'
+import AI from '../../packages/xgplayer/src/plugins/ai'
 const headmapData = [
   {
     'score': 0.53271484375,
@@ -292,8 +294,8 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
-    pip: true,
+    url: "//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-360p.mp4",
+    pip: false,
     loop: false,
     autoplay: false,
     autoplayMuted: true,
@@ -301,7 +303,7 @@ function init(index = 0, config = {}) {
     preloadTime: 20,
     width: '96%',
     ignores:[],
-    plugins: [],
+    plugins: [Highlight, AI],
     rotate: false,
     heatmap: {
       data: headmapData,
@@ -310,10 +312,11 @@ function init(index = 0, config = {}) {
       mapColor: '#ddd',
       mode: 'normal'
     },
-    // controls: {
-    //   // mode: 'normal',
-    //   // initShow: true
-    // },
+    controls: {
+      // mode: 'normal',
+      // initShow: true
+      autoHide: false
+    },
     fullscreen: {
       // rotateFullscreen: true
     },
@@ -326,7 +329,7 @@ function init(index = 0, config = {}) {
     volume: {
       position: 'rootTop'
     },
-    playbackRate: [1,2,3,4],
+    playbackRate: false,
     // rotate: {
     //   innerRotate: false
     // },

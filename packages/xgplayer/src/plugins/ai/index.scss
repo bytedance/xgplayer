@@ -1,0 +1,43 @@
+.xgplayer {
+  .xgplayer-ai {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    margin-top: 6px;
+    padding: 4px 14px;
+    background-image: linear-gradient(to right, #f1f9ff, #faf4ff);
+    border-radius: 4px;
+  }
+  .xgplayer-ai-btn {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    background-color: blue;
+    &:hover {
+      .xgplayer-ai-tip {
+        display: block;
+      }
+    }
+  }
+  
+  #xgplayer-ai-pic, #xgplayer-ai-sum {
+    margin-left: 20px;
+  }
+  .xgplayer-ai-tip {
+    position: absolute;
+    top: -41px;
+    z-index: 9;
+    white-space: nowrap;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    padding: 2px 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+  }
+}
