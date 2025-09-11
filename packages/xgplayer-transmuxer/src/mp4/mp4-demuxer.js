@@ -190,7 +190,7 @@ export class MP4Demuxer {
     let audioEndByte = 0
     let findRes = {}
     const end = data.byteLength + dataStart
-    if (videoIndexRange.length > 0) {
+    if (videoIndexRange?.length > 0) {
       let frame
       if (this.memoryOpt && this.videoSegmnents) {
         findRes = this.getFramePosByIdx('video', videoIndexRange[0])
@@ -241,7 +241,7 @@ export class MP4Demuxer {
         }
       }
     }
-    if (audioIndexRange.length > 0) {
+    if (audioIndexRange?.length > 0) {
       if (this.memoryOpt && this.audioSegmnents) {
         findRes = this.getFramePosByIdx('audio', audioIndexRange[0])
         if (!findRes) {
