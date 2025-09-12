@@ -327,6 +327,18 @@ function getSegments (segDuration, timescale, stts, stsc, stsz, stco, stss, ctts
   return segments
 }
 
+export function getAudioSampleRate (audioSampleEntry) {
+  let sampleRate = 0
+  if (audioSampleEntry.type === 'mp4a') {
+    if (audioSampleEntry.sampleRate > 0) {
+      sampleRate = audioSampleEntry.sampleRate
+    } else {
+      sampleRate = audioSampleEntry.esds.sampleRate
+    }
+  }
+  return sampleRate || 0
+}
+
 export function moovToMeta (moov, isFragmentMP4) {
   let videoCodec = ''
   let audioCodec = ''
@@ -364,7 +376,7 @@ export function moovToMeta (moov, isFragmentMP4) {
       e1 = audioTrack.mdia?.minf?.stbl?.stsd.entries[0]
       if (e1) {
         audioChannelCount = e1.channelCount
-        audioSampleRate = e1.sampleRate
+        audioSampleRate = getAudioSampleRate(e1)
         audioCodec = e1.esds?.codec
         audioTimescale = audioTrack.mdia?.mdhd?.timescale
         if (e1.type === 'enca') {

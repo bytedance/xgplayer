@@ -606,13 +606,28 @@ export class MP4Parser {
           ret.codec += (data[start].toString(16) + '.').padStart(3, '0')
           data = data.subarray(start + 13)
         } else if (tag === 5) {
+          // AudioSpecificConfig
           const config = ret.config = data.subarray(start, start + size)
+
+          // ObjectType
           let objectType = (config[0] & 0xF8) >> 3
           if (objectType === 31 && config.length >= 2) {
             objectType = 32 + ((config[0] & 0x7) << 3) + ((config[1] & 0xE0) >> 5)
           }
           ret.objectType = objectType
           ret.codec += objectType.toString(16)
+
+          // SamplingFrequencyIndex
+          if (/^mp4a/ig.test(ret.codec) && config.length >= 2) {
+            const samplingFrequencyIndex = (config[0] & 0x07) << 1 | ((config[1] & 0x80) >> 7)
+            ret.samplingFrequencyIndex = samplingFrequencyIndex
+
+            // Map sampling frequency index to actual frequency
+            if (samplingFrequencyIndex < AAC.FREQ.length) {
+              ret.sampleRate = AAC.FREQ[samplingFrequencyIndex]
+            }
+          }
+
           if (ret.codec[ret.codec.length - 1] === '.') {
             ret.codec = ret.codec.substring(0, ret.codec.length - 1)
           }
@@ -920,7 +935,7 @@ export class MP4Parser {
       a.duration = aTrack.mdia.mdhd.duration || (a.mvhdDurtion / a.mvhdTimecale * a.timescale)
       const e1 = aTrack.mdia.minf.stbl.stsd.entries[0]
       a.sampleSize = e1.sampleSize
-      a.sampleRate = e1.sampleRate
+      a.sampleRate = getAudioSampleRate(e1)
       a.channelCount = e1.channelCount
       a.present = true
 
@@ -1085,6 +1100,18 @@ export class MP4Parser {
       audioSamples
     }
   }
+}
+
+export function getAudioSampleRate (audioSampleEntry) {
+  let sampleRate = 0
+  if (audioSampleEntry.type === 'mp4a') {
+    if (audioSampleEntry.sampleRate > 0) {
+      sampleRate = audioSampleEntry.sampleRate
+    } else {
+      sampleRate = audioSampleEntry.esds.sampleRate
+    }
+  }
+  return sampleRate || 0
 }
 
 function getSamples (stts, stsc, stsz, stco, ctts, stss) {
