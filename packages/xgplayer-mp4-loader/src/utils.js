@@ -335,6 +335,8 @@ export function getAudioSampleRate (audioSampleEntry) {
     } else {
       sampleRate = audioSampleEntry.esds.sampleRate
     }
+  } else {
+    sampleRate = audioSampleEntry.sampleRate
   }
   return sampleRate || 0
 }
