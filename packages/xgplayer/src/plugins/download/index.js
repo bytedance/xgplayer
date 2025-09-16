@@ -28,9 +28,7 @@ export default class Download extends IconPlugin {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 3,
       disable: true,
-      saveAsOptions: {
-        withCredentials: true
-      }
+      saveAsOptions: {}
     }
   }
 
@@ -73,7 +71,7 @@ export default class Download extends IconPlugin {
       dUrl = url[0].src
     }
     const newUrl = this.getAbsoluteURL(dUrl)
-    saveAsWithAuth(newUrl, Object.assign({}, this.config.saveAsOptions))
+    saveAsWithAuth(newUrl, Object.assign({}, this.config.saveAsOptions || {}))
     this.isLock = true
     this.timer = window.setTimeout(() => {
       this.isLock = false

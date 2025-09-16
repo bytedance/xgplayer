@@ -41,7 +41,6 @@
   "dependencies": {
     "danmu.js": ">=1.1.6",
     "delegate": "^3.2.0",
-    "downloadjs": "1.4.7",
     "eventemitter3": "^4.0.7",
     "xgplayer-subtitles": "3.0.23"
   },
