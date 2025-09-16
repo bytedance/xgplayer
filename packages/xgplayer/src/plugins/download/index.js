@@ -1,14 +1,17 @@
-import downloadUtil from 'downloadjs'
 import { POSITIONS, Util } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import IconPlugin from '../common/iconPlugin'
 import DownloadSvg from '../assets/download.svg'
+import IconPlugin from '../common/iconPlugin'
+import { xgIconTips } from '../common/iconTools'
+import { saveAsWithAuth } from './saveAs'
+
 import './index.scss'
+
 /**
  * @typedef { {
  *   position: string,
  *   index: number,
  *   disable: boolean,
+ *   saveAsOptions: import('./saveAs').SaveAsOptions,
  *   [propName: string]: any
  *  } } IDownloadConfig
  */
@@ -24,7 +27,10 @@ export default class Download extends IconPlugin {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 3,
-      disable: true
+      disable: true,
+      saveAsOptions: {
+        withCredentials: true
+      }
     }
   }
 
@@ -67,7 +73,7 @@ export default class Download extends IconPlugin {
       dUrl = url[0].src
     }
     const newUrl = this.getAbsoluteURL(dUrl)
-    downloadUtil(newUrl)
+    saveAsWithAuth(newUrl, Object.assign({}, this.config.saveAsOptions))
     this.isLock = true
     this.timer = window.setTimeout(() => {
       this.isLock = false
