@@ -79,6 +79,47 @@ class Play extends IconPlugin {
       this.setAttr('data-state', 'play')
       tipDom && this.changeLangTextKey(tipDom, i18nKeys.PAUSE_TIPS)
     }
+
+    // 边界检测
+    if (tipDom) this.checkTooltipBounds(tipDom)
+  }
+
+  _lastTooltipData = {
+    text: '',
+    overflowLeft: false,
+    overflowRight: false
+  };
+
+  checkTooltipBounds (tipDom) {
+    if (!tipDom || !this.player) return
+
+    const currentText = tipDom.innerText || tipDom.textContent
+    if (currentText === this._lastTooltipData.text) {
+      tipDom.classList.toggle('xg-tips-left-aligned', this._lastTooltipData.overflowLeft)
+      tipDom.classList.toggle('xg-tips-right-aligned', this._lastTooltipData.overflowRight)
+      return
+    }
+
+    const originalDisplay = tipDom.style.display
+    tipDom.style.visibility = 'hidden'
+    tipDom.style.display = 'block'
+
+    const tooltipRect = tipDom.getBoundingClientRect()
+    const parentRect = this.player.root.getBoundingClientRect()
+
+    tipDom.style.display = originalDisplay
+    tipDom.style.visibility = ''
+
+    const overflowLeft = tooltipRect.left < parentRect.left
+    const overflowRight = tooltipRect.right > parentRect.right
+
+    this._lastTooltipData = {
+      text: currentText,
+      overflowLeft,
+      overflowRight
+    }
+    tipDom.classList.toggle('xg-tips-left-aligned', overflowLeft)
+    tipDom.classList.toggle('xg-tips-right-aligned', overflowRight)
   }
 
   destroy () {
