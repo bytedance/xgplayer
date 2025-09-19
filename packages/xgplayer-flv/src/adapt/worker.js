@@ -55,7 +55,7 @@ export default class PlayerWorker {
         this._transCoreEvent(EVENT.APPEND_BUFFER)
         this._transCoreEvent(EVENT.REMOVE_BUFFER)
         this._transCoreEvent(EVENT.BUFFEREOS)
-        this._transCoreEvent(EVENT.KEYFRAME)
+        this._transKeyframe()
         this._transCoreEvent(EVENT.CHASEFRAME)
         this._transCoreEvent(EVENT.METADATA_PARSED)
         this._transCoreEvent(EVENT.SEI)
@@ -91,6 +91,19 @@ export default class PlayerWorker {
           errorMessage: err.errorMessage,
           errorType: err.errorType
           // ext: err.ext
+        }
+      })
+    })
+  }
+
+  _transKeyframe () {
+    this.flv.on(EVENT.KEYFRAME, (e) => {
+      this.postMessage('core_event', {
+        eventName: EVENT.KEYFRAME,
+        data: {
+          ...e,
+          eventName: EVENT.KEYFRAME,
+          baseDts: this.flv._bufferService?.baseDts
         }
       })
     })

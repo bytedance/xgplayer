@@ -24,6 +24,13 @@ export default class Main extends EventEmitter {
     this.unbindvts = []
     this._bindpostMediaEvent()
     this.loader = {}
+    this._bufferService = {
+      _demuxer: {
+        _fixer: {
+          _baseDts: undefined
+        }
+      }
+    }
   }
 
   get version () {
@@ -70,6 +77,9 @@ export default class Main extends EventEmitter {
         this._postMessage({ type: 'loadSuccess'})
         break
       case 'core_event':
+        if (data.data.eventName === EVENT.KEYFRAME) {
+          this._bufferService._demuxer._fixer._baseDts = data.data.data.baseDts
+        }
         this.emit(data.data.eventName, data.data.data)
         break
       case 'transferCost':
