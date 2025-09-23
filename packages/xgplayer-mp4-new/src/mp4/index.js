@@ -84,7 +84,7 @@ export class MP4 extends EventEmitter {
     }
     this._prevSegmentEndTime = Math.min(res.video?.endTime || Infinity, res.audio?.endTime || Infinity)
     try {
-      await this._bufferService.appendBuffer(res.data, res.option.range[0], res.video?.frames, res.audio?.frames, this._loader.meta.moov)
+      await this._bufferService.appendBuffer(res.data, res.options.range[0], res.video?.frames, res.audio?.frames, this._loader.meta.moov)
       await this._bufferService.evictBuffer(this._config.bufferBehind)
     } catch (error) {
       return this._emitError(StreamingError.create(error))
