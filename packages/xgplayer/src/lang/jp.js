@@ -61,6 +61,7 @@ export default {
     CSSFULLSCREEN_TIPS: 'シアターモード',
     EXITCSSFULLSCREEN_TIPS: 'シアターモードを終了',
     TEXTTRACK: '字幕',
+    TEXTTRACK_OFF: 'オフ',
     PIP: 'ミニプレーヤー',
     SCREENSHOT: 'スクリーンショット',
     LIVE: '生放送',

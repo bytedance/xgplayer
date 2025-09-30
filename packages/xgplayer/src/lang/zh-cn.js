@@ -61,6 +61,7 @@ export default {
     CSSFULLSCREEN_TIPS: '进入样式全屏',
     EXITCSSFULLSCREEN_TIPS: '退出样式全屏',
     TEXTTRACK: '字幕',
+    TEXTTRACK_OFF: '关闭',
     PIP: '画中画',
     SCREENSHOT: '截图',
     LIVE: '正在直播',

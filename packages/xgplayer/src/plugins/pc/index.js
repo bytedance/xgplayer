@@ -45,6 +45,16 @@ export default class PCPlugin extends BasePlugin {
     !enableContextmenu && media && media.addEventListener('contextmenu', this.onContextmenu, false)
   }
 
+  /**
+   * 检查Mobile插件是否正在处理touch事件，如果其正在处理touch事件，则不响应mouse事件
+   * @returns {boolean}
+   * @private
+   */
+  _isMobileTouchActive() {
+    const mobilePlugin = this.player?.plugins?.mobile
+    return !!mobilePlugin && mobilePlugin._isTouchActive === true
+  }
+
   switchPlayPause (e) {
     const { player } = this
     this.emitUserAction(e, 'switch_play_pause', { props: 'paused', from: player.paused, to: !player.paused })
@@ -55,7 +65,15 @@ export default class PCPlugin extends BasePlugin {
     }
   }
 
+  /**
+   * @param {MouseEvent} e
+   */
   onMouseMove = (e) => {
+    if (this._isMobileTouchActive()) {
+      e?.stopImmediatePropagation()
+      return
+    }
+
     const { player, playerConfig } = this
     if (!player.isActive) {
       player.focus({ autoHide: !playerConfig.closeDelayBlur })
@@ -63,7 +81,15 @@ export default class PCPlugin extends BasePlugin {
     }
   }
 
+  /**
+   * @param {MouseEvent} e
+   */
   onMouseEnter = (e) => {
+    if (this._isMobileTouchActive()) {
+      e?.stopImmediatePropagation()
+      return
+    }
+
     const { playerConfig, player } = this
     !playerConfig.closeFocusVideoFocus && player.media.focus()
     if (playerConfig.closeDelayBlur) {
@@ -74,7 +100,15 @@ export default class PCPlugin extends BasePlugin {
     this.emit(ENTER_PLAYER)
   }
 
+  /**
+   * @param {MouseEvent} e
+   */
   onMouseLeave = (e) => {
+    if (this._isMobileTouchActive()) {
+      e?.stopImmediatePropagation()
+      return
+    }
+
     const { closePlayerBlur, leavePlayerTime, closeDelayBlur } = this.playerConfig
     if (!closePlayerBlur && !closeDelayBlur) {
       if (leavePlayerTime) {

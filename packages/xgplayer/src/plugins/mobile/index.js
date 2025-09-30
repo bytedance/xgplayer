@@ -103,6 +103,11 @@ class MobilePlugin extends Plugin {
      * @private
      */
     this.timer = null
+    /**
+     * 标记touch事件状态，供PC插件使用
+     * @private
+     */
+    this._isTouchActive = false
   }
 
   get duration () {
@@ -377,6 +382,14 @@ class MobilePlugin extends Plugin {
   onTouchStart = (e) => {
     const { player, config, pos, playerConfig } = this
     const touche = this.getTouche(e)
+
+    // 标记touch事件状态
+    this._isTouchActive = true
+    if (this.touchActiveTimer) {
+      clearTimeout(this.touchActiveTimer)
+      this.touchActiveTimer = null
+    }
+
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
       this.timer && clearTimeout(this.timer)
@@ -449,6 +462,15 @@ class MobilePlugin extends Plugin {
 
   onTouchEnd = (e) => {
     const { player, pos, playerConfig } = this
+
+    // 延迟重置touch事件状态，确保后续的mouse事件被忽略
+    if (this.touchActiveTimer) {
+      clearTimeout(this.touchActiveTimer)
+    }
+    this.touchActiveTimer = setTimeout(() => {
+      this._isTouchActive = false
+    }, 10)
+
     setTimeout(() => {
       player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
     }, 10)
