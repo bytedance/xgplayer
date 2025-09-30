@@ -61,6 +61,7 @@ export default {
     CSSFULLSCREEN_TIPS: 'Cssfullscreen',
     EXITCSSFULLSCREEN_TIPS: 'Exit cssfullscreen',
     TEXTTRACK: 'Caption',
+    TEXTTRACK_OFF: 'Off',
     PIP: 'PIP',
     SCREENSHOT: 'Screenshot',
     LIVE: 'LIVE',

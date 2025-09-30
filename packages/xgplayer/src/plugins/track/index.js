@@ -127,7 +127,6 @@ export default class TextTrack extends OptionsIcon {
         line: 'double', // 最大显示行数 single/double/three
         fontColor: '#fff' // 字体颜色
       },
-      closeText: { text: '不开启', iconText: '字幕' },
       needCloseText: true,
       className: 'xgplayer-texttrack',
       hidePortrait: false,
@@ -149,6 +148,15 @@ export default class TextTrack extends OptionsIcon {
     const { list, mode } = this.config
     const defaultIndex = formatList(list)
     super.afterCreate()
+
+    // Set i18n text for closeText
+    if (!this.config.closeText) {
+      this.config.closeText = {
+        text: this.i18n.TEXTTRACK_OFF,
+        iconText: this.i18n.TEXTTRACK
+      }
+    }
+
 
     this.curIndex = -1
     this.lastIndex = -1 // 上一次显示的语言
