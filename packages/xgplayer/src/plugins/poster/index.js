@@ -35,7 +35,10 @@ class Poster extends Plugin {
   }
 
   hide () {
-    Util.addClass(this.root, 'hide')
+    if (!this.isHide) {
+      Util.addClass(this.root, 'hide')
+      this.isHide = true
+    }
   }
 
   /**
@@ -43,6 +46,7 @@ class Poster extends Plugin {
    * @returns
    */
   show (value) {
+    this.isHide = false
     Util.removeClass(this.root, 'hide')
   }
 
@@ -55,8 +59,12 @@ class Poster extends Plugin {
   afterCreate () {
     this.on(Events.ENDED, () => {
       if (this.isEndedShow) {
-        Util.removeClass(this.root, 'hide')
+        this.show()
       }
+    })
+
+    this.on(Events.PLAYING, () => {
+      this.hide()
     })
 
     if (this.config.hideCanplay) {
@@ -64,7 +72,7 @@ class Poster extends Plugin {
         this.onTimeUpdate()
       })
       this.on(Events.URL_CHANGE, () => {
-        Util.removeClass(this.root, 'hide')
+        this.show()
         Util.addClass(this.root, 'xg-showplay')
         this.once(Events.TIME_UPDATE, () => {
           this.onTimeUpdate()
@@ -72,7 +80,7 @@ class Poster extends Plugin {
       })
     } else {
       this.on(Events.PLAY, () => {
-        Util.addClass(this.root, 'hide')
+        this.hide()
       })
     }
   }
