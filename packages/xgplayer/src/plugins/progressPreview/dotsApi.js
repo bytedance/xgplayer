@@ -3,6 +3,7 @@ import { Util, Events } from '../../plugin'
 const ISPOT = {
   time: 0, // 进度条在此时间戳打点 单位为s
   text: '', // 打点处的自定义文案
+  image: '', // 打点处的自定义图片URL
   id: 1, // 标记唯一标识，用于删除的时候索引
   duration: 1, // 进度条标识点的时长 默认1s【可选】单位为s
   color: '#fff', // 进度条标识点的显示颜色【可选】
@@ -29,6 +30,7 @@ const APIS = {
     style.left = `${ret.left}%`
     style.width = `${ret.width}%`
     dotDom.setAttribute('data-text', iSpot.text)
+    dotDom.setAttribute('data-image', iSpot.image || '')
     dotDom.setAttribute('data-time', iSpot.time)
     if (ret.isMini) {
       Util.addClass(dotDom, 'mini')
@@ -72,6 +74,7 @@ const APIS = {
     const _t = iSpot.template ? `<div class="xgplayer-spot-pop">${iSpot.template}</div>` : ''
     const dotDom = Util.createDom('xg-spot', _t, {
       'data-text': iSpot.text,
+      'data-image': iSpot.image || '',
       'data-time': iSpot.time,
       'data-id': iSpot.id
     }, className)

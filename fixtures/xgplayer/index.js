@@ -292,7 +292,8 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
+    // url: "./heatmap.mp4",
+    url : 'https://imp.volccdn.com/obj/vcloud-imp-lite/aideo_sample_1.mp4',
     pip: true,
     loop: false,
     autoplay: false,
@@ -349,10 +350,34 @@ function init(index = 0, config = {}) {
       seekStep: 2
     },
     progresspreview: {
-      // width: 88.23,
-      // height: 50,
-      mode: 'short'
+      ispots: [
+        {
+          time: 10,
+          text: '精彩片段',
+          image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
+          id: 'spot1'
+        },
+        {
+          time: 30,
+          text: '重要节点',
+          image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image', 
+          id: 'spot2'
+        },
+        {
+          time: 60,
+          // 只显示图片，不显示文本
+          image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
+          id: 'spot3'
+        }
+      ],
+      defaultText: '默认提示文本',
+      defaultImage: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image'
     },
+    // progresspreview: {
+    //   // width: 88.23,
+    //   // height: 50,
+    //   mode: 'short'
+    // },
     seekedStatus: 'auto',
     texttrack: {
       debugger: false,
@@ -465,6 +490,11 @@ function init(index = 0, config = {}) {
   window[p].on('user_action', data => {
     console.log('[user_action]', data)
   })
+
+  player.plugins.progresspreview.updateDot({
+  id: 'spot1',
+  image: 'https://example.com/updated-image.jpg'
+});
 }
 
 init()
@@ -558,7 +588,7 @@ window.createDot = (index) => {
   const duration = parseInt(Math.random(1) * 30 + 10, 10)
   const ISPOT = {
     time: time, // 进度条在此时间戳打点 单位为s
-    text: '', // 打点处的自定义文案
+    text: '预览了', // 打点处的自定义文案
     id: time, // 标记唯一标识，用于删除的时候索引
     duration: duration, // 进度条标识点的时长 默认1s【可选】单位为s
     color: '#fff', // 进度条标识点的显示颜色【可选】

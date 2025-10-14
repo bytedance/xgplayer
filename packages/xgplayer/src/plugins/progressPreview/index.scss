@@ -62,7 +62,7 @@ $shortBottom: -4px;
     bottom: 100%;
     // visibility: hidden;
     // opacity: 0;
-    display: none;
+    // display: none; // 临时注释
     &.short-line {
       .xg-spot-line{
         height: 6px;
@@ -185,6 +185,19 @@ $shortBottom: -4px;
     line-height: 20px;
     font-size: 12px;
     max-height: 40px;
+  }
+
+  .spot-inner-image {
+    max-width: 100%;
+    max-height: 80px;
+    border-radius: 2px;
+    margin-top: 4px;
+    object-fit: cover;
+    display: block;
+    
+    &:first-child {
+      margin-top: 0;
+    }
   }
 
   .xg-spot-content.show-text {

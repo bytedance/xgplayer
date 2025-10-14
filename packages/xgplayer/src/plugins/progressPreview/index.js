@@ -7,6 +7,7 @@ import './index.scss'
  *   ispots?: Array<{ //故事点列表
  *     time?: number, // 进度条在此时间戳打点 单位为s
  *     text?: string, // 打点处的自定义文案
+ *     image?: string, // 打点处的自定义图片URL
  *     id?: number | string, // 标记唯一标识，用于删除的时候索引
  *     duration:? number, // 进度条标识点的时长 默认1s【可选】单位为s
  *     color?: string, // 进度条标识点的显示颜色【可选】
@@ -15,6 +16,7 @@ import './index.scss'
  *     height?: number
  *    }>,
  *   defaultText?: '', // 故事点hover默认文案
+ *   defaultImage?: '', // 故事点hover默认图片
  *   isFocusDots?: true, //
  *   isShowThumbnail?: true, // 是否显示预览图
  *   isShowCoverPreview?: false, // 进度条拖动时是否显示播放区域预览图
@@ -60,6 +62,7 @@ export default class ProgressPreview extends Plugin {
       miniWidth: 6, // 故事点显示最小宽度
       ispots: [], // 故事点列表
       defaultText: '', // 故事点hover默认文案
+      defaultImage: '', // 故事点hover默认图片
       isFocusDots: true, //
       isHideThumbnailHover: true, // 是否在hover在预览图的时候隐藏
       isShowThumbnail: true, // 是否显示预览图
@@ -118,6 +121,7 @@ export default class ProgressPreview extends Plugin {
     this.timePoint = this.find('.xgplayer-progress-point')
     this.timeText = this.find('.xg-spot-time')
     this.tipText = this.find('.spot-inner-text')
+    this.tipImage = this.find('.spot-inner-image')
 
     this._hasThumnail = false
 
@@ -305,13 +309,17 @@ export default class ProgressPreview extends Plugin {
     this.transformTimeHook(time)
     const timeStr = this.timeStr
     if (e && e.target && Util.hasClass(e.target, 'xgplayer-spot')) {
-      this.showTips(e.target.getAttribute('data-text'), false, timeStr)
+      const spotText = e.target.getAttribute('data-text')
+      const spotImage = e.target.getAttribute('data-image')
+      this.showTips(spotText, false, timeStr, spotImage)
       this.focusDot(e.target)
       _state.f = true
       config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
-    } else if (config.defaultText) {
+    } else if (config.defaultText || config.defaultImage) {
+      // _state.f = false
       _state.f = false
-      this.showTips(config.defaultText, true, timeStr)
+      this.hideTips('')
+      // this.showTips(config.defaultText, true, timeStr, config.defaultImage)
     } else {
       _state.f = false
       this.hideTips('')
@@ -421,24 +429,47 @@ export default class ProgressPreview extends Plugin {
     this._activeDotId = null
   }
 
-  showTips (text, isDefault, timeStr = '') {
+  showTips (text, isDefault, timeStr = '', image = '') {
     Util.addClass(this.root, 'no-timepoint')
-    if (!text) {
+    if (!text && !image) {
       return
     }
+
+    // 显示文本内容区域
     Util.addClass(this.find('.xg-spot-content'), 'show-text')
-    if (isDefault && this.config.mode === 'production') {
-      Util.addClass(this.root, 'product')
-      this.tipText.textContent = text
+
+    // 处理文本内容
+    if (text) {
+      this.tipText.style.display = 'block'
+      if (isDefault && this.config.mode === 'production') {
+        Util.addClass(this.root, 'product')
+        this.tipText.textContent = text
+      } else {
+        Util.removeClass(this.root, 'product')
+        this.tipText.textContent = this._hasThumnail ? text : `${timeStr} ${text}`
+      }
     } else {
-      Util.removeClass(this.root, 'product')
-      this.tipText.textContent = this._hasThumnail ? text : `${timeStr} ${text}`
+      this.tipText.style.display = 'none'
+    }
+
+    // 处理图片内容
+    if (image && this.tipImage) {
+      this.tipImage.style.display = 'block'
+      this.tipImage.src = image
+      this.tipImage.alt = text || '故事点图片'
+    } else if (this.tipImage) {
+      this.tipImage.style.display = 'none'
     }
   }
 
   hideTips () {
     Util.removeClass(this.root, 'no-timepoint')
     this.tipText.textContent = ''
+    this.tipText.style.display = 'block'
+    if (this.tipImage) {
+      this.tipImage.style.display = 'none'
+      this.tipImage.src = ''
+    }
     Util.removeClass(this.find('.xg-spot-content'), 'show-text')
     Util.removeClass(this.root, 'product')
   }
@@ -493,7 +524,10 @@ export default class ProgressPreview extends Plugin {
         <div class="xg-spot-thumbnail">
           <span class="xg-spot-time"></span>
         </div>
-        <div class="xg-spot-text"><span class="spot-inner-text"></span></div>
+        <div class="xg-spot-text">
+          <span class="spot-inner-text"></span>
+          <img class="spot-inner-image" style="display: none;" />
+        </div>
       </div>
       <div class="xgplayer-progress-point">00:00</div>
       <div class="xg-spot-ext-text"></div>
