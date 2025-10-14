@@ -25,7 +25,8 @@ try { cachedOpt = JSON.parse(cachedOpt) } catch (error) { cachedOpt = undefined 
 cachedOpt.manualLoad = false
 var opts = Object.assign({
   // url: 'https://1011.hlsplay.aodianyun.com/demo/game.flv',
-  url: 'https://pull-demo.volcfcdnrd.com/live/st-4536524.flv',
+  // url: 'https://pull-demo.volcfcdnrd.com/live/st-4536524.flv',
+  url : `http://pull-flv-f1-spe.zebracdn.com/activity/dev-118121886415849505.flv?auto=1&domain=pull-flv-f1-spe.zebracdn.com&major_anchor_level=common&session_id=2098-20251011173101DE7C219AA3AC1BADB51A.1760175062025&t_id=000-20251011173101DE7C219AA3AC1BADB51A-25bA7P&unique_id=dev-118121886415849505_2081_flv`,
 }, defaultOpt(), cachedOpt)
 var testPoint = Number(localStorage.getItem('xg:test:flv:point'))
 
@@ -111,7 +112,8 @@ window.onload = function () {
       init()
     }
     function init() {
-      window.timeStart = Date.now()
+      window._timeStart = Date.now()
+      window._ttfbDuration = 0
       window.player = player = new Player({
         el: document.getElementById('player'),
         plugins: [MIW],
@@ -123,11 +125,11 @@ window.onload = function () {
         flv: {
           // streamRes: window.streamRes,
           ...opts,
-          worker: preParePlayerWorker()
+          // worker: preParePlayerWorker()
         }
       });
       player.once('ready', () => {
-        // console.log('streamRes', Date.now() - timeStart, streamRes, player.plugins.flv)
+        // console.log('streamRes', Date.now() - _timeStart, streamRes, player.plugins.flv)
         if (player.config.flv.manualLoad) {
           player.plugins.flv.loadSource(player.config.url, streamRes)
           streamRes = null
@@ -135,25 +137,25 @@ window.onload = function () {
       })
       dlEvent.innerHTML = ''
       dlError.innerHTML = ''
-
+      const filterMap = {
+         'core.sei': true,
+        'core.appendbuffer': true,
+        'core.seiintime': true,
+        'core.removebuffer': true,
+      }
       function pushEvent(name, value, container) {
          if (name === 'loadeddata') {
-          console.log('loadeddata', Date.now() - window.timeStart)
-          // player.plugins.flv.flv._mediaLoader._currentTask._loader._firstMaxChunkSize = null
+          console.log('loadeddata 播放器首帧', Date.now() - window._timeStart)
         }
-        container = container || dlEvent
-        if (container === dlEvent && dlLogPause.checked) return
-        // console.debug('[test]', name, value)
-        if (container === dlEvent && logFilter && !logFilter(name, value)) {
-          return
+        if(!filterMap[name]){
+          if(name === 'core.ttfb'){
+            window._ttfbDuration = value?.elapsed
+          }
+
+          const dateNow = Date.now();
+          console.log('pushEvent==>',name,dateNow - window._timeStart,'相对ttfb耗时',dateNow - window._timeStart - window._ttfbDuration, value)
         }
-        try {
-          value = JSON.stringify(value)
-        } catch (error) {
-        }
-        var record = document.createElement('div')
-        record.innerHTML = '<div class="mb-2"><span class="text-base pr-2 bg-green-500 text-white">' + name + ' / ' + player.video.currentTime + '</span>' + value + '</div>'
-        container.prepend(record)
+        
       }
 
       player.on('loadstart', function (event) { pushEvent('loadstart', event) })
@@ -275,9 +277,9 @@ window.onload = function () {
   inp(doDisconnectTime).onchange = function () { updateOpts('disconnectTime', this.value, 'number') }
   inp(doMaxReaderInterval).onchange = function () { updateOpts('maxReaderInterval', this.value, 'number') }
   // MIW._playerWorker();//初始化worker
-  setTimeout(() => {
+  // setTimeout(() => {
     initPlayer()
-  },200)
+  // },200)
 
   dbResetOpt.onclick = resetOpts
   dbApplyOpt.onclick = initPlayer
