@@ -355,23 +355,24 @@ function init(index = 0, config = {}) {
           time: 10,
           text: '精彩片段',
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
-          id: 'spot1'
+          id: 'spot1',
+          width: 160
         },
         {
-          time: 30,
+          time: 60,
           text: '重要节点',
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image', 
           id: 'spot2'
         },
         {
-          time: 60,
+          time: 90,
           // 只显示图片，不显示文本
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
           id: 'spot3'
         }
       ],
-      defaultText: '默认提示文本',
-      defaultImage: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image'
+      // defaultText: '默认提示文本',
+      // defaultImage: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image'
     },
     // progresspreview: {
     //   // width: 88.23,
@@ -491,10 +492,12 @@ function init(index = 0, config = {}) {
     console.log('[user_action]', data)
   })
 
-  player.plugins.progresspreview.updateDot({
-  id: 'spot1',
-  image: 'https://example.com/updated-image.jpg'
-});
+  setTimeout(() => {
+    player0.plugins.progresspreview.updateDot({
+      id: 'spot1',
+      image: 'https://example.com/updated-image.jpg'
+    });
+  }, 2000)
 }
 
 init()

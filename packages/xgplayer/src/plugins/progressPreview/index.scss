@@ -188,8 +188,7 @@ $shortBottom: -4px;
   }
 
   .spot-inner-image {
-    max-width: 100%;
-    max-height: 80px;
+    width: 160px;
     border-radius: 2px;
     margin-top: 4px;
     object-fit: cover;
@@ -198,6 +197,16 @@ $shortBottom: -4px;
     &:first-child {
       margin-top: 0;
     }
+  }
+
+  // 当只有图片没有文本时的样式
+  .xg-spot-content.show-text .xg-spot-text:has(.spot-inner-image[style*="display: block"]):has(.spot-inner-text[style*="display: none"]) {
+    padding: 4px;
+  }
+
+  // 图片加载失败时的样式
+  .spot-inner-image[src=""], .spot-inner-image:not([src]) {
+    // display: none !important;
   }
 
   .xg-spot-content.show-text {

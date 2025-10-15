@@ -271,13 +271,26 @@ export default class ProgressPreview extends Plugin {
     const { mode } = player.controls
     const isflex = mode === 'flex'
     let lwidth = root.getBoundingClientRect().width
-    // 如果当前预览图宽度获取不到，无法计算位移，不做渲染
-    if (!lwidth && this._hasThumnail) {
-      return
+
+    // 检查是否有图片内容需要显示
+    const hasImageContent = this._state.f && this.tipImage && this.tipImage.style.display !== 'none'
+
+    // 如果当前预览图宽度获取不到，设置默认宽度
+    if (!lwidth) {
+      if (this._hasThumnail || hasImageContent) {
+        // 如果有缩略图或图片内容，使用配置的默认宽度
+        lwidth = config.width
+      } else {
+        // 如果没有图片内容，无法计算位移，不做渲染
+        return
+      }
     }
-    lwidth = this._hasThumnail && lwidth < config.width ? config.width : lwidth
+
+    // 确保宽度不小于配置的最小宽度
+    lwidth = (this._hasThumnail || hasImageContent) && lwidth < config.width ? config.width : lwidth
     let x = offset - lwidth / 2
     let _t
+
     if (x < 0 && !isflex) {
       x = 0
       _t = offset - lwidth / 2
