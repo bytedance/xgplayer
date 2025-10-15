@@ -355,20 +355,36 @@ function init(index = 0, config = {}) {
           time: 10,
           text: '精彩片段',
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
+          type: 'image',
           id: 'spot1',
           width: 160
         },
         {
-          time: 60,
-          text: '重要节点',
-          image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image', 
+          time: 30,
+          text: 'Gus冷笑揭穿Walter的谎言，紧张气氛瞬间升级',
+          type: 'text',
           id: 'spot2'
         },
         {
-          time: 90,
-          // 只显示图片，不显示文本
+          time: 60,
+          text: '重要节点',
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
+          type: 'image',
           id: 'spot3'
+        },
+        {
+          time: 90,
+          text: '图片加载中示例',
+          type: 'image',
+          // 故意不提供image，展示加载状态
+          id: 'spot4'
+        },
+        {
+          time: 120,
+          text: '文本示例11111231231321',
+          type: 'text',
+          // 故意不提供image，展示加载状态
+          id: 'spot5'
         }
       ],
       // defaultText: '默认提示文本',

@@ -4,6 +4,7 @@ const ISPOT = {
   time: 0, // 进度条在此时间戳打点 单位为s
   text: '', // 打点处的自定义文案
   image: '', // 打点处的自定义图片URL
+  type: 'image', // 故事点类型：image-带图片模式，text-纯文本模式
   id: 1, // 标记唯一标识，用于删除的时候索引
   duration: 1, // 进度条标识点的时长 默认1s【可选】单位为s
   color: '#fff', // 进度条标识点的显示颜色【可选】
@@ -32,6 +33,7 @@ const APIS = {
     dotDom.setAttribute('data-text', iSpot.text)
     dotDom.setAttribute('data-image', iSpot.image || '')
     dotDom.setAttribute('data-time', iSpot.time)
+    dotDom.setAttribute('data-type', iSpot.type || 'image')
     if (ret.isMini) {
       Util.addClass(dotDom, 'mini')
     } else {
@@ -76,6 +78,7 @@ const APIS = {
       'data-text': iSpot.text,
       'data-image': iSpot.image || '',
       'data-time': iSpot.time,
+      'data-type': iSpot.type || 'image',
       'data-id': iSpot.id
     }, className)
     Object.keys(style).map(key => {

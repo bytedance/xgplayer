@@ -8,6 +8,7 @@ import './index.scss'
  *     time?: number, // 进度条在此时间戳打点 单位为s
  *     text?: string, // 打点处的自定义文案
  *     image?: string, // 打点处的自定义图片URL
+ *     type?: 'image' | 'text', // 故事点类型：image-带图片模式，text-纯文本模式
  *     id?: number | string, // 标记唯一标识，用于删除的时候索引
  *     duration:? number, // 进度条标识点的时长 默认1s【可选】单位为s
  *     color?: string, // 进度条标识点的显示颜色【可选】
@@ -122,6 +123,7 @@ export default class ProgressPreview extends Plugin {
     this.timeText = this.find('.xg-spot-time')
     this.tipText = this.find('.spot-inner-text')
     this.tipImage = this.find('.spot-inner-image')
+    this.loadingPlaceholder = this.find('.spot-loading-placeholder')
 
     this._hasThumnail = false
 
@@ -324,7 +326,8 @@ export default class ProgressPreview extends Plugin {
     if (e && e.target && Util.hasClass(e.target, 'xgplayer-spot')) {
       const spotText = e.target.getAttribute('data-text')
       const spotImage = e.target.getAttribute('data-image')
-      this.showTips(spotText, false, timeStr, spotImage)
+      const spotType = e.target.getAttribute('data-type') || 'image' // 默认为image类型
+      this.showTips(spotText, false, timeStr, spotImage, spotType)
       this.focusDot(e.target)
       _state.f = true
       config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
@@ -442,7 +445,7 @@ export default class ProgressPreview extends Plugin {
     this._activeDotId = null
   }
 
-  showTips (text, isDefault, timeStr = '', image = '') {
+  showTips (text, isDefault, timeStr = '', image = '', type = 'image') {
     Util.addClass(this.root, 'no-timepoint')
     if (!text && !image) {
       return
@@ -450,6 +453,15 @@ export default class ProgressPreview extends Plugin {
 
     // 显示文本内容区域
     Util.addClass(this.find('.xg-spot-content'), 'show-text')
+
+    // 根据type类型添加对应的样式类
+    if (type === 'text') {
+      Util.addClass(this.root, 'spot-type-text')
+      Util.removeClass(this.root, 'spot-type-image')
+    } else {
+      Util.addClass(this.root, 'spot-type-image')
+      Util.removeClass(this.root, 'spot-type-text')
+    }
 
     // 处理文本内容
     if (text) {
@@ -459,32 +471,75 @@ export default class ProgressPreview extends Plugin {
         this.tipText.textContent = text
       } else {
         Util.removeClass(this.root, 'product')
-        this.tipText.textContent = this._hasThumnail ? text : `${timeStr} ${text}`
+
+        if (type === 'text') {
+          // 纯文本模式：显示分层内容
+          this.tipText.innerHTML = `
+            <div class="spot-text-time">
+              章节·${timeStr}
+            </div>
+            <div class="spot-text-content">
+              ${text}
+            </div>
+          `
+        } else {
+          // 图片模式：只显示文本内容
+          this.tipText.textContent = text
+        }
       }
     } else {
       this.tipText.style.display = 'none'
     }
 
-    // 处理图片内容
-    if (image && this.tipImage) {
-      this.tipImage.style.display = 'block'
-      this.tipImage.src = image
-      this.tipImage.alt = text || '故事点图片'
-    } else if (this.tipImage) {
+    // 先清理所有图片相关状态
+    if (this.tipImage) {
       this.tipImage.style.display = 'none'
+      this.tipImage.src = ''
     }
+    if (this.loadingPlaceholder) {
+      this.loadingPlaceholder.style.display = 'none'
+    }
+    Util.removeClass(this.root, 'has-spot-image')
+    Util.removeClass(this.root, 'image-loading')
+
+    // 根据类型处理图片内容
+
+    if (type === 'image') {
+      // 图片模式：处理图片显示逻辑
+      if (image && this.tipImage) {
+        // 有图片时显示图片
+        this.tipImage.style.display = 'block'
+        this.tipImage.src = image
+        this.tipImage.alt = text || '故事点图片'
+        Util.addClass(this.root, 'has-spot-image')
+      } else if (this.loadingPlaceholder) {
+        // 图片模式但没有图片时，显示加载状态
+        this.loadingPlaceholder.style.display = 'block'
+        Util.addClass(this.root, 'image-loading')
+        Util.addClass(this.root, 'has-spot-image')
+      }
+    }
+    // 纯文本模式不需要额外处理，因为已经在上面清理了所有图片相关状态
   }
 
   hideTips () {
     Util.removeClass(this.root, 'no-timepoint')
     this.tipText.textContent = ''
+    this.tipText.innerHTML = ''
     this.tipText.style.display = 'block'
     if (this.tipImage) {
       this.tipImage.style.display = 'none'
       this.tipImage.src = ''
     }
+    if (this.loadingPlaceholder) {
+      this.loadingPlaceholder.style.display = 'none'
+    }
     Util.removeClass(this.find('.xg-spot-content'), 'show-text')
     Util.removeClass(this.root, 'product')
+    Util.removeClass(this.root, 'has-spot-image')
+    Util.removeClass(this.root, 'image-loading')
+    Util.removeClass(this.root, 'spot-type-text')
+    Util.removeClass(this.root, 'spot-type-image')
   }
 
   hide () {
@@ -538,8 +593,15 @@ export default class ProgressPreview extends Plugin {
           <span class="xg-spot-time"></span>
         </div>
         <div class="xg-spot-text">
-          <span class="spot-inner-text"></span>
-          <img class="spot-inner-image" style="display: none;" />
+          <div class="spot-image-container">
+            <img class="spot-inner-image" style="display: none;" />
+            <div class="spot-loading-placeholder" style="display: none;">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+          <div class="spot-text-container">
+            <span class="spot-inner-text"></span>
+          </div>
         </div>
       </div>
       <div class="xgplayer-progress-point">00:00</div>
