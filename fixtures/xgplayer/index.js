@@ -350,6 +350,9 @@ function init(index = 0, config = {}) {
       seekStep: 2
     },
     progresspreview: {
+      // 使用新的独立配置
+      textModeTimePrefix: '高光·',
+      imageModeTimePrefix: '片段·',
       ispots: [
         {
           time: 10,
@@ -374,16 +377,15 @@ function init(index = 0, config = {}) {
         },
         {
           time: 90,
-          text: '图片加载中示例',
+          text: '异步加载图片示例',
           type: 'image',
-          // 故意不提供image，展示加载状态
+          // 故意不提供image，展示加载状态，稍后异步更新
           id: 'spot4'
         },
         {
           time: 120,
           text: '文本示例11111231231321',
           type: 'text',
-          // 故意不提供image，展示加载状态
           id: 'spot5'
         }
       ],
@@ -508,12 +510,22 @@ function init(index = 0, config = {}) {
     console.log('[user_action]', data)
   })
 
+  // 动态更新图片示例 - 演示hover状态下的loading到图片渲染过程
   setTimeout(() => {
-    player0.plugins.progresspreview.updateDot({
-      id: 'spot1',
-      image: 'https://example.com/updated-image.jpg'
-    });
+    console.log('开始异步加载 spot4 的图片...')
+    console.log('提示：请hover到90秒处的故事点，观察从loading到图片渲染的过程')
+    // 模拟异步加载图片，延迟更长以便观察
+    simulateAsyncImageLoadWithDelay('spot4', 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image', 3000)
   }, 2000)
+
+  // 批量异步更新示例
+  setTimeout(() => {
+    console.log('批量更新多个故事点图片...')
+    batchUpdateImages([
+      { id: 'spot1', url: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image' },
+      { id: 'spot3', url: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image' }
+    ])
+  }, 8000)
 }
 
 init()
@@ -618,3 +630,119 @@ window.createDot = (index) => {
   console.log(ISPOT)
   player.plugins.progresspreview.createDot(ISPOT)
 }
+
+// 模拟异步加载图片的函数
+function simulateAsyncImageLoad(id, imageUrl) {
+  console.log(`开始加载故事点 ${id} 的图片...`)
+  
+  // 模拟网络延迟
+  setTimeout(() => {
+    try {
+      // 使用新的 updateDotImage API 更新图片
+      player0.plugins.progresspreview.updateDotImage(id, imageUrl)
+      console.log(`故事点 ${id} 图片加载完成: ${imageUrl}`)
+    } catch (error) {
+      console.error(`故事点 ${id} 图片加载失败:`, error)
+    }
+  }, Math.random() * 2000 + 1000) // 1-3秒随机延迟
+}
+
+// 带指定延迟的异步加载图片函数，用于演示hover状态下的渲染过程
+function simulateAsyncImageLoadWithDelay(id, imageUrl, delay = 3000) {
+  console.log(`开始加载故事点 ${id} 的图片，延迟 ${delay}ms...`)
+  console.log(`请在 ${delay}ms 内hover到对应的故事点，观察loading到图片渲染的过程`)
+  
+  // 添加倒计时提示
+  let countdown = Math.floor(delay / 1000)
+  const countdownInterval = setInterval(() => {
+    console.log(`倒计时: ${countdown}秒 - 请hover到故事点 ${id}`)
+    countdown--
+    if (countdown < 0) {
+      clearInterval(countdownInterval)
+    }
+  }, 1000)
+  
+  setTimeout(() => {
+    try {
+      console.log(`开始更新故事点 ${id} 的图片...`)
+      
+      // 检查当前是否在hover状态
+      const progressPreview = player0.plugins.progresspreview
+      const isHovering = progressPreview._curDot && progressPreview._curDot.getAttribute('data-id') === id
+      console.log(`当前hover状态: ${isHovering ? '正在hover' : '未hover'}`)
+      
+      // 使用新的 updateDotImage API 更新图片
+      progressPreview.updateDotImage(id, imageUrl)
+      console.log(`故事点 ${id} 图片更新完成: ${imageUrl}`)
+      
+      if (isHovering) {
+        console.log(`✅ 成功！正在hover状态下更新了图片，应该能看到实时变化`)
+      } else {
+        console.log(`ℹ️ 当前未在hover状态，图片已更新但需要重新hover才能看到`)
+      }
+    } catch (error) {
+      console.error(`故事点 ${id} 图片加载失败:`, error)
+    }
+  }, delay)
+}
+
+// 批量更新图片的函数
+function batchUpdateImages(imageList) {
+  imageList.forEach((item, index) => {
+    setTimeout(() => {
+      simulateAsyncImageLoad(item.id, item.url)
+    }, index * 500) // 每个图片间隔500ms开始加载
+  })
+}
+
+// 动态创建带异步图片的故事点
+function createAsyncImageDot(time, text, id) {
+  const player = player0
+  
+  // 先创建无图片的故事点（显示loading状态）
+  player.plugins.progresspreview.createDot({
+    id: id,
+    time: time,
+    text: text,
+    image: '', // 初始为空
+    type: 'image'
+  })
+  
+  // 异步加载图片
+  setTimeout(() => {
+    const imageUrl = 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image'
+    player.plugins.progresspreview.updateDotImage(id, imageUrl, true) // 第三个参数为true表示立即显示
+    console.log(`动态创建的故事点 ${id} 图片加载完成`)
+  }, 2000)
+}
+
+// 实时更新图片示例
+function updateImageInRealTime(id) {
+  const imageUrls = [
+    'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
+    'https://example.com/image2.jpg',
+    'https://example.com/image3.jpg'
+  ]
+  
+  let currentIndex = 0
+  const interval = setInterval(() => {
+    const imageUrl = imageUrls[currentIndex]
+    player0.plugins.progresspreview.updateDotImage(id, imageUrl)
+    console.log(`实时更新故事点 ${id} 图片: ${imageUrl}`)
+    
+    currentIndex = (currentIndex + 1) % imageUrls.length
+    
+    // 更新3次后停止
+    if (currentIndex === 0) {
+      clearInterval(interval)
+      console.log(`故事点 ${id} 实时更新完成`)
+    }
+  }, 3000)
+}
+
+// 将函数暴露到全局，方便在控制台测试
+window.simulateAsyncImageLoad = simulateAsyncImageLoad
+window.simulateAsyncImageLoadWithDelay = simulateAsyncImageLoadWithDelay
+window.batchUpdateImages = batchUpdateImages
+window.createAsyncImageDot = createAsyncImageDot
+window.updateImageInRealTime = updateImageInRealTime

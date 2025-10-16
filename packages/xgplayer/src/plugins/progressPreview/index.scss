@@ -232,7 +232,7 @@ $shortBottom: -4px;
       white-space: nowrap;
       line-height: 20px;
       font-size: 12px;
-      max-height: 20px;
+      // max-height: 20px;
       color: #fff;
       text-align: left;
       width: 100%;
@@ -292,7 +292,7 @@ $shortBottom: -4px;
           text-overflow: ellipsis;
           white-space: nowrap;
           display: block;
-          max-height: 20px;
+          // max-height: 20px;
           line-height: 20px;
           
           .spot-text-time {
@@ -342,7 +342,7 @@ $shortBottom: -4px;
     width: 100%;
     height: 22px;
     line-height: 20px;
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(0,0,0, 0.6);
     // border-radius: 8px 8px 0 0;
     text-align: left;
     

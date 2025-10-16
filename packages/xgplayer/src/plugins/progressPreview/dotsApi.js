@@ -132,6 +132,78 @@ const APIS = {
   },
 
   /**
+   * 动态更新指定ID的图片地址
+   * @param {string | number} id 故事点ID
+   * @param {string} imageUrl 新的图片地址
+   * @param {boolean} needShow 是否需要显示该故事点
+   */
+  updateDotImage (id, imageUrl, needShow = false) {
+    const { progress } = this.player.plugins
+    if (!progress) {
+      return
+    }
+
+    // 更新内存中的数据
+    const dot = this.findDot(id)
+    if (dot) {
+      dot.image = imageUrl
+    }
+
+    if (!this.ispotsInit) {
+      return
+    }
+
+    // 更新DOM中的数据
+    const dotDom = progress.find(`xg-spot[data-id="${id}"]`)
+    if (dotDom) {
+      dotDom.setAttribute('data-image', imageUrl || '')
+
+      // 检查是否当前正在hover这个故事点
+      const isCurrentlyHovered = this._curDot && this._curDot.getAttribute('data-id') === String(id)
+
+      // 如果当前正在显示这个故事点的预览，需要实时更新预览内容
+      if (isCurrentlyHovered || this._activeDotId === id || needShow) {
+        if (needShow) {
+          this.showDot(id)
+        } else if (isCurrentlyHovered) {
+          // 如果当前正在hover这个点，实时更新预览内容而不隐藏
+          const spotText = dotDom.getAttribute('data-text')
+          const spotType = dotDom.getAttribute('data-type') || 'image'
+
+          // 确保使用当前的时间字符串，如果没有则格式化时间
+          let timeStr = this.timeStr
+          if (!timeStr && dot && dot.time !== undefined) {
+            timeStr = this.formatTime(dot.time)
+          }
+
+          // 直接更新预览内容，保持显示状态
+          console.log(`实时更新故事点 ${id} 的图片预览: ${imageUrl}`)
+          this.showTips(spotText, false, timeStr, imageUrl, spotType)
+
+          // 强制更新图片元素，确保图片能够立即显示
+          if (spotType === 'image' && imageUrl && this.tipImage) {
+            // 直接设置图片源，确保更新生效
+            this.tipImage.src = imageUrl
+            this.tipImage.style.display = 'block'
+            console.log(`强制更新图片元素: ${imageUrl}`)
+          }
+        }
+      }
+    }
+  },
+
+  /**
+   * 格式化时间显示
+   * @param {number} time 时间（秒）
+   * @returns {string} 格式化后的时间字符串
+   */
+  formatTime (time) {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  },
+
+  /**
    * 删除某个故事点
    * @param {string | number } id
    */
