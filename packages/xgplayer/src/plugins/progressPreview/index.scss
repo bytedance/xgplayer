@@ -229,14 +229,14 @@ $shortBottom: -4px;
     .spot-inner-text {
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
       line-height: 20px;
       font-size: 12px;
-      max-height: 34px;
+      max-height: 20px;
       color: #fff;
       text-align: left;
+      width: 100%;
+      max-width: 136px; // 160px - 24px padding (12px * 2)
     }
   }
 
@@ -287,13 +287,13 @@ $shortBottom: -4px;
         padding: 0;
         
         .spot-inner-text {
-          // 纯文本模式下的样式重置
-          overflow: visible;
-          text-overflow: initial;
+          // 纯文本模式下保持单行省略号效果
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
           display: block;
-          -webkit-line-clamp: initial;
-          -webkit-box-orient: initial;
-          max-height: none;
+          max-height: 20px;
+          line-height: 20px;
           
           .spot-text-time {
             position: relative;
@@ -328,6 +328,8 @@ $shortBottom: -4px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            width: 100%;
+            max-width: 154px; // 170px - 16px padding
           }
         }
       }
