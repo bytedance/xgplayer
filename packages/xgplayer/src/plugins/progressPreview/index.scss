@@ -1,5 +1,14 @@
 $bottom: -7px;
 $shortBottom: -4px;
+@keyframes loopImg {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}
 .xgplayer {
   .xgplayer-spot {
     position: absolute;
@@ -187,25 +196,32 @@ $shortBottom: -4px;
     }
     
     .spot-loading-placeholder {
-      position: absolute;
-      top: 0;
-      left: 0;
+      // position: absolute;
+      // top: 0;
+      // left: 0;
       width: 160px;
       height: 90px;
-      background: rgba(0, 0, 0, 0.7);
+      // background: rgba(0, 0, 0, 0.7);
       border-radius: 8px 8px 0 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      
-      .loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top: 2px solid #fff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
+      background-color: #4A4E56;
+      // 4A4E56
+       background-image: linear-gradient(
+            -60deg,
+            rgba(242,243,245,0.1) 25%,
+            rgba(229,230,235,0.25) 40%,
+            rgba(229,230,235,0.25) 55%
+          );
+      // background: linear-gradient(
+      //       -60deg,
+      //       rgb(242,243,245) 25%,
+      //       rgb(229,230,235) 40%,
+      //       rgb(229,230,235) 55%
+      //     );
+        background-size: 400% 100%;
+        animation: loopImg 1.5s cubic-bezier(0.34, 0.69, 0.1, 1) infinite;
     }
   }
 
@@ -270,23 +286,6 @@ $shortBottom: -4px;
         padding: 0;
         
         .spot-inner-text {
-          position: relative;
-          padding-left: 24px;
-          line-height: 1.4;
-          
-          // 添加三横线图标
-          &::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 2px;
-            width: 16px;
-            height: 16px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M2 3h12v1H2V3zm0 4h12v1H2V7zm0 4h12v1H2v-1z'/%3E%3C/svg%3E");
-            background-size: contain;
-            background-repeat: no-repeat;
-          }
-          
           // 纯文本模式下的样式重置
           overflow: visible;
           text-overflow: initial;
@@ -296,17 +295,32 @@ $shortBottom: -4px;
           max-height: none;
           
           .spot-text-time {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+            padding-left: 24px;
+            font-size: 10px;
+           color: #fff;
             margin-bottom: 4px;
             line-height: 16px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            text-align: left;
+            // 添加三横线图标
+            &::before {
+              content: '';
+              position: absolute;
+              left: 0;
+              top: 2px;
+              width: 16px;
+              height: 16px;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M2 3h12v1H2V3zm0 4h12v1H2V7zm0 4h12v1H2v-1z'/%3E%3C/svg%3E");
+              background-size: contain;
+              background-repeat: no-repeat;
+            }
           }
           
           .spot-text-content {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             line-height: 20px;
             overflow: hidden;
