@@ -34,6 +34,8 @@ const APIS = {
     dotDom.setAttribute('data-image', iSpot.image || '')
     dotDom.setAttribute('data-time', iSpot.time)
     dotDom.setAttribute('data-type', iSpot.type || 'image')
+    dotDom.setAttribute('data-spot-mode-text-sub-title', iSpot.spotModeTextSubTitle || '')
+    dotDom.setAttribute('data-spot-mode-image-sub-title', iSpot.spotModeImageSubTitle || '')
     if (ret.isMini) {
       Util.addClass(dotDom, 'mini')
     } else {
@@ -79,7 +81,9 @@ const APIS = {
       'data-image': iSpot.image || '',
       'data-time': iSpot.time,
       'data-type': iSpot.type || 'image',
-      'data-id': iSpot.id
+      'data-id': iSpot.id,
+      'data-spot-mode-text-sub-title': iSpot.spotModeTextSubTitle || '',
+      'data-spot-mode-image-sub-title': iSpot.spotModeImageSubTitle || ''
     }, className)
     Object.keys(style).map(key => {
       dotDom.style[key] = style[key]
@@ -169,6 +173,8 @@ const APIS = {
           // 如果当前正在hover这个点，实时更新预览内容而不隐藏
           const spotText = dotDom.getAttribute('data-text')
           const spotType = dotDom.getAttribute('data-type') || 'image'
+          const spotModeTextSubTitle = dotDom.getAttribute('data-spot-mode-text-sub-title')
+          const spotModeImageSubTitle = dotDom.getAttribute('data-spot-mode-image-sub-title')
 
           // 确保使用当前的时间字符串，如果没有则格式化时间
           let timeStr = this.timeStr
@@ -178,7 +184,7 @@ const APIS = {
 
           // 直接更新预览内容，保持显示状态
           console.log(`实时更新故事点 ${id} 的图片预览: ${imageUrl}`)
-          this.showTips(spotText, false, timeStr, imageUrl, spotType)
+          this.showTips(spotText, false, timeStr, imageUrl, spotType, spotModeTextSubTitle, spotModeImageSubTitle)
 
           // 强制更新图片元素，确保图片能够立即显示
           if (spotType === 'image' && imageUrl && this.tipImage) {

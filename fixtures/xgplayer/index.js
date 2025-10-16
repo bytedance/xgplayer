@@ -360,33 +360,38 @@ function init(index = 0, config = {}) {
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
           type: 'image',
           id: 'spot1',
-          width: 160
+          width: 160,
+          spotModeImageSubTitle: '自定义图片前缀·'
         },
         {
           time: 30,
           text: 'Gus冷笑揭穿Walter的谎言，紧张气氛瞬间升级',
           type: 'text',
-          id: 'spot2'
+          id: 'spot2',
+          spotModeTextSubTitle: '自定义文本前缀·'
         },
         {
           time: 60,
           text: '重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点',
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
           type: 'image',
-          id: 'spot3'
+          id: 'spot3',
+          spotModeImageSubTitle: '特殊标记·'
         },
         {
           time: 90,
           text: '异步加载图片示例',
           type: 'image',
           // 故意不提供image，展示加载状态，稍后异步更新
-          id: 'spot4'
+          id: 'spot4',
+          spotModeImageSubTitle: '异步加载·'
         },
         {
           time: 120,
           text: '文本示例11111231231321',
           type: 'text',
-          id: 'spot5'
+          id: 'spot5',
+          spotModeTextSubTitle: '测试章节·'
         }
       ],
       // defaultText: '默认提示文本',

@@ -14,7 +14,9 @@ import './index.scss'
  *     color?: string, // 进度条标识点的显示颜色【可选】
  *     style?: { [propName: string]: any }, // 指定样式
  *     width?: number,
- *     height?: number
+ *     height?: number,
+ *     spotModeTextSubTitle?: string,
+ *     spotModeImageSubTitle?: string,
  *    }>,
  *   defaultText?: '', // 故事点hover默认文案
  *   defaultImage?: '', // 故事点hover默认图片
@@ -333,7 +335,9 @@ export default class ProgressPreview extends Plugin {
       const spotText = e.target.getAttribute('data-text')
       const spotImage = e.target.getAttribute('data-image')
       const spotType = e.target.getAttribute('data-type') || 'image' // 默认为image类型
-      this.showTips(spotText, false, timeStr, spotImage, spotType)
+      const spotModeTextSubTitle = e.target.getAttribute('data-spot-mode-text-sub-title')
+      const spotModeImageSubTitle = e.target.getAttribute('data-spot-mode-image-sub-title')
+      this.showTips(spotText, false, timeStr, spotImage, spotType, spotModeTextSubTitle, spotModeImageSubTitle)
       this.focusDot(e.target)
       _state.f = true
       config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
@@ -451,7 +455,7 @@ export default class ProgressPreview extends Plugin {
     this._activeDotId = null
   }
 
-  showTips (text, isDefault, timeStr = '', image = '', type = 'image') {
+  showTips (text, isDefault, timeStr = '', image = '', type = 'image', spotModeTextSubTitle = '', spotModeImageSubTitle = '') {
     Util.addClass(this.root, 'no-timepoint')
     if (!text && !image) {
       return
@@ -480,9 +484,11 @@ export default class ProgressPreview extends Plugin {
 
         if (type === 'text') {
           // 纯文本模式：显示分层内容
+          // const textPrefix = spotModeTextSubTitle || this.config.textModeTimePrefix
+          const textPrefix = `${this.config.textModeTimePrefix}${spotModeTextSubTitle}`
           this.tipText.innerHTML = `
             <div class="spot-text-time">
-              ${this.config.textModeTimePrefix}
+              ${textPrefix}
             </div>
             <div class="spot-text-content">
               ${text}
@@ -525,7 +531,9 @@ export default class ProgressPreview extends Plugin {
         // 显示高光区域
         if (this.highlightOverlay && this.highlightText) {
           this.highlightOverlay.style.display = 'block'
-          this.highlightText.textContent = `${this.config.imageModeTimePrefix}`
+          // const imagePrefix = spotModeImageSubTitle || this.config.imageModeTimePrefix
+          const imagePrefix = `${this.config.imageModeTimePrefix}${spotModeImageSubTitle}`
+          this.highlightText.textContent = imagePrefix
         }
       } else if (this.loadingPlaceholder) {
         // 图片模式但没有图片时，显示加载状态
@@ -536,7 +544,9 @@ export default class ProgressPreview extends Plugin {
         // loading状态下也显示高光区域
         if (this.highlightOverlay && this.highlightText) {
           this.highlightOverlay.style.display = 'block'
-          this.highlightText.textContent = `${this.config.imageModeTimePrefix}`
+          // const imagePrefix = spotModeImageSubTitle || this.config.imageModeTimePrefix
+          const imagePrefix = `${this.config.imageModeTimePrefix}${spotModeImageSubTitle}`
+          this.highlightText.textContent = imagePrefix
         }
       }
     }
