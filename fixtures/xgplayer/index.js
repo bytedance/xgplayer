@@ -388,7 +388,7 @@ function init(index = 0, config = {}) {
         },
         {
           time: 120,
-          text: '文本示例11111231231321',
+          text: '文本示例11111231231321dddff',
           type: 'text',
           id: 'spot5',
           spotModeTextSubTitle: '测试章节·'

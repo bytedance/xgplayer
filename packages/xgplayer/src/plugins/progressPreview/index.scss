@@ -178,7 +178,7 @@ $shortBottom: -4px;
   .xg-spot-text {
     display: none;
     background: rgba(43, 43, 43, 0.95);
-    border-radius: 8px;
+    border-radius: 4px;
     pointer-events: none;
     box-sizing: border-box;
     overflow: hidden;
@@ -190,7 +190,7 @@ $shortBottom: -4px;
     .spot-inner-image {
       width: 160px;
       height: 90px;
-      border-radius: 9px 9px 0 0;
+      border-radius: 5px 5px 0 0;
       object-fit: cover;
       display: block;
     }
@@ -202,7 +202,7 @@ $shortBottom: -4px;
       width: 160px;
       height: 90px;
       // background: rgba(0, 0, 0, 0.7);
-      border-radius: 8px 8px 0 0;
+      border-radius: 4px 4px 0 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -236,7 +236,7 @@ $shortBottom: -4px;
       color: #fff;
       text-align: left;
       width: 100%;
-      max-width: 136px; // 160px - 24px padding (12px * 2)
+      max-width: 146px; // 170px - 24px padding (12px * 2)
     }
   }
 
@@ -251,7 +251,7 @@ $shortBottom: -4px;
         position: relative;
         
         .spot-inner-image {
-          border-radius: 8px 8px 0 0;
+          border-radius: 4px 4px 0 0;
         }
       }
       
@@ -300,12 +300,13 @@ $shortBottom: -4px;
             padding-left: 15px;
             font-size: 10px;
            color: #fff;
-            margin-bottom: 4px;
+            // margin-bottom: 4px;
             line-height: 16px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             text-align: left;
+            opacity: 0.8;
             // 添加zhangjie1图标
             &::before {
               content: '';
@@ -317,7 +318,7 @@ $shortBottom: -4px;
               background-image: url("data:image/svg+xml,%3Csvg width='13' height='12' viewBox='0 0 13 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.8'%3E%3Cg clip-path='url(%23clip0_61_15589)'%3E%3Cpath d='M10.9907 6.47853H3.99756C3.75122 6.47853 3.49805 6.22426 3.49805 5.97975C3.49805 5.73474 3.75122 5.48097 3.99756 5.48097H10.9907C11.2371 5.48097 11.4902 5.73523 11.4902 5.97975C11.4902 6.22475 11.2371 6.47853 10.9907 6.47853ZM10.9907 2.98706H3.99756C3.75122 2.98706 3.49805 2.73329 3.49805 2.48828C3.49805 2.24328 3.75122 1.9895 3.99756 1.9895H10.9907C11.2371 1.9895 11.4902 2.24328 11.4902 2.48828C11.4902 2.73329 11.2371 2.98706 10.9907 2.98706ZM1.99951 9.96999C1.75317 9.96999 1.5 9.71574 1.5 9.47122C1.5 9.2262 1.75318 8.97244 1.99951 8.97244C2.24585 8.97244 2.49902 9.2262 2.49902 9.47122C2.49902 9.71574 2.24585 9.96999 1.99951 9.96999ZM1.99951 6.47853C1.75317 6.47853 1.5 6.22475 1.5 5.97975C1.5 5.73523 1.75318 5.48097 1.99951 5.48097C2.24585 5.48097 2.49902 5.73473 2.49902 5.97975C2.49902 6.22426 2.24585 6.47853 1.99951 6.47853ZM1.99951 2.98706C1.75317 2.98706 1.5 2.73329 1.5 2.48828C1.5 2.24328 1.75318 1.9895 1.99951 1.9895C2.24585 1.9895 2.49902 2.24328 2.49902 2.48828C2.49902 2.73329 2.24585 2.98706 1.99951 2.98706ZM3.99756 8.97244H10.9907C11.2371 8.97244 11.4902 9.2267 11.4902 9.47122C11.4902 9.71622 11.2371 9.96999 10.9907 9.96999H3.99756C3.75122 9.96999 3.49805 9.71622 3.49805 9.47122C3.49805 9.22669 3.75122 8.97244 3.99756 8.97244Z' fill='white'/%3E%3C/g%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0_61_15589'%3E%3Crect width='10' height='10' fill='white' transform='translate(1.5 1)'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E");
               background-size: contain;
               background-repeat: no-repeat;
-              opacity: 0.8;
+              // opacity: 0.8;
             }
           }
           
@@ -361,6 +362,7 @@ $shortBottom: -4px;
         color: #333;
         font-weight: 500;
         color: #fff;
+        opacity: 0.8;
         
         // 添加gaoguang1图标
         &::before {
@@ -373,7 +375,7 @@ $shortBottom: -4px;
           background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.8'%3E%3Cpath d='M10.6751 1.50002H1.32489C1.10613 1.49836 0.896492 1.59118 0.741541 1.75858C0.58659 1.92599 0.5 2.15472 0.5 2.39173V9.59998C0.503038 10.0956 0.870667 10.4967 1.32489 10.5H10.6751C10.8939 10.5016 11.1035 10.4088 11.2585 10.2414C11.4134 10.074 11.5 9.84528 11.5 9.60827V2.39339C11.4924 1.89947 11.1263 1.50334 10.6751 1.50002ZM1.18816 5.25083H2.68147V6.75082H1.18816V5.25083ZM3.36811 2.25085H8.41313V9.75081H3.36811V2.25085ZM9.09978 5.25083H10.8118V6.75082H9.09978V5.25083ZM10.8118 2.85084V4.50166H9.09978V2.25085H10.268C10.5703 2.25416 10.8118 2.52101 10.8118 2.85084ZM1.73049 2.25085H2.67995V4.50166H1.18665V2.85084C1.18816 2.52101 1.42971 2.25416 1.73049 2.25085ZM1.18816 9.15081V7.49999H2.68147V9.75081H1.73201C1.42971 9.74749 1.18816 9.47899 1.18816 9.15081ZM10.2695 9.75081H9.1013V7.49999H10.8118V9.15081C10.8118 9.47899 10.5703 9.74749 10.2695 9.75081Z' fill='white'/%3E%3Cpath d='M7.2253 5.69163L5.3902 4.77104C5.21854 4.68901 5.08789 4.77104 5.08789 4.95638V7.03302C5.08789 7.21836 5.22613 7.30039 5.39779 7.21836L6.95794 6.44208L7.22682 6.30384C7.55495 6.13826 7.56255 5.86329 7.2253 5.69163Z' fill='white'/%3E%3C/g%3E%3C/svg%3E");
           background-size: contain;
           background-repeat: no-repeat;
-          opacity: 0.8;
+          // opacity: 0.8;
         }
       }
     }
