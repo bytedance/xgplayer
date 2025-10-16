@@ -22,7 +22,8 @@ import './index.scss'
  *   isShowThumbnail?: true, // 是否显示预览图
  *   isShowCoverPreview?: false, // 进度条拖动时是否显示播放区域预览图
  *   mode?: 'short' | 'production', // short // production
- *   chapterPrefix?: string, // 章节前缀文本，默认为"章节·"
+ *   textModeTimePrefix?: string, // 纯文本模式下的时间前缀
+ *   imageModeTimePrefix?: string, // 图片模式下的时间前缀
  *   [propName: string]: any
  * }} IProgressPreviewConfig
  */
@@ -73,7 +74,8 @@ export default class ProgressPreview extends Plugin {
       disable: false,
       width: 160, // 显示宽度
       height: 90, // 显示高度
-      chapterPrefix: '章节·' // 章节前缀文本，可自定义
+      textModeTimePrefix: '章节·', // 纯文本模式下的时间前缀
+      imageModeTimePrefix: '高光·' // 图片模式下的时间前缀
     }
   }
 
@@ -480,7 +482,7 @@ export default class ProgressPreview extends Plugin {
           // 纯文本模式：显示分层内容
           this.tipText.innerHTML = `
             <div class="spot-text-time">
-              ${this.config.chapterPrefix}${timeStr}
+              ${this.config.textModeTimePrefix}
             </div>
             <div class="spot-text-content">
               ${text}
@@ -523,7 +525,7 @@ export default class ProgressPreview extends Plugin {
         // 显示高光区域
         if (this.highlightOverlay && this.highlightText) {
           this.highlightOverlay.style.display = 'block'
-          this.highlightText.textContent = `${this.config.chapterPrefix}${timeStr}`
+          this.highlightText.textContent = `${this.config.imageModeTimePrefix}`
         }
       } else if (this.loadingPlaceholder) {
         // 图片模式但没有图片时，显示加载状态
