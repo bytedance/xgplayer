@@ -77,7 +77,8 @@ $shortBottom: -4px;
         height: 6px;
       }
       .xg-spot-content {
-        bottom: $shortBottom;
+        // bottom: $shortBottom;
+        bottom: 0;
       }
     }
     &.no-thumbnail {
@@ -141,7 +142,8 @@ $shortBottom: -4px;
   .xg-spot-content {
     position: relative;
     // width: 160px;
-    bottom: $bottom;
+    // bottom: $bottom;
+    bottom: 0;
     color: #fff;
     border-radius: 2px 2px 0px 0px;
   }
