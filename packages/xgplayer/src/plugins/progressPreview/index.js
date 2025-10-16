@@ -532,6 +532,12 @@ export default class ProgressPreview extends Plugin {
         this.loadingPlaceholder.style.display = 'block'
         Util.addClass(this.root, 'image-loading')
         Util.addClass(this.root, 'has-spot-image')
+
+        // loading状态下也显示高光区域
+        if (this.highlightOverlay && this.highlightText) {
+          this.highlightOverlay.style.display = 'block'
+          this.highlightText.textContent = `${this.config.imageModeTimePrefix}`
+        }
       }
     }
     // 纯文本模式不需要额外处理，因为已经在上面清理了所有图片相关状态
