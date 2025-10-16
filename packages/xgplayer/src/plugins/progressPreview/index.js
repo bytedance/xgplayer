@@ -22,6 +22,7 @@ import './index.scss'
  *   isShowThumbnail?: true, // 是否显示预览图
  *   isShowCoverPreview?: false, // 进度条拖动时是否显示播放区域预览图
  *   mode?: 'short' | 'production', // short // production
+ *   chapterPrefix?: string, // 章节前缀文本，默认为"章节·"
  *   [propName: string]: any
  * }} IProgressPreviewConfig
  */
@@ -71,7 +72,8 @@ export default class ProgressPreview extends Plugin {
       mode: '', // short // production
       disable: false,
       width: 160, // 显示宽度
-      height: 90 // 显示高度
+      height: 90, // 显示高度
+      chapterPrefix: '章节·' // 章节前缀文本，可自定义
     }
   }
 
@@ -124,6 +126,8 @@ export default class ProgressPreview extends Plugin {
     this.tipText = this.find('.spot-inner-text')
     this.tipImage = this.find('.spot-inner-image')
     this.loadingPlaceholder = this.find('.spot-loading-placeholder')
+    this.highlightOverlay = this.find('.spot-highlight-overlay')
+    this.highlightText = this.find('.spot-highlight-text')
 
     this._hasThumnail = false
 
@@ -476,7 +480,7 @@ export default class ProgressPreview extends Plugin {
           // 纯文本模式：显示分层内容
           this.tipText.innerHTML = `
             <div class="spot-text-time">
-              章节·${timeStr}
+              ${this.config.chapterPrefix}${timeStr}
             </div>
             <div class="spot-text-content">
               ${text}
@@ -499,6 +503,9 @@ export default class ProgressPreview extends Plugin {
     if (this.loadingPlaceholder) {
       this.loadingPlaceholder.style.display = 'none'
     }
+    if (this.highlightOverlay) {
+      this.highlightOverlay.style.display = 'none'
+    }
     Util.removeClass(this.root, 'has-spot-image')
     Util.removeClass(this.root, 'image-loading')
 
@@ -512,6 +519,12 @@ export default class ProgressPreview extends Plugin {
         this.tipImage.src = image
         this.tipImage.alt = text || '故事点图片'
         Util.addClass(this.root, 'has-spot-image')
+
+        // 显示高光区域
+        if (this.highlightOverlay && this.highlightText) {
+          this.highlightOverlay.style.display = 'block'
+          this.highlightText.textContent = `${this.config.chapterPrefix}${timeStr}`
+        }
       } else if (this.loadingPlaceholder) {
         // 图片模式但没有图片时，显示加载状态
         this.loadingPlaceholder.style.display = 'block'
@@ -533,6 +546,9 @@ export default class ProgressPreview extends Plugin {
     }
     if (this.loadingPlaceholder) {
       this.loadingPlaceholder.style.display = 'none'
+    }
+    if (this.highlightOverlay) {
+      this.highlightOverlay.style.display = 'none'
     }
     Util.removeClass(this.find('.xg-spot-content'), 'show-text')
     Util.removeClass(this.root, 'product')
@@ -597,6 +613,11 @@ export default class ProgressPreview extends Plugin {
             <img class="spot-inner-image" style="display: none;" />
             <div class="spot-loading-placeholder" style="display: none;">
               <div class="loading-spinner"></div>
+            </div>
+            <div class="spot-highlight-overlay" style="display: none;">
+              <div class="spot-highlight-content">
+                <span class="spot-highlight-text"></span>
+              </div>
             </div>
           </div>
           <div class="spot-text-container">

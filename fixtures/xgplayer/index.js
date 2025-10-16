@@ -367,7 +367,7 @@ function init(index = 0, config = {}) {
         },
         {
           time: 60,
-          text: '重要节点',
+          text: '重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点重要节点',
           image: 'https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image',
           type: 'image',
           id: 'spot3'
