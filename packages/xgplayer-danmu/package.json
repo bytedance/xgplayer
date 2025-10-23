@@ -1,7 +1,7 @@
 {
-  "name": "xgplayer",
+  "name": "xgplayer-danmu",
   "version": "3.0.24-rc.3",
-  "description": "video player",
+  "description": "xgplayer plugin for danmu.js",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -11,7 +11,7 @@
     "**/*.css"
   ],
   "libd": {
-    "umdName": "Player"
+    "umdName": "XgDanmu"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -19,31 +19,22 @@
     "tag": "rc"
   },
   "files": [
-    "dist",
-    "es",
+    "/es",
+    "/dist",
     "README.md",
     "CHANGELOG.md"
   ],
-  "unpkg": "latest",
   "unpkgFiles": [
     "dist"
   ],
-  "keywords": [
-    "video",
-    "player"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
-  },
-  "author": "yinguohui@bytedance.com",
   "license": "MIT",
+  "devDependencies": {},
   "dependencies": {
-    "delegate": "^3.2.0",
-    "eventemitter3": "^4.0.7",
-    "xgplayer-subtitles": "3.0.24-rc.3"
+    "danmu.js": "^1.1.14",
+    "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
-    "core-js": ">=3.12.1"
+    "core-js": ">=3.12.1",
+    "xgplayer": "3.0.24-rc.3"
   }
 }
