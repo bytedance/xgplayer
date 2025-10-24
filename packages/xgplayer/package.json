@@ -39,7 +39,7 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
-    "danmu.js": ">=1.1.14",
+    "danmu.js": ">=1.2.0-rc.8",
     "delegate": "^3.2.0",
     "eventemitter3": "^4.0.7",
     "xgplayer-subtitles": "3.0.24-rc.3"
