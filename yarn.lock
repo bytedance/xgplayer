@@ -2645,7 +2645,7 @@ d@1, d@^1.0.1:
 
 danmu.js@>=1.2.0-rc.8:
   version "1.2.0-rc.8"
-  resolved "https://bnpm.byted.org/danmu.js/-/danmu.js-1.2.0-rc.8.tgz#bb6d80b5fadabd77af3a5c9702cf2567eb632d0f"
+  resolved "https://registry.yarnpkg.com/danmu.js/-/danmu.js-1.2.0-rc.8.tgz#bb6d80b5fadabd77af3a5c9702cf2567eb632d0f"
   integrity sha512-NZ5UA8Rh0Ar6bTgg5TtHUL9gQhkEXPI372niOkIhdhfYdCT9fzZ0cLWui7F0SAnO0/6bzsDNZj094XdRxdzb6Q==
   dependencies:
     event-emitter "^0.3.5"
