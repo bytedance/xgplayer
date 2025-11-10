@@ -2643,10 +2643,10 @@ d@1, d@^1.0.1:
     es5-ext "^0.10.50"
     type "^1.0.1"
 
-danmu.js@>=1.2.0-rc.8:
-  version "1.2.0-rc.8"
-  resolved "https://registry.yarnpkg.com/danmu.js/-/danmu.js-1.2.0-rc.8.tgz#bb6d80b5fadabd77af3a5c9702cf2567eb632d0f"
-  integrity sha512-NZ5UA8Rh0Ar6bTgg5TtHUL9gQhkEXPI372niOkIhdhfYdCT9fzZ0cLWui7F0SAnO0/6bzsDNZj094XdRxdzb6Q==
+danmu.js@>=1.2.1:
+  version "1.2.1"
+  resolved "https://registry.npmjs.org/danmu.js/-/danmu.js-1.2.1.tgz#952bedb14a344bca5b45fb3ea13cba80ae0c7c1d"
+  integrity sha512-evDEImUBo94c846fC92K//Dzll8jXnZ3zKmYlQHwMzmvw6IW2IyjWL3Ew2SqEAzuqauFnDkwJEgZauu3uW/p1Q==
   dependencies:
     event-emitter "^0.3.5"
 
