@@ -2621,6 +2621,13 @@ class Player extends MediaProxy {
   }
 
   /**
+   * @param  {...any} args
+   */
+  runHooks (...args) {
+    return runHooks.call(this, ...arguments)
+  }
+
+  /**
    * @param { string } hookName
    * @param { (player: any, ...args) => boolean | Promise<any> } handler
    * @param  {...any} args
