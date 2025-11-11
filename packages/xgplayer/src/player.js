@@ -383,20 +383,23 @@ class Player extends MediaProxy {
       return
     }
 
-    // url为空的情况下 根据definition或playnext.urlList设置播放地址
-    // 若未配置definition.defaultDefinition，默认将配置为definition.list[0].definition
+    // Initialize curDefinition and url
     const { definition = {}, url } = this.config
-
-    if (!url && definition.list && definition.list.length > 0) {
-      let defaultDefinitionObj = definition.list.find(
+    if (Array.isArray(definition?.list) && definition.list.length > 0) {
+      let curDefinition = definition.list.find(
         (e) => e.definition && e.definition === definition.defaultDefinition
       )
-      if (!defaultDefinitionObj) {
+      // 若未配置definition.defaultDefinition，默认将配置为definition.list[0].definition
+      if (!curDefinition) {
         definition.defaultDefinition = definition.list[0].definition
-        defaultDefinitionObj = definition.list[0]
+        curDefinition = definition.list[0]
       }
-      this.config.url = defaultDefinitionObj.url
-      this.curDefinition = defaultDefinitionObj
+      this.curDefinition = curDefinition
+
+       // url为空的情况下 根据definition或playnext.urlList设置播放地址
+      if (!url) {
+        this.config.url = curDefinition.url
+      }
     }
 
     this._bindEvents()
@@ -411,7 +414,7 @@ class Player extends MediaProxy {
     Util.setTimeout(this, () => {
       this.emit(Events.READY)
     }, 0)
-    this.onReady && this.onReady()
+    this.onReady?.()
 
     if (this.config.videoInit || this.config.autoplay) {
       if (!this.hasStart || this.state < STATES.ATTACHED) {
