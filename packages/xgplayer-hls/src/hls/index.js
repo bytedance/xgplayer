@@ -520,7 +520,8 @@ export class Hls extends EventEmitter {
         bInfo = this.bufferInfo(bInfo.nextStart || 0.5)
       }
       const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < maxBufferThroughout
-      if (bInfo.remaining >= config.preloadTime || bufferThroughout) {
+      // Only stop loading if we've buffered enough preload time or reached end AND all segments are loaded
+      if (bInfo.remaining >= config.preloadTime || (bufferThroughout && !nextSegment)) {
         this._tryEos()
         return
       }
