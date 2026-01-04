@@ -359,6 +359,7 @@ export class TsDemuxer {
       track.objectType = ret.objectType
       track.sampleRateIndex = ret.samplingFrequencyIndex
       track.config = ret.config
+      track.parsedCodec = ret.originCodec
       track.samples.push(...ret.frames.map((s) => new AudioSample(s.pts, s.data)))
 
       if (ret.skip) {

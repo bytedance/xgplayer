@@ -351,7 +351,7 @@ export class TsFixer {
       // delta >= 3 * refSampleDurationInt
       // delta <= 500s
       if (!this._audioTimestampBreak && delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration && delta <= MAX_SILENT_FRAME_DURATION && !isSafari) {
-        const silentFrame = AAC.getSilentFrame(audioTrack.codec, audioTrack.channelCount) || samples[0].data.subarray()
+        const silentFrame = AAC.getSilentFrame(audioTrack.parsedCodec || audioTrack.codec, audioTrack.channelCount) || samples[0].data.subarray()
         const count = Math.floor(delta / refSampleDuration)
 
         if (Math.abs(sample.pts - this._lastAudioExceptionGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {
