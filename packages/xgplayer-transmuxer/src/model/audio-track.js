@@ -43,6 +43,8 @@ export class AudioTrack {
 
   sampleRateIndex = 0
 
+  parsedCodec = null
+
   /** @type {number[]} */
   config = []
 
