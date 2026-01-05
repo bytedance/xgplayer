@@ -74,8 +74,6 @@ jobs:
         uses: ./.github/actions/setup-node-env
         with:
           registry-url: 'https://registry.npmjs.org'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
