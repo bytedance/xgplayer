@@ -2,10 +2,6 @@ name: 'Setup Node Environment'
 description: 'Setup Node.js, cache dependencies, and install global tools'
 
 inputs:
-  node-version:
-    description: 'Node.js version'
-    required: false
-    default: '22.x'
   registry-url:
     description: 'NPM registry URL'
     required: false
@@ -30,7 +26,6 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
-        node-version: ${{ inputs.node-version }}
         registry-url: ${{ inputs.registry-url }}
 
     - name: Setup global dependencies
