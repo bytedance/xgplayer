@@ -11,7 +11,7 @@ jobs:
     environment: release
     permissions:
       contents: read
-      id-token: write # 
+      id-token: write
     outputs:
       tag: ${{ steps.extract_tag.outputs.result }}
     steps:
@@ -33,28 +33,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package.json', '**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-
-      - name: Setup global dependencies
-        run: |
-          npm install -g yarn@1.22.22
-          npm install -g zx@7.2.3
-
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Set package version
         run: |
@@ -90,12 +70,12 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
         with:
-          node-version: 22.x
           registry-url: 'https://registry.npmjs.org'
-          token: ${{ secrets.NPM_TOKEN }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -123,24 +103,22 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+            ${{ runner.os }}-
+
       - name: Setup Git
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-
-      - name: Setup global dependencies
-        run: |
-          npm install -g yarn@1.22.22
-          npm install -g zx@7.2.3
-
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Apply version changes
         run: |
