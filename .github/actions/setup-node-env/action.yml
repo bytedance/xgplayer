@@ -1,0 +1,46 @@
+name: 'Setup Node Environment'
+description: 'Setup Node.js, cache dependencies, and install global tools'
+
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '22.x'
+  registry-url:
+    description: 'NPM registry URL'
+    required: false
+    default: ''
+  install-deps:
+    description: 'Whether to install project dependencies'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+          ${{ runner.os }}-
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: ${{ inputs.registry-url }}
+
+    - name: Setup global dependencies
+      shell: bash
+      run: |
+        npm install -g yarn@1.22.22
+        npm install -g zx@7.2.3
+
+    - name: Install project dependencies
+      if: inputs.install-deps == 'true'
+      shell: bash
+      run: |
+        yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
