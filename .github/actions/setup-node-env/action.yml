@@ -28,6 +28,7 @@ runs:
       with:
         node-version: 24
         registry-url: ${{ inputs.registry-url }}
+        cache: 'yarn'
 
     - name: Setup global dependencies
       shell: bash

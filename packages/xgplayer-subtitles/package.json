@@ -27,6 +27,10 @@
   "unpkgFiles": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
   "author": "hongqiongxing@bytedance.com",
   "license": "MIT",
   "devDependencies": {},

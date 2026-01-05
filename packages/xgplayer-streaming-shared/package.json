@@ -17,6 +17,10 @@
     "access": "public",
     "tag": "rc"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
   "license": "MIT",
   "dependencies": {
     "eventemitter3": "^4.0.7"

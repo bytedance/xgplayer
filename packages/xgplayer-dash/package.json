@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git"
   },
   "keywords": [
     "MPEG-DASH",
