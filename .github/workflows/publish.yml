@@ -73,11 +73,11 @@ jobs:
           path: |
             packages/*/dist/**
             packages/*/es/**
+            packages/*/package.json
             package.json
           retention-days: 7
   release_npm:
     permissions:
-      contents: write
       id-token: write
       
     needs: [build]
@@ -85,49 +85,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout tag
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-          fetch-depth: 1
-
-      - name: Setup Git
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-          git fetch --tags
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-release-${{ hashFiles('**/package.json', '**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-release-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: Setup Git
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-          git fetch --tags
-          git pull
-
-      - name: Setup global dependencies
-        run: |
-          npm install -g yarn@1.22.22
-          npm install -g zx@7.2.3
-
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
+          token: ${{ secrets.NPM_TOKEN }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -140,7 +108,47 @@ jobs:
         env:
           NPM_CONFIG_PROVENANCE: true
 
-      - name: Commit version changes
+  create_release_pr:
+    permissions:
+      contents: write
+      pull-requests: write
+      
+    needs: [build, release_npm]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Setup global dependencies
+        run: |
+          npm install -g yarn@1.22.22
+          npm install -g zx@7.2.3
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
+
+      - name: Apply version changes
+        run: |
+          zx scripts/workflow/set-package-version.mjs
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+
+      - name: Commit and push to release branch
         uses: EndBug/add-and-commit@v9
         with:
           add: "."
@@ -148,16 +156,8 @@ jobs:
           fetch: true
           new_branch: release
           push: '--set-upstream origin release --force'
-          message: 'chore(release): publish npm version ${{ needs.build.outputs.tag }}'
+          message: 'chore(release): update version to ${{ needs.build.outputs.tag }}'
 
-  create_release_pr:
-    permissions:
-      pull-requests: write
-      
-    needs: [build, release_npm]
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Create or update PR
         uses: actions/github-script@v7
         env:
