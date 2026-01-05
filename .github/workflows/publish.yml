@@ -1,60 +1,72 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Release Version
+# Publish npm packages based on git tags (v*)
 
 on:
   push:
-    branches: ["main"]
     tags: ["v*"]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      contents: read
+      id-token: write # 
+    outputs:
+      tag: ${{ steps.extract_tag.outputs.result }}
     steps:
-      - name: extract tag
+      - name: Extract tag
         id: extract_tag
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const prefix = 'refs/tags/';
             const ref = context.ref;
-            return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
+            if (!ref.startsWith(prefix)) {
+              throw new Error('Invalid ref: not a tag');
+            }
+            return ref.substring(prefix.length);
           result-encoding: string
-      - uses: actions/checkout@v3
-      - name: cache node_modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package.json', '**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 14.x
-      - name: setup global dependencies
-        run: |
-          npm install yarn -g 
-          npm install zx@7.2.3 -g
+          node-version: 22.x
 
-      - name: install repo dependencies
+      - name: Setup global dependencies
         run: |
-          yarn install --registry="https://registry.yarnpkg.com"
-      - name: npm version
+          npm install -g yarn@1.22.22
+          npm install -g zx@7.2.3
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
+
+      - name: Set package version
         run: |
           zx scripts/workflow/set-package-version.mjs
         env:
-          TAG: ${{steps.extract_tag.outputs.result}}
-      - name: build
+          TAG: ${{ steps.extract_tag.outputs.result }}
+
+      - name: Build packages
         run: |
           yarn build:all
-      - name: upload build
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
@@ -62,105 +74,203 @@ jobs:
             packages/*/dist/**
             packages/*/es/**
             package.json
+          retention-days: 7
   release_npm:
-      permissions:
-        contents: write  # support to do the release on branch
-        pull-requests: write
-        
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      needs: [build]
-      environment: release
-      runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      
+    needs: [build]
+    environment: release
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: extract tag
-          id: extract_tag
-          uses: actions/github-script@v6
-          with:
-            script: |
-              const prefix = 'refs/tags/';
-              const ref = context.ref;
-              return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
-            result-encoding: string
-        - uses: actions/checkout@v3
-          with:
-            ref: 'main'
-        - name: use Node.js
-          uses: actions/setup-node@v3
-          with:
-            node-version: 14.x
-        - name: cache node_modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
-          with:
-            path: node_modules
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: setup git
-          run: |
-            git config --global user.name ${{ github.actor }}
-            git config --global user.email ${{ github.actor }}@users.noreply.github.com
-            git fetch --tags
-            git pull
-        - name: setup global deps
-          run: |
-            npm install yarn -g 
-            npm install zx@7.2.3 -g
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 1
 
-        - name: install repo deps
-          run: |
-            yarn install --registry="https://registry.yarnpkg.com"
-        - name: download build
-          uses: actions/download-artifact@v4
-          with:
-            name: build
-        - name: npm version
-          run: |
-            zx scripts/workflow/set-package-version.mjs
-          env:
-            TAG: ${{steps.extract_tag.outputs.result}}
-        - name: setup npm
-          run: |
-            npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+      - name: Setup Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git fetch --tags
 
-            echo "ls -a ${{ github.workspace }}"
-            ls -a ${{ github.workspace }}
-          env:
-            CI: true
-            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        - name: publish
-          run: |
-            zx scripts/workflow/npm-publish.mjs
-        - name: push to release branch
-          uses: EndBug/add-and-commit@v9
-          with:
-            add: "."
-            default_author: github_actor
-            fetch: true
-            new_branch: release
-            push: '--set-upstream origin release --force'
-            message: 'Auto Publish npm version ${{steps.extract_tag.outputs.result}}'
-        - name: create PR from back to main
-          uses: actions/github-script@v6
-          env:
-            RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
-          with:
-            script: |
-              const owner = context.repo.owner;
-              const repo = context.repo.repo;
-              const base = "main";
-              const head = "release";
-              const title = "new version published: " + process.env.RELEASED_VERSION;
-              const body = "";
-              github.rest.pulls.create({
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-release-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-release-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git fetch --tags
+          git pull
+
+      - name: Setup global dependencies
+        run: |
+          npm install -g yarn@1.22.22
+          npm install -g zx@7.2.3
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile --registry="https://registry.yarnpkg.com"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Publish to npm
+        run: |
+          zx scripts/workflow/npm-publish.mjs
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Commit version changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "."
+          default_author: github_actor
+          fetch: true
+          new_branch: release
+          push: '--set-upstream origin release --force'
+          message: 'chore(release): publish npm version ${{ needs.build.outputs.tag }}'
+
+  create_release_pr:
+    permissions:
+      pull-requests: write
+      
+    needs: [build, release_npm]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create or update PR
+        uses: actions/github-script@v7
+        env:
+          RELEASED_VERSION: ${{ needs.build.outputs.tag }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const base = "main";
+            const head = "release";
+            const title = `chore(release): version ${process.env.RELEASED_VERSION}`;
+            const body = `## 🚀 Release ${process.env.RELEASED_VERSION}
+            
+            This PR was automatically created by the release workflow.
+            
+            ### Changes
+            - Updated package versions to ${process.env.RELEASED_VERSION}
+            - Published packages to npm registry
+            
+            ### NPM Packages
+            https://www.npmjs.com/search?q=%40xgplayer
+            
+            ---
+            *Auto-generated by GitHub Actions*`;
+            
+            try {
+              // Check if PR already exists
+              const { data: pulls } = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'open',
+                head: `${owner}:${head}`,
+                base
+              });
+              
+              if (pulls.length > 0) {
+                // Update existing PR
+                const pullNumber = pulls[0].number;
+                await github.rest.pulls.update({
+                  owner,
+                  repo,
+                  pull_number: pullNumber,
+                  title,
+                  body
+                });
+                console.log(`✅ Updated existing PR #${pullNumber}`);
+                core.summary
+                  .addHeading('✅ PR Updated')
+                  .addLink(`PR #${pullNumber}`, `https://github.com/${owner}/${repo}/pull/${pullNumber}`)
+                  .write();
+              } else {
+                // Create new PR
+                const { data: pr } = await github.rest.pulls.create({
                   owner,
                   repo,
                   base,
                   head,
                   title,
                   body
-              });
+                });
+                console.log(`✅ Created new PR #${pr.number}`);
+                core.summary
+                  .addHeading('✅ PR Created')
+                  .addLink(`PR #${pr.number}`, pr.html_url)
+                  .write();
+              }
+            } catch (error) {
+              console.error('❌ Error creating/updating PR:', error.message);
+              core.summary
+                .addHeading('⚠️ PR Creation Failed')
+                .addRaw(`Error: ${error.message}`)
+                .write();
+              // Don't fail the workflow if PR creation fails
+            }
+
+  release_summary:
+    needs: [build, release_npm, create_release_pr]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Generate release summary
+        run: |
+          VERSION="${{ needs.build.outputs.tag }}"
+          BUILD_STATUS="${{ needs.build.result }}"
+          RELEASE_STATUS="${{ needs.release_npm.result }}"
+          PR_STATUS="${{ needs.create_release_pr.result }}"
+          
+          BUILD_BADGE=$([ "$BUILD_STATUS" = "success" ] && echo "✅" || echo "❌")
+          RELEASE_BADGE=$([ "$RELEASE_STATUS" = "success" ] && echo "✅" || echo "❌")
+          PR_BADGE=$([ "$PR_STATUS" = "success" ] && echo "✅" || echo "❌")
+          
+          {
+            echo "# 🎉 Release Summary"
+            echo ""
+            echo "## Version Information"
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Version | \`$VERSION\` |"
+            echo "| Tag | \`${{ github.ref }}\` |"
+            echo "| Commit | [\`${{ github.sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) |"
+            echo ""
+            echo "## Workflow Status"
+            echo "| Step | Status |"
+            echo "|------|--------|"
+            echo "| Build | $BUILD_BADGE $BUILD_STATUS |"
+            echo "| NPM Release | $RELEASE_BADGE $RELEASE_STATUS |"
+            echo "| PR Creation | $PR_BADGE $PR_STATUS |"
+            echo ""
+            echo "## Links"
+            echo "- 📦 [View on NPM](https://www.npmjs.com/search?q=%40xgplayer)"
+            echo "- 🔗 [Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            echo ""
+            echo "*Auto-generated by GitHub Actions*"
+          } >> $GITHUB_STEP_SUMMARY
+
