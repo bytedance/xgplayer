@@ -371,6 +371,7 @@ export class Flv extends EventEmitter {
     clearTimeout(this._maxChunkWaitTimer)
 
     this._bandwidthService.addChunkRecord(chunk?.byteLength, endTime - startTime)
+    this.emit('stats_update')
 
     try {
       await this._bufferService.appendBuffer(chunk)

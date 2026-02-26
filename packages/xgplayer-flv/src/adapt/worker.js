@@ -45,6 +45,7 @@ export default class PlayerWorker {
           })
         }
         this._transError()
+        this._transStats()
         this._transCoreEvent(EVENT.TTFB)
         this._transCoreEvent(EVENT.LOAD_START)
         // this._transCoreEvent(EVENT.LOAD_RESPONSE_HEADERS)
@@ -92,6 +93,15 @@ export default class PlayerWorker {
           errorType: err.errorType
           // ext: err.ext
         }
+      })
+    })
+  }
+
+  _transStats () {
+    this.flv.on('stats_update', () => {
+      this.postMessage('stats_update', {
+        stats: this.flv.getStats(),
+        speedInfo: this.flv.speedInfo()
       })
     })
   }
