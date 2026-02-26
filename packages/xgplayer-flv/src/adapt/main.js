@@ -31,6 +31,8 @@ export default class Main extends EventEmitter {
         }
       }
     }
+    this._stats = null
+    this._speedInfo = null
   }
 
   get version () {
@@ -91,6 +93,12 @@ export default class Main extends EventEmitter {
       case 'setPlaybackRate':
         this.media.playbackRate = data.data.playbackRate
         break
+      case 'stats_update': {
+        const { stats, speedInfo } = data.data
+        this._stats = stats
+        this._speedInfo = speedInfo
+        break
+      }
       default:
         break
     }
@@ -165,6 +173,14 @@ export default class Main extends EventEmitter {
     }
     this.loader.finnalUrl = finnalUrl
     return finnalUrl
+  }
+
+  getStats () {
+    return this._stats
+  }
+
+  speedInfo () {
+    return this._speedInfo
   }
 
   destroy () {
