@@ -6,7 +6,7 @@
         <img src="https://img.shields.io/npm/v/xgplayer.svg" alt="npm">
     </a>
     <a href="https://www.npmjs.com/package/xgplayer">
-        <img src="https://img.shields.io/npm/dm/xgplaer.svg" alg="download">
+        <img src="https://img.shields.io/npm/dm/xgplayer.svg" alt="download">
     </a>
     <a href="https://www.npmjs.com/package/xgplayer" target="_blank">
         <img src="https://img.shields.io/npm/l/xgplayer.svg" alt="license">
