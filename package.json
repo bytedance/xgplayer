@@ -16,6 +16,7 @@
     "dev:music": "yarn libd dev fixtures/music",
     "dev:subtitle": "yarn libd dev fixtures/subtitle",
     "dev:ads": "yarn libd dev fixtures/ads",
+    "dev:cast": "yarn libd dev fixtures/cast",
     "build": "yarn libd build",
     "build:all": "yarn libd build -a",
     "release": "yarn libd release",
