@@ -1,0 +1,35 @@
+{
+  "name": "xgplayer-cast",
+  "version": "3.0.24-rc.18",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "sideEffects": false,
+  "libd": {
+    "umdName": "CastPlugin"
+  },
+  "files": [
+    "dist",
+    "es"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "rc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
+  "license": "MIT",
+  "unpkgFiles": [
+    "dist"
+  ],
+  "dependencies": {
+    "eventemitter3": "^4.0.7"
+  },
+  "peerDependencies": {
+    "core-js": ">=3.12.1",
+    "xgplayer": "3.0.24-rc.18"
+  }
+}

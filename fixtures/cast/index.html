@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
+  <script>
+    var ua = navigator.userAgent.toLowerCase()
+    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
+    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
+      var vConsole = new window.VConsole();
+    }
+  </script>
+    <style>
+      .pannel {
+        margin: 20px 0;
+        padding: 20px;
+        background: #72a0c8;
+      }
+      .message-pannel {
+        margin-top: 20px;
+        color: #333a3c;
+      }
+      .message-info {
+        margin-top: 20px;
+        border: 1px solid #728bb8;
+        padding: 10px 10px;
+      }
+      h4 {
+        margin-block-start: 0.2em;
+        margin-block-end: 0.2em;
+      }
+      p {
+        line-height: 18px;
+        display: block;
+        line-height: 16px;
+        /* margin: 10px; */
+        margin-block-start: 0.4em;
+        margin-block-end: 0.4em;
+      }
+      .ext-controls0 {
+        height: 80px !important;
+        background-color: #000;
+      }
+      .xgplayer .my-pop {
+        height: 100px;
+        width: 400px;
+        background-color: #72a0c8;
+        border: 2px solid red;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="video" style="margin: 0 auto"></div>
+    <script type="module" defer src="./index.js"></script>
+  </body>
+</html>

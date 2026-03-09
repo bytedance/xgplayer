@@ -4,6 +4,7 @@
 **/
 import BasePlugin, { Util, XG_DEBUG } from './basePlugin'
 import delegate from 'delegate'
+import { xgIconTips } from '../plugins/common/iconTools'
 
 const ROOT_TYPES = {
   CONTROLS: 'controls',
@@ -221,6 +222,8 @@ class Plugin extends BasePlugin {
     }
     return dels
   }
+
+  static iconTip = xgIconTips;
 
   static get ROOT_TYPES () {
     return ROOT_TYPES
