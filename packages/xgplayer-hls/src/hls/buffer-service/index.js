@@ -23,7 +23,12 @@ export class BufferService {
       this._softVideo = hls.media
     } else {
       this._mse = new MSE(null, {
-        preferMMS: hls.config.preferMMS
+        preferMMS: hls.config.preferMMS,
+        useSourceTag: hls.config.appendSource,
+        alternativeSource: hls.config.appendSource ? {
+          src: hls.config.url,
+          type: 'application/vnd.apple.mpegURL'
+        } : null
       })
 
       if (hls.config.url) {

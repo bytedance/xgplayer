@@ -118,14 +118,30 @@ export class HlsPlugin extends BasePlugin {
     hlsOpts.innerDegrade = hlsOpts.innerDegrade || config.innerDegrade
     if (hlsOpts.disconnectTime === null || hlsOpts.disconnectTime === undefined) hlsOpts.disconnectTime = 0
 
+    // AirPlay 多 source 支持：
+    // 原始的 config.url（一般为 m3u8），以 <source> 形式挂在 video 下，供 AirPlay 等远端拉流
+    const appendSource = !!config.airplay && !this.softDecode
+
     this.hls = new Hls({
       softDecode: this.softDecode,
       isLive: config.isLive,
       media: mediaElem,
       startTime: config.startTime,
       url: config.url,
+      appendSource,
       ...hlsOpts
     })
+
+    // // AirPlay 多 source 支持：
+    // if (config.airplay) {
+    //   this.on('airplaytargetchange', (e) => {
+    //     if (e.isWireless) {
+    //       this.core
+    //     } else {
+
+    //     }
+    //   })
+    // }
 
     if (!this.softDecode) {
       BasePlugin.defineGetterOrSetter(this.player, {

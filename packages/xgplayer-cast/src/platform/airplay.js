@@ -12,8 +12,9 @@ export function isAirPlayAvailable(player) {
 }
 
 export class Airplay {
-  constructor(player) {
-    this.player = player;
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.player = plugin.player;
   }
 
   install() {
@@ -24,19 +25,47 @@ export class Airplay {
 
     if (media instanceof HTMLMediaElement) {
       media.addEventListener(
+        "webkitplaybacktargetavailabilitychanged",
+        this._onTargetAvailabilityChange,
+      );
+      media.addEventListener(
         "webkitcurrentplaybacktargetiswirelesschanged",
-        this._onAirPlayTargetChange,
+        this._onTargetChange,
       );
     }
 
-    this.player.on('requestcast', this._onRequestCast);
+    this.player.on("requestcast", this._onRequestCast);
   }
 
-  _onAirPlayTargetChange = () => {
+  /**
+   * @private
+   */
+  _onTargetAvailabilityChange = (e) => {
+    switch (e.availability) {
+      case "available":
+        this.plugin.show();
+        break;
+      case "not-available":
+        this.plugin.hide();
+        break;
+    }
+
+    // this.emit("airplaytargetavailabilitychange", {
+    //   availability: e.availability,
+    // });
+  };
+
+  /**
+   * @private
+   */
+  _onTargetChange = () => {
     const video = this.player.media || this.player.video;
     const originalSrc = video.src;
     const originalCurrentTime = video.currentTime;
-    const isMSESource = originalSrc && originalSrc.startsWith("blob:") && video.currentSrc === originalSrc;
+    const isMSESource =
+      originalSrc &&
+      originalSrc.startsWith("blob:") &&
+      video.currentSrc === originalSrc;
 
     // if (isMSESource) {
     //   if (video.webkitCurrentPlaybackTargetIsWireless) {
@@ -52,7 +81,6 @@ export class Airplay {
       isWireless: video.webkitCurrentPlaybackTargetIsWireless,
     });
   };
-
 
   _onRequestCast = () => {
     if (!isAirPlayAvailable(this.player)) {
@@ -76,7 +104,7 @@ export class Airplay {
         tip.className = "xgplayer-cast-muted-tip";
         tip.innerText = this.player.i18n.CAST_UNMUTE_TIP;
         this.player.root.appendChild(tip);
-        this._tipDom = tip
+        this._tipDom = tip;
 
         this._tipTimeout = setTimeout(() => {
           this._gcTip();
@@ -90,7 +118,7 @@ export class Airplay {
     } catch (err) {
       // ignore
     }
-  }
+  };
 
   _gcTip() {
     if (this._tipTimeout) {
@@ -112,11 +140,16 @@ export class Airplay {
     const media = this.player.media || this.player.video;
     if (media instanceof HTMLMediaElement) {
       media.removeEventListener(
+        "webkitplaybacktargetavailabilitychanged",
+        this._onTargetAvailabilityChange,
+      );
+      media.removeEventListener(
         "webkitcurrentplaybacktargetiswirelesschanged",
-        this._onAirPlayTargetChange,
+        this._onTargetChange,
       );
     }
-    this.player.off('requestcast', this._onRequestCast);
+    this.player.off("requestcast", this._onRequestCast);
     this.player = null;
+    this.plugin = null;
   }
 }
