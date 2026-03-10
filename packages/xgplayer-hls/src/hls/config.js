@@ -63,6 +63,7 @@ export function getConfig (cfg) {
     minSegmentsStartPlay: 3,
     preferMMS: false,
     preferMMSStreaming: false,
+    appendSource: false, // 是否在 video 下追加 <source> 元素，供 AirPlay 等远端拉流使用
     mseLowLatency: true, // mse 低延迟模式渲染 https://issues.chromium.org/issues/41161663
     fixerConfig: {
       forceFixLargeGap:false, // 强制修复音视频PTS LargeGap, PTS从0开始
