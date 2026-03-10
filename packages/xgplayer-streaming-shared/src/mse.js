@@ -19,6 +19,20 @@ function isMMS (mediaSource) {
   return /ManagedMediaSource/gi.test(Object.prototype.toString.call(mediaSource))
 }
 
+function removeSource(media) {
+  const sources = media.querySelectorAll('source')
+  sources.forEach(source => {
+    media.removeChild(source)
+  })
+}
+
+export function appendSource(media, mimeType, url) {
+  const source = self.document.createElement("source");
+  source.type = mimeType;
+  source.src = url;
+  media.appendChild(source);
+}
+
 /**
  * @param {TimeRanges} buffered
  */
@@ -111,7 +125,9 @@ export class MSE {
   static getDefaultConfig () {
     return {
       openLog: false,
-      preferMMS: false
+      preferMMS: false,
+      useSourceTag: false,
+      alternativeSource: null // 备用 URL，配合 useSourceTag 使用，提供给 AirPlay 等远端拉流使用
     }
   }
 
@@ -233,7 +249,9 @@ export class MSE {
   async bindMedia (media) {
     if (this.mediaSource || this.media) await this.unbindMedia()
 
-    const MediaSource = getMediaSource(this._config.preferMMS)
+
+    const config = this._config
+    const MediaSource = getMediaSource(config.preferMMS)
 
     if (!media || !MediaSource) throw new Error('Param media or MediaSource does not exist')
     this.media = media
@@ -255,7 +273,19 @@ export class MSE {
     }
 
     this._url = URL.createObjectURL(ms)
-    media.src = this._url
+
+    removeSource(media)
+
+    if (config.useSourceTag) {
+      appendSource(media, 'video/mp4', this._url)
+
+      if (config.alternativeSource) {
+        appendSource(media, config.alternativeSource.type, config.alternativeSource.url)
+      }
+    } else {
+      media.src = this._url
+    }
+
     media.disableRemotePlayback = useMMS
 
     return this._openPromise
