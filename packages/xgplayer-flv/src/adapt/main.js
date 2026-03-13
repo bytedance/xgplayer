@@ -156,6 +156,9 @@ export default class Main extends EventEmitter {
       seamless
     })
   }
+  _getStats () {
+    this._postMessage('getStats')
+  }
 
   getFinalUrl (url) {
     if (url) this._opts.url = url.startsWith('http') ? url : `${location.protocol}${url}`

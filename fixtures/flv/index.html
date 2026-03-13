@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FLV 测试</title>
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
 </head>
 
 <body class="text-base">
@@ -28,7 +30,7 @@
 
   <div id="options" class="container p-3">
     <h3 class="text-lg font-semibold text-indigo-500">参数</h3>
-    <div class="flex flex-wrap">
+    <div class="flex flex-wrap" style="display: none;">
       <label id="url" class="mr-3 mb-2 p-1 bg-gray-200" >URL<input style="width: 500px"/></label>
       <label id="autoplay" class="hidden mr-3 mb-2 p-1 bg-gray-200">自动播放<input type="checkbox" /></label>
       <label id="autoplay-muted" class="hidden mr-3 mb-2 p-1 bg-gray-200">静音自动播放<input type="checkbox" /></label>

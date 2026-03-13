@@ -67,7 +67,9 @@ export class Flv extends EventEmitter {
   constructor (opts) {
     super()
     this._opts = getOption(opts)
+        // console.log('this.media', this._opts.media)
     this.media = this._opts.media || document.createElement('video')
+
     this._opts.media = null
     this._firstProgressEmit = false
     this._mediaLoader = new NetLoader({
@@ -147,6 +149,7 @@ export class Flv extends EventEmitter {
    * @returns {Stats}
    */
   getStats () {
+    console.log('getStats_worker', this._stats.getStats())
     return this._stats.getStats()
   }
 

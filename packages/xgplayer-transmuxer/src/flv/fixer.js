@@ -1,6 +1,6 @@
 import { AudioCodecType, AudioSample, WarningType } from '../model'
 import { AAC, OPUS } from '../codec'
-import { isSafari } from '../utils'
+import { isSafari, isIOSWeChat } from '../utils'
 
 const LARGE_AV_FIRST_FRAME_GAP = 500 // ms
 const AUDIO_GAP_OVERLAP_THRESHOLD_COUNT = 3
@@ -113,6 +113,17 @@ export class FlvFixer {
 
     if (!samples.length) return
 
+    // ⭐ 防止首个 segment 只有1帧 (Safari 会 seeking)
+    if (isIOSWeChat && !this._videoLastSample && samples.length < 2) {
+      return
+    }
+    // if (!this._videoLastSample && samples.length < 3) {
+    //   return
+    // }
+    // if (!this._videoLastSample && samples.length <= 1) {
+    //   return
+    // }
+
     samples.forEach(x => {
       x.dts -= this._baseDts
       x.pts -= this._baseDts
@@ -130,8 +141,15 @@ export class FlvFixer {
       refSampleDurationInt = this._lastVideoDuration || 40
     }
 
-    const lastSample = samples.pop()
 
+    // let lastSample
+
+    // if (this._videoLastSample) {
+    //   lastSample = samples.pop()
+    // } else {
+    //   lastSample = null
+    // }
+    const lastSample = samples.pop()
     if (this._videoLastSample) {
       samples.unshift(this._videoLastSample)
     }
@@ -212,6 +230,10 @@ export class FlvFixer {
       samples[i].duration = sampleDuration
       this._videoNextDts += sampleDuration
       this._lastVideoDuration = sampleDuration
+      // console.log('remux video samples', samples.length, {
+      //   firstDts: samples[0]?.dts,
+      //   lastDts: samples[samples.length - 1]?.dts
+      // })
     }
   }
 
@@ -245,8 +267,18 @@ export class FlvFixer {
     if (videoSamps.length) {
       videoTrack.baseDts = videoBaseDts = videoSamps[0].dts
     }
+    console.log('baseDts calc', {
+      audioBasePts,
+      videoBaseDts,
+      baseDts: this._baseDts
+    })
 
     this._baseDts = Math.min(audioBasePts, videoBaseDts)
+    // if (Number.isFinite(videoBaseDts)) {
+    //   this._baseDts = videoBaseDts
+    // } else {
+    //   this._baseDts = audioBasePts
+    // }
 
     const delta = videoBaseDts - audioBasePts
 

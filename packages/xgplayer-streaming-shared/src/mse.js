@@ -217,14 +217,14 @@ export class MSE {
    * @private
    */
   _onStartStreaming = () => {
-    this._logger.debug('startstreaming')
+    console.error('startstreaming')
   }
 
   /**
    * @private
    */
   _onEndStreaming = () => {
-    this._logger.debug('endstreaming')
+    console.error('endstreaming')
   }
 
   /**
@@ -335,6 +335,7 @@ export class MSE {
     try {
       sb = this._sourceBuffer[type] = this.mediaSource.addSourceBuffer(mimeType)
     } catch (error) {
+      console.error('addSourceBuffer error', error)
       throw new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_ADD_SB, error)
     }
     sb.mimeType = mimeType
@@ -365,6 +366,7 @@ export class MSE {
       try {
         sb.changeType(mimeType)
       } catch (e) {
+        console.error('changeType error', e)
         throw new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_CHANGE_TYPE, e)
       }
 
@@ -397,7 +399,7 @@ export class MSE {
 
     return this._enqueueOp(type, () => {
       if (!this.mediaSource || this.media.error) return
-      this._logger.debug('MSE APPEND START', context)
+      this._logger.debug('MSE APPEND START', type,this._sourceBuffer[type]?.readyState === 'open' , !this._sourceBuffer[type].updating)
       this._opst = nowTime()
       this._sourceBuffer[type]?.appendBuffer(buffer)
     }, OP_NAME.APPEND, context)
@@ -473,7 +475,7 @@ export class MSE {
     return this._enqueueBlockingOp(() => {
       const ms = this.mediaSource
       if (!ms || ms.readyState !== 'open') return
-      this._logger.debug('MSE endOfStream START')
+      console.error('MSE endOfStream START')
       if (reason) {
         ms.endOfStream(reason)
       } else {
@@ -602,10 +604,10 @@ export class MSE {
             if (op.context && typeof op.context === 'object'){
               op.context.isFull = true
             }
-            this._logger.error('[MSE error],  context,', op.context, ' ,name,', op.opName, ',err,SourceBuffer is full')
+            console.error('[MSE error],  context,', op.context, ' ,name,', op.opName, ',err,SourceBuffer is full')
             op?.promise?.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error))
           } else {
-            this._logger.error(error)
+            console.error(error)
             op?.promise?.reject(
               error.constructor === StreamingError
                 ? error
@@ -628,7 +630,7 @@ export class MSE {
       }
       if (op) {
         const costtime = nowTime() - this._opst
-        this._logger.debug(`UpdateEnd(${type}/${op.opName})`, SafeJSON.stringify(getTimeRanges(this._sourceBuffer[type]?.buffered)), costtime, op.context)
+      //  console.info(`UpdateEnd(${type}/${op.opName})`, SafeJSON.stringify(getTimeRanges(this._sourceBuffer[type]?.buffered)), costtime, op.context)
         op.promise.resolve({name: op.opName, context: op.context, costtime})
         const callback = op.context?.callback
         if (callback && typeof callback === 'function'){
@@ -644,7 +646,7 @@ export class MSE {
     if (queue) {
       const op = queue[0]
       if (op) {
-        this._logger.error('UpdateError', type, op.opName, op.context)
+        console.error('UpdateError', type, op.opName, op.context,op,event)
         op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_APPEND_BUFFER, event))
         // Do not shift from queue, 'updateend' event will fire next
       }

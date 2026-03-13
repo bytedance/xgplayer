@@ -20,13 +20,15 @@ function defaultOpt() {
     manualLoad: false
   }
 }
-var cachedOpt = localStorage.getItem('xg:test:flv:opt')
-try { cachedOpt = JSON.parse(cachedOpt) } catch (error) { cachedOpt = undefined }
-cachedOpt.manualLoad = false
+// var cachedOpt = localStorage.getItem('xg:test:flv:opt')
+// try { cachedOpt = JSON.parse(cachedOpt) } catch (error) { cachedOpt = undefined }
+// cachedOpt.manualLoad = false
 var opts = Object.assign({
   // url: 'https://1011.hlsplay.aodianyun.com/demo/game.flv',
-  url: 'https://pull-demo.volcfcdnrd.com/live/st-4536524.flv',
-}, defaultOpt(), cachedOpt)
+  // url: 'https://pull-demo.volcfcdnrd.com/live/st-4536524.flv',
+  // url: 'https://pull-demo.volcfcdnrd.com/live/st-4536523_yzmhde.flv'
+  url: 'https://pull-demo.volcfcdnrd.com/live/st-4536521_yzmuhevcd.flv'
+}, defaultOpt())
 var testPoint = Number(localStorage.getItem('xg:test:flv:point'))
 
 if (isNaN(testPoint)) testPoint = 0
@@ -114,20 +116,26 @@ window.onload = function () {
       window.timeStart = Date.now()
       window.player = player = new Player({
         el: document.getElementById('player'),
-        plugins: [MIW],
-        // plugins:[FlvPlayer],
+        // plugins: [MIW],
+        plugins:[FlvPlayer],
         url: opts.url,
         isLive: opts.isLive,
-        autoplay: opts.autoplay,
-        autoplayMuted: opts.autoplayMuted,
+        // autoplay: opts.autoplay,
+        // autoplayMuted: opts.autoplayMuted,
+                autoplay: true,
+        autoplayMuted: true,
         flv: {
-          // streamRes: window.streamRes,
-          ...opts,
-          worker: preParePlayerWorker()
+            preferMMS: true // default:false, 对于支持MMS的环境优先使用MMS
         }
+        // flv: {
+        //   // streamRes: window.streamRes,
+        //   ...opts,
+        //   worker: preParePlayerWorker()
+        // }
       });
       player.once('ready', () => {
         // console.log('streamRes', Date.now() - timeStart, streamRes, player.plugins.flv)
+            // window.player.play();
         if (player.config.flv.manualLoad) {
           player.plugins.flv.loadSource(player.config.url, streamRes)
           streamRes = null
@@ -141,6 +149,21 @@ window.onload = function () {
           console.log('loadeddata', Date.now() - window.timeStart)
           // player.plugins.flv.flv._mediaLoader._currentTask._loader._firstMaxChunkSize = null
         }
+        // console.log('pushEvent',name, value)
+        if(name !=='core.seiintime' && name !=='core.sei' && name !=='core.appendbuffer' && name !=='core.sourcebuffercreated'  && name !=='durationchange'){
+
+        // if(name !=='core.seiintime' && name !=='core.sei'  && name !=='core.sourcebuffercreated'&& name !=='core.appendbuffer' ){
+         
+          if(player.video.buffered.length >0){
+            console.log('pushEvent',name, value,player.video.buffered,player.video.buffered?.start?.(0), player.video.buffered?.end?.(0), player.video.currentTime);
+            
+          }else{
+             console.log('pushEvent',name, value,player.video.buffered, player.video.currentTime);
+          }
+        }
+        if(name === 'media'){
+          // console.log('pushEvent', name, value)
+        }
         container = container || dlEvent
         if (container === dlEvent && dlLogPause.checked) return
         // console.debug('[test]', name, value)
@@ -151,9 +174,9 @@ window.onload = function () {
           value = JSON.stringify(value)
         } catch (error) {
         }
-        var record = document.createElement('div')
-        record.innerHTML = '<div class="mb-2"><span class="text-base pr-2 bg-green-500 text-white">' + name + ' / ' + player.video.currentTime + '</span>' + value + '</div>'
-        container.prepend(record)
+        // var record = document.createElement('div')
+        // record.innerHTML = '<div class="mb-2"><span class="text-base pr-2 bg-green-500 text-white">' + name + ' / ' + player.video.currentTime + '</span>' + value + '</div>'
+        // container.prepend(record)
       }
 
       player.on('loadstart', function (event) { pushEvent('loadstart', event) })
@@ -176,6 +199,7 @@ window.onload = function () {
       player.on('retry', function (event) { pushEvent('retry', event) })
       player.on('core_event', function (event) { pushEvent(event.eventName, event) })
       player.on('error', function (event) { pushEvent(event.errorType, event, dlError) })
+      player.on('error', function (event) { console.error(event.errorType, event)})
     }
   }
 

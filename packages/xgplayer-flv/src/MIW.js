@@ -100,6 +100,7 @@ export default class FlvPlugin extends BasePlugin {
   }
 
   getStats = () => {
+    console.log('getStatus',this.flv._getStats())
     return {}
   }
 

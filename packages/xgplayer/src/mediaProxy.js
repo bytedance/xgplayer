@@ -388,6 +388,7 @@ class MediaProxy extends EventEmitter {
    * @param { string } eventName
    */
   errorHandler (name, error = null) {
+    console.error('errorHandler', name, error)
     if (this.media && (this.media.error || error)) {
       let _e = this.media.error || error
       const type = _e.code ? ERROR_TYPE_MAP[_e.code] : 'other'

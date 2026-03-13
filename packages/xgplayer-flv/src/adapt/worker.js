@@ -24,6 +24,7 @@ export default class PlayerWorker {
 
   _handleMessage = (e) => {
     const { data } = e
+    console.log('message', data)
     switch (data.type) {
       case 'init':
         this.flv = new Flv({
@@ -76,6 +77,9 @@ export default class PlayerWorker {
         break
       case 'media_event':
         this.flv.media.emit(data.data.eventName, data.data.data)
+        break
+      case 'getStats':
+        this.flv.getStats()
         break
       default:
         break
