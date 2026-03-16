@@ -147,8 +147,11 @@ class Poster extends Plugin {
 
   render () {
     const { poster, hideCanplay, fillMode, notHidden, useVideoPoster } = this.config
+    if (useVideoPoster) {
+      return ''
+    }
     const _bg = this.getBgSize(fillMode)
-    const style = useVideoPoster ? '' : (poster ? `background-image:url(${poster});${_bg}` : _bg)
+    const style = poster ? `background-image:url(${poster});${_bg}` : _bg
     const className = notHidden ? 'xg-not-hidden' : (hideCanplay ? 'xg-showplay' : '')
     return `<xg-poster class="xgplayer-poster ${className}" style="${style}">
     </xg-poster>`
