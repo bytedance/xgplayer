@@ -292,12 +292,12 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
+    url: "https://voddemo-play.volcvod.com/453b1f794dfa49f4819b5d923658411a?auth_key=1776913683-830c08a311bb49fab40dbaa90ebd4db3-0-1b61cbd491235c69d89a694bd51a1027",
     pip: true,
     loop: false,
     autoplay: false,
     autoplayMuted: false,
-    videoInit: true,
+    // videoInit: true,
     preloadTime: 20,
     width: '96%',
     ignores:[],
@@ -320,9 +320,9 @@ function init(index = 0, config = {}) {
     progress: {
       // root: document.getElementById('controls0')
     },
-    DynamicBg: {
-      disable: false
-    },
+    // DynamicBg: {
+    //   disable: false
+    // },
     volume: {
       position: 'rootTop'
     },
