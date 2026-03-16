@@ -292,7 +292,7 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "https://voddemo-play.volcvod.com/453b1f794dfa49f4819b5d923658411a?auth_key=1776913683-830c08a311bb49fab40dbaa90ebd4db3-0-1b61cbd491235c69d89a694bd51a1027",
+    url: "./heatmap.mp4",
     pip: true,
     loop: false,
     autoplay: false,
@@ -384,10 +384,6 @@ function init(index = 0, config = {}) {
       list: [],
       defaultDefinition: '360p',
       isItemClickHide: false
-    },
-    poster: {
-      useVideoPoster: true,
-      poster: "https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image",
     },
     height: 300,
     miniprogress: true,
