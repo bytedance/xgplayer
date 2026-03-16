@@ -40,7 +40,7 @@ export class FlvPlugin extends BasePlugin {
   }
 
   get transferCost () {
-    return this.flv._transferCost.transferCost
+    return this.flv?._transferCost?.transferCost
   }
 
   beforePlayerInit () {
