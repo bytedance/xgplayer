@@ -296,7 +296,7 @@ function init(index = 0, config = {}) {
     pip: true,
     loop: false,
     autoplay: false,
-    autoplayMuted: true,
+    autoplayMuted: false,
     videoInit: true,
     preloadTime: 20,
     width: '96%',
@@ -384,6 +384,10 @@ function init(index = 0, config = {}) {
       list: [],
       defaultDefinition: '360p',
       isItemClickHide: false
+    },
+    poster: {
+      useVideoPoster: true,
+      poster: "https://voddemo-cover.volcvod.com/tos-vod-cn-v-8a997967cc533b04/d3a738bc5a2b458dae1c045908118b63~tplv-vod-noop.image",
     },
     height: 300,
     miniprogress: true,
