@@ -1538,6 +1538,7 @@ class Player extends MediaProxy {
         if (document[key]) {
           const ret = document[key]()
           if (ret && ret.then) {
+            ret.catch(() => {})
             return ret
           } else {
             return Promise.resolve()
@@ -1545,7 +1546,10 @@ class Player extends MediaProxy {
         }
       }
       if (media && media.webkitSupportsFullscreen) {
-        media.webkitExitFullScreen()
+        const ret = media.webkitExitFullScreen()
+        if(ret && ret.catch){
+          ret.catch(() => {})
+        }
         return Promise.resolve()
       }
       return Promise.reject(new Error('call exitFullscreen fail'))
