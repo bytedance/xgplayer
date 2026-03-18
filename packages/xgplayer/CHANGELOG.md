@@ -1,4 +1,15 @@
 # 版本更新记录
+## 3.0.24
+>* feat: 🎸 (xgplayer) download support authentication
+>* refactor: 💡 (xgplayer) rm download.js
+>* feat: 🎸 (xgplayer) texttrack i18n, fixed #1840
+>* feat: 🎸 (xgplayer) add runHooks method to enhance hook functionality
+>* feat: (xgplayer) poster support video native poster attributes
+>* fix: 🐛 (xgplayer) enhance touch event handling, fixed #1836
+>* fix: 🐛 (xgplayer) improve URL handling and default definition assignment in player initialization
+>* fix: 🐛 (xgplayer) add catch when exitScreen
+>* fix: 🐛 (xgplayer) Sniffer 兼容 HarmonyOS
+>* chore: 🤖 (xgplayer) update danmu.js dependency to 1.2.1
 ## 3.0.23
 >* refactor: 💡 (xgplayer) add playSessionId for once play process
 >* fix: 🐛 (xgplayer) usePluginHooks not use arguments, fixed #1773
