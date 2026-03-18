@@ -5701,31 +5701,6 @@ ws@^8.2.3:
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.13.0.tgz#9a9fb92f93cf41512a0735c8f4dd09b8a1211cd0"
   integrity sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==
 
-xgplayer-helper-models@3.0.0-alpha.128:
-  version "3.0.0-alpha.128"
-  resolved "https://registry.yarnpkg.com/xgplayer-helper-models/-/xgplayer-helper-models-3.0.0-alpha.128.tgz#cac9dc65dd66c657ac3df3d5e3e47ac69aefbab1"
-  integrity sha512-BESvAjPIW5TDAzLfDeBHOhmoLd/8VavaRq/nHECU+pBNQ9rtAOImAwsHkSP0QOc/lxtbZEnkkDQigcmgPBS8bQ==
-
-xgplayer-helper-transmuxers@3.0.0-next.0:
-  version "3.0.0-next.0"
-  resolved "https://registry.yarnpkg.com/xgplayer-helper-transmuxers/-/xgplayer-helper-transmuxers-3.0.0-next.0.tgz#40e44c2538018e18533d6991ecc282ce26b078ad"
-  integrity sha512-YekLo1wbojI5Tq8y6ptwFcpd9Jzp3j96AdCnBhaM3buRWVf/Q71u9FtnrrygQDScDkGme32Nv5o1GWL/ki1YWQ==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    concat-typed-array "^1.0.2"
-    core-js "3"
-    eventemitter3 "^4.0.7"
-    xgplayer-helper-utils "3.0.0-next.0"
-
-xgplayer-helper-utils@3.0.0-next.0:
-  version "3.0.0-next.0"
-  resolved "https://registry.yarnpkg.com/xgplayer-helper-utils/-/xgplayer-helper-utils-3.0.0-next.0.tgz#d22e9b468ee629e6f861622c1eb6ef9412a2b64b"
-  integrity sha512-oj2EyR3rc089U3yZfmc68jYOygxq4g0Xfmb1j7nS8Y22i6LzaGY3YJAoxD6KK67ag5/zQhV17voVqW+Gs9eBWg==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    core-js "3"
-    eventemitter3 "^4.0.7"
-
 xgplayer-mp4-loader@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/xgplayer-mp4-loader/-/xgplayer-mp4-loader-0.0.1.tgz#12f485eb817c89b44f345278181edafae4e50cf7"
