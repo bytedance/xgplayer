@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,13 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
-  <script>
-    var ua = navigator.userAgent.toLowerCase()
-    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
-    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
-      var vConsole = new window.VConsole();
-    }
-  </script>
+    <script>
+      var ua = navigator.userAgent.toLowerCase();
+      if (
+        (ua.indexOf("mobile") > -1 || ua.indexOf("ipad") > -1) &&
+        location.href.indexOf("vconsole=1") > -1
+      ) {
+        var vConsole = new window.VConsole();
+      }
+    </script>
     <style>
       .pannel {
         margin: 20px 0;
@@ -59,13 +61,28 @@
     <div id="video0" style="margin: 0 auto"></div>
     <div class="pannel">
       <div class="tool">
-        <button type="submit" class="btn" id="js-destroy0" onclick="window.destroy(0)">
+        <button
+          type="submit"
+          class="btn"
+          id="js-destroy0"
+          onclick="window.destroy(0)"
+        >
           销毁
         </button>
-        <button type="submit" class="btn" id="js-reinit0" onclick="window.init(0)">
+        <button
+          type="submit"
+          class="btn"
+          id="js-reinit0"
+          onclick="window.init(0)"
+        >
           重新初始化
         </button>
-        <button type="submit" class="btn" id="js-playnext0" onclick="window.playNext(0)">
+        <button
+          type="submit"
+          class="btn"
+          id="js-playnext0"
+          onclick="window.playNext(0)"
+        >
           播放下一个
         </button>
         <button
