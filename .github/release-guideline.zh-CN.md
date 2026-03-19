@@ -24,7 +24,7 @@ git tag v3.2.1-rc.1
 git push origin v3.2.1-rc.1
 ```
 
-## 本地手动发布（可选）
+<!-- ## 本地手动发布（可选）
 
 本地流程只用于辅助升级版本号和创建 tag，最终发布仍由 CI 完成。
 
@@ -51,7 +51,7 @@ git push origin --tags
 | `--npmTag <tag>` | 覆盖 npm dist-tag（默认为 preid 或 `latest`） |
 | `--yes` | 跳过所有确认提示 |
 | `--skipBuild` | 跳过构建步骤 |
-| `--skipPublish` | 跳过 npm 发布步骤 |
+| `--skipPublish` | 跳过 npm 发布步骤 | -->
 
 ## 稳定版与非稳定版结果
 

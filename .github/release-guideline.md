@@ -24,7 +24,7 @@ git tag v3.2.1-rc.1
 git push origin v3.2.1-rc.1
 ```
 
-## Local Manual Release (Optional)
+<!-- ## Local Manual Release (Optional)
 
 The local workflow is only used to bump versions and create tags. The actual publishing is still done by CI.
 
@@ -51,7 +51,7 @@ Options:
 | `--npmTag <tag>` | Override npm dist-tag (defaults to preid or `latest`) |
 | `--yes` | Skip all confirmation prompts |
 | `--skipBuild` | Skip build step |
-| `--skipPublish` | Skip npm publish step |
+| `--skipPublish` | Skip npm publish step | -->
 
 ## Stable vs Prerelease
 
