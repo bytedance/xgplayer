@@ -73,6 +73,10 @@ $ yarn dev:flv
 $ yarn dev:mp4
 ```
 
+### Release
+
+For the stable release flow, prerelease flow, and release commands, see [Release Guide.md](release-guideline.md).
+
 ### License
 
 Welcome to use xgplayer! Please read the following terms carefully. Using xgplayer means that you accept and agree to the terms.
