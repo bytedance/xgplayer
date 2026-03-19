@@ -6,7 +6,7 @@
 
 步骤：
 
-1. 创建版本 tag（需以 `v` 开头，可在 `main` 或其他分支发布；版本号参考：https://www.npmjs.com/package/xgplayer?activeTab=versions）
+1. 创建版本 tag（需以 `v` 开头，可在 `main` 或其他分支发布；版本号参考：[xgplayer versions](https://www.npmjs.com/package/xgplayer?activeTab=versions) ）
 2. push tag 到远端
 3. 等待 CI 自动完成发布
 
