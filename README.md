@@ -75,7 +75,7 @@ $ yarn dev:mp4
 
 ### Release
 
-For the stable release flow, prerelease flow, and release commands, see [Release Guide.md](release-guideline.md).
+For the stable release flow, prerelease flow, and release commands, see [Release Guideline.md](.github/release-guideline.md).
 
 ### License
 

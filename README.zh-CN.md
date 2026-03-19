@@ -79,7 +79,7 @@ $ yarn dev:mp4
 
 ### 发布流程
 
-稳定版本、非稳定版本以及发版命令说明，参见 [Release Guide.md](release-guideline.md)。
+稳定版本、非稳定版本以及发版命令说明，参见 [发布指南](.github/release-guideline.zh-CN.md)。
 
 ### 使用协议
 
