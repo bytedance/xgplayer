@@ -6,7 +6,7 @@ Releases are tag-driven. Push a version tag and CI handles everything.
 
 Steps:
 
-1. Create a version tag (must start with `v`)
+1. Create a version tag (must start with `v`; release from `main` or other branches; pick a version from: https://www.npmjs.com/package/xgplayer?activeTab=versions)
 2. Push the tag to remote
 3. Wait for CI to complete the release
 
