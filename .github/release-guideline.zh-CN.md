@@ -6,7 +6,7 @@
 
 步骤：
 
-1. 创建版本 tag（需以 `v` 开头，可在 `main` 或其他分支发布；版本号参考：[xgplayer versions](https://www.npmjs.com/package/xgplayer?activeTab=versions) ）
+1. 创建版本 tag（需以 `v` 开头，可在 `main` 或其他分支发布；版本号参考：[xgplayer versions](https://www.npmjs.com/package/xgplayer?activeTab=versions) 以及 [tags](https://github.com/bytedance/xgplayer/tags)）
 2. push tag 到远端
 3. 等待 CI 自动完成发布
 
@@ -55,8 +55,8 @@ git push origin --tags
 
 ## 稳定版与非稳定版结果
 
-- **稳定版 tag**（如 `v3.2.1`）：发布 npm，并自动将版本变更 commit 到 `main`
-- **非稳定版 tag**（如 `v3.2.1-rc.1`）：只发布 npm，不改动 `main`
+- **稳定版 tag**（如 `v3.2.1`）：发布 npm、创建 GitHub Release，并自动将版本变更 commit 到 `main`
+- **非稳定版 tag**（如 `v3.2.1-rc.1`）：发布 npm、创建 GitHub Prerelease，不改动 `main`
 
 ## CI 工作流说明
 
@@ -73,8 +73,10 @@ git push origin --tags
 2. `release_npm`
    - 下载构建产物
    - 发布到 npm
-3. `commit_to_main`（仅稳定版执行）
+3. `release_github`
+   - 基于 tag 创建 GitHub Release（非稳定版为 Prerelease）
+4. `commit_to_main`（仅稳定版执行）
    - 应用版本变更
    - commit 并 push 到 `main`
-4. `release_summary`
+5. `release_summary`
    - 汇总并展示发布状态
