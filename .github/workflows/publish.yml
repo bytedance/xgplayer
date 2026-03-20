@@ -109,12 +109,43 @@ jobs:
 
     steps:
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: actions/github-script@v7
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+          IS_STABLE: ${{ needs.build.outputs.is_stable }}
         with:
-          tag_name: ${{ needs.build.outputs.tag }}
-          name: ${{ needs.build.outputs.tag }}
-          generate_release_notes: true
-          prerelease: ${{ needs.build.outputs.is_stable != 'true' }}
+          script: |
+            const tag = process.env.TAG;
+            const isStable = process.env.IS_STABLE === 'true';
+            const releasePayload = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              prerelease: !isStable,
+              generate_release_notes: true
+            };
+
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag
+              });
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                name: tag,
+                prerelease: !isStable,
+                generate_release_notes: true
+              });
+              core.notice(`Updated GitHub Release for ${tag}`);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.repos.createRelease(releasePayload);
+              core.notice(`Created GitHub Release for ${tag}`);
+            }
 
   commit_to_main:
     permissions:
