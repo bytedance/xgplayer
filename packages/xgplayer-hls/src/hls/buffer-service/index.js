@@ -136,9 +136,22 @@ export class BufferService {
     }
 
     if (this._directAppend) {
+      const needInit = this._needInitSegment || discontinuity
       const p = []
+      if (needInit) {
+        const videoOffset = this._getFmp4TimeOffset(videoChunk, segment?.start)
+        const audioOffset = this._getFmp4TimeOffset(audioChunk, audioSegment?.start ?? segment?.start)
+
+        if (videoChunk && Number.isFinite(videoOffset)) {
+          p.push(this._mse.setTimeoffset(MSE.VIDEO, videoOffset, { start: segment?.start, offset: videoOffset }))
+        }
+        if (audioChunk && Number.isFinite(audioOffset)) {
+          p.push(this._mse.setTimeoffset(MSE.AUDIO, audioOffset, { start: audioSegment?.start ?? segment?.start, offset: audioOffset }))
+        }
+      }
       if (videoChunk) p.push(this._mse.append(MSE.VIDEO, videoChunk))
       if (audioChunk) p.push(this._mse.append(MSE.AUDIO, audioChunk))
+      this._needInitSegment = false
       return Promise.all(p).then(afterAppend)
     }
     const needInit = this._needInitSegment || discontinuity
@@ -192,6 +205,56 @@ export class BufferService {
       const ret = Promise.all(p)
       ret.then(afterAppend)
       return ret
+    }
+  }
+
+  /**
+   * @param {*} chunk
+   * @param {number} start
+   * @private
+   */
+  _getFmp4TimeOffset (chunk, start = 0) {
+    if (!chunk?.length) return null
+
+    try {
+      const moofBox = MP4Parser.findBox(chunk, ['moof'])[0]
+      if (!moofBox) return null
+
+      const moof = MP4Parser.moof(moofBox)
+      if (!moof?.traf?.length) return null
+
+      const trackTimescale = {}
+      const moovBox = MP4Parser.findBox(chunk, ['moov'])[0]
+      if (moovBox) {
+        const moov = MP4Parser.moov(moovBox)
+        moov?.trak?.forEach(trak => {
+          const trackId = trak?.tkhd?.trackId
+          const timescale = trak?.mdia?.mdhd?.timescale
+          if (trackId !== undefined && Number.isFinite(timescale) && timescale > 0) {
+            trackTimescale[trackId] = timescale
+          }
+        })
+      }
+
+      const decodeTimes = []
+      moof.traf.forEach(traf => {
+        const trackId = traf?.tfhd?.trackId
+        const baseMediaDecodeTime = traf?.tfdt?.baseMediaDecodeTime
+        const timescale = trackTimescale[trackId]
+        if (Number.isFinite(baseMediaDecodeTime) && Number.isFinite(timescale) && timescale > 0) {
+          decodeTimes.push(baseMediaDecodeTime / timescale)
+        }
+      })
+
+      if (!decodeTimes.length) return null
+      const firstDecodeTime = Math.min(...decodeTimes)
+      const targetStart = Number.isFinite(start) ? start : 0
+      const offset = targetStart - firstDecodeTime
+
+      return Math.abs(offset) < 0.001 ? 0 : offset
+    } catch (error) {
+      logger.warn('calc fmp4 timestamp offset failed', error)
+      return null
     }
   }
 

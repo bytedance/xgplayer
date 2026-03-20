@@ -88,6 +88,7 @@ describe('BufferService', () => {
 
   const createSource = jest.fn()
   const append = jest.fn()
+  const setTimeoffset = jest.fn().mockReturnValue(Promise.resolve())
   const remove = jest.fn()
   const unbindMedia = jest.fn()
   const bindMedia = jest.fn().mockImplementation(() => Promise.resolve(true));
@@ -103,6 +104,7 @@ describe('BufferService', () => {
       endOfStream,
       createSource,
       setLiveSeekableRange,
+      setTimeoffset,
       append,
       unbindMedia,
       bindMedia,
@@ -164,6 +166,41 @@ describe('BufferService', () => {
       0
     )
     expect(result).toHaveLength(0)
+  })
+
+  test('appendBuffer directAppend should align timeline by timestampOffset', async () => {
+    const bs = new BufferService(hls)
+
+    TsDemuxer.probe.mockReturnValueOnce(false)
+    MP4Parser.probe = jest.fn().mockReturnValue(true)
+    MP4Parser.moov = jest.fn().mockReturnValue({
+      trak: [{ tkhd: { trackId: 1 }, mdia: { mdhd: { timescale: 1000 } } }]
+    })
+    MP4Parser.moof = jest.fn().mockReturnValue({
+      traf: [{ tfhd: { trackId: 1 }, tfdt: { baseMediaDecodeTime: 12000 } }]
+    })
+    MP4Parser.findBox = jest.fn((_, names) => {
+      if (names[0] === 'moov' || names[0] === 'moof') {
+        return [{ data: new Uint8Array([0]), start: 0, size: 1 }]
+      }
+      if (names.join('/') === 'moov/trak') {
+        return []
+      }
+      return []
+    })
+
+    bs.createSource(new Uint8Array([1, 2, 3]), null, 'avc1.42401e', '')
+    await bs.appendBuffer(
+      { start: 0, end: 4 },
+      null,
+      new Uint8Array([1, 2, 3]),
+      null,
+      false,
+      true,
+      0
+    )
+
+    expect(setTimeoffset).toHaveBeenCalledWith(MSE.VIDEO, -12, { start: 0, offset: -12 })
   })
 
   test('removeBuffer', async () => {
