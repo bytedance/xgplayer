@@ -37,7 +37,7 @@ import { InstManager, checkPlayerRoot } from './instManager'
  */
 
 /* eslint-disable camelcase */
-const PlAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
+const PLAYER_HOOKS = ['play', 'pause', 'replay', 'retry']
 let REAL_TIME_SPEED = 0 // 实时下载速率, kb/s
 let AVG_SPEED = 0 // 平均下载速率, kb/s
 /** @type { InstManager } */
@@ -98,7 +98,7 @@ class Player extends MediaProxy {
   constructor (options) {
     const config = Util.deepMerge(getDefaultConfig(), options)
     super(config)
-    hooksDescriptor(this, PlAYER_HOOKS)
+    hooksDescriptor(this, PLAYER_HOOKS)
 
     /**
      * @type { IPlayerOptions }
@@ -442,7 +442,7 @@ class Player extends MediaProxy {
             msg: 'container id can\'t be empty'
           })
         )
-        console.error('this.confg.id or this.config.el can\'t be empty')
+        console.error('this.config.id or this.config.el can\'t be empty')
         return false
       }
     }

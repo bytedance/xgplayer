@@ -66,7 +66,7 @@ const sniffer = {
       opera: /opera.([\d.]+)/,
       safari: /version\/([\d.]+).*safari/
     }
-    return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0]
+    return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0] || ''
   },
   get os () {
     if (typeof navigator === 'undefined') {
