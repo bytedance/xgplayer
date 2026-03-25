@@ -1,166 +1,249 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Release Version
+# Publish npm packages based on git tags (v*)
 
 on:
   push:
-    branches: ["main"]
     tags: ["v*"]
+
 jobs:
   build:
+    if: github.repository == 'bytedance/xgplayer'
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      tag: ${{ steps.extract_tag.outputs.result }}
+      is_stable: ${{ steps.release_meta.outputs.is_stable }}
     steps:
-      - name: extract tag
+      - name: Extract tag
         id: extract_tag
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const prefix = 'refs/tags/';
             const ref = context.ref;
-            return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
+            if (!ref.startsWith(prefix)) {
+              throw new Error('Invalid ref: not a tag');
+            }
+            return ref.substring(prefix.length);
           result-encoding: string
-      - uses: actions/checkout@v3
-      - name: cache node_modules
-        uses: actions/cache@v3
+
+      - name: Determine release mode
+        id: release_meta
+        uses: actions/github-script@v7
         env:
-          cache-name: cache-node-modules
+          TAG: ${{ steps.extract_tag.outputs.result }}
         with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          script: |
+            const isStable = /^v\d+\.\d+\.\d+$/.test(process.env.TAG);
+            core.setOutput('is_stable', String(isStable));
+            core.notice(`Release mode for ${process.env.TAG}: ${isStable ? 'stable' : 'prerelease'}`);
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          node-version: 14.x
-      - name: setup global dependencies
-        run: |
-          npm install yarn -g 
-          npm install zx@7.2.3 -g
+          fetch-depth: 0
 
-      - name: install repo dependencies
-        run: |
-          yarn install --registry="https://registry.yarnpkg.com"
-      - name: npm version
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Set package version
         run: |
           zx scripts/workflow/set-package-version.mjs
         env:
-          TAG: ${{steps.extract_tag.outputs.result}}
-      - name: build
+          TAG: ${{ steps.extract_tag.outputs.result }}
+
+      - name: Build packages
         run: |
           yarn build:all
-      - name: upload build
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
             packages/*/dist/**
             packages/*/es/**
+            packages/*/package.json
             package.json
+          retention-days: 7
   release_npm:
-      permissions:
-        contents: write  # support to do the release on branch
-        pull-requests: write
-        
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      needs: [build]
-      environment: release
-      runs-on: ubuntu-latest
+    if: github.repository == 'bytedance/xgplayer'
+    permissions:
+      id-token: write
+      
+    needs: [build]
+    environment: release
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: extract tag
-          id: extract_tag
-          uses: actions/github-script@v6
-          with:
-            script: |
-              const prefix = 'refs/tags/';
-              const ref = context.ref;
-              return ref.startsWith(prefix) ? ref.substring(prefix.length) : '';
-            result-encoding: string
-        - uses: actions/checkout@v3
-          with:
-            ref: 'main'
-        - name: use Node.js
-          uses: actions/setup-node@v3
-          with:
-            node-version: 14.x
-        - name: cache node_modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
-          with:
-            path: node_modules
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: setup git
-          run: |
-            git config --global user.name ${{ github.actor }}
-            git config --global user.email ${{ github.actor }}@users.noreply.github.com
-            git fetch --tags
-            git pull
-        - name: setup global deps
-          run: |
-            npm install yarn -g 
-            npm install zx@7.2.3 -g
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
-        - name: install repo deps
-          run: |
-            yarn install --registry="https://registry.yarnpkg.com"
-        - name: download build
-          uses: actions/download-artifact@v4
-          with:
-            name: build
-        - name: npm version
-          run: |
-            zx scripts/workflow/set-package-version.mjs
-          env:
-            TAG: ${{steps.extract_tag.outputs.result}}
-        - name: setup npm
-          run: |
-            npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          registry-url: 'https://registry.npmjs.org'
 
-            echo "ls -a ${{ github.workspace }}"
-            ls -a ${{ github.workspace }}
-          env:
-            CI: true
-            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        - name: publish
-          run: |
-            zx scripts/workflow/npm-publish.mjs
-        - name: push to release branch
-          uses: EndBug/add-and-commit@v9
-          with:
-            add: "."
-            default_author: github_actor
-            fetch: true
-            new_branch: release
-            push: '--set-upstream origin release --force'
-            message: 'Auto Publish npm version ${{steps.extract_tag.outputs.result}}'
-        - name: create PR from back to main
-          uses: actions/github-script@v6
-          env:
-            RELEASED_VERSION: ${{steps.extract_tag.outputs.result}}
-          with:
-            script: |
-              const owner = context.repo.owner;
-              const repo = context.repo.repo;
-              const base = "main";
-              const head = "release";
-              const title = "new version published: " + process.env.RELEASED_VERSION;
-              const body = "";
-              github.rest.pulls.create({
-                  owner,
-                  repo,
-                  base,
-                  head,
-                  title,
-                  body
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Publish to npm
+        run: |
+          zx scripts/workflow/npm-publish.mjs
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
+  release_github:
+    if: github.repository == 'bytedance/xgplayer'
+    permissions:
+      contents: write
+    needs: [build, release_npm]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+          IS_STABLE: ${{ needs.build.outputs.is_stable }}
+        with:
+          script: |
+            const tag = process.env.TAG;
+            const isStable = process.env.IS_STABLE === 'true';
+            const releasePayload = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              prerelease: !isStable,
+              generate_release_notes: true
+            };
+
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag
               });
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                name: tag,
+                prerelease: !isStable,
+                generate_release_notes: true
+              });
+              core.notice(`Updated GitHub Release for ${tag}`);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.repos.createRelease(releasePayload);
+              core.notice(`Created GitHub Release for ${tag}`);
+            }
+
+  commit_to_main:
+    permissions:
+      contents: write
+    if: github.repository == 'bytedance/xgplayer' && needs.build.outputs.is_stable == 'true'
+    needs: [build, release_npm, release_github]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+            ${{ runner.os }}-
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Apply version changes
+        run: |
+          zx scripts/workflow/set-package-version.mjs
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+
+      - name: Commit and push to main
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "."
+          default_author: github_actor
+          fetch: true
+          push: 'origin HEAD:main'
+          message: 'chore(release): release version ${{ needs.build.outputs.tag }}'
+
+  release_summary:
+    if: always() && github.repository == 'bytedance/xgplayer'
+    needs: [build, release_npm, release_github, commit_to_main]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate release summary
+        run: |
+          VERSION="${{ needs.build.outputs.tag }}"
+          IS_STABLE="${{ needs.build.outputs.is_stable }}"
+          BUILD_STATUS="${{ needs.build.result }}"
+          RELEASE_STATUS="${{ needs.release_npm.result }}"
+          GITHUB_RELEASE_STATUS="${{ needs.release_github.result }}"
+          MAIN_COMMIT_STATUS="${{ needs.commit_to_main.result }}"
+          
+          BUILD_BADGE=$([ "$BUILD_STATUS" = "success" ] && echo "✅" || echo "❌")
+          RELEASE_BADGE=$([ "$RELEASE_STATUS" = "success" ] && echo "✅" || echo "❌")
+          GITHUB_RELEASE_BADGE=$([ "$GITHUB_RELEASE_STATUS" = "success" ] && echo "✅" || echo "❌")
+          if [ "$MAIN_COMMIT_STATUS" = "success" ]; then
+            MAIN_COMMIT_BADGE="✅"
+          elif [ "$MAIN_COMMIT_STATUS" = "skipped" ]; then
+            MAIN_COMMIT_BADGE="⏭️"
+          else
+            MAIN_COMMIT_BADGE="❌"
+          fi
+          RELEASE_MODE=$([ "$IS_STABLE" = "true" ] && echo "stable" || echo "prerelease")
+          
+          {
+            echo "# 🎉 Release Summary"
+            echo ""
+            echo "## Version Information"
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Version | \`$VERSION\` |"
+            echo "| Tag | \`${{ github.ref }}\` |"
+            echo "| Release Mode | \`$RELEASE_MODE\` |"
+            echo "| Commit | [\`${{ github.sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) |"
+            echo ""
+            echo "## Workflow Status"
+            echo "| Step | Status |"
+            echo "|------|--------|"
+            echo "| Build | $BUILD_BADGE $BUILD_STATUS |"
+            echo "| NPM Release | $RELEASE_BADGE $RELEASE_STATUS |"
+            echo "| GitHub Release | $GITHUB_RELEASE_BADGE $GITHUB_RELEASE_STATUS |"
+            echo "| Commit To Main | $MAIN_COMMIT_BADGE $MAIN_COMMIT_STATUS |"
+            echo ""
+            echo "## Links"
+            echo "- 📦 [View on NPM](https://www.npmjs.com/search?q=%40xgplayer)"
+            echo "- 🏷️ [View GitHub Release](https://github.com/${{ github.repository }}/releases/tag/$VERSION)"
+            echo "- 🔗 [Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            echo ""
+            echo "*Auto-generated by GitHub Actions*"
+          } >> $GITHUB_STEP_SUMMARY
+
