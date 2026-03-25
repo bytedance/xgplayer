@@ -1,6 +1,6 @@
 import { AudioCodecType, AudioSample, WarningType } from '../model'
 import { AAC, OPUS } from '../codec'
-import { isSafari, isIOSWeChat } from '../utils'
+import { isSafari, isIOS } from '../utils'
 
 const LARGE_AV_FIRST_FRAME_GAP = 500 // ms
 const AUDIO_GAP_OVERLAP_THRESHOLD_COUNT = 3
@@ -112,8 +112,8 @@ export class FlvFixer {
     const samples = videoTrack.samples
 
     if (!samples.length) return
-
-    if (isIOSWeChat && !this._videoLastSample && samples.length < 2) {
+    // ios 视频帧修复
+    if (isIOS && !this._videoLastSample && samples.length < 2) {
       return
     }
     samples.forEach(x => {
