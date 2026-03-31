@@ -8,7 +8,7 @@
     <a href="https://www.npmjs.com/package/xgplayer" target="_blank">
         <img src="https://img.shields.io/npm/l/xgplayer.svg" alt="license">
     </a>
-    <a href="http://commitizen.github.io/cz-cli/">
+    <a href="https://commitizen.github.io/cz-cli/">
         <img src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg" alt="commitizen">
     </a>
 </div>
@@ -17,7 +17,7 @@
 ### Introduction
 
 xgplayer is a web video player library. It has designed a separate, detachable UI component based on the principle that everything is componentized. More importantly, it is not only flexible in the UI layer, but also bold in its functionality: it gets rid of video loading, buffering, and format support for video dependence. Especially on mp4
-it can be staged loading for that does not support streaming mp4. This means seamless switching with clarity, load control, and video savings. It also integrates on-demand and live support for FLV, HLS, and dash. [Document](http://h5player.bytedance.com/en/)
+it can be staged loading for that does not support streaming mp4. This means seamless switching with clarity, load control, and video savings. It also integrates on-demand and live support for FLV, HLS, and dash. [Document](https://h5player.bytedance.com/en/)
 
 ### Start
 
@@ -41,18 +41,18 @@ it can be staged loading for that does not support streaming mp4. This means sea
 
     const player = new Player({
         id: 'vs',
-        url: 'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
+        url: 'https://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
     })
     ```
 
-    This is the easiest way to configure the player, then it runs with video. For more advanced content, see the plug-in section or documentation. [more config](http://h5player.bytedance.com/en/config/)
+    This is the easiest way to configure the player, then it runs with video. For more advanced content, see the plug-in section or documentation. [more config](https://h5player.bytedance.com/en/config/)
 
 
 
 
 ### Plugins
 
-xgplayer provides more plugins and supports custom plugins, for more content viewing [plugins](http://h5player.bytedance.com/en/plugins/). There are many built-in plugins in the player, if you need to close specific plugins, you can disable them by [ignores](https://h5player.bytedance.com/config/#ignores) configuration
+xgplayer provides more plugins and supports custom plugins, for more content viewing [plugins](https://h5player.bytedance.com/en/plugins/). There are many built-in plugins in the player, if you need to close specific plugins, you can disable them by [ignores](https://h5player.bytedance.com/config/#ignores) configuration
 
 
 ### Dev
@@ -80,6 +80,6 @@ For the stable release flow, prerelease flow, and release commands, see [Release
 ### License
 
 Welcome to use xgplayer! Please read the following terms carefully. Using xgplayer means that you accept and agree to the terms.
-1. Xgplayer is licensed under the [MIT](http://opensource.org/licenses/MIT) License. You comply with its obligations by default.
+1. Xgplayer is licensed under the [MIT](https://opensource.org/licenses/MIT) License. You comply with its obligations by default.
 2. By default, you authorize us to place your logo in xgplayer website, which using xgplayer.
 If you have any problem, please let us know.
