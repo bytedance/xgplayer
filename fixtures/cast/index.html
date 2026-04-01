@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,13 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
-  <script>
-    var ua = navigator.userAgent.toLowerCase()
-    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
-    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
-      var vConsole = new window.VConsole();
-    }
-  </script>
+    <script>
+      var ua = navigator.userAgent.toLowerCase();
+      if (
+        (ua.indexOf("mobile") > -1 || ua.indexOf("ipad") > -1) &&
+        location.href.indexOf("vconsole=1") > -1
+      ) {
+        var vConsole = new window.VConsole();
+      }
+    </script>
     <style>
       .pannel {
         margin: 20px 0;
