@@ -20,8 +20,10 @@ let _playerChangeDefinition = null
 let _playerSwitchUrl = null
 
 export default class Mp4Plugin extends BasePlugin {
+  static isStreamingPlugin = true
+
   static get pluginName () {
-    return 'mp4Plugin'
+    return 'mp4'
   }
 
   static get defaultConfig () {

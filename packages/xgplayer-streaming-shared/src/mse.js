@@ -19,10 +19,12 @@ function isMMS (mediaSource) {
   return /ManagedMediaSource/gi.test(Object.prototype.toString.call(mediaSource))
 }
 
-function removeSource(media) {
+function removeSource(media, filter) {
   const sources = media.querySelectorAll('source')
   sources.forEach(source => {
-    media.removeChild(source)
+    if (!filter || filter.test(source.src)) {
+      media.removeChild(source)
+    }
   })
 }
 
@@ -277,17 +279,17 @@ export class MSE {
 
     removeSource(media)
 
+    // 使用source标签来绑定MSE，能更好地兼容投屏等远端播放场景
     if (config.useSourceTag) {
       appendSource(media, 'video/mp4', this._url)
 
       if (config.alternativeSource) {
-        appendSource(media, config.alternativeSource.type, config.alternativeSource.url)
+        appendSource(media, config.alternativeSource.type, config.alternativeSource.src)
       }
     } else {
       media.src = this._url
+      media.disableRemotePlayback = useMMS
     }
-
-    media.disableRemotePlayback = useMMS
     media.dispatchEvent(new CustomEvent('mseAttaching'))
     return this._openPromise
   }
@@ -332,6 +334,7 @@ export class MSE {
 
     if (this.media) {
       this.media.disableRemotePlayback = false
+      removeSource(this.media, /^blob\:/)
       this.media.removeAttribute('src')
       try {
         this.media.load()
