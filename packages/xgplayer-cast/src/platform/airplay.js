@@ -34,25 +34,17 @@ export class Airplay {
       );
     }
 
-    this.player.on("requestcast", this._onRequestCast);
+    this.player.on("cast_request", this._onRequestCast);
   }
 
   /**
    * @private
    */
   _onTargetAvailabilityChange = (e) => {
-    switch (e.availability) {
-      case "available":
-        this.plugin.show();
-        break;
-      case "not-available":
-        this.plugin.hide();
-        break;
-    }
-
-    // this.emit("airplaytargetavailabilitychange", {
-    //   availability: e.availability,
-    // });
+    this.player.emit("cast_availability_change", {
+      protocol: "airplay",
+      availability: e.availability,
+    });
   };
 
   /**
@@ -60,25 +52,20 @@ export class Airplay {
    */
   _onTargetChange = () => {
     const video = this.player.media || this.player.video;
-    const originalSrc = video.src;
-    const originalCurrentTime = video.currentTime;
-    const isMSESource =
-      originalSrc &&
-      originalSrc.startsWith("blob:") &&
-      video.currentSrc === originalSrc;
+    const isWireless = !!video.webkitCurrentPlaybackTargetIsWireless;
 
-    // if (isMSESource) {
-    //   if (video.webkitCurrentPlaybackTargetIsWireless) {
-    //     console.log("AirPlay target is now wireless.");
-    //     video.src = this.player.config.castUrl || this.player.config.url
-    //   } else {
-    //     video.src = originalSrc;
-    //   }
-    //   video.load()
-    //   video.currentTime = originalCurrentTime;
-    // }
-    this.emit("airplaytargetchange", {
-      isWireless: video.webkitCurrentPlaybackTargetIsWireless,
+    console.log("AirPlay target change, isWireless:", isWireless, "currentSrc:", video.currentSrc);
+
+    if (isWireless && /^blob\:/.test(video.currentSrc)) {
+      // Wireless State: true -> false -> true，有3次状态变化。其中第一次状态变化时，
+      // AirPlay 会先用 MSE 作为选中目标，进入 wireless 状态，但这次选中会失败。
+      // 应该忽略掉这次状态变化，等待第三次状态变化才真正认为进入了 AirPlay 模式
+      return
+    }
+
+    this.player.emit("cast_target_change", {
+      protocol: "airplay",
+      isCasting: isWireless,
     });
   };
 
@@ -148,7 +135,7 @@ export class Airplay {
         this._onTargetChange,
       );
     }
-    this.player.off("requestcast", this._onRequestCast);
+    this.player.off("cast_request", this._onRequestCast);
     this.player = null;
     this.plugin = null;
   }
