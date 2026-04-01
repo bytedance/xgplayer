@@ -2,7 +2,11 @@
 
 ## Introduction
 
+
+
 ### Usage
+
+Require xgplayer 3.0.25+
 
 ```javascript
 import Player from "xgplayer"
