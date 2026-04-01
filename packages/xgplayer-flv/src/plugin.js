@@ -6,6 +6,8 @@ import PluginExtension from './plugin-extension'
 export class FlvPlugin extends BasePlugin {
   static Flv = Flv
 
+  static isStreamingPlugin = true
+
   static get pluginName () {
     return 'flv'
   }

@@ -23,6 +23,8 @@ const errorHandle = (player, err) => {
 }
 
 class DashPlugin extends BasePlugin {
+  static isStreamingPlugin = true
+
   static get pluginName () {
     return 'DashPlugin'
   }
