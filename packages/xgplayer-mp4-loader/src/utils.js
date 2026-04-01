@@ -1,7 +1,12 @@
 import GopItem from './gopItem'
+
 function isEdtsApplicable () {
   let flag = true
   const userAgent = navigator.userAgent || ''
+  const isFirefox = /Firefox\//i.test(userAgent)
+  if (isFirefox) {
+    return false
+  }
   const isChrome = /Chrome/gi.test(userAgent) && !/Edge\//gi.test(userAgent)
 
   // M75+ 开始支持负的 dts
