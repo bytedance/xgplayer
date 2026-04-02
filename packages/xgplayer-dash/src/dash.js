@@ -38,11 +38,12 @@ class DASH extends EventEmitter {
         dash.type = mpd.type
         vl = mpd.mediaList.video
         al = mpd.mediaList.audio
+        const vItem = vl[vl.selectedIdx]
+        const aItem = al[al.selectedIdx]
         if (dash.eme) {
-          // console.log('dash.eme')
-          // console.log(`${vl[vl.selectedIdx].mimeType}; codecs="${vl[vl.selectedIdx].codecs}"`)
-          // console.log(`${al[al.selectedIdx].mimeType}; codecs="${al[al.selectedIdx].codecs}"`)
-          dash.eme.setOptions(`${vl[vl.selectedIdx].mimeType}; codecs="${vl[vl.selectedIdx].codecs}"`, `${al[al.selectedIdx].mimeType}; codecs="${al[al.selectedIdx].codecs}"`)
+          const videoCodec = vItem ? `${vItem.mimeType}; codecs="${vItem.codecs}"` : ''
+          const audioCodec = aItem ? `${aItem.mimeType}; codecs="${aItem.codecs}"` : videoCodec
+          dash.eme.setOptions(videoCodec, audioCodec)
           dash.eme.SetupEME(dash.video)
         }
         mse = new MSE()
@@ -66,9 +67,13 @@ class DASH extends EventEmitter {
           })
         })
         mse.on('updateend', function (e) {
-          if (vl[vl.selectedIdx] && vl[vl.selectedIdx].inited && al[al.selectedIdx] && al[al.selectedIdx].inited) {
+          const hasVideo = !!vl[vl.selectedIdx]
+          const hasAudio = !!al[al.selectedIdx]
+          const videoReady = !hasVideo || vl[vl.selectedIdx].inited
+          const audioReady = !hasAudio || al[al.selectedIdx].inited
+          if ((hasVideo || hasAudio) && videoReady && audioReady) {
             dash.inited = true
-            if (vl[vl.selectedIdx].encrypted || al[al.selectedIdx].encrypted) {
+            if ((hasVideo && vl[vl.selectedIdx].encrypted) || (hasAudio && al[al.selectedIdx].encrypted)) {
               dash.eme.emit('encrypted')
             }
             // console.log('dash.inited = true')

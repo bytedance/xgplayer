@@ -30,6 +30,34 @@ function parseMPD (ctx) {
   return Xml2Json.parse(xmlString)
 }
 
+function toNode (value) {
+  if (value instanceof Array) {
+    return value[0]
+  }
+  return value
+}
+
+function parseRange (value) {
+  if (!value || typeof value !== 'string') {
+    return null
+  }
+  const range = value.split('-').map(item => parseInt(item, 10))
+  if (range.length !== 2 || Number.isNaN(range[0]) || Number.isNaN(range[1])) {
+    return null
+  }
+  return range
+}
+
+function resolveInitSegment (baseURL, initSegment, repId) {
+  if (!initSegment) {
+    return baseURL
+  }
+  if (/^(https?:)?\/\//.test(initSegment)) {
+    return initSegment
+  }
+  return baseURL + initSegment.replace('$RepresentationID$', repId)
+}
+
 class MPD extends EventEmitter {
   constructor (url) {
     super()
@@ -112,6 +140,7 @@ class MPD extends EventEmitter {
               }
               repID.push(rItem.id)
               let initSegment = ''
+              let initSegmentRange
               const mediaSegments = []
               let timescale = 0
               let duration = 0
@@ -171,6 +200,13 @@ class MPD extends EventEmitter {
               if (rItem.SegmentTemplate && rItem.SegmentTemplate.length > 0) {
                 ST = rItem.SegmentTemplate[0]
               }
+              let SL
+              if (asItem.SegmentList && asItem.SegmentList.length > 0) {
+                SL = asItem.SegmentList[0]
+              }
+              if (rItem.SegmentList && rItem.SegmentList.length > 0) {
+                SL = rItem.SegmentList[0]
+              }
               let encrypted = false
               if (asItem.ContentProtection || rItem.ContentProtection) {
                 encrypted = true
@@ -198,12 +234,40 @@ class MPD extends EventEmitter {
                     segmentDuration
                   })
                 }
+              } else if (SL) {
+                timescale = parseFloat(SL.timescale || 1)
+                duration = parseFloat(SL.duration || 0)
+                const initNode = toNode(SL.Initialization)
+                const segmentURLList = SL.SegmentURL || []
+                const segmentDuration = timescale ? (duration / timescale) : 0
+
+                initSegment = baseURL
+                initSegmentRange = parseRange(initNode && initNode.range)
+
+                segmentURLList.forEach((item, index) => {
+                  const mediaRange = parseRange(item.mediaRange)
+                  const startTime = segmentDuration * index
+                  let endTime = segmentDuration * (index + 1)
+                  if (index === segmentURLList.length - 1 && self.duration) {
+                    endTime = self.duration
+                  }
+                  mediaSegments.push({
+                    idx: index + 1,
+                    start: startTime,
+                    end: endTime,
+                    url: baseURL,
+                    range: mediaRange,
+                    downloaded: false,
+                    segmentDuration
+                  })
+                })
               }
               if (mimeType === 'video/mp4') {
                 self.mediaList.video.push({
                   id: rItem.id,
                   baseURL,
-                  initSegment: baseURL + initSegment.replace('$RepresentationID$', rItem.id),
+                  initSegment: resolveInitSegment(baseURL, initSegment, rItem.id),
+                  initSegmentRange,
                   inited: false,
                   mediaSegments,
                   mimeType,
@@ -224,7 +288,8 @@ class MPD extends EventEmitter {
                 self.mediaList.audio.push({
                   id: rItem.id,
                   baseURL,
-                  initSegment: baseURL + initSegment.replace('$RepresentationID$', rItem.id),
+                  initSegment: resolveInitSegment(baseURL, initSegment, rItem.id),
+                  initSegmentRange,
                   inited: false,
                   mediaSegments,
                   mimeType,
