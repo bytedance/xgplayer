@@ -176,13 +176,15 @@ export class CastPlugin extends Plugin {
 
   _doCast = (e) => {
     this.emitUserAction(e, 'cast')
-    this.emit('cast_request')
+    this.requestCast()
   }
 
   /**
    * @public
+   * Programmatically request casting. Opens the native cast dialog (AirPlay picker or
+   * Chromecast device chooser) if a protocol is available.
    */
-  prompt() {
+  requestCast() {
     this.emit('cast_request')
   }
 
