@@ -159,9 +159,6 @@ export class CastPlugin extends Plugin {
       return
     }
 
-    // instance.attachMedia?.();
-    // instance.resumeBuffering?.();
-
     // try {
     //   this.player.registerPlugin(plugin);
     //   const instance = this.player.getPlugin(pluginName);
