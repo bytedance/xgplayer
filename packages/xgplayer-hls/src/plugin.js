@@ -46,6 +46,8 @@ export class HlsPlugin extends BasePlugin {
 
   static EVENT = Event
 
+  static isStreamingPlugin = true
+
   logger = logger
 
   /**
