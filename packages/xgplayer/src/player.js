@@ -864,12 +864,12 @@ class Player extends MediaProxy {
 
   /**
    * get a plugin instance
-   * @param { string } pluginName
+   * @param { string | function } condition
    * @return { null | any } plugin
    */
-  getPlugin (pluginName) {
-    const plugin = pluginsManager.findPlugin(this, pluginName)
-    return plugin && plugin.pluginName ? plugin : null
+  getPlugin (condition) {
+    const plugin = pluginsManager.findPlugin(this, condition)
+    return plugin?.pluginName ? plugin : null
   }
 
   /**

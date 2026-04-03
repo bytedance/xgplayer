@@ -1,13 +1,13 @@
-import { addObserver, unObserver } from './resizeObserver'
 import Util from '../utils/util'
+import { addObserver, unObserver } from './resizeObserver'
 
 /**
-* a plugins manager to register and search
-**/
+ * a plugins manager to register and search
+ **/
 
 const pluginsManager = {
   pluginGroup: {},
-  init (player) {
+  init(player) {
     // mark every player instance by _pluginInfoId
     let cgid = player._pluginInfoId
     if (!cgid) {
@@ -15,9 +15,10 @@ const pluginsManager = {
       player._pluginInfoId = cgid
     }
 
-    !player.config.closeResizeObserver && addObserver(player.root, () => {
-      player.resize()
-    })
+    !player.config.closeResizeObserver &&
+      addObserver(player.root, () => {
+        player.resize()
+      })
 
     this.pluginGroup[cgid] = {
       _originalOptions: player.config || {},
@@ -25,7 +26,7 @@ const pluginsManager = {
     }
   },
 
-  formatPluginInfo (plugin, config) {
+  formatPluginInfo(plugin, config) {
     let PLUFGIN = null
     let options = null
     if (plugin.plugin && typeof plugin.plugin === 'function') {
@@ -51,7 +52,7 @@ const pluginsManager = {
    * @param { Array <any> } plugins
    * @returns boolean
    */
-  checkPluginIfExits (pluginName, plugins) {
+  checkPluginIfExits(pluginName, plugins) {
     for (let i = 0; i < plugins.length; i++) {
       if (pluginName.toLowerCase() === plugins[i].pluginName.toLowerCase()) {
         return true
@@ -66,7 +67,7 @@ const pluginsManager = {
    * @param { {[propName: string]: any;} } playerConfig
    * @return { {[propName: string]: any;} } pluginConfig
    */
-  getRootByConfig (pluginName, playerConfig) {
+  getRootByConfig(pluginName, playerConfig) {
     const keys = Object.keys(playerConfig)
     let _pConfig = null
     for (let i = 0; i < keys.length; i++) {
@@ -91,19 +92,19 @@ const pluginsManager = {
    * @param { any } lazyPlugin config
    *
    */
-  lazyRegister (player, lazyPlugin) {
+  lazyRegister(player, lazyPlugin) {
     const timeout = lazyPlugin.timeout || 1500
     return Promise.race([
       lazyPlugin.loader().then((plugin) => {
         let result
-        if (plugin && plugin.__esModule) {
+        if (plugin?.__esModule) {
           result = plugin.default
         } else {
           result = plugin
         }
         this.register(player, result, plugin.options)
       }),
-      new Promise((resolve, reject) => {
+      new Promise((_, reject) => {
         setTimeout(() => {
           reject(new Error('timeout'))
         }, timeout)
@@ -111,14 +112,19 @@ const pluginsManager = {
     ])
   },
   /**
-  * register a Plugin
-  * @param { any } player the plugins register
-  * @param { any } plugin the plugin contructor
-  * @param { any } options the plugin configuration
-  * @return { any } Plugin the plugin instance
-  **/
-  register (player, plugin, options = {}) {
-    if (!player || !plugin || typeof plugin !== 'function' || plugin.prototype === undefined) {
+   * register a Plugin
+   * @param { any } player the plugins register
+   * @param { any } plugin the plugin contructor
+   * @param { any } options the plugin configuration
+   * @return { any } Plugin the plugin instance
+   **/
+  register(player, plugin, options = {}) {
+    if (
+      !player ||
+      !plugin ||
+      typeof plugin !== 'function' ||
+      plugin.prototype === undefined
+    ) {
       return
     }
     const cgid = player._pluginInfoId
@@ -137,7 +143,10 @@ const pluginsManager = {
       throw new Error('The property pluginName is necessary')
     }
 
-    if (plugin.isSupported && !plugin.isSupported(player.config.mediaType, player.config.codecType)) {
+    if (
+      plugin.isSupported &&
+      !plugin.isSupported(player.config.mediaType, player.config.codecType)
+    ) {
       console.warn(`not supported plugin [${pluginName}]`)
       return
     }
@@ -162,7 +171,7 @@ const pluginsManager = {
 
     // copy the default configuration items of the plugin
     if (plugin.defaultConfig) {
-      Object.keys(plugin.defaultConfig).forEach(key => {
+      Object.keys(plugin.defaultConfig).forEach((key) => {
         if (typeof options.config[key] === 'undefined') {
           options.config[key] = plugin.defaultConfig[key]
         }
@@ -181,7 +190,9 @@ const pluginsManager = {
       // if there is already a plugin instance with the same pluginName, destroy it
       if (plugins[pluginName.toLowerCase()]) {
         this.unRegister(cgid, pluginName.toLowerCase())
-        console.warn(`the is one plugin with same pluginName [${pluginName}] exist, destroy the old instance`)
+        console.warn(
+          `the is one plugin with same pluginName [${pluginName}] exist, destroy the old instance`
+        )
       }
       // eslint-disable-next-line new-cap
       const _instance = new plugin(options)
@@ -193,7 +204,7 @@ const pluginsManager = {
       return _instance
     } catch (err) {
       console.error(err)
-      throw (err)
+      throw err
     }
   },
 
@@ -202,7 +213,7 @@ const pluginsManager = {
    * @param { string } cgid
    * @param { string } name
    */
-  unRegister (cgid, name) {
+  unRegister(cgid, name) {
     if (cgid._pluginInfoId) {
       cgid = cgid._pluginInfoId
     }
@@ -223,7 +234,7 @@ const pluginsManager = {
    * @param { any } player
    * @param { string } name
    */
-  deletePlugin (player, name) {
+  deletePlugin(player, name) {
     const cgid = player._pluginInfoId
     if (cgid && this.pluginGroup[cgid] && this.pluginGroup[cgid]._plugins) {
       delete this.pluginGroup[cgid]._plugins[name]
@@ -234,22 +245,35 @@ const pluginsManager = {
    * get all plugin instance of player
    * @param { any } player
    */
-  getPlugins (player) {
+  getPlugins(player) {
     const cgid = player._pluginInfoId
     return cgid && this.pluginGroup[cgid] ? this.pluginGroup[cgid]._plugins : {}
   },
 
-  findPlugin (player, name) {
+  findPlugin(player, condition) {
     const cgid = player._pluginInfoId
     if (!cgid || !this.pluginGroup[cgid]) {
       return null
     }
-    const cName = name.toLowerCase()
-    return this.pluginGroup[cgid]._plugins[cName]
+
+    // as pluginName
+    if (typeof condition === 'string') {
+      const cName = condition.toLowerCase()
+      return this.pluginGroup[cgid]._plugins[cName] || null
+    } else if (typeof condition === 'function') {
+      // as function
+      const plugins = this.pluginGroup[cgid]._plugins
+      for (const key in plugins) {
+        if (condition(plugins[key])) {
+          return plugins[key] || null
+        }
+      }
+    }
+    return null
   },
 
-  beforeInit (player) {
-    function retPromise (fun) {
+  beforeInit(player) {
+    function retPromise(fun) {
       if (!fun || !fun.then) {
         return new Promise((resolve) => {
           resolve()
@@ -264,7 +288,7 @@ const pluginsManager = {
       }
 
       let prevTask
-      if (player._loadingPlugins && player._loadingPlugins.length) {
+      if (player._loadingPlugins?.length) {
         prevTask = Promise.all(player._loadingPlugins)
       } else {
         prevTask = Promise.resolve()
@@ -278,8 +302,8 @@ const pluginsManager = {
         }
         const plugins = this.pluginGroup[cgid]._plugins
         const pluginsRet = []
-        Object.keys(plugins).forEach(pName => {
-          if (plugins[pName] && plugins[pName].beforePlayerInit) {
+        Object.keys(plugins).forEach((pName) => {
+          if (plugins[pName]?.beforePlayerInit) {
             try {
               const ret = plugins[pName].beforePlayerInit()
               pluginsRet.push(retPromise(ret))
@@ -290,36 +314,38 @@ const pluginsManager = {
           }
         })
 
-        Promise.all([...pluginsRet]).then(() => {
-          resolve()
-        }).catch((e) => {
-          console.error(e)
-          resolve()
-        })
+        Promise.all([...pluginsRet])
+          .then(() => {
+            resolve()
+          })
+          .catch((e) => {
+            console.error(e)
+            resolve()
+          })
       })
     })
   },
 
-  afterInit (player) {
+  afterInit(player) {
     const cgid = player._pluginInfoId
     if (!cgid || !this.pluginGroup[cgid]) {
       return
     }
     const plugins = this.pluginGroup[cgid]._plugins
-    Object.keys(plugins).forEach(pName => {
-      if (plugins[pName] && plugins[pName].afterPlayerInit) {
+    Object.keys(plugins).forEach((pName) => {
+      if (plugins[pName]?.afterPlayerInit) {
         plugins[pName].afterPlayerInit()
       }
     })
   },
 
-  setLang (lang, player) {
+  setLang(lang, player) {
     const cgid = player._pluginInfoId
     if (!cgid || !this.pluginGroup[cgid]) {
       return
     }
     const plugins = this.pluginGroup[cgid]._plugins
-    Object.keys(plugins).forEach(item => {
+    Object.keys(plugins).forEach((item) => {
       if (plugins[item].updateLang) {
         plugins[item].updateLang(lang)
       } else {
@@ -333,7 +359,7 @@ const pluginsManager = {
     })
   },
 
-  reRender (player) {
+  reRender(player) {
     const cgid = player._pluginInfoId
 
     if (!cgid || !this.pluginGroup[cgid]) {
@@ -341,7 +367,7 @@ const pluginsManager = {
     }
     const _pList = []
     const plugins = this.pluginGroup[cgid]._plugins
-    Object.keys(plugins).forEach(pName => {
+    Object.keys(plugins).forEach((pName) => {
       if (pName !== 'controls' && plugins[pName]) {
         _pList.push({
           plugin: plugins[pName].func,
@@ -350,25 +376,28 @@ const pluginsManager = {
         this.unRegister(cgid, pName)
       }
     })
-    _pList.forEach(item => {
+    _pList.forEach((item) => {
       this.register(player, item.plugin, item.options)
     })
   },
 
-  onPluginsReady (player) {
+  onPluginsReady(player) {
     const cgid = player._pluginInfoId
     if (!cgid || !this.pluginGroup[cgid]) {
       return
     }
     const plugins = this.pluginGroup[cgid]._plugins || {}
-    Object.keys(plugins).forEach(key => {
-      if (plugins[key].onPluginsReady && typeof plugins[key].onPluginsReady === 'function') {
+    Object.keys(plugins).forEach((key) => {
+      if (
+        plugins[key].onPluginsReady &&
+        typeof plugins[key].onPluginsReady === 'function'
+      ) {
         plugins[key].onPluginsReady()
       }
     })
   },
 
-  destroy (player) {
+  destroy(player) {
     const cgid = player._pluginInfoId
     if (!this.pluginGroup[cgid]) {
       return
