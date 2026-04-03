@@ -1,13 +1,10 @@
 import { Plugin } from 'xgplayer'
-import { Logger } from 'xgplayer-streaming-shared'
 import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
 import { Chromecast, isChromecastAvailable } from './platform/chromecast'
 
 import './cast-i18n'
 import './index.scss'
-
-const logger = new Logger('CastPlugin')
 
 /**
  * @typedef { {
@@ -27,40 +24,22 @@ export class CastPlugin extends Plugin {
     return {
       position: Plugin.POSITIONS.CONTROLS_RIGHT,
       index: 7,
-      disable: true,
+      disable: false,
       showIcon: true,
       autoplayOnCast: true, // 投屏后是否自动播放
-      airplay: false,
-      chromecast: false,
+      airplay: true,
+      chromecast: true,
       showAirplayMutedTip: true, // 是否显示 AirPlay 连接时需要取消静音的提示
-      castUrl: null // 可选，投屏使用的 URL，默认为全局配置中的 url 字段
     }
-  }
-
-  get version() {
-    return __VERSION__
-  }
-
-  constructor(args) {
-    // 允许通过 player.config.airplay 显式开关按钮
-    if (
-      typeof args.player.config.airplay === 'boolean' &&
-      isAirPlayAvailable(args.player)
-    ) {
-      args.config.disable = false
-      args.config.showIcon = args.player.config.airplay
-    }
-
-    super(args)
-
-    this._msePluginRestore = null
   }
 
   afterCreate() {
-    super.afterCreate()
     if (this.config.disable || this.player?.mediaConfig?.mediaType !== 'video') {
       return
     }
+    this._msePluginRestore = null
+    this._castHandshakeInProgress = false
+
     this.appendChild('.xgplayer-icon', this.icons.cast)
     this._handler = this.hook('click', this._doCast, {
       pre: (e) => {
@@ -73,7 +52,10 @@ export class CastPlugin extends Plugin {
     this.on('cast_availability_change', this._onCastAvailabilityChange)
     this.on('loadstart', this._onLoadStart)
 
-    if (this.config.airplay && isAirPlayAvailable(this.player)) {
+    if (
+      (this.config.airplay || this.player.config.airplay) &&
+      isAirPlayAvailable(this.player)
+    ) {
       this._airplay = new Airplay(this)
       this._airplay.install()
     }
@@ -84,11 +66,9 @@ export class CastPlugin extends Plugin {
     }
   }
 
-  _onLoadStart = () => {
+  _onLoadStart = () => {}
 
-  }
-
-  _onCastAvailabilityChange = ({ protocol, availability }) => {
+  _onCastAvailabilityChange = ({ availability }) => {
     switch (availability) {
       case 'available':
         this.show()
@@ -102,8 +82,40 @@ export class CastPlugin extends Plugin {
   _onCastTargetChange = ({ isCasting }) => {
     if (isCasting) {
       this._suspendMSEPlugin()
+      this._playForCastHandshake()
     } else {
+      this._castHandshakeInProgress = false
       this._resumeMSEPlugin()
+    }
+  }
+
+  /**
+   * @private
+   * AirPlay/Chromecast often needs an explicit play command to complete route activation.
+   * If autoplayOnCast is false, pause immediately after the route is activated.
+   */
+  _playForCastHandshake = async () => {
+    if (this._castHandshakeInProgress) {
+      return
+    }
+    this._castHandshakeInProgress = true
+
+    const shouldKeepPlaying = !!this.config.autoplayOnCast
+    // console.log('autoplayOnCast', this.config.autoplayOnCast)
+
+    try {
+      await this.player.play()
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        console.warn('Failed to play media for cast handshake:', error)
+      }
+      return
+    } finally {
+      this._castHandshakeInProgress = false
+    }
+
+    if (!shouldKeepPlaying) {
+      this.player.pause()
     }
   }
 
@@ -129,15 +141,6 @@ export class CastPlugin extends Plugin {
 
     // Just unregister the plugin, do not call detachMedia or pause buffering, to avoid potential issues
     this.player.unRegisterPlugin(pluginName)
-    const media = this.player.media || this.player.video
-    // media.src = this.config.castUrl || this.player.config.url;
-    setTimeout(() => {
-      media.load()
-
-      if (this.config.autoplayOnCast) {
-        this.player.play()
-      }
-    }, 0)
   }
 
   /**
@@ -191,6 +194,7 @@ export class CastPlugin extends Plugin {
   destroy() {
     super.destroy()
     this._msePluginRestore = null
+    this._castHandshakeInProgress = false
     this.off('loadstart', this._onLoadStart)
     this.off('cast_availability_change', this._onCastAvailabilityChange)
     this.off('cast_target_change', this._onCastTargetChange)

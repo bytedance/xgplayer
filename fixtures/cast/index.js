@@ -14,11 +14,7 @@ window.player = new Player({
   plugins: [HlsPlugin, CastPlugin],
   height: 300,
   cast: {
-    showIcon: true,
-    autoplayOnCast: true,
-    airplay: true,
-    chromecast: true,
-    showAirplayMutedTip: true,
+    autoplayOnCast: false,
   },
   hls: {
     preferMMS: true,
