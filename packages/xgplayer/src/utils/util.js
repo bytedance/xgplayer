@@ -1123,6 +1123,9 @@ function throttle (func, wait, options) {
   })
 }
 
+util.debounce = debounce
+util.throttle = throttle
+
 /**
  * @returns { string }
  */
