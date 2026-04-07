@@ -50,7 +50,7 @@ export class BufferService {
       this._mse = new MSE(null, {
         preferMMS:
           typeof opts.preferMMS === 'boolean' ? opts.preferMMS : !!opts.perferMMS /* perferMMS is typo, deprecated */
-      })
+      }, flv)
       this._mse.bindMedia(flv.media)
     }
   }

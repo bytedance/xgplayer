@@ -92,6 +92,9 @@ export default class FlvPlugin extends BasePlugin {
     this._transCoreEvent(EVENT.STREAM_EXCEPTION)
     this._transCoreEvent(EVENT.SWITCH_URL_SUCCESS)
     this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
+    this.flv.on('sourceopen', (e) => {
+      this.player?.emit('sourceopen', e)
+    })
 
     if (!flvOpts.manualLoad) {
       this.loadSource(config.url, flvOpts.streamRes)

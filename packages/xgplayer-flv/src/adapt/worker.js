@@ -65,6 +65,9 @@ export default class PlayerWorker {
         this._transCoreEvent(EVENT.STREAM_EXCEPTION)
         this._transCoreEvent(EVENT.SWITCH_URL_SUCCESS)
         this._transCoreEvent(EVENT.SWITCH_URL_FAILED)
+        this.flv.on('sourceopen', (e) => {
+          this.postMessage('sourceopen', e)
+        })
         break
       case 'replay':
         this.flv.replay()

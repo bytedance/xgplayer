@@ -100,6 +100,7 @@ export default class Main extends EventEmitter {
         break
       }
       default:
+        this.emit(data.type, data.data)
         break
     }
   }

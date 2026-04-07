@@ -133,6 +133,9 @@ window.onload = function () {
           streamRes = null
         }
       })
+      player.on('sourceopen', (e) => {
+        console.log('sourceopen', e)
+      })
       dlEvent.innerHTML = ''
       dlError.innerHTML = ''
 
