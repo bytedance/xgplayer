@@ -164,8 +164,10 @@ export default class FlvPlugin extends BasePlugin {
 
   _transError () {
     this.flv.on(EVENT.ERROR, (err) => {
+      const error = new Errors(this.player, err)
+      error.httpCode = err.httpCode
       if (this.player) {
-        this.player.emit(Events.ERROR, new Errors(this.player, err))
+        this.player.emit(Events.ERROR, error)
       }
     })
   }

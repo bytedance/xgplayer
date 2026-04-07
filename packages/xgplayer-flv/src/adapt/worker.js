@@ -93,7 +93,8 @@ export default class PlayerWorker {
         data: {
           errorCode: err.errorCode,
           errorMessage: err.errorMessage,
-          errorType: err.errorType
+          errorType: err.errorType,
+          httpCode: err.ext?.httpCode
           // ext: err.ext
         }
       })

@@ -136,6 +136,14 @@ window.onload = function () {
       player.on('sourceopen', (e) => {
         console.log('sourceopen', e)
       })
+      player.on('core_event', ({ eventName }) => {
+        if (eventName === 'core.buffereos') {
+          console.log('core_event', eventName)
+        }
+      })
+      player.on('error', (e) => {
+        console.log('error', e)
+      })
       dlEvent.innerHTML = ''
       dlError.innerHTML = ''
 
