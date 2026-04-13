@@ -6,3 +6,11 @@ const ua = isBrowser && navigator.userAgent.toLocaleLowerCase()
 export const isSafari = isBrowser && /^((?!chrome|android).)*safari/.test(ua)
 export const isFirefox = isBrowser && ua.includes('firefox')
 export const isAndroid = isBrowser && ua.includes('android')
+export const isIOS =
+  isBrowser && /iphone|ipad|ipod/.test(ua)
+
+export const isWeChat =
+  isBrowser && ua.includes('micromessenger')
+
+export const isIOSWeChat =
+  isIOS && isWeChat
