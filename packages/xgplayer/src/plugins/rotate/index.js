@@ -1,4 +1,4 @@
-import { POSITIONS, Util } from '../../plugin'
+import { POSITIONS, Sniffer, Util } from '../../plugin'
 import { xgIconTips } from '../common/iconTools'
 import IconPlugin from '../common/iconPlugin'
 import { Events } from '../../plugin/basePlugin'
@@ -33,7 +33,7 @@ export default class Rotate extends IconPlugin {
     super.afterCreate()
     this.appendChild('.xgplayer-icon', this.icons.rotate)
     this.onBtnClick = this.onBtnClick.bind(this)
-    this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
+    this.bind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.onBtnClick)
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on(Events.VIDEO_RESIZE, () => {
       if (this.rotateDeg && this.config.innerRotate) {
@@ -54,7 +54,7 @@ export default class Rotate extends IconPlugin {
 
   destroy () {
     super.destroy()
-    this.unbind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
+    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.onBtnClick)
   }
 
   onBtnClick (e) {
