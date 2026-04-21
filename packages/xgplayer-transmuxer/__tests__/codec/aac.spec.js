@@ -45,6 +45,28 @@ describe('AAC', () => {
     expect(result.sampleRate).toBe(44100)
   })
 
+  test('parseADTS drops frames whose declared length <= ADTS header', () => {
+    // 与 hls.js src/demux/audio/adts.ts 的 aac_frame_length 校验对齐：
+    // 当一个 ADTS 帧声明的 frame_length 小于/等于 header 长度（即 raw_data_block 为空）时，
+    // 这种帧在 iOS WKWebView 的 decodeAudioData / MSE 上会直接触发解码失败，
+    // demux 层应主动丢弃，继续扫描后续健康帧。
+    const frame2 = [33, 32, 73, 144, 2, 25, 0, 35, 128]
+    const data = new Uint8Array([
+      // 第一个 header 声明 frameLength = 7（仅 header 无 payload），应当被丢弃
+      0xff, 0xf1, 0x50, 0x80, 0x00, 0xe0, 0xfc,
+      // 第二个是合法帧：header + 9 字节 payload，frameLength = 16
+      0xff, 0xf1, 0x50, 0x80, 0x02, 0x1f, 0xfc,
+      ...frame2
+    ])
+
+    const result = AAC.parseADTS(data, 1000)
+
+    expect(result.droppedFrames).toBe(1)
+    expect(result.frames.length).toBe(1)
+    expect(result.frames[0].data).toEqual(new Uint8Array(frame2))
+    expect(result.frames[0].pts).toBe(1000)
+  })
+
   test('parseAudioSpecificConfig', () => {
     const data = new Uint8Array([18, 16])
 

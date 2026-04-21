@@ -351,7 +351,11 @@ export class TsFixer {
       // delta >= 3 * refSampleDurationInt
       // delta <= 500s
       if (!this._audioTimestampBreak && delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration && delta <= MAX_SILENT_FRAME_DURATION && !isSafari) {
-        const silentFrame = AAC.getSilentFrame(audioTrack.parsedCodec || audioTrack.codec, audioTrack.channelCount) || samples[0].data.subarray()
+        // 与 hls.js src/remux/mp4-remuxer.ts 对齐：查不到匹配 codec/channelCount 的静音帧时，
+        // 回退到**当前 sample**（即将播放的这一帧）而不是 samples[0]。
+        // samples[0] 可能是 demux 侧挑出来的异常首帧，用它做 fill 会把坏数据复制成若干帧，
+        // 进而污染整个 chunk 的解码输出。
+        const silentFrame = AAC.getSilentFrame(audioTrack.parsedCodec || audioTrack.codec, audioTrack.channelCount) || sample.data.subarray()
         const count = Math.floor(delta / refSampleDuration)
 
         if (Math.abs(sample.pts - this._lastAudioExceptionGapDot) > AUDIO_EXCETION_LOG_EMIT_DURATION) {

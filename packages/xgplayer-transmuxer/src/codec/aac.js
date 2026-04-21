@@ -17,6 +17,16 @@ export class AAC {
     7350
   ];
 
+  // ADTS 头布局（ISO/IEC 14496-3 §1.A.2.2.1 adts_frame）：
+  //   adts_fixed_header    28 bits
+  //   adts_variable_header 28 bits
+  //   -> 合计 56 bits = 7 bytes
+  // 当 protection_absent = 0 时，再追加一个 16-bit CRC。
+  // 规范还允许 number_of_raw_data_blocks_in_frame > 0 时在 block 之间插入额外 CRC，
+  // 但主流编码器都按 1 block/frame 产出，这里与 hls.js/Chromium/FFmpeg 保持一致不特殊处理。
+  static ADTS_HEADER_LEN_NO_CRC = 7;
+  static ADTS_CRC_LEN = 2;
+
   static getRateIndexByRate (rate) {
     return AAC.FREQ.indexOf(rate)
   }
@@ -45,7 +55,10 @@ export class AAC {
 
     let protectionSkipBytes
     let frameLength
+    let headerLength
+    let payloadLength
     let frameIndex = 0
+    let droppedFrames = 0
     const duration = AAC.getFrameDuration(sampleRate)
 
     while ((i + 7) < len) {
@@ -57,10 +70,24 @@ export class AAC {
       frameLength = ((data[i + 3] & 0x03) << 11) | (data[i + 4] << 3) | ((data[i + 5] & 0xe0) >> 5)
       if (!frameLength || (len - i) < frameLength) break
 
-      protectionSkipBytes = (~data[i + 1] & 0x01) * 2
+      // protection_absent = data[i+1] bit0；为 0 时头后紧跟 16-bit CRC（+2 bytes）。
+      protectionSkipBytes = (~data[i + 1] & 0x01) * AAC.ADTS_CRC_LEN
+      headerLength = AAC.ADTS_HEADER_LEN_NO_CRC + protectionSkipBytes
+      payloadLength = frameLength - headerLength
+
+      // 与 hls.js src/demux/audio/adts.ts 对齐：aac_frame_length 必须大于 ADTS 头长度，
+      // 否则该帧没有有效的 raw_data_block 载荷，产出空/负长度 payload 会污染下游。
+      // 策略：丢弃坏帧的 sync，继续向后扫描，尽量保留健康帧。
+      // frameLength 畸形偏小时，至少跳过当前 header，避免在同一个坏 sync 上反复命中。
+      if (payloadLength <= 0) {
+        droppedFrames++
+        i += Math.max(frameLength, headerLength)
+        continue
+      }
+
       frames.push({
         pts: pts + frameIndex * duration,
-        data: data.subarray(i + 7 + protectionSkipBytes, i + frameLength)
+        data: data.subarray(i + headerLength, i + frameLength)
       })
 
       frameIndex++
@@ -71,6 +98,7 @@ export class AAC {
       skip,
       remaining: i >= len ? undefined : data.subarray(i),
       frames,
+      droppedFrames,
       samplingFrequencyIndex,
       sampleRate,
       objectType,

@@ -368,6 +368,11 @@ export class TsDemuxer {
       if (ret.remaining) {
         logger.warn(`Remaining aac adts ${ret.remaining} bits`)
       }
+      // parseADTS 已剔除声明长度异常（payload<=0）的坏帧，这里做一次计数打点，
+      // 便于线上定位上游编码/切片异常导致的 ADTS 坏帧。
+      if (ret.droppedFrames) {
+        logger.warn(`Drop ${ret.droppedFrames} malformed aac adts frame(s)`)
+      }
     } else {
       logger.warn('Cannot parse aac adts', pes)
     }
