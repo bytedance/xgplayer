@@ -506,7 +506,7 @@ export class TsFixer {
           AAC.getSilentFrame(
             audioTrack.parsedCodec || audioTrack.codec,
             audioTrack.channelCount
-          ) || samples[0].data.subarray()
+          ) || sample.data.subarray()
         const count = Math.floor(delta / refSampleDuration)
 
         if (

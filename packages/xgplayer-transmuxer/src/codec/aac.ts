@@ -19,6 +19,7 @@ export interface ADTSConfig extends AACConfig {
   skip: number
   remaining: Uint8Array | undefined
   frames: AACFrame[]
+  droppedFrames: number
 }
 
 // biome-ignore format: preserve the codec tables and parser layout during migration
@@ -38,6 +39,9 @@ export class AAC {
     8000,
     7350
   ]
+
+  private static readonly ADTS_HEADER_LEN_NO_CRC = 7
+  private static readonly ADTS_CRC_LEN = 2
 
   static getRateIndexByRate(rate: number): number {
     return AAC.FREQ.indexOf(rate)
@@ -65,24 +69,41 @@ export class AAC {
     const channelCount = ((data[i + 2] & 1) << 2) | ((data[i + 3] & 0xc0) >>> 6)
     const { config, codec } = AAC._getConfig(samplingFrequencyIndex, channelCount)
 
-    let protectionSkipBytes
-    let frameLength
+    let protectionSkipBytes: number
+    let frameLength: number
+    let headerLength: number
+    let payloadLength: number
     let frameIndex = 0
+    let droppedFrames = 0
     const duration = AAC.getFrameDuration(sampleRate)
 
-    while ((i + 7) < len) {
+    while (i + AAC.ADTS_HEADER_LEN_NO_CRC <= len) {
       if ((data[i] !== 0xff) || (data[i + 1] & 0xF6) !== 0xf0) {
         i++
         continue
       }
 
       frameLength = ((data[i + 3] & 0x03) << 11) | (data[i + 4] << 3) | ((data[i + 5] & 0xe0) >> 5)
-      if (!frameLength || (len - i) < frameLength) break
 
-      protectionSkipBytes = (~data[i + 1] & 0x01) * 2
+      // protection_absent is bit 0 of data[i + 1]; when it is 0, a 16-bit CRC follows the header.
+      protectionSkipBytes = (~data[i + 1] & 0x01) * AAC.ADTS_CRC_LEN
+      headerLength = AAC.ADTS_HEADER_LEN_NO_CRC + protectionSkipBytes
+      payloadLength = frameLength - headerLength
+
+      // A valid ADTS frame must contain at least one payload byte after the header.
+      // Drop malformed zero-length, shorter-than-header, or header-only frames and
+      // continue scanning for later valid frames.
+      if (payloadLength <= 0) {
+        droppedFrames++
+        i += headerLength
+        continue
+      }
+
+      if ((len - i) < frameLength) break
+
       frames.push({
         pts: pts + frameIndex * duration,
-        data: data.subarray(i + 7 + protectionSkipBytes, i + frameLength)
+        data: data.subarray(i + headerLength, i + frameLength)
       })
 
       frameIndex++
@@ -93,6 +114,7 @@ export class AAC {
       skip,
       remaining: i >= len ? undefined : data.subarray(i),
       frames,
+      droppedFrames,
       samplingFrequencyIndex,
       sampleRate,
       objectType,

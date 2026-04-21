@@ -346,7 +346,9 @@ export class FlvFixer {
       // delta >= 3 * refSampleDurationInt
       // delta <= 500s
       if (!this._audioTimestampBreak && delta >= AUDIO_GAP_OVERLAP_THRESHOLD_COUNT * refSampleDuration && delta <= MAX_SILENT_FRAME_DURATION && !isSafari) {
-        const silentFrame = this._getSilentFrame(audioTrack) || samples[0].data.subarray()
+        // If no codec-specific silent frame exists, clone the current playable
+        // sample instead of the first sample, which may be a malformed leading frame.
+        const silentFrame = this._getSilentFrame(audioTrack) || sample.data.subarray()
         const count = Math.floor(delta / refSampleDuration)
 
         if (Math.abs(sample.pts - this._lastAudioExceptionGapDot) > AUDIO_EXCEPTION_LOG_EMIT_DURATION) {
