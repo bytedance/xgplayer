@@ -398,6 +398,11 @@ export class TsDemuxer {
       if (ret.remaining) {
         logger.warn(`Remaining aac adts ${ret.remaining} bits`)
       }
+      // Keep this visible in logs so malformed upstream ADTS frames can be traced
+      // without failing the rest of the PES payload.
+      if (ret.droppedFrames) {
+        logger.warn(`Drop ${ret.droppedFrames} malformed aac adts frame(s)`)
+      }
     } else {
       logger.warn('Cannot parse aac adts', pes)
     }
