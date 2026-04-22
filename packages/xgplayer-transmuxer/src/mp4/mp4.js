@@ -1,3 +1,8 @@
+/** biome-ignore-all lint/suspicious/noAssignInExpressions: <explanation> */
+/** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
+/** biome-ignore-all lint/complexity/useOptionalChain: <explanation> */
+/** biome-ignore-all lint/suspicious/noPrototypeBuiltins: <explanation> */
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: <explanation> */
 import { TrackType, VideoCodecType } from '../model'
 import { concatUint8Array, parse /* hashVal */ } from '../utils'
 import Buffer from './buffer'
@@ -64,7 +69,10 @@ export class MP4 {
     'fiel',
     'sdtp',
     'bvc2',
-    'bv2C'
+    'bv2C',
+    'vvc1',
+    'vvi1',
+    'vvcC'
   ].reduce((p, c) => {
     p[c] = [c.charCodeAt(0), c.charCodeAt(1), c.charCodeAt(2), c.charCodeAt(3)]
     return p
@@ -107,6 +115,23 @@ export class MP4 {
     0, 0, 0, 1,
     105, 115, 111, 109,
     104, 101, 118, 49 // hev1
+  ]))
+
+  // Standard H.266/VVC init segment ftyp (ISO/IEC 14496-15:2022 Amendment 2).
+  static FTYPVVC1 = MP4.box(MP4.types.ftyp, new Uint8Array([
+    105, 115, 111, 109, // isom
+    0, 0, 0, 1,
+    105, 115, 111, 109,
+    118, 118, 99, 49 // vvc1
+  ]))
+
+  // Legacy 'bvc2' compatible ftyp for historical, pre-Amd.2 content that did
+  // not use the standard 'vvc1' / 'vvi1' sample-entry FourCCs.
+  static FTYPBVC2 = MP4.box(MP4.types.ftyp, new Uint8Array([
+    105, 115, 111, 109, // isom
+    0, 0, 0, 1,
+    105, 115, 111, 109,
+    98, 118, 99, 50 // bvc2
   ]))
 
   static DINF = MP4.box(MP4.types.dinf, MP4.box(MP4.types.dref, new Uint8Array([
@@ -179,11 +204,19 @@ export class MP4 {
   }
 
   static ftyp (tracks) {
-    const isHevc = tracks.find(t => t.type === TrackType.VIDEO && t.codecType === VideoCodecType.HEVC)
-    return isHevc ? MP4.FTYPHEV1 : MP4.FTYPAVC1
+    const videoTrack = tracks.find(t => t.type === TrackType.VIDEO)
+    if (videoTrack?.codecType === VideoCodecType.HEVC) return MP4.FTYPHEV1
+    if (videoTrack?.codecType === VideoCodecType.VVCC) {
+      return videoTrack.vvccSampleEntryType === 'bvc2' ? MP4.FTYPBVC2 : MP4.FTYPVVC1
+    }
+    return MP4.FTYPAVC1
   }
 
   static initSegment (tracks) {
+    // Defensive: callers (e.g. FMP4Remuxer) may pass an empty array when no
+    // track satisfies `exist()`. Emitting a crashy `moov` without any trak is
+    // worse than returning an empty init — bail out cleanly instead.
+    if (!tracks || !tracks.length) return new Uint8Array()
     const ftyp = MP4.ftyp(tracks)
     // console.log('[remux],ftyp ,len ', ftyp.byteLength, hashVal(ftyp.toString()))
     const init = concatUint8Array(ftyp, MP4.moov(tracks))
@@ -411,12 +444,10 @@ export class MP4 {
   }
 
   static encv (track) {
-    const sps = track.sps.length > 0 ? track.sps[0] : []
-    const pps = track.pps.length > 0 ? track.pps[0] : []
     const width = track.width
     const height = track.height
-    const hSpacing = track.sarRatio[0]
-    const vSpacing = track.sarRatio[1]
+    const hSpacing = track.sarRatio && track.sarRatio.length > 1 ? track.sarRatio[0] : 0
+    const vSpacing = track.sarRatio && track.sarRatio.length > 1 ? track.sarRatio[1] : 0
 
     const content = new Uint8Array([
       0x00, 0x00, 0x00, // reserved
@@ -448,37 +479,55 @@ export class MP4 {
       0x00, 0x00, 0x00, // compressorname
       0x00, 0x18, // depth = 24
       0x11, 0x11]) // pre_defined = -1;
-    const avcc = new Uint8Array([
-      0x01, // version
-      sps[1], // profile
-      sps[2], // profile compatible
-      sps[3], // level
-      0xfc | 3,
-      0xE0 | 1, // 目前只处理一个sps
-      sps.length >>> 8 & 0xff,
-      sps.length & 0xff
-    ].concat(...sps).concat([
-      0x01,
-      pps.length >>> 8 & 0xff,
-      pps.length & 0xff
-    ]).concat(...pps))
+
+    // The `encv` sample entry must contain the *real* codec configuration box
+    // so that MSE/EME can initialise the decoder. Build the right child box
+    // (avcC / hvcC / vvcC) based on the underlying codec type.
+    let configBox
+    if (track.codecType === VideoCodecType.HEVC) {
+      configBox = MP4.hvcC(track)
+    } else if (track.codecType === VideoCodecType.VVCC) {
+      configBox = MP4.vvcC(track)
+    } else {
+      const sps = track.sps && track.sps.length > 0 ? track.sps[0] : []
+      const pps = track.pps && track.pps.length > 0 ? track.pps[0] : []
+      const avcc = new Uint8Array([
+        0x01, // version
+        sps[1], // profile
+        sps[2], // profile compatible
+        sps[3], // level
+        0xfc | 3,
+        0xE0 | 1, // 目前只处理一个sps
+        sps.length >>> 8 & 0xff,
+        sps.length & 0xff
+      ].concat(...sps).concat([
+        0x01,
+        pps.length >>> 8 & 0xff,
+        pps.length & 0xff
+      ]).concat(...pps))
+      configBox = MP4.box(MP4.types.avcC, avcc)
+    }
     const btrt = new Uint8Array([
       0x00, 0x00, 0x58, 0x39,
       0x00, 0x0F, 0xC8, 0xC0,
       0x00, 0x04, 0x56, 0x48
     ])
     const sinf = MP4.sinf(track.encv)
-    const pasp = new Uint8Array([
-      (hSpacing >> 24), // hSpacing
-      (hSpacing >> 16) & 0xff,
-      (hSpacing >> 8) & 0xff,
-      hSpacing & 0xff,
-      (vSpacing >> 24), // vSpacing
-      (vSpacing >> 16) & 0xff,
-      (vSpacing >> 8) & 0xff,
-      vSpacing & 0xff
-    ])
-    return MP4.box(MP4.types.encv, content, MP4.box(MP4.types.avcC, avcc), MP4.box(MP4.types.btrt, btrt), sinf, MP4.box(MP4.types.pasp, pasp))
+    const boxes = [content, configBox, MP4.box(MP4.types.btrt, btrt), sinf]
+    if (track.sarRatio && track.sarRatio.length > 1) {
+      const pasp = new Uint8Array([
+        (hSpacing >> 24), // hSpacing
+        (hSpacing >> 16) & 0xff,
+        (hSpacing >> 8) & 0xff,
+        hSpacing & 0xff,
+        (vSpacing >> 24), // vSpacing
+        (vSpacing >> 16) & 0xff,
+        (vSpacing >> 8) & 0xff,
+        vSpacing & 0xff
+      ])
+      boxes.push(MP4.box(MP4.types.pasp, pasp))
+    }
+    return MP4.box(MP4.types.encv, ...boxes)
   }
 
   static schi (data) {
@@ -523,7 +572,16 @@ export class MP4 {
       typ = MP4.types.hvc1
     } else if (track.codecType === VideoCodecType.VVCC){
       config = MP4.vvcC(track)
-      typ = MP4.types.bvc2
+      // Mirror the input sample entry FourCC so MSE sees the same codec it
+      // advertised via isTypeSupported (e.g. 'vvc1.*'). Fall back to the
+      // standard 'vvc1' 4CC when the source did not specify one.
+      if (track.vvccSampleEntryType === 'bvc2') {
+        typ = MP4.types.bvc2
+      } else if (track.vvccSampleEntryType === 'vvi1') {
+        typ = MP4.types.vvi1
+      } else {
+        typ = MP4.types.vvc1
+      }
     } else {
       config = MP4.avcC(track)
       typ = MP4.types.avc1
@@ -601,7 +659,11 @@ export class MP4 {
 
   static vvcC (track) {
     const vvcC = track.vvcC
-    return MP4.box(MP4.types.bv2C, new Uint8Array(vvcC))
+    // Use the legacy 'bv2C' child box only when the source used the legacy
+    // 'bvc2' sample entry; otherwise emit the standard 'vvcC' box so the
+    // output init segment is valid per ISO/IEC 14496-15:2022 Amendment 2.
+    const boxType = track.vvccSampleEntryType === 'bvc2' ? MP4.types.bv2C : MP4.types.vvcC
+    return MP4.box(boxType, new Uint8Array(vvcC))
   }
 
   static hvcC (track) {

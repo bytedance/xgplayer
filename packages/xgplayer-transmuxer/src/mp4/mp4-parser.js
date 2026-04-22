@@ -1,7 +1,12 @@
+/** biome-ignore-all lint/suspicious/noAssignInExpressions: <explanation> */
+/** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
+/** biome-ignore-all lint/complexity/useOptionalChain: <explanation> */
+/** biome-ignore-all lint/suspicious/noPrototypeBuiltins: <explanation> */
 import { AAC, VVC } from '../codec'
 import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, readInt32, readInt64 } from '../utils'
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Allow static-only class for MP4Parser utilities
 export class MP4Parser {
   static findBox (data, names, start = 0) {
     const ret = []
@@ -344,7 +349,32 @@ export class MP4Parser {
 
   static bv2C (box) {
     return parseBox(box, false, (ret, data, start) => {
-      const record = VVC.parseVVCDecoderConfigurationRecord(data)
+      const record = VVC.parseVVCDecoderConfigurationRecord(data, 'bvc2')
+      for (const key in record) {
+        if (Object.prototype.hasOwnProperty.call(record, key)) {
+          ret[key] = record[key]
+        }
+      }
+    })
+  }
+
+  // Standard VVC sample entry (ISO/IEC 14496-15:2022 Amendment 2)
+  //   vvc1: parameter sets MAY be stored only in vvcC
+  //   vvi1: parameter sets are also stored inline in samples
+  // Both use the standard 'vvcC' VVC decoder configuration box.
+  static vvc1 (box) {
+    return parseBox(box, false, (ret, data, start) => {
+      const bodyStart = parseVisualSampleEntry(ret, data)
+      const bodyData = data.subarray(bodyStart)
+      start += bodyStart
+      ret.vvcC = MP4Parser.vvcC(MP4Parser.findBox(bodyData, ['vvcC'], start)[0], ret.type)
+      ret.pasp = MP4Parser.pasp(MP4Parser.findBox(bodyData, ['pasp'], start)[0])
+    })
+  }
+
+  static vvcC (box, sampleEntryType) {
+    return parseBox(box, false, (ret, data) => {
+      const record = VVC.parseVVCDecoderConfigurationRecord(data, sampleEntryType || 'vvc1')
       for (const key in record) {
         if (Object.prototype.hasOwnProperty.call(record, key)) {
           ret[key] = record[key]
@@ -366,7 +396,11 @@ export class MP4Parser {
           case 'hvc1':
           case 'hev1':
             return MP4Parser.hvc1(b)
-          // 266
+          // H.266/VVC standard sample entries (ISO/IEC 14496-15:2022 Amendment 2)
+          case 'vvc1':
+          case 'vvi1':
+            return MP4Parser.vvc1(b)
+          // Legacy pre-Amd.2 sample entry sometimes used for H.266/VVC content.
           case 'bvc2':
             return MP4Parser.bvc2(b)
           case 'mp4a':
@@ -395,6 +429,11 @@ export class MP4Parser {
               ret.sinf = MP4Parser.sinf(MP4Parser.findBox(data, ['sinf'], start)[0])
               ret.avcC = MP4Parser.avcC(MP4Parser.findBox(data, ['avcC'], start)[0])
               ret.hvcC = MP4Parser.hvcC(MP4Parser.findBox(data, ['hvcC'], start)[0])
+              // VVC encrypted content may carry the standard 'vvcC' box or the
+              // legacy 'bv2C' box inside encv; try both so downstream stays agnostic.
+              const underlyingFormat = ret.sinf?.frma?.data_format
+              ret.vvcC = MP4Parser.vvcC(MP4Parser.findBox(data, ['vvcC'], start)[0], underlyingFormat) ||
+                         MP4Parser.bv2C(MP4Parser.findBox(data, ['bv2C'], start)[0])
               ret.pasp = MP4Parser.pasp(MP4Parser.findBox(data, ['pasp'], start)[0])
             })
           default:
@@ -857,6 +896,13 @@ export class MP4Parser {
         v.pps = e1.vvcC.pps
         v.vps = e1.vvcC.vps
         v.vvcC = e1.vvcC.data
+        if (e1.vvcC.nalUnitSize) v.nalUnitSize = e1.vvcC.nalUnitSize
+        // Preserve the original sample entry FourCC ('vvc1' / 'vvi1' / 'bvc2')
+        // so the remuxer can emit an init segment that matches the source.
+        // For encrypted video the underlying codec 4CC lives in sinf.frma.
+        v.vvccSampleEntryType = e1.type === 'encv'
+          ? (e1.sinf?.frma?.data_format || e1.vvcC.sampleEntryType || 'vvc1')
+          : e1.type
       } else {
         throw new Error('unknown video stsd entry')
       }
@@ -870,7 +916,7 @@ export class MP4Parser {
         e1.default_KID = e1.sinf?.schi?.tenc.default_KID
         e1.default_IsEncrypted = e1.sinf?.schi?.tenc.default_IsEncrypted
         e1.default_IV_size = e1.sinf?.schi?.tenc.default_IV_size
-        v.videoSenc = vTrack.mdia.minf.stbl.senc && vTrack.mdia.minf.stbl.senc.samples
+        v.videoSenc = vTrack.mdia?.minf?.stbl?.senc?.samples
         e1.data_format = e1.sinf?.frma?.data_format
         v.useEME = moov.useEME
         v.kidValue = moov.kidValue
