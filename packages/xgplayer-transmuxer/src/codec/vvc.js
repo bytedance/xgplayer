@@ -104,32 +104,155 @@ class StreamReader {
 
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Allow static-only class for codec utilities
 export class VVC {
-  static parseVVCDecoderConfigurationRecord (data) {
+  /**
+   * Per RFC 9328 the VVC codec string is:
+   *   <SampleEntry4CC>.<general_profile_idc>.<L|H><general_level_idc>[.C<constraints>][.O<sub_profiles>]
+   * where:
+   *   - SampleEntry4CC: 'vvc1', 'vvi1', or the non-standard 'bvc2' used historically
+   *   - tier code 'L' for Main tier (general_tier_flag = 0), 'H' for High tier
+   * We only emit the 4CC + profile + tier/level part here; constraint/sub-profile
+   * info is optional and not required by MSE for isTypeSupported checks.
+   */
+  static buildCodecString (sampleEntryType, ptlRecord) {
+    const fourCC = sampleEntryType || 'vvc1'
+    if (!ptlRecord) {
+      // Fallback to something reasonable so downstream code always gets a codec string.
+      return `${fourCC}.1.L93`
+    }
+    // Per ISO/IEC 23090-3 valid profile_idc/level_idc are never 0, so a falsy
+    // value here means the field is missing (ptlPresentFlag = 0) or came from
+    // a malformed bitstream. Treat both as "use defaults" so the emitted codec
+    // string is always something MSE can understand.
+    const profile = ptlRecord.generalProfileIdc || 1
+    const tier = ptlRecord.generalTierFlag ? 'H' : 'L'
+    const level = ptlRecord.generalLevelIdc || 93
+    return `${fourCC}.${profile}.${tier}${level}`
+  }
 
-    const reader = new StreamReader(data)
-    const configurationVersion = reader.readUint8()
-    // VvcDecoderConfigurationRecord
+  /**
+   * Parse a VVC decoder configuration record. Two on-disk layouts exist in the
+   * wild:
+   *   1. The **standard** VvcDecoderConfigurationRecord defined by
+   *      ISO/IEC 14496-15:2022 / Amendment 2, carried inside a `vvcC` box next
+   *      to `vvc1` / `vvi1` sample entries. No configurationVersion byte; the
+   *      first byte holds `reserved(5='11111') | LengthSizeMinusOne(2) |
+   *      ptl_present_flag(1)`. Some writers (GPAC among them) emit the
+   *      enclosing `VvcConfigurationBox` as a FullBox, so a 4-byte
+   *      version+flags preamble may precede the record.
+   *   2. A legacy variant carried inside `bv2C` next to `bvc2` sample entries
+   *      (non-standard, pre-dates Amd.2). It starts with a
+   *      `configurationVersion` byte and uses a different field order.
+   *
+   * `sampleEntryType` is used as a hint to pick the right layout and to build
+   * the RFC 9328 codec string.
+   */
+  static parseVVCDecoderConfigurationRecord (data, sampleEntryType) {
+    if (sampleEntryType === 'bvc2') {
+      return VVC._parseLegacyVvcConfigurationRecord(data, sampleEntryType)
+    }
+    return VVC._parseStandardVvcConfigurationRecord(data, sampleEntryType || 'vvc1')
+  }
+
+  /**
+   * Standard VvcDecoderConfigurationRecord per ISO/IEC 14496-15:2022 / Amd.2.
+   */
+  static _parseStandardVvcConfigurationRecord (data, sampleEntryType) {
+    let payload = data
+    // Auto-detect a 4-byte FullBox version+flags preamble. Any valid
+    // VvcDecoderConfigurationRecord starts with reserved = '11111'b, so its
+    // first byte is always >= 0xF8; a leading 0x00 cannot be legal and is a
+    // reliable signal that the enclosing box was written as a FullBox.
+    if (payload.length >= 5 && payload[0] < 0xF8) {
+      payload = payload.subarray(4)
+    }
+
+    const reader = new StreamReader(payload)
     reader.streamRead1Bytes()
-    reader.extractBits(5)
-
-    const lengthSizeMinusOne = reader.extractBits(2) + 1
+    reader.extractBits(5) // reserved = '11111'b
+    const lengthSizeMinusOne = reader.extractBits(2)
     const ptlPresentFlag = reader.extractBits(1)
 
     let olsIdx
-    let numSublayers
+    let numSublayers = 1
     let constantFrameRate
     let chromaFormatIdc
     let bitDepthLumaMinus8
     let ptlRecord = {}
-    let maxPictrueWidth
+    let maxPictureWidth
     let maxPictureHeight
     let avgFrameRate
 
+    if (ptlPresentFlag) {
+      reader.streamRead2Bytes()
+      olsIdx = reader.extractBits(9)
+      numSublayers = reader.extractBits(3)
+      constantFrameRate = reader.extractBits(2)
+      chromaFormatIdc = reader.extractBits(2)
+
+      reader.streamRead1Bytes()
+      bitDepthLumaMinus8 = reader.extractBits(3)
+      reader.extractBits(5) // reserved = '11111'b
+
+      ptlRecord = VVC.parseVVCPTLRecord(reader, numSublayers)
+
+      maxPictureWidth = reader.readUint16()
+      maxPictureHeight = reader.readUint16()
+      avgFrameRate = reader.readUint16()
+    }
+
+    const nalArrays = VVC._parseVVCNalArrays(reader)
+
+    return {
+      data,
+      codec: VVC.buildCodecString(sampleEntryType, ptlRecord),
+      sampleEntryType: sampleEntryType || 'vvc1',
+      nalUnitSize: lengthSizeMinusOne + 1,
+      ptlPresentFlag,
+      olsIdx,
+      numSublayers,
+      constantFrameRate,
+      chromaFormatIdc,
+      bitDepthLumaMinus8,
+      ptlRecord,
+      width: maxPictureWidth,
+      height: maxPictureHeight,
+      sampleRate: avgFrameRate,
+      numOfArrays: nalArrays.numOfArrays,
+      vps: nalArrays.vps,
+      sps: nalArrays.sps,
+      pps: nalArrays.pps,
+      spsParsed: nalArrays.spsParsed
+    }
+  }
+
+  /**
+   * Legacy VvcDecoderConfigurationRecord carried in `bv2C`. Kept for
+   * compatibility with pre-Amd.2 content that used the non-standard `bvc2`
+   * sample entry.
+   */
+  static _parseLegacyVvcConfigurationRecord (data, sampleEntryType) {
+    const reader = new StreamReader(data)
+    const configurationVersion = reader.readUint8()
+    reader.streamRead1Bytes()
+    reader.extractBits(5) // reserved
+
+    const lengthSizeMinusOne = reader.extractBits(2)
+    const ptlPresentFlag = reader.extractBits(1)
+
+    let olsIdx
+    let numSublayers = 1
+    let constantFrameRate
+    let chromaFormatIdc
+    let bitDepthLumaMinus8
+    let ptlRecord = {}
+    let maxPictureWidth
+    let maxPictureHeight
+    let avgFrameRate
 
     if (ptlPresentFlag) {
       reader.streamRead2Bytes()
-
       chromaFormatIdc = reader.extractBits(2)
       bitDepthLumaMinus8 = reader.extractBits(3)
       numSublayers = reader.extractBits(3)
@@ -138,18 +261,47 @@ export class VVC {
 
       ptlRecord = VVC.parseVVCPTLRecord(reader, numSublayers)
       olsIdx = reader.readUint16()
-      maxPictrueWidth = reader.readUint16()
+      maxPictureWidth = reader.readUint16()
       maxPictureHeight = reader.readUint16()
       avgFrameRate = reader.readUint16()
+    }
 
-    } // end if
+    const nalArrays = VVC._parseVVCNalArrays(reader)
 
+    return {
+      data,
+      configurationVersion,
+      codec: VVC.buildCodecString(sampleEntryType, ptlRecord),
+      sampleEntryType: sampleEntryType || 'bvc2',
+      nalUnitSize: lengthSizeMinusOne + 1,
+      ptlPresentFlag,
+      olsIdx,
+      numSublayers,
+      constantFrameRate,
+      chromaFormatIdc,
+      bitDepthLumaMinus8,
+      ptlRecord,
+      width: maxPictureWidth,
+      height: maxPictureHeight,
+      sampleRate: avgFrameRate,
+      numOfArrays: nalArrays.numOfArrays,
+      vps: nalArrays.vps,
+      sps: nalArrays.sps,
+      pps: nalArrays.pps,
+      spsParsed: nalArrays.spsParsed
+    }
+  }
+
+  /**
+   * Shared helper that walks the `num_of_arrays` loop at the tail of a VVC
+   * decoder configuration record. DCI (13) and OPI (12) NAL types carry a
+   * single NAL without a num_nalus count per Amd.2.
+   */
+  static _parseVVCNalArrays (reader) {
     const VVC_NALU_OPI = 12
     const VVC_NALU_DEC_PARAM = 13
 
-    // const naluArrays= []
     const numOfArrays = reader.readUint8()
-
     const vpsArr = []
     const spsArr = []
     const ppsArr = []
@@ -157,9 +309,8 @@ export class VVC {
 
     for (let i = 0; i < numOfArrays; i++) {
       reader.streamRead1Bytes()
-      reader.extractBits(1)
-
-      reader.extractBits(2)
+      reader.extractBits(1) // array_completeness
+      reader.extractBits(2) // reserved
       const naluType = reader.extractBits(5)
 
       let numNalus = 1
@@ -169,55 +320,30 @@ export class VVC {
 
       for (let j = 0; j < numNalus; j++) {
         const len = reader.readUint16()
-
         switch (naluType) {
-          case 14: {
+          case 14:
             vpsArr.push(reader.readUint8Array(len))
             break
-          }
           case 15: {
             const sps = reader.readUint8Array(len)
             if (!spsParsed) {
-              spsParsed = VVC.parseSPS(VVC.removeEPB(sps))
+              try { spsParsed = VVC.parseSPS(VVC.removeEPB(sps)) } catch (e) { /* best-effort */ }
             }
             spsArr.push(sps)
             break
           }
-          case 16: {
+          case 16:
             ppsArr.push(reader.readUint8Array(len))
             break
-          }
           default:
+            // Skip unknown NAL types (APS, DCI, OPI, …) – we only care about
+            // SPS/PPS/VPS for downstream remuxing.
+            reader.readUint8Array(len)
         }
       }
     }
 
-    const ret = {
-      data,
-      configurationVersion,
-      codec: 'bvc2.1.6.L93.B0',
-      nalUnitSize: lengthSizeMinusOne,
-      ptlPresentFlag,
-      olsIdx,
-      numSublayers,
-      constantFrameRate,
-      chromaFormatIdc,
-      bitDepthLumaMinus8,
-      ptlRecord,
-      width:maxPictrueWidth,
-      height:maxPictureHeight,
-      sampleRate:avgFrameRate,
-      numOfArrays,
-      vps:vpsArr,
-      sps:spsArr,
-      pps:ppsArr,
-      spsParsed
-    }
-
-    // console.log('parseVVCDecoderConfigurationRecord:', data)
-    // console.log(ret)
-
-    return ret
+    return { numOfArrays, vps: vpsArr, sps: spsArr, pps: ppsArr, spsParsed }
   }
 
   static parseVVCPTLRecord (reader, numSublayers) {
