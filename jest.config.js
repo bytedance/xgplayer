@@ -21,6 +21,7 @@ module.exports = {
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
+    'packages/xgplayer-dash/src/**/*.js',
     'packages/xgplayer-flv/src/**/*.js',
     'packages/xgplayer-hls/src/**/*.js',
     'packages/xgplayer-transmuxer/src/**/*.js',
@@ -155,6 +156,7 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
+    '**/packages/xgplayer-dash/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js'

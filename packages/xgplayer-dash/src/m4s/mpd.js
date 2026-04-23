@@ -48,14 +48,14 @@ function parseRange (value) {
   return range
 }
 
-function resolveInitSegment (baseURL, initSegment, repId) {
-  if (!initSegment) {
+function resolveSegmentURL (baseURL, segmentURL, repId) {
+  if (!segmentURL) {
     return baseURL
   }
-  if (/^(https?:)?\/\//.test(initSegment)) {
-    return initSegment
+  if (/^(https?:)?\/\//.test(segmentURL)) {
+    return segmentURL
   }
-  return baseURL + initSegment.replace('$RepresentationID$', repId)
+  return baseURL + segmentURL.replace('$RepresentationID$', repId)
 }
 
 class MPD extends EventEmitter {
@@ -241,7 +241,7 @@ class MPD extends EventEmitter {
                 const segmentURLList = SL.SegmentURL || []
                 const segmentDuration = timescale ? (duration / timescale) : 0
 
-                initSegment = baseURL
+                initSegment = initNode && initNode.sourceURL
                 initSegmentRange = parseRange(initNode && initNode.range)
 
                 segmentURLList.forEach((item, index) => {
@@ -255,7 +255,7 @@ class MPD extends EventEmitter {
                     idx: index + 1,
                     start: startTime,
                     end: endTime,
-                    url: baseURL,
+                    url: resolveSegmentURL(baseURL, item.media, rItem.id),
                     range: mediaRange,
                     downloaded: false,
                     segmentDuration
@@ -266,7 +266,7 @@ class MPD extends EventEmitter {
                 self.mediaList.video.push({
                   id: rItem.id,
                   baseURL,
-                  initSegment: resolveInitSegment(baseURL, initSegment, rItem.id),
+                  initSegment: resolveSegmentURL(baseURL, initSegment, rItem.id),
                   initSegmentRange,
                   inited: false,
                   mediaSegments,
@@ -288,7 +288,7 @@ class MPD extends EventEmitter {
                 self.mediaList.audio.push({
                   id: rItem.id,
                   baseURL,
-                  initSegment: resolveInitSegment(baseURL, initSegment, rItem.id),
+                  initSegment: resolveSegmentURL(baseURL, initSegment, rItem.id),
                   initSegmentRange,
                   inited: false,
                   mediaSegments,
