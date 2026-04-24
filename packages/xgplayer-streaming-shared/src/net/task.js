@@ -17,6 +17,7 @@ export class Task {
     this._canceled = false
     this._retryCheckFunc = config.retryCheckFunc
     this._logger = config.logger
+    this._useUrlIdx = -1
   }
 
   exec () {
@@ -25,12 +26,21 @@ export class Task {
       retryDelay,
       onRetryError,
       transformError,
+      changeUrlRetry,
       ...rest
     } = this._config
-
+    const backUrlList = rest.urlList || this._config.urlList || []
     const request = async () => {
       try {
-        const response = await this._loader.load(rest)
+        let cfg = rest
+        if (this._changeUrl) {
+          this._changeUrl = false
+          if (backUrlList?.[this._useUrlIdx]) {
+            cfg = Object.assign({}, cfg, {url: backUrlList[this._useUrlIdx]})
+            this._logger.debug('[task],changeUrlRetry，urlIdx:', this._useUrlIdx, cfg.url)
+          }
+        }
+        const response = await this._loader.load(cfg)
         this.promise.resolve(response)
       } catch (e) {
         this._loader.running = false
@@ -55,6 +65,21 @@ export class Task {
         if (isRetry && this._retryCount <= retry) {
           clearTimeout(this._retryTimer)
           this._logger.debug('[task request setTimeout],retry', this._retryCount, ',retry range,', rest.range)
+          if (changeUrlRetry && this._useUrlIdx < backUrlList?.length - 1) {
+            if(this._useUrlIdx < 0) {
+              const parsed = new URL(rest.url)
+              const domain = parsed.hostname
+              this._useUrlIdx = backUrlList.findIndex(item => item.indexOf(domain) >= 0)
+            }
+            this._useUrlIdx++
+            this._changeUrl = true
+            this._logger.debug(
+              'retry changeurl, urlIdx: ',
+              this._useUrlIdx,
+              ',retry range,',
+              rest.range
+            )
+          }
           this._retryTimer = setTimeout(request, retryDelay)
           return
         }
