@@ -1,6 +1,6 @@
+import { ENTER_PLAYER, LEAVE_PLAYER } from '../../events'
 import { BasePlugin, Sniffer } from '../../plugin'
 import { runHooks } from '../../plugin/hooksDescriptor'
-import { LEAVE_PLAYER, ENTER_PLAYER } from '../../events'
 import './index.scss'
 
 const MOUSE_EVENTS = {
@@ -12,28 +12,30 @@ const MOUSE_EVENTS = {
 const HOOKS = ['videoClick', 'videoDbClick']
 
 export default class PCPlugin extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'pc'
   }
 
-  static get defaultConfig () {
-    return {
-    }
+  static get defaultConfig() {
+    return {}
   }
 
-  afterCreate () {
+  afterCreate() {
     this._clickCount = 0
     HOOKS.map(item => {
       this.__hooks[item] = null
     })
     const { isMobileSimulateMode } = this.playerConfig
-    if (isMobileSimulateMode === 'mobile' || (Sniffer.device === 'mobile' && !Sniffer.os.isIpad)) {
+    if (
+      isMobileSimulateMode === 'mobile' ||
+      (Sniffer.device === 'mobile' && !Sniffer.os.isIpad)
+    ) {
       return
     }
     this.initEvents()
   }
 
-  initEvents () {
+  initEvents() {
     const { media, root } = this.player
     const { enableContextmenu } = this.playerConfig
 
@@ -42,7 +44,9 @@ export default class PCPlugin extends BasePlugin {
     Object.keys(MOUSE_EVENTS).map(item => {
       root.addEventListener(item, this[MOUSE_EVENTS[item]], false)
     })
-    !enableContextmenu && media && media.addEventListener('contextmenu', this.onContextmenu, false)
+    !enableContextmenu &&
+      media &&
+      media.addEventListener('contextmenu', this.onContextmenu, false)
   }
 
   /**
@@ -55,9 +59,13 @@ export default class PCPlugin extends BasePlugin {
     return !!mobilePlugin && mobilePlugin._isTouchActive === true
   }
 
-  switchPlayPause (e) {
+  switchPlayPause(e) {
     const { player } = this
-    this.emitUserAction(e, 'switch_play_pause', { props: 'paused', from: player.paused, to: !player.paused })
+    this.emitUserAction(e, 'switch_play_pause', {
+      props: 'paused',
+      from: player.paused,
+      to: !player.paused
+    })
     if (!player.ended) {
       player.paused ? player.play() : player.pause()
     } else {
@@ -68,7 +76,7 @@ export default class PCPlugin extends BasePlugin {
   /**
    * @param {MouseEvent} e
    */
-  onMouseMove = (e) => {
+  onMouseMove = e => {
     if (this._isMobileTouchActive()) {
       e?.stopImmediatePropagation()
       return
@@ -84,7 +92,7 @@ export default class PCPlugin extends BasePlugin {
   /**
    * @param {MouseEvent} e
    */
-  onMouseEnter = (e) => {
+  onMouseEnter = e => {
     if (this._isMobileTouchActive()) {
       e?.stopImmediatePropagation()
       return
@@ -103,7 +111,7 @@ export default class PCPlugin extends BasePlugin {
   /**
    * @param {MouseEvent} e
    */
-  onMouseLeave = (e) => {
+  onMouseLeave = e => {
     if (this._isMobileTouchActive()) {
       e?.stopImmediatePropagation()
       return
@@ -114,13 +122,13 @@ export default class PCPlugin extends BasePlugin {
       if (leavePlayerTime) {
         this.player.focus({ autoHide: true, delay: leavePlayerTime })
       } else {
-        this.player.blur({ignorePaused: true})
+        this.player.blur({ ignorePaused: true })
       }
     }
     this.emit(LEAVE_PLAYER)
   }
 
-  onContextmenu (e) {
+  onContextmenu(e) {
     e = e || window.event
     if (e.preventDefault) {
       e.preventDefault()
@@ -133,12 +141,17 @@ export default class PCPlugin extends BasePlugin {
     }
   }
 
-  onVideoClick = (e) => {
+  onVideoClick = e => {
     const { player, playerConfig } = this
     if (e.target && playerConfig.closeVideoClick) {
       return
     }
-    if (e.target === player.root || e.target === player.media || e.target === player.innerContainer || e.target === player.media.__canvas) {
+    if (
+      e.target === player.root ||
+      e.target === player.media ||
+      e.target === player.innerContainer ||
+      e.target === player.media.__canvas
+    ) {
       e.preventDefault()
       if (!playerConfig.closeVideoStopPropagation) {
         e.stopPropagation()
@@ -153,18 +166,27 @@ export default class PCPlugin extends BasePlugin {
           return
         }
         this._clickCount--
-        runHooks(this, HOOKS[0], (plugin, data) => {
-          this.switchPlayPause(data.e)
-        }, { e, paused: player.paused })
+        runHooks(
+          this,
+          HOOKS[0],
+          (plugin, data) => {
+            this.switchPlayPause(data.e)
+          },
+          { e, paused: player.paused }
+        )
         clearTimeout(this.clickTimer)
         this.clickTimer = null
       }, 300)
     }
   }
 
-  onVideoDblClick = (e) => {
+  onVideoDblClick = e => {
     const { player, playerConfig } = this
-    if (playerConfig.closeVideoDblclick || !e.target || (e.target !== player.media && e.target !== player.media.__canvas)) {
+    if (
+      playerConfig.closeVideoDblclick ||
+      !e.target ||
+      (e.target !== player.media && e.target !== player.media.__canvas)
+    ) {
       return
     }
     if (!playerConfig.closeVideoClick && this._clickCount < 2) {
@@ -179,13 +201,22 @@ export default class PCPlugin extends BasePlugin {
     e.preventDefault()
     e.stopPropagation()
 
-    runHooks(this, HOOKS[1], (plugin, data) => {
-      this.emitUserAction(data.e, 'switch_fullscreen', { props: 'fullscreen', from: player.fullscreen, to: !player.fullscreen })
-      player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
-    }, { e, fullscreen: player.fullscreen })
+    runHooks(
+      this,
+      HOOKS[1],
+      (plugin, data) => {
+        this.emitUserAction(data.e, 'switch_fullscreen', {
+          props: 'fullscreen',
+          from: player.fullscreen,
+          to: !player.fullscreen
+        })
+        player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
+      },
+      { e, fullscreen: player.fullscreen }
+    )
   }
 
-  destroy () {
+  destroy() {
     const { video, root } = this.player
     this.clickTimer && clearTimeout(this.clickTimer)
     root.removeEventListener('click', this.onVideoClick, false)

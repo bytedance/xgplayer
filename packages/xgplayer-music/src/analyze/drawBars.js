@@ -1,7 +1,7 @@
-export default (context) => {
+export default context => {
   const { data, options, ctx, h, w } = context
   const count = data.length > options.count ? options.count : data.length
-  const percent = parseInt(h / 255 * 2, 10)
+  const percent = parseInt((h / 255) * 2, 10)
   ctx.clearRect(0, 0, w, h)
   ctx.fillStyle = options.bgColor
   ctx.fillRect(0, 0, w, h)

@@ -1,7 +1,8 @@
-import MusicPreset from './preset'
 import Analyze from './analyze'
 import Lyric from './lyric'
 import Music from './music'
+import MusicPreset from './preset'
+
 export * from './plugins'
 
 /**
@@ -17,9 +18,4 @@ export * from './plugins'
  * @typedef { import ('./music/').IMusicListItem } IMusicListItem
  */
 
-export {
-  MusicPreset as default,
-  Music,
-  Lyric,
-  Analyze
-}
+export { MusicPreset as default, Music, Lyric, Analyze }

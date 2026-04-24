@@ -1,5 +1,8 @@
 class XHR {
-  constructor ({ url, method = 'GET', type = 'arraybuffer', timeout = 10000, data = {} } = {}, context = {}) {
+  constructor(
+    { url, method = 'GET', type = 'arraybuffer', timeout = 10000, data = {} } = {},
+    context = {}
+  ) {
     return new Promise((resolve, reject) => {
       const R = new window.XMLHttpRequest()
       const _method = method.toUpperCase()

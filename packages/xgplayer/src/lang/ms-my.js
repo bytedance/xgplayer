@@ -38,13 +38,12 @@ export default {
     HAVE_NOTHING: 'Tiada maklumat sama ada audio/video sedia',
     HAVE_METADATA: 'Metadata audio/video sedia ',
     HAVE_CURRENT_DATA:
-        'Data tentang lokasi putar semasa tersedia, tetapi tidak cukup data untuk memainkan bingkai/milidetik seterusnya',
-    HAVE_FUTURE_DATA:
-        'Data semasa dan sekurang-kurangnya satu bingkai tersedia',
+      'Data tentang lokasi putar semasa tersedia, tetapi tidak cukup data untuk memainkan bingkai/milidetik seterusnya',
+    HAVE_FUTURE_DATA: 'Data semasa dan sekurang-kurangnya satu bingkai tersedia',
     HAVE_ENOUGH_DATA: 'Data yang tersedia mencukupi untuk memulakan permainan',
     NETWORK_EMPTY: 'Audio/video belum diinisialisasi',
     NETWORK_IDLE:
-        'Audio/video aktif dan telah dipilih untuk sumber, tetapi tiada rangkaian digunakan',
+      'Audio/video aktif dan telah dipilih untuk sumber, tetapi tiada rangkaian digunakan',
     NETWORK_LOADING: 'Pelayar sedang memuat turun data',
     NETWORK_NO_SOURCE: 'Tiada sumber audio/video ditemui',
     MEDIA_ERR_ABORTED: 'Proses pengambilan dibatalkan oleh pengguna',

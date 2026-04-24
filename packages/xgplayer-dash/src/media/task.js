@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter3'
 
 class Task extends EventEmitter {
-  constructor (url, _callback, range) {
+  constructor(url, _callback, range) {
     super()
     this.url = url
     this.on = false
@@ -17,7 +17,7 @@ class Task extends EventEmitter {
       this.id = range.join('-')
       xhr.setRequestHeader('Range', `bytes=${range.join('-')}`)
     }
-    xhr.onload = function () {
+    xhr.onload = () => {
       if (xhr.status === 200 || xhr.status === 206) {
         if (_callback && _callback instanceof Function) {
           _callback(xhr.response)
@@ -29,10 +29,10 @@ class Task extends EventEmitter {
       }
       xhr.target.remove()
     }
-    xhr.onerror = function () {
+    xhr.onerror = () => {
       xhr.target.remove()
     }
-    xhr.onabort = function () {
+    xhr.onabort = () => {
       xhr.target.remove()
     }
     this.xhr = xhr
@@ -40,11 +40,11 @@ class Task extends EventEmitter {
     this.update()
   }
 
-  cancel () {
+  cancel() {
     this.xhr.abort()
   }
 
-  remove () {
+  remove() {
     Task.queue.filter((item, idx) => {
       if (item.url === this.url) {
         Task.queue.splice(idx, 1)
@@ -56,9 +56,9 @@ class Task extends EventEmitter {
     this.update()
   }
 
-  update () {
+  update() {
     const Queue = Task.queue
-    const sended = Queue.filter((item) => item.on)
+    const sended = Queue.filter(item => item.on)
     const wait = Queue.filter(item => !item.on)
     const max = Task.limit - sended.length
     wait.forEach((item, idx) => {
@@ -68,7 +68,7 @@ class Task extends EventEmitter {
     })
   }
 
-  run () {
+  run() {
     if (this.xhr.readyState === 1) {
       this.on = true
       this.xhr.send()
@@ -77,7 +77,7 @@ class Task extends EventEmitter {
     }
   }
 
-  static clear () {
+  static clear() {
     Task.queue.forEach(item => {
       if (item.on) {
         item.cancel()

@@ -1,4 +1,3 @@
-
 const EVENTS = {
   PRESS: 'press',
   PRESS_END: 'pressend',
@@ -23,7 +22,7 @@ const MOUSES = {
   cancel: 'mouseleave'
 }
 
-function getTouch (touches) {
+function getTouch(touches) {
   if (touches && touches.length > 0) {
     return touches[touches.length - 1]
   } else {
@@ -31,7 +30,7 @@ function getTouch (touches) {
   }
 }
 
-function getDefaultConfig () {
+function getDefaultConfig() {
   return {
     pressDelay: 600,
     dbClickDelay: 200,
@@ -43,7 +42,7 @@ function getDefaultConfig () {
 }
 
 class Touche {
-  constructor (dom, config = { eventType: 'touch' }) {
+  constructor(dom, config = { eventType: 'touch' }) {
     this._pos = {
       moving: false,
       start: false,
@@ -68,11 +67,11 @@ class Touche {
     this._initEvent()
   }
 
-  _initEvent () {
+  _initEvent() {
     this.root.addEventListener(this.events.start, this.onTouchStart)
   }
 
-  __setPress (e) {
+  __setPress(e) {
     const { config } = this
     if (this.pressIntrvalId) {
       this.__clearPress()
@@ -84,12 +83,12 @@ class Touche {
     }, config.pressDelay)
   }
 
-  __clearPress () {
+  __clearPress() {
     window.clearTimeout(this.pressIntrvalId)
     this.pressIntrvalId = null
   }
 
-  __setDb (e) {
+  __setDb(e) {
     const { config } = this
     if (this.dbIntrvalId) {
       this.__clearDb()
@@ -104,19 +103,19 @@ class Touche {
     }, config.dbClickDelay)
   }
 
-  __clearDb () {
+  __clearDb() {
     clearTimeout(this.dbIntrvalId)
     this.dbIntrvalId = null
   }
 
-  on (event, handler) {
+  on(event, handler) {
     if (!this.__handlers[event]) {
       this.__handlers[event] = []
     }
     this.__handlers[event].push(handler)
   }
 
-  off (event, handler) {
+  off(event, handler) {
     if (!this.__handlers[event]) {
       return
     }
@@ -133,7 +132,7 @@ class Touche {
     }
   }
 
-  trigger (event, e) {
+  trigger(event, e) {
     if (!this.__handlers[event]) {
       return
     }
@@ -146,7 +145,7 @@ class Touche {
     })
   }
 
-  onTouchStart = (e) => {
+  onTouchStart = e => {
     const { _pos, root } = this
     // config.needPreventDefault && preventToucheDefault(e)
     const touch = getTouch(e.touches)
@@ -160,11 +159,11 @@ class Touche {
     this.trigger(EVENTS.TOUCH_START, e)
   }
 
-  onTouchCancel = (e) => {
+  onTouchCancel = e => {
     this.onTouchEnd(e)
   }
 
-  onTouchEnd = (e) => {
+  onTouchEnd = e => {
     const { _pos, root } = this
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
@@ -180,7 +179,7 @@ class Touche {
     _pos.moving = false
   }
 
-  onTouchMove = (e) => {
+  onTouchMove = e => {
     const { _pos, config } = this
     const touch = getTouch(e.touches)
     const x = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -197,7 +196,7 @@ class Touche {
     this.trigger(EVENTS.TOUCH_MOVE, e)
   }
 
-  destroy () {
+  destroy() {
     const map = {
       touchend: 'onTouchEnd',
       touchmove: 'onTouchMove',
@@ -210,4 +209,3 @@ class Touche {
 }
 
 export default Touche
-

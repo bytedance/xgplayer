@@ -35,20 +35,18 @@ export default {
         msg: 'altri errori'
       }
     },
-    HAVE_NOTHING:
-        'Non ci sono informazioni che indichino se l\'audio/il video è pronto',
+    HAVE_NOTHING: "Non ci sono informazioni che indichino se l'audio/il video è pronto",
     HAVE_METADATA: 'I metadati audio/video sono pronti ',
     HAVE_CURRENT_DATA:
-        'I dati sulla posizione corrente di riproduzione sono disponibili, ma non ci sono dati sufficienti per riprodurre il prossimo frame/millisecondo',
+      'I dati sulla posizione corrente di riproduzione sono disponibili, ma non ci sono dati sufficienti per riprodurre il prossimo frame/millisecondo',
     HAVE_FUTURE_DATA: 'Corrente e almeno un frame di dati è disponibile',
-    HAVE_ENOUGH_DATA:
-        'I dati disponibili sono sufficienti per avviare la riproduzione',
-    NETWORK_EMPTY: 'L\'audio/Il video non è stato inizializzato',
+    HAVE_ENOUGH_DATA: 'I dati disponibili sono sufficienti per avviare la riproduzione',
+    NETWORK_EMPTY: "L'audio/Il video non è stato inizializzato",
     NETWORK_IDLE:
-        'L\'audio/Il video è attivo ed è stato selezionato per le risorse, ma non viene utilizzata alcuna rete',
+      "L'audio/Il video è attivo ed è stato selezionato per le risorse, ma non viene utilizzata alcuna rete",
     NETWORK_LOADING: 'Il browser sta scaricando i dati',
     NETWORK_NO_SOURCE: 'Nessuna origine audio/video trovata',
-    MEDIA_ERR_ABORTED: 'Il processo di recupero è stato interrotto dall\'utente',
+    MEDIA_ERR_ABORTED: "Il processo di recupero è stato interrotto dall'utente",
     MEDIA_ERR_NETWORK: 'Si è verificato un errore durante il download',
     MEDIA_ERR_DECODE: 'Si è verificato un errore durante la decodificazione',
     MEDIA_ERR_SRC_NOT_SUPPORTED: 'Audio/Video non supportato',
@@ -65,7 +63,7 @@ export default {
     CSSFULLSCREEN_TIPS: 'Schermo intero CSS',
     EXITCSSFULLSCREEN_TIPS: 'Esci dallo schermo intero CSS',
     TEXTTRACK: 'Didascalia',
-    PIP: 'Immagine nell\'immagine',
+    PIP: "Immagine nell'immagine",
     SCREENSHOT: 'Screenshot',
     LIVE: 'IN DIRETTA',
     OFF: 'Inattivo',

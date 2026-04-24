@@ -1,31 +1,35 @@
 import Plugin, { Events, Util } from '../../plugin'
 
-function getBgColor (color) {
+function getBgColor(color) {
   return color ? `background:${color};` : ''
 }
 
 class MiniProgress extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'MiniProgress'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       mode: 'auto',
       height: 2
     }
   }
 
-  get offsetDuration () {
-    return this.playerConfig.customDuration || this.player.offsetDuration || this.player.duration
+  get offsetDuration() {
+    return (
+      this.playerConfig.customDuration ||
+      this.player.offsetDuration ||
+      this.player.duration
+    )
   }
 
-  get currentTime () {
+  get currentTime() {
     const { offsetCurrentTime, currentTime } = this.player
     return offsetCurrentTime >= 0 ? offsetCurrentTime : currentTime
   }
 
-  afterCreate () {
+  afterCreate() {
     if (!this.root) {
       return
     }
@@ -43,23 +47,25 @@ class MiniProgress extends Plugin {
     this.update({ played: time }, offsetDuration)
   }
 
-  reset () {
+  reset() {
     this.update({ played: 0, cached: 0 }, 0)
   }
 
-  update (data = { cached: 0, played: 0 }, duration) {
+  update(data = { cached: 0, played: 0 }, duration) {
     if (!duration || !this.root) {
       return
     }
     if (data.cached) {
-      this.find('xg-mini-progress-cache').style.width = `${data.cached / duration * 100}%`
+      this.find('xg-mini-progress-cache').style.width =
+        `${(data.cached / duration) * 100}%`
     }
     if (data.played) {
-      this.find('xg-mini-progress-played').style.width = `${data.played / duration * 100}%`
+      this.find('xg-mini-progress-played').style.width =
+        `${(data.played / duration) * 100}%`
     }
   }
 
-  render () {
+  render() {
     const { commonStyle, miniprogress } = this.playerConfig
     if (!miniprogress) {
       return

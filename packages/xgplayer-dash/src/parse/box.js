@@ -1,7 +1,8 @@
-import Stream from './stream'
 import Errors from '../error'
+import Stream from './stream'
+
 class Box {
-  constructor () {
+  constructor() {
     this.headSize = 8
     this.size = 0
     this.type = ''
@@ -9,15 +10,24 @@ class Box {
     this.start = -1
   }
 
-  readHeader (stream) {
+  readHeader(stream) {
     this.start = stream.position
     this.size = stream.readUint32()
-    this.type = String.fromCharCode(stream.readUint8(), stream.readUint8(), stream.readUint8(), stream.readUint8())
+    this.type = String.fromCharCode(
+      stream.readUint8(),
+      stream.readUint8(),
+      stream.readUint8(),
+      stream.readUint8()
+    )
     if (this.size === 1) {
       this.size = stream.readUint64()
     } else if (this.size === 0) {
       if (this.type !== 'mdat') {
-        throw new Errors('parse', '', { line: 19, handle: '[Box] readHeader', msg: 'parse mp4 mdat box failed' })
+        throw new Errors('parse', '', {
+          line: 19,
+          handle: '[Box] readHeader',
+          msg: 'parse mp4 mdat box failed'
+        })
       }
     }
     if (this.type === 'uuid') {
@@ -28,7 +38,7 @@ class Box {
     }
   }
 
-  readBody (stream) {
+  readBody(stream) {
     const end = this.size - stream.position + this.start
     const type = this.type
     this.data = stream.buffer.slice(stream.position, stream.position + end)
@@ -44,15 +54,15 @@ class Box {
     }
   }
 
-  read (stream) {
+  read(stream) {
     this.readHeader(stream)
     this.readBody(stream)
   }
 
-  static containerParser () {
-    let stream = new Stream(this.data)
+  static containerParser() {
+    let stream = new Stream(Box.data)
     const size = stream.buffer.byteLength
-    const self = this
+    const self = Box
     while (stream.position < size) {
       const box = new Box()
       box.readHeader(stream)
@@ -64,6 +74,18 @@ class Box {
   }
 }
 
-Box.containerBox = ['moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex', 'moof', 'traf', 'mfra']
+Box.containerBox = [
+  'moov',
+  'trak',
+  'edts',
+  'mdia',
+  'minf',
+  'dinf',
+  'stbl',
+  'mvex',
+  'moof',
+  'traf',
+  'mfra'
+]
 
 export default Box

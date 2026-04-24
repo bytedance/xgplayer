@@ -37,11 +37,13 @@ export default {
     },
     HAVE_NOTHING: 'There is no information on whether audio/video is ready',
     HAVE_METADATA: 'Audio/video metadata is ready ',
-    HAVE_CURRENT_DATA: 'Data about the current play location is available, but there is not enough data to play the next frame/millisecond',
+    HAVE_CURRENT_DATA:
+      'Data about the current play location is available, but there is not enough data to play the next frame/millisecond',
     HAVE_FUTURE_DATA: 'Current and at least one frame of data is available',
     HAVE_ENOUGH_DATA: 'The available data is sufficient to start playing',
     NETWORK_EMPTY: 'Audio/video has not been initialized',
-    NETWORK_IDLE: 'Audio/video is active and has been selected for resources, but no network is used',
+    NETWORK_IDLE:
+      'Audio/video is active and has been selected for resources, but no network is used',
     NETWORK_LOADING: 'The browser is downloading the data',
     NETWORK_NO_SOURCE: 'No audio/video source was found',
     MEDIA_ERR_ABORTED: 'The fetch process is aborted by the user',

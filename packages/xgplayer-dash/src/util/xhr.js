@@ -1,5 +1,5 @@
 class XHR {
-  constructor ({ url, method = 'GET', type = 'arraybuffer', data = {} } = {}) {
+  constructor({ url, method = 'GET', type = 'arraybuffer', data = {} } = {}) {
     return new Promise((resolve, reject) => {
       const R = new window.XMLHttpRequest()
       const _method = method.toUpperCase()

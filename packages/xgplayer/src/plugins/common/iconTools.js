@@ -1,4 +1,4 @@
-export function xgIconTips (plugin, textKey, isShow) {
+export function xgIconTips(plugin, textKey, isShow) {
   try {
     return ` <div class="xg-tips ${isShow ? 'hide' : ' '}" lang-key="${plugin.i18nKeys[textKey]}">
     ${plugin.i18n[textKey]}

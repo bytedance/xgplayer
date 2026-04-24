@@ -1,10 +1,10 @@
 export default class Timer {
-  constructor (onTick) {
+  constructor(onTick) {
     this.onTick_ = onTick
     this.cancelPending_ = null
   }
 
-  tickAfter (delayInSeconds, callback = null) {
+  tickAfter(delayInSeconds, callback = null) {
     this.stop()
     let alive = true
     let timeoutId = null
@@ -28,13 +28,13 @@ export default class Timer {
     return this
   }
 
-  tickEvery (seconds) {
+  tickEvery(seconds) {
     this.tickAfter(seconds, () => {
       this.tickEvery(seconds)
     })
   }
 
-  stop () {
+  stop() {
     if (this.cancelPending_) {
       this.cancelPending_()
       this.cancelPending_ = null

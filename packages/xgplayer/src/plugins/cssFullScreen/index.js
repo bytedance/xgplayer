@@ -1,29 +1,29 @@
 import { Events, POSITIONS } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import IconPlugin from '../common/iconPlugin'
-import CssFullSceenSvg from '../assets/requestCssFull.svg'
 import ExitCssFullSceenSvg from '../assets/exitCssFull.svg'
+import CssFullSceenSvg from '../assets/requestCssFull.svg'
+import IconPlugin from '../common/iconPlugin'
+import { xgIconTips } from '../common/iconTools'
 import './index.scss'
 
 /**
-  * @typedef { {
-  *  position: string,
-  *  index: number,
-  *  disable: boolean,
-  *  target: null | HTMLElement,
-  *  [propName: string]: any
-  * } } ICssConfig
-  */
+ * @typedef { {
+ *  position: string,
+ *  index: number,
+ *  disable: boolean,
+ *  target: null | HTMLElement,
+ *  [propName: string]: any
+ * } } ICssConfig
+ */
 
 export default class CssFullScreen extends IconPlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'cssFullscreen'
   }
 
   /**
    * @type ICssConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 1,
@@ -32,13 +32,13 @@ export default class CssFullScreen extends IconPlugin {
     }
   }
 
-  beforeCreate (args) {
+  beforeCreate(args) {
     if (typeof args.player.config.cssFullscreen === 'boolean') {
       args.config.disable = !args.player.config.cssFullscreen
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     super.afterCreate()
     if (this.config.disable) {
       return
@@ -49,12 +49,12 @@ export default class CssFullScreen extends IconPlugin {
     }
 
     this.initIcons()
-    this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
+    this.on(Events.CSS_FULLSCREEN_CHANGE, isCssfullScreen => {
       this.animate(isCssfullScreen)
     })
     this.btnClick = this.btnClick.bind(this)
     this.handleCssFullscreen = this.hook('cssFullscreen_change', this.btnClick, {
-      pre: (e) => {
+      pre: e => {
         e.preventDefault()
         e.stopPropagation()
       }
@@ -62,14 +62,14 @@ export default class CssFullScreen extends IconPlugin {
     this.bind(['click', 'touchend'], this.handleCssFullscreen)
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.cssFullscreen)
     contentIcon.appendChild(icons.exitCssFullscreen)
   }
 
-  btnClick (e) {
+  btnClick(e) {
     e.preventDefault()
     e.stopPropagation()
     const { isCssfullScreen } = this.player
@@ -81,33 +81,39 @@ export default class CssFullScreen extends IconPlugin {
     }
   }
 
-  animate (isFullScreen) {
+  animate(isFullScreen) {
     if (!this.root) {
       return
     }
-    isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
+    isFullScreen
+      ? this.setAttr('data-state', 'full')
+      : this.setAttr('data-state', 'normal')
     this.switchTips(isFullScreen)
   }
 
-  switchTips (isFullScreen) {
+  switchTips(isFullScreen) {
     const { i18nKeys } = this
     const tipDom = this.find('.xg-tips')
-    tipDom && this.changeLangTextKey(tipDom, isFullScreen ? i18nKeys.EXITCSSFULLSCREEN_TIPS : i18nKeys.CSSFULLSCREEN_TIPS)
+    tipDom &&
+      this.changeLangTextKey(
+        tipDom,
+        isFullScreen ? i18nKeys.EXITCSSFULLSCREEN_TIPS : i18nKeys.CSSFULLSCREEN_TIPS
+      )
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       cssFullscreen: { icon: CssFullSceenSvg, class: 'xg-get-cssfull' },
       exitCssFullscreen: { icon: ExitCssFullSceenSvg, class: 'xg-exit-cssfull' }
     }
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     this.unbind(['click', 'touchend'], this.btnClick)
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }

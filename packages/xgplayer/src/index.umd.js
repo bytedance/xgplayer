@@ -18,8 +18,8 @@ import Sniffer from './utils/sniffer'
 import Util from './utils/util'
 
 class PresetPlayer extends Player {
-  static defaultPreset = defaultPreset;
-  static Util = Util;
+  static defaultPreset = defaultPreset
+  static Util = Util
   static Sniffer = Sniffer
   static Errors = Errors
   static Events = Events

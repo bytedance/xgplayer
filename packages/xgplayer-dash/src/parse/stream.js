@@ -1,24 +1,29 @@
 import Errors from '../error'
+
 class Stream {
-  constructor (buffer) {
+  constructor(buffer) {
     if (buffer instanceof ArrayBuffer) {
       this.buffer = buffer
       this.dataview = new DataView(buffer)
       this.dataview.position = 0
     } else {
-      throw new Errors('parse', '', { line: 9, handle: '[Stream] constructor', msg: 'data is valid' })
+      throw new Errors('parse', '', {
+        line: 9,
+        handle: '[Stream] constructor',
+        msg: 'data is valid'
+      })
     }
   }
 
-  set position (value) {
+  set position(value) {
     this.dataview.position = value
   }
 
-  get position () {
+  get position() {
     return this.dataview.position
   }
 
-  skip (count) {
+  skip(count) {
     const loop = Math.floor(count / 4)
     const last = count % 4
     for (let i = 0; i < loop; i++) {
@@ -30,12 +35,12 @@ class Stream {
   }
 
   /**
-     * [readByte 从DataView中读取数据]
-     * @param  {DataView} buffer [DataView实例]
-     * @param  {Number} size   [读取字节数]
-     * @return {Number}        [整数]
-     */
-  static readByte (buffer, size, sign) {
+   * [readByte 从DataView中读取数据]
+   * @param  {DataView} buffer [DataView实例]
+   * @param  {Number} size   [读取字节数]
+   * @return {Number}        [整数]
+   */
+  static readByte(buffer, size, sign) {
     let res
     switch (size) {
       case 1:
@@ -70,7 +75,11 @@ class Stream {
         break
       case 8:
         if (sign) {
-          throw new Errors('parse', '', { line: 73, handle: '[Stream] readByte', msg: 'not supported for readBody 8' })
+          throw new Errors('parse', '', {
+            line: 73,
+            handle: '[Stream] readByte',
+            msg: 'not supported for readBody 8'
+          })
         } else {
           res = buffer.getUint32(buffer.position) << 32
           res |= buffer.getUint32(buffer.position + 4)
@@ -83,31 +92,31 @@ class Stream {
     return res
   }
 
-  readUint8 () {
+  readUint8() {
     return Stream.readByte(this.dataview, 1)
   }
 
-  readUint16 () {
+  readUint16() {
     return Stream.readByte(this.dataview, 2)
   }
 
-  readUint32 () {
+  readUint32() {
     return Stream.readByte(this.dataview, 4)
   }
 
-  readUint64 () {
+  readUint64() {
     return Stream.readByte(this.dataview, 8)
   }
 
-  readInt8 () {
+  readInt8() {
     return Stream.readByte(this.dataview, 1, true)
   }
 
-  readInt16 () {
+  readInt16() {
     return Stream.readByte(this.dataview, 2, true)
   }
 
-  readInt32 () {
+  readInt32() {
     return Stream.readByte(this.dataview, 4, true)
   }
 }

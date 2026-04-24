@@ -1,8 +1,8 @@
-import { NALu } from './nalu'
 import { ExpGolomb } from '../utils'
+import { NALu } from './nalu'
 
 export class HEVC {
-  static parseHEVCDecoderConfigurationRecord (data, hvcC = {}) {
+  static parseHEVCDecoderConfigurationRecord(data, hvcC = {}) {
     if (data.length < 23) return
     hvcC = hvcC || {}
     const nalUnitSize = (data[21] & 3) + 1
@@ -30,17 +30,19 @@ export class HEVC {
         offset += 2
         if (!nalSize) continue
         switch (nalUnitType) {
-          case 32: {
-            const vps = data.subarray(offset, offset + nalSize)
-            if (!vpsParsed) vpsParsed = HEVC.parseVPS(NALu.removeEPB(vps), hvcC)
-            vpsArr.push(vps)
-          }
+          case 32:
+            {
+              const vps = data.subarray(offset, offset + nalSize)
+              if (!vpsParsed) vpsParsed = HEVC.parseVPS(NALu.removeEPB(vps), hvcC)
+              vpsArr.push(vps)
+            }
             break
-          case 33: {
-            const sps = data.subarray(offset, offset + nalSize)
-            if (!spsParsed) spsParsed = HEVC.parseSPS(NALu.removeEPB(sps), hvcC)
-            spsArr.push(sps)
-          }
+          case 33:
+            {
+              const sps = data.subarray(offset, offset + nalSize)
+              if (!spsParsed) spsParsed = HEVC.parseSPS(NALu.removeEPB(sps), hvcC)
+              spsArr.push(sps)
+            }
             break
           case 34:
             ppsArr.push(data.subarray(offset, offset + nalSize))
@@ -62,7 +64,7 @@ export class HEVC {
     }
   }
 
-  static parseVPS (unit, hvcC) {
+  static parseVPS(unit, hvcC) {
     hvcC = hvcC || {}
     const eg = new ExpGolomb(unit)
     eg.readUByte()
@@ -70,14 +72,17 @@ export class HEVC {
 
     eg.readBits(12)
     const vpsMaxSubLayersMinus1 = eg.readBits(3)
-    hvcC.numTemporalLayers = Math.max(hvcC.numTemporalLayers || 0, vpsMaxSubLayersMinus1 + 1)
+    hvcC.numTemporalLayers = Math.max(
+      hvcC.numTemporalLayers || 0,
+      vpsMaxSubLayersMinus1 + 1
+    )
     eg.readBits(17)
     HEVC._parseProfileTierLevel(eg, vpsMaxSubLayersMinus1, hvcC)
 
     return hvcC
   }
 
-  static parseSPS (unit, hvcC = {}) {
+  static parseSPS(unit, hvcC = {}) {
     hvcC = hvcC || {}
     const eg = new ExpGolomb(unit)
     eg.readUByte()
@@ -85,13 +90,16 @@ export class HEVC {
 
     eg.readBits(4)
     const spsMaxSubLayersMinus1 = eg.readBits(3)
-    hvcC.numTemporalLayers = Math.max(spsMaxSubLayersMinus1 + 1, hvcC.numTemporalLayers || 0)
+    hvcC.numTemporalLayers = Math.max(
+      spsMaxSubLayersMinus1 + 1,
+      hvcC.numTemporalLayers || 0
+    )
     hvcC.temporalIdNested = eg.readBits(1)
     HEVC._parseProfileTierLevel(eg, spsMaxSubLayersMinus1, hvcC)
 
     eg.readUEG() // sps_seq_parameter_set_id
 
-    const chromaFormatIdc = hvcC.chromaFormatIdc = eg.readUEG()
+    const chromaFormatIdc = (hvcC.chromaFormatIdc = eg.readUEG())
     let chromaFormat = 420
     if (chromaFormatIdc <= 3) chromaFormat = [0, 420, 422, 444][chromaFormatIdc]
 
@@ -120,10 +128,13 @@ export class HEVC {
     hvcC.bitDepthChromaMinus8 = eg.readUEG() // bit_depth_chroma_minus8
 
     if (conformanceWindowFlag === 1) {
-      const subWidthC = (((chromaFormatIdc === 1) || (chromaFormatIdc === 2)) && (separateColourPlaneFlag === 0)) ? 2 : 1
-      const subHeightC = ((chromaFormatIdc === 1) && (separateColourPlaneFlag === 0)) ? 2 : 1
-      width -= (subWidthC * (confWinRightOffset + confWinLeftOffset))
-      height -= (subHeightC * (confWinBottomOffset + confWinTopOffset))
+      const subWidthC =
+        (chromaFormatIdc === 1 || chromaFormatIdc === 2) && separateColourPlaneFlag === 0
+          ? 2
+          : 1
+      const subHeightC = chromaFormatIdc === 1 && separateColourPlaneFlag === 0 ? 2 : 1
+      width -= subWidthC * (confWinRightOffset + confWinLeftOffset)
+      height -= subHeightC * (confWinBottomOffset + confWinTopOffset)
     }
 
     return {
@@ -135,13 +146,20 @@ export class HEVC {
     }
   }
 
-  static _parseProfileTierLevel (eg, maxSubLayersMinus1, hvcC) {
+  static _parseProfileTierLevel(eg, maxSubLayersMinus1, hvcC) {
     const generalTierFlag = hvcC.generalTierFlag || 0
     hvcC.generalProfileSpace = eg.readBits(2)
     hvcC.generalTierFlag = Math.max(eg.readBits(1), generalTierFlag)
     hvcC.generalProfileIdc = Math.max(eg.readBits(5), hvcC.generalProfileIdc || 0)
     hvcC.generalProfileCompatibilityFlags = eg.readBits(32)
-    hvcC.generalConstraintIndicatorFlags = [eg.readBits(8), eg.readBits(8), eg.readBits(8), eg.readBits(8), eg.readBits(8), eg.readBits(8)]
+    hvcC.generalConstraintIndicatorFlags = [
+      eg.readBits(8),
+      eg.readBits(8),
+      eg.readBits(8),
+      eg.readBits(8),
+      eg.readBits(8),
+      eg.readBits(8)
+    ]
     const generalLevelIdc = eg.readBits(8)
     if (generalTierFlag < hvcC.generalTierFlag) {
       hvcC.generalLevelIdc = generalLevelIdc

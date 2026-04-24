@@ -7,7 +7,7 @@ class Sample {
    * @param {Object} data
    * @param {number} pts
    */
-  constructor (data, pts) {
+  constructor(data, pts) {
     this.data = data
     this.originPts = this.pts = pts
   }
@@ -35,11 +35,11 @@ export class MetadataTrack {
   /**
    * @returns {boolean}
    */
-  exist () {
+  exist() {
     return !!((this.flvScriptSamples.length || this.seiSamples.length) && this.timescale)
   }
 
-  reset () {
+  reset() {
     this.timescale = 0
     this.flvScriptSamples = []
     this.seiSamples = []
@@ -48,7 +48,7 @@ export class MetadataTrack {
   /**
    * @returns {boolean}
    */
-  hasSample () {
+  hasSample() {
     return !!(this.flvScriptSamples.length || this.seiSamples.length)
   }
 }

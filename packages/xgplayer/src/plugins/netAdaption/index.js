@@ -2,21 +2,22 @@
 import BasePlugin from '../../plugin/basePlugin'
 
 export default class NetAdaption extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'netadaption'
   }
 
-  afterCreate () {
+  afterCreate() {
     /**
      * @type {null | number}
      */
     this._timer = setInterval(this._checkStatus.bind(this), 300)
   }
 
-  _checkStatus () {
+  _checkStatus() {
     const container = this.player.media
     if (container.currentTime < 1 || !container.buffered.length) return
-    const diff = container.buffered.end(container.buffered.length - 1) - container.currentTime
+    const diff =
+      container.buffered.end(container.buffered.length - 1) - container.currentTime
     if (diff > 15) {
       container.playbackRate = 1.2
     } else if (diff < 5) {
@@ -26,7 +27,7 @@ export default class NetAdaption extends BasePlugin {
     }
   }
 
-  destroy () {
+  destroy() {
     if (this._timer) {
       clearInterval(this._timer)
     }

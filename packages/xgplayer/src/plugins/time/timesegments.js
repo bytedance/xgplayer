@@ -3,18 +3,18 @@ import { BasePlugin, Events, Util } from '../../plugin'
  * 进行事件分段控制
  */
 export default class TimeSegmentsControls extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'TimeSegmentsControls'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       disable: true,
       segments: []
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.curIndex = -1
     this.curPos = null
     this.lastCurrentTime = 0
@@ -31,7 +31,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     this.on(Events.PLAY, this._onPlay)
   }
 
-  setConfig (newConfig) {
+  setConfig(newConfig) {
     if (!newConfig) {
       return
     }
@@ -45,7 +45,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     this.updateSegments()
   }
 
-  updateSegments () {
+  updateSegments() {
     const { disable, segments } = this.config
     const { player } = this
     if (disable || !segments || segments.length === 0) {
@@ -59,13 +59,15 @@ export default class TimeSegmentsControls extends BasePlugin {
     }
   }
 
-  formatTimeSegments (timeSegments, duration) {
+  formatTimeSegments(timeSegments, duration) {
     const ret = []
     if (!timeSegments) {
       return []
     }
     // console.log('>>>formatTimeSegments', duration)
-    timeSegments.sort((a,b) =>{ return a.start - b.start })
+    timeSegments.sort((a, b) => {
+      return a.start - b.start
+    })
     timeSegments.forEach((item, index) => {
       const _item = {}
       _item.start = item.start < 0 ? 0 : item.start
@@ -97,7 +99,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     if (!this._checkIfEnabled(timeSegments)) {
       return
     }
-    const index = Util.getIndexByTime(currentTime,timeSegments)
+    const index = Util.getIndexByTime(currentTime, timeSegments)
     const time = Util.getOffsetCurrentTime(currentTime, timeSegments, index)
     this.player.offsetCurrentTime = time
     this.changeIndex(index, timeSegments)
@@ -111,7 +113,7 @@ export default class TimeSegmentsControls extends BasePlugin {
     const time = Util.getOffsetCurrentTime(0, timeSegments)
     this.player.offsetCurrentTime = time
     this.changeIndex(0, timeSegments)
-    if (this.curPos.start > 0){
+    if (this.curPos.start > 0) {
       this.player.currentTime = this.curPos.start
     }
   }
@@ -155,8 +157,13 @@ export default class TimeSegmentsControls extends BasePlugin {
     } else {
       const _index = Util.getIndexByTime(currentTime, timeSegments)
       if (_index >= 0) {
-        const _seekTime = this.getSeekTime(currentTime, this.lastCurrentTime, _index, timeSegments)
-        if (_seekTime >= 0 ) {
+        const _seekTime = this.getSeekTime(
+          currentTime,
+          this.lastCurrentTime,
+          _index,
+          timeSegments
+        )
+        if (_seekTime >= 0) {
           this.player.currentTime = _seekTime
         }
       }
@@ -165,12 +172,15 @@ export default class TimeSegmentsControls extends BasePlugin {
 
   _onPlay = () => {
     const { currentTime, timeSegments } = this.player
-    if (this._checkIfEnabled(timeSegments) && currentTime >= timeSegments[timeSegments.length - 1].end) {
+    if (
+      this._checkIfEnabled(timeSegments) &&
+      currentTime >= timeSegments[timeSegments.length - 1].end
+    ) {
       this.player.currentTime = timeSegments[0].start
     }
   }
 
-  getSeekTime (currentTime, lastCurrentTime, index, timeSegments) {
+  getSeekTime(currentTime, lastCurrentTime, index, timeSegments) {
     let _time = -1
     const { start, end } = timeSegments[index]
     if (currentTime >= start && currentTime <= end) {
@@ -189,11 +199,11 @@ export default class TimeSegmentsControls extends BasePlugin {
     return -1
   }
 
-  _checkIfEnabled (segments) {
+  _checkIfEnabled(segments) {
     return !(!segments || segments.length < 1)
   }
 
-  changeIndex (index, timeSegments) {
+  changeIndex(index, timeSegments) {
     this.curIndex = index
     if (index >= 0 && timeSegments.length > 0) {
       this.curPos = timeSegments[index]
