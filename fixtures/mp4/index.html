@@ -28,7 +28,7 @@
 <script type="module">
   var vConsole = new window.VConsole();
   import Player from '../../packages/xgplayer/src/index'
-  import Mp4Plugin from '../../packages/xgplayer-mp4/src/index'
+  import Mp4Plugin,{ getSharedDynamicTimeoutIns }  from '../../packages/xgplayer-mp4/src/index'
   var videoList = [
     {
       definition: '360p',
@@ -67,6 +67,16 @@
       url: './video/1080p.mp4'
     }
   ]
+  // const sharedDynamicTimeoutIns = getSharedDynamicTimeoutIns(
+  //     {
+  //         alpha: 0.125,
+  //         beta: 0.25,
+  //         k:4,
+  //         type: 2,
+  //         minTimeout: 10,
+  //         maxTimeout: 3500,
+  //     }
+  // )
   let player = new Player({
     id: 'vs',
     autoplay: true,
@@ -96,12 +106,13 @@
     height: window.innerHeight -300,
     width: window.innerWidth,
     waitingInBufferTimeOut: 5000,
-    //plugins: [Mp4Plugin],
-
-    // set mp4Plugin support Apple's MMS
-    //mp4Plugin: {
-    //  preferMMS: true,
-    //}
+    // plugins: [Mp4Plugin],
+    //
+    // // set mp4Plugin support Apple's MMS
+    // mp4Plugin: {
+    //     dynamicTimeoutIns: sharedDynamicTimeoutIns,
+    //     changeUrlRetry:true,
+    // }
   });
   window.player = player
 

@@ -109,7 +109,12 @@ export class XhrLoader extends EventEmitter {
       const xhr = this._xhr = new XMLHttpRequest()
       xhr.open(this._method || 'GET', this._url, true)
       xhr.responseType = this._responseType
-      this._timeout && (xhr.timeout = this._timeout)
+      const timeoutMs =
+        this._dynamicTimeoutIns &&
+        typeof this._dynamicTimeoutIns.getTimeout === 'function'
+          ? this._dynamicTimeoutIns.getTimeout(this._timeout)
+          : this._timeout
+      timeoutMs && (xhr.timeout = timeoutMs)
       xhr.withCredentials = this._withCredentials
       xhr.onload = this._onLoad.bind(this)
       xhr.onreadystatechange = this._onReadyStatechange.bind(this)
@@ -139,7 +144,7 @@ export class XhrLoader extends EventEmitter {
           xhr.setRequestHeader(k, headers[k])
         })
       }
-      this._logger.debug('[xhr.send->] tast,', this._range, ',load sub range, ', range)
+      this._logger.debug('[xhr.send->] tast,', this._range, ',load sub range, ', range,',[dytimeout],', timeoutMs)
       xhr.send(this._body)
     } catch (e) {
       e.options = {index: this._index, range, vid: this._vid, priOptions: this._priOptions}
@@ -151,6 +156,14 @@ export class XhrLoader extends EventEmitter {
     const xhr = e.target
     if (xhr.readyState === 2) {
       this._firstRtt < 0 && (this._firstRtt = Date.now())
+      if (
+        this._dynamicTimeoutIns &&
+        typeof this._dynamicTimeoutIns.update === 'function'
+      ) {
+        const rtt = Date.now() - this._startTime
+        this._logger.debug('[dytimeout] xhr update rtt,', rtt)
+        this._dynamicTimeoutIns.update(rtt)
+      }
     }
   }
 

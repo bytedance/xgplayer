@@ -17,6 +17,7 @@ export class Task {
     this._canceled = false
     this._retryCheckFunc = config.retryCheckFunc
     this._logger = config.logger
+    this._useUrlIdx = -1
   }
 
   exec () {
@@ -25,12 +26,21 @@ export class Task {
       retryDelay,
       onRetryError,
       transformError,
+      changeUrlRetry,
       ...rest
     } = this._config
 
     const request = async () => {
       try {
-        const response = await this._loader.load(rest)
+        let cfg = rest
+        if (this._changeUrl) {
+          this._changeUrl = false
+          if (this._config.urlList?.[this._useUrlIdx]) {
+            cfg = Object.assign({}, cfg, {url: this._config.urlList[this._useUrlIdx]})
+            this._logger.debug('[task],changeUrlRetry，urlIdx:', this._useUrlIdx, cfg.url)
+          }
+        }
+        const response = await this._loader.load(cfg)
         this.promise.resolve(response)
       } catch (e) {
         this._loader.running = false
@@ -55,6 +65,16 @@ export class Task {
         if (isRetry && this._retryCount <= retry) {
           clearTimeout(this._retryTimer)
           this._logger.debug('[task request setTimeout],retry', this._retryCount, ',retry range,', rest.range)
+          if (changeUrlRetry && this._useUrlIdx < this._config.urlList?.length - 1) {
+            this._useUrlIdx++
+            this._changeUrl = true
+            this._logger.debug(
+              'retry changeurl, urlIdx: ',
+              this._useUrlIdx,
+              ',retry range,',
+              rest.range
+            )
+          }
           this._retryTimer = setTimeout(request, retryDelay)
           return
         }
