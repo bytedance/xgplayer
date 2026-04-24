@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="//unpkg.pstatp.com/xgplayer/3.0.0-alpha.110-18/dist/xgplayer.min.css"/>
   <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
 </head>
-<button id="btn" onclick="playNext()">播放下一个</button>
+<!--<button id="btn" onclick="playNext()">播放下一个</button>-->
 <body>
 <section id="wrapper">
   <div id="vs"></div>
@@ -28,7 +28,7 @@
 <script type="module">
   var vConsole = new window.VConsole();
   import Player from '../../packages/xgplayer/src/index'
-  import Mp4Plugin from '../../packages/xgplayer-mp4/src/index'
+  import Mp4Plugin, { getSharedDynamicTimeoutIns } from '../../packages/xgplayer-mp4/src/index'
   var videoList = [
     {
       definition: '360p',
@@ -67,12 +67,23 @@
       url: './video/1080p.mp4'
     }
   ]
+
+  const sharedDynamicTimeoutIns = getSharedDynamicTimeoutIns(
+      {
+      alpha: 0.125,
+      beta: 0.25,
+      k:4,
+      type: 2,
+      minTimeout: 10,
+      maxTimeout: 3500,
+    }
+  )
   let player = new Player({
     id: 'vs',
     autoplay: true,
     volume: 1,
-    url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
-    poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
+    url: 'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
+    // poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
     playsinline: true,
     thumbnail: {
     pic_num: 44,
@@ -96,12 +107,13 @@
     height: window.innerHeight -300,
     width: window.innerWidth,
     waitingInBufferTimeOut: 5000,
-    //plugins: [Mp4Plugin],
+    plugins: [Mp4Plugin],
 
     // set mp4Plugin support Apple's MMS
-    //mp4Plugin: {
-    //  preferMMS: true,
-    //}
+    mp4Plugin: {
+        dynamicTimeoutIns: sharedDynamicTimeoutIns,
+        changeUrlRetry:true,
+    }
   });
   window.player = player
 

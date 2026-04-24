@@ -71,15 +71,16 @@ export class VideoTrack {
   /** @type {any} */
   ext
 
-  reset () {
+  reset() {
     this.sequenceNumber =
-    this.width =
-    this.height =
-    this.fpsDen =
-    this.fpsNum =
-    this.duration =
-    this.baseMediaDecodeTime =
-    this.timescale = 0
+      this.width =
+      this.height =
+      this.fpsDen =
+      this.fpsNum =
+      this.duration =
+      this.baseMediaDecodeTime =
+      this.timescale =
+        0
     this.codec = ''
     this.present = false
     this.pid = -1
@@ -92,15 +93,15 @@ export class VideoTrack {
     this.hvcC = null
   }
 
-  get firstDts () {
+  get firstDts() {
     return this.samples.length ? this.samples[0].dts : null
   }
 
-  get firstPts () {
+  get firstPts() {
     return this.samples.length ? this.samples[0].pts : null
   }
 
-  get samplesDuration () {
+  get samplesDuration() {
     if (this.samples.length > 0) {
       const first = this.samples[0]
       const last = this.samples[this.samples.length - 1]
@@ -112,7 +113,7 @@ export class VideoTrack {
   /**
    * @returns {boolean}
    */
-  exist () {
+  exist() {
     if (/av01/.test(this.codec)) {
       return true
     }
@@ -122,11 +123,11 @@ export class VideoTrack {
   /**
    * @returns {boolean}
    */
-  hasSample () {
+  hasSample() {
     return !!this.samples.length
   }
 
-  get isEncryption (){
+  get isEncryption() {
     return this.isVideoEncryption
   }
 }

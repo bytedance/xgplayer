@@ -2,20 +2,20 @@ import Plugin, { POSITIONS, Util } from '../../plugin'
 import BackSVG from '../assets/back.svg'
 
 export default class TopBackIcon extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'topbackicon'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.ROOT_TOP,
       index: 0
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     this.initIcons()
-    this.onClick = (e) => {
+    this.onClick = e => {
       e.preventDefault()
       e.stopPropagation()
       this.config.onClick(e)
@@ -24,26 +24,26 @@ export default class TopBackIcon extends Plugin {
     this.bind(['click', 'touchend'], this.onClick)
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       screenBack: { icon: BackSVG, class: 'xg-fullscreen-back' }
     }
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     this.appendChild(this.root, icons.screenBack)
   }
 
-  show () {
+  show() {
     Util.addClass(this.root, 'show')
   }
 
-  hide () {
+  hide() {
     Util.removeClass(this.root, 'show')
   }
 
-  render () {
+  render() {
     return `<xg-icon class="xgplayer-back">
     </xg-icon>`
   }

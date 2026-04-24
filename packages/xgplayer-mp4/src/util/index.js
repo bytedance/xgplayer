@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 const util = {}
 
-util.nowTime = function () {
+util.nowTime = () => {
   try {
     return parseInt(performance.now(), 10)
   } catch (e) {
@@ -9,8 +9,7 @@ util.nowTime = function () {
   }
 }
 
-
-util.concatData = function (video, audio) {
+util.concatData = (video, audio) => {
   const resBuffers = []
   let bufferSize = 0
   if (video) {

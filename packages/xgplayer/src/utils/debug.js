@@ -1,5 +1,7 @@
-
-const XG_DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('xgplayerdebugger=1') > -1
+const XG_DEBUG_OPEN =
+  typeof window !== 'undefined' &&
+  window.location &&
+  window.location.href.indexOf('xgplayerdebugger=1') > -1
 
 const STYLE = {
   info: 'color: #525252; background-color: #90ee90;',
@@ -31,13 +33,10 @@ const XG_DEBUG = {
   }
 }
 
-function bindDebug (player) {
+function bindDebug(player) {
   player.logInfo = XG_DEBUG.logInfo.bind(player)
   player.logWarn = XG_DEBUG.logWarn.bind(player)
   player.logError = XG_DEBUG.logError.bind(player)
 }
 
-export {
-  XG_DEBUG as default,
-  bindDebug
-}
+export { XG_DEBUG as default, bindDebug }

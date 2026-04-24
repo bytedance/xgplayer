@@ -35,35 +35,35 @@ const BrowserUtils = {
   /**
    * Check if the browser supports Blob
    */
-  supportsBlob () {
+  supportsBlob() {
     return typeof Blob !== 'undefined'
   },
 
   /**
    * Check if the browser supports URL.createObjectURL
    */
-  supportsObjectURL () {
+  supportsObjectURL() {
     return typeof URL !== 'undefined' && URL.createObjectURL
   },
 
   /**
    * Check if the browser is Safari
    */
-  isSafari () {
+  isSafari() {
     return Sniffer.browser === 'safari'
   },
 
   /**
    * Check if the browser is IE and supports msSaveBlob
    */
-  isIEWithMsSaveBlob () {
+  isIEWithMsSaveBlob() {
     return navigator.msSaveBlob
   },
 
   /**
    * Check if the browser supports HTML5 download attribute
    */
-  supportsDownloadAttribute () {
+  supportsDownloadAttribute() {
     const anchor = document.createElement('a')
     return 'download' in anchor
   }
@@ -76,14 +76,14 @@ const DataURLUtils = {
   /**
    * Check if a string is a data URL
    */
-  isDataURL (str) {
+  isDataURL(str) {
     return /^data:([\w+-]+\/[\w+.-]+)?[,;]/.test(str)
   },
 
   /**
    * Convert data URL to Blob
    */
-  dataURLToBlob (dataURL) {
+  dataURLToBlob(dataURL) {
     const parts = dataURL.split(/[:;,]/)
     const type = parts[1]
     const indexDecoder = dataURL.indexOf('charset') > 0 ? 3 : 2
@@ -96,23 +96,22 @@ const DataURLUtils = {
     }
 
     // Use compatible Blob constructor
-    const BlobConstructor = window.Blob || window.MozBlob || window.WebKitBlob || function (parts, opts) {
-      return parts
-    }
+    const BlobConstructor =
+      window.Blob || window.MozBlob || window.WebKitBlob || ((parts, opts) => parts)
     return new BlobConstructor([uiArr], { type })
   },
 
   /**
    * Check if string contains non-ASCII characters
    */
-  hasNonASCII (str) {
+  hasNonASCII(str) {
     return /([\x80-\xff])/.test(str)
   },
 
   /**
    * Convert string with non-ASCII characters to Uint8Array
    */
-  stringToUint8Array (str) {
+  stringToUint8Array(str) {
     const arr = new Uint8Array(str.length)
     for (let i = 0; i < str.length; i++) {
       arr[i] = str.charCodeAt(i)
@@ -128,7 +127,7 @@ const DownloadUtils = {
   /**
    * Create and trigger download using HTML5 download attribute
    */
-  downloadWithAnchor (url, fileName) {
+  downloadWithAnchor(url, fileName) {
     const anchor = document.createElement('a')
     anchor.href = url
     anchor.setAttribute('download', fileName)
@@ -160,11 +159,11 @@ const DownloadUtils = {
   /**
    * Handle Safari download (fallback method)
    */
-  downloadWithSafari (url, fileName) {
+  downloadWithSafari(url, fileName) {
     // Convert Blob to data URL if needed
     if (url instanceof Blob) {
       const reader = new FileReader()
-      reader.onload = function (e) {
+      reader.onload = e => {
         const dataURL = e.target.result
         DownloadUtils.downloadWithSafari(dataURL, fileName)
       }
@@ -173,7 +172,7 @@ const DownloadUtils = {
     }
 
     if (DataURLUtils.isDataURL(url)) {
-      url = 'data:' + url.replace(/^data:([\w\/\-\+]+)/, DEFAULT_CONFIG.mimeType)
+      url = 'data:' + url.replace(/^data:([\w/\-+]+)/, DEFAULT_CONFIG.mimeType)
     }
 
     if (!window.open(url)) {
@@ -191,11 +190,11 @@ const DownloadUtils = {
   /**
    * Download using iframe (legacy browsers)
    */
-  downloadWithIframe (url, fileName) {
+  downloadWithIframe(url, fileName) {
     // Convert Blob to data URL if needed
     if (url instanceof Blob) {
       const reader = new FileReader()
-      reader.onload = function (e) {
+      reader.onload = e => {
         const dataURL = e.target.result
         DownloadUtils.downloadWithIframe(dataURL, fileName)
       }
@@ -207,7 +206,7 @@ const DownloadUtils = {
     document.body.appendChild(iframe)
 
     if (DataURLUtils.isDataURL(url)) {
-      url = 'data:' + url.replace(/^data:([\w\/\-\+]+)/, DEFAULT_CONFIG.mimeType)
+      url = 'data:' + url.replace(/^data:([\w/\-+]+)/, DEFAULT_CONFIG.mimeType)
     }
 
     iframe.src = url
@@ -224,7 +223,7 @@ const RequestUtils = {
   /**
    * Create XMLHttpRequest with authentication support
    */
-  createRequest (url, options = {}) {
+  createRequest(url, options = {}) {
     const xhr = new XMLHttpRequest()
 
     // Set timeout
@@ -243,7 +242,7 @@ const RequestUtils = {
   /**
    * Set custom headers on XMLHttpRequest
    */
-  setHeaders (xhr, headers = {}) {
+  setHeaders(xhr, headers = {}) {
     Object.entries(headers).forEach(([key, value]) => {
       xhr.setRequestHeader(key, value)
     })
@@ -252,7 +251,7 @@ const RequestUtils = {
   /**
    * Download file from URL with authentication
    */
-  downloadFromURL (url, fileName, options = {}) {
+  downloadFromURL(url, fileName, options = {}) {
     return new Promise((resolve, reject) => {
       const xhr = RequestUtils.createRequest(url, options)
 
@@ -268,7 +267,7 @@ const RequestUtils = {
         xhr.withCredentials = true
       }
 
-      xhr.onload = function (e) {
+      xhr.onload = e => {
         if (e.target.status === 200) {
           saveAs(e.target.response, fileName, options.mimeType || DEFAULT_CONFIG.mimeType)
           resolve(e.target.response)
@@ -277,11 +276,11 @@ const RequestUtils = {
         }
       }
 
-      xhr.onerror = function () {
+      xhr.onerror = () => {
         reject(new Error('Network error occurred'))
       }
 
-      xhr.ontimeout = function () {
+      xhr.ontimeout = () => {
         reject(new Error('Request timeout'))
       }
 
@@ -302,7 +301,7 @@ const RequestUtils = {
  * @param {string} [mimeType] - MIME type (used when fileNameOrOptions is string)
  * @returns {boolean|Promise} - Returns true for immediate downloads, Promise for async downloads
  */
-export function saveAs (data, fileNameOrOptions, mimeType) {
+export function saveAs(data, fileNameOrOptions, mimeType) {
   // Handle different parameter patterns
   let options = {}
   let fileName = DEFAULT_CONFIG.fileName
@@ -357,9 +356,8 @@ export function saveAs (data, fileNameOrOptions, mimeType) {
   // Handle string data with non-ASCII characters
   if (typeof data === 'string' && DataURLUtils.hasNonASCII(data)) {
     const uint8Array = DataURLUtils.stringToUint8Array(data)
-    const BlobConstructor = window.Blob || window.MozBlob || window.WebKitBlob || function (parts, opts) {
-      return parts
-    }
+    const BlobConstructor =
+      window.Blob || window.MozBlob || window.WebKitBlob || ((parts, opts) => parts)
     data = new BlobConstructor([uint8Array], { type: actualMimeType })
   }
 
@@ -369,9 +367,8 @@ export function saveAs (data, fileNameOrOptions, mimeType) {
     blob = data
   } else {
     // Handle different Blob constructors for compatibility
-    const BlobConstructor = window.Blob || window.MozBlob || window.WebKitBlob || function (parts, opts) {
-      return parts
-    }
+    const BlobConstructor =
+      window.Blob || window.MozBlob || window.WebKitBlob || ((parts, opts) => parts)
     blob = new BlobConstructor([data], { type: actualMimeType })
   }
 
@@ -404,7 +401,7 @@ export function saveAs (data, fileNameOrOptions, mimeType) {
 
   // Handle Blob without URL support using FileReader
   const reader = new FileReader()
-  reader.onload = function (e) {
+  reader.onload = e => {
     DownloadUtils.downloadWithAnchor(e.target.result, fileName)
   }
   reader.readAsDataURL(blob)
@@ -419,7 +416,7 @@ export function saveAs (data, fileNameOrOptions, mimeType) {
  * @param {SaveAsOptions} options - Download options including authentication
  * @returns {Promise<Blob>} - Promise that resolves with the downloaded blob
  */
-export function saveAsWithAuth (url, options = {}) {
+export function saveAsWithAuth(url, options = {}) {
   const config = { ...DEFAULT_CONFIG, ...options }
   const fileName = config.fileName || url.split('/').pop().split('?')[0] || 'download'
 

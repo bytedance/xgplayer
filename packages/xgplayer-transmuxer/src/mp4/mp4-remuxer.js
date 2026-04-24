@@ -1,13 +1,13 @@
 import { TrackType } from '../model'
-import { MP4 } from './mp4'
 import { concatUint8Array } from '../utils'
+import { MP4 } from './mp4'
 
 export class MP4Remuxer {
   /**
    * @param {import('../model').VideoTrack} videoTrack
    * @param {import('../model').AudioTrack} audioTrack
    */
-  constructor (videoTrack, audioTrack) {
+  constructor(videoTrack, audioTrack) {
     this.videoTrack = videoTrack
     this.audioTrack = audioTrack
   }
@@ -15,7 +15,7 @@ export class MP4Remuxer {
   /**
    * @returns {import('./fmp4-remuxer').RemuxResult}
    */
-  remux (videoTrack, audioTrack) {
+  remux(videoTrack, audioTrack) {
     this.videoTrack = videoTrack || this.videoTrack
     this.audioTrack = audioTrack || this.audioTrack
 
@@ -46,9 +46,12 @@ export class MP4Remuxer {
     }
   }
 
-  _remuxMix (videoTrack, audioTrack) {
+  _remuxMix(videoTrack, audioTrack) {
     const ftyp = MP4.ftyp([videoTrack, audioTrack])
-    const { mdatData: video, chunkOffset } = this._remuxData(videoTrack, ftyp.byteLength + 8)
+    const { mdatData: video, chunkOffset } = this._remuxData(
+      videoTrack,
+      ftyp.byteLength + 8
+    )
     const { mdatData: audio } = this._remuxData(audioTrack, chunkOffset)
 
     const mdat = MP4.mdat(concatUint8Array(video, audio))
@@ -63,7 +66,7 @@ export class MP4Remuxer {
     return concatUint8Array(ftyp, mdat, moov)
   }
 
-  _remuxTrack (track) {
+  _remuxTrack(track) {
     const ftyp = MP4.ftyp([track])
 
     const { mdatData } = this._remuxData(track, ftyp.byteLength + 8)
@@ -76,31 +79,31 @@ export class MP4Remuxer {
     return concatUint8Array(ftyp, mdat, moov)
   }
 
-  _remuxData (track, chunkOffset) {
+  _remuxData(track, chunkOffset) {
     const isVideo = track.type === TrackType.VIDEO
     const samples = track.samples
 
     let mdatSize = 0
     if (isVideo) {
-      samples.forEach((s) => {
-        mdatSize += s.units.reduce((t, c) => (t + c.byteLength), 0)
-        mdatSize += (s.units.length * 4)
+      samples.forEach(s => {
+        mdatSize += s.units.reduce((t, c) => t + c.byteLength, 0)
+        mdatSize += s.units.length * 4
       })
     } else {
-      mdatSize = samples.reduce((t, c) => (t + c.size), 0)
+      mdatSize = samples.reduce((t, c) => t + c.size, 0)
     }
 
     const mdatData = new Uint8Array(mdatSize)
     const mdatView = new DataView(mdatData.buffer)
 
-    const ext = track.ext = {
+    const ext = (track.ext = {
       stts: [],
       stsc: [],
       stsz: [],
       stco: [],
       stss: [],
       ctts: []
-    }
+    })
 
     const samplesPerChunk = 1
     let dataOffset = 0
@@ -113,12 +116,12 @@ export class MP4Remuxer {
 
       let sampleSize = isVideo ? 0 : sample.size
       if (isVideo) {
-        sample.units.forEach((u) => {
+        sample.units.forEach(u => {
           mdatView.setUint32(dataOffset, u.byteLength)
           dataOffset += 4
           mdatData.set(u, dataOffset)
           dataOffset += u.byteLength
-          sampleSize += (4 + u.byteLength)
+          sampleSize += 4 + u.byteLength
         })
       } else {
         mdatData.set(sample.data, dataOffset)
@@ -146,7 +149,7 @@ export class MP4Remuxer {
     }
   }
 
-  _fillSttsSamples (sttsSamples, cur, next) {
+  _fillSttsSamples(sttsSamples, cur, next) {
     const lastSample = sttsSamples[sttsSamples.length - 1]
 
     if (next) {
@@ -165,7 +168,7 @@ export class MP4Remuxer {
     }
   }
 
-  _fillCttsSamples (cttsSamples, cts) {
+  _fillCttsSamples(cttsSamples, cts) {
     const lastSample = cttsSamples[cttsSamples.length - 1]
 
     if (!lastSample || lastSample.value !== cts) {
@@ -175,13 +178,13 @@ export class MP4Remuxer {
     }
   }
 
-  _fillStcoSamples (stcoSamples, index, samplePerChunk, chunkOffset) {
+  _fillStcoSamples(stcoSamples, index, samplePerChunk, chunkOffset) {
     if (!(index % samplePerChunk)) {
       stcoSamples.push(chunkOffset)
     }
   }
 
-  _fillStscSamples (samples, sampleCount, samplesPerChunk) {
+  _fillStscSamples(samples, sampleCount, samplesPerChunk) {
     if (sampleCount <= samplesPerChunk) {
       samples.push({ firstChunk: 1, samplesPerChunk: sampleCount, sampleDescIndex: 1 })
     } else {
@@ -189,7 +192,11 @@ export class MP4Remuxer {
       const remaining = sampleCount % samplesPerChunk
       samples.push({ firstChunk: 1, samplesPerChunk, sampleDescIndex: 1 })
       if (remaining) {
-        samples.push({ firstChunk: len + 1, samplesPerChunk: remaining, sampleDescIndex: 1 })
+        samples.push({
+          firstChunk: len + 1,
+          samplesPerChunk: remaining,
+          sampleDescIndex: 1
+        })
       }
     }
   }

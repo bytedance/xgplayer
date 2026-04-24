@@ -1,13 +1,12 @@
-
 // 改造为兼容IE11
-function Concat (ResultConstructor, ...arrays){
+function Concat(ResultConstructor, ...arrays) {
   let totalLength = 0
-  arrays.forEach(function (arr){
+  arrays.forEach(arr => {
     totalLength += arr.length
   })
   const result = new ResultConstructor(totalLength)
   let offset = 0
-  arrays.forEach(function (arr){
+  arrays.forEach(arr => {
     result.set(arr, offset)
     offset += arr.length
   })
@@ -15,29 +14,25 @@ function Concat (ResultConstructor, ...arrays){
 }
 
 class Buffer {
-  constructor () {
+  constructor() {
     this.buffer = new Uint8Array(0)
   }
 
-  write (...buffer) {
-    const self = this
+  write(...buffer) {
     buffer.forEach(item => {
       if (item) {
-        self.buffer = Concat(Uint8Array, self.buffer, item)
+        this.buffer = Concat(Uint8Array, this.buffer, item)
       } else {
         window.console.warn(item)
       }
     })
   }
 
-  static writeUint16 (value) {
-    return new Uint8Array([
-      (value >> 8) & 0xff,
-      value & 0xff
-    ])
+  static writeUint16(value) {
+    return new Uint8Array([(value >> 8) & 0xff, value & 0xff])
   }
 
-  static writeUint32 (value) {
+  static writeUint32(value) {
     return new Uint8Array([
       value >> 24,
       (value >> 16) & 0xff,

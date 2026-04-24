@@ -1,6 +1,5 @@
-
 export default class ProxyPromise {
-  constructor () {
+  constructor() {
     let resolvePromise
     let rejectPromise
 
@@ -10,11 +9,11 @@ export default class ProxyPromise {
     })
 
     const publicPromise = promise
-    publicPromise.resolve = function (data) {
+    publicPromise.resolve = data => {
       resolvePromise(data)
       publicPromise.state = 'fulfilled'
     }
-    publicPromise.reject = function (error) {
+    publicPromise.reject = error => {
       rejectPromise(error)
       publicPromise.state = 'rejected'
       publicPromise.isBreak = error === 'DESTROYED'
@@ -25,8 +24,8 @@ export default class ProxyPromise {
   }
 
   /** @param {T=} value */
-  resolve (value) {}
+  resolve(value) {}
 
   /** @param {*=} reason */
-  reject (reason) {}
+  reject(reason) {}
 }

@@ -5,18 +5,18 @@ export class AdPlayIcon extends PlayIcon {
   /**
    * @override
    */
-  static get pluginName () {
+  static get pluginName() {
     return 'adPlay'
   }
 
-  getAdPlugin () {
+  getAdPlugin() {
     return this.player.getPlugin('ad')
   }
 
   /**
    * @override
    */
-  listenEvents () {
+  listenEvents() {
     this.on([AdEvents.AD_PAUSE], () => {
       this.animate(true)
     })
@@ -28,7 +28,7 @@ export class AdPlayIcon extends PlayIcon {
   /**
    * @override
    */
-  btnClick = (e) => {
+  btnClick = e => {
     e.preventDefault()
     e.stopPropagation()
     const adPlugin = this.getAdPlugin()

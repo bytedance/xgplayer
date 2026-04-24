@@ -1,5 +1,5 @@
 import { Plugin, Util } from 'xgplayer'
-import { Logger, createPublicPromise } from 'xgplayer-streaming-shared'
+import { createPublicPromise, Logger } from 'xgplayer-streaming-shared'
 import * as AdEvents from './events'
 import { ImaAdManager } from './imaAdManager'
 import './index.scss'
@@ -19,26 +19,26 @@ const logger = new Logger('AdsPlugin')
  */
 
 export class AdsPlugin extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'ad'
   }
-  get version () {
+  get version() {
     return __VERSION__
   }
 
-  get paused () {
+  get paused() {
     return !!(this.csManager?.isLinearAdRunning && this.csManager?.paused)
   }
 
-  get currentTime () {
+  get currentTime() {
     return this.csManager?.currentTime || 0
   }
 
-  get duration () {
+  get duration() {
     return this.csManager?.duration || 0
   }
 
-  afterCreate () {
+  afterCreate() {
     const { config } = this
 
     logger.log(`plugin afterCreate, config: ${JSON.stringify(config || {})}`)
@@ -51,7 +51,7 @@ export class AdsPlugin extends Plugin {
     this._blockContentPlay()
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     logger.log('plugin beforePlayerInit')
 
     this.initPromise = createPublicPromise()
@@ -72,14 +72,14 @@ export class AdsPlugin extends Plugin {
     return this.initPromise
   }
 
-  render () {
+  render() {
     return Util.createDom('xg-ad', '', {}, 'xgplayer-ads')
   }
 
   /**
    * @private
    */
-  _initClientSideAd () {
+  _initClientSideAd() {
     switch (this.config.adType) {
       case 'ima':
       case 'google-ima':
@@ -93,7 +93,7 @@ export class AdsPlugin extends Plugin {
   /**
    * @private
    */
-  async _initImaAd () {
+  async _initImaAd() {
     this.csManager = new ImaAdManager({
       plugin: this,
       config: this.config.ima,
@@ -106,7 +106,7 @@ export class AdsPlugin extends Plugin {
     this.csManager.on(AdEvents.IMA_SDK_LOAD_ERROR, () => {
       this.uiManager.hideAdContainer()
     })
-    this.csManager.once(AdEvents.IMA_AD_LOADED, ({isPreroll}) => {
+    this.csManager.once(AdEvents.IMA_AD_LOADED, ({ isPreroll }) => {
       if (!isPreroll) {
         this.uiManager.hideAdContainer()
       }
@@ -125,40 +125,40 @@ export class AdsPlugin extends Plugin {
     return this.csManager
   }
 
-  requestAds () {
+  requestAds() {
     this.csManager?.requestAds()
   }
 
-  playAds () {
+  playAds() {
     this.csManager?.playAds()
   }
 
   /**
    * @public
    */
-  pause () {
+  pause() {
     this.csManager?.pause()
   }
 
   /**
    * @public
    */
-  play () {
+  play() {
     this.csManager?.play()
   }
 
-  destroy () {
+  destroy() {
     this.offAll()
 
     this.csManager?.destroy()
     this.uiManager?.destroy()
   }
 
-  reset () {
+  reset() {
     this.csManager?.reset()
   }
 
-  updateConfig (config) {
+  updateConfig(config) {
     this.csManager?.updateConfig(config)
   }
 
@@ -166,7 +166,7 @@ export class AdsPlugin extends Plugin {
    * Makes sure content video state is paused during linear ad or before preroll.
    * @private
    */
-  _blockContentPlay () {
+  _blockContentPlay() {
     const { player } = this
 
     player.on('play', () => {

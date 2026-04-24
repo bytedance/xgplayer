@@ -1,15 +1,15 @@
 export class Cache {
   _data = Object.create(null)
 
-  set (id, data) {
+  set(id, data) {
     this._data[id] = data
   }
 
-  get (id) {
+  get(id) {
     return this._data[id]
   }
 
-  clear () {
+  clear() {
     this._data = Object.create(null)
   }
 }

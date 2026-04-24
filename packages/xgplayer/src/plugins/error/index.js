@@ -2,13 +2,13 @@ import Plugin, { Events } from '../../plugin'
 import './index.scss'
 
 export default class ErrorPlugin extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'error'
   }
 
-  afterCreate () {
+  afterCreate() {
     this.clickHandler = this.hook('errorRetry', this.errorRetry, {
-      pre: (e) => {
+      pre: e => {
         e.preventDefault()
         e.stopPropagation()
       }
@@ -18,17 +18,17 @@ export default class ErrorPlugin extends Plugin {
 
     this.bind('.xgplayer-error-refresh', 'click', this.clickHandler)
 
-    this.on(Events.ERROR, (error) => {
+    this.on(Events.ERROR, error => {
       this.onError(error)
     })
   }
 
-  errorRetry (e) {
+  errorRetry(e) {
     this.emitUserAction(e, 'error_retry', {})
     this.player.retry()
   }
 
-  handleError (error = {}) {
+  handleError(error = {}) {
     const { player } = this
     const type = error.errorType
     let errorNote = player.errorNote ? this.i18n[player.errorNote] : ''
@@ -45,14 +45,15 @@ export default class ErrorPlugin extends Plugin {
       }
     }
     this.find('.xgplayer-error-text').innerHTML = errorNote
-    this.find('.xgplayer-error-tips').innerHTML = `${this.i18n.REFRESH_TIPS}<span class="xgplayer-error-refresh">${this.i18n.REFRESH}</span>`
+    this.find('.xgplayer-error-tips').innerHTML =
+      `${this.i18n.REFRESH_TIPS}<span class="xgplayer-error-refresh">${this.i18n.REFRESH}</span>`
   }
 
-  destroy () {
+  destroy() {
     this.unbind('.xgplayer-error-refresh', 'click', this.clickHandler)
   }
 
-  render () {
+  render() {
     return `<xg-error class="xgplayer-error">
       <div class="xgplayer-errornote">
        <span class="xgplayer-error-text"></span>

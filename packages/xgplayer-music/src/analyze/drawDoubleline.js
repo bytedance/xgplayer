@@ -1,4 +1,4 @@
-export default (context) => {
+export default context => {
   const { data, options, ctx, h, w } = context
 
   const percent = h / 255
@@ -18,7 +18,7 @@ export default (context) => {
 
     const x = increase * point
 
-    const mid = (h / 2) + (p / 2)
+    const mid = h / 2 + p / 2
 
     ctx.moveTo(x, mid)
     ctx.lineTo(x, mid - p)

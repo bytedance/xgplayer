@@ -3,7 +3,7 @@ import { Buffer } from '../buffer'
 export class GapService {
   _prevCurrentTime = 0
 
-  do (media, maxJumpDistance = 3, isLive, seekThreshold = 1) {
+  do(media, maxJumpDistance = 3, isLive, seekThreshold = 1) {
     if (!media) return
 
     const currentTime = media.currentTime

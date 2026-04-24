@@ -9,11 +9,11 @@ import BasePlugin, { Events } from '../../plugin'
  * } } IFullscreenConfig
  */
 export default class FpsDetect extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'FpsDetect'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       disabled: false,
       tick: 1000, // tick时间，默认1000 ms
@@ -22,7 +22,7 @@ export default class FpsDetect extends BasePlugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     const { player, config } = this
     const media = player.media || player.video
     this.timer = null
@@ -50,7 +50,7 @@ export default class FpsDetect extends BasePlugin {
     })
   }
 
-  _startTick () {
+  _startTick() {
     this._stopTick()
     this._timer = setTimeout(() => {
       this._checkDecodeFPS()
@@ -58,12 +58,12 @@ export default class FpsDetect extends BasePlugin {
     }, this.config.tick)
   }
 
-  _stopTick () {
+  _stopTick() {
     clearTimeout(this._timer)
     this._timer = null
   }
 
-  _checkBuffer (curTime, buffered) {
+  _checkBuffer(curTime, buffered) {
     let enoughBuffer = false
     const buffers = []
     for (let i = 0; i < buffered.length; i++) {
@@ -81,7 +81,7 @@ export default class FpsDetect extends BasePlugin {
     }
   }
 
-  _checkStuck (curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval) {
+  _checkStuck(curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval) {
     const media = this.player.media || this.player.video
     const hidden = document.hidden
     const { paused, readyState, currentTime, buffered } = media
@@ -96,7 +96,14 @@ export default class FpsDetect extends BasePlugin {
 
     if (curDecodedFrames <= this.config.reportFrame) {
       this._currentStuckCount++
-      this._payload.push({ currentTime, buffers, curDecodedFrames, totalVideoFrames, droppedVideoFrames, checkInterval })
+      this._payload.push({
+        currentTime,
+        buffers,
+        curDecodedFrames,
+        totalVideoFrames,
+        droppedVideoFrames,
+        checkInterval
+      })
 
       if (this._currentStuckCount >= this.config.stuckCount) {
         this.emit(Events.FPS_STUCK, this._payload)
@@ -107,12 +114,12 @@ export default class FpsDetect extends BasePlugin {
     }
   }
 
-  _reset () {
+  _reset() {
     this._payload = []
     this._currentStuckCount = 0
   }
 
-  _checkDecodeFPS () {
+  _checkDecodeFPS() {
     const media = this.player.media || this.player.video
     if (!media) {
       return
@@ -131,7 +138,7 @@ export default class FpsDetect extends BasePlugin {
     this._lastCheckPoint = currTime
   }
 
-  destroy () {
+  destroy() {
     this._stopTick()
   }
 }

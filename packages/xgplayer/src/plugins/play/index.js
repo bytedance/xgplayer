@@ -1,16 +1,16 @@
 import { Events, POSITIONS } from '../../plugin'
-import { xgIconTips } from '../common/iconTools'
-import IconPlugin from '../common/iconPlugin'
-import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
+import PlaySvg from '../assets/play.svg'
+import IconPlugin from '../common/iconPlugin'
+import { xgIconTips } from '../common/iconTools'
 import './index.scss'
 
 class Play extends IconPlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'play'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       position: POSITIONS.CONTROLS_LEFT,
       index: 0,
@@ -18,7 +18,7 @@ class Play extends IconPlugin {
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     super.afterCreate()
     const { config } = this
     if (config.disable) {
@@ -31,25 +31,29 @@ class Play extends IconPlugin {
     this.animate(true)
   }
 
-  listenEvents () {
+  listenEvents() {
     const { player } = this
     this.on([Events.PLAY, Events.PAUSE, Events.ERROR, Events.EMPTIED], () => {
       this.animate(player.paused)
     })
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       play: { icon: PlaySvg, class: 'xg-icon-play' },
       pause: { icon: PauseSvg, class: 'xg-icon-pause' }
     }
   }
 
-  btnClick = (e) => {
+  btnClick = e => {
     e.preventDefault()
     e.stopPropagation()
     const { player } = this
-    this.emitUserAction(e, 'switch_play_pause', { prop: 'paused', from: player.paused, to: !player.paused })
+    this.emitUserAction(e, 'switch_play_pause', {
+      prop: 'paused',
+      from: player.paused,
+      to: !player.paused
+    })
     if (player.ended) {
       player.replay()
     } else if (player.paused) {
@@ -62,14 +66,16 @@ class Play extends IconPlugin {
     return false
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     this.appendChild('.xgplayer-icon', icons.play)
     this.appendChild('.xgplayer-icon', icons.pause)
   }
 
-  animate (paused) {
-    if (!this.player) {return}
+  animate(paused) {
+    if (!this.player) {
+      return
+    }
     const { i18nKeys } = this
     const tipDom = this.find('.xg-tips')
     if (paused) {
@@ -81,12 +87,12 @@ class Play extends IconPlugin {
     }
   }
 
-  destroy () {
+  destroy() {
     super.destroy()
     this.unbind(['touchend', 'click'], this.btnClick)
   }
 
-  render () {
+  render() {
     if (this.config.disable) {
       return
     }

@@ -5,11 +5,11 @@ import './index.scss'
  * 消息组件
  */
 class Prompt extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'prompt'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       interval: 3000,
       style: {},
@@ -19,18 +19,17 @@ class Prompt extends Plugin {
         text: '',
         highlight: ''
       },
-      onClick: () => {
-      }
+      onClick: () => {}
     }
   }
 
-  afterCreate () {
+  afterCreate() {
     /**
      * @type {number}
      */
     this.intervalId = 0
     this.customConfig = null
-    this.bind('.highlight', ['click', 'touchend'], (e) => {
+    this.bind('.highlight', ['click', 'touchend'], e => {
       if (this.config.onClick || this.customOnClick) {
         e.preventDefault()
         e.stopPropagation()
@@ -47,13 +46,13 @@ class Prompt extends Plugin {
     }
   }
 
-  setStyle (style) {
+  setStyle(style) {
     Object.keys(style).map(key => {
       this.root.style[key] = style[key]
     })
   }
 
-  showPrompt (detail, config = {}, onClick = () => {}) {
+  showPrompt(detail, config = {}, onClick = () => {}) {
     if (!detail) {
       return
     }
@@ -68,12 +67,15 @@ class Prompt extends Plugin {
     if (typeof detail === 'string') {
       this.find('.xgplayer-prompt-detail').innerHTML = detail
     } else {
-      this.find('.xgplayer-prompt-detail').innerHTML = `${detail.text || ''}` + `${detail.highlight ? `<i class="highlight">${detail.highlight}</i>` : ''}`
+      this.find('.xgplayer-prompt-detail').innerHTML =
+        `${detail.text || ''}` +
+        `${detail.highlight ? `<i class="highlight">${detail.highlight}</i>` : ''}`
     }
 
     config.style && this.setStyle(config.style)
 
-    const autoHide = typeof config.autoHide === 'boolean' ? config.autoHide : this.config.autoHide
+    const autoHide =
+      typeof config.autoHide === 'boolean' ? config.autoHide : this.config.autoHide
     if (autoHide) {
       const hideinterval = config.interval || interval
       this.intervalId = setTimeout(() => {
@@ -82,14 +84,14 @@ class Prompt extends Plugin {
     }
   }
 
-  hide () {
+  hide() {
     Util.removeClass(this.root, 'show')
     Util.removeClass(this.root, 'arrow')
     this.root.removeAttribute('style')
     this.customOnClick = null
   }
 
-  render () {
+  render() {
     return `<xg-prompt class="xgplayer-prompt ${STATE_CLASS.CONTROLS_FOLLOW}">
     <span class="xgplayer-prompt-detail"></span>
     </xg-prompt>`
