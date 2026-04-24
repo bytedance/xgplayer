@@ -33,9 +33,12 @@ export class Task {
         let cfg = rest
         if (this._changeUrl) {
           this._changeUrl = false
-          cfg = Object.assign({}, cfg, { url: this._config.urlList[this._useUrlIdx] })
-          this._logger.debug('[task],changeUrlRetry，urlIdx:', this._useUrlIdx, cfg.url)
+          if (this._config.urlList?.[this._useUrlIdx]) {
+            cfg = Object.assign({}, cfg, {url: this._config.urlList[this._useUrlIdx]})
+            this._logger.debug('[task],changeUrlRetry，urlIdx:', this._useUrlIdx, cfg.url)
+          }
         }
+        this._logger.debug('[task],config origin url', cfg.url)
         const response = await this._loader.load(cfg)
         this.promise.resolve(response)
       } catch (e) {
@@ -73,7 +76,7 @@ export class Task {
             rest.range,
             this._useUrlIdx
           )
-          if (changeUrlRetry && this._useUrlIdx < this._config.urlList?.length) {
+          if (changeUrlRetry && this._useUrlIdx < this._config.urlList?.length - 1) {
             this._useUrlIdx++
             this._changeUrl = true
             this._logger.debug(
