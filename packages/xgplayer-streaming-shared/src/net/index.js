@@ -6,10 +6,12 @@ import { isPlainObject } from '../is'
 import { sleep } from '../streaming-helper'
 import { EVENT } from '../event'
 import EventEmitter from 'eventemitter3'
+import { getSharedDynamicTimeoutIns } from './dynamic-timeout'
 
 export {
   LoaderType,
-  ResponseType
+  ResponseType,
+  getSharedDynamicTimeoutIns
 }
 
 export class NetLoader extends EventEmitter {
@@ -62,6 +64,7 @@ export class NetLoader extends EventEmitter {
       config = config.transformRequest(config) || config
     }
     config.logger = this.log
+    config.dynamicTimeoutIns = this._config.dynamicTimeoutIns
 
     const task = new Task(this.type, config)
     task.loader.on(EVENT.REAL_TIME_SPEED, (data) => {
