@@ -36,6 +36,7 @@ export class XhrLoader extends EventEmitter {
   _firstRtt
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
+  _dynamicTimeoutIns = null
 
 
   constructor () {
@@ -53,6 +54,7 @@ export class XhrLoader extends EventEmitter {
     this._body = req.body || null
     req.method && (this._method = req.method)
     this._timeout = req.timeout || null
+    this._dynamicTimeoutIns = req.dynamicTimeoutIns
     this._runing = true
     this._vid = req.vid || req.url
     this._responseType = req.responseType
@@ -73,7 +75,7 @@ export class XhrLoader extends EventEmitter {
     }).catch((error) => {
       clearTimeout(this._timeoutTimer)
       this._runing = false
-      if (this._aborted) return
+      if (this._aborted && error.message !== 'timeout') return
       error = error instanceof NetError ? error : new NetError(this._url, this._request)
       error.startTime = startTime
       error.endTime = Date.now()
@@ -109,7 +111,15 @@ export class XhrLoader extends EventEmitter {
       const xhr = this._xhr = new XMLHttpRequest()
       xhr.open(this._method || 'GET', this._url, true)
       xhr.responseType = this._responseType
-      this._timeout && (xhr.timeout = this._timeout)
+      const timeoutMs =
+        this._dynamicTimeoutIns &&
+        typeof this._dynamicTimeoutIns.getTimeout === 'function'
+          ? this._dynamicTimeoutIns.getTimeout(this._timeout)
+          : this._timeout
+      if (timeoutMs) {
+        xhr.timeout = timeoutMs
+        this.curTimeout = timeoutMs
+      }
       xhr.withCredentials = this._withCredentials
       xhr.onload = this._onLoad.bind(this)
       xhr.onreadystatechange = this._onReadyStatechange.bind(this)
@@ -120,10 +130,17 @@ export class XhrLoader extends EventEmitter {
         this._loadCompleteReject(error)
       }
       xhr.ontimeout = (event) => {
+        if (
+          this._dynamicTimeoutIns &&
+          typeof this._dynamicTimeoutIns.update === 'function'
+        ) {
+          this._logger.debug('[dytimeout] xhr timeout update rtt,', xhr.timeout * 5)
+          this._dynamicTimeoutIns.update(xhr.timeout * 5)
+        }
         this.cancel()
         const error = new NetError(this._url, this._request, {status:408}, 'timeout')
+        error.isTimeout = true
         if (this._onTimeout) {
-          error.isTimeout = true
           this._onTimeout(error,{index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions})
         }
         error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
@@ -139,7 +156,7 @@ export class XhrLoader extends EventEmitter {
           xhr.setRequestHeader(k, headers[k])
         })
       }
-      this._logger.debug('[xhr.send->] tast,', this._range, ',load sub range, ', range)
+      this._logger.debug('[xhr.send->] tast,', this._range, ',load sub range, ', range,',[dytimeout],', timeoutMs)
       xhr.send(this._body)
     } catch (e) {
       e.options = {index: this._index, range, vid: this._vid, priOptions: this._priOptions}
@@ -151,6 +168,14 @@ export class XhrLoader extends EventEmitter {
     const xhr = e.target
     if (xhr.readyState === 2) {
       this._firstRtt < 0 && (this._firstRtt = Date.now())
+      if (
+        this._dynamicTimeoutIns &&
+        typeof this._dynamicTimeoutIns.update === 'function'
+      ) {
+        const rtt = Date.now() - this._startTime
+        this._logger.debug('[dytimeout] xhr update rtt,', rtt)
+        this._dynamicTimeoutIns.update(rtt)
+      }
     }
   }
 

@@ -41,6 +41,9 @@ export class MP4Loader extends EventEmitter {
     this._loader.on(EVENT.REAL_TIME_SPEED, (data) => {
       this.emit(EVENT.REAL_TIME_SPEED, data)
     })
+    this._loader.on('networkError', data => {
+      this.emit('networkError', data)
+    })
   }
 
   get isMetaLoaded () {
