@@ -29,6 +29,7 @@ export class FetchLoader extends EventEmitter {
     url,
     vid,
     timeout, // ms
+    dynamicTimeoutIns,
     responseType,
     onProgress,
     index,
@@ -96,9 +97,13 @@ export class FetchLoader extends EventEmitter {
         headers.Range = rangeValue
       }
     }
+    const timeoutMs =
+      dynamicTimeoutIns && typeof dynamicTimeoutIns.getTimeout === 'function'
+        ? dynamicTimeoutIns.getTimeout(timeout)
+        : timeout
 
-    if (timeout) {
-      this._timeoutTimer = setTimeout(async () => {
+    if (timeoutMs) {
+      this._timeoutTimer = setTimeout(async()  => {
         isTimeout = true
         await this.cancel()
         if (onTimeout) {
@@ -106,11 +111,11 @@ export class FetchLoader extends EventEmitter {
           error.isTimeout = true
           onTimeout(error, {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions})
         }
-      }, timeout)
+      }, timeoutMs)
     }
 
     const startTime = Date.now()
-    this._logger.debug('[fetch load start], index,', index, ',range,', range)
+    this._logger.debug('[fetch load start], index,', index, ',range,', range, ',[dytimeout]', timeoutMs)
     return new Promise((resolve, reject) => {
       fetch(request || url, request ? undefined : init).then(async (response) => {
         clearTimeout(this._timeoutTimer)
@@ -124,6 +129,12 @@ export class FetchLoader extends EventEmitter {
         }
 
         const firstByteTime = Date.now()
+        if (dynamicTimeoutIns && typeof dynamicTimeoutIns.update === 'function') {
+          const rtt = firstByteTime - startTime
+          this._logger.debug('[dytimeout] fetch update rtt,', rtt)
+          dynamicTimeoutIns.update(rtt)
+        }
+
         let data
         if (responseType === ResponseType.TEXT) {
           data = await response.text()
