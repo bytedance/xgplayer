@@ -19,6 +19,8 @@
  *  disconnectTime?: number,
  *  fetchOptions?: RequestInit,
  *  seamlesslyReload: boolean,
+*   preFetchSwitch?: boolean,
+*   preFetchMaxWaitKeyframes?: number,
 *   keepStatusAfterSwitch?: boolean,
 *   onlyVideo?: boolean,
 *   onlyAudio?: boolean,
@@ -52,6 +54,11 @@ export function getOption (opts) {
     maxJumpDistance: 3,
     analyzeDuration: 20000,
     seamlesslyReload: false,
+    // Zero-stutter switchURL: pre-fetch the new url in parallel with the old
+    // stream and atomically swap at the next old-stream keyframe once the
+    // pre-fetch has produced its own keyframe. Live + `seamless: true` only.
+    preFetchSwitch: false,
+    preFetchMaxWaitKeyframes: 3,
     keepStatusAfterSwitch: true,
     onlyVideo: false,
     onlyAudio: false,

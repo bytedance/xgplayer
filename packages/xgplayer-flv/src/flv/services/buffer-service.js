@@ -147,12 +147,17 @@ export class BufferService {
     if (this.seamlessLoadingSwitch) {
       const idx = videoTrack.samples.findIndex(sample => (sample.originDts === videoTrack.lastKeyFrameDts))
       if (idx >= 0) {
-        videoTrack.samples.splice(idx)
-        await this.seamlessLoadingSwitch()
-        // 切换清晰度后，删除原清晰度数据
-        this.seamlessLoadingSwitch = null
-        chunk = null
-        switchingNoReset = true
+        // Callback may return `false` to defer the swap (e.g. pre-fetch not
+        // yet ready). In that case we leave samples + callback intact and the
+        // old stream keeps flowing — we'll retry at the next keyframe.
+        const result = await this.seamlessLoadingSwitch(videoTrack.lastKeyFrameDts)
+        if (result !== false) {
+          videoTrack.samples.splice(idx)
+          // 切换清晰度后，删除原清晰度数据
+          this.seamlessLoadingSwitch = null
+          chunk = null
+          switchingNoReset = true
+        }
       }
     }
     // else if (this._opts.onlyLastGop && !this._initSegmentId) {

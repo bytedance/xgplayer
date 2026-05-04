@@ -156,6 +156,23 @@ describe('Flv', () => {
     expect(seamlessSwitch).toHaveBeenCalledTimes(1)
   })
 
+  test('switchURL with preFetchSwitch routes to pre-fetch path when loading', async () => {
+    const flv = new Flv({ media, isLive: true, preFetchSwitch: true })
+    flv._loading = true
+    const preFetch = jest.spyOn(flv, '_preFetchSwitchURL').mockResolvedValue()
+    await flv.switchURL('newUrl', true)
+    expect(preFetch).toHaveBeenCalledWith('newUrl')
+  })
+
+  test('switchURL falls back to existing path when not loading or VOD', async () => {
+    const flv = new Flv({ media, isLive: true, preFetchSwitch: true })
+    flv._loading = false
+    const preFetch = jest.spyOn(flv, '_preFetchSwitchURL').mockResolvedValue()
+    media.play = jest.fn(()=> Promise.resolve())
+    await flv.switchURL('newUrl', true)
+    expect(preFetch).not.toHaveBeenCalled()
+  })
+
   test('isSupported', () => {
     expect(Flv.isSupported()).toBe(undefined)
   })

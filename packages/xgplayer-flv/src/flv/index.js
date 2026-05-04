@@ -14,7 +14,7 @@ import {
   getVideoPlaybackQuality
 } from 'xgplayer-streaming-shared'
 import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
-import { BufferService } from './services'
+import { BufferService, PreFetchService } from './services'
 import { getOption } from './options'
 import { searchKeyframeIndex } from './utils'
 import { TransferCost, TRANSFER_EVENT } from './services/transfer-cost'
@@ -57,6 +57,11 @@ export class Flv extends EventEmitter {
   _seamlessSwitching = false
   _disconnectRetryCount = 0
   _preLoadEndPoint = 0
+
+  /** @type {PreFetchService | null} */
+  _preFetchService = null
+  /** Number of keyframes we've waited for pre-fetch readiness before falling back. */
+  _preFetchWaitKeyframes = 0
 
   _keyframes = null
   _acceptRanges = true
@@ -196,7 +201,16 @@ export class Flv extends EventEmitter {
   disconnect () {
     logger.debug('disconnect!')
     this._bufferService?.resetSeamlessSwitchStats()
+    this._cancelPreFetch()
     return this._clear()
+  }
+
+  _cancelPreFetch () {
+    if (!this._preFetchService) return
+    const svc = this._preFetchService
+    this._preFetchService = null
+    svc.cancel().catch(() => {})
+    svc.destroy()
   }
 
   /**
@@ -208,7 +222,12 @@ export class Flv extends EventEmitter {
 
     this._resetDisconnectCount()
 
+    if (this._loading && seamless && this._opts.isLive && this._opts.preFetchSwitch) {
+      return this._preFetchSwitchURL(url)
+    }
+
     if (this._loading && seamless) {
+      this._cancelPreFetch()
       this._bufferService.seamlessLoadingSwitch = async (pts) => {
         await this._clear()
         this._bufferService.seamlessLoadingSwitching = true
@@ -221,11 +240,13 @@ export class Flv extends EventEmitter {
     }
 
     if (!seamless || !this._opts.isLive) {
+      this._cancelPreFetch()
       await this.load(url)
       this._urlSwitching = true
       return this.media.play(true).catch(() => {})
     }
 
+    this._cancelPreFetch()
     await this._clear()
 
     setTimeout(() => {
@@ -234,6 +255,116 @@ export class Flv extends EventEmitter {
       this._loadData(url)
       this._bufferService.seamlessSwitch()
     })
+  }
+
+  /**
+   * Zero-stutter switch path: pre-fetch the new url in parallel with the old
+   * stream. At the next keyframe boundary of the old stream — once pre-fetch
+   * has produced a keyframe — atomically swap the loader and replay the
+   * buffered new-stream bytes through the main demuxer/MSE pipeline.
+   * @private
+   * @param {string} url
+   */
+  async _preFetchSwitchURL (url) {
+    // If a previous pre-fetch is in-flight, abort it; the user wants this new url now.
+    if (this._preFetchService) {
+      try { await this._preFetchService.cancel() } catch (e) { /* ignore */ }
+      this._preFetchService.destroy()
+      this._preFetchService = null
+    }
+
+    this._preFetchWaitKeyframes = 0
+    const preFetch = new PreFetchService()
+    this._preFetchService = preFetch
+
+    this.emit(EVENT.LOAD_START, { url, seamlessSwitching: true, preFetch: true })
+
+    // Fire-and-forget; failures emit ERROR via _emitError below.
+    preFetch.start(url, this._opts.fetchOptions, {
+      retry: this._opts.retryCount,
+      retryDelay: this._opts.retryDelay,
+      timeout: this._opts.loadTimeout,
+      onRetryError: this._onRetryError
+    }).catch((error) => {
+      if (this._preFetchService !== preFetch) return // superseded
+      logger.warn('pre-fetch switch failed, falling back', error)
+      this._preFetchService = null
+      preFetch.destroy()
+      this._bufferService.seamlessLoadingSwitch = null
+      this._emitError(StreamingError.network(error), false)
+    })
+
+    // Maximum number of keyframes we'll wait for pre-fetch to become ready
+    // before giving up and falling back to the original cancel-and-load path.
+    const maxWaitKeyframes = this._opts.preFetchMaxWaitKeyframes ?? 3
+
+    this._bufferService.seamlessLoadingSwitch = async () => {
+      const service = this._preFetchService
+      if (!service || service !== preFetch) return false
+
+      if (!service.isReady()) {
+        this._preFetchWaitKeyframes++
+        if (this._preFetchWaitKeyframes >= maxWaitKeyframes) {
+          // Fall back: tear down pre-fetch and use the original switch path so
+          // the user isn't stuck on the old stream forever.
+          logger.warn('pre-fetch not ready after', maxWaitKeyframes, 'keyframes; falling back')
+          this._preFetchService = null
+          await service.cancel()
+          service.destroy()
+          await this._clear()
+          this._bufferService.seamlessLoadingSwitching = true
+          this._urlSwitching = true
+          this._seamlessSwitching = true
+          this._bufferService.seamlessSwitch()
+          this._loadData(url)
+          return true // confirm splice — we've committed to the fallback
+        }
+        return false // defer: keep old stream flowing, retry on next keyframe
+      }
+
+      // === Atomic swap ===
+      // We must NOT touch the demuxer state (or run replay) inside this
+      // callback: the calling appendBuffer() will splice videoTrack.samples
+      // post-await, and that splice would corrupt new-stream samples. So we
+      // (a) take ownership of the loader synchronously, (b) flip the
+      // discontinuity flags so the next demux call resets the FLV header,
+      // and (c) defer the actual replay to a microtask that fires AFTER the
+      // current appendBuffer call settles.
+
+      // Cancel the old loader (best-effort, not awaited).
+      const oldLoader = this._mediaLoader
+      oldLoader?.cancel().catch(() => {})
+
+      // Adopt the pre-fetch loader as the primary.
+      this._mediaLoader = service.loader
+      this._opts.url = url
+      this._loading = true
+      this._firstProgressEmit = false
+
+      // Flag the buffer pipeline for discontinuity. The OLD appendBuffer call
+      // (the one that invoked us) has switchingNoReset=true, which preserves
+      // these flags for the next demux call — i.e. the first replayed chunk.
+      this._bufferService.seamlessLoadingSwitching = true
+      this._urlSwitching = true
+      this._seamlessSwitching = true
+      this._bufferService.seamlessSwitch()
+
+      this._preFetchService = null
+
+      // Defer the swap. By the time this microtask runs, the OLD appendBuffer
+      // call has finished spliceing+remuxing+appending its pre-keyframe
+      // samples. Now PreFetchService starts forwarding queued+future chunks
+      // through flv._onProgress in serial order.
+      Promise.resolve().then(() => {
+        if (this._mediaLoader !== service.loader) return // superseded
+        service.swap(this._onProgress)
+        // service is drained lazily; destroy the service handle but keep the
+        // loader (now this._mediaLoader) alive.
+        service._probeDemuxer = null
+      })
+
+      return true // confirm splice on the OLD samples
+    }
   }
 
   /** @return {Promise} */
@@ -247,6 +378,7 @@ export class Flv extends EventEmitter {
     this.media.removeEventListener('timeupdate', this._onTimeupdate)
     this.media.removeEventListener('waiting', this._onWaiting)
     this.media.removeEventListener('progress', this._onBufferUpdate)
+    this._cancelPreFetch()
     await Promise.all([this._clear(), this._bufferService.destroy()])
     this.media = null
     this._bufferService = null
