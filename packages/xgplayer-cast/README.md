@@ -24,13 +24,47 @@ const player = new Player({
 })
 ```
 
+## Android / Chromecast Usage
+
+```js
+// Minimal — uses built-in default Sender SDK URL
+const player = new Player({
+  id,
+  url,
+  plugins: [CastPlugin],
+  cast: {
+    airplay: true,
+    chromecast: true
+  }
+})
+
+// Custom SDK URL (intranet, proxy, or self-hosted)
+const player = new Player({
+  id,
+  url,
+  plugins: [CastPlugin],
+  cast: {
+    chromecast: {
+      sdkUrl: 'https://your-cdn.example.com/cast_sender.js',
+      receiverApplicationId: 'YOUR_APP_ID',
+      autoJoinPolicy: 'origin_scoped'
+    }
+  }
+})
+```
+
 #### Config
 
 | Name | Types | Default | Description |
 | ------ | -------- | ----- | ----- |
 | showIcon | boolean | `true` | Whether to display the cast icon in the control bar |
 | airplay | boolean | `true` | Whether to enable Apple AirPlay when available |
-| chromecast | boolean | `true` | Whether to enable Google Chromecast when available |
+| chromecast | boolean \| object | `true` | Enable Chromecast. `true` uses the default Sender SDK URL. Object form overrides SDK loading and session options. |
+| chromecast.sdkUrl | string | Google Cast Sender SDK URL | Sender SDK URL. Defaults to the official Google Cast Sender SDK. Can be overridden for intranet/CDN/proxied deployments. |
+| chromecast.sdkLoader | function | `null` | Custom async SDK loader. Use when the host app manages script loading. Receives no args, must return a Promise. |
+| chromecast.receiverApplicationId | string | `''` | Receiver app id. Empty string means default media receiver. |
+| chromecast.autoJoinPolicy | string | `'origin_scoped'` | Session auto join policy. |
+| chromecast.loadSdkTimeout | number | `3000` | Sender SDK load timeout in milliseconds. |
 | autoplayOnCast | boolean | `true` | Whether to keep playing after casting starts. Note: the plugin will still issue an initial play request to establish the cast route, then pause immediately when set to `false`. |
 | showAirplayMutedTip | boolean | `true` | Whether to show a tip prompting the user to unmute when AirPlay is connected |
 
