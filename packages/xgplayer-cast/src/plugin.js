@@ -1,7 +1,8 @@
 import { Plugin } from 'xgplayer'
 import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
-import { Chromecast, isChromecastAvailable } from './platform/chromecast'
+import { Chromecast } from './platform/chromecast'
+import { normalizeChromecastConfig, shouldInstallChromecast } from './platform/chromecast-config'
 
 import './cast-i18n'
 import './index.scss'
@@ -60,8 +61,9 @@ export class CastPlugin extends Plugin {
       this._airplay.install()
     }
 
-    if (this.config.chromecast && isChromecastAvailable(this.player)) {
-      this._chromecast = new Chromecast(this)
+    this._chromecastConfig = normalizeChromecastConfig(this.config.chromecast)
+    if (shouldInstallChromecast(this.player, this._chromecastConfig)) {
+      this._chromecast = new Chromecast(this, this._chromecastConfig)
       this._chromecast.install()
     }
   }
