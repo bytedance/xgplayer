@@ -25,6 +25,7 @@ module.exports = {
     'packages/xgplayer-flv/src/**/*.js',
     'packages/xgplayer-hls/src/**/*.js',
     'packages/xgplayer-transmuxer/src/**/*.js',
+    'packages/xgplayer-cast/src/**/*.js',
     '!**/node_modules/**'
   ],
 
@@ -159,7 +160,8 @@ module.exports = {
     '**/packages/xgplayer-dash/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
-    '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js'
+    '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js',
+    '**/packages/xgplayer-cast/__tests__/**/*.(spec|test).js'
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
