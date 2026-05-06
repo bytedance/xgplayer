@@ -42,6 +42,7 @@ function buildCastFrameworkMock({ onAddEventListener } = {}) {
             setOptions: jest.fn(),
             addEventListener: onAddEventListener || jest.fn(),
             removeEventListener: jest.fn(),
+            getCastState: jest.fn(() => 'NO_DEVICES_AVAILABLE'),
             getCurrentSession: jest.fn(() => null)
           }
         }
@@ -304,6 +305,7 @@ describe('Chromecast', () => {
               setOptions: jest.fn(),
               addEventListener: jest.fn(),
               removeEventListener: jest.fn(),
+              getCastState: jest.fn(() => 'NOT_CONNECTED'),
               requestSession,
               getCurrentSession: () => session
             }
