@@ -59,6 +59,33 @@
 
   <body>
     <div id="video" style="margin: 0 auto"></div>
+
+    <div class="pannel">
+      <h4>Cast Controls</h4>
+      <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <button id="btn-cast-auto" style="padding: 8px 16px; cursor: pointer;">
+          Request Cast (auto-detect)
+        </button>
+        <button id="btn-cast-airplay" style="padding: 8px 16px; cursor: pointer;">
+          Request AirPlay
+        </button>
+        <button id="btn-cast-chromecast" style="padding: 8px 16px; cursor: pointer;">
+          Request Chromecast
+        </button>
+      </div>
+      <div class="message-pannel">
+        <div class="message-info">
+          <h4>Config examples</h4>
+          <p><strong>Shorthand (default receiver):</strong> <code>chromecast: true</code></p>
+          <p><strong>Explicit config:</strong></p>
+          <pre style="margin:4px 0; font-size: 12px;">chromecast: {
+  appId: 'CC1AD845',            // default media receiver
+  autoJoinPolicy: 'tab_and_origin_scoped',
+}</pre>
+        </div>
+      </div>
+    </div>
+
     <script type="module" defer src="./index.js"></script>
   </body>
 </html>
