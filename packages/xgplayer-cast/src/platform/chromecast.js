@@ -1,32 +1,111 @@
-export function isChromecastAvailable(player) {
-  const video = player?.media || player?.video;
-
-  if (!video) {
-    return false;
-  }
-
-  return typeof chrome !== "undefined" && typeof chrome.cast !== "undefined";
-}
+import { loadChromecastSdk } from './chromecast-sdk'
 
 export class Chromecast {
-  constructor(player) {
-    this.player = player;
+  constructor(plugin, config) {
+    this.plugin = plugin
+    this.player = plugin.player
+    this.config = config
+    this.castContext = null
+    this.session = null
   }
 
-  install() {
-    if (!isChromecastAvailable(this.player)) {
-      return;
-     }
-
-    this.player.on("cast_request", this._onRequestCast);
+  async install() {
+    try {
+      await loadChromecastSdk(this.config)
+      // Guard: destroy() may have been called during the async SDK load
+      if (!this.player) return
+      if (!window.cast?.framework || !window.chrome?.cast) {
+        throw new Error('Chromecast sender sdk is not ready')
+      }
+      this._initCastContext()
+      this.player.on('cast_request', this._onRequestCast)
+    } catch (error) {
+      console.warn('[xgplayer-cast] chromecast install failed:', error)
+      this.player?.emit('cast_availability_change', {
+        protocol: 'chromecast',
+        availability: 'not-available'
+      })
+    }
   }
 
-  /**
-   * @private
-   */
-  _onRequestCast = () => {
-    this.player.emit("cast_request_chromecast");
+  _initCastContext() {
+    const castContext = window.cast.framework.CastContext.getInstance()
+    castContext.setOptions({
+      receiverApplicationId:
+        this.config.receiverApplicationId ||
+        window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+      autoJoinPolicy: this._mapAutoJoinPolicy(this.config.autoJoinPolicy)
+    })
 
-    // TODO
+    castContext.addEventListener(
+      window.cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+      this._onCastStateChanged
+    )
+    castContext.addEventListener(
+      window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+      this._onSessionStateChanged
+    )
+
+    this.castContext = castContext
+  }
+
+  _mapAutoJoinPolicy(policy) {
+    const key = (policy || 'origin_scoped').toUpperCase().replace(/-/g, '_')
+    return (
+      window.chrome.cast.AutoJoinPolicy?.[key] ??
+      window.chrome.cast.AutoJoinPolicy?.ORIGIN_SCOPED
+    )
+  }
+
+  _onCastStateChanged = ({ castState }) => {
+    this.player?.emit('cast_availability_change', {
+      protocol: 'chromecast',
+      availability:
+        castState === window.cast.framework.CastState.NO_DEVICES_AVAILABLE
+          ? 'not-available'
+          : 'available'
+    })
+  }
+
+  _onSessionStateChanged = ({ sessionState }) => {
+    const { SESSION_STARTED, SESSION_RESUMED, SESSION_ENDED } =
+      window.cast.framework.SessionState
+    if (sessionState === SESSION_STARTED || sessionState === SESSION_RESUMED) {
+      this.session = this.castContext.getCurrentSession()
+      this.player?.emit('cast_target_change', {
+        protocol: 'chromecast',
+        isCasting: true
+      })
+    } else if (sessionState === SESSION_ENDED) {
+      this.session = null
+      this.player?.emit('cast_target_change', {
+        protocol: 'chromecast',
+        isCasting: false
+      })
+    }
+  }
+
+  // Will be implemented in Task 6
+  _onRequestCast = ({ protocol } = {}) => {
+    if (protocol && protocol !== 'chromecast') return
+    // TODO: Task 6 — requestSession + loadMedia
+  }
+
+  destroy() {
+    this.player?.off?.('cast_request', this._onRequestCast)
+    if (this.castContext) {
+      this.castContext.removeEventListener?.(
+        window.cast?.framework?.CastContextEventType?.CAST_STATE_CHANGED,
+        this._onCastStateChanged
+      )
+      this.castContext.removeEventListener?.(
+        window.cast?.framework?.CastContextEventType?.SESSION_STATE_CHANGED,
+        this._onSessionStateChanged
+      )
+    }
+    this.castContext = null
+    this.session = null
+    this.player = null
+    this.plugin = null
   }
 }
