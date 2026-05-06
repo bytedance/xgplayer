@@ -31,13 +31,9 @@ export class Chromecast {
 
   _initCastContext() {
     const castContext = window.cast.framework.CastContext.getInstance()
-    castContext.setOptions({
-      receiverApplicationId:
-        this.config.receiverApplicationId ||
-        window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-      autoJoinPolicy: this._mapAutoJoinPolicy(this.config.autoJoinPolicy)
-    })
 
+    // Register listeners before setOptions so we don't miss the synchronous
+    // CAST_STATE_CHANGED that CAF may fire during initialization.
     castContext.addEventListener(
       window.cast.framework.CastContextEventType.CAST_STATE_CHANGED,
       this._onCastStateChanged
@@ -46,6 +42,17 @@ export class Chromecast {
       window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
       this._onSessionStateChanged
     )
+
+    castContext.setOptions({
+      receiverApplicationId:
+        this.config.receiverApplicationId ||
+        window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+      autoJoinPolicy: this._mapAutoJoinPolicy(this.config.autoJoinPolicy)
+    })
+
+    // Emit the current cast state immediately so button availability is correct
+    // even if no CAST_STATE_CHANGED event fires (e.g. state was already set).
+    this._onCastStateChanged({ castState: castContext.getCastState?.() })
 
     this.castContext = castContext
   }
