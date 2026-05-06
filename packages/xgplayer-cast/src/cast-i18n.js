@@ -6,6 +6,8 @@ I18N.extend([
     TEXT: {
       CAST: "投屏",
       CAST_UNMUTE_TIP: "请先取消静音再投屏",
+      CAST_CONNECTING: "投屏连接中...",
+      CHROMECAST_NOT_AVAILABLE: "未找到 Chromecast 设备",
     },
   },
   {
@@ -20,6 +22,8 @@ I18N.extend([
     TEXT: {
       CAST: "Cast",
       CAST_UNMUTE_TIP: "Please unmute before casting",
+      CAST_CONNECTING: "Connecting to cast device...",
+      CHROMECAST_NOT_AVAILABLE: "No Chromecast devices found",
     },
   },
 ]);

@@ -73,7 +73,7 @@ const player = new Player({
 
 | Method Name | Description |
 | ------ | ----- |
-| requestCast() | Programmatically open the native cast dialog (AirPlay picker or Chromecast device chooser). Has no effect if no cast protocol is available. |
+| requestCast(protocol?) | Programmatically open the native cast dialog (AirPlay picker or Chromecast device chooser). Pass `'airplay'` or `'chromecast'` to force a specific protocol; omit to auto-select the best available one. Has no effect if no cast protocol is available. |
 
 ### Notes
 
