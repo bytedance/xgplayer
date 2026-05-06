@@ -94,7 +94,8 @@ export class Airplay {
     })
   }
 
-  _onRequestCast = () => {
+  _onRequestCast = ({ protocol } = {}) => {
+    if (protocol && protocol !== 'airplay') return
     if (!isAirPlayAvailable(this.player)) {
       return false
     }
