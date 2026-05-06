@@ -105,6 +105,10 @@ export class FetchLoader extends EventEmitter {
     if (timeoutMs) {
       this._timeoutTimer = setTimeout(async()  => {
         isTimeout = true
+        if (dynamicTimeoutIns && typeof dynamicTimeoutIns.update === 'function') {
+          this._logger.debug('[dytimeout] fetch timeout update rtt,', timeoutMs * 5)
+          dynamicTimeoutIns.update(timeoutMs * 5)
+        }
         await this.cancel()
         if (onTimeout) {
           const error = new NetError(url, init, null, 'timeout')
