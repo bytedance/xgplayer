@@ -1,4 +1,5 @@
 import { loadChromecastSdk } from './chromecast-sdk'
+import { resolveCastMedia } from './cast-media'
 
 export class Chromecast {
   constructor(plugin, config) {
@@ -85,10 +86,41 @@ export class Chromecast {
     }
   }
 
-  // Will be implemented in Task 6
-  _onRequestCast = ({ protocol } = {}) => {
+  _onRequestCast = async ({ protocol } = {}) => {
     if (protocol && protocol !== 'chromecast') return
-    // TODO: Task 6 — requestSession + loadMedia
+
+    if (!this.castContext) {
+      console.warn('[xgplayer-cast] Chromecast context is not ready')
+      return
+    }
+
+    try {
+      // ⚠️ requestSession() must be called within a user gesture stack on Android Chrome
+      await this.castContext.requestSession()
+
+      const session = this.castContext.getCurrentSession()
+      if (!session) {
+        console.warn('[xgplayer-cast] No Chromecast session after requestSession()')
+        return
+      }
+
+      let castMedia
+      try {
+        castMedia = resolveCastMedia(this.player)
+      } catch (err) {
+        console.warn('[xgplayer-cast] Cannot resolve cast media URL:', err.message)
+        return
+      }
+
+      const { url, contentType } = castMedia
+      const mediaInfo = new window.chrome.cast.media.MediaInfo(url, contentType)
+      const request = new window.chrome.cast.media.LoadRequest(mediaInfo)
+      request.autoplay = !!this.plugin.config.autoplayOnCast
+
+      await session.loadMedia(request)
+    } catch (err) {
+      console.warn('[xgplayer-cast] Chromecast cast request failed:', err)
+    }
   }
 
   destroy() {
