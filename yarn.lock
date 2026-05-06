@@ -5711,6 +5711,15 @@ xgplayer-mp4-loader@0.0.1:
     xgplayer-streaming-shared "3.0.0-next.2-1"
     xgplayer-transmuxer "3.0.0-next.2-1"
 
+xgplayer-mp4-loader@3.0.24:
+  version "3.0.24"
+  resolved "https://registry.yarnpkg.com/xgplayer-mp4-loader/-/xgplayer-mp4-loader-3.0.24.tgz#0ef722468d3cd3402aaab91ef181d2006c253514"
+  integrity sha512-nK57uCuoBopZa0Wdy1vBnLoYT10ynuUjFwajxtnFNZ7vqREqsUA7JohdaVKR3HikOrzBjObjgypiY/AU5sfgwg==
+  dependencies:
+    eventemitter3 "^4.0.7"
+    xgplayer-streaming-shared "3.0.24"
+    xgplayer-transmuxer "3.0.24"
+
 xgplayer-streaming-shared@3.0.0-next.2-1:
   version "3.0.0-next.2-1"
   resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.2-1.tgz#357cd2d160f3f12a21dacd8a8fadb7f598639166"
@@ -5726,6 +5735,20 @@ xgplayer-streaming-shared@3.0.0-next.8:
   dependencies:
     "@babel/runtime" "^7.15.3"
     core-js "3"
+
+xgplayer-streaming-shared@3.0.24:
+  version "3.0.24"
+  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.24.tgz#665fdb7a91bc1d60a9ff8de23f54b34f91ef2f32"
+  integrity sha512-6ROPxuwAIYWysF8qWMeVTHzlc+KFVhU0d79WY9B3st1RqBidEhysGqQRbwd9WHMuWePbLQv2zj6yRg7PVcdXKA==
+  dependencies:
+    eventemitter3 "^4.0.7"
+
+xgplayer-streaming-shared@3.0.25-rc.4:
+  version "3.0.25-rc.4"
+  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.25-rc.4.tgz#bf7e121be478e31bc0093320e865f144681a00ac"
+  integrity sha512-aIFQ39QpZaw9uwOEv3lZG68+B+mwh63hi834s8SLgranwH5G4VH7ESOG5UOo77Xv3zT1R0FMslK1ZPKBvHS7pA==
+  dependencies:
+    eventemitter3 "^4.0.7"
 
 xgplayer-transmuxer@3.0.0-next.2-1:
   version "3.0.0-next.2-1"
