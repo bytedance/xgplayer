@@ -36,6 +36,7 @@ export class XhrLoader extends EventEmitter {
   _firstRtt
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
+  _dynamicTimeoutIns = null
 
 
   constructor () {
@@ -56,6 +57,7 @@ export class XhrLoader extends EventEmitter {
     this._runing = true
     this._vid = req.vid || req.url
     this._responseType = req.responseType
+    this._dynamicTimeoutIns = req.dynamicTimeoutIns
     this._firstRtt = -1
     this._onTimeout = req.onTimeout
     this._onCancel = req.onCancel
@@ -125,6 +127,10 @@ export class XhrLoader extends EventEmitter {
         this._loadCompleteReject(error)
       }
       xhr.ontimeout = (event) => {
+        if (this._dynamicTimeoutIns && typeof this._dynamicTimeoutIns.update === 'function') {
+          this._logger.debug('[dytimeout], xhr timeout update rtt,', timeoutMs * 5)
+          this._dynamicTimeoutIns.update(xhr.timeout * 5)
+        }
         this.cancel()
         const error = new NetError(this._url, this._request, {status:408}, 'timeout')
         if (this._onTimeout) {
