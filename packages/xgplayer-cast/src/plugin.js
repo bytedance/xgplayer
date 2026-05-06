@@ -40,6 +40,15 @@ export class CastPlugin extends Plugin {
     }
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
+    this._castAvailability = {
+      airplay: 'not-available',
+      chromecast: 'not-available'
+    }
+
+    // Bind prototype methods used as event listeners so off() can remove them
+    this._onCastTargetChange = this._onCastTargetChange.bind(this)
+    this._onCastAvailabilityChange = this._onCastAvailabilityChange.bind(this)
+    this._onLoadStart = this._onLoadStart.bind(this)
 
     this.appendChild('.xgplayer-icon', this.icons.cast)
     this._handler = this.hook('click', this._doCast, {
@@ -68,27 +77,43 @@ export class CastPlugin extends Plugin {
     }
   }
 
-  _onLoadStart = () => {}
+  _onLoadStart() {
+    // TODO: if currently Chromecast casting, re-invoke loadMedia on the receiver
+    // to sync the new source. See: https://developers.google.com/cast/docs/web_sender/integrate#load_media
+    // Current version does not handle this — source changes during cast will desync remote from local.
+  }
 
-  _onCastAvailabilityChange = ({ availability }) => {
-    switch (availability) {
-      case 'available':
-        this.show()
-        break
-      case 'not-available':
-        this.hide()
-        break
+  _onCastAvailabilityChange({ protocol, availability }) {
+    if (protocol) {
+      this._castAvailability[protocol] = availability
+    }
+
+    const hasAvailableProtocol = Object.values(this._castAvailability)
+      .some((v) => v === 'available')
+
+    hasAvailableProtocol ? this.show() : this.hide()
+  }
+
+  async _onCastTargetChange({ isCasting, protocol }) {
+    if (isCasting) {
+      if (protocol === 'airplay') {
+        this._suspendMSEPlugin()
+      }
+      await this._handleCastActivated({ protocol })
+    } else {
+      this._castHandshakeInProgress = false
+      if (protocol === 'airplay') {
+        this._resumeMSEPlugin()
+      }
     }
   }
 
-  _onCastTargetChange = ({ isCasting }) => {
-    if (isCasting) {
-      this._suspendMSEPlugin()
-      this._playForCastHandshake()
-    } else {
-      this._castHandshakeInProgress = false
-      this._resumeMSEPlugin()
+  async _handleCastActivated({ protocol }) {
+    if (protocol === 'chromecast') {
+      // Chromecast uses loadMedia.autoplay — no local play() handshake needed
+      return
     }
+    return this._playForCastHandshake()
   }
 
   /**
@@ -96,7 +121,7 @@ export class CastPlugin extends Plugin {
    * AirPlay/Chromecast often needs an explicit play command to complete route activation.
    * If autoplayOnCast is false, pause immediately after the route is activated.
    */
-  _playForCastHandshake = async () => {
+  async _playForCastHandshake() {
     if (this._castHandshakeInProgress) {
       return
     }
@@ -186,11 +211,29 @@ export class CastPlugin extends Plugin {
 
   /**
    * @public
-   * Programmatically request casting. Opens the native cast dialog (AirPlay picker or
-   * Chromecast device chooser) if a protocol is available.
+   * Programmatically request casting. Selects the best available protocol
+   * and emits cast_request with a protocol payload so only the correct
+   * adapter responds. Pass protocol explicitly to force a specific one.
    */
-  requestCast() {
-    this.emit('cast_request')
+  requestCast(protocol) {
+    const targetProtocol = protocol || this._getPreferredCastProtocol()
+    if (!targetProtocol) {
+      return
+    }
+    this.emit('cast_request', { protocol: targetProtocol })
+  }
+
+  _getPreferredCastProtocol() {
+    const available = Object.entries(this._castAvailability)
+      .filter(([, v]) => v === 'available')
+      .map(([k]) => k)
+    if (available.length === 0) return null
+    // Safari/iOS doesn't support Chromecast; prefer AirPlay there
+    const isWebkit =
+      /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent)
+    if (isWebkit && available.includes('airplay')) return 'airplay'
+    if (available.includes('chromecast')) return 'chromecast'
+    return available[0]
   }
 
   destroy() {
