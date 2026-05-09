@@ -26,7 +26,7 @@ try {
 }
 var opts = Object.assign(
   {
-    url: 'http://127.0.0.1:8081/fixtures/hlsjs/video/0001-4kcountry-road.m3u8'
+    url: 'https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8'
   },
   defaultOpt(),
   cachedOpt
