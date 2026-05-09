@@ -205,7 +205,7 @@ export class MSE {
         const costTime = nowTime() - this._st
         this._logger.debug('sourceopen', costTime)
         ms.removeEventListener('sourceopen', onOpen)
-        this.flv.emit('sourceopen', {costtime: costTime, isworker: globalThis?.inPlayerWorker})
+        this.flv.emit('sourceopen', {costtime: costTime})
         this._openPromise.resolve({costtime: costTime})
       }
       ms.addEventListener('sourceopen', onOpen)
@@ -251,7 +251,7 @@ export class MSE {
       if (!(typeof window === 'undefined' && globalThis?.inPlayerWorker)) {
         URL.revokeObjectURL(media.src)
       }
-      this.flv.emit('sourceopen', {costtime: costTime, isworker: globalThis?.inPlayerWorker})
+      this.flv.emit('sourceopen', {costtime: costTime})
       this._openPromise.resolve({costtime: costTime})
     }
     ms.addEventListener('sourceopen', onOpen)

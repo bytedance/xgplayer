@@ -140,6 +140,9 @@ window.onload = function () {
         if (eventName === 'core.buffereos') {
           console.log('core_event', eventName)
         }
+        if (eventName === 'core.sourcebuffercreated') {
+          console.log('core_event', eventName)
+        }
       })
       player.on('error', (e) => {
         console.log('error', e)
