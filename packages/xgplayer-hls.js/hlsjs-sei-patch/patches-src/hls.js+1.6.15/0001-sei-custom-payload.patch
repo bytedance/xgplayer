@@ -1,0 +1,38 @@
+diff --git a/src/utils/mp4-tools.ts b/src/utils/mp4-tools.ts
+--- a/src/utils/mp4-tools.ts
++++ b/src/utils/mp4-tools.ts
+@@ -1168,11 +1168,21 @@ export function parseSEIMessageFromNALu(
+         samples.push({
+           payloadType,
+           pts,
+           uuid: uuidStrArray.join(''),
+           userData: utf8ArrayToStr(userDataBytes),
+           userDataBytes,
+         });
+       }
++    } else {
++      if (payloadSize > 0) {
++        samples.push({
++          payloadType,
++          pts,
++          payloadSize,
++          payload: data.subarray(payPtr, payPtr + payloadSize),
++          customSeiMessage: true,
++        });
++      }
+     }
+   }
+ }
+diff --git a/src/types/demuxer.ts b/src/types/demuxer.ts
+--- a/src/types/demuxer.ts
++++ b/src/types/demuxer.ts
+@@ -163,5 +163,9 @@ export interface UserdataSample {
+   payloadType?: number;
+   uuid?: string;
+   userData?: string;
+   userDataBytes?: Uint8Array;
++
++  payloadSize?: number;
++  payload?: Uint8Array;
++  customSeiMessage?: boolean;
+ }

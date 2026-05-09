@@ -24,7 +24,8 @@
     "test": "jest --verbose",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --verbose --ci --coverage"
+    "test:ci": "jest --verbose --ci --coverage",
+    "postinstall": "yarn workspace xgplayer-hls.js hlsjs:patch:apply"
   },
   "libd": {
     "legacy": {
@@ -60,7 +61,6 @@
   "homepage": "https://github.com/bytedance/xgplayer#readme",
   "devDependencies": {
     "@babel/core": "^7.17.9",
-
     "@babel/parser": "^7.15.3",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.26.0",
@@ -81,7 +81,6 @@
     "core-js": "3.12.1",
     "dts-bundle-generator": "^6.4.0",
     "enquirer": "^2.3.6",
-
     "execa": "^5.1.1",
     "fs-extra": "^10.0.0",
     "jest": "^28.1.1",

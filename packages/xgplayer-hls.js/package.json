@@ -37,6 +37,14 @@
     "event-emitter": "^0.3.5",
     "hls.js": "^1.6.15"
   },
+  "devDependencies": {
+    "patch-package": "^8.0.1"
+  },
+  "scripts": {
+    "hlsjs:patch:apply": "node ./patches/hlsjs-sei-patch/apply.js",
+    "hlsjs:patch:verify": "node ./patches/hlsjs-sei-patch/verify.js",
+    "hlsjs:patch:regen": "node ./patches/hlsjs-sei-patch/regen.js"
+  },
   "peerDependencies": {
     "xgplayer": ">=3.0.13",
     "core-js": ">=3.12.1"
