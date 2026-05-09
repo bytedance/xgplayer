@@ -1,0 +1,187 @@
+import { BasePlugin, Events } from 'xgplayer'
+import utils from './utils'
+
+function createHlsJsPlugin(Hls) {
+  return class HlsJsPlugin extends BasePlugin {
+    static get pluginName() {
+      return 'HlsJsPlugin'
+    }
+
+    static get defaultConfig() {
+      return {
+        hlsOpts: {}
+      }
+    }
+
+    static get isSupported() {
+      return Hls.isSupported
+    }
+
+    static get Hls() {
+      return Hls
+    }
+
+    constructor(args) {
+      super(args)
+      this.browser = utils.getBrowserVersion()
+      this.hls = null
+      this.hlsOpts = {}
+      this.player.handleSource = false // 关闭player源处理
+    }
+
+    /**
+     * @private
+     */
+    _adaptHlsJsConfig(hlsOpts = {}) {
+      const { playerConfig } = this
+
+      if (!hlsOpts?.startPosition && typeof playerConfig.startTime === 'number') {
+        hlsOpts.startPosition = playerConfig.startTime
+      }
+
+      return hlsOpts
+    }
+
+    afterCreate() {
+      const { hlsOpts } = this.config
+      this.hlsOpts = this._adaptHlsJsConfig(hlsOpts)
+
+      this.on(Events.URL_CHANGE, url => {
+        if (/^blob/.test(url)) {
+          return
+        }
+        this.playerConfig.url = url
+        this.register(url)
+      })
+      try {
+        BasePlugin.defineGetterOrSetter(this.player, {
+          url: {
+            get: () => {
+              try {
+                return this.player.video.src
+              } catch (_error) {
+                return null
+              }
+            },
+            configurable: true
+          }
+        })
+      } catch (_e) {
+        // NOOP
+      }
+    }
+
+    beforePlayerInit() {
+      this.register(this.player.config.url)
+    }
+
+    destroy() {
+      this.hls?.destroy()
+      const { player } = this
+      BasePlugin.defineGetterOrSetter(player, {
+        url: {
+          get: () => {
+            try {
+              return player.__url
+            } catch (_error) {
+              return null
+            }
+          },
+          configurable: true
+        }
+      })
+    }
+
+    register(url) {
+      const { player } = this
+      if (this.hls) {
+        this.hls.destroy()
+      }
+      this.hls = new Hls(this.hlsOpts)
+      this.hls.once(Hls.Events.MEDIA_ATTACHED, () => {
+        this.hls.loadSource(url)
+      })
+
+      this.hls.on(Hls.Events.ERROR, (_event, data) => {
+        player.emit('HLS_ERROR', {
+          errorType: data.type,
+          errorDetails: data.details,
+          errorFatal: data.fatal
+        })
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              if (!(data?.networkDetails?.status === 404)) {
+                this.hls.startLoad()
+              }
+              break
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              this.hls.recoverMediaError()
+              break
+            default:
+              player.emit('error', data)
+          }
+        }
+      })
+      this.hls.attachMedia(this.player.media || this.player.video)
+      this._statistics()
+    }
+
+    _statistics() {
+      const statsInfo = {
+        speed: 0,
+        playerType: 'HlsPlayer'
+      }
+
+      const mediainfo = {
+        videoDataRate: 0,
+        audioDataRate: 0
+      }
+      const { player, hls } = this
+
+      hls.on(Hls.Events.FRAG_LOAD_PROGRESS, (_flag, payload) => {
+        statsInfo.speed = payload.stats.loaded / 1000
+      })
+      hls.on(Hls.Events.FRAG_PARSING_DATA, (_flag, payload) => {
+        if (payload.type === 'video') {
+          mediainfo.fps = parseInt(payload.nb / (payload.endPTS - payload.startPTS))
+        }
+      })
+
+      hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (_flag, payload) => {
+        mediainfo.hasAudio = !!payload.tracks?.audio
+        mediainfo.hasVideo = !!payload.tracks?.video
+
+        if (mediainfo.hasAudio) {
+          const track = payload.tracks.audio
+          mediainfo.audioChannelCount = track.metadata?.channelCount
+            ? track.metadata.channelCount
+            : 0
+          mediainfo.audioCodec = track.codec
+        }
+
+        if (mediainfo.hasVideo) {
+          const track = payload.tracks.video
+          mediainfo.videoCodec = track.codec
+          mediainfo.width = track.metadata?.width ? track.metadata.width : 0
+          mediainfo.height = track.metadata?.height ? track.metadata.height : 0
+        }
+        mediainfo.duration = payload.frag?.duration ? payload.frag.duration : 0
+        mediainfo.level = payload.frag?.levels ? payload.frag.levels : 0
+        if (mediainfo.videoCodec || mediainfo.audioCodec) {
+          mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"`
+        }
+
+        player.mediainfo = mediainfo
+        player.emit('media_info', mediainfo)
+      })
+
+      this._statisticsTimmer = setInterval(() => {
+        player.emit('statistics_info', statsInfo)
+        statsInfo.speed = 0
+      }, 1000)
+    }
+  }
+}
+
+export default createHlsJsPlugin

@@ -2,6 +2,8 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
+const { copyPatchedHlsVendor } = require('./sync-vendor')
+
 function getRepoRoot() {
   return path.resolve(__dirname, '..', '..', '..', '..')
 }
@@ -54,7 +56,10 @@ if (applyStatus !== 0) {
   process.exit(applyStatus)
 }
 
-// 3) Verify patches are actually in effect.
+// 3) Sync patched hls.js files into package source so published consumers use them.
+copyPatchedHlsVendor({ repoRoot })
+
+// 4) Verify patches are actually in effect.
 const verifyScript = path.join(
   'packages',
   'xgplayer-hls.js',

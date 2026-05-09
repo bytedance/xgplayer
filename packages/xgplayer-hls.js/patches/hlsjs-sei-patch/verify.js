@@ -38,6 +38,16 @@ function main() {
   // Worker bundle (minified)
   assertIncludes(path.join(dist, 'hls.worker.js'), 'customSeiMessage:!0')
 
+  // Package vendor files used by published xgplayer-hls.js consumers
+  assertIncludes(
+    path.join(repoRoot, 'packages', 'xgplayer-hls.js', 'src', 'vendor', 'hls.js'),
+    'customSeiMessage: true'
+  )
+  assertIncludes(
+    path.join(repoRoot, 'packages', 'xgplayer-hls.js', 'src', 'vendor', 'hls.light.js'),
+    'customSeiMessage: true'
+  )
+
   // Patch file naming convention: hls.js+<version>.patch
   const patchFile = path.join(
     repoRoot,

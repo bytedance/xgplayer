@@ -5,6 +5,7 @@ const {
   getRepoRoot,
   run
 } = require('./source-build')
+const { copyPatchedHlsVendor } = require('./sync-vendor')
 
 function main() {
   const repoRoot = getRepoRoot()
@@ -29,7 +30,10 @@ function main() {
     '--use-yarn'
   ])
 
-  // 4) Verify.
+  // 4) Sync patched hls.js files into package source for published consumers.
+  copyPatchedHlsVendor({ repoRoot })
+
+  // 5) Verify.
   run(process.execPath, [
     path.join('packages', 'xgplayer-hls.js', 'patches', 'hlsjs-sei-patch', 'verify.js')
   ])

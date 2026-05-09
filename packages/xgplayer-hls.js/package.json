@@ -43,7 +43,9 @@
   "scripts": {
     "hlsjs:patch:apply": "node ./patches/hlsjs-sei-patch/apply.js",
     "hlsjs:patch:verify": "node ./patches/hlsjs-sei-patch/verify.js",
-    "hlsjs:patch:regen": "node ./patches/hlsjs-sei-patch/regen.js"
+    "hlsjs:patch:regen": "node ./patches/hlsjs-sei-patch/regen.js",
+    "hlsjs:patch:sync-vendor": "node ./patches/hlsjs-sei-patch/sync-vendor.js",
+    "hlsjs:build": "node ./patches/hlsjs-sei-patch/build-package.js"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.13",
