@@ -14,11 +14,14 @@ function createPluginStub(overrides = {}) {
   plugin.show = jest.fn()
   plugin.hide = jest.fn()
   plugin.emit = jest.fn()
+  plugin.find = jest.fn(() => null)
+  plugin.icons = {}
   // Bind the actual methods from the prototype
   plugin._playForCastHandshake = CastPlugin.prototype._playForCastHandshake.bind(plugin)
   plugin._handleCastActivated = CastPlugin.prototype._handleCastActivated.bind(plugin)
   plugin._onCastAvailabilityChange = CastPlugin.prototype._onCastAvailabilityChange.bind(plugin)
   plugin._updateCastIconVisibility = CastPlugin.prototype._updateCastIconVisibility.bind(plugin)
+  plugin._updateCastIcon = CastPlugin.prototype._updateCastIcon.bind(plugin)
   plugin.requestCast = CastPlugin.prototype.requestCast.bind(plugin)
   plugin._getPreferredCastProtocol = CastPlugin.prototype._getPreferredCastProtocol.bind(plugin)
   plugin._getProtocolOrder = CastPlugin.prototype._getProtocolOrder.bind(plugin)
@@ -101,6 +104,29 @@ describe('CastPlugin availability aggregation', () => {
 
     expect(plugin.show).toHaveBeenCalled()
     expect(plugin.hide).not.toHaveBeenCalled()
+  })
+
+  test('switches icon to preferred protocol when visibility updates', () => {
+    const iconRoot = document.createElement('div')
+    const chromecastIcon = document.createElement('svg')
+    const airplayIcon = document.createElement('svg')
+    const plugin = createPluginStub({
+      _castAvailability: { airplay: 'not-available', chromecast: 'available' },
+      _castAdapters: {
+        airplay: {},
+        chromecast: {}
+      },
+      find: jest.fn(() => iconRoot),
+      icons: {
+        airplay: airplayIcon,
+        chromecast: chromecastIcon
+      }
+    })
+
+    plugin._updateCastIconVisibility()
+
+    expect(iconRoot.firstChild).toBe(chromecastIcon)
+    expect(plugin.show).toHaveBeenCalled()
   })
 
   test('hides button when no protocol available or requestable', () => {
