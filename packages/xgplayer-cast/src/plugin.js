@@ -1,4 +1,5 @@
 import { Plugin } from 'xgplayer'
+import AirplaySvg from './assets/airplay.svg'
 import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
 import { Chromecast } from './platform/chromecast'
@@ -96,7 +97,29 @@ export class CastPlugin extends Plugin {
   }
 
   _updateCastIconVisibility() {
-    this._getPreferredCastProtocol() ? this.show() : this.hide()
+    const protocol = this._getPreferredCastProtocol()
+    if (protocol) {
+      this._updateCastIcon(protocol)
+      this.show()
+    } else {
+      this.hide()
+    }
+  }
+
+  _updateCastIcon(protocol) {
+    if (this._castIconProtocol === protocol) {
+      return
+    }
+
+    this._castIconProtocol = protocol
+    const iconRoot = this.find('.xgplayer-icon')
+    const icon = this.icons[protocol] || this.icons.cast
+    if (!iconRoot || !icon) {
+      return
+    }
+
+    iconRoot.innerHTML = ''
+    iconRoot.appendChild(icon)
   }
 
   async _onCastTargetChange({ isCasting, protocol }) {
@@ -205,7 +228,9 @@ export class CastPlugin extends Plugin {
 
   registerIcons() {
     return {
-      cast: { icon: CastSvg, class: 'xg-cast-icon' }
+      airplay: { icon: AirplaySvg, class: 'xg-airplay-icon' },
+      cast: { icon: CastSvg, class: 'xg-cast-icon' },
+      chromecast: { icon: CastSvg, class: 'xg-cast-icon' }
     }
   }
 
