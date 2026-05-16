@@ -64,7 +64,7 @@ export class Airplay {
     const video = this.player.media || this.player.video
     const isWireless = !!video.webkitCurrentPlaybackTargetIsWireless
 
-    if (isWireless && /^blob\:/.test(video.currentSrc)) {
+    if (isWireless && /^blob:/.test(video.currentSrc)) {
       // Wireless State: true -> false -> true，有3次状态变化。其中第一次状态变化时，
       // AirPlay 会先用 MSE 作为选中目标，进入 wireless 状态，但这次选中会失败。
       // 应该忽略掉这次状态变化，等待第三次状态变化才真正认为进入了 AirPlay 模式
@@ -92,6 +92,10 @@ export class Airplay {
       protocol: 'airplay',
       isCasting
     })
+  }
+
+  canRequest() {
+    return isAirPlayAvailable(this.player)
   }
 
   _onRequestCast = ({ protocol } = {}) => {

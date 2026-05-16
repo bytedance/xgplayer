@@ -44,6 +44,7 @@ export class CastPlugin extends Plugin {
       airplay: 'not-available',
       chromecast: 'not-available'
     }
+    this._castAdapters = {}
 
     // Bind prototype methods used as event listeners so off() can remove them
     this._onCastTargetChange = this._onCastTargetChange.bind(this)
@@ -67,14 +68,17 @@ export class CastPlugin extends Plugin {
       isAirPlayAvailable(this.player)
     ) {
       this._airplay = new Airplay(this)
+      this._castAdapters.airplay = this._airplay
       this._airplay.install()
     }
 
     this._chromecastConfig = normalizeChromecastConfig(this.config.chromecast)
     if (shouldInstallChromecast(this.player, this._chromecastConfig)) {
       this._chromecast = new Chromecast(this, this._chromecastConfig)
+      this._castAdapters.chromecast = this._chromecast
       this._chromecast.install()
     }
+    this._updateCastIconVisibility()
   }
 
   _onLoadStart() {
@@ -88,10 +92,11 @@ export class CastPlugin extends Plugin {
       this._castAvailability[protocol] = availability
     }
 
-    const hasAvailableProtocol = Object.values(this._castAvailability)
-      .some((v) => v === 'available')
+    this._updateCastIconVisibility()
+  }
 
-    hasAvailableProtocol ? this.show() : this.hide()
+  _updateCastIconVisibility() {
+    this._getPreferredCastProtocol() ? this.show() : this.hide()
   }
 
   async _onCastTargetChange({ isCasting, protocol }) {
@@ -224,22 +229,38 @@ export class CastPlugin extends Plugin {
   }
 
   _getPreferredCastProtocol() {
-    const available = Object.entries(this._castAvailability)
-      .filter(([, v]) => v === 'available')
-      .map(([k]) => k)
-    if (available.length === 0) return null
-    // Safari/iOS doesn't support Chromecast; prefer AirPlay there
-    const isWebkit =
-      /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent)
-    if (isWebkit && available.includes('airplay')) return 'airplay'
-    if (available.includes('chromecast')) return 'chromecast'
-    return available[0]
+    const protocols = this._getProtocolOrder()
+
+    for (const protocol of protocols) {
+      if (this._castAvailability[protocol] === 'available') {
+        return protocol
+      }
+    }
+
+    for (const protocol of protocols) {
+      if (this._castAdapters[protocol]?.canRequest?.()) {
+        return protocol
+      }
+    }
+
+    return null
+  }
+
+  _getProtocolOrder() {
+    const protocols = Object.keys(this._castAdapters)
+    return protocols.sort((a, b) => {
+      if (a === b) return 0
+      if (a === 'chromecast') return -1
+      if (b === 'chromecast') return 1
+      return 0
+    })
   }
 
   destroy() {
     super.destroy()
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
+    this._castAdapters = {}
     this.off('loadstart', this._onLoadStart)
     this.off('cast_availability_change', this._onCastAvailabilityChange)
     this.off('cast_target_change', this._onCastTargetChange)
