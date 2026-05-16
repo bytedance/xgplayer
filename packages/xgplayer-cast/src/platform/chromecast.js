@@ -8,6 +8,7 @@ export class Chromecast {
     this.config = config
     this.castContext = null
     this.session = null
+    this._castState = null
   }
 
   async install() {
@@ -50,11 +51,11 @@ export class Chromecast {
       autoJoinPolicy: this._mapAutoJoinPolicy(this.config.autoJoinPolicy)
     })
 
+    this.castContext = castContext
+
     // Emit the current cast state immediately so button availability is correct
     // even if no CAST_STATE_CHANGED event fires (e.g. state was already set).
     this._onCastStateChanged({ castState: castContext.getCastState?.() })
-
-    this.castContext = castContext
   }
 
   _mapAutoJoinPolicy(policy) {
@@ -66,6 +67,7 @@ export class Chromecast {
   }
 
   _onCastStateChanged = ({ castState }) => {
+    this._castState = castState
     this.player?.emit('cast_availability_change', {
       protocol: 'chromecast',
       availability:
@@ -91,6 +93,11 @@ export class Chromecast {
         isCasting: false
       })
     }
+  }
+
+  canRequest() {
+    const noDevices = window.cast?.framework?.CastState?.NO_DEVICES_AVAILABLE
+    return !!this.castContext && this._castState !== noDevices
   }
 
   _onRequestCast = async ({ protocol } = {}) => {
@@ -144,6 +151,7 @@ export class Chromecast {
     }
     this.castContext = null
     this.session = null
+    this._castState = null
     this.player = null
     this.plugin = null
   }
