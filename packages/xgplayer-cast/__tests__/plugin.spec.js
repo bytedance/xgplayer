@@ -10,6 +10,7 @@ function createPluginStub(overrides = {}) {
   plugin.config = { autoplayOnCast: true }
   plugin._castHandshakeInProgress = false
   plugin._castAvailability = { airplay: 'not-available', chromecast: 'not-available' }
+  plugin._castAdapters = {}
   plugin.show = jest.fn()
   plugin.hide = jest.fn()
   plugin.emit = jest.fn()
@@ -17,8 +18,10 @@ function createPluginStub(overrides = {}) {
   plugin._playForCastHandshake = CastPlugin.prototype._playForCastHandshake.bind(plugin)
   plugin._handleCastActivated = CastPlugin.prototype._handleCastActivated.bind(plugin)
   plugin._onCastAvailabilityChange = CastPlugin.prototype._onCastAvailabilityChange.bind(plugin)
+  plugin._updateCastIconVisibility = CastPlugin.prototype._updateCastIconVisibility.bind(plugin)
   plugin.requestCast = CastPlugin.prototype.requestCast.bind(plugin)
   plugin._getPreferredCastProtocol = CastPlugin.prototype._getPreferredCastProtocol.bind(plugin)
+  plugin._getProtocolOrder = CastPlugin.prototype._getProtocolOrder.bind(plugin)
   Object.assign(plugin, overrides)
   return plugin
 }
@@ -73,7 +76,12 @@ describe('CastPlugin protocol-aware activation', () => {
 
 describe('CastPlugin availability aggregation', () => {
   test('shows button when airplay available even if chromecast not-available', () => {
-    const plugin = createPluginStub()
+    const plugin = createPluginStub({
+      _castAdapters: {
+        airplay: {},
+        chromecast: {}
+      }
+    })
 
     plugin._onCastAvailabilityChange({ protocol: 'airplay', availability: 'available' })
     plugin._onCastAvailabilityChange({ protocol: 'chromecast', availability: 'not-available' })
@@ -82,7 +90,20 @@ describe('CastPlugin availability aggregation', () => {
     expect(plugin.hide).not.toHaveBeenCalled()
   })
 
-  test('hides button when both protocols not-available', () => {
+  test('shows button when installed airplay can be requested before availability event arrives', () => {
+    const plugin = createPluginStub({
+      _castAdapters: {
+        airplay: { canRequest: jest.fn(() => true) }
+      }
+    })
+
+    plugin._onCastAvailabilityChange({ protocol: 'chromecast', availability: 'not-available' })
+
+    expect(plugin.show).toHaveBeenCalled()
+    expect(plugin.hide).not.toHaveBeenCalled()
+  })
+
+  test('hides button when no protocol available or requestable', () => {
     const plugin = createPluginStub()
 
     plugin._onCastAvailabilityChange({ protocol: 'airplay', availability: 'not-available' })
@@ -93,9 +114,26 @@ describe('CastPlugin availability aggregation', () => {
 })
 
 describe('CastPlugin requestCast', () => {
+  const originalUserAgent = navigator.userAgent
+
+  function setUserAgent(userAgent) {
+    Object.defineProperty(navigator, 'userAgent', {
+      configurable: true,
+      value: userAgent
+    })
+  }
+
+  afterEach(() => {
+    setUserAgent(originalUserAgent)
+  })
+
   test('emits cast_request with airplay protocol when only airplay available', () => {
     const plugin = createPluginStub({
-      _castAvailability: { airplay: 'available', chromecast: 'not-available' }
+      _castAvailability: { airplay: 'available', chromecast: 'not-available' },
+      _castAdapters: {
+        airplay: {},
+        chromecast: {}
+      }
     })
 
     plugin.requestCast()
@@ -105,12 +143,43 @@ describe('CastPlugin requestCast', () => {
 
   test('emits cast_request with chromecast protocol when only chromecast available', () => {
     const plugin = createPluginStub({
-      _castAvailability: { airplay: 'not-available', chromecast: 'available' }
+      _castAvailability: { airplay: 'not-available', chromecast: 'available' },
+      _castAdapters: {
+        airplay: {},
+        chromecast: {}
+      }
     })
 
     plugin.requestCast()
 
     expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'chromecast' })
+  })
+
+  test('uses adapter protocol order instead of browser userAgent when multiple protocols are available', () => {
+    setUserAgent('Mozilla/5.0 Version/17.0 Safari/605.1.15')
+    const plugin = createPluginStub({
+      _castAvailability: { airplay: 'available', chromecast: 'available' },
+      _castAdapters: {
+        chromecast: {},
+        airplay: {}
+      }
+    })
+
+    plugin.requestCast()
+
+    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'chromecast' })
+  })
+
+  test('falls back to requestable airplay adapter before availability event arrives', () => {
+    const plugin = createPluginStub({
+      _castAdapters: {
+        airplay: { canRequest: jest.fn(() => true) }
+      }
+    })
+
+    plugin.requestCast()
+
+    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'airplay' })
   })
 
   test('emits cast_request with explicit protocol override', () => {
@@ -123,7 +192,7 @@ describe('CastPlugin requestCast', () => {
     expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'airplay' })
   })
 
-  test('does not emit when no protocol available', () => {
+  test('does not emit when no protocol available or requestable', () => {
     const plugin = createPluginStub()
 
     plugin.requestCast()
