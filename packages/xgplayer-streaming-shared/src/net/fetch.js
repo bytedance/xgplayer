@@ -187,13 +187,8 @@ export class FetchLoader extends EventEmitter {
     this._aborted = true
     this._running = false
     if (this._response) {
-      try {
-        // await this._response.body.cancel()
-        if (this._reader) {
-          await this._reader.cancel()
-        }
-      } catch (error) {
-        // ignore
+      if (this._reader) {
+        this._reader.cancel().catch(() => { })
       }
       this._response = this._reader = null
     }
