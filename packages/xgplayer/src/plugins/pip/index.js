@@ -228,6 +228,7 @@ class PIP extends IconPlugin {
 
           // Listen for the PiP closing event to put the video back.
           pipWin.addEventListener('pagehide', (event) => {
+            player.plugins?.progress?.resetDragState?.()
             // Restore nodes to their original location
             if (parentNode) {
               if (nextSibling) {
@@ -303,7 +304,9 @@ class PIP extends IconPlugin {
   }
 
   isDocPIPAvailable () {
-    return 'documentPictureInPicture' in window && /^(https|file)/.test(location.protocol)
+    const { protocol, hostname } = location
+    const isLocalhost = /^(localhost|127(?:\.\d{1,3}){3}|\[::1\])$/.test(hostname)
+    return 'documentPictureInPicture' in window && (/^(https|file)/.test(protocol) || (protocol === 'http:' && isLocalhost))
   }
 
   destroy () {

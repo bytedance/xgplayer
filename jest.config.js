@@ -155,6 +155,7 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
+    '**/packages/xgplayer/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js'

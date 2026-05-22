@@ -292,8 +292,13 @@ function init(index = 0, config = {}) {
         url: url
       }
     },
-    url: "./heatmap.mp4",
-    pip: true,
+    url: 'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4',
+    pip: {
+      showIcon: true,
+      preferDocument: true,
+      width: 480,
+      height: 270
+    },
     loop: false,
     autoplay: false,
     autoplayMuted: false,
@@ -552,6 +557,50 @@ window.addLog = addLog
 window.playNext = playNext
 window.destroy = destroy
 window.initPlayer = init
+window.initDocumentPipCase = () => {
+  init(0, {
+    pip: {
+      showIcon: true,
+      preferDocument: true,
+      width: 480,
+      height: 270
+    },
+    texttrack: {
+      debugger: false,
+      list: [{
+        label: '双语',
+        language: 'double',
+        id: '0',
+        isDefault: true,
+        url: '../subtitle/vtt/double.vtt',
+      }, {
+        label: '中文',
+        language: 'cn',
+        id: '1',
+        isDefault: undefined,
+        url: '../subtitle/vtt/cn.vtt'
+      }, {
+        label: '英文',
+        url: '../subtitle/vtt/en.vtt',
+        id: '2',
+        isDefault: false,
+        language: 'en'
+      }],
+      updateMode: 'vod',
+      isDefaultOpen: true,
+      mode: 'external',
+    }
+  })
+  addLog(0, 'Document PiP case ready. Click "进入Document PiP", then click or drag the PiP progress bar.')
+}
+window.requestDocumentPip = (index) => {
+  const player = window[`player${index}`]
+  player?.plugins?.pip?.requestPIP()
+}
+window.exitDocumentPip = (index) => {
+  const player = window[`player${index}`]
+  player?.plugins?.pip?.exitPIP()
+}
 window.createDot = (index) => {
   const player = window[`player${index}`]
   const time = parseInt(Math.random(1) * player.duration, 10)

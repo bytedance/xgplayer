@@ -340,6 +340,24 @@ class Progress extends Plugin {
     }
   }
 
+  _getRootDocument () {
+    return this.root?.ownerDocument || document
+  }
+
+  _addDragDocumentEvents () {
+    const dragDocument = this._getRootDocument()
+    this._dragDocument = dragDocument
+    dragDocument.addEventListener('mousemove', this.onMouseMove, false)
+    dragDocument.addEventListener('mouseup', this.onMouseUp, false)
+  }
+
+  _removeDragDocumentEvents () {
+    const dragDocument = this._dragDocument || this._getRootDocument()
+    dragDocument.removeEventListener('mousemove', this.onMouseMove, false)
+    dragDocument.removeEventListener('mouseup', this.onMouseUp, false)
+    this._dragDocument = null
+  }
+
   focus () {
     this.player.controls.pauseAutoHide()
     Util.addClass(this.root, 'active')
@@ -462,9 +480,7 @@ class Progress extends Plugin {
       this.root.addEventListener('touchcancel', this.onMouseUp)
     } else {
       this.unbind('mousemove', this.onMoveOnly)
-
-      document.addEventListener('mousemove', this.onMouseMove, false)
-      document.addEventListener('mouseup', this.onMouseUp, false)
+      this._addDragDocumentEvents()
       // this.bind('mouseup', this.onMouseUp, false)
     }
     return true
@@ -508,8 +524,7 @@ class Progress extends Plugin {
       // 交互结束 恢复控制栏的隐藏流程
       this.blur()
     } else {
-      document.removeEventListener('mousemove', this.onMouseMove, false)
-      document.removeEventListener('mouseup', this.onMouseUp, false)
+      this._removeDragDocumentEvents()
       if (!pos.isEnter) {
         this.onMouseLeave(e)
       } else {
@@ -522,6 +537,32 @@ class Progress extends Plugin {
     }, 1)
     // 交互结束 恢复控制栏的隐藏流程
     player.focus()
+  }
+
+  resetDragState () {
+    const { pos, playerConfig, config } = this
+    if (!pos) {
+      return
+    }
+    this.root.removeEventListener('touchmove', this.onMouseMove)
+    this.root.removeEventListener('touchend', this.onMouseUp)
+    this.root.removeEventListener('touchcancel', this.onMouseUp)
+    this._removeDragDocumentEvents()
+    if (!pos.isDown && !this.isProgressMoving) {
+      return
+    }
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
+    Util.removeClass(this.progressBtn, 'active')
+    pos.moving = false
+    pos.isDown = false
+    pos.x = 0
+    pos.y = 0
+    pos.isLocked = false
+    this._state.prePlayTime = 0
+    this._state.time = 0
+    this.resetSeekState()
+    this.blur()
   }
 
   onMouseMove = (e) => {
@@ -746,8 +787,7 @@ class Progress extends Plugin {
       this.unbind('mouseenter', this.onMouseEnter)
       this.unbind('mousemove', this.onMoveOnly)
       this.unbind('mouseleave', this.onMouseLeave)
-      document.removeEventListener('mousemove', this.onMouseMove, false)
-      document.removeEventListener('mouseup', this.onMouseUp, false)
+      this._removeDragDocumentEvents()
       player.root.removeEventListener('click', this.onBodyClick, true)
     }
   }

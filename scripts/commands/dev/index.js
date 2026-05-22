@@ -5,11 +5,12 @@ const { cyan, bold } = require('colorette')
 const { getBuildConfig } = require('../../utils')
 const ctx = require('../../context')
 
-async function dev (dir, p, open) {
+async function dev (dir, p, open, https) {
   const replace = ctx.getReplace(ctx.config, undefined, true)
   let cfg = await getBuildConfig(true, { replace, plugins: ctx.config.plugins })
   cfg.build.sourcemap = !!ctx.config.devSourceMap
   if (p) cfg.server.port = p
+  if (https) cfg.server.https = true
   dir = dir || ''
   if (dir) {
     dir = '/' + path.relative(ctx.rootPath, path.resolve(ctx.rootPath, dir))

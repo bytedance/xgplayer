@@ -16,8 +16,9 @@ cli
   .command('dev [dir]', 'Start dev server')
   .option('-p, --port', 'Dev server port', 8081)
   .option('-o, --open', 'Open browser window on startup')
-  .action((dir, { port, open }) => {
-    dev(dir, Number(port), open)
+  .option('--https', 'Start dev server with HTTPS')
+  .action((dir, { port, open, https }) => {
+    dev(dir, Number(port), open, https)
   })
 
 cli
