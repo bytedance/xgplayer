@@ -57,6 +57,7 @@ window.onload = function () {
   var dbReplay = document.getElementById('replay')
   var dbDestroy = document.getElementById('destroy')
   var dbSwitchUrl = document.getElementById('switch-url')
+  var dbSwitchUrlSeamlessCheck = document.getElementById('switch-url-seamless-check')
   var dbSetUrl = document.getElementById('set-url')
   var dbSeek = document.getElementById('seek')
 
@@ -72,6 +73,7 @@ window.onload = function () {
   var dsFrame = document.getElementById('frame')
   var dsBuffer = document.getElementById('buffer')
   var dsOption = document.getElementById('option')
+  var dsSeamlessCheck = document.getElementById('seamless-check')
 
   dTestPoint.selectedIndex = testPoint
   dsOption.innerHTML = '<pre>' + JSON.stringify(opts, null, 2) + '</pre>'
@@ -79,6 +81,96 @@ window.onload = function () {
   function inp(d) { return d.getElementsByTagName('input')[0] }
 
   var player
+  var seamlessCheckTimer = null
+  var seamlessCheckHandlers = null
+
+  function stopSeamlessCheck() {
+    if (seamlessCheckTimer) {
+      clearInterval(seamlessCheckTimer)
+      seamlessCheckTimer = null
+    }
+    if (seamlessCheckHandlers && player) {
+      player.off('waiting', seamlessCheckHandlers.onWaiting)
+      player.off('stalled', seamlessCheckHandlers.onStalled)
+      seamlessCheckHandlers = null
+    }
+  }
+
+  function updateSeamlessCheckStatus(text, type) {
+    dsSeamlessCheck.className = 'p-2 text-sm'
+    if (type === 'success') {
+      dsSeamlessCheck.className += ' bg-green-100 text-green-700'
+    } else if (type === 'error') {
+      dsSeamlessCheck.className += ' bg-red-100 text-red-700'
+    } else {
+      dsSeamlessCheck.className += ' bg-yellow-100 text-yellow-700'
+    }
+    dsSeamlessCheck.textContent = text
+  }
+
+  async function seamlessSwitchCheck(url) {
+    if (!player || !url) return
+    stopSeamlessCheck()
+
+    const state = {
+      startAt: performance.now(),
+      lastAt: performance.now(),
+      lastCurrentTime: player.currentTime,
+      waitingCount: 0,
+      stalledCount: 0,
+      currentFreezeMs: 0,
+      maxFreezeMs: 0,
+      switchError: null
+    }
+
+    updateSeamlessCheckStatus('检测中：执行 seamless=true 切换并观察 6 秒内是否卡顿...', 'running')
+
+    seamlessCheckHandlers = {
+      onWaiting() { state.waitingCount += 1 },
+      onStalled() { state.stalledCount += 1 }
+    }
+    player.on('waiting', seamlessCheckHandlers.onWaiting)
+    player.on('stalled', seamlessCheckHandlers.onStalled)
+
+    player.switchURL(url, { seamless: true, startTime: player.currentTime }).catch((err) => {
+      state.switchError = err
+    })
+
+    seamlessCheckTimer = setInterval(() => {
+      if (!player) {
+        stopSeamlessCheck()
+        return
+      }
+
+      const now = performance.now()
+      const wallDeltaMs = now - state.lastAt
+      const currentTime = player.currentTime
+      const playDeltaMs = Math.max((currentTime - state.lastCurrentTime) * 1000, 0)
+      const isPlaying = !player.paused && !player.seeking && !player.ended
+
+      if (isPlaying && playDeltaMs < wallDeltaMs * 0.2) {
+        state.currentFreezeMs += wallDeltaMs
+      } else {
+        state.currentFreezeMs = 0
+      }
+      state.maxFreezeMs = Math.max(state.maxFreezeMs, state.currentFreezeMs)
+      state.lastAt = now
+      state.lastCurrentTime = currentTime
+
+      if (now - state.startAt < 6000) return
+
+      stopSeamlessCheck()
+      const isPass = !state.switchError && state.waitingCount === 0 && state.stalledCount === 0 && state.maxFreezeMs < 300
+      const result = [
+        isPass ? '检测结果：看起来是无缝切换（PASS）' : '检测结果：疑似发生卡顿（FAIL）',
+        `waiting=${state.waitingCount}`,
+        `stalled=${state.stalledCount}`,
+        `最大连续停顿≈${Math.round(state.maxFreezeMs)}ms`
+      ]
+      if (state.switchError) result.push(`switchURL报错：${state.switchError}`)
+      updateSeamlessCheckStatus(result.join(' | '), isPass ? 'success' : 'error')
+    }, 200)
+  }
 
   function updateOpts(key, value, type) {
     if (type === 'object') {
@@ -97,6 +189,7 @@ window.onload = function () {
   }
   function initPlayer() {
     if (player) {
+      stopSeamlessCheck()
       player.destroy()
       setTimeout(init, 100)
     } else {
@@ -341,14 +434,27 @@ window.onload = function () {
   dbPlay.onclick = function () { player.play() }
   dbPause.onclick = function () { player.pause() }
   dbReplay.onclick = function () { player.replay() }
-  dbDestroy.onclick = function () { player.destroy() }
+  dbDestroy.onclick = function () {
+    stopSeamlessCheck()
+    player.destroy()
+  }
   dbSwitchUrl.onclick = function () {
     var url = window.prompt('设置的 url 地址')
     if (!url) return
-    var startTime = window.prompt('[点播]开始播放时间点', 0)
+    var seamless = window.prompt('是否无缝切换（true/false）', true)
+    if (seamless == null) return
+    var startTime = window.prompt('[点播]开始播放时间点（默认当前播放点）', player.currentTime)
     startTime = Number(startTime)
-    if (isNaN(startTime)) startTime = 0
-    player.switchURL(url, startTime).then(res=> console.log('switchURL success', res)).catch(err => console.error('switchURL error', err))
+    if (isNaN(startTime)) startTime = player.currentTime
+    player.switchURL(url, {
+      seamless: seamless.trim() === 'true',
+      startTime
+    }).then(res => console.log('switchURL success', res)).catch(err => console.error('switchURL error', err))
+  }
+  dbSwitchUrlSeamlessCheck.onclick = async function () {
+    var url = window.prompt('设置要无缝切换到的 url 地址')
+    if (!url) return
+    await seamlessSwitchCheck(url)
   }
   dbSetUrl.onclick = function () {
     var url = window.prompt('设置的 url 地址')

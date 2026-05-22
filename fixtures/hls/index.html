@@ -73,6 +73,7 @@
       <button id="replay" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">重播/重拉流</button>
       <button id="destroy" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">销毁</button>
       <button id="switch-url" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">切换url</button>
+      <button id="switch-url-seamless-check" class="py-1 px-2 bg-blue-500 text-white shadow-md mr-2">无缝切换并验证</button>
       <button id="set-url" class="py-1 px-2 bg-green-500 text-white shadow-md mr-2">设置url</button>
       <button id="seek" class="py-1 px-2 bg-green-500 text-white shadow-md">seek</button>
     </div>
@@ -81,7 +82,8 @@
       <dl>
         <p>重播/重拉流：点播重新播放/直播重新拉流</p>
         <p>销毁：点击按钮销毁播放器</p>
-        <p>切换url：点击按钮，出现弹框输入新URL</p>
+        <p>切换url：点击按钮，出现弹框输入新URL，并可指定 seamless 参数</p>
+        <p>无缝切换并验证：固定使用 seamless=true 切换，并自动判断是否出现明显卡顿</p>
         <p>设置url：点击按钮输入新URL，同切换url</p>
         <p>seek：点击按钮输入跳转时间点</p>
       </dl>
@@ -141,6 +143,10 @@
       <div style="width: 90vw;">
         <h4>参数</h4>
         <div id="option"></div>
+      </div>
+      <div style="width: 90vw;" class="mt-2">
+        <h4>无缝切换验证</h4>
+        <div id="seamless-check" class="bg-gray-100 p-2 text-sm text-gray-700">尚未执行</div>
       </div>
     </div>
   </div>
