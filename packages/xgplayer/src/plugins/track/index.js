@@ -1,5 +1,5 @@
 import SubTitles from 'xgplayer-subtitles'
-import { Events, POSITIONS, Util } from '../../plugin'
+import { Util, POSITIONS, Events } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
 import NativeSubTitle from './nativeSubTitle'
 import './index.scss'
@@ -70,7 +70,7 @@ const DEFAULT_TYPE = {
   TEXT_CLOSE: 'text-close'
 }
 
-function formatList(list) {
+function formatList (list) {
   let defaultIndex = -1
   list.forEach((item, index) => {
     if (!item.id && !item.language) {
@@ -93,24 +93,21 @@ function formatList(list) {
   return defaultIndex
 }
 
-function checkIsSame(src, dist) {
+function checkIsSame (src, dist) {
   const isIdS = Util.isNotNull(src.id) && Util.isNotNull(dist.id) && src.id === dist.id
-  const isLS =
-    Util.isNotNull(src.language) &&
-    Util.isNotNull(dist.language) &&
-    src.language === dist.language
+  const isLS = Util.isNotNull(src.language) && Util.isNotNull(dist.language) && src.language === dist.language
   return isIdS || isLS
 }
 
 export default class TextTrack extends OptionsIcon {
-  static get pluginName() {
+  static get pluginName () {
     return 'texttrack'
   }
 
   /**
    * @type ITextTrackConfig
    */
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       ...OptionsIcon.defaultConfig,
       position: POSITIONS.CONTROLS_RIGHT,
@@ -140,14 +137,14 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  beforeCreate(args) {
+  beforeCreate (args) {
     const texttrack = args.player.config.texttrack || args.player.config.textTrack
     if (Util.typeOf(texttrack) === 'Array') {
       args.config.list = texttrack
     }
   }
 
-  afterCreate() {
+  afterCreate () {
     const { list, mode } = this.config
     const defaultIndex = formatList(list)
     super.afterCreate()
@@ -159,6 +156,7 @@ export default class TextTrack extends OptionsIcon {
         iconText: this.i18n.TEXTTRACK
       }
     }
+
 
     this.curIndex = -1
     this.lastIndex = -1 // 上一次显示的语言
@@ -177,7 +175,7 @@ export default class TextTrack extends OptionsIcon {
    * @description 初始化原生字幕
    *
    */
-  _initNativeSubtitle() {
+  _initNativeSubtitle () {
     const { player } = this
     if (!player._subTitles) {
       player._subTitles = new NativeSubTitle(player.media)
@@ -196,7 +194,7 @@ export default class TextTrack extends OptionsIcon {
    * 初始化外挂字幕
    * @param {number} defaultIndex
    */
-  _initExtSubTitle(defaultIndex) {
+  _initExtSubTitle (defaultIndex) {
     const { list, style, isDefaultOpen, updateMode, renderMode } = this.config
     // 默认开启，但是没有指定开启项的时候, 默认启用第一个字幕
     if (isDefaultOpen && defaultIndex < 0 && list.length > 0) {
@@ -226,11 +224,7 @@ export default class TextTrack extends OptionsIcon {
       player._subTitles = new SubTitles(config)
       player._subTitles.attachPlayer(this.player)
     } else {
-      player._subTitles._isOpen &&
-        (defaultIndex = this.getSubTitleIndex(
-          this.config.list,
-          player._subTitles.currentText
-        ))
+      player._subTitles._isOpen && (defaultIndex = this.getSubTitleIndex(this.config.list, player._subTitles.currentText))
     }
 
     this.subTitles = player._subTitles
@@ -248,8 +242,8 @@ export default class TextTrack extends OptionsIcon {
     this._renderList(list, isDefaultOpen, defaultIndex)
   }
 
-  _renderList(list, isDefaultOpen, defaultIndex) {
-    // 如果配置信息为默认开启，但是没有默认开启的语言，则默认第一个
+  _renderList (list, isDefaultOpen, defaultIndex) {
+  // 如果配置信息为默认开启，但是没有默认开启的语言，则默认第一个
     if (!list || list.length === 0) {
       return
     }
@@ -270,7 +264,7 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  registerIcons() {
+  registerIcons () {
     return {
       textTrackOpen: { icon: '', class: 'xg-texttrak-open' },
       textTrackClose: { icon: '', class: 'xg-texttrak-close' }
@@ -281,8 +275,8 @@ export default class TextTrack extends OptionsIcon {
    * @param {string} [value]
    * @returns
    */
-  show(value) {
-    if (!this.config.list || this.config.list.length < 1) {
+  show (value) {
+    if (!this.config.list || this.config.list.length < 1){
       return
     }
     Util.addClass(this.root, 'show')
@@ -292,7 +286,7 @@ export default class TextTrack extends OptionsIcon {
     this.switchOffSubtitle()
   }
 
-  _onChange = data => {
+  _onChange = (data) => {
     const _curIndex = this.getSubTitleIndex(this.config.list, data)
     if (_curIndex < 0) {
       return
@@ -300,11 +294,11 @@ export default class TextTrack extends OptionsIcon {
     this.updateCurItem(_curIndex, data)
   }
 
-  _onListReset = data => {
+  _onListReset = (data) => {
     this.updateList(data)
   }
 
-  getSubTitleIndex(list, subtitle = { id: '', language: '' }) {
+  getSubTitleIndex (list, subtitle = { id: '', language: '' }) {
     let cIndex = -1
     if (!subtitle || (!subtitle.id && !subtitle.language)) {
       return cIndex
@@ -323,16 +317,15 @@ export default class TextTrack extends OptionsIcon {
    * @param { Array<SubTitleItem> } list
    * @param { boolean } needRemove 是否移除原来的字幕
    */
-  updateSubtitles(list = [], needRemove = true) {
+  updateSubtitles (list = [], needRemove = true) {
     if (!list) {
       return
     }
-    this.updateList({ list })
-    this.subTitles &&
-      this.subTitles.setSubTitles(this.config.list, this.curIndex > -1, needRemove)
+    this.updateList({list})
+    this.subTitles && this.subTitles.setSubTitles(this.config.list, this.curIndex > -1, needRemove)
   }
 
-  updateList(data = {}) {
+  updateList (data = {}) {
     if (!data.list) {
       return
     }
@@ -367,19 +360,19 @@ export default class TextTrack extends OptionsIcon {
    * }} subtitle
    * @returns
    */
-  switchSubTitle(subtitle = { id: '', language: '' }) {
+  switchSubTitle (subtitle = { id: '', language: '' }) {
     this.switchIconState(true)
     const cIndex = this.getSubTitleIndex(this.config.list, subtitle)
     if (cIndex < 0) {
       return
     }
-    this.subTitles.switch(subtitle).catch(e => {})
+    this.subTitles.switch(subtitle).catch(e=>{})
   }
 
   /**
    * 关闭字幕
    */
-  switchOffSubtitle(e) {
+  switchOffSubtitle (e) {
     this.emit('subtitle_change', {
       off: true,
       isListUpdate: false,
@@ -392,7 +385,7 @@ export default class TextTrack extends OptionsIcon {
     this.renderItemList()
   }
 
-  switchOnSubtitle() {
+  switchOnSubtitle () {
     const { list } = this.config
     const _sub = this.lastIndex > -1 ? this.lastIndex : 0
     const _item = list[_sub]
@@ -404,13 +397,12 @@ export default class TextTrack extends OptionsIcon {
    * 切换按钮状态
    * @param {boolean} isopen
    */
-  switchIconState(isopen) {
+  switchIconState (isopen) {
     this.setAttr('data-state', isopen ? 'open' : 'close')
   }
 
   clickSwitch = (e, data) => {
-    const isActionClose =
-      data.type === DEFAULT_TYPE.CLOSE || data.type === DEFAULT_TYPE.TEXT_CLOSE
+    const isActionClose = data.type === DEFAULT_TYPE.CLOSE || data.type === DEFAULT_TYPE.TEXT_CLOSE
     if (this.subTitles) {
       if (isActionClose) {
         this.subTitles.switchOff()
@@ -421,7 +413,7 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  onIconClick = e => {
+  onIconClick = (e) => {
     if (this.curItem) {
       this.subTitles.switchOff()
     } else {
@@ -429,7 +421,7 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  onItemClick(e, data) {
+  onItemClick (e, data) {
     const target = e.delegateTarget
     const language = target.getAttribute('language')
     const id = target.getAttribute('data-id')
@@ -438,7 +430,7 @@ export default class TextTrack extends OptionsIcon {
     this.handlerClickSwitch(e, { language, id, type })
   }
 
-  changeCurrentText() {
+  changeCurrentText () {
     if (this.isIcons) {
       return
     }
@@ -453,19 +445,19 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  updateCurItem(cIndex, subtitle) {
+  updateCurItem (cIndex, subtitle) {
     this.curIndex = cIndex
     this.curItem = this.config.list[cIndex - 1]
     this.renderItemList()
     this.emit('subtitle_change', {
       off: false,
-      isListUpdate: false,
+      isListUpdate:false,
       list: [],
       ...subtitle
     })
   }
 
-  renderItemList() {
+  renderItemList () {
     const { list, closeText, needCloseText } = this.config
     const items = []
     let cIndex = this.curIndex
@@ -492,25 +484,21 @@ export default class TextTrack extends OptionsIcon {
     this.curItem = list[_curI]
   }
 
-  onPlayerFocus = e => {
+  onPlayerFocus = (e) => {
     if (!this.subTitles || !this.config.style.follow) {
       return
     }
     this.rePosition()
   }
 
-  onPlayerBlur = e => {
-    if (
-      !this.subTitles ||
-      !this.config.style.follow ||
-      this.playerConfig.marginControls
-    ) {
+  onPlayerBlur = (e) => {
+    if (!this.subTitles || !this.config.style.follow || this.playerConfig.marginControls) {
       return
     }
     this.subTitles.root && (this.subTitles.root.style.transform = 'translate(0, 0)')
   }
 
-  rePosition() {
+  rePosition () {
     const { fitVideo } = this.config.style
     const _rect = this.player.controls.root.getBoundingClientRect()
     const cHeight = 0 - _rect.height
@@ -521,8 +509,8 @@ export default class TextTrack extends OptionsIcon {
     const { video, root } = this.player
     const { height, width } = root.getBoundingClientRect()
     const { videoHeight, videoWidth } = video
-    const pi = parseInt((videoHeight / videoWidth) * 100, 10)
-    let vHeight = (pi * width) / 100
+    const pi = parseInt(videoHeight / videoWidth * 100, 10)
+    let vHeight = pi * width / 100
     if (vHeight > height) {
       vHeight = height
     }
@@ -532,7 +520,7 @@ export default class TextTrack extends OptionsIcon {
     }
   }
 
-  destroy() {
+  destroy () {
     if (this.subTitles) {
       this.subTitles.destroy()
       this.subTitles = null

@@ -1,6 +1,6 @@
-import Plugin, { Events, STATES, Util } from '../../plugin'
-import PauseSvg from '../assets/pause.svg'
+import Plugin, { Util, Events, STATES } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
+import PauseSvg from '../assets/pause.svg'
 import './index.scss'
 
 /**
@@ -14,7 +14,7 @@ import './index.scss'
  */
 
 const AnimateMap = {}
-function addAnimate(key, seconds, callback = { start: null, end: null }) {
+function addAnimate (key, seconds, callback = { start: null, end: null }) {
   if (AnimateMap[key]) {
     window.clearTimeout(AnimateMap[key].id)
   }
@@ -28,7 +28,7 @@ function addAnimate(key, seconds, callback = { start: null, end: null }) {
   return AnimateMap[key].id
 }
 
-function clearAnimation(id) {
+function clearAnimation (id) {
   if (id) {
     window.clearTimeout(id)
     return
@@ -39,15 +39,16 @@ function clearAnimation(id) {
   })
 }
 
+
 class Start extends Plugin {
-  static get pluginName() {
+  static get pluginName () {
     return 'start'
   }
 
   /**
    * @type IStartConfig
    */
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       isShowPause: false, // 暂停是否常驻
       isShowEnd: false, // 播放结束常驻
@@ -56,12 +57,12 @@ class Start extends Plugin {
     }
   }
 
-  constructor(args) {
+  constructor (args) {
     super(args)
     this.autoPlayStart = false
   }
 
-  afterCreate() {
+  afterCreate () {
     const { playerConfig } = this
 
     this.initIcons()
@@ -77,7 +78,7 @@ class Start extends Plugin {
    * @public
    * This method can be overridden.
    */
-  listenEvents() {
+  listenEvents () {
     const { player, playerConfig } = this
 
     this.once(Events.READY, () => {
@@ -115,17 +116,13 @@ class Start extends Plugin {
   /**
    * @public
    */
-  bindClickEvents() {
+  bindClickEvents () {
     this.clickHandler = this.hook('startClick', this.switchPausePlay, {
-      pre: e => {
+      pre: (e) => {
         e.cancelable && e.preventDefault()
         e.stopPropagation()
         const { paused } = this.player
-        this.emitUserAction(e, 'switch_play_pause', {
-          props: 'paused',
-          from: paused,
-          to: !paused
-        })
+        this.emitUserAction(e, 'switch_play_pause', { props: 'paused', from: paused, to: !paused })
       }
     })
 
@@ -150,20 +147,20 @@ class Start extends Plugin {
     this.toggleTo('play')
   }
 
-  registerIcons() {
+  registerIcons () {
     return {
       startPlay: { icon: PlaySvg, class: 'xg-icon-play' },
       startPause: { icon: PauseSvg, class: 'xg-icon-pause' }
     }
   }
 
-  initIcons() {
+  initIcons () {
     const { icons } = this
     this.appendChild('xg-start-inner', icons.startPlay)
     this.appendChild('xg-start-inner', icons.startPause)
   }
 
-  hide() {
+  hide () {
     Util.addClass(this.root, 'hide')
   }
 
@@ -171,19 +168,19 @@ class Start extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show(value) {
+  show (value) {
     Util.removeClass(this.root, 'hide')
   }
 
-  focusHide() {
+  focusHide () {
     Util.addClass(this.root, 'focus-hide')
   }
 
-  recover() {
+  recover () {
     Util.removeClass(this.root, 'focus-hide')
   }
 
-  switchStatus(isAnimate) {
+  switchStatus (isAnimate) {
     if (isAnimate) {
       this.setAttr('data-state', !this.player.paused ? 'play' : 'pause')
     } else {
@@ -191,7 +188,7 @@ class Start extends Plugin {
     }
   }
 
-  animate(endShow) {
+  animate (endShow) {
     this._animateId = addAnimate('pauseplay', 400, {
       start: () => {
         Util.addClass(this.root, 'interact')
@@ -206,7 +203,7 @@ class Start extends Plugin {
     })
   }
 
-  endAnimate() {
+  endAnimate () {
     Util.removeClass(this.root, 'interact')
     clearAnimation(this._animateId)
     this._animateId = null
@@ -215,7 +212,7 @@ class Start extends Plugin {
   /**
    * @public
    */
-  switchPausePlay(e) {
+  switchPausePlay (e) {
     const { player } = this
     e.cancelable && e.preventDefault()
     e.stopPropagation()
@@ -233,14 +230,14 @@ class Start extends Plugin {
   /**
    * @deprecated
    */
-  onPlayPause(status) {
+  onPlayPause (status) {
     this.toggleTo(status)
   }
 
   /**
    * @param {'play'|'pause'} status
    */
-  toggleTo(status) {
+  toggleTo (status) {
     const { config, player } = this
     if (!player || player.state < STATES.RUNNING || !this.autoPlayStart) {
       return
@@ -258,10 +255,7 @@ class Start extends Plugin {
       return
     }
     // 暂停/播放结束状态强制显示
-    if (
-      (config.isShowPause && player.paused && !player.ended) ||
-      (config.isShowEnd && player.ended)
-    ) {
+    if ((config.isShowPause && player.paused && !player.ended) || (config.isShowEnd && player.ended)) {
       this.switchStatus()
       this.show()
       this.endAnimate()
@@ -284,17 +278,13 @@ class Start extends Plugin {
     }
   }
 
-  destroy() {
+  destroy () {
     this.unbind(['click', 'touchend'], this.clickHandler)
     clearAnimation(this._animateId)
   }
 
-  render() {
-    const className = this.playerConfig.autoplay
-      ? this.config.mode === 'auto'
-        ? 'auto-hide'
-        : 'hide'
-      : ''
+  render () {
+    const className = this.playerConfig.autoplay ? (this.config.mode === 'auto' ? 'auto-hide' : 'hide') : ''
     return `
     <xg-start class="xgplayer-start ${className}">
     <xg-start-inner></xg-start-inner>

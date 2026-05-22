@@ -1,14 +1,11 @@
+
 export default class Xml2Json {
-  static parse(xmlDocStr) {
+  static parse (xmlDocStr) {
     const xmlDoc = Xml2Json.parseXmlString(xmlDocStr)
-    if (xmlDoc !== null && xmlDoc !== undefined) {
-      return Xml2Json.parseDOMChildren(xmlDoc)
-    } else {
-      return null
-    }
+    if (xmlDoc !== null && xmlDoc !== undefined) { return Xml2Json.parseDOMChildren(xmlDoc) } else { return null }
   }
 
-  static parseXmlString(xmlDocStr) {
+  static parseXmlString (xmlDocStr) {
     if (xmlDocStr === undefined) {
       return null
     }
@@ -26,7 +23,7 @@ export default class Xml2Json {
     return xmlDoc
   }
 
-  static parseDOMChildren(node, path) {
+  static parseDOMChildren (node, path) {
     if (node.nodeType === Node.DOCUMENT_NODE) {
       let result = {}
       const nodeChildren = node.childNodes
@@ -71,13 +68,12 @@ export default class Xml2Json {
             }
 
             const c = Xml2Json.parseDOMChildren(child, childPath)
-            if (childName !== '#text' || /[^\s]/.test(c)) {
-              // Don't add white-space text nodes
+            if (childName !== '#text' || /[^\s]/.test(c)) { // Don't add white-space text nodes
               const o = {}
               o[childName] = c
               children.push(o)
             }
-            result[childName][result[childName].length] = c
+            (result[childName])[result[childName].length] = c
           }
         }
       }
@@ -116,36 +112,25 @@ export default class Xml2Json {
 
       if (result.__cnt === 1 && result.__text !== null && result.__text !== undefined) {
         result = result.__text
-      } else if (
-        result.__cnt === 1 &&
-        result.__cdata !== null &&
-        result.__cdata !== undefined
-      ) {
+      } else if (result.__cnt === 1 && result.__cdata !== null && result.__cdata !== undefined) {
         result = result.__cdata
       }
       delete result.__cnt
 
       return result
-    } else if (
-      node.nodeType === Node.TEXT_NODE ||
-      node.nodeType === Node.CDATA_SECTION_NODE
-    ) {
+    } else if (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.CDATA_SECTION_NODE) {
       return node.nodeValue
     }
   }
 
-  static getNodeLocalName(node) {
+  static getNodeLocalName (node) {
     let nodeLocalName = node.localName
-    if (nodeLocalName === null || nodeLocalName === undefined) {
-      nodeLocalName = node.baseName
-    } // Yeah, this is IE!!
-    if (nodeLocalName === null || nodeLocalName === undefined || nodeLocalName === '') {
-      nodeLocalName = node.nodeName
-    } // =="" is IE too
+    if (nodeLocalName === null || nodeLocalName === undefined) { nodeLocalName = node.baseName } // Yeah, this is IE!!
+    if (nodeLocalName === null || nodeLocalName === undefined || nodeLocalName === '') { nodeLocalName = node.nodeName } // =="" is IE too
     return nodeLocalName
   }
 
-  static toArrayAccessForm(obj, childName) {
+  static toArrayAccessForm (obj, childName) {
     if (!(obj[childName] instanceof Array)) {
       obj[childName] = [obj[childName]]
     }

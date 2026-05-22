@@ -1,9 +1,9 @@
 import { Events, POSITIONS, Sniffer, Util } from '../../plugin'
-import ExitFullScreenSvg from '../assets/exitFull.svg'
-import FullScreenSvg from '../assets/requestFull.svg'
-import IconPlugin from '../common/iconPlugin'
 import { xgIconTips } from '../common/iconTools'
+import IconPlugin from '../common/iconPlugin'
 import TopBackIcon from './backicon'
+import FullScreenSvg from '../assets/requestFull.svg'
+import ExitFullScreenSvg from '../assets/exitFull.svg'
 import './index.scss'
 
 /**
@@ -22,14 +22,14 @@ import './index.scss'
  * } } IFullscreenConfig
  */
 export default class Fullscreen extends IconPlugin {
-  static get pluginName() {
+  static get pluginName () {
     return 'fullscreen'
   }
 
   /**
    * @type IFullscreenConfig
    */
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 0,
@@ -44,7 +44,7 @@ export default class Fullscreen extends IconPlugin {
     }
   }
 
-  afterCreate() {
+  afterCreate () {
     super.afterCreate()
     const { config, playerConfig } = this
     if (config.disable) {
@@ -58,13 +58,13 @@ export default class Fullscreen extends IconPlugin {
     const fullEl = Util.getFullScreenEl()
 
     if (playerConfig.fullscreenTarget === fullEl) {
-      this.player.getFullscreen().catch(e => {})
+      this.player.getFullscreen().catch(e=>{})
     }
 
     this.initIcons()
 
     this.handleFullscreen = this.hook('fullscreenChange', this.toggleFullScreen, {
-      pre: e => {
+      pre: (e) => {
         const { fullscreen } = this.player
         this.emitUserAction(e, 'switch_fullscreen', {
           prop: 'fullscreen',
@@ -76,13 +76,9 @@ export default class Fullscreen extends IconPlugin {
 
     this.bind('.xgplayer-fullscreen', ['touchend', 'click'], this.handleFullscreen)
 
-    this.on(Events.FULLSCREEN_CHANGE, isFullScreen => {
+    this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       const tipsDom = this.find('.xg-tips')
-      tipsDom &&
-        this.changeLangTextKey(
-          tipsDom,
-          isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS
-        )
+      tipsDom && this.changeLangTextKey(tipsDom, isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS)
       this.animate(isFullScreen)
     })
     if (this.config.needBackIcon) {
@@ -90,7 +86,7 @@ export default class Fullscreen extends IconPlugin {
         plugin: TopBackIcon,
         options: {
           config: {
-            onClick: e => {
+            onClick: (e) => {
               this.handleFullscreen(e)
             }
           }
@@ -105,7 +101,7 @@ export default class Fullscreen extends IconPlugin {
   /**
    * @private
    */
-  _onOrientationChange = e => {
+  _onOrientationChange = (e) => {
     if (this.player.fullscreen && this.config.rotateFullscreen) {
       if (window.orientation === 90 || window.orientation === -90) {
         this.player.setRotateDeg(0)
@@ -115,26 +111,22 @@ export default class Fullscreen extends IconPlugin {
     }
   }
 
-  registerIcons() {
+  registerIcons () {
     return {
       fullscreen: { icon: FullScreenSvg, class: 'xg-get-fullscreen' },
       exitFullscreen: { icon: ExitFullScreenSvg, class: 'xg-exit-fullscreen' }
     }
   }
 
-  destroy() {
+  destroy () {
     super.destroy()
-    this.unbind(
-      '.xgplayer-icon',
-      Sniffer.device === 'mobile' ? 'touchend' : 'click',
-      this.handleFullscreen
-    )
+    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.handleFullscreen)
     if (Sniffer.device === 'mobile') {
       window.removeEventListener('orientationchange', this._onOrientationChange)
     }
   }
 
-  initIcons() {
+  initIcons () {
     const { icons } = this
     this.appendChild('.xgplayer-icon', icons.fullscreen)
     this.appendChild('.xgplayer-icon', icons.exitFullscreen)
@@ -144,15 +136,13 @@ export default class Fullscreen extends IconPlugin {
    * 切换全屏
    * @param { Event } [e]
    */
-  toggleFullScreen(e) {
+  toggleFullScreen (e) {
     if (e instanceof Event) {
       e.preventDefault()
       e.stopPropagation()
     }
     const { player, config } = this
-    const useCssFullscreen =
-      config.useCssFullscreen === true ||
-      (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())
+    const useCssFullscreen = config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())
     if (useCssFullscreen) {
       if (player.fullscreen) {
         player.exitCssFullscreen()
@@ -190,10 +180,8 @@ export default class Fullscreen extends IconPlugin {
    *
    * @param { boolean } isFullScreen
    */
-  animate(isFullScreen) {
-    isFullScreen
-      ? this.setAttr('data-state', 'full')
-      : this.setAttr('data-state', 'normal')
+  animate (isFullScreen) {
+    isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
     if (this.topBackIcon) {
       if (isFullScreen) {
         this.topBackIcon.show()
@@ -208,7 +196,7 @@ export default class Fullscreen extends IconPlugin {
   /**
    * @returns
    */
-  render() {
+  render () {
     if (this.config.disable) {
       return
     }
@@ -225,18 +213,20 @@ export default class Fullscreen extends IconPlugin {
    * 兼容性参考：https://caniuse.com/mdn-api_screenorientation_lock
    * @param {OrientationType} orientation
    */
-  lockScreen(orientation) {
+  lockScreen (orientation) {
     try {
       screen.orientation.lock(orientation).catch(e => {})
-    } catch (e) {}
+    } catch (e) {
+    }
   }
 
   /**
    * 解锁屏幕方向锁定，只有部分移动端浏览器支持
    */
-  unlockScreen() {
+  unlockScreen () {
     try {
       screen.orientation.unlock().catch(e => {})
-    } catch (e) {}
+    } catch (e) {
+    }
   }
 }

@@ -1,18 +1,12 @@
-import {
-  AudioStream,
-  MasterPlaylist,
-  MasterStream,
-  MediaStream,
-  SubTitleStream
-} from './model'
-import { getAbsoluteUrl, getCodecs, parseAttr, parseTag } from './utils'
+import { MasterPlaylist, MasterStream, AudioStream, SubTitleStream, MediaStream } from './model'
+import { parseAttr, parseTag, getAbsoluteUrl, getCodecs } from './utils'
 
 /**
  * @param {Array<string>} lines
  * @param {string} parentUrl
  * @returns {MasterPlaylist}
  */
-export function parseMasterPlaylist(lines, parentUrl) {
+export function parseMasterPlaylist (lines, parentUrl) {
   const master = new MasterPlaylist()
   let index = 0
   let line
@@ -20,7 +14,7 @@ export function parseMasterPlaylist(lines, parentUrl) {
   const subtitleStreams = []
 
   // eslint-disable-next-line no-cond-assign
-  while ((line = lines[index++])) {
+  while (line = lines[index++]) {
     const tag = parseTag(line)
     if (!tag) continue
     const [name, data] = tag
@@ -58,6 +52,7 @@ export function parseMasterPlaylist(lines, parentUrl) {
       if (attr.TYPE === 'SUBTITLES') {
         subtitleStreams.push(stream)
       }
+
     } else if (name === 'STREAM-INF' && data) {
       const stream = new MasterStream()
       const attr = parseAttr(data)
@@ -82,15 +77,11 @@ export function parseMasterPlaylist(lines, parentUrl) {
       master.streams.push(stream)
     }
   }
-  master.streams.forEach((s, i) => {
-    s.id = i
-  })
+  master.streams.forEach((s, i) => { s.id = i })
 
   if (audioStreams.length) {
-    audioStreams.forEach((s, i) => {
-      s.id = i
-    })
-    master.streams.forEach(stream => {
+    audioStreams.forEach((s, i) => { s.id = i })
+    master.streams.forEach((stream) => {
       if (stream.audioGroup) {
         stream.audioStreams = audioStreams.filter(x => x.group === stream.audioGroup)
       }
@@ -98,14 +89,10 @@ export function parseMasterPlaylist(lines, parentUrl) {
   }
 
   if (subtitleStreams.length) {
-    subtitleStreams.forEach((s, i) => {
-      s.id = i
-    })
-    master.streams.forEach(stream => {
+    subtitleStreams.forEach((s, i) => { s.id = i })
+    master.streams.forEach((stream) => {
       if (stream.subtitleGroup) {
-        stream.subtitleStreams = subtitleStreams.filter(
-          x => x.group === stream.subtitleGroup
-        )
+        stream.subtitleStreams = subtitleStreams.filter(x => x.group === stream.subtitleGroup)
       }
     })
   }

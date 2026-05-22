@@ -1,5 +1,5 @@
 export default class ProxyPromise {
-  constructor() {
+  constructor () {
     let resolvePromise
     let rejectPromise
 
@@ -9,11 +9,11 @@ export default class ProxyPromise {
     })
 
     const publicPromise = promise
-    publicPromise.resolve = data => {
+    publicPromise.resolve = function (data) {
       resolvePromise(data)
       publicPromise.state = 'fulfilled'
     }
-    publicPromise.reject = error => {
+    publicPromise.reject = function (error) {
       rejectPromise(error)
       publicPromise.state = 'rejected'
       publicPromise.isBreak = error === 'DESTROYED'
@@ -25,13 +25,13 @@ export default class ProxyPromise {
 
   /** @param {T=} value */
   // eslint-disable-next-line no-unused-vars
-  resolve(value) {
+  resolve (value) {
     //
   }
 
   /** @param {*=} reason */
   // eslint-disable-next-line no-unused-vars
-  reject(reason) {
+  reject (reason) {
     //
   }
 }

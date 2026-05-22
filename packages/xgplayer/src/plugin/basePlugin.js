@@ -1,19 +1,12 @@
+import Util from '../utils/util'
+import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import XG_DEBUG from '../utils/debug'
-import Sniffer from '../utils/sniffer'
-import Util from '../utils/util'
-import hooksDescriptor, {
-  delHooksDescriptor,
-  hook,
-  removeHooks,
-  useHooks
-} from './hooksDescriptor'
+import hooksDescriptor, { hook, useHooks, removeHooks, delHooksDescriptor } from './hooksDescriptor'
 
-function showErrorMsg(pluginName, msg) {
-  XG_DEBUG.logError(
-    `[${pluginName}] event or callback cant be undefined or null when call ${msg}`
-  )
+function showErrorMsg (pluginName, msg) {
+  XG_DEBUG.logError(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
 }
 
 /**
@@ -25,30 +18,27 @@ function showErrorMsg(pluginName, msg) {
  */
 
 /**
- * @typedef {{
- * index?: number,
- * player: Player,
- * pluginName: string,
- * config: {
- *   [propName: string]: any
- * },
- * [propName: string]: any;
- * }} IBasePluginOptions
+  * @typedef {{
+  * index?: number,
+  * player: Player,
+  * pluginName: string,
+  * config: {
+  *   [propName: string]: any
+  * },
+  * [propName: string]: any;
+  * }} IBasePluginOptions
  */
 class BasePlugin {
-  static defineGetterOrSetter(Obj, map) {
+  static defineGetterOrSetter (Obj, map) {
     for (const key in map) {
       if (Object.prototype.hasOwnProperty.call(map, key)) {
         Object.defineProperty(Obj, key, map[key])
       }
     }
   }
-  static defineMethod(Obj, map) {
+  static defineMethod (Obj, map) {
     for (const key in map) {
-      if (
-        Object.prototype.hasOwnProperty.call(map, key) &&
-        typeof map[key] === 'function'
-      ) {
+      if (Object.prototype.hasOwnProperty.call(map, key) && typeof map[key] === 'function') {
         Object.defineProperty(Obj, key, {
           configurable: true,
           value: map[key]
@@ -60,21 +50,21 @@ class BasePlugin {
   /**
    * @type { { [propName: string]: any } }
    */
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {}
   }
 
   /**
    * @type { string }
    */
-  static get pluginName() {
+  static get pluginName () {
     return 'pluginName'
   }
 
   /**
    * @param { IBasePluginOptions } args
    */
-  constructor(args) {
+  constructor (args) {
     if (Util.checkIsFunction(this.beforeCreate)) {
       this.beforeCreate(args)
     }
@@ -95,14 +85,14 @@ class BasePlugin {
      */
     this.player = null
     /**
-     * @readonly
-     * @type { IPlayerOptions }
-     */
+       * @readonly
+       * @type { IPlayerOptions }
+       */
     this.playerConfig = {}
     /**
-     * @readonly
-     * @type {string}
-     */
+       * @readonly
+       * @type {string}
+       */
     this.pluginName = ''
     this.__init(args)
   }
@@ -110,23 +100,21 @@ class BasePlugin {
   /**
    * @param { IBasePluginOptions } args
    */
-  beforeCreate(args) {}
-  afterCreate() {}
-  beforePlayerInit() {}
-  onPluginsReady() {}
-  afterPlayerInit() {}
-  destroy() {}
+  beforeCreate (args) {}
+  afterCreate () {}
+  beforePlayerInit () {}
+  onPluginsReady () {}
+  afterPlayerInit () {}
+  destroy () {}
 
   /**
    * @protected
    * @param { any } args
    */
-  __init(args) {
+  __init (args) {
     this.player = args.player
     this.playerConfig = args.player && args.player.config
-    this.pluginName = args.pluginName
-      ? args.pluginName.toLowerCase()
-      : this.constructor.pluginName.toLowerCase()
+    this.pluginName = args.pluginName ? args.pluginName.toLowerCase() : this.constructor.pluginName.toLowerCase()
     this.logger = args.player && args.player.logger
     // BasePlugin.defineGetterOrSetter(this, {
     //   player: {
@@ -165,7 +153,7 @@ class BasePlugin {
    * 更新语言
    * @param { string } lang
    */
-  updateLang(lang) {
+  updateLang (lang) {
     if (!lang) {
       lang = this.lang
     }
@@ -174,15 +162,15 @@ class BasePlugin {
   /**
    * @type { string }
    */
-  get lang() {
+  get lang () {
     return this.player.lang
   }
 
-  get i18n() {
+  get i18n () {
     return this.player.i18n
   }
 
-  get i18nKeys() {
+  get i18nKeys () {
     return this.player.i18nKeys
   }
 
@@ -190,13 +178,9 @@ class BasePlugin {
    * @description当前支持的事件类型
    * @type { 'touch' | 'mouse' }
    */
-  get domEventType() {
+  get domEventType () {
     let _e = Util.checkTouchSupport() ? 'touch' : 'mouse'
-    if (
-      this.playerConfig &&
-      (this.playerConfig.domEventType === 'touch' ||
-        this.playerConfig.domEventType === 'mouse')
-    ) {
+    if (this.playerConfig && (this.playerConfig.domEventType === 'touch' || this.playerConfig.domEventType === 'mouse')) {
       _e = this.playerConfig.domEventType
     }
     return _e
@@ -208,7 +192,7 @@ class BasePlugin {
    * @param { Function } callback
    * @returns
    */
-  on(event, callback) {
+  on (event, callback) {
     if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.on(event, callback)')
       return
@@ -217,7 +201,7 @@ class BasePlugin {
       this.__events[event] = callback
       this.player.on(event, callback)
     } else if (Array.isArray(event)) {
-      event.forEach(item => {
+      event.forEach((item) => {
         this.__events[item] = callback
         this.player.on(item, callback)
       })
@@ -230,7 +214,7 @@ class BasePlugin {
    * @param { Function } callback
    * @returns
    */
-  once(event, callback) {
+  once (event, callback) {
     if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.once(event, callback)')
       return
@@ -239,7 +223,7 @@ class BasePlugin {
       this.__onceEvents[event] = callback
       this.player.once(event, callback)
     } else if (Array.isArray(event)) {
-      event.forEach(item => {
+      event.forEach((item) => {
         this.__onceEvents[item] = callback
         this.player.once(event, callback)
       })
@@ -252,7 +236,7 @@ class BasePlugin {
    * @param { Function } callback
    * @returns
    */
-  off(event, callback) {
+  off (event, callback) {
     if (!event || !callback || !this.player) {
       showErrorMsg(this.pluginName, 'plugin.off(event, callback)')
       return
@@ -261,15 +245,15 @@ class BasePlugin {
       delete this.__events[event]
       this.player.off(event, callback)
     } else if (Array.isArray(event)) {
-      event.forEach(item => {
+      event.forEach((item) => {
         delete this.__events[event]
         this.player.off(item, callback)
       })
     }
   }
 
-  offAll() {
-    ;['__events', '__onceEvents'].forEach(key => {
+  offAll () {
+    ['__events', '__onceEvents'].forEach(key => {
       Object.keys(this[key]).forEach(item => {
         this[key][item] && this.off(item, this[key][item])
         item && delete this[key][item]
@@ -285,14 +269,14 @@ class BasePlugin {
    * @param  {...any} res
    * @returns
    */
-  emit(event, ...res) {
+  emit (event, ...res) {
     if (!this.player) {
       return
     }
     this.player.emit(event, ...res)
   }
 
-  emitUserAction(event, action, params = {}) {
+  emitUserAction (event, action, params = {}) {
     if (!this.player) {
       return
     }
@@ -309,7 +293,7 @@ class BasePlugin {
    * @param { {pre: Function| null , next: Function | null} } preset
    * @returns
    */
-  hook(hookName, handler, preset = { pre: null, next: null }) {
+  hook (hookName, handler, preset = { pre: null, next: null }) {
     // eslint-disable-next-line no-return-assign
     return hook.call(this, ...arguments)
   }
@@ -320,7 +304,7 @@ class BasePlugin {
    * @param  {...any} args
    * @returns { boolean } isSuccess
    */
-  useHooks(hookName, handler, ...args) {
+  useHooks (hookName, handler, ...args) {
     return useHooks.call(this, ...arguments)
   }
 
@@ -330,7 +314,7 @@ class BasePlugin {
    * @param  {...any} args
    * @returns { boolean } isSuccess
    */
-  removeHooks(hookName, handler, ...args) {
+  removeHooks (hookName, handler, ...args) {
     return removeHooks.call(this, ...arguments)
   }
 
@@ -341,7 +325,7 @@ class BasePlugin {
    * @param { string } [name]
    * @returns { any }
    */
-  registerPlugin(plugin, options = {}, name = '') {
+  registerPlugin (plugin, options = {}, name = '') {
     if (!this.player) {
       return
     }
@@ -354,11 +338,11 @@ class BasePlugin {
    * @param { string } name
    * @returns { any | null }
    */
-  getPlugin(name) {
+  getPlugin (name) {
     return this.player ? this.player.getPlugin(name) : null
   }
 
-  __destroy() {
+  __destroy () {
     const player = this.player
     const pluginName = this.pluginName
     this.offAll()
@@ -367,11 +351,18 @@ class BasePlugin {
       this.destroy()
     }
 
-    ;['player', 'playerConfig', 'pluginName', 'logger', '__args', '__hooks'].map(item => {
+    ['player', 'playerConfig', 'pluginName', 'logger', '__args', '__hooks'].map(item => {
       this[item] = null
     })
     player.unRegisterPlugin(pluginName)
     delHooksDescriptor(this)
   }
 }
-export { BasePlugin as default, Util, Sniffer, Errors, Events, XG_DEBUG }
+export {
+  BasePlugin as default,
+  Util,
+  Sniffer,
+  Errors,
+  Events,
+  XG_DEBUG
+}

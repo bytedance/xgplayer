@@ -23,11 +23,11 @@ const errorHandle = (player, err) => {
 }
 
 class DashPlugin extends BasePlugin {
-  static get pluginName() {
+  static get pluginName () {
     return 'DashPlugin'
   }
 
-  constructor(options) {
+  constructor (options) {
     super(options)
     this.definitions = []
 
@@ -37,26 +37,24 @@ class DashPlugin extends BasePlugin {
     this.initEvents()
   }
 
-  initEvents() {
+  initEvents () {
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.TIME_UPDATE, this.timeUpdate)
     this.on(Events.REPLAY, this.replay)
   }
 
-  beforePlayerInit() {
+  beforePlayerInit () {
     const { player, playerConfig } = this
     if (this.config.drm) {
       if (!navigator.requestMediaKeySystemAccess) {
-        console.log(
-          'EME API is not supported. Enable pref media.eme.enabled to true in about:config'
-        )
+        console.log('EME API is not supported. Enable pref media.eme.enabled to true in about:config')
         return
       }
     }
     const dash = new DASH(playerConfig.url, playerConfig, player.video)
-    return dash.init(playerConfig.url).then(res => {
+    return dash.init(playerConfig.url).then((res) => {
       if (!this.definitions.length) {
-        dash.mpd.mediaList.video.forEach(item => {
+        dash.mpd.mediaList.video.forEach((item) => {
           this.definitions.push({
             name: item.height + 'P',
             url: item.id,
@@ -93,7 +91,7 @@ class DashPlugin extends BasePlugin {
     })
   }
 
-  loadData(time = this.player.currentTime) {
+  loadData (time = this.player.currentTime) {
     const { dash } = this
     const range = this.findRangeForPlaybackTime(time)
     const appendTime = (range && range.end) || time
@@ -101,11 +99,11 @@ class DashPlugin extends BasePlugin {
     dash.seek(appendTime)
   }
 
-  download() {
+  download () {
     this.dash.download()
   }
 
-  findRangeForPlaybackTime(time) {
+  findRangeForPlaybackTime (time) {
     const { player } = this
     const ranges = player.buffered
     if (!ranges) return
@@ -119,7 +117,7 @@ class DashPlugin extends BasePlugin {
     }
   }
 
-  switchURL(url) {
+  switchURL (url) {
     const { player } = this
     player.config.url = url
     player.hasStart = false
@@ -139,13 +137,13 @@ class DashPlugin extends BasePlugin {
     })
   }
 
-  timeUpdate() {
+  timeUpdate () {
     const { player, dash } = this
     this.loadData(player.currentTime + 1)
     this.isEnded(player, dash)
   }
 
-  switchBW(idx) {
+  switchBW (idx) {
     const { dash } = this
     idx = idx.split('/')[idx.split('/').length - 1]
     const vl = dash.mpd.mediaList.video
@@ -154,18 +152,16 @@ class DashPlugin extends BasePlugin {
     vl.every((item, index) => {
       if (item.id === idx) {
         newIdx = index
-        dash
-          .getData(vl[newIdx].initSegment, vl[newIdx].initSegmentRange)
-          .then(videoInitRes => {
-            changeBitWidth(videoInitRes)
-          })
+        dash.getData(vl[newIdx].initSegment, vl[newIdx].initSegmentRange).then(function (videoInitRes) {
+          changeBitWidth(videoInitRes)
+        })
         return false
       } else {
         return true
       }
     })
 
-    const changeBitWidth = videoInitRes => {
+    const changeBitWidth = (videoInitRes) => {
       const { player } = this
       const curTime = player.currentTime
       const temp = vl[vl.selectedIdx].mediaSegments.find(item => item.start - curTime > 6)
@@ -187,7 +183,7 @@ class DashPlugin extends BasePlugin {
     }
   }
 
-  replay() {
+  replay () {
     const { player } = this
     Task.clear()
     const selectedIdx = this.dash.mpd.mediaList.video.selectedIdx
@@ -200,7 +196,7 @@ class DashPlugin extends BasePlugin {
     })
   }
 
-  isEnded() {
+  isEnded () {
     const { dash, player, mse } = this
 
     if (dash.type === 'vod') {
@@ -218,7 +214,7 @@ class DashPlugin extends BasePlugin {
     }
   }
 
-  destroy() {
+  destroy () {
     if (this.dash) {
       window.clearTimeout(this.dash.mpd.timer)
     }

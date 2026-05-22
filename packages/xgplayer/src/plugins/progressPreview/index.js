@@ -1,4 +1,4 @@
-import Plugin, { Events, Sniffer, Util } from '../../plugin'
+import Plugin, { Util, Sniffer, Events } from '../../plugin'
 import initDotsAPI from './dotsApi'
 import './index.scss'
 /**
@@ -34,7 +34,7 @@ const CALLBACK_MAP = {
 
 /** */
 export default class ProgressPreview extends Plugin {
-  constructor(args) {
+  constructor (args) {
     super(args)
     this._ispots = []
     this.videoPreview = null
@@ -47,14 +47,14 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  static get pluginName() {
+  static get pluginName () {
     return 'progresspreview'
   }
 
   /**
    * @type IProgressPreviewConfig
    */
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       index: 1,
       miniWidth: 6, // 故事点显示最小宽度
@@ -71,21 +71,21 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  beforeCreate(args) {
+  beforeCreate (args) {
     const progress = args.player.plugins.progress
     if (progress) {
       args.root = progress.root
     }
   }
 
-  afterCreate() {
+  afterCreate () {
     this._curDot = null
     this.handlerSpotClick = this.hook('spotClick', (_event, data) => {
       if (data.seekTime) {
         this.player.seek(data.seekTime)
       }
     })
-    this.transformTimeHook = this.hook('transformTime', time => {
+    this.transformTimeHook = this.hook('transformTime', (time) => {
       this.setTimeContent(Util.format(time))
     })
     initDotsAPI(this)
@@ -100,7 +100,7 @@ export default class ProgressPreview extends Plugin {
     this.extTextRoot = this.find('.xg-spot-ext-text')
   }
 
-  setConfig(config) {
+  setConfig (config) {
     if (!config) {
       return
     }
@@ -109,7 +109,7 @@ export default class ProgressPreview extends Plugin {
     })
   }
 
-  onPluginsReady() {
+  onPluginsReady () {
     const { player } = this
     if (!player.plugins.progress) {
       return
@@ -126,7 +126,7 @@ export default class ProgressPreview extends Plugin {
     this.bindEvents()
   }
 
-  bindEvents() {
+  bindEvents () {
     const { progress } = this.player.plugins
     if (!progress) {
       return
@@ -148,7 +148,7 @@ export default class ProgressPreview extends Plugin {
       // console.log('args', args)
     })
 
-    this.handlerPreviewClick = e => {
+    this.handlerPreviewClick = (e) => {
       e.stopPropagation()
       fun(parseInt(this._state.now * 1000, 10) / 1000, e)
 
@@ -161,7 +161,7 @@ export default class ProgressPreview extends Plugin {
     this.bind('.xg-spot-content', 'mouseup', this.handlerPreviewClick)
   }
 
-  onMousemove = e => {
+  onMousemove = (e) => {
     if (this.config.disable) {
       return
     }
@@ -175,7 +175,7 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  onMousedown = e => {
+  onMousedown = (e) => {
     if (this.config.disable) {
       return
     }
@@ -185,7 +185,7 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  onMouseup = e => {
+  onMouseup = (e) => {
     if (!this.isDrag) {
       return
     }
@@ -196,7 +196,7 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  onDotMouseLeave = e => {
+  onDotMouseLeave = (e) => {
     if (this.config.disable) {
       return
     }
@@ -224,14 +224,14 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  onProgressMove(data, e) {
+  onProgressMove (data, e) {
     if (this.config.disable || !this.player.duration) {
       return
     }
     this.updatePosition(data.offset, data.width, data.currentTime, data.e)
   }
 
-  onProgressDragStart(data) {
+  onProgressDragStart (data) {
     if (this.config.disable || !this.player.duration) {
       return
     }
@@ -239,7 +239,7 @@ export default class ProgressPreview extends Plugin {
     this.videoPreview && Util.addClass(this.videoPreview, 'show')
   }
 
-  onProgressDragEnd(data) {
+  onProgressDragEnd (data) {
     if (this.config.disable || !this.player.duration) {
       return
     }
@@ -247,14 +247,14 @@ export default class ProgressPreview extends Plugin {
     this.videoPreview && Util.removeClass(this.videoPreview, 'show')
   }
 
-  onProgressClick(data, e) {
+  onProgressClick (data, e) {
     if (this.config.disable) {
       return
     }
     if (Util.hasClass(e.target, 'xgplayer-spot')) {
       e.stopPropagation()
-      e.preventDefault()
-      ;['time', 'id', 'text'].map(key => {
+      e.preventDefault();
+      ['time', 'id', 'text'].map(key => {
         data[key] = e.target.getAttribute(`data-${key}`)
       })
       data.time && (data.time = Number(data.time))
@@ -262,7 +262,7 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  updateLinePos(offset, cwidth) {
+  updateLinePos (offset, cwidth) {
     const { root, previewLine, player, config } = this
     const { mode } = player.controls
     const isflex = mode === 'flex'
@@ -287,13 +287,13 @@ export default class ProgressPreview extends Plugin {
     root.style.transform = `translateX(${x.toFixed(2)}px) translateZ(0)`
   }
 
-  updateTimeText(timeStr) {
+  updateTimeText (timeStr) {
     const { timeText, timePoint } = this
     timeText.innerHTML = timeStr
     !this.thumbnail && (timePoint.innerHTML = timeStr)
   }
 
-  updatePosition(offset, cwidth, time, e) {
+  updatePosition (offset, cwidth, time, e) {
     const { root, config, _state } = this
     if (!root) {
       return
@@ -308,9 +308,7 @@ export default class ProgressPreview extends Plugin {
       this.showTips(e.target.getAttribute('data-text'), false, timeStr)
       this.focusDot(e.target)
       _state.f = true
-      config.isFocusDots &&
-        _state.f &&
-        (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
+      config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
     } else if (config.defaultText) {
       _state.f = false
       this.showTips(config.defaultText, true, timeStr)
@@ -328,23 +326,21 @@ export default class ProgressPreview extends Plugin {
    * @description 设置自定义时间显示字符串
    * @param {string} str
    */
-  setTimeContent(str) {
+  setTimeContent (str) {
     this.timeStr = str
   }
 
-  updateThumbnails(time) {
+  updateThumbnails (time) {
     const { player, videoPreview, config } = this
     const { thumbnail } = player.plugins
     if (thumbnail && thumbnail.usable) {
-      this.thumbnail &&
-        thumbnail.update(this.thumbnail, time, config.width, config.height)
+      this.thumbnail && thumbnail.update(this.thumbnail, time, config.width, config.height)
       const rect = videoPreview && videoPreview.getBoundingClientRect()
-      this.videothumbnail &&
-        thumbnail.update(this.videothumbnail, time, rect.width, rect.height)
+      this.videothumbnail && thumbnail.update(this.videothumbnail, time, rect.width, rect.height)
     }
   }
 
-  registerThumbnail(thumbnailConfig = {}) {
+  registerThumbnail (thumbnailConfig = {}) {
     if (Sniffer.device === 'mobile') {
       return
     }
@@ -368,44 +364,41 @@ export default class ProgressPreview extends Plugin {
     if (config.isShowCoverPreview) {
       this.videoPreview = Util.createDom('xg-video-preview', '', {}, 'xgvideo-preview')
       player.root.appendChild(this.videoPreview)
-      this.videothumbnail = thumbnail.createThumbnail(
-        this.videoPreview,
-        'xgvideo-thumbnail'
-      )
+      this.videothumbnail = thumbnail.createThumbnail(this.videoPreview, 'xgvideo-thumbnail')
     }
     this.updateThumbnails(0)
   }
 
-  calcuPosition(time, duration) {
+  calcuPosition (time, duration) {
     const { progress } = this.player.plugins
     const { player } = this
     const totalWidth = progress.root.getBoundingClientRect().width
-    const widthPerSeconds = (player.duration / totalWidth) * 6
+    const widthPerSeconds = player.duration / totalWidth * 6
     const ret = {}
     if (time + duration > player.duration) {
       duration = player.duration - time
     }
-    ret.left = (time / player.duration) * 100
+    ret.left = time / player.duration * 100
     ret.width = duration / player.duration
     ret.isMini = widthPerSeconds > duration
     return {
-      left: (time / player.duration) * 100,
-      width: (duration / player.duration) * 100,
+      left: time / player.duration * 100,
+      width: duration / player.duration * 100,
       isMini: duration < widthPerSeconds
     }
   }
 
-  showDot(id) {
+  showDot (id) {
     const dot = this.findDot(id)
     if (dot) {
       const rect = this.root.getBoundingClientRect()
       const { width } = rect
-      const offset = (dot.time / this.player.duration) * width
+      const offset = dot.time / this.player.duration * width
       this.updatePosition(offset, width, dot.time)
     }
   }
 
-  focusDot(target, id) {
+  focusDot (target, id) {
     if (!target) {
       return
     }
@@ -416,7 +409,7 @@ export default class ProgressPreview extends Plugin {
     this._activeDotId = id
   }
 
-  blurDot(target) {
+  blurDot (target) {
     if (!target) {
       const id = this._activeDotId
       target = this.getDotDom(id)
@@ -428,7 +421,7 @@ export default class ProgressPreview extends Plugin {
     this._activeDotId = null
   }
 
-  showTips(text, isDefault, timeStr = '') {
+  showTips (text, isDefault, timeStr = '') {
     Util.addClass(this.root, 'no-timepoint')
     if (!text) {
       return
@@ -443,14 +436,14 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  hideTips() {
+  hideTips () {
     Util.removeClass(this.root, 'no-timepoint')
     this.tipText.textContent = ''
     Util.removeClass(this.find('.xg-spot-content'), 'show-text')
     Util.removeClass(this.root, 'product')
   }
 
-  hide() {
+  hide () {
     Util.addClass(this.root, 'hide')
   }
 
@@ -458,11 +451,11 @@ export default class ProgressPreview extends Plugin {
    * @param {string} [value]
    * @returns
    */
-  show(value) {
+  show (value) {
     Util.removeClass(this.root, 'hide')
   }
 
-  enable() {
+  enable () {
     const { config, playerConfig } = this
     this.config.disable = false
     this.show()
@@ -471,17 +464,16 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  disable() {
+  disable () {
     this.config.disable = true
     this.hide()
   }
 
-  destroy() {
+  destroy () {
     const { progress } = this.player.plugins
-    progress &&
-      Object.keys(CALLBACK_MAP).map(key => {
-        progress.removeCallBack(key, this[CALLBACK_MAP[key]])
-      })
+    progress && Object.keys(CALLBACK_MAP).map(key => {
+      progress.removeCallBack(key, this[CALLBACK_MAP[key]])
+    })
     this.videothumbnail = null
     this.thumbnail = null
     this.videoPreview && this.player.root.removeChild(this.videoPreview)
@@ -491,11 +483,8 @@ export default class ProgressPreview extends Plugin {
     this.unbind('.xg-spot-content', 'mouseup', this.handlerPreviewClick)
   }
 
-  render() {
-    if (
-      Sniffer.device === 'mobile' ||
-      this.playerConfig.isMobileSimulateMode === 'mobile'
-    ) {
+  render () {
+    if (Sniffer.device === 'mobile' || this.playerConfig.isMobileSimulateMode === 'mobile') {
       return ''
     }
 

@@ -1,13 +1,4 @@
-import {
-  CssFullscreenIcon,
-  FullscreenIcon,
-  PlayIcon,
-  Progress,
-  STATE_CLASS,
-  TimeIcon,
-  Util,
-  VolumeIcon
-} from 'xgplayer'
+import { CssFullscreenIcon, FullscreenIcon, PlayIcon, Progress, STATE_CLASS, TimeIcon, Util, VolumeIcon } from 'xgplayer'
 import * as AdEvents from '../events'
 import { AD_STATE_CLASS } from './adStateClass'
 import { AdPlayIcon } from './plugins/adPlay'
@@ -20,7 +11,7 @@ export class AdUIManager {
    * @param {import('xgplayer').default} options.player
    * @param {import('../plugin').AdsPlugin} options.plugin
    */
-  constructor(config, options) {
+  constructor (config, options) {
     const { player, plugin } = options
     this.player = player
     this.config = config
@@ -40,9 +31,9 @@ export class AdUIManager {
      * @description 存储 controls 位置信息
      * @type {{
      *  parentNode: HTMLElement,
-     *   previousSibling: HTMLElement,
-     *   nextSibling: HTMLElement,
-     *   } | null}
+    *   previousSibling: HTMLElement,
+    *   nextSibling: HTMLElement,
+    *   } | null}
      */
     this.controlsPos = null
 
@@ -62,7 +53,7 @@ export class AdUIManager {
     this.initEvents()
   }
 
-  init() {
+  init () {
     const { player, adUIPlugins, fragment, decoratedAdPluginList } = this
 
     decoratedAdPluginList.forEach(([targetClass, decoratorClass]) => {
@@ -88,7 +79,7 @@ export class AdUIManager {
     })
   }
 
-  destroy() {
+  destroy () {
     this.fragment = null
     this.adUIPlugins = []
     this.decoratedAdPluginList = []
@@ -96,13 +87,13 @@ export class AdUIManager {
     this.player = null
   }
 
-  initEvents() {
+  initEvents () {
     const { adPlugin, player } = this
 
     adPlugin.on(AdEvents.AD_PLAY, () => {
       const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
       const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING]
-      clsList.forEach(cls => {
+      clsList.forEach((cls) => {
         player.removeClass(cls)
       })
     })
@@ -123,7 +114,7 @@ export class AdUIManager {
     })
   }
 
-  showAdContainer() {
+  showAdContainer () {
     const { player } = this
 
     if (!Util.hasClass(player.root, AD_STATE_CLASS.START)) {
@@ -131,7 +122,7 @@ export class AdUIManager {
     }
   }
 
-  hideAdContainer() {
+  hideAdContainer () {
     const { player } = this
 
     if (Util.hasClass(player.root, AD_STATE_CLASS.START)) {
@@ -139,7 +130,7 @@ export class AdUIManager {
     }
   }
 
-  showAdUI() {
+  showAdUI () {
     const { player, config, adUIPlugins, fragment: fragmentContainer } = this
 
     // Allowed Ad UI Plugins
@@ -161,7 +152,7 @@ export class AdUIManager {
           const normalEl = normalExtraEls?.[index]
           if (normalEl?.parentNode) {
             // show ad extra dom
-            normalEl.parentNode.insertBefore(adEl, normalEl)
+            normalEl.parentNode.insertBefore(adEl,normalEl)
             // hide normal extra dom
             fragmentContainer.appendChild(normalEl)
           }
@@ -174,18 +165,16 @@ export class AdUIManager {
 
     // Non-Ad UI Plugins
     const otherPlugins = this._getNonAdPlugin()
-    otherPlugins
-      .filter(plugin => !!plugin.root)
-      .forEach(plugin => {
-        const { root } = plugin
+    otherPlugins.filter((plugin) => !!plugin.root).forEach((plugin) => {
+      const { root } = plugin
 
-        if (!plugin.__adStub__) {
-          plugin.__adStub__ = Util.createDom('xg-ad-stub', '', {})
-        }
+      if (!plugin.__adStub__) {
+        plugin.__adStub__ = Util.createDom('xg-ad-stub', '', {})
+      }
 
-        root.parentNode.insertBefore(plugin.__adStub__, root)
-        fragmentContainer.appendChild(root)
-      })
+      root.parentNode.insertBefore(plugin.__adStub__, root)
+      fragmentContainer.appendChild(root)
+    })
 
     // start插件比较特殊需要单独处理
     const startPlugin = player.getPlugin('start')
@@ -203,7 +192,7 @@ export class AdUIManager {
     player.addClass(AD_STATE_CLASS.UI_SHOW)
   }
 
-  hideAdUI() {
+  hideAdUI () {
     const { player, config, adUIPlugins, fragment: fragmentContainer } = this
 
     // Allowed Ad UI Plugins
@@ -239,17 +228,15 @@ export class AdUIManager {
 
     // Non-Ad UI Plugins
     const otherPlugins = this._getNonAdPlugin()
-    otherPlugins
-      .filter(plugin => !!plugin.root)
-      .forEach(plugin => {
-        const { root } = plugin
+    otherPlugins.filter((plugin) => !!plugin.root).forEach((plugin) => {
+      const { root } = plugin
 
-        if (fragmentContainer.contains(root)) {
-          fragmentContainer.removeChild(root)
-        }
+      if (fragmentContainer.contains(root)) {
+        fragmentContainer.removeChild(root)
+      }
 
-        plugin.__adStub__?.parentNode?.insertBefore(root, plugin.__adStub__)
-      })
+      plugin.__adStub__?.parentNode?.insertBefore(root, plugin.__adStub__)
+    })
 
     if (config.controls === false && fragmentContainer.contains(player.controls?.root)) {
       this.showControls()
@@ -275,7 +262,7 @@ export class AdUIManager {
     player.removeClass(AD_STATE_CLASS.UI_SHOW)
   }
 
-  hideControls() {
+  hideControls () {
     const { player, config, fragment } = this
     if (config.controls === false && player.controls) {
       const controlRoot = player.controls.root
@@ -292,7 +279,7 @@ export class AdUIManager {
     }
   }
 
-  showControls() {
+  showControls () {
     const { player, config, fragment } = this
     if (config.controls === false && player.controls) {
       if (!this.controlsPos) {
@@ -323,7 +310,7 @@ export class AdUIManager {
    * 获取非广告UI插件（目前只处理controls内的插件）
    * @private
    */
-  _getNonAdPlugin() {
+  _getNonAdPlugin () {
     const { player, decoratedAdPluginList } = this
     const allowedNames = []
     decoratedAdPluginList.forEach(([targetClass, decoratorClass]) => {
@@ -333,9 +320,7 @@ export class AdUIManager {
       }
     })
     const controlPlugins = player.controls?.plugins() || []
-    const otherPlugins = controlPlugins.filter(
-      plugin => allowedNames.indexOf(plugin.pluginName.toLowerCase()) === -1
-    )
+    const otherPlugins = controlPlugins.filter((plugin) => allowedNames.indexOf(plugin.pluginName.toLowerCase()) === -1)
 
     return otherPlugins
   }

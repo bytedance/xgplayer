@@ -4,7 +4,7 @@ import util from '../util'
 import XHR from '../util/xhr'
 
 class EME extends EventEmitter {
-  constructor(drm) {
+  constructor (drm) {
     super()
     this.drm = drm
     this.KEYSYSTEM_TYPE = ''
@@ -18,10 +18,7 @@ class EME extends EventEmitter {
     // this.SetupEME(video, KEYSYSTEM_TYPE, "video", keys, options)
   }
 
-  setOptions(
-    videoContentType = 'video/mp4; codecs="avc1.64001F"',
-    audioContentType = 'audio/mp4; codecs="mp4a.40.2"'
-  ) {
+  setOptions (videoContentType = 'video/mp4; codecs="avc1.64001F"', audioContentType = 'audio/mp4; codecs="mp4a.40.2"') {
     // log('UA: "' + navigator.userAgent + '"')
     const basicVideoCapabilities = [
       { contentType: 'video/mp4; codecs="avc1.42E01E"' },
@@ -71,17 +68,19 @@ class EME extends EventEmitter {
     // }
   }
 
-  bail(message) {
-    return err => {
+  bail (message) {
+    return function (err) {
       console.log(message + (err ? ' ' + err : ''))
     }
   }
 
-  UpdateSessionFunc(drmKeys) {
-    return ev => {
+  UpdateSessionFunc (drmKeys) {
+    // console.log('UpdateSessionFunc')
+    const self = this
+    return function (ev) {
       const keys = []
       const keyIds = []
-      Object.keys(drmKeys).forEach(keyIdHex => {
+      Object.keys(drmKeys).forEach(function (keyIdHex) {
         const keyHex = drmKeys[keyIdHex]
         const keyId = util.fromHex(keyIdHex)
         const key = util.fromHex(keyHex)
@@ -106,9 +105,9 @@ class EME extends EventEmitter {
       // }).catch((err) => {
       //   self.bail(err)
       // })
-      ev.target.update(util.StringToArrayBuffer(license)).then(() => {
+      ev.target.update(util.StringToArrayBuffer(license)).then(function () {
         // console.log(' MediaKeySession update ok!')
-      }, this.bail(' MediaKeySession update failed'))
+      }, self.bail(' MediaKeySession update failed'))
 
       // let msgStr = util.ArrayBufferToString(ev.message)
       // // console.log(' got message from CDM: ' + msgStr)
@@ -146,7 +145,7 @@ class EME extends EventEmitter {
     }
   }
 
-  KeysChange(event) {
+  KeysChange (event) {
     const session = event.target
     // console.log('keystatuseschange event on session' + session.sessionId)
     const map = session.keyStatuses
@@ -158,7 +157,8 @@ class EME extends EventEmitter {
     }
   }
 
-  EnsureMediaKeysCreated(video, keySystem, options) {
+  EnsureMediaKeysCreated (video, keySystem, options) {
+    const self = this
     // We may already have a MediaKeys object if we initialized EME for a
     // different MSE SourceBuffer's 'encrypted' event, or the initialization
     // may still be in progress.
@@ -168,45 +168,44 @@ class EME extends EventEmitter {
 
     // console.log('navigator.requestMediaKeySystemAccess(' + JSON.stringify(options) + ')')
     // console.log(keySystem)
-    this.ensurePromise = navigator
-      .requestMediaKeySystemAccess(keySystem, options)
-      .then(
-        keySystemAccess => keySystemAccess.createMediaKeys(),
-        this.bail(' Failed to request key system access.')
-      )
+    this.ensurePromise = navigator.requestMediaKeySystemAccess(keySystem, options)
+      .then(function (keySystemAccess) {
+        return keySystemAccess.createMediaKeys()
+      }, self.bail(' Failed to request key system access.'))
 
-      .then(mediaKeys => {
+      .then(function (mediaKeys) {
         // console.log(' created MediaKeys object ok')
         return video.setMediaKeys(mediaKeys)
-      }, this.bail(' failed to create MediaKeys object'))
+      }, self.bail(' failed to create MediaKeys object'))
 
     return this.ensurePromise
   }
 
-  SetupEME(video, keyIds) {
+  SetupEME (video, keyIds) {
+    const self = this
     video.sessions = []
     // console.log('install got encrypted event')
     // video.addEventListener('encrypted', function (ev) {
-    this.on('encrypted', () => {
+    this.on('encrypted', function () {
       // console.log('got encrypted event')
       // console.log(ev)
       const initDataType = 'keyids'
       const initDataStr = JSON.stringify({ kids: ['0123456789abcdef0123456789abcdef'] })
       const initData = new Uint8Array(util.toUTF8(initDataStr))
 
-      this.EnsureMediaKeysCreated(video, this.KEYSYSTEM_TYPE, this.options)
-        .then(() => {
+      self.EnsureMediaKeysCreated(video, self.KEYSYSTEM_TYPE, self.options)
+        .then(function () {
           // console.log('ensured MediaKeys available on HTMLMediaElement')
           const session = video.mediaKeys.createSession()
           video.sessions.push(session)
-          session.addEventListener('message', this.UpdateSessionFunc(this.keys))
-          session.addEventListener('keystatuseschange', this.KeysChange)
+          session.addEventListener('message', self.UpdateSessionFunc(self.keys))
+          session.addEventListener('keystatuseschange', self.KeysChange)
           return session.generateRequest(initDataType, initData.buffer)
-        }, this.bail(' failed to ensure MediaKeys on HTMLMediaElement'))
+        }, self.bail(' failed to ensure MediaKeys on HTMLMediaElement'))
 
-        .then(() => {
+        .then(function () {
           // console.log(' generated request')
-        }, this.bail(' Failed to generate request.'))
+        }, self.bail(' Failed to generate request.'))
     })
   }
 }

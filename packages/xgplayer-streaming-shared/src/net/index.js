@@ -1,14 +1,18 @@
-import EventEmitter from 'eventemitter3'
-import { EVENT } from '../event'
+import { FetchLoader } from './fetch'
+import { LoaderType, ResponseType } from './types'
+import { getConfig } from './config'
+import { Task } from './task'
 import { isPlainObject } from '../is'
 import { sleep } from '../streaming-helper'
-import { getConfig } from './config'
+import { EVENT } from '../event'
+import EventEmitter from 'eventemitter3'
 import { getSharedDynamicTimeoutIns } from './dynamic-timeout'
-import { FetchLoader } from './fetch'
-import { Task } from './task'
-import { LoaderType, ResponseType } from './types'
 
-export { LoaderType, ResponseType, getSharedDynamicTimeoutIns }
+export {
+  LoaderType,
+  ResponseType,
+  getSharedDynamicTimeoutIns
+}
 
 export class NetLoader extends EventEmitter {
   type = LoaderType.FETCH
@@ -23,24 +27,27 @@ export class NetLoader extends EventEmitter {
 
   _config
 
-  constructor(cfg) {
+  constructor (cfg) {
     super(cfg)
     this._config = getConfig(cfg)
-    if (this._config.loaderType === LoaderType.XHR || !FetchLoader.isSupported()) {
+    if (
+      this._config.loaderType === LoaderType.XHR ||
+      !FetchLoader.isSupported()
+    ) {
       this.type = LoaderType.XHR
     }
     this.log = cfg.logger
   }
 
-  isFetch() {
+  isFetch () {
     return this.type === LoaderType.FETCH
   }
 
-  static isFetchSupport() {
+  static isFetchSupport () {
     return FetchLoader.isSupported()
   }
 
-  load(url, config = {}) {
+  load (url, config = {}) {
     if (typeof url === 'string' || !url) {
       config.url = url || config.url || this._config.url
     } else {
@@ -50,10 +57,8 @@ export class NetLoader extends EventEmitter {
     config = Object.assign({}, this._config, config)
 
     if (config.params) config.params = Object.assign({}, config.params)
-    if (config.headers && isPlainObject(config.headers))
-      config.headers = Object.assign({}, config.headers)
-    if (config.body && isPlainObject(config.body))
-      config.body = Object.assign({}, config.body)
+    if (config.headers && isPlainObject(config.headers)) config.headers = Object.assign({}, config.headers)
+    if (config.body && isPlainObject(config.body)) config.body = Object.assign({}, config.body)
 
     if (config.transformRequest) {
       config = config.transformRequest(config) || config
@@ -62,7 +67,7 @@ export class NetLoader extends EventEmitter {
     config.dynamicTimeoutIns = this._config.dynamicTimeoutIns
 
     const task = new Task(this.type, config)
-    task.loader.on(EVENT.REAL_TIME_SPEED, data => {
+    task.loader.on(EVENT.REAL_TIME_SPEED, (data) => {
       this.emit(EVENT.REAL_TIME_SPEED, data)
     })
     this._queue.push(task)
@@ -73,10 +78,8 @@ export class NetLoader extends EventEmitter {
     return task.promise
   }
 
-  async cancel() {
-    const cancels = this._queue
-      .map(t => t.cancel())
-      .concat(this._alive.map(t => t.cancel()))
+  async cancel () {
+    const cancels = this._queue.map(t => t.cancel()).concat(this._alive.map(t => t.cancel()))
     if (this._currentTask) {
       cancels.push(this._currentTask.cancel())
     }
@@ -86,7 +89,7 @@ export class NetLoader extends EventEmitter {
     await sleep()
   }
 
-  _processTask() {
+  _processTask () {
     this._currentTask = this._queue.shift()
     if (!this._currentTask) return
 
@@ -103,5 +106,6 @@ export class NetLoader extends EventEmitter {
       }
       this._processTask()
     })
+
   }
 }

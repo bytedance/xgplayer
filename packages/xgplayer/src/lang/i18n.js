@@ -1,6 +1,5 @@
 import Util from '../utils/util'
 import EN from './en'
-
 /**
  * @typedef { {
  *   LANG: string,
@@ -24,7 +23,7 @@ const XGI18nLang = {
   textKeys: []
 }
 
-function deepMerge(dst, src) {
+function deepMerge (dst, src) {
   Object.keys(src).forEach(key => {
     const _s = Util.typeOf(src[key])
     const _t = Util.typeOf(dst[key])
@@ -45,7 +44,7 @@ function deepMerge(dst, src) {
   return dst
 }
 
-function updateKeys() {
+function updateKeys () {
   Object.keys(XGI18nLang.lang.en).map(key => {
     XGI18nLang.textKeys[key] = key // key.toLowerCase()
   })
@@ -55,7 +54,7 @@ function updateKeys() {
  * @param { Array<IXGI18nText> } i18nTextList
  * @param { IXGI18n } [i18nLangs]
  */
-function extend(i18nTextList, i18nLangs) {
+function extend (i18nTextList, i18nLangs) {
   let ext = []
   if (!i18nLangs) {
     i18nLangs = XGI18nLang
@@ -92,7 +91,7 @@ function extend(i18nTextList, i18nLangs) {
  * @param { IXGI18nText } langData
  * @param { IXGI18n } [i18nLangs]
  */
-function use(langData, i18nLangs) {
+function use (langData, i18nLangs) {
   let _clang = langData.LANG
   if (!i18nLangs) {
     i18nLangs = XGI18nLang
@@ -117,7 +116,7 @@ function use(langData, i18nLangs) {
  *
  * @returns { IXGI18n }
  */
-function init(id) {
+function init (id) {
   const ret = {
     lang: {},
     langKeys: [],
@@ -133,14 +132,14 @@ function init(id) {
 use(EN)
 
 const I18N = {
-  get textKeys() {
+  get textKeys () {
     return XGI18nLang.textKeys
   },
   /**
    * @description List of languages currently supported
    * @type { Array<string> }
    */
-  get langKeys() {
+  get langKeys () {
     return XGI18nLang.langKeys
   },
   /**
@@ -150,7 +149,7 @@ const I18N = {
    *   }
    * }}
    */
-  get lang() {
+  get lang () {
     const ret = {}
     XGI18nLang.langKeys.map(key => {
       ret[key] = XGI18nLang.lang[key]

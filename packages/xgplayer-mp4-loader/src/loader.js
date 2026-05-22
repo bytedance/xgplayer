@@ -1,10 +1,10 @@
-import EventEmitter from 'eventemitter3'
-import { concatUint8Array, EVENT, Logger, NetLoader } from 'xgplayer-streaming-shared'
+import { NetLoader, concatUint8Array, Logger, EVENT } from 'xgplayer-streaming-shared'
 import { MP4Parser } from 'xgplayer-transmuxer'
-import { Cache } from './cache'
 import { getConfig } from './config'
 import { MediaError } from './error'
+import { Cache } from './cache'
 import { isNumber, moovToMeta, moovToSegments, sidxToSegments } from './utils'
+import EventEmitter from 'eventemitter3'
 
 export class MP4Loader extends EventEmitter {
   vid = ''
@@ -19,10 +19,14 @@ export class MP4Loader extends EventEmitter {
   buffer
   _error
 
-  constructor(config) {
+  constructor (config) {
     super()
     this._config = getConfig(config)
-    const { vid, cache, ...rest } = this._config
+    const {
+      vid,
+      cache,
+      ...rest
+    } = this._config
     this.cache = cache || new Cache()
     this.vid = vid || rest.url
     this.url = rest.url
@@ -32,94 +36,59 @@ export class MP4Loader extends EventEmitter {
     rest.logger = this.logger
 
     this._loader = new NetLoader(rest)
-    this._loader.on(EVENT.REAL_TIME_SPEED, data => {
+    this._loader.on(EVENT.REAL_TIME_SPEED, (data) => {
       this.emit(EVENT.REAL_TIME_SPEED, data)
     })
   }
 
-  get isMetaLoaded() {
+  get isMetaLoaded () {
     return this.videoSegments.length || this.audioSegments.length
   }
 
-  setCurrentSegment(segIndex) {
+  setCurrentSegment (segIndex) {
     if (isNumber(segIndex)) {
       this._currentSegmentIndex = segIndex
     }
   }
 
-  isLastSegment(segIndex) {
+  isLastSegment (segIndex) {
     if (isNumber(segIndex)) {
-      const lastIndex =
-        this.videoSegments[this.videoSegments.length - 1]?.index ||
-        this.audioSegments[this.audioSegments.length - 1]?.index ||
-        0
+      const lastIndex = this.videoSegments[this.videoSegments.length - 1]?.index || this.audioSegments[this.audioSegments.length - 1]?.index || 0
       return segIndex >= lastIndex
     }
 
     return false
   }
 
-  isSegmentLoading(segIndex) {
+  isSegmentLoading (segIndex) {
     return segIndex === this._currentLoadingSegmentIndex
   }
 
-  async changeUrl(url, vid = url, moovEnd, notCancelLoader) {
+  async changeUrl (url, vid = url, moovEnd, notCancelLoader) {
     await this.reset(notCancelLoader)
     if (url) this.url = url
     if (vid) this.vid = vid
     if (moovEnd) this._config.moovEnd = moovEnd
   }
 
-  async getOrLoadMeta(cache) {
+  async getOrLoadMeta (cache) {
     if (!this.isMetaLoaded) await this.loadMeta(cache)
     return this.meta
   }
 
-  async loadMetaProcess(cache, [moovStart, moovEnd], onProgress, config) {
+  async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config) {
     this._error = false
     this.logger.debug('[loadMetaProcess start], range,', [moovStart, moovEnd])
     const OnProgressHandle = async (data, state, options) => {
-      if (
-        this.meta &&
-        options?.range &&
-        options.range.length > 0 &&
-        options.range[1] >= moovEnd
-      ) {
+      if (this.meta && options?.range && options.range.length > 0 && options.range[1] >= moovEnd) {
         state = true
-        this.logger.debug(
-          '[loadMetaProcess],data done,setstate true,[',
-          moovStart,
-          moovEnd,
-          ']'
-        )
+        this.logger.debug('[loadMetaProcess],data done,setstate true,[', moovStart, moovEnd, ']')
       }
-      if (
-        state &&
-        options?.range &&
-        options.range.length > 0 &&
-        options.range[1] < moovEnd
-      ) {
+      if (state && options?.range && options.range.length > 0 && options.range[1] < moovEnd) {
         state = false // 为了修复state为true但数据还么全部返回的问题
-        this.logger.debug(
-          '[loadMetaProcess],data not done,setstate false,[',
-          moovStart,
-          moovEnd,
-          ']'
-        )
+        this.logger.debug('[loadMetaProcess],data not done,setstate false,[', moovStart, moovEnd, ']')
       }
-      this.logger.debug(
-        '[loadMetaProcess],task,[',
-        moovStart,
-        moovEnd,
-        '], range,',
-        options.range,
-        ',dataLen,',
-        data ? data.byteLength : undefined,
-        ', state,',
-        state,
-        ',err,',
-        this._error
-      )
+      this.logger.debug('[loadMetaProcess],task,[', moovStart, moovEnd, '], range,', options.range, ',dataLen,', (data ? data.byteLength : undefined), ', state,', state, ',err,',this._error)
       !this._error && data && data.byteLength > 0 && onProgress(data, state, options)
       if (this.meta.moov || this._error) return
       if (data && data.byteLength > 0) {
@@ -130,7 +99,7 @@ export class MP4Loader extends EventEmitter {
           if (state) {
             if (!mdat) {
               this._error = true
-              onProgress(null, state, options, { err: 'cannot find moov or mdat box' })
+              onProgress(null, state, options, {err:'cannot find moov or mdat box'})
               return
               // throw new MediaError('cannot find moov or mdat box')
             } else {
@@ -143,25 +112,14 @@ export class MP4Loader extends EventEmitter {
           }
         }
         if (moov && state && moov.size > moov.data.length) {
-          this.logger.debug(
-            '[loadMetaProcess],moov not all, range,',
-            options.range[1],
-            ',dataLen,',
-            this.buffer.byteLength,
-            ', state,',
-            state
-          )
-          await this.loadMetaProcess(
-            cache,
-            [options.range[1], moov.start + moov.size - 1],
-            onProgress
-          )
+          this.logger.debug('[loadMetaProcess],moov not all, range,', options.range[1], ',dataLen,', this.buffer.byteLength, ', state,', state)
+          await this.loadMetaProcess(cache, [options.range[1], moov.start + moov.size - 1], onProgress)
         }
         if (moov && moov.size <= moov.data.length && !this.meta.moov) {
           const parsedMoov = MP4Parser.moov(moov)
           if (!parsedMoov) {
             this._error = true
-            onProgress(null, state, options, { err: 'cannot parse moov box' })
+            onProgress(null, state, options, {err:'cannot parse moov box'})
             return
             // throw new MediaError('cannot parse moov box', moov.data)
           }
@@ -169,15 +127,11 @@ export class MP4Loader extends EventEmitter {
           let segments = moovToSegments(parsedMoov, this._config.segmentDuration)
 
           // 当box存在但不完整时，补全box
-          const getCompletedBox = async name => {
+          const getCompletedBox = async (name) => {
             const box = MP4Parser.findBox(this.buffer, [name])[0]
             if (box) {
               if (box.size > box.data.length) {
-                const res = await this.loadData(
-                  [box.start, box.start + box.size - 1],
-                  cache,
-                  config
-                )
+                const res = await this.loadData([box.start, box.start + box.size - 1], cache, config)
                 if (res) {
                   return MP4Parser.findBox(res.data, [name])[0]
                 }
@@ -192,9 +146,7 @@ export class MP4Loader extends EventEmitter {
           // 而sidx和moof的size都是动态的（且sidx不一定存在），导致每个环节都需要判断是否满足解析条件以及对应的兜底处理
           // todo: 后续加载逻辑需要改为【开区间range+主动取消】才能更好的处理fmp4
           let isFragmentMP4 = false
-          if (
-            !(segments && segments.videoSegments.length && segments.audioSegments.length)
-          ) {
+          if (!(segments && segments.videoSegments.length && segments.audioSegments.length)) {
             const sidx = await getCompletedBox('sidx')
             if (sidx) {
               const parsedSidx = MP4Parser.sidx(sidx)
@@ -210,7 +162,7 @@ export class MP4Loader extends EventEmitter {
 
           if (!segments) {
             this._error = true
-            onProgress(null, state, options, { err: 'cannot parse segments' })
+            onProgress(null, state, options, {err:'cannot parse segments'})
             return
             // throw new MediaError('cannot parse segments', moov.data)
           }
@@ -230,13 +182,10 @@ export class MP4Loader extends EventEmitter {
         }
       }
     }
-    await this.loadData([moovStart, moovEnd || this._config.moovEnd], cache, {
-      onProgress: OnProgressHandle,
-      ...config
-    })
+    await this.loadData([moovStart, moovEnd || this._config.moovEnd], cache, { onProgress: OnProgressHandle, ...config})
   }
 
-  async loadMeta(cache, moovEnd, config) {
+  async loadMeta (cache, moovEnd, config) {
     const responses = []
     this.logger.debug('[loadMeta start]')
     let res = await this.loadData([0, moovEnd || this._config.moovEnd], cache, config)
@@ -258,11 +207,7 @@ export class MP4Loader extends EventEmitter {
       }
     }
     if (moov.size > moov.data.length) {
-      res = await this.loadData(
-        [res.data.length, moov.start + moov.size - 1],
-        cache,
-        config
-      )
+      res = await this.loadData([res.data.length, moov.start + moov.size - 1], cache, config)
       if (!res) return
       responses.push(res)
       moov.data = concatUint8Array(moov.data, res.data)
@@ -304,7 +249,7 @@ export class MP4Loader extends EventEmitter {
     }
   }
 
-  loadCacheMeta(meta, segmentIndex) {
+  loadCacheMeta (meta, segmentIndex){
     const { moov } = meta
     const segments = moovToSegments(moov, this._config.segmentDuration)
     const { videoSegments, audioSegments } = segments
@@ -314,7 +259,7 @@ export class MP4Loader extends EventEmitter {
     this.meta = meta
   }
 
-  getSegmentByTime(time) {
+  getSegmentByTime (time) {
     let video
     let audio
     if (!this.videoSegments.length) {
@@ -332,7 +277,7 @@ export class MP4Loader extends EventEmitter {
     }
   }
 
-  async loadSegmentByTime(time, cache, changeCurrent = true, config = {}) {
+  async loadSegmentByTime (time, cache, changeCurrent = true, config = {}) {
     if (!this.isMetaLoaded) {
       await this.loadMeta(cache)
     }
@@ -340,7 +285,7 @@ export class MP4Loader extends EventEmitter {
     return this._loadSegment(video, audio, cache, changeCurrent, config)
   }
 
-  async loadNextSegment(cache, changeCurrent = true, config = {}) {
+  async loadNextSegment (cache, changeCurrent = true, config = {}) {
     if (!this.isMetaLoaded) {
       await this.loadMeta()
     }
@@ -349,7 +294,7 @@ export class MP4Loader extends EventEmitter {
     return this._loadSegment(video, audio, cache, changeCurrent, config)
   }
 
-  async preload(time) {
+  async preload (time) {
     if (!this.isMetaLoaded) {
       await this.loadMeta(true)
     }
@@ -361,7 +306,7 @@ export class MP4Loader extends EventEmitter {
     const videos = this.videoSegments.slice(0, index)
     const audios = this.audioSegments.slice(0, index)
 
-    const load = async i => {
+    const load = async (i) => {
       if (i > index) return
       await this._loadSegment(videos[i], audios[i], true, false)
       await load(i + 1)
@@ -370,11 +315,11 @@ export class MP4Loader extends EventEmitter {
     await load(0)
   }
 
-  cancel() {
+  cancel () {
     return this._loader.cancel()
   }
 
-  async reset(notCancelLoader = false) {
+  async reset (notCancelLoader = false) {
     if (!notCancelLoader) {
       this.logger.debug('[MP4loader reset func call loader.cancel]')
       await this._loader.cancel()
@@ -388,26 +333,22 @@ export class MP4Loader extends EventEmitter {
     this._currentLoadingSegmentIndex = -1
   }
 
-  async destroy() {
+  async destroy () {
     await this.reset()
     // await this.cancel()
     this.cache.clear()
   }
 
-  async _loadSegment(video, audio, cache, changeCurrent, config) {
+  async _loadSegment (video, audio, cache, changeCurrent, config) {
     if (!video && !audio) return
     const segIndex = video?.index || audio?.index || 0
     this._currentLoadingSegmentIndex = segIndex
     let res
     try {
-      res = await this.loadData(
-        [
-          Math.min(video?.range[0] || Infinity, audio?.range[0] || Infinity),
-          Math.max(video?.range[1] || 0, audio?.range[1] || 0)
-        ],
-        cache,
-        config
-      )
+      res = await this.loadData([
+        Math.min(video?.range[0] || Infinity, audio?.range[0] || Infinity),
+        Math.max(video?.range[1] || 0, audio?.range[1] || 0)
+      ], cache, config)
     } finally {
       this._currentLoadingSegmentIndex = -1
     }
@@ -423,7 +364,7 @@ export class MP4Loader extends EventEmitter {
     return res
   }
 
-  async loadData(range, cache, config) {
+  async loadData (range, cache, config) {
     const cacheKey = this._getCacheKey(range)
     const data = await this.cache.get(cacheKey)
     let res
@@ -435,17 +376,13 @@ export class MP4Loader extends EventEmitter {
     }
     if (!res) return
     if (!data) {
-      res.data &&
-        this.downloadInfo.push({
-          startTime: res.startTime,
-          endTime: res.endTime,
-          size: res.data.byteLength,
-          range
-        })
-      if (
-        this.downloadInfo &&
-        this.downloadInfo.length > this._config.maxDownloadInfoSize
-      ) {
+      res.data && this.downloadInfo.push({
+        startTime: res.startTime,
+        endTime: res.endTime,
+        size: res.data.byteLength,
+        range
+      })
+      if (this.downloadInfo && this.downloadInfo.length > this._config.maxDownloadInfoSize) {
         this.downloadInfo = this.downloadInfo.slice(-this._config.maxDownloadInfoSize)
       }
     }
@@ -458,12 +395,12 @@ export class MP4Loader extends EventEmitter {
     return res
   }
 
-  _transformError = error => {
+  _transformError = (error) => {
     // error.type = 'network'
     return error
   }
 
-  _getCacheKey(range) {
+  _getCacheKey (range) {
     return (this.vid || this.url) + ':' + range
   }
 }

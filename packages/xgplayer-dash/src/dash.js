@@ -1,11 +1,11 @@
 import EventEmitter from 'eventemitter3'
 import MPD from './m4s/mpd'
-import EME from './media/eme'
-import MSE from './media/mse'
 import Task from './media/task'
+import MSE from './media/mse'
+import EME from './media/eme'
 
 class DASH extends EventEmitter {
-  constructor(url, options = {}, video) {
+  constructor (url, options = {}, video) {
     super()
     this.mse = undefined
     this.url = url
@@ -18,7 +18,7 @@ class DASH extends EventEmitter {
     }
   }
 
-  getData(url, range = [0]) {
+  getData (url, range = [0]) {
     return new Promise((resolve, reject) => {
       const task = new Task(url, resolve, range)
       task.once('error', err => {
@@ -27,88 +27,77 @@ class DASH extends EventEmitter {
     })
   }
 
-  init(url) {
+  init (url) {
     const mpd = new MPD(url)
     this.mpd = mpd
+    const dash = this
     let mse
     let vl, al
     return new Promise((resolve, reject) => {
       mpd.once('ready', () => {
-        this.type = mpd.type
+        dash.type = mpd.type
         vl = mpd.mediaList.video
         al = mpd.mediaList.audio
-        if (this.eme) {
+        if (dash.eme) {
           // console.log('dash.eme')
           // console.log(`${vl[vl.selectedIdx].mimeType}; codecs="${vl[vl.selectedIdx].codecs}"`)
           // console.log(`${al[al.selectedIdx].mimeType}; codecs="${al[al.selectedIdx].codecs}"`)
-          this.eme.setOptions(
-            `${vl[vl.selectedIdx].mimeType}; codecs="${vl[vl.selectedIdx].codecs}"`,
-            `${al[al.selectedIdx].mimeType}; codecs="${al[al.selectedIdx].codecs}"`
-          )
-          this.eme.SetupEME(this.video)
+          dash.eme.setOptions(`${vl[vl.selectedIdx].mimeType}; codecs="${vl[vl.selectedIdx].codecs}"`, `${al[al.selectedIdx].mimeType}; codecs="${al[al.selectedIdx].codecs}"`)
+          dash.eme.SetupEME(dash.video)
         }
         mse = new MSE()
-        mse.on('sourceopen', () => {
-          ;['video', 'audio'].forEach(mediaType => {
+        mse.on('sourceopen', function () {
+          ['video', 'audio'].forEach(mediaType => {
             const ml = mpd.mediaList[mediaType]
             if (ml[ml.selectedIdx]) {
-              mse.addSourceBuffer(
-                `${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}"`
-              )
-              this.getData(
+              mse.addSourceBuffer(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}"`)
+              dash.getData(
                 ml[ml.selectedIdx].initSegment,
                 ml[ml.selectedIdx].initSegmentRange
-              ).then(initRes => {
+              ).then(function (initRes) {
                 // console.log('get initSegment');
                 mse.appendBuffer(`${ml[0].mimeType};codecs="${ml[0].codecs}"`, initRes)
-                mse.once(
-                  `${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}" updateend`,
-                  () => {
-                    ml[ml.selectedIdx].inited = true
-                    mse.emit('updateend')
-                  }
-                )
+                mse.once(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}" updateend`, function () {
+                  ml[ml.selectedIdx].inited = true
+                  mse.emit('updateend')
+                })
               })
             }
           })
         })
-        mse.on('updateend', e => {
-          if (
-            vl[vl.selectedIdx] &&
-            vl[vl.selectedIdx].inited &&
-            al[al.selectedIdx] &&
-            al[al.selectedIdx].inited
-          ) {
-            this.inited = true
+        mse.on('updateend', function (e) {
+          if (vl[vl.selectedIdx] && vl[vl.selectedIdx].inited && al[al.selectedIdx] && al[al.selectedIdx].inited) {
+            dash.inited = true
             if (vl[vl.selectedIdx].encrypted || al[al.selectedIdx].encrypted) {
-              this.eme.emit('encrypted')
+              dash.eme.emit('encrypted')
             }
             // console.log('dash.inited = true')
-            if (this.type === 'vod') {
+            if (dash.type === 'vod') {
               // console.log('vod dash.seek(0)')
-              this.seek(0)
-              this.emit('startPlay')
+              dash.seek(0)
+              dash.emit('startPlay')
             }
           }
         })
-        mse.on('error', e => {
+        mse.on('error', function (e) {
           reject(e)
           console.log('mse error')
         })
-        this.mse = mse
+        dash.mse = mse
         resolve(mse)
       })
       mpd.once('end', () => {
         if (this.type === 'live') {
-          this.mse.endOfStream()
+          dash.mse.endOfStream()
         }
       })
     })
   }
 
-  seek(time) {
-    const seekResult = this.mpd.seek(time)
-    ;['video', 'audio'].forEach(mediaType => {
+  seek (time) {
+    const dash = this
+    const seekResult = this.mpd.seek(time);
+    ['video', 'audio'].forEach(mediaType => {
       if (seekResult[mediaType] && seekResult[mediaType].length > 0) {
         // console.log('seekResult[mediaType].length > 0')
         // console.log(seekResult[mediaType])
@@ -117,40 +106,33 @@ class DASH extends EventEmitter {
             return true
           }
           // eslint-disable-next-line no-unused-vars
-          const tasker = new Task(
-            item.url,
-            res => {
-              if (res === 'Not Found') {
-                // console.log('Not Found')
-                if (!item.tryTimes) {
-                  item.tryTimes = 0
-                }
-                item.tryTimes++
-                if (item.tryTimes <= 2) {
-                  return true
-                }
-              } else {
-                // console.log('dash.mse.appendBuffer')
-                // console.log(dash.mpd.mediaList[mediaType][0].mimeType)
-                // console.log(dash.mpd.mediaList[mediaType][0].codecs)
-                this.mse.appendBuffer(
-                  `${this.mpd.mediaList[mediaType][0].mimeType};codecs="${this.mpd.mediaList[mediaType][0].codecs}"`,
-                  new Uint8Array(res)
-                )
+          const tasker = new Task(item.url, (res) => {
+            if (res === 'Not Found') {
+              // console.log('Not Found')
+              if (!item.tryTimes) {
+                item.tryTimes = 0
               }
-              const idx = item.idx
-              const ml = this.mpd.mediaList[mediaType]
-              ml[ml.selectedIdx].mediaSegments.every(sItem => {
-                if (sItem.idx !== idx) {
-                  return true
-                } else {
-                  sItem.downloaded = true
-                  return false
-                }
-              })
-            },
-            item.range
-          )
+              item.tryTimes++
+              if (item.tryTimes <= 2) {
+                return true
+              }
+            } else {
+              // console.log('dash.mse.appendBuffer')
+              // console.log(dash.mpd.mediaList[mediaType][0].mimeType)
+              // console.log(dash.mpd.mediaList[mediaType][0].codecs)
+              dash.mse.appendBuffer(`${dash.mpd.mediaList[mediaType][0].mimeType};codecs="${dash.mpd.mediaList[mediaType][0].codecs}"`, new Uint8Array(res))
+            }
+            const idx = item.idx
+            const ml = dash.mpd.mediaList[mediaType]
+            ml[ml.selectedIdx].mediaSegments.every(sItem => {
+              if (sItem.idx !== idx) {
+                return true
+              } else {
+                sItem.downloaded = true
+                return false
+              }
+            })
+          }, item.range)
           return true
         })
       }

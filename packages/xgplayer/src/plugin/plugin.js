@@ -1,10 +1,9 @@
 /**
- * an ui Plugin class
- *
- **/
-
-import delegate from 'delegate'
+* an ui Plugin class
+*
+**/
 import BasePlugin, { Util, XG_DEBUG } from './basePlugin'
+import delegate from 'delegate'
 
 const ROOT_TYPES = {
   CONTROLS: 'controls',
@@ -32,21 +31,21 @@ const PLUGIN_STATE_CLASS = {
  * Check if the url is a link address
  * @param { string } str
  */
-function isUrl(str) {
+function isUrl (str) {
   if (!str) {
     return false
   }
   return str.indexOf && /^(?:http|data:|\/)/.test(str)
 }
 
-function mergeIconClass(icon, classname) {
+function mergeIconClass (icon, classname) {
   if (typeof icon === 'object' && icon.class && typeof icon.class === 'string') {
     return `${classname} ${icon.class}`
   }
   return classname
 }
 
-function mergeIconAttr(icon, attr) {
+function mergeIconAttr (icon, attr) {
   if (typeof icon === 'object' && icon.attr && typeof icon.attr === 'object') {
     Object.keys(icon.attr).map(key => {
       attr[key] = icon.attr[key]
@@ -55,7 +54,7 @@ function mergeIconAttr(icon, attr) {
   return attr
 }
 
-function createIcon(icon, key, classname = '', attr = {}, pluginName = '') {
+function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
   let newIcon = null
   if (icon instanceof window.Element) {
     Util.addClass(icon, classname)
@@ -66,7 +65,7 @@ function createIcon(icon, key, classname = '', attr = {}, pluginName = '') {
   }
 
   if (isUrl(icon) || isUrl(icon.url)) {
-    attr.src = isUrl(icon) ? icon : icon.url || ''
+    attr.src = isUrl(icon) ? icon : (icon.url || '')
     newIcon = Util.createDom(icon.tag || 'img', '', attr, `xg-img ${classname}`)
     return newIcon
   }
@@ -81,9 +80,7 @@ function createIcon(icon, key, classname = '', attr = {}, pluginName = '') {
         })
         return newIcon
       } else {
-        XG_DEBUG.logWarn(
-          `warn>>icons.${key} in config of plugin named [${pluginName}] is a function mast return an Element Object`
-        )
+        XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is a function mast return an Element Object`)
       }
       return null
     } catch (e) {
@@ -95,13 +92,11 @@ function createIcon(icon, key, classname = '', attr = {}, pluginName = '') {
   if (typeof icon === 'string') {
     return Util.createDomFromHtml(icon, attr, classname)
   }
-  XG_DEBUG.logWarn(
-    `warn>>icons.${key} in config of plugin named [${pluginName}] is invalid`
-  )
+  XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is invalid`)
   return null
 }
 
-function registerIconsObj(iconsConfig, plugin) {
+function registerIconsObj (iconsConfig, plugin) {
   const _icons = plugin.config.icons || plugin.playerConfig.icons
   Object.keys(iconsConfig).map(key => {
     const orgIcon = iconsConfig[key]
@@ -114,27 +109,21 @@ function registerIconsObj(iconsConfig, plugin) {
       newIcon = createIcon(_icons[key], key, classname, attr, plugin.pluginName)
     }
     if (!newIcon && orgIcon) {
-      newIcon = createIcon(
-        orgIcon.icon ? orgIcon.icon : orgIcon,
-        attr,
-        classname,
-        {},
-        plugin.pluginName
-      )
+      newIcon = createIcon((orgIcon.icon ? orgIcon.icon : orgIcon), attr, classname, {}, plugin.pluginName)
     }
     plugin.icons[key] = newIcon
   })
 }
 
-function registerTextObj(textConfig, plugin) {
-  Object.keys(textConfig).map(key => {
+function registerTextObj (textConfig, plugin) {
+  Object.keys(textConfig).map((key) => {
     Object.defineProperty(plugin.langText, key, {
       get: () => {
         const { lang, i18n } = plugin
         if (i18n[key]) {
           return i18n[key]
         } else {
-          return textConfig[key] ? textConfig[key][lang] || '' : ''
+          return textConfig[key] ? (textConfig[key][lang] || '') : ''
         }
       }
     })
@@ -156,16 +145,16 @@ function registerTextObj(textConfig, plugin) {
  *  position?: string,
  *  [propName: string]: any
  * }} IPluginOptions
- */
+*/
 class Plugin extends BasePlugin {
   /**
-   * 插入dom结构
-   * @param { string | HTMLElement } html html字符串或者dom
-   * @param { HTMLElement } parent
-   * @param { number } index
-   * @returns { HTMLElement }
-   */
-  static insert(html, parent, index = 0) {
+    * 插入dom结构
+    * @param { string | HTMLElement } html html字符串或者dom
+    * @param { HTMLElement } parent
+    * @param { number } index
+    * @returns { HTMLElement }
+    */
+  static insert (html, parent, index = 0) {
     const len = parent.children.length
     const insertIdx = Number(index)
     const isDomElement = html instanceof window.Node
@@ -174,7 +163,7 @@ class Plugin extends BasePlugin {
       let i = 0
       let coordinate = null
       let mode = ''
-      for (; i < len; i++) {
+      for (;i < len; i++) {
         coordinate = parent.children[i]
         const curIdx = Number(coordinate.getAttribute('data-index'))
         if (curIdx >= insertIdx) {
@@ -195,18 +184,14 @@ class Plugin extends BasePlugin {
       } else {
         coordinate.insertAdjacentHTML(mode, html)
       }
-      return mode === 'afterend'
-        ? parent.children[parent.children.length - 1]
-        : parent.children[i]
+      return mode === 'afterend' ? parent.children[parent.children.length - 1] : parent.children[i]
     } else {
-      isDomElement
-        ? parent.appendChild(html)
-        : parent.insertAdjacentHTML('beforeend', html)
+      isDomElement ? parent.appendChild(html) : parent.insertAdjacentHTML('beforeend', html)
       return parent.children[parent.children.length - 1]
     }
   }
 
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {}
   }
 
@@ -219,11 +204,11 @@ class Plugin extends BasePlugin {
    * @param { boolean } [capture=false]
    * @returns
    */
-  static delegate(root, querySelector, eventType, callback, capture = false) {
+  static delegate (root, querySelector, eventType, callback, capture = false) {
     const dels = []
     if (root instanceof window.Node && typeof callback === 'function') {
       if (Array.isArray(eventType)) {
-        eventType.forEach(item => {
+        eventType.forEach((item) => {
           const ret = delegate(root, querySelector, item, callback, capture)
           ret.key = `${querySelector}_${item}`
           dels.push(ret)
@@ -237,18 +222,18 @@ class Plugin extends BasePlugin {
     return dels
   }
 
-  static get ROOT_TYPES() {
+  static get ROOT_TYPES () {
     return ROOT_TYPES
   }
 
-  static get POSITIONS() {
+  static get POSITIONS () {
     return POSITIONS
   }
 
   /**
    * @param { IPluginOptions } args
    */
-  constructor(args = {}) {
+  constructor (args = {}) {
     super(args)
     /**
      * @private
@@ -259,7 +244,7 @@ class Plugin extends BasePlugin {
   /**
    * @protected
    */
-  __init(args) {
+  __init (args) {
     super.__init(args)
     if (!args.root) {
       return
@@ -300,7 +285,7 @@ class Plugin extends BasePlugin {
       renderStr = this.render()
     } catch (e) {
       XG_DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
-      throw new Error(`Plugin:${this.pluginName}:render:${e.message}`)
+      throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
     if (renderStr) {
       _el = Plugin.insert(renderStr, _parent, args.index)
@@ -353,7 +338,7 @@ class Plugin extends BasePlugin {
   /**
    * @private
    */
-  __registerChildren() {
+  __registerChildren () {
     if (!this.root) {
       return
     }
@@ -375,13 +360,8 @@ class Plugin extends BasePlugin {
           if (typeof _plugin === 'function') {
             config = this.config[name] || {}
             Plugin = _plugin
-          } else if (
-            typeof _plugin === 'object' &&
-            typeof _plugin.plugin === 'function'
-          ) {
-            config = _plugin.options
-              ? Util.deepCopy(this.config[name] || {}, _plugin.options)
-              : this.config[name] || {}
+          } else if (typeof _plugin === 'object' && typeof _plugin.plugin === 'function') {
+            config = _plugin.options ? Util.deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
             Plugin = _plugin.plugin
           }
           options.config = config
@@ -393,11 +373,11 @@ class Plugin extends BasePlugin {
     }
   }
 
-  updateLang(lang) {
+  updateLang (lang) {
     if (!lang) {
       lang = this.lang
     }
-    function checkChildren(node, callback) {
+    function checkChildren (node, callback) {
       for (let i = 0; i < node.children.length; i++) {
         if (node.children[i].children.length > 0) {
           checkChildren(node.children[i], callback)
@@ -408,25 +388,24 @@ class Plugin extends BasePlugin {
     }
     const { root, i18n, langText } = this
     if (root) {
-      checkChildren(root, node => {
+      checkChildren(root, (node) => {
         const langKey = node.getAttribute && node.getAttribute('lang-key')
         if (!langKey) {
           return
         }
         const langTextShow = i18n[langKey.toUpperCase()] || langText[langKey]
         if (langTextShow) {
-          node.innerHTML =
-            typeof langTextShow === 'function' ? langTextShow(lang) : langTextShow
+          node.innerHTML = typeof langTextShow === 'function' ? langTextShow(lang) : langTextShow
         }
       })
     }
   }
 
-  get lang() {
+  get lang () {
     return this.player.lang
   }
 
-  changeLangTextKey(dom, key = '') {
+  changeLangTextKey (dom, key = '') {
     const i18n = this.i18n || {}
     const langText = this.langText
     dom.setAttribute && dom.setAttribute('lang-key', key)
@@ -436,39 +415,39 @@ class Plugin extends BasePlugin {
     }
   }
 
-  plugins() {
+  plugins () {
     return this._children
   }
 
   /**
    *
    */
-  disable() {
+  disable () {
     this.config.disable = true
     Util.addClass(this.find('.xgplayer-icon'), PLUGIN_STATE_CLASS.ICON_DISABLE)
   }
 
-  enable() {
+  enable () {
     this.config.disable = false
     Util.removeClass(this.find('.xgplayer-icon'), PLUGIN_STATE_CLASS.ICON_DISABLE)
   }
 
-  children() {
+  children () {
     return {}
   }
 
-  registerPlugin(plugin, options = {}, name = '') {
+  registerPlugin (plugin, options = {}, name = '') {
     options.root = options.root || this.root
     const _c = super.registerPlugin(plugin, options, name)
     this._children.push(_c)
     return _c
   }
 
-  registerIcons() {
+  registerIcons () {
     return {}
   }
 
-  registerLanguageTexts() {
+  registerLanguageTexts () {
     return {}
   }
 
@@ -477,7 +456,7 @@ class Plugin extends BasePlugin {
    * @param { string } qs
    * @returns { HTMLElement | null }
    */
-  find(qs) {
+  find (qs) {
     if (!this.root) {
       return
     }
@@ -490,23 +469,17 @@ class Plugin extends BasePlugin {
    * @param { string | Array<string> | Function } eventType
    * @param { Function } [callback]
    */
-  bind(querySelector, eventType, callback) {
+  bind (querySelector, eventType, callback) {
     if (arguments.length < 3 && typeof eventType === 'function') {
       if (Array.isArray(querySelector)) {
-        querySelector.forEach(item => {
+        querySelector.forEach((item) => {
           this.bindEL(item, eventType)
         })
       } else {
         this.bindEL(querySelector, eventType)
       }
     } else {
-      const ret = Plugin.delegate.call(
-        this,
-        this.root,
-        querySelector,
-        eventType,
-        callback
-      )
+      const ret = Plugin.delegate.call(this, this.root, querySelector, eventType, callback)
       this.__delegates = this.__delegates.concat(ret)
     }
   }
@@ -516,10 +489,10 @@ class Plugin extends BasePlugin {
    * @param { string | Array<string> } querySelector
    * @param { string | Array<string> | Function } eventType
    */
-  unbind(querySelector, eventType) {
+  unbind (querySelector, eventType) {
     if (arguments.length < 3 && typeof eventType === 'function') {
       if (Array.isArray(querySelector)) {
-        querySelector.forEach(item => {
+        querySelector.forEach((item) => {
           this.unbindEL(item, eventType)
         })
       } else {
@@ -543,7 +516,7 @@ class Plugin extends BasePlugin {
    * @param { ？ | any } value
    * @returns
    */
-  setStyle(name, value) {
+  setStyle (name, value) {
     if (!this.root) {
       return
     }
@@ -562,7 +535,7 @@ class Plugin extends BasePlugin {
    * @param { ？ | any } value
    * @returns
    */
-  setAttr(name, value) {
+  setAttr (name, value) {
     if (!this.root) {
       return
     }
@@ -581,7 +554,7 @@ class Plugin extends BasePlugin {
    * @param { Function } [callback]
    * @returns
    */
-  setHtml(htmlStr, callback) {
+  setHtml (htmlStr, callback) {
     if (!this.root) {
       return
     }
@@ -598,7 +571,7 @@ class Plugin extends BasePlugin {
    * @param { boolean } [isBubble=false]
    * @returns
    */
-  bindEL(event, eventHandle, isBubble = false) {
+  bindEL (event, eventHandle, isBubble = false) {
     if (!this.root) {
       return
     }
@@ -614,7 +587,7 @@ class Plugin extends BasePlugin {
    * @param { boolean } [isBubble]
    * @returns
    */
-  unbindEL(event, eventHandle, isBubble = false) {
+  unbindEL (event, eventHandle, isBubble = false) {
     if (!this.root) {
       return
     }
@@ -628,7 +601,7 @@ class Plugin extends BasePlugin {
    * @param { string } [value]
    * @returns
    */
-  show(value) {
+  show (value) {
     if (!this.root) {
       return
     }
@@ -640,7 +613,7 @@ class Plugin extends BasePlugin {
     }
   }
 
-  hide() {
+  hide () {
     this.root && (this.root.style.display = 'none')
   }
 
@@ -650,7 +623,7 @@ class Plugin extends BasePlugin {
    * @param { HTMLElement} child
    * @returns { HTMLElement | null }
    */
-  appendChild(pdom, child) {
+  appendChild (pdom, child) {
     if (!this.root) {
       return null
     }
@@ -676,13 +649,13 @@ class Plugin extends BasePlugin {
    *
    * @returns { string | HTMLElement }
    */
-  render() {
+  render () {
     return ''
   }
 
-  destroy() {}
+  destroy () {}
 
-  __destroy() {
+  __destroy () {
     const { player } = this
     this.__delegates.map(item => {
       item.destroy()
@@ -705,12 +678,17 @@ class Plugin extends BasePlugin {
     }
 
     super.__destroy()
-    this.icons = {}
-    ;['root', 'parent'].map(item => {
+    this.icons = {};
+    ['root', 'parent'].map(item => {
       this[item] = null
     })
     this.extraEls = []
   }
 }
 
-export { Plugin as default, ROOT_TYPES, POSITIONS, PLUGIN_STATE_CLASS }
+export {
+  Plugin as default,
+  ROOT_TYPES,
+  POSITIONS,
+  PLUGIN_STATE_CLASS
+}

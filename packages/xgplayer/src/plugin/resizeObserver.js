@@ -1,11 +1,10 @@
-import { PLATER_ID } from '../constant'
 import { throttle } from '../utils/util'
-
+import { PLATER_ID } from '../constant'
 /**
  * 添加
  */
 class ResizeObserver {
-  constructor() {
+  constructor () {
     this.__handlers = []
     this.timeStamp = 0
     this.observer = null
@@ -13,16 +12,14 @@ class ResizeObserver {
       return
     }
     try {
-      this.observer = new window.ResizeObserver(
-        throttle(this.__trigger, 100, { trailing: true })
-      )
+      this.observer = new window.ResizeObserver(throttle(this.__trigger, 100, { trailing: true }))
       this.timeStamp = new Date().getTime()
     } catch (e) {
       console.error(e)
     }
   }
 
-  addObserver(target, handler) {
+  addObserver (target, handler) {
     if (!this.observer) {
       return
     }
@@ -46,7 +43,7 @@ class ResizeObserver {
     }
   }
 
-  unObserver(target) {
+  unObserver (target) {
     let i = -1
     this.__handlers.map((item, index) => {
       if (target === item.target) {
@@ -59,13 +56,13 @@ class ResizeObserver {
     i > -1 && this.__handlers.splice(i, 1)
   }
 
-  destroyObserver() {
+  destroyObserver () {
     this.observer?.disconnect()
     this.observer = null
     this.__handlers = null
   }
 
-  __runHandler(target) {
+  __runHandler (target) {
     const { __handlers } = this
     for (let i = 0; i < __handlers.length; i++) {
       if (__handlers[i] && target === __handlers[i].target) {
@@ -80,7 +77,7 @@ class ResizeObserver {
     return false
   }
 
-  __trigger = entries => {
+  __trigger = (entries) => {
     const t = new Date().getTime()
     this.timeStamp = t
     for (let i = 0; i < entries.length; i++) {
@@ -94,7 +91,7 @@ class ResizeObserver {
  */
 let resizeObserver = null
 
-function addObserver(target, handler) {
+function addObserver (target, handler) {
   if (!resizeObserver) {
     resizeObserver = new ResizeObserver()
     // window.___resizeObserver = resizeObserver
@@ -103,12 +100,16 @@ function addObserver(target, handler) {
   return resizeObserver
 }
 
-function unObserver(target, handler) {
+function unObserver (target, handler) {
   resizeObserver?.unObserver(target, handler)
 }
 
-function destroyObserver(target, handler) {
+function destroyObserver (target, handler) {
   resizeObserver?.destroyObserver(target, handler)
 }
 
-export { addObserver, unObserver, destroyObserver }
+export {
+  addObserver,
+  unObserver,
+  destroyObserver
+}

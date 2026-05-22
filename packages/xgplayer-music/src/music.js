@@ -1,4 +1,4 @@
-import { BasePlugin, Events, Util } from 'xgplayer'
+import { BasePlugin, Util, Events } from 'xgplayer'
 import Xhr from './xhr'
 
 const PLAY_MODES = {
@@ -21,12 +21,12 @@ const CLASS_NAME = 'xgplayer-music'
 
 /**
  * @typedef {{
- *   start: number,
- *   end: number,
- *   loop?: boolean,
- *   [propName: string]: any
- * }} IABCycle
- */
+*   start: number,
+*   end: number,
+*   loop?: boolean,
+*   [propName: string]: any
+* }} IABCycle
+*/
 
 /**
  * @typedef {{
@@ -39,7 +39,7 @@ const CLASS_NAME = 'xgplayer-music'
  * }} IMusicConfig
  */
 
-function _randomIndex(min, max, index) {
+function _randomIndex (min, max, index) {
   const i = Math.floor(Math.random() * (max - min) + min)
   // console.log('i', i, index, i === index, min, max)
   if (i === index) {
@@ -54,14 +54,14 @@ function _randomIndex(min, max, index) {
   }
 }
 export default class Music extends BasePlugin {
-  static get pluginName() {
+  static get pluginName () {
     return 'music'
   }
 
   /**
    * @type { IMusicConfig }
    */
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       offline: false, // Whether to support offline playback
       preloadNext: true,
@@ -76,11 +76,11 @@ export default class Music extends BasePlugin {
    * @desc
    * @type {Array<string>}}
    */
-  static get ModeType() {
+  static get ModeType () {
     return Object.keys(PLAY_MODES).map(key => PLAY_MODES[key])
   }
 
-  afterCreate() {
+  afterCreate () {
     const { player, playerConfig } = this
     Util.addClass(player.root, CLASS_NAME)
     this.halfPass = false
@@ -124,20 +124,18 @@ export default class Music extends BasePlugin {
     this.on(Events.DURATION_CHANGE, this._onDurationChange)
 
     if (this.config.offline) {
-      this.checkOffline(this._curInfo.src, this._curInfo.vid)
-        .then(data => {
-          if (data.code === 0) {
-            playerConfig.url = data.url
-            if (player.state >= 4) {
-              player.src = data.url
-            }
+      this.checkOffline(this._curInfo.src, this._curInfo.vid).then(data => {
+        if (data.code === 0) {
+          playerConfig.url = data.url
+          if (player.state >= 4) {
+            player.src = data.url
           }
-        })
-        .catch(e => {})
+        }
+      }).catch(e => {})
     }
   }
 
-  destroy() {
+  destroy () {
     Util.removeClass(this.player.root, CLASS_NAME)
   }
 
@@ -184,7 +182,7 @@ export default class Music extends BasePlugin {
     }
   }
 
-  _nextCompute() {
+  _nextCompute () {
     if (this.disable) {
       return
     }
@@ -204,7 +202,7 @@ export default class Music extends BasePlugin {
     }
   }
 
-  _prevCompute() {
+  _prevCompute () {
     if (this.disable) {
       return
     }
@@ -224,11 +222,11 @@ export default class Music extends BasePlugin {
     }
   }
 
-  _emitChange() {
+  _emitChange () {
     this.emit('change', this._curInfo)
   }
 
-  _initABCycle(abCycle, player) {
+  _initABCycle (abCycle, player) {
     const _p = player.plugins.progresspreview
     if (abCycle && player) {
       const _end = abCycle.end > this.player.duration ? this.player.duration : abCycle.end
@@ -250,7 +248,7 @@ export default class Music extends BasePlugin {
    * @desc Get a random one from the playlist
    * @returns { IMusicListItem | null }
    */
-  random() {
+  random () {
     if (this.list.length < 0) {
       return null
     }
@@ -262,7 +260,7 @@ export default class Music extends BasePlugin {
    * @desc play next item in playlist
    * @returns
    */
-  next() {
+  next () {
     if (this.disable) {
       return
     }
@@ -278,7 +276,7 @@ export default class Music extends BasePlugin {
    * @desc play previous item in playlist
    * @returns
    */
-  prev() {
+  prev () {
     if (this.disable) {
       return
     }
@@ -293,32 +291,28 @@ export default class Music extends BasePlugin {
   /**
    * @desc fast forward play,
    */
-  forward() {
+  forward () {
     const { player } = this
     const { timeScale } = this.config
     // console.log(`music go forward ${timeScale}s`)
-    player.currentTime =
-      player.currentTime + timeScale < player.duration
-        ? player.currentTime + timeScale
-        : player.duration - 0.1
+    player.currentTime = player.currentTime + timeScale < player.duration ? player.currentTime + timeScale : player.duration - 0.1
   }
 
   /**
    * @desc rewind playback
    */
-  backward() {
+  backward () {
     const { player } = this
     const { timeScale } = this.config
     // console.log(`music go backward ${timeScale}s`)
-    player.currentTime =
-      player.currentTime - timeScale > 0 ? player.currentTime - timeScale : 0
+    player.currentTime = player.currentTime - timeScale > 0 ? player.currentTime - timeScale : 0
   }
 
   /**
    * @desc Add list item to the list
    * @param { IMusicListItem } meta
    */
-  add(meta) {
+  add (meta) {
     this.list.push({
       src: meta.src,
       title: meta.title,
@@ -331,7 +325,7 @@ export default class Music extends BasePlugin {
    * @desc Remove list item from the list
    * @param { string } vid
    */
-  remove(vid) {
+  remove (vid) {
     let idx = -1
     this.list.every((item, index) => {
       if (item.vid === vid) {
@@ -353,7 +347,7 @@ export default class Music extends BasePlugin {
    * @param { boolean } [loop]
    * @param {{ [propName: string]: any }} [ext]
    */
-  setAbCycle(start, end, loop, ext = {}) {
+  setAbCycle (start, end, loop, ext = {}) {
     if (start && Util.typeof(start) === 'Object') {
       this.config.abCycle = {
         ...start
@@ -366,13 +360,13 @@ export default class Music extends BasePlugin {
         ...ext
       }
     }
-    this._initABCycle(this.config.abCycle, this.player)
+    this._initABCycle( this.config.abCycle, this.player)
   }
 
   /**
    * @desc remove abCycle config
    */
-  removeAbCycle() {
+  removeAbCycle () {
     this.config.abCycle = null
     this._initABCycle(null, this.player)
   }
@@ -381,7 +375,7 @@ export default class Music extends BasePlugin {
    * @desc update the playList
    * @param { Array<IMusicListItem> } list
    */
-  updateList(list = []) {
+  updateList (list = []) {
     this.removeAbCycle()
     this.player.pause()
     this.player.currentTime = 0
@@ -395,7 +389,7 @@ export default class Music extends BasePlugin {
    * @desc set play index
    * @param { number } index
    */
-  setIndex(index = 0) {
+  setIndex (index = 0) {
     if (index < 0 || index >= this.list.length) {
       return
     }
@@ -404,7 +398,7 @@ export default class Music extends BasePlugin {
     this.change()
   }
 
-  change() {
+  change () {
     if (this.disable) {
       return
     }
@@ -437,7 +431,7 @@ export default class Music extends BasePlugin {
    * @param { string | number } offlineVid
    * @returns
    */
-  checkOffline(url, offlineVid) {
+  checkOffline (url, offlineVid) {
     return new Promise((resolve, reject) => {
       if (!this.config.offline || this.disable) {
         resolve({
@@ -453,7 +447,7 @@ export default class Music extends BasePlugin {
             database.closeDB()
           }, 5000)
           if (result) {
-            resolve({ url: URL.createObjectURL(result.blob), code: 0, vid: result.vid })
+            resolve({ url: URL.createObjectURL(result.blob), code: 0, vid: result.vid})
           } else {
             resolve({
               url,
@@ -466,7 +460,7 @@ export default class Music extends BasePlugin {
     })
   }
 
-  confirmOrder() {
+  confirmOrder () {
     this.halfPass = true
     this._nextCompute()
     this._prevCompute()
@@ -475,7 +469,7 @@ export default class Music extends BasePlugin {
     }
   }
 
-  preload(index) {
+  preload (index) {
     if (index < 0 || index >= this.list.length) {
       return
     }
@@ -486,12 +480,7 @@ export default class Music extends BasePlugin {
         const offlineVid = _item.vid
         new Xhr(_item.src, res => {
           player.database.openDB(() => {
-            player.database.addData(player.database.myDB.ojstore.name, [
-              {
-                vid: offlineVid,
-                blob: new Blob([res], { type: 'audio/mp4; codecs="mp4a.40.5"' })
-              }
-            ])
+            player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new Blob([res], {type: 'audio/mp4; codecs="mp4a.40.5"'}) }])
             setTimeout(() => {
               player.database.closeDB()
             }, 5000)
@@ -505,11 +494,11 @@ export default class Music extends BasePlugin {
    * @type { number }
    * @description forward or backward time scale
    */
-  get timeScale() {
+  get timeScale () {
     return this.config.timeScale || 15
   }
 
-  set timeScale(scale) {
+  set timeScale (scale) {
     this.config.timeScale = scale
   }
 
@@ -517,11 +506,11 @@ export default class Music extends BasePlugin {
    * @type { 'order' | 'sloop' | 'loop' | 'random' }
    * @description  set current play mode
    */
-  get mode() {
+  get mode () {
     return this.config.mode || PLAY_MODES.RANDOM
   }
 
-  set mode(val) {
+  set mode (val) {
     this.config.mode = val
   }
 }

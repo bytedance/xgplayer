@@ -1,9 +1,5 @@
-import {
-  BandwidthService,
-  EVENT,
-  NetLoader,
-  StreamingError
-} from 'xgplayer-streaming-shared'
+import { NetLoader, EVENT, BandwidthService, StreamingError } from 'xgplayer-streaming-shared'
+
 
 /**
  * @typedef {import('../manifest-loader/parser/model').MediaSegment} MediaSegment
@@ -13,7 +9,7 @@ export class SegmentLoader {
   /** @type {Error} */
   error = null
 
-  constructor(hls) {
+  constructor (hls) {
     this.hls = hls
     this._bandwidthService = new BandwidthService()
     this._mapCache = {}
@@ -46,7 +42,7 @@ export class SegmentLoader {
     })
   }
 
-  speedInfo() {
+  speedInfo () {
     return {
       speed: this._bandwidthService.getLatestSpeed(),
       avgSpeed: this._bandwidthService.getAvgSpeed()
@@ -59,7 +55,7 @@ export class SegmentLoader {
    * @param {boolean} loadInit
    * @param {boolean} loadAudioInit
    */
-  load(seg, audioSeg, loadInit, loadAudioInit = loadInit) {
+  load (seg, audioSeg, loadInit, loadAudioInit = loadInit) {
     const toLoad = []
     if (seg) toLoad[0] = this.loadVideoSegment(seg, loadInit)
     if (audioSeg) toLoad[1] = this.loadAudioSegment(audioSeg, loadAudioInit)
@@ -70,7 +66,7 @@ export class SegmentLoader {
    * @param {MediaSegment} seg
    * @param {boolean} loadInit
    */
-  loadVideoSegment(seg, loadInit) {
+  loadVideoSegment (seg, loadInit) {
     return this._loadSegment(this._segmentLoader, seg, loadInit)
   }
 
@@ -78,7 +74,7 @@ export class SegmentLoader {
    * @param {MediaSegment} seg
    * @param {boolean} loadInit
    */
-  loadAudioSegment(seg, loadInit) {
+  loadAudioSegment (seg, loadInit) {
     return this._loadSegment(this._audioSegmentLoader, seg, loadInit)
   }
 
@@ -87,7 +83,7 @@ export class SegmentLoader {
    * @param {MediaSegment} seg
    * @param {boolean} loadInit
    */
-  async _loadSegment(segLoader, seg, loadInit) {
+  async _loadSegment (segLoader, seg, loadInit) {
     let map
     let key
     let keyIv
@@ -157,19 +153,15 @@ export class SegmentLoader {
     }
   }
 
-  reset() {
+  reset () {
     this.error = null
     this._mapCache = {}
     this._keyCache = {}
     this._bandwidthService.reset()
   }
 
-  async cancel() {
-    await Promise.all([
-      this._keyLoader.cancel(),
-      this._segmentLoader.cancel(),
-      this._audioSegmentLoader.cancel()
-    ])
+  async cancel () {
+    await Promise.all([this._keyLoader.cancel(), this._segmentLoader.cancel(), this._audioSegmentLoader.cancel()])
   }
 
   _emitOnLoaded = (res, url) => {
@@ -180,11 +172,7 @@ export class SegmentLoader {
     this._bandwidthService.addRecord(contentLength || data.byteLength, time)
     this.hls.emit(EVENT.SPEED, { time, byteLength: contentLength, url })
     this.hls.emit(EVENT.LOAD_COMPLETE, { url, elapsed: time || 0 })
-    this.hls.emit(EVENT.TTFB, {
-      url,
-      responseUrl: response.url,
-      elapsed: firstByteTime - startTime
-    })
+    this.hls.emit(EVENT.TTFB, { url, responseUrl: response.url, elapsed: firstByteTime - startTime })
     this.hls.emit(EVENT.LOAD_RESPONSE_HEADERS, { headers: response.headers, url })
   }
 

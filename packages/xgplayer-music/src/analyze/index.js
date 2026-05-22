@@ -1,5 +1,6 @@
-import { getGradient } from './helper'
+
 import render, { MODES } from './render'
+import { getGradient } from './helper'
 
 /**
  * @typedef {{
@@ -12,12 +13,12 @@ import render, { MODES } from './render'
  * }} IAnalyzeOptions
  */
 class Analyze {
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       fftSize: 16384,
       count: 1024,
       mode: 'bars',
-      colors: ['#ff8177', '#cf556c', '#f99185', '#b12a5b'],
+      colors:  ['#ff8177', '#cf556c', '#f99185', '#b12a5b'],
       stroke: 2,
       bgColor: '#000',
       isGradient: true,
@@ -29,11 +30,11 @@ class Analyze {
    * all modes
    * @type Array<string>
    */
-  static get MODES() {
+  static get MODES () {
     return MODES
   }
 
-  static get AudioCtx() {
+  static get AudioCtx () {
     return window.AudioContext || window.webkitAudioContext
   }
 
@@ -44,7 +45,7 @@ class Analyze {
    * @param { IAnalyzeOptions } options
    * @returns
    */
-  constructor(player, canvas, options = {}) {
+  constructor (player, canvas, options = {}) {
     this.canvas = canvas
     const { width, height } = this.canvas.getBoundingClientRect()
     this.canvas.width = width * 2
@@ -84,8 +85,8 @@ class Analyze {
   /**
    * @private
    */
-  _initPlayerEvents() {
-    ;['play', 'playing', 'seeked'].forEach(name => {
+  _initPlayerEvents () {
+    ['play', 'playing', 'seeked'].forEach(name => {
       this.player.on(name, this.start)
     })
     // ['seeking', 'waiting', 'pause', 'ended'].forEach(name => {
@@ -107,9 +108,9 @@ class Analyze {
     this.reqId = null
   }
 
-  destroy() {
-    this.stop()
-    ;['play', 'playing', 'seeked'].forEach(name => {
+  destroy () {
+    this.stop();
+    ['play', 'playing', 'seeked'].forEach(name => {
       this.player.off(name, this.start)
     })
     this.player.off('volumechange', this._onoVolumechange)
@@ -141,16 +142,14 @@ class Analyze {
     }
     this.reqId = requestAnimationFrame(this._renderFrame)
     this.frameCount++
-    this.mode === 'lightning'
-      ? this.analyser.getByteTimeDomainData(this.dataArray)
-      : this.analyser.getByteFrequencyData(this.dataArray)
+    this.mode === 'lightning' ? this.analyser.getByteTimeDomainData(this.dataArray) : this.analyser.getByteFrequencyData(this.dataArray)
     render.call(this, this.dataArray, this.canvas, this.options, this.frameCount)
   }
 
   /**
    * @type { string }
    */
-  set mode(val) {
+  set mode (val) {
     // let flag = false
     // for (let i = 0; i < MODES.length; i++) {
     //   if (val === MODES[i]) {
@@ -161,22 +160,25 @@ class Analyze {
     this.options.mode = val
   }
 
-  get mode() {
+  get mode () {
     return this.options.mode
   }
 
   /**
    * @type { number }
    */
-  set fftSize(val) {
+  set fftSize (val) {
     this.analyser.fftSize = val
     const bufferLen = this.analyser.frequencyBinCount
     this.dataArray = new Uint8Array(bufferLen)
   }
 
-  get fftSize() {
+  get fftSize () {
     return this.analyser.frequencyBinCount * 2
   }
 }
 
-export { Analyze as default, MODES }
+export {
+  Analyze as default,
+  MODES
+}

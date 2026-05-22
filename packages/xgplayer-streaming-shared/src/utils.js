@@ -1,4 +1,4 @@
-export function createPublicPromise() {
+export function createPublicPromise () {
   let res, rej
   const promise = new Promise((resolve, reject) => {
     res = resolve
@@ -16,7 +16,7 @@ export function createPublicPromise() {
   return promise
 }
 
-export function nowTime() {
+export function nowTime () {
   try {
     return parseInt(performance.now(), 10)
   } catch (e) {
@@ -24,15 +24,16 @@ export function nowTime() {
   }
 }
 
+
 export const SafeJSON = {
-  stringify(obj) {
+  stringify (obj) {
     try {
       return JSON.stringify(obj)
     } catch (e) {
       return ''
     }
   },
-  parse(obj) {
+  parse (obj) {
     try {
       return JSON.parse(obj)
     } catch (e) {

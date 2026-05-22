@@ -1,36 +1,36 @@
-import Flv from 'flv.js'
 import { BasePlugin, Errors, Events } from 'xgplayer'
+import Flv from 'flv.js'
 
 try {
   Flv.LoggingControl.enableAll = false
 } catch (e) {}
 
 class FlvJsPlugin extends BasePlugin {
-  static get isSupported() {
+  static get isSupported () {
     return Flv.isSupported
   }
 
-  static get pluginName() {
+  static get pluginName () {
     return 'FlvJsPlugin'
   }
 
-  static get defaultConfig() {
+  static get defaultConfig () {
     return {
       mediaDataSource: { type: 'flv' },
       flvConfig: {}
     }
   }
 
-  beforePlayerInit() {
+  beforePlayerInit () {
     if (this.playerConfig.url) {
       this.flvLoad(this.playerConfig.url)
     }
   }
 
-  afterCreate() {
+  afterCreate () {
     const { player } = this
     this.flv = null
-    player.video.addEventListener('contextmenu', e => {
+    player.video.addEventListener('contextmenu', function (e) {
       e.preventDefault()
     })
 
@@ -62,7 +62,7 @@ class FlvJsPlugin extends BasePlugin {
     }
   }
 
-  destroy() {
+  destroy () {
     const { player } = this
     this.destroyInstance()
     BasePlugin.defineGetterOrSetter(player, {
@@ -79,7 +79,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 
-  destroyInstance() {
+  destroyInstance () {
     if (!this.flv) {
       return
     }
@@ -91,7 +91,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flv = null
   }
 
-  createInstance(flv) {
+  createInstance (flv) {
     const { player } = this
     if (!flv) {
       return
@@ -123,7 +123,7 @@ class FlvJsPlugin extends BasePlugin {
     })
   }
 
-  flvLoad(newUrl) {
+  flvLoad (newUrl) {
     const mediaDataSource = this.config.mediaDataSource
     mediaDataSource.segments = [
       {
@@ -145,7 +145,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flvLoadMds(mediaDataSource)
   }
 
-  flvLoadMds(mediaDataSource) {
+  flvLoadMds (mediaDataSource) {
     const { player } = this
     if (typeof this.flv !== 'undefined') {
       this.destroyInstance()
@@ -156,7 +156,7 @@ class FlvJsPlugin extends BasePlugin {
     this.flv.load()
   }
 
-  switchURL(url) {
+  switchURL (url) {
     const { player, playerConfig } = this
     let curTime = 0
     if (!playerConfig.isLive) {
@@ -166,11 +166,11 @@ class FlvJsPlugin extends BasePlugin {
     // const oldVol = player.volume
     player.video.muted = true
     // Util.addClass(player.root, 'xgplayer-is-enter')
-    this.once('playing', () => {
+    this.once('playing', function () {
       // Util.removeClass(player.root, 'xgplayer-is-enter')
       player.video.muted = false
     })
-    this.once('canplay', () => {
+    this.once('canplay', function () {
       if (!playerConfig.isLive) {
         player.currentTime = curTime
       }

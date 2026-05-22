@@ -1,6 +1,6 @@
 const util = {}
 
-util.getBrowserVersion = () => {
+util.getBrowserVersion = function () {
   const userAgent = navigator.userAgent // 取得浏览器的userAgent字符串
   if (userAgent.toLowerCase().indexOf('mobile') > -1) {
     return 'Unknown'

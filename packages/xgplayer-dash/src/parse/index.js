@@ -1,20 +1,20 @@
 /* eslint-disable no-unused-vars */
-
-import Concat from 'concat-typed-array'
 import Box from './box'
-import * as SubBox from './box/*.js'
+import Concat from 'concat-typed-array'
 import Stream from './stream'
+import * as SubBox from './box/*.js'
 
 class Parse {
-  constructor(buffer) {
+  constructor (buffer) {
     this.buffer = null
     this.boxes = []
     this.nextBox = null
     this.start = 0
-    if (this.buffer) {
-      Concat(Uint8Array, this.buffer, buffer)
+    const self = this
+    if (self.buffer) {
+      Concat(Uint8Array, self.buffer, buffer)
     } else {
-      this.buffer = buffer
+      self.buffer = buffer
     }
     const bufferLength = buffer.byteLength
     buffer.position = 0
@@ -22,21 +22,21 @@ class Parse {
     while (bufferLength - stream.position >= 8) {
       const box = new Box()
       box.readHeader(stream)
-      if (box.size - 8 <= bufferLength - stream.position) {
+      if (box.size - 8 <= (bufferLength - stream.position)) {
         box.readBody(stream)
-        this.boxes.push(box)
+        self.boxes.push(box)
       } else {
         if (box.type === 'mdat') {
           box.readBody(stream)
-          this.boxes.push(box)
+          self.boxes.push(box)
         } else {
-          this.nextBox = box
+          self.nextBox = box
           stream.position -= 8
           break
         }
       }
     }
-    this.buffer = new Uint8Array(this.buffer.slice(stream.position))
+    self.buffer = new Uint8Array(self.buffer.slice(stream.position))
   }
 }
 
