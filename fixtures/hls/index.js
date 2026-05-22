@@ -81,6 +81,7 @@ window.onload = function () {
   function inp(d) { return d.getElementsByTagName('input')[0] }
 
   var player
+  // Demo 页面仅维护一个播放器实例，所以检测状态按单实例管理
   var seamlessCheckTimer = null
   var seamlessCheckHandlers = null
   const FREEZE_THRESHOLD_RATIO = 0.2
@@ -153,7 +154,8 @@ window.onload = function () {
     player.on('stalled', seamlessCheckHandlers.onStalled)
 
     player.switchURL(url, { seamless: true, startTime: player.currentTime }).catch((err) => {
-      state.switchError = err
+      console.error('seamless switch check failed', err)
+      state.switchError = err?.message || String(err)
       finalizeSeamlessCheck()
     })
 
@@ -170,6 +172,7 @@ window.onload = function () {
       const playDeltaMs = Math.max((currentTime - state.lastCurrentTime) * 1000, 0)
       const isPlaying = !player.paused && !player.seeking && !player.ended
 
+      // 每个采样周期内播放推进明显低于自然推进（<20%）时，判定为连续卡顿
       if (isPlaying && playDeltaMs < wallDeltaMs * FREEZE_THRESHOLD_RATIO) {
         state.currentFreezeMs += Math.max(wallDeltaMs - playDeltaMs, 0)
       } else {
