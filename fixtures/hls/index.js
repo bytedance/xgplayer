@@ -85,15 +85,19 @@ window.onload = function () {
   var seamlessCheckHandlers = null
   const FREEZE_THRESHOLD_RATIO = 0.2
   const MAX_ACCEPTABLE_FREEZE_MS = 300
+  const OBSERVATION_WINDOW_MS = 6000
 
   function stopSeamlessCheck() {
     if (seamlessCheckTimer) {
       clearInterval(seamlessCheckTimer)
       seamlessCheckTimer = null
     }
-    if (seamlessCheckHandlers && player) {
-      player.off('waiting', seamlessCheckHandlers.onWaiting)
-      player.off('stalled', seamlessCheckHandlers.onStalled)
+    if (seamlessCheckHandlers) {
+      const targetPlayer = seamlessCheckHandlers.player
+      if (targetPlayer) {
+        targetPlayer.off('waiting', seamlessCheckHandlers.onWaiting)
+        targetPlayer.off('stalled', seamlessCheckHandlers.onStalled)
+      }
       seamlessCheckHandlers = null
     }
   }
@@ -125,9 +129,23 @@ window.onload = function () {
       switchError: null
     }
 
+    function finalizeSeamlessCheck() {
+      stopSeamlessCheck()
+      const isPass = !state.switchError && state.waitingCount === 0 && state.stalledCount === 0 && state.maxFreezeMs < MAX_ACCEPTABLE_FREEZE_MS
+      const result = [
+        isPass ? '检测结果：看起来是无缝切换（PASS）' : '检测结果：疑似发生卡顿（FAIL）',
+        `waiting=${state.waitingCount}`,
+        `stalled=${state.stalledCount}`,
+        `最大连续停顿≈${Math.round(state.maxFreezeMs)}ms`
+      ]
+      if (state.switchError) result.push(`switchURL报错：${state.switchError}`)
+      updateSeamlessCheckStatus(result.join(' | '), isPass ? 'success' : 'error')
+    }
+
     updateSeamlessCheckStatus('检测中：执行 seamless=true 切换并观察 6 秒内是否卡顿...', 'running')
 
     seamlessCheckHandlers = {
+      player,
       onWaiting() { state.waitingCount += 1 },
       onStalled() { state.stalledCount += 1 }
     }
@@ -136,6 +154,7 @@ window.onload = function () {
 
     player.switchURL(url, { seamless: true, startTime: player.currentTime }).catch((err) => {
       state.switchError = err
+      finalizeSeamlessCheck()
     })
 
     seamlessCheckTimer = setInterval(() => {
@@ -152,7 +171,7 @@ window.onload = function () {
       const isPlaying = !player.paused && !player.seeking && !player.ended
 
       if (isPlaying && playDeltaMs < wallDeltaMs * FREEZE_THRESHOLD_RATIO) {
-        state.currentFreezeMs += wallDeltaMs
+        state.currentFreezeMs += Math.max(wallDeltaMs - playDeltaMs, 0)
       } else {
         state.currentFreezeMs = 0
       }
@@ -160,18 +179,9 @@ window.onload = function () {
       state.lastAt = now
       state.lastCurrentTime = currentTime
 
-      if (now - state.startAt < 6000) return
+      if (now - state.startAt < OBSERVATION_WINDOW_MS) return
 
-      stopSeamlessCheck()
-      const isPass = !state.switchError && state.waitingCount === 0 && state.stalledCount === 0 && state.maxFreezeMs < MAX_ACCEPTABLE_FREEZE_MS
-      const result = [
-        isPass ? '检测结果：看起来是无缝切换（PASS）' : '检测结果：疑似发生卡顿（FAIL）',
-        `waiting=${state.waitingCount}`,
-        `stalled=${state.stalledCount}`,
-        `最大连续停顿≈${Math.round(state.maxFreezeMs)}ms`
-      ]
-      if (state.switchError) result.push(`switchURL报错：${state.switchError}`)
-      updateSeamlessCheckStatus(result.join(' | '), isPass ? 'success' : 'error')
+      finalizeSeamlessCheck()
     }, 200)
   }
 
@@ -445,7 +455,7 @@ window.onload = function () {
     var url = window.prompt('设置的 url 地址')
     if (!url) return
     var seamless = window.prompt('是否无缝切换（true/false）', 'true')
-    if (seamless == null) return
+    if (seamless === null) return
     var startTime = window.prompt('[点播]开始播放时间点（默认当前播放点）', player.currentTime)
     startTime = Number(startTime)
     if (isNaN(startTime)) startTime = player.currentTime
