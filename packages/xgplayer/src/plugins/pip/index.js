@@ -228,6 +228,7 @@ class PIP extends IconPlugin {
 
           // Listen for the PiP closing event to put the video back.
           pipWin.addEventListener('pagehide', (event) => {
+            player.plugins?.progress?.resetDragState?.()
             // Restore nodes to their original location
             if (parentNode) {
               if (nextSibling) {
