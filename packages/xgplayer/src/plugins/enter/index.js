@@ -2,28 +2,28 @@ import Plugin, { Util } from '../../plugin'
 import './index.scss'
 
 /**
-  * @typedef { {
-  *   innerHtml?: string,
-  *   [propName: string]: any
-  * } } IEnterConfig
-  */
+ * @typedef { {
+ *   innerHtml?: string,
+ *   [propName: string]: any
+ * } } IEnterConfig
+ */
 
 class Enter extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'enter'
   }
 
   /**
    * @type IEnterConfig
    */
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       innerHtml: '',
       logo: ''
     }
   }
 
-  render () {
+  render() {
     const { innerHtml } = this.config
     const root = Util.createDom('xg-enter', '', {}, 'xgplayer-enter')
 

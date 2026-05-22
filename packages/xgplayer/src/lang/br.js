@@ -38,13 +38,12 @@ export default {
     HAVE_NOTHING: 'Não há informações sobre se o áudio/vídeo está pronto',
     HAVE_METADATA: 'Os metadados de áudio/vídeo estão prontos ',
     HAVE_CURRENT_DATA:
-        'Os dados sobre a localização de reprodução atual estão disponíveis, mas não há dados suficientes para reproduzir o próximo quadro/milissegundo',
+      'Os dados sobre a localização de reprodução atual estão disponíveis, mas não há dados suficientes para reproduzir o próximo quadro/milissegundo',
     HAVE_FUTURE_DATA: 'Atual e pelo menos um quadro de dados está disponível',
-    HAVE_ENOUGH_DATA:
-        'Os dados disponíveis são suficientes para começar a jogar',
+    HAVE_ENOUGH_DATA: 'Os dados disponíveis são suficientes para começar a jogar',
     NETWORK_EMPTY: 'O áudio/vídeo não foi inicializado',
     NETWORK_IDLE:
-        'O áudio/vídeo está ativo e foi selecionado para recursos, mas nenhuma rede está sendo usada',
+      'O áudio/vídeo está ativo e foi selecionado para recursos, mas nenhuma rede está sendo usada',
     NETWORK_LOADING: 'O navegador está baixando os dados',
     NETWORK_NO_SOURCE: 'Nenhuma fonte de áudio/vídeo foi encontrada',
     MEDIA_ERR_ABORTED: 'O processo de busca é abortado pelo usuário',

@@ -6,5 +6,3 @@ class AdsUmdPlugin extends AdsPlugin {
 }
 
 export default AdsUmdPlugin
-
-

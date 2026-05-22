@@ -1,6 +1,6 @@
 export * from './musicBackward'
-export * from './musicForward'
 export * from './musicCover'
+export * from './musicForward'
 export * from './musicMeta'
 export * from './musicNext'
 export * from './musicPrev'

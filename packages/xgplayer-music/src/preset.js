@@ -1,14 +1,14 @@
 import { Util } from 'xgplayer'
 import Music from './music'
-import { MusicCover } from './plugins/musicCover'
 import { MusicBackward } from './plugins/musicBackward'
-import { MusicPrev } from './plugins/musicPrev'
+import { MusicCover } from './plugins/musicCover'
 import { MusicForward } from './plugins/musicForward'
-import { MusicNext } from './plugins/musicNext'
 import { MusicMeta } from './plugins/musicMeta'
+import { MusicNext } from './plugins/musicNext'
+import { MusicPrev } from './plugins/musicPrev'
 import './plugins/index.scss'
 
-function initMusicConfig (playerConfig) {
+function initMusicConfig(playerConfig) {
   if (Util.typeOf(playerConfig.controls) !== 'Object') {
     playerConfig.controls = {
       mode: 'flex',
@@ -31,7 +31,7 @@ function initMusicConfig (playerConfig) {
   playerConfig.mediaType = 'audio'
 }
 export default class MusicPreset {
-  constructor (options, playerConfig) {
+  constructor(options, playerConfig) {
     console.log('config', options, playerConfig)
     console.log('playerConfig', Util.typeOf(playerConfig.controls) !== 'Object')
     initMusicConfig(playerConfig)
@@ -61,7 +61,18 @@ export default class MusicPreset {
       // },
       // Volume,
       MusicCover,
-      MusicMeta]
-    this.ignores = ['start', 'cssFullScreen', 'fullscreen', 'pip', 'enter', 'replay', 'pc', 'loading', 'poster']
+      MusicMeta
+    ]
+    this.ignores = [
+      'start',
+      'cssFullScreen',
+      'fullscreen',
+      'pip',
+      'enter',
+      'replay',
+      'pc',
+      'loading',
+      'poster'
+    ]
   }
 }

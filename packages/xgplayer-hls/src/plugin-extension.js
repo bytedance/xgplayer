@@ -4,13 +4,13 @@ export default class PluginExtension {
   _opts = null
   _plugin = null
 
-  constructor (opts, plugin) {
+  constructor(opts, plugin) {
     this._opts = opts
     this._plugin = plugin
     this._init()
   }
 
-  _init () {
+  _init() {
     const { media, preloadTime, innerDegrade, isLive } = this._opts
 
     if (!media) return
@@ -30,7 +30,7 @@ export default class PluginExtension {
     this._bindEvents()
   }
 
-  _bindEvents () {
+  _bindEvents() {
     const { media } = this._opts
 
     media.addEventListener('lowdecode', this._onLowDecode)
@@ -53,7 +53,7 @@ export default class PluginExtension {
   /**
    * @param {string | undefined} url
    */
-  _degrade = (url) => {
+  _degrade = url => {
     const { player } = this._plugin
     const originVideo = player.video
 
@@ -84,7 +84,7 @@ export default class PluginExtension {
     })
   }
 
-  forceDegradeToVideo = (url) => {
+  forceDegradeToVideo = url => {
     const { innerDegrade } = this._opts
 
     // 降级to video+m3u8
@@ -93,7 +93,7 @@ export default class PluginExtension {
     }
   }
 
-  destroy () {
+  destroy() {
     this._opts?.media?.removeEventListener('lowdecode', this._onLowDecode)
     this._plugin = null
   }

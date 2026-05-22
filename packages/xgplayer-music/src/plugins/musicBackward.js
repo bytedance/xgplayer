@@ -1,25 +1,25 @@
 import { Plugin } from 'xgplayer'
 
 export class MusicBackward extends Plugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'musicbackward'
   }
 
-  static get defaultConfig () {
+  static get defaultConfig() {
     return {
       index: 1,
       position: Plugin.POSITIONS.CONTROLS_LEFT
     }
   }
 
-  onClick = (e) => {
+  onClick = e => {
     const { player } = this
     e.preventDefault()
     e.stopPropagation()
     player.plugins.music.backward()
   }
 
-  afterCreate () {
+  afterCreate() {
     this.initIcons()
     const ev = ['click', 'touchstart']
     ev.forEach(item => {
@@ -27,7 +27,7 @@ export class MusicBackward extends Plugin {
     })
   }
 
-  registerIcons () {
+  registerIcons() {
     return {
       musicBackward: {
         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-2 0 21 15">
@@ -38,19 +38,19 @@ export class MusicBackward extends Plugin {
     }
   }
 
-  initIcons () {
+  initIcons() {
     const { icons } = this
     this.appendChild('.xgplayer-icon', icons.musicBackward)
   }
 
-  destroy () {
+  destroy() {
     const ev = ['click', 'touchstart']
     ev.forEach(item => {
       this.unbind(item, this.onClick)
     })
   }
 
-  render () {
+  render() {
     return `<xg-icon class="xgplayer-backward">
             <div class="xgplayer-icon">
             </div>

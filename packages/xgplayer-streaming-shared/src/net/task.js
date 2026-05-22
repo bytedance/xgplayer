@@ -1,16 +1,19 @@
-import { FetchLoader } from './fetch'
-import { XhrLoader } from './xhr'
-import { LoaderType } from './types'
-import { createPublicPromise } from '../utils'
 import { Logger } from '../logger'
+import { createPublicPromise } from '../utils'
+import { FetchLoader } from './fetch'
+import { LoaderType } from './types'
+import { XhrLoader } from './xhr'
 
 export class Task {
-  constructor (type, config) {
+  constructor(type, config) {
     this.promise = createPublicPromise()
     this.alive = !!config.onProgress
     !config.logger && (config.logger = new Logger('Loader'))
     this._loaderType = type
-    this._loader = type === LoaderType.FETCH && typeof fetch !== 'undefined' ? new FetchLoader() : new XhrLoader()
+    this._loader =
+      type === LoaderType.FETCH && typeof fetch !== 'undefined'
+        ? new FetchLoader()
+        : new XhrLoader()
     this._config = config
     this._retryCount = 0
     this._retryTimer = null
@@ -20,15 +23,9 @@ export class Task {
     this._useUrlIdx = -1
   }
 
-  exec () {
-    const {
-      retry,
-      retryDelay,
-      onRetryError,
-      transformError,
-      changeUrlRetry,
-      ...rest
-    } = this._config
+  exec() {
+    const { retry, retryDelay, onRetryError, transformError, changeUrlRetry, ...rest } =
+      this._config
     const backUrlList = rest.urlList || this._config.urlList || []
     const request = async () => {
       try {
@@ -36,7 +33,7 @@ export class Task {
         if (this._changeUrl) {
           this._changeUrl = false
           if (backUrlList?.[this._useUrlIdx]) {
-            cfg = Object.assign({}, cfg, {url: backUrlList[this._useUrlIdx]})
+            cfg = Object.assign({}, cfg, { url: backUrlList[this._useUrlIdx] })
             this._logger.debug('[task],changeUrlRetry，urlIdx:', this._useUrlIdx, cfg.url)
           }
         }
@@ -55,7 +52,13 @@ export class Task {
           error = transformError(error) || error
         }
 
-        if (onRetryError && this._retryCount > 0) onRetryError(error, this._retryCount, {index: rest.index, vid: rest.vid, range: rest.range, priOptions: rest.priOptions})
+        if (onRetryError && this._retryCount > 0)
+          onRetryError(error, this._retryCount, {
+            index: rest.index,
+            vid: rest.vid,
+            range: rest.range,
+            priOptions: rest.priOptions
+          })
 
         this._retryCount++
         let isRetry = true
@@ -64,9 +67,14 @@ export class Task {
         }
         if (isRetry && this._retryCount <= retry) {
           clearTimeout(this._retryTimer)
-          this._logger.debug('[task request setTimeout],retry', this._retryCount, ',retry range,', rest.range)
+          this._logger.debug(
+            '[task request setTimeout],retry',
+            this._retryCount,
+            ',retry range,',
+            rest.range
+          )
           if (changeUrlRetry && this._useUrlIdx < backUrlList?.length - 1) {
-            if(this._useUrlIdx < 0) {
+            if (this._useUrlIdx < 0) {
               const parsed = new URL(rest.url)
               const domain = parsed.hostname
               this._useUrlIdx = backUrlList.findIndex(item => item.indexOf(domain) >= 0)
@@ -91,18 +99,18 @@ export class Task {
     return this.promise
   }
 
-  async cancel () {
+  async cancel() {
     clearTimeout(this._retryTimer)
     this._canceled = true
     this._loader.running = false
     return this._loader.cancel()
   }
 
-  get running () {
+  get running() {
     return this._loader && this._loader.running
   }
 
-  get loader () {
+  get loader() {
     return this._loader
   }
 }

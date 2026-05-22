@@ -1,5 +1,4 @@
-
-export const getAbsoluteURL = function (url) {
+export const getAbsoluteURL = url => {
   // Check if absolute URL
   if (!url.match(/^https?:\/\//)) {
     const div = document.createElement('div')
