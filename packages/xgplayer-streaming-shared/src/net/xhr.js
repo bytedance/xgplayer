@@ -116,7 +116,10 @@ export class XhrLoader extends EventEmitter {
         typeof this._dynamicTimeoutIns.getTimeout === 'function'
           ? this._dynamicTimeoutIns.getTimeout(this._timeout)
           : this._timeout
-      timeoutMs && (xhr.timeout = timeoutMs)
+      if (timeoutMs) {
+        xhr.timeout = timeoutMs
+        this.curTimeout = timeoutMs
+      }
       this._logger.debug('[dytimeout], xhr set timeout', timeoutMs)
       xhr.withCredentials = this._withCredentials
       xhr.onload = this._onLoad.bind(this)
@@ -134,8 +137,8 @@ export class XhrLoader extends EventEmitter {
         }
         this.cancel()
         const error = new NetError(this._url, this._request, {status:408}, 'timeout')
+        error.isTimeout = true
         if (this._onTimeout) {
-          error.isTimeout = true
           this._onTimeout(error,{index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions})
         }
         error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}

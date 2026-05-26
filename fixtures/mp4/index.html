@@ -107,14 +107,23 @@
     width: window.innerWidth,
     waitingInBufferTimeOut: 5000,
     // plugins: [Mp4Plugin],
-    //
-    // // set mp4Plugin support Apple's MMS
-    // mp4Plugin: {
-    //     dynamicTimeoutIns: sharedDynamicTimeoutIns,
-    //     changeUrlRetry:true,
+    // mp4plugin: {
+    //   // enableWorker:true,
+    //   disableBufferBreakCheck:true,
+    //   memoryOpt:true,
     // }
+    plugins: [Mp4Plugin],
+
+    // set mp4Plugin support Apple's MMS
+    mp4Plugin: {
+        dynamicTimeoutIns: sharedDynamicTimeoutIns,
+        changeUrlRetry:true,
+    }
   });
   window.player = player
+  window.player.on('networkError', (err) => {
+      console.log(err);
+  })
 
   function playNext() {
     player.playNext({
