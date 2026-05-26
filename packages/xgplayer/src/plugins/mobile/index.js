@@ -464,12 +464,14 @@ class MobilePlugin extends Plugin {
     const { player, pos, playerConfig } = this
 
     // 延迟重置touch事件状态，确保后续的mouse事件被忽略
+    // 延迟时间需要大于 Touche 的 dbClickDelay(200ms)，以防 iPad/Safari 等设备在 touchend 后触发
+    // 合成 mousemove 事件，导致 PC 插件提前调用 player.focus()，进而在 clickHandler 中错误地 blur
     if (this.touchActiveTimer) {
       clearTimeout(this.touchActiveTimer)
     }
     this.touchActiveTimer = setTimeout(() => {
       this._isTouchActive = false
-    }, 10)
+    }, 300)
 
     setTimeout(() => {
       player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
