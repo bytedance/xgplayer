@@ -3,7 +3,7 @@
 import { BasePlugin, Events, Sniffer, Errors, Util } from 'xgplayer'
 import MP4, { MP4_EVENTS } from './mp4'
 import { ERROR_TYPES, ERROR_CODES } from './error'
-import { MSE } from 'xgplayer-streaming-shared'
+import { MSE, getSharedDynamicTimeoutIns } from 'xgplayer-streaming-shared'
 import util from './util'
 import Timer from './util/timer'
 import ProxyPromise from './util/proxy-promise'
@@ -187,6 +187,7 @@ export default class Mp4Plugin extends BasePlugin {
     this.mp4.on(MP4_EVENTS.META_READY, this._onMp4MetaReady)
     this.mp4.on(MP4_EVENTS.ERROR, this._onMp4Error)
     this.mp4.on(MP4_EVENTS.MOOV_REQ_PROGRESS, this._onMp4DataCallBack)
+    this.mp4.MP4Loader.on('networkError', this._onNetworkError)
     this.mp4.on(MP4_EVENTS.UPDATE_LOAD_IDX, (fragment) => {
       this._curLoadSegmentIdx = fragment
       this.log('[update curLoadSegmentIdx]',fragment)
@@ -198,6 +199,12 @@ export default class Mp4Plugin extends BasePlugin {
   _onMp4DataCallBack = () => {
     if (this._isMseInit) {
       this._onTimeUpdate()
+    }
+  }
+
+  _onNetworkError = (err) => {
+    if (!this.isDestroy) {
+      this.emit('networkError', err)
     }
   }
 
@@ -934,3 +941,4 @@ export default class Mp4Plugin extends BasePlugin {
     }
   }
 }
+Mp4Plugin.getSharedDynamicTimeoutIns = getSharedDynamicTimeoutIns

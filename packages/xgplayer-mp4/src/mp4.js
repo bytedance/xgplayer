@@ -205,7 +205,7 @@ class MP4 extends EventEmitter {
           this.emit(MP4_EVENTS.MOOV_REQ_PROGRESS)
         }
       }
-      await this.MP4Loader.loadMetaProcess(this.MP4Loader.cache, [0, this.CHUNK_SIZE], onProgressHandle)
+      await this.MP4Loader.loadMetaProcess(this.MP4Loader.cache, [0, this.CHUNK_SIZE], onProgressHandle,{outChangeUrlRetry: true})
     } catch (error) {
       console.error('[MP4] trigger errorHandler getMetaInfo',error?.message)
       this.loadError(error, 'getMetaInfo')
@@ -548,7 +548,8 @@ class MP4 extends EventEmitter {
       await this.MP4Loader.loadData(range, this.MP4Loader.cache, {
         index: fragIndex,
         onProgress: this.onprogressDataArrive,
-        onProcessMinLen: this.options.onProcessMinLen
+        onProcessMinLen: this.options.onProcessMinLen,
+        outChangeUrlRetry: true,
       })
     } catch (e) {
       console.error('[MP4] trigger errorHandler getMetaInfo', e?.message)
