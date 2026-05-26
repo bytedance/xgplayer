@@ -76,8 +76,8 @@ export class Task extends EventEmitter {
         // retryType, 0:原地址出错，1:原地址重试出错，2:换地址重试出错
         let retryType = 0
         // 外部换地址重试标识
-        if (rest.outChangeUrlRetry) {
-          retryType = 2
+        if (rest.outChangeUrlRetry > 0) {
+          retryType = rest.outChangeUrlRetry
         } else if (this._isRetry) {
           if (retryType === 1) {
             retryType = 1
