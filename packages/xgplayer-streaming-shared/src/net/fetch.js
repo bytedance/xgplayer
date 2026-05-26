@@ -20,6 +20,7 @@ export class FetchLoader extends EventEmitter {
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
   _processMaxGapTime = Infinity
+  curTimeout = 0
 
   constructor () {
     super()
@@ -101,7 +102,7 @@ export class FetchLoader extends EventEmitter {
       dynamicTimeoutIns && typeof dynamicTimeoutIns.getTimeout === 'function'
         ? dynamicTimeoutIns.getTimeout(timeout)
         : timeout
-
+    this.curTimeout = timeoutMs
     if (timeoutMs) {
       this._timeoutTimer = setTimeout(async()  => {
         isTimeout = true
