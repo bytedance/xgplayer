@@ -70,6 +70,9 @@ export class NetLoader extends EventEmitter {
     task.loader.on(EVENT.REAL_TIME_SPEED, (data) => {
       this.emit(EVENT.REAL_TIME_SPEED, data)
     })
+    task.on('networkError', (err) => {
+      this.emit('networkError', err)
+    })
     this._queue.push(task)
     if (this._queue.length === 1 && (!this._currentTask || !this._currentTask.running)) {
       this._processTask()
