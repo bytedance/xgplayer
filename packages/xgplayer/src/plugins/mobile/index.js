@@ -463,9 +463,10 @@ class MobilePlugin extends Plugin {
   onTouchEnd = (e) => {
     const { player, pos, playerConfig } = this
 
-    // 延迟重置touch事件状态，确保后续的mouse事件被忽略
-    // 延迟时间需要大于 Touche 的 dbClickDelay(200ms)，以防 iPad/Safari 等设备在 touchend 后触发
-    // 合成 mousemove 事件，导致 PC 插件提前调用 player.focus()，进而在 clickHandler 中错误地 blur
+    // Delay resetting the touch-active flag so that subsequent synthetic mouse events are ignored.
+    // The delay must exceed Touche's dbClickDelay (200ms): on iPad/Safari the browser fires synthetic
+    // mousemove events after touchend, which would cause the PC plugin to call player.focus() and set
+    // isActive=true before clickHandler runs, leading clickHandler to blur instead of focus the player.
     if (this.touchActiveTimer) {
       clearTimeout(this.touchActiveTimer)
     }
