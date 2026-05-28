@@ -3,5 +3,7 @@ export const EVENTS = {
   RESIZE: 'resize',
   CHANGE: 'change',
   OFF: 'off',
-  UPDATE: 'update'
+  ON: 'on',
+  UPDATE: 'update',
+  ERROR: 'error'
 }

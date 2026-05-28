@@ -17,7 +17,8 @@ const ASS_CHECK = /^\[Script Info\].*/
 const TIME_REGEX_LIST = [
   /[0-9]{1,3}:[0-9]{2}:[0-9]{2}\.[0-9]{1,3}-->[0-9]{1,3}:[0-9]{2}:[0-9]{2}\.[0-9]{1,3}/,
   /[0-9]{1,3}:[0-9]{2}\.[0-9]{1,3}-->[0-9]{1,3}:[0-9]{2}\.[0-9]{1,3}/,
-  /[0-9]{1,2}\.[0-9]{1,3}-->[0-9]{1,2}\.[0-9]{1,3}/
+  /[0-9]{1,3}\.[0-9]{1,3}-->[0-9]{1,2}\.[0-9]{1,3}/,
+  /[0-9]{1,3}:[0-9]{2}:[0-9]{2},[0-9]{1,3}\s*-->\s*[0-9]{1,3}:[0-9]{2}:[0-9]{2},[0-9]{1,3}/
 ]
 // const LANG_REGEX = /^(<?.+?>(([\s\S])*?)<\/?.+?>)$/
 
@@ -28,14 +29,24 @@ const ASS_STYLE = /^Style:\s/
 const ASS_DIALOGUE = /^Dialogue:\s/
 // const ASS_EVENTS = /^\[Events\]:\s/
 
+const MillSecondsSplitReg = /^([0-5]?\d)[.,](\d{1,3})$/
+
+function parseSecond (str) {
+  const match = MillSecondsSplitReg.exec(str)
+  if (match) {
+    return (Number(match[1]) * 1000 + Number(match[2])) / 1000
+  }
+  return 0
+}
+
 function getSecond (arr) {
   const len = arr.length
   if (len === 3) {
-    return ((Number(arr[0]) * 60 + Number(arr[1])) * 60 * 1000 + Number(arr[2]) * 1000) / 1000
+    return (Number(arr[0]) * 60 + Number(arr[1])) * 60 + parseSecond(arr[2])
   } else if (len === 2) {
-    return (Number(arr[0]) * 60 * 1000 + Number(arr[1]) * 1000) / 1000
+    return Number(arr[0]) * 60 + parseSecond(arr[1])
   } else {
-    return Number(arr[0])
+    return parseSecond(arr[0])
   }
 }
 
@@ -99,14 +110,11 @@ export default class SubTitleParser {
 
   static parse (str, fun) {
     const format = SubTitleParser.checkFormat(str)
-    if (!format) {
-      fun({ format })
-    }
     try {
-      let ret = []
+      let ret
       if (format === 'ass') {
         ret = SubTitleParser.parseASS(str)
-      } else if (format === 'vtt') {
+      } else {
         ret = SubTitleParser.parseVTT(str)
       }
       fun({ format, list: ret.list, styles: ret.styles })
@@ -200,7 +208,7 @@ export default class SubTitleParser {
     }
     return {
       list: retData,
-      style: {}
+      styles: []
     }
   }
 
@@ -250,8 +258,8 @@ export default class SubTitleParser {
       } else if (isCueStart) {
         if (VTT_CUEND.test(str)) {
           styles.push({
-            key: styleHeader,
-            style: styleInfo
+            key: styleHeader || '',
+            style: styleInfo || ''
           })
           styleInfo = null
           styleHeader = null
@@ -362,7 +370,7 @@ export default class SubTitleParser {
     } else {
       retText = text
     }
-    const tagsReg = /<(\w+).(\w+)>/g
+    const tagsReg = /<(\w+)\.(\w+)>/g
     let re = tagsReg.exec(retText)
     // console.log(' re[0]', re)
     while (re && re.length > 2) {
@@ -378,7 +386,7 @@ export default class SubTitleParser {
 
   static parseVttTime (str) {
     const arr = str.split('-->')
-    let start; let end = 0
+    let start = 0; let end = 0
     if (arr.length === 2) {
       const aArr = arr[0].split(':')
       const bArr = arr[1].split(':')
@@ -402,13 +410,13 @@ export default class SubTitleParser {
 
   static checkFormat (str) {
     if (!str) {
-      return null
+      return ''
     }
     if (VTT_CHECK.test(str)) {
       return 'vtt'
     } else if (ASS_CHECK.test(str)) {
       return 'ass'
     }
-    return null
+    return ''
   }
 }

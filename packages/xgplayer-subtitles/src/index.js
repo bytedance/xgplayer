@@ -5,7 +5,7 @@ import EventEmitter from 'eventemitter3'
 import * as Util from './utils'
 import { addObserver, unObserver } from './observer'
 import { EVENTS } from './constants'
-import { _ERROR } from './error'
+import { _ERROR, SError } from './error'
 import ProxyPromise from './proxyPromise'
 
 import './style/index.scss'
@@ -38,16 +38,28 @@ const SubtitleItem = {
 function formatUrl (url) {
   const ret = []
   if (url && Util.typeOf(url) === 'String') {
-    ret.push({ url: url, index: 0, start: -1, end: -1})
+    ret.push({ url: [url], index: 0, start: -1, end: -1})
   } else if (Util.typeOf(url) === 'Array') {
-    url.forEach((item, i) => {
+    if (url.length === 0) {
+      return ret
+    }
+    if (Util.typeOf(url[0]) === 'String') {
       ret.push({
-        url: item.url || item.src,
-        index: i,
-        start: item.start || -1,
-        end: item.end || -1
+        url: [...url],
+        index: 0,
+        start: -1,
+        end: -1
       })
-    })
+    } else {
+      url.forEach((item, i) => {
+        ret.push({
+          url: item.url || item.src || '',
+          index: i,
+          start: item.start || -1,
+          end: item.end || -1
+        })
+      })
+    }
   }
   return ret
 }
@@ -95,6 +107,12 @@ export default class Subtitle extends EventEmitter {
 
     this._ctime = 0
     this._loadingTrack = {}
+    this.seiTime = 0
+    this.lastSeiTime = 0
+    this._curTexts = []
+    this._curRenderTask = []
+    this._renderIntervalId = -1
+    this._lastTimeStamp = -1
     Object.keys(this.config).map(key => {
       if (options[key] !== undefined && options[key] !== null) {
         this.config[key] = options[key]
@@ -121,12 +139,6 @@ export default class Subtitle extends EventEmitter {
     if (options.player) {
       this.attachPlayer(options.player)
     }
-    this.seiTime = 0
-    this.lastSeiTime = 0
-    this._curTexts = []
-    this._curRenderTask = []
-    this._renderIntervalId = -1
-    this._lastTimeStamp = -1
     this.setSubTitles(options.subTitles, this.config.defaultOpen)
   }
 
@@ -140,6 +152,10 @@ export default class Subtitle extends EventEmitter {
   setSubTitles (subTitles = [], isOpen = false, ieRemoveFirst = true) {
     const _isOpen = this._isOpen || isOpen
     ieRemoveFirst && this.innerRoot && this.switchOff()
+    if (!subTitles || subTitles.length < 1) {
+      this.switchOff()
+      return
+    }
     this.currentText = null
     this.textTrack = []
     subTitles.forEach(item => {
@@ -155,7 +171,11 @@ export default class Subtitle extends EventEmitter {
     })
     this._log('setSubTitles', _isOpen)
     if (_isOpen) {
+      if (!this.currentText) {
+        this.currentText = this.textTrack[0]
+      }
       this.switch().catch(e => {
+        this.emitError(e)
         this._log('[switch]', e)
       })
     }
@@ -164,8 +184,11 @@ export default class Subtitle extends EventEmitter {
       // if (_isOpen) {
       //   this.switch()
       // }
+    }).catch(e => {
+      this.emitError(e)
+      this._log('[_loadTrack] error', e)
     })
-    this.emit('reset', {list: this.textTrack, isOpen: _isOpen})
+    this.emit('reset', {type: 'reset', list: this.textTrack, isOpen: _isOpen})
   }
 
   /**
@@ -208,13 +231,13 @@ export default class Subtitle extends EventEmitter {
           item.key = 'xg-text-track-span'
         }
       })
-      Util.addCSS(styles, 'xg-text-track')
+      Util.addCSS(styles, '.xg-text-track')
     }
   }
 
   attachPlayer (player) {
     this._log('attachPlayer')
-    if (!player) {
+    if (!player || player === this.player) {
       return
     }
     if (this.player) {
@@ -238,14 +261,23 @@ export default class Subtitle extends EventEmitter {
           this.root.setAttribute(`data-${key}`, this.currentText[key] || '')
         })
       }
-      this.player.root.appendChild(this.root)
-      addObserver(player.root, this._onResize)
+      this.player.root && this.player.root.appendChild(this.root)
+      this.player.root && addObserver(player.root, this._onResize)
     }
-    this.player.on('destroy', this.destroy)
-    this.player.on('timeupdate', this._onTimeupdate)
-    this.player.on('pause', this._onPause)
-    this.player.on('play', this._onPlay)
-    this.player.on('core_event', this._onCoreEvents)
+    if (Util.isMediaElement(this.player)) {
+      this.player.addEventListener('timeupdate', this._onTimeupdate)
+      this.player.addEventListener('pause', this._onPause)
+      this.player.addEventListener('play', this._onPlay)
+    } else {
+      if (typeof this.player.on !== 'function') {
+        return
+      }
+      this.player.on('destroy', this.destroy)
+      this.player.on('timeupdate', this._onTimeupdate)
+      this.player.on('pause', this._onPause)
+      this.player.on('play', this._onPlay)
+      this.player.on('core_event', this._onCoreEvents)
+    }
     if (this._isOpen) {
       this.switch().catch(e => {
         this._log('[switch]', e)
@@ -258,15 +290,21 @@ export default class Subtitle extends EventEmitter {
     if (!player) {
       return
     }
-    player.off('destroy', this.destroy)
-    player.off('timeupdate', this._onTimeupdate)
-    player.off('pause', this._onPause)
-    player.off('play', this._onPlay)
-    player.off('core_event', this._onCoreEvents)
+    if (Util.isMediaElement(player)) {
+      player.removeEventListener('timeupdate', this._onTimeupdate)
+      player.removeEventListener('pause', this._onPause)
+      player.removeEventListener('play', this._onPlay)
+    } else if (typeof player.off === 'function') {
+      player.off('destroy', this.destroy)
+      player.off('timeupdate', this._onTimeupdate)
+      player.off('pause', this._onPause)
+      player.off('play', this._onPlay)
+      player.off('core_event', this._onCoreEvents)
+    }
     if (config.domRender) {
       if (player.root) {
-        unObserver(player.root, this._onResize)
-        player.root.removeChild(this.root)
+        unObserver(player.root)
+        this.root && player.root.contains(this.root) && player.root.removeChild(this.root)
       }
       this.innerRoot = null
       this.root = null
@@ -284,11 +322,11 @@ export default class Subtitle extends EventEmitter {
           this._loadingTrack = {}
           this._updateCurrent(this.currentText)
           this.switchOn()
-          const err = _ERROR(0, { message: 'switch default subtitle success' })
-          resolve(err)
+          resolve({ message: 'switch default subtitle success', code: 0 })
           return
         } else {
-          const err = _ERROR(5, { message: 'no default subtitle' })
+          const err = new SError('no default subtitle', 5)
+          this.emitError(err)
           reject(err)
           return
         }
@@ -330,17 +368,20 @@ export default class Subtitle extends EventEmitter {
                   this.switchOn()
                   resolve(_ERROR(0))
                 } else {
-                  const err = _ERROR(6, { message: `check _loadingTrack fail id: ${this._loadingTrack.id}  nextSubtitle:${textTrack.id}` })
+                  const err = new SError(`check _loadingTrack fail id: ${this._loadingTrack.id}  nextSubtitle:${textTrack.id}`, 6, null, subtitle)
                   // console.trace(err)
+                  this.emitError(err)
                   reject(err)
                 }
               }).catch(err => {
+                this.emitError(err)
                 reject(err)
               })
           }
         } else {
-          const err = _ERROR(4, new Error(`The is no subtitle with id:[{${subtitle.id}}] or language:[${subtitle.language}]`))
+          const err = new SError(`The is no subtitle with id:[{${subtitle.id}}] or language:[${subtitle.language}]`, 4, null, subtitle)
           // console.trace(err)
+          this.emitError(err)
           reject(err)
         }
       }
@@ -372,9 +413,18 @@ export default class Subtitle extends EventEmitter {
           this._loadTrack(nextSubtitle).then((textTrack) => {
             this.currentExtText = textTrack
             resolve(_ERROR(0))
+          }).catch(e => {
+            this.emitError(e)
           })
         }
       }
+    })
+  }
+
+  emitError (error) {
+    this.emit(EVENTS.ERROR, {
+      type: EVENTS.ERROR,
+      error: error
     })
   }
 
@@ -382,7 +432,14 @@ export default class Subtitle extends EventEmitter {
     this._log('switchOn')
     this._isOpen = true
     this.show()
-    this.emit(EVENTS.CHANGE, this.currentText)
+    const { id, language } = this.currentText || {}
+    this.emit(EVENTS.CHANGE, {
+      type: EVENTS.CHANGE,
+      isOpen: true,
+      id,
+      language,
+      texts: []
+    })
   }
 
   /**
@@ -391,7 +448,17 @@ export default class Subtitle extends EventEmitter {
   switchOff () {
     this._isOpen = false
     this.hide()
-    this.emit(EVENTS.OFF)
+    if (!this.currentText) {
+      return
+    }
+    const { id, language } = this.currentText
+    this.emit(EVENTS.OFF, {
+      type: EVENTS.OFF,
+      id,
+      language,
+      texts: [],
+      isOpen: false
+    })
   }
 
   get isOpen () {
@@ -412,7 +479,7 @@ export default class Subtitle extends EventEmitter {
     if (textTrack.json) {
       contentType = 'json'
       content = textTrack.json
-    } else if (textTrack.stringContent && !textTrack.url) {
+    } else if (textTrack.stringContent && (!textTrack.url || textTrack.url.length === 0)) {
       contentType = 'string'
       content = textTrack.stringContent
     }
@@ -423,6 +490,7 @@ export default class Subtitle extends EventEmitter {
         textTrack.list = data.list
         promise.resolve(textTrack)
       }).catch(e=>{
+        this.emitError(e)
         promise.reject(e)
       })
       return promise
@@ -441,9 +509,10 @@ export default class Subtitle extends EventEmitter {
         textTrack.list = []
       }
       this._pushList(textTrack.list, data.list)
-      urls.length > 1 && this._loadTrackUrls(textTrack, 2)
+      urls.length > 0 && this._loadTrackUrls(textTrack, 2)
       promise.resolve(textTrack)
     }).catch(e => {
+      this.emitError(e)
       promise.reject(e)
     })
     return promise
@@ -457,7 +526,7 @@ export default class Subtitle extends EventEmitter {
     }
     const data = { lang: nextSubTitle.language, ...nextSubTitle}
     this._log('emit subtile_switch ', nextSubTitle, data)
-    this.player && this.player.emit('switch_subtitle', data)
+    this.player && typeof this.player.emit === 'function' && this.player.emit('switch_subtitle', data)
   }
 
   /**
@@ -477,7 +546,7 @@ export default class Subtitle extends EventEmitter {
       }
       Util.loadSubTitle(obj).then((data) => {
         textTrack.format = data.format
-        textTrack.styles = data.format
+        textTrack.styles = data.styles
         if (!textTrack.list) {
           textTrack.list = []
         }
@@ -517,6 +586,9 @@ export default class Subtitle extends EventEmitter {
    * @returns
    */
   _pushList (dist, src) {
+    if (!src || src.length === 0) {
+      return dist
+    }
     const _start = src[0].start
     const _end = src[src.length - 1].end
     if (dist.length === 0 || _start >= dist[dist.length - 1].end) {
@@ -615,7 +687,7 @@ export default class Subtitle extends EventEmitter {
       })
       this.__render(ret)
     }
-    this.emit('update', this._curTexts)
+    this.emit(EVENTS.UPDATE, this.getUpdateData(this._curTexts, 0, this.currentText))
   }
 
   _update (currentTime) {
@@ -632,10 +704,12 @@ export default class Subtitle extends EventEmitter {
     if (_cids.length < 1) {
       this._cids.length > 0 && this.config.domRender && this.__remove(this._cids)
       this._cids = []
+      this._curTexts.length > 0 && this.emit(EVENTS.UPDATE, this.getUpdateData([], currentTime, this.currentText))
+      this._curTexts = []
       return
     }
     // 数据没有更新
-    if (this._cids === _cids && _gid === this._gid) {
+    if (this._cids.join('') === _cids.join('') && _gid === this._gid) {
       return
     }
     this._gid = _gid
@@ -664,17 +738,30 @@ export default class Subtitle extends EventEmitter {
       })
     }
     this._log('update', texts, currentTime)
-    this.emit('update', texts)
+    this._curTexts = texts
+    this.emit(EVENTS.UPDATE, this.getUpdateData(texts, currentTime, this.currentText))
     this.__render(texts, currentTime)
+  }
+
+  getUpdateData (texts, currentTime, currentText) {
+    const { id, language } = currentText
+    return {
+      type: EVENTS.UPDATE,
+      currentTime: currentTime | 0,
+      id,
+      language,
+      texts,
+      isOpen: this._isOpen
+    }
   }
 
   _getPlayerCurrentTime () {
     if (!this.player) {
       return 0
     }
-    const { currentTime } = this.player
+    const { currentTime = 0 } = this.player
     // 如果是直播，有sei事件触发，需要对时间做校准
-    const curTime = parseInt(currentTime * 1000 + this.seiTime * 1000 - this.lastSeiTime * 1000, 10) / 1000
+    const curTime = Util.toInt(currentTime * 1000 + this.seiTime * 1000 - this.lastSeiTime * 1000) / 1000
     return curTime
   }
 
@@ -692,9 +779,12 @@ export default class Subtitle extends EventEmitter {
     if (!this._isOpen) {
       return
     }
-    const { videoWidth, videoHeight } = this.player.video
-    if (!this._videoMeta.scale && videoWidth && videoHeight) {
-      this._onResize(this.player.root)
+    if (this.config.domRender) {
+      const media = this.player.media ? this.player.media : this.player
+      const { videoWidth, videoHeight } = media
+      if (!this._videoMeta.scale && videoWidth && videoHeight) {
+        this._onResize(this.player.root)
+      }
     }
     const curTime = this._getPlayerCurrentTime()
     if (Math.round(Math.abs(curTime * 1000 - this._ctime)) < 200) {
@@ -725,7 +815,7 @@ export default class Subtitle extends EventEmitter {
       if (videoWidth && videoHeight) {
         _videoMeta.videoWidth = videoWidth
         _videoMeta.videoHeight = videoHeight
-        _videoMeta.scale = parseInt(videoHeight / videoWidth * 100, 10)
+        _videoMeta.scale = Util.toInt(videoHeight / videoWidth * 100)
       } else {
         return
       }
@@ -817,11 +907,11 @@ export default class Subtitle extends EventEmitter {
     this._videoMeta.lheight = height
     let vWidth; let vHeight = 0
     if (height / width * 100 >= scale) {
-      vHeight = parseInt(scale * width, 10) / 100
+      vHeight = Util.toInt(scale * width) / 100
       vWidth = width
     } else {
       vHeight = height
-      vWidth = parseInt(height / scale * 100, 10)
+      vWidth = Util.toInt(height / scale * 100)
     }
     // this._log(`height:${height} width:${width} vWidth:${vWidth} vHeight:${vHeight} this._videoMeta.vWidth:${this._videoMeta.vWidth} this._videoMeta.vHeight:${this._videoMeta.vHeight}`)
     this._videoMeta.vWidth = vWidth
@@ -830,19 +920,19 @@ export default class Subtitle extends EventEmitter {
     let fontSize = 0
     if (scale > 120) {
       _size = baseSizeY
-      fontSize = parseInt(_size * vHeight / 1080, 10)
+      fontSize = Util.toInt(_size * vHeight / 1080)
     } else {
       _size = baseSizeX
-      fontSize = parseInt(_size * vWidth / 1920, 10)
+      fontSize = Util.toInt(_size * vWidth / 1920)
     }
     const mini = IS_MOBILE ? minMobileSize : minSize
     fontSize = fontSize < mini ? mini : (fontSize > _size ? _size : fontSize)
     const style = {
       fontSize
     }
-    const vBottom = parseInt((height - vHeight) / 2, 10)
-    const vLeft = parseInt((width - vWidth) / 2, 10)
-    const marginBottom = parseInt(vHeight * offsetBottom, 10) / 100
+    const vBottom = Util.toInt((height - vHeight) / 2)
+    const vLeft = Util.toInt((width - vWidth) / 2)
+    const marginBottom = Util.toInt(vHeight * offsetBottom) / 100
     this._videoMeta.vBottom = vBottom
     this._videoMeta.vLeft = vLeft
     this._videoMeta.marginBottom = marginBottom
@@ -975,7 +1065,7 @@ export default class Subtitle extends EventEmitter {
     _dom.appendChild(_textNode)
     const _words = Util.splitWords(itemText)
     let curTime = this._getPlayerCurrentTime()
-    let duration = parseInt((end - curTime) * 1000, 10)
+    let duration = Util.toInt((end - curTime) * 1000)
     if (curTime >= end) {
       return
     } else if (start >= curTime) {
@@ -1064,7 +1154,9 @@ export default class Subtitle extends EventEmitter {
       return
     }
     Util.addClass(this.root, 'text-track-hide')
-    this.innerRoot.innerHTML = ''
+    if (this.innerRoot) {
+      this.innerRoot.innerHTML = ''
+    }
   }
 
   destroy = () => {
@@ -1124,7 +1216,7 @@ export default class Subtitle extends EventEmitter {
    * @description 获取底部边距
    */
   get marginBottom () {
-    const { bottom, marginBottom } = this._videoMeta
-    return this.config.fitVideo ? bottom + marginBottom : marginBottom
+    const { vBottom, marginBottom } = this._videoMeta
+    return this.config.fitVideo ? vBottom + marginBottom : marginBottom
   }
 }

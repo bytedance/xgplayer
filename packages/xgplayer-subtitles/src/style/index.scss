@@ -41,12 +41,15 @@ xg-text-track.xg-text-track {
     }
     &.text-track-single{
       -webkit-line-clamp: 1;
+      padding: 1px 4px;
     }
     &.text-track-double {
       -webkit-line-clamp: 2;
+      padding: 1px 4px;
     }
     &.text-track-three{
       -webkit-line-clamp: 3;
+      padding: 1px 4px;
     }
     &.text-track-space {
       opacity: 0;
