@@ -31,11 +31,27 @@ const ERROR = [{
   msg: 'DATA_ERROR:subtitle.url length is 0'
 }]
 
+export class SError extends Error {
+  constructor (message, code = 7, orgError = null, data = null) {
+    if (!message) {
+      message = ERROR[code || 7].msg
+    }
+    super(message)
+    this.code = code || 7
+    this.message = message
+    this.type = ERROR[code || 7].msg
+    this.orgError = orgError || null
+    this.data = data || null
+  }
+}
 
-export function _ERROR (code, error = {}) {
+export function _ERROR (code, error = {}, subtitle) {
   const ret = {
     code: ERROR[code].code,
-    msg: ERROR[code].msg
+    msg: ERROR[code].msg,
+    message: ERROR[code].msg,
+    id: subtitle && subtitle.id || '',
+    language: subtitle && subtitle.language || ''
   }
   Object.keys(error).map(key => {
     ret[key] = error[key]

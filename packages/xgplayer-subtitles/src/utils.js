@@ -173,6 +173,10 @@ export function createDom (el = 'div', tpl = '', attrs = {}, cname = '') {
   return dom
 }
 
+export function isMediaElement (dom) {
+  return dom && dom instanceof window.HTMLMediaElement
+}
+
 export function isMobile () {
   const ua = navigator.userAgent
   const isWindowsPhone = /(?:Windows Phone)/.test(ua)
@@ -189,14 +193,19 @@ export function addCSS (styles, preTag = '') {
   styles.map(item => {
     cssText += ` ${preTag} ${item.key} {${item.style}}`
   })
-  const styleTag = document.createElement('style') // 创建一个style元素
   const head = document.head || document.getElementsByTagName('head')[0] // 获取head元素
-  styleTag.type = 'text/css' // 这里必须显示设置style元素的type属性为text/css，否则在ie中不起作用
-  styleTag.id = 'ssss'
+  const STYLE_ID = 'xg-text-track-style'
+  let styleTag = document.getElementById(STYLE_ID)
+  if (!styleTag) {
+    styleTag = document.createElement('style') // 创建一个style元素
+    styleTag.type = 'text/css' // 这里必须显示设置style元素的type属性为text/css，否则在ie中不起作用
+    styleTag.id = STYLE_ID
+    head.appendChild(styleTag) // 把创建的style元素插入到head中
+  }
   if (styleTag.styleSheet) { // IE
     const func = function () {
       try { // 防止IE中stylesheet数量超过限制而发生错误
-        styleTag.styleSheet.cssText = cssText
+        styleTag.styleSheet.cssText = (styleTag.styleSheet.cssText || '') + cssText
       } catch (e) {
 
       }
@@ -212,14 +221,13 @@ export function addCSS (styles, preTag = '') {
     const textNode = document.createTextNode(cssText)
     styleTag.appendChild(textNode)
   }
-  head.appendChild(styleTag) // 把创建的style元素插入到head中
 }
 
 export function parseResult (textTrack, resolve, reject, data, error) {
   if (error) {
     const err = _ERROR(2, error)
     reject(err, { format: data.format })
-  } else if (!data.format) {
+  } else if (!data.format && (!data.list || data.list.length === 0)) {
     const err = _ERROR(3)
     reject(err)
   } else {
@@ -247,7 +255,7 @@ export function parse (content, format, promise) {
       if (error) {
         const err = _ERROR(2, error)
         promise.reject(err, { format: data.format})
-      } else if (!data.format) {
+      } else if (!data.format && (!data.list || data.list.length === 0)) {
         const err = _ERROR(3)
         promise.reject(err)
       } else {
@@ -266,19 +274,38 @@ export function loadSubTitle (object, promise) {
   if (!promise) {
     promise = new ProxyPromise()
   }
-  new XHR({ url: object.url, type: 'text' }).then(data => {
-    parse(data.res.response, 'string').then((data) => {
-      promise.resolve({
-        ...data,
-        ...object
+  let urlList = []
+  if (typeOf(object.url) === 'String') {
+    urlList = [object.url]
+  } else if (typeOf(object.url) === 'Array') {
+    urlList = [...object.url]
+  }
+  const loadNext = () => {
+    const url = urlList.shift()
+    if (!url) {
+      const _err = _ERROR(1, { message: 'http load error', url: object.url, ...object })
+      promise.reject(_err)
+      return
+    }
+    new XHR({ url, type: 'text' }).then(data => {
+      parse(data.res.response, 'string').then((data) => {
+        promise.resolve({
+          ...data,
+          ...object
+        })
+      }).catch(e => {
+        promise.reject(e)
       })
-    }).catch(e => {
-      promise.reject(e)
+    }).catch(err => {
+      if (urlList.length > 0) {
+        loadNext()
+        return
+      }
+      const _err = _ERROR(1, { statusText: err.statusText, status: err.status, type: err.type, message: 'http load error', url, ...object })
+      promise.reject(_err)
     })
-  }).catch(err => {
-    const _err = _ERROR(1, { statusText: err.statusText, status: err.status, type: err.type, message: 'http load error', url: object.src, ...object })
-    promise.reject(_err)
-  })
+  }
+  loadNext()
   return promise
 }
 
@@ -325,6 +352,56 @@ export function __loadText (textTrack, type) {
   })
 }
 
+export function formatUrl (url) {
+  const ret = []
+  if (url && typeOf(url) === 'String') {
+    ret.push({
+      url: [url],
+      index: 0,
+      start: -1,
+      end: -1
+    })
+  } else if (typeOf(url) === 'Array') {
+    if (url.length === 0) {
+      return ret
+    }
+    const item = url[0]
+    if (typeOf(item) === 'String') {
+      ret.push({
+        url: [...url],
+        index: 0,
+        start: -1,
+        end: -1
+      })
+    } else {
+      url.forEach((item, i) => {
+        ret.push({
+          url: item.url || item.src || '',
+          index: i,
+          start: item.start || -1,
+          end: item.end || -1
+        })
+      })
+    }
+  }
+  return ret
+}
+
+export function toInt (value, fallback = 0) {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? Math.trunc(value) : fallback
+  }
+  if (typeof value === 'string') {
+    const v = value.trim()
+    if (!v) {
+      return fallback
+    }
+    const n = parseInt(v, 10)
+    return Number.isNaN(n) ? fallback : n
+  }
+  return fallback
+}
+
 /**
  * 切换的语言和当前的是否一致
  * @param {*} src
@@ -332,6 +409,9 @@ export function __loadText (textTrack, type) {
  * @returns
  */
 export function checkSubtitle (src, dist) {
+  if (!src || !dist) {
+    return false
+  }
   if ((src.id && dist.id && src.id === dist.id) || (src.language && dist.language && src.language === dist.language)) {
     return true
   }
@@ -390,7 +470,11 @@ export function splitWords (str) {
     } else if (_str.match(/^[ ]*$/) || patchABCbiaodian(_str) || patchCn(_str)){
       lastIsEn = false
       const _lIdx = retArr.length - 1
-      retArr[_lIdx] = `${retArr[_lIdx]}${_str}`
+      if (_lIdx >= 0) {
+        retArr[_lIdx] = `${retArr[_lIdx]}${_str}`
+      } else {
+        retArr.push(_str)
+      }
     } else {
       lastIsEn = false
       retArr.push(_str)
