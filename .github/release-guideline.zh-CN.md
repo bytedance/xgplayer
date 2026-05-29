@@ -60,7 +60,7 @@ git push origin --tags
 
 ## Release Notes
 
-GitHub Release notes 由 CI 自动生成。比较基准始终使用当前版本之前最新的稳定版 tag（`vX.Y.Z`），即使是非稳定版也是如此。例如，`v3.2.1-rc.1` 会和 `v3.2.0` 对比，而不是和另一个非稳定版 tag 对比。
+GitHub Release notes 由 CI 自动生成。正式版本比较当前版本之前最新的正式版 tag（`vX.Y.Z`）。非正式版本比较最临近的上一个版本 tag，有可用的非正式版本 tag 时也会参与比较。
 
 ## CI 工作流说明
 
