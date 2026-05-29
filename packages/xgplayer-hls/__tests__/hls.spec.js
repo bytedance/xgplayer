@@ -228,6 +228,58 @@ describe('Hls', () => {
     expect(removeAllListeners).toHaveBeenCalled()
   })
 
+  test('vod stops preloading when discontinuous buffered islands exceed preloadTime', async () => {
+    const hls = new Hls({ media, url: 'url', preloadTime: 30 })
+    const loadSegmentDirect = jest.spyOn(hls, '_loadSegmentDirect').mockImplementation(() => Promise.resolve())
+    const tryEos = jest.spyOn(hls, '_tryEos').mockImplementation(() => {})
+    hls._playlist.nextSegment = { sn: 4, start: 37.4, end: 46.6 }
+    hls._playlist.lastSegment = { duration: 9.2 }
+    Buffer.info = () => ({
+      start: 0,
+      end: 9.2,
+      index: 0,
+      nextStart: 9.4,
+      remaining: 9.2,
+      buffers: [
+        [0, 9.2],
+        [9.4, 18.6],
+        [18.8, 27.9],
+        [28.1, 37.3]
+      ]
+    })
+
+    await hls._loadSegment()
+
+    expect(tryEos).toHaveBeenCalled()
+    expect(loadSegmentDirect).not.toHaveBeenCalled()
+  })
+
+  test('vod keeps loading when next segment starts at the next buffered island', async () => {
+    const hls = new Hls({ media, url: 'url', preloadTime: 30 })
+    const loadSegmentDirect = jest.spyOn(hls, '_loadSegmentDirect').mockImplementation(() => Promise.resolve())
+    const tryEos = jest.spyOn(hls, '_tryEos').mockImplementation(() => {})
+    hls._playlist.nextSegment = { sn: 1, start: 9.4, end: 18.6 }
+    hls._playlist.lastSegment = { duration: 9.2 }
+    Buffer.info = () => ({
+      start: 0,
+      end: 9.2,
+      index: 0,
+      nextStart: 9.4,
+      remaining: 9.2,
+      buffers: [
+        [0, 9.2],
+        [9.4, 18.6],
+        [18.8, 27.9],
+        [28.1, 37.3]
+      ]
+    })
+
+    await hls._loadSegment()
+
+    expect(tryEos).not.toHaveBeenCalled()
+    expect(loadSegmentDirect).toHaveBeenCalled()
+  })
+
   test('switchStream', async () => {
     const hls = new Hls({ media })
 
