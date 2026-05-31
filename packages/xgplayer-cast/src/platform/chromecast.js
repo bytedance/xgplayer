@@ -1,5 +1,5 @@
-import { loadChromecastSdk } from './chromecast-sdk'
 import { resolveCastMedia } from './cast-media'
+import { loadChromecastSdk } from './chromecast-sdk'
 
 export class Chromecast {
   constructor(plugin, config) {
@@ -9,6 +9,9 @@ export class Chromecast {
     this.castContext = null
     this.session = null
     this._castState = null
+    this._isCasting = false
+    this._lastLoadedMediaKey = null
+    this._pendingMediaKey = null
   }
 
   async install() {
@@ -23,6 +26,7 @@ export class Chromecast {
       this.player.on('cast_request', this._onRequestCast)
     } catch (error) {
       console.warn('[xgplayer-cast] chromecast install failed:', error)
+      this._emitError('sdk_load_failed', error)
       this.player?.emit('cast_availability_change', {
         protocol: 'chromecast',
         availability: 'not-available'
@@ -82,12 +86,16 @@ export class Chromecast {
       window.cast.framework.SessionState
     if (sessionState === SESSION_STARTED || sessionState === SESSION_RESUMED) {
       this.session = this.castContext.getCurrentSession()
+      this._isCasting = true
       this.player?.emit('cast_target_change', {
         protocol: 'chromecast',
         isCasting: true
       })
     } else if (sessionState === SESSION_ENDED) {
       this.session = null
+      this._isCasting = false
+      this._lastLoadedMediaKey = null
+      this._pendingMediaKey = null
       this.player?.emit('cast_target_change', {
         protocol: 'chromecast',
         isCasting: false
@@ -100,11 +108,30 @@ export class Chromecast {
     return !!this.castContext && this._castState !== noDevices
   }
 
+  isCasting() {
+    return this._isCasting
+  }
+
+  async reloadMedia() {
+    if (!this.isCasting()) {
+      return false
+    }
+
+    try {
+      return await this._loadCurrentMedia({ skipSameMedia: true })
+    } catch (err) {
+      console.warn('[xgplayer-cast] Chromecast media reload failed:', err)
+      this._emitError('media_reload_failed', err)
+      return false
+    }
+  }
+
   _onRequestCast = async ({ protocol } = {}) => {
     if (protocol && protocol !== 'chromecast') return
 
     if (!this.castContext) {
       console.warn('[xgplayer-cast] Chromecast context is not ready')
+      this._emitError('context_not_ready', 'Chromecast context is not ready')
       return
     }
 
@@ -115,26 +142,77 @@ export class Chromecast {
       const session = this.castContext.getCurrentSession()
       if (!session) {
         console.warn('[xgplayer-cast] No Chromecast session after requestSession()')
+        this._emitError(
+          'session_unavailable',
+          'No Chromecast session after requestSession()'
+        )
         return
       }
 
-      let castMedia
-      try {
-        castMedia = resolveCastMedia(this.player)
-      } catch (err) {
-        console.warn('[xgplayer-cast] Cannot resolve cast media URL:', err.message)
-        return
-      }
-
-      const { url, contentType } = castMedia
-      const mediaInfo = new window.chrome.cast.media.MediaInfo(url, contentType)
-      const request = new window.chrome.cast.media.LoadRequest(mediaInfo)
-      request.autoplay = !!this.plugin.config.autoplayOnCast
-
-      await session.loadMedia(request)
+      this.session = session
+      this._isCasting = true
+      await this._loadCurrentMedia()
     } catch (err) {
       console.warn('[xgplayer-cast] Chromecast cast request failed:', err)
+      this._emitError('request_session_failed', err)
     }
+  }
+
+  async _loadCurrentMedia({ skipSameMedia = false } = {}) {
+    const session = this.session || this.castContext?.getCurrentSession?.()
+    if (!session) {
+      console.warn('[xgplayer-cast] No Chromecast session for media load')
+      this._emitError('session_unavailable', 'No Chromecast session for media load')
+      return false
+    }
+
+    let castMedia
+    try {
+      castMedia = resolveCastMedia(this.player)
+    } catch (err) {
+      console.warn('[xgplayer-cast] Cannot resolve cast media URL:', err.message)
+      this._emitError('unsupported_source', err)
+      return false
+    }
+
+    const { url, contentType } = castMedia
+    const mediaKey = `${contentType} ${url}`
+    if (
+      skipSameMedia &&
+      (mediaKey === this._lastLoadedMediaKey || mediaKey === this._pendingMediaKey)
+    ) {
+      return false
+    }
+
+    const mediaInfo = new window.chrome.cast.media.MediaInfo(url, contentType)
+    const request = new window.chrome.cast.media.LoadRequest(mediaInfo)
+    request.autoplay = !!this.plugin.config.autoplayOnCast
+
+    this._pendingMediaKey = mediaKey
+    try {
+      await session.loadMedia(request)
+      this._lastLoadedMediaKey = mediaKey
+    } catch (err) {
+      this._emitError('media_load_failed', err, { media: castMedia })
+      console.warn('[xgplayer-cast] Chromecast media load failed:', err)
+      return false
+    } finally {
+      if (this._pendingMediaKey === mediaKey) {
+        this._pendingMediaKey = null
+      }
+    }
+    return true
+  }
+
+  _emitError(code, error, extra = {}) {
+    const message = error?.message || String(error || code)
+    this.player?.emit('cast_error', {
+      protocol: 'chromecast',
+      code,
+      message,
+      error,
+      ...extra
+    })
   }
 
   destroy() {
@@ -152,6 +230,9 @@ export class Chromecast {
     this.castContext = null
     this.session = null
     this._castState = null
+    this._isCasting = false
+    this._lastLoadedMediaKey = null
+    this._pendingMediaKey = null
     this.player = null
     this.plugin = null
   }

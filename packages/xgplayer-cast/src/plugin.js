@@ -3,7 +3,10 @@ import AirplaySvg from './assets/airplay.svg'
 import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
 import { Chromecast } from './platform/chromecast'
-import { normalizeChromecastConfig, shouldInstallChromecast } from './platform/chromecast-config'
+import {
+  normalizeChromecastConfig,
+  shouldInstallChromecast
+} from './platform/chromecast-config'
 
 import './cast-i18n'
 import './index.scss'
@@ -31,7 +34,7 @@ export class CastPlugin extends Plugin {
       autoplayOnCast: true, // 投屏后是否自动播放
       airplay: true,
       chromecast: true,
-      showAirplayMutedTip: true, // 是否显示 AirPlay 连接时需要取消静音的提示
+      showAirplayMutedTip: true // 是否显示 AirPlay 连接时需要取消静音的提示
     }
   }
 
@@ -83,9 +86,7 @@ export class CastPlugin extends Plugin {
   }
 
   _onLoadStart() {
-    // TODO: if currently Chromecast casting, re-invoke loadMedia on the receiver
-    // to sync the new source. See: https://developers.google.com/cast/docs/web_sender/integrate#load_media
-    // Current version does not handle this — source changes during cast will desync remote from local.
+    this._chromecast?.reloadMedia?.()
   }
 
   _onCastAvailabilityChange({ protocol, availability }) {

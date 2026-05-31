@@ -209,6 +209,9 @@ window.player.on('cast_availability_change', ({ protocol, availability }) => {
 window.player.on('cast_target_change', ({ protocol, isCasting }) => {
   updateDiagnostics({ target: `${protocol}:${isCasting ? 'casting' : 'idle'}` })
 })
+window.player.on('cast_error', ({ protocol, code, message }) => {
+  updateDiagnostics({ lastError: `${protocol}:${code} ${message}` })
+})
 
 function getCastPlugin() {
   return window.player.getPlugin?.('cast') || window.player.plugins?.cast

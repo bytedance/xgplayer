@@ -20,6 +20,7 @@ function createPluginStub(overrides = {}) {
   plugin._playForCastHandshake = CastPlugin.prototype._playForCastHandshake.bind(plugin)
   plugin._handleCastActivated = CastPlugin.prototype._handleCastActivated.bind(plugin)
   plugin._onCastAvailabilityChange = CastPlugin.prototype._onCastAvailabilityChange.bind(plugin)
+  plugin._onLoadStart = CastPlugin.prototype._onLoadStart.bind(plugin)
   plugin._updateCastIconVisibility = CastPlugin.prototype._updateCastIconVisibility.bind(plugin)
   plugin._updateCastIcon = CastPlugin.prototype._updateCastIcon.bind(plugin)
   plugin.requestCast = CastPlugin.prototype.requestCast.bind(plugin)
@@ -74,6 +75,25 @@ describe('CastPlugin protocol-aware activation', () => {
     await plugin._onCastTargetChange({ isCasting: false, protocol: 'chromecast' })
 
     expect(plugin._resumeMSEPlugin).not.toHaveBeenCalled()
+  })
+})
+
+describe('CastPlugin source changes', () => {
+  test('asks Chromecast adapter to reload media on loadstart', () => {
+    const reloadMedia = jest.fn()
+    const plugin = createPluginStub({
+      _chromecast: { reloadMedia }
+    })
+
+    plugin._onLoadStart()
+
+    expect(reloadMedia).toHaveBeenCalled()
+  })
+
+  test('does not crash on loadstart without Chromecast adapter', () => {
+    const plugin = createPluginStub()
+
+    expect(() => plugin._onLoadStart()).not.toThrow()
   })
 })
 
