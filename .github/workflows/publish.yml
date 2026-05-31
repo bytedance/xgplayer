@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Extract tag
         id: extract_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const prefix = 'refs/tags/';
@@ -32,7 +32,7 @@ jobs:
 
       - name: Determine release mode
         id: release_meta
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           TAG: ${{ steps.extract_tag.outputs.result }}
         with:
@@ -42,7 +42,7 @@ jobs:
             core.notice(`Release mode for ${process.env.TAG}: ${isStable ? 'stable' : 'prerelease'}`);
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -60,7 +60,7 @@ jobs:
           yarn build:all
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build
           path: |
@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -90,7 +90,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build
 
@@ -109,10 +109,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create GitHub Release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           TAG: ${{ needs.build.outputs.tag }}
           IS_STABLE: ${{ needs.build.outputs.is_stable }}
@@ -136,13 +136,13 @@ jobs:
 
     steps:
       - name: Checkout main branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
 
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/package.json', '**/yarn.lock') }}
