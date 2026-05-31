@@ -14,9 +14,9 @@ describe('BufferService', () => {
   const audioTrack = new AudioTrack()
   const metadataTrack = new MetadataTrack()
   videoTrack.samples = [
-    { keyframe: true, pts: 1 },
-    { keyframe: false, pts: 2 },
-    { keyframe: true, pts: 3 },
+    { keyframe: true, pts: 1, originPts: 1 },
+    { keyframe: false, pts: 2, originPts: 2 },
+    { keyframe: true, pts: 3, originPts: 3 },
   ]
   metadataTrack.seiSamples = [
     { data: {} }
@@ -43,6 +43,10 @@ describe('BufferService', () => {
   const flv = jest.fn().mockImplementation(() => {
     return {
       media: media,
+      _transferCost: {
+        start: jest.fn(),
+        end: jest.fn()
+      },
       emit: jest.fn()
     }
   })()
@@ -109,7 +113,7 @@ describe('BufferService', () => {
     await bs.appendBuffer(data)
     expect(open).toHaveBeenCalled()
     expect(demuxAndFix).toHaveBeenCalledTimes(1)
-    expect(demuxAndFix).toHaveBeenLastCalledWith(data, true, false, 0)
+    expect(demuxAndFix).toHaveBeenLastCalledWith(data, true, false, 0, undefined)
     expect(createSource).toHaveBeenCalledTimes(2)
     expect(createSource).toHaveBeenNthCalledWith(1, videoTrack.type, `video/mp4;codecs=${videoTrack.codec}`)
     expect(createSource).toHaveBeenNthCalledWith(2, audioTrack.type, `audio/mp4;codecs=${audioTrack.codec}`)
@@ -121,7 +125,7 @@ describe('BufferService', () => {
     expect(append).toHaveBeenNthCalledWith(3, videoTrack.type, videoSegment)
     expect(append).toHaveBeenNthCalledWith(4, audioTrack.type, audioSegment)
 
-    expect(flv.emit).toHaveBeenCalledTimes(14)
+    expect(flv.emit).toHaveBeenCalledTimes(16)
     
     expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_AV_FIRST_FRAME_GAP_DETECT })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_VIDEO_DTS_GAP_DETECT })
@@ -133,10 +137,11 @@ describe('BufferService', () => {
     expect(flv.emit).toHaveBeenCalledWith(EVENT.KEYFRAME, { pts: 3 })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.SEI, { data: {}, sei: { code: undefined, content: undefined, dts: undefined } })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.FLV_SCRIPT_DATA, {})
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.DEMUXED_TRACK, { videoTrack })
 
     await bs.appendBuffer(data)
     expect(open).toHaveBeenCalledTimes(1)
-    expect(demuxAndFix).toHaveBeenLastCalledWith(data, false, true, 0)
+    expect(demuxAndFix).toHaveBeenLastCalledWith(data, false, true, 0, false)
     expect(remux).toHaveBeenLastCalledWith(false)
     expect(append).toHaveBeenNthCalledWith(5, videoTrack.type, videoSegment)
     expect(append).toHaveBeenNthCalledWith(6, audioTrack.type, audioSegment)
@@ -159,8 +164,8 @@ describe('BufferService', () => {
 
     bs.seamlessSwitch()
     await bs.appendBuffer(data)
-    expect(demuxAndFix).toHaveBeenNthCalledWith(1, data, true, false, 0)
-    expect(demuxAndFix).toHaveBeenNthCalledWith(2, data, true, true, 0)
+    expect(demuxAndFix).toHaveBeenNthCalledWith(1, data, true, false, 0, undefined)
+    expect(demuxAndFix).toHaveBeenNthCalledWith(2, data, true, true, 0, false)
     expect(remux).toHaveBeenCalledTimes(2)
     expect(remux).toHaveBeenNthCalledWith(1, true)
     expect(remux).toHaveBeenNthCalledWith(2, true)
@@ -174,8 +179,8 @@ describe('BufferService', () => {
     bs.unContiguous(100)
     await bs.appendBuffer(data)
 
-    expect(demuxAndFix).toHaveBeenNthCalledWith(1, data, true, false, 0)
-    expect(demuxAndFix).toHaveBeenNthCalledWith(2, data, false, false, 100)
+    expect(demuxAndFix).toHaveBeenNthCalledWith(1, data, true, false, 0, undefined)
+    expect(demuxAndFix).toHaveBeenNthCalledWith(2, data, false, false, 100, false)
     expect(remux).toHaveBeenCalledTimes(2)
     expect(remux).toHaveBeenNthCalledWith(1, true)
     expect(remux).toHaveBeenNthCalledWith(2, false)

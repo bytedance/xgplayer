@@ -41,12 +41,14 @@ describe('Flv', () => {
   const bufferDestroy = jest.fn()
   const seamlessSwitch = jest.fn()
   const isFull = jest.fn()
+  const resetSeamlessSwitchStats = jest.fn()
   BufferService.mockImplementation(() => {
     return {
       reset: bufferServiceReset,
       endOfStream,
       seamlessSwitch,
       isFull,
+      resetSeamlessSwitchStats,
       destroy: bufferDestroy
     }
   })
@@ -67,6 +69,8 @@ describe('Flv', () => {
       addChunkRecord: jest.fn(),
       getLatestSpeed () { return 1 },
       getAvgSpeed () { return 1 },
+      getTotalSize () { return 0 },
+      getTotalCost () { return 0 }
     }
   })
 
@@ -99,7 +103,7 @@ describe('Flv', () => {
 
   test('info methods', () => {
     const flv = new Flv({ media })
-    expect(flv.speedInfo()).toEqual({ speed: 1, avgSpeed: 1 })
+    expect(flv.speedInfo()).toEqual({ speed: 1, avgSpeed: 1, totalSize: 0, totalCost: 0 })
     expect(flv.bufferInfo()).toEqual({ start: 1, buffers: [] })
     expect(flv.playbackQuality()).toEqual({
       droppedVideoFrames: 1,
@@ -138,6 +142,7 @@ describe('Flv', () => {
   test('disconnect', async () => {
     const flv = new Flv()
     await flv.disconnect()
+    expect(resetSeamlessSwitchStats).toHaveBeenCalled()
     expect(loaderCancel).toHaveBeenCalled()
   })
 

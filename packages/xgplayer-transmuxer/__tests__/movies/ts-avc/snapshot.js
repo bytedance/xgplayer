@@ -15,10 +15,10 @@ module.exports = {
   firstVideoFrameUnitsByteLength: 1046,
   lastVideoFrameUnitsByteLength: 885,
 
-  audioCodec: 'mp4a.40.2',
+  audioCodec: 'mp4a.40.5',
   sampleRate: 44100,
   channelCount: 2,
-  audioConfig: [18, 16],
+  audioConfig: [42, 18, 8, 0],
   audioFrameCount: 369,
   fistAudioFramePts: 126000,
   lastAudioFramePts: 895044.5306122449,

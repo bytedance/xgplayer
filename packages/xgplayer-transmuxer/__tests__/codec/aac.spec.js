@@ -37,8 +37,8 @@ describe('AAC', () => {
     expect(result.frames[1].pts).toBe(902998.7959183673)
     expect(result.frames[0].data).toEqual(new Uint8Array(frame1))
     expect(result.frames[1].data).toEqual(new Uint8Array(frame2))
-    expect(result.config).toEqual([18, 16])
-    expect(result.codec).toBe('mp4a.40.2')
+    expect(result.config).toEqual([42, 18, 8, 0])
+    expect(result.codec).toBe('mp4a.40.5')
     expect(result.originCodec).toBe('mp4a.40.2')
     expect(result.channelCount).toBe(2)
     expect(result.objectType).toBe(2)
@@ -52,10 +52,10 @@ describe('AAC', () => {
 
     expect(result.channelCount).toBe(2)
     expect(result.objectType).toBe(2)
-    expect(result.codec).toBe('mp4a.40.2')
+    expect(result.codec).toBe('mp4a.40.5')
     expect(result.originCodec).toBe('mp4a.40.2')
     expect(result.sampleRate).toBe(44100)
-    expect(result.config).toEqual([18, 16])
+    expect(result.config).toEqual([42, 18, 8, 0])
   })
 
   test('getFrameDuration', () => {
