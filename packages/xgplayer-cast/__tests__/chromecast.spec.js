@@ -80,6 +80,10 @@ function buildChromeMock() {
   }
 }
 
+function muteConsoleWarn() {
+  return jest.spyOn(console, 'warn').mockImplementation(() => {})
+}
+
 describe('Chromecast', () => {
   beforeEach(() => {
     resetSdkPromise()
@@ -325,6 +329,7 @@ describe('Chromecast', () => {
   })
 
   test('emits not-available when install fails', async () => {
+    const warnSpy = muteConsoleWarn()
     const plugin = createPluginStub()
     // No window.cast/chrome set — SDK loader will fail
     const chromecast = new Chromecast(plugin, {
@@ -333,22 +338,31 @@ describe('Chromecast', () => {
       loadSdkTimeout: 10
     })
 
-    await chromecast.install()
+    try {
+      await chromecast.install()
 
-    expect(plugin.player.emit).toHaveBeenCalledWith('cast_availability_change', {
-      protocol: 'chromecast',
-      availability: 'not-available'
-    })
-    expect(plugin.player.emit).toHaveBeenCalledWith(
-      'cast_error',
-      expect.objectContaining({
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[xgplayer-cast] chromecast install failed:',
+        expect.any(Error)
+      )
+      expect(plugin.player.emit).toHaveBeenCalledWith('cast_availability_change', {
         protocol: 'chromecast',
-        code: 'sdk_load_failed'
+        availability: 'not-available'
       })
-    )
+      expect(plugin.player.emit).toHaveBeenCalledWith(
+        'cast_error',
+        expect.objectContaining({
+          protocol: 'chromecast',
+          code: 'sdk_load_failed'
+        })
+      )
+    } finally {
+      warnSpy.mockRestore()
+    }
   })
 
   test('_onRequestCast emits cast_error when context is missing', async () => {
+    const warnSpy = muteConsoleWarn()
     const plugin = createPluginStub()
     const chromecast = new Chromecast(plugin, {
       sdkUrl: '',
@@ -356,16 +370,21 @@ describe('Chromecast', () => {
       loadSdkTimeout: 10
     })
 
-    await chromecast._onRequestCast({ protocol: 'chromecast' })
+    try {
+      await chromecast._onRequestCast({ protocol: 'chromecast' })
 
-    expect(plugin.player.emit).toHaveBeenCalledWith(
-      'cast_error',
-      expect.objectContaining({
-        protocol: 'chromecast',
-        code: 'context_not_ready',
-        message: 'Chromecast context is not ready'
-      })
-    )
+      expect(warnSpy).toHaveBeenCalledWith('[xgplayer-cast] Chromecast context is not ready')
+      expect(plugin.player.emit).toHaveBeenCalledWith(
+        'cast_error',
+        expect.objectContaining({
+          protocol: 'chromecast',
+          code: 'context_not_ready',
+          message: 'Chromecast context is not ready'
+        })
+      )
+    } finally {
+      warnSpy.mockRestore()
+    }
   })
 
   test('_onRequestCast ignores non-chromecast protocol', async () => {

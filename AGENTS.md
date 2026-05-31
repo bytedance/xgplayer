@@ -23,6 +23,7 @@ Global agent map for this repo. Keep package-specific design/background in packa
 | Build | `yarn build` / `yarn build:all` |
 | Lint/format | `yarn lint` / `yarn format` |
 | Test | `yarn test` / `yarn test:ci` |
+| Quiet test | `yarn test --verbose=false --silent` |
 
 ## Rules
 
@@ -35,6 +36,7 @@ Global agent map for this repo. Keep package-specific design/background in packa
 - Build outputs: document source, destination, and verification for scripts that create published files.
 - Public API: preserve entry points/options/events unless explicitly breaking; update demos/docs.
 - Quality: run Biome for touched JS/TS; keep relevant tests green.
+- Test output: for routine pass/fail checks, prefer targeted tests or quiet full runs with `--verbose=false --silent`; rerun verbose only when failures need full diagnostics.
 - Commits: conventional commits; use `monorepo` or `*` for cross-package changes.
 - CHANGELOG: only add entries for stable releases (patch/minor/major); skip prerelease tags (`rc`/`alpha`/`beta`) — fold their commits into the next stable entry.
 
