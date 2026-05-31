@@ -75,6 +75,12 @@ const player = new Player({
 | ------ | ----- |
 | requestCast(protocol?) | Programmatically open the native cast dialog (AirPlay picker or Chromecast device chooser). Pass `'airplay'` or `'chromecast'` to force a specific protocol; omit to auto-select the best available one. Has no effect if no cast protocol is available. |
 
+### Events
+
+| Event Name | Payload | Description |
+| ------ | ----- | ----- |
+| cast_error | `{ protocol, code, message, error?, media? }` | Emitted when Chromecast setup, session, media resolution, or remote media loading fails. |
+
 ### Notes
 
 - AirPlay is available in xgplayer 3.0.25+.
