@@ -19,7 +19,12 @@ function createPluginStub() {
   }
 }
 
-function buildCastFrameworkMock({ onAddEventListener } = {}) {
+function buildCastFrameworkMock({
+  onAddEventListener,
+  getCastState = jest.fn(() => 'NO_DEVICES_AVAILABLE'),
+  getCurrentSession = jest.fn(() => null),
+  requestSession = jest.fn()
+} = {}) {
   return {
     framework: {
       CastContextEventType: {
@@ -29,12 +34,16 @@ function buildCastFrameworkMock({ onAddEventListener } = {}) {
       CastState: {
         NO_DEVICES_AVAILABLE: 'NO_DEVICES_AVAILABLE',
         NOT_CONNECTED: 'NOT_CONNECTED',
+        CONNECTING: 'CONNECTING',
         CONNECTED: 'CONNECTED'
       },
       SessionState: {
         SESSION_STARTED: 'SESSION_STARTED',
         SESSION_RESUMED: 'SESSION_RESUMED',
-        SESSION_ENDED: 'SESSION_ENDED'
+        SESSION_ENDED: 'SESSION_ENDED',
+        SESSION_ENDING: 'SESSION_ENDING',
+        SESSION_START_FAILED: 'SESSION_START_FAILED',
+        SESSION_RESUME_FAILED: 'SESSION_RESUME_FAILED'
       },
       CastContext: {
         getInstance() {
@@ -42,8 +51,9 @@ function buildCastFrameworkMock({ onAddEventListener } = {}) {
             setOptions: jest.fn(),
             addEventListener: onAddEventListener || jest.fn(),
             removeEventListener: jest.fn(),
-            getCastState: jest.fn(() => 'NO_DEVICES_AVAILABLE'),
-            getCurrentSession: jest.fn(() => null)
+            getCastState,
+            requestSession,
+            getCurrentSession
           }
         }
       }
@@ -147,14 +157,46 @@ describe('Chromecast', () => {
     })
   })
 
+  test('treats missing initial cast state as not-available', async () => {
+    const plugin = createPluginStub()
+
+    window.cast = buildCastFrameworkMock({
+      getCastState: jest.fn(() => undefined)
+    })
+    window.chrome = {
+      cast: {
+        media: { DEFAULT_MEDIA_RECEIVER_APP_ID: 'default' },
+        AutoJoinPolicy: { ORIGIN_SCOPED: 'origin_scoped' }
+      }
+    }
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+
+    expect(plugin.player.emit).toHaveBeenCalledWith('cast_availability_change', {
+      protocol: 'chromecast',
+      availability: 'not-available'
+    })
+    expect(chromecast.canRequest()).toBe(false)
+  })
+
   test('emits cast_target_change isCasting:true on SESSION_STARTED', async () => {
     const plugin = createPluginStub()
 
     let sessionStateHandler
+    const session = { loadMedia: jest.fn() }
     window.cast = buildCastFrameworkMock({
       onAddEventListener: jest.fn((type, handler) => {
         if (type === 'SESSION_STATE_CHANGED') sessionStateHandler = handler
-      })
+      }),
+      getCurrentSession: jest.fn(() => session)
     })
     window.chrome = {
       cast: {
@@ -178,6 +220,49 @@ describe('Chromecast', () => {
       protocol: 'chromecast',
       isCasting: true
     })
+  })
+
+  test('does not mark casting when SESSION_STARTED has no current session', async () => {
+    const plugin = createPluginStub()
+
+    let sessionStateHandler
+    window.cast = buildCastFrameworkMock({
+      onAddEventListener: jest.fn((type, handler) => {
+        if (type === 'SESSION_STATE_CHANGED') sessionStateHandler = handler
+      }),
+      getCurrentSession: jest.fn(() => null)
+    })
+    window.chrome = {
+      cast: {
+        media: { DEFAULT_MEDIA_RECEIVER_APP_ID: 'default' },
+        AutoJoinPolicy: { ORIGIN_SCOPED: 'origin_scoped' }
+      }
+    }
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+    sessionStateHandler({ sessionState: 'SESSION_STARTED' })
+
+    expect(chromecast.isCasting()).toBe(false)
+    expect(plugin.player.emit).not.toHaveBeenCalledWith('cast_target_change', {
+      protocol: 'chromecast',
+      isCasting: true
+    })
+    expect(plugin.player.emit).toHaveBeenCalledWith(
+      'cast_error',
+      expect.objectContaining({
+        protocol: 'chromecast',
+        code: 'session_unavailable',
+        message: 'No Chromecast session after session state changed'
+      })
+    )
   })
 
   test('emits cast_target_change isCasting:false on SESSION_ENDED', async () => {
@@ -357,6 +442,49 @@ describe('Chromecast', () => {
     expect(requestSession).toHaveBeenCalled()
     expect(loadMedia).toHaveBeenCalledWith(
       expect.objectContaining({ autoplay: false })
+    )
+  })
+
+  test('_loadCurrentMedia forwards optional MediaInfo fields', async () => {
+    const plugin = createPluginStub()
+    plugin.player.config = { url: 'https://cdn.example.com/main.m3u8' }
+    plugin.player.preProcessUrl = (url) => ({
+      url,
+      hlsSegmentFormat: 'FMP4',
+      hlsVideoSegmentFormat: 'FMP4',
+      customData: { token: 'abc' }
+    })
+
+    const loadMedia = jest.fn().mockResolvedValue(undefined)
+    const session = { loadMedia }
+
+    window.cast = buildCastFrameworkMock()
+    window.chrome = buildChromeMock()
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+    chromecast.session = session
+    chromecast._isCasting = true
+
+    await expect(chromecast.reloadMedia()).resolves.toBe(true)
+
+    expect(loadMedia).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mediaInfo: expect.objectContaining({
+          contentId: 'https://cdn.example.com/main.m3u8',
+          contentType: 'application/x-mpegURL',
+          hlsSegmentFormat: 'FMP4',
+          hlsVideoSegmentFormat: 'FMP4',
+          customData: { token: 'abc' }
+        })
+      })
     )
   })
 

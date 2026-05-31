@@ -26,6 +26,8 @@ function createPluginStub(overrides = {}) {
   plugin.requestCast = CastPlugin.prototype.requestCast.bind(plugin)
   plugin._getPreferredCastProtocol = CastPlugin.prototype._getPreferredCastProtocol.bind(plugin)
   plugin._getProtocolOrder = CastPlugin.prototype._getProtocolOrder.bind(plugin)
+  plugin._suspendMSEPlugin = CastPlugin.prototype._suspendMSEPlugin.bind(plugin)
+  plugin._resumeMSEPlugin = CastPlugin.prototype._resumeMSEPlugin.bind(plugin)
   Object.assign(plugin, overrides)
   return plugin
 }
@@ -94,6 +96,81 @@ describe('CastPlugin source changes', () => {
     const plugin = createPluginStub()
 
     expect(() => plugin._onLoadStart()).not.toThrow()
+  })
+})
+
+describe('CastPlugin AirPlay streaming plugin restore', () => {
+  test('unregisters and restores the active streaming plugin lifecycle', async () => {
+    class StreamingPlugin {}
+    StreamingPlugin.isStreamingPlugin = true
+    StreamingPlugin.pluginName = 'hls'
+
+    const beforePlayerInit = jest.fn().mockResolvedValue(undefined)
+    const afterPlayerInit = jest.fn()
+    const originalInstance = {
+      constructor: StreamingPlugin,
+      config: { preferMMS: true }
+    }
+    const restoredInstance = {
+      pluginName: 'hls',
+      beforePlayerInit,
+      afterPlayerInit
+    }
+    let activeInstance = originalInstance
+
+    const plugin = createPluginStub({
+      player: {
+        plugins: { hls: originalInstance },
+        getPlugin: jest.fn(() => activeInstance),
+        unRegisterPlugin: jest.fn(() => {
+          activeInstance = null
+          plugin.player.plugins = {}
+        }),
+        registerPlugin: jest.fn((PluginCtor, config) => {
+          expect(PluginCtor).toBe(StreamingPlugin)
+          expect(config).toEqual({ preferMMS: true })
+          activeInstance = restoredInstance
+          plugin.player.plugins = { hls: restoredInstance }
+          return restoredInstance
+        })
+      }
+    })
+
+    plugin._suspendMSEPlugin()
+    expect(plugin.player.unRegisterPlugin).toHaveBeenCalledWith('hls')
+    expect(plugin._msePluginRestore).toEqual(
+      expect.objectContaining({
+        plugin: StreamingPlugin,
+        pluginName: 'hls',
+        config: { preferMMS: true }
+      })
+    )
+
+    await expect(plugin._resumeMSEPlugin()).resolves.toBe(true)
+
+    expect(plugin.player.registerPlugin).toHaveBeenCalled()
+    expect(beforePlayerInit).toHaveBeenCalled()
+    expect(afterPlayerInit).toHaveBeenCalled()
+    expect(plugin._msePluginRestore).toBe(null)
+  })
+
+  test('leaves restore token when streaming plugin registration is unavailable', async () => {
+    const plugin = createPluginStub({
+      player: {
+        getPlugin: null,
+        registerPlugin: null
+      },
+      _msePluginRestore: {
+        plugin: function StreamingPlugin() {},
+        pluginName: 'hls'
+      }
+    })
+
+    await expect(plugin._resumeMSEPlugin()).resolves.toBe(false)
+
+    expect(plugin._msePluginRestore).toEqual(
+      expect.objectContaining({ pluginName: 'hls' })
+    )
   })
 })
 

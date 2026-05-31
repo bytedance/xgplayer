@@ -1,8 +1,56 @@
+const CONTENT_TYPE_ALIASES = {
+  hls: 'application/x-mpegURL',
+  m3u8: 'application/x-mpegURL',
+  mpd: 'application/dash+xml',
+  dash: 'application/dash+xml',
+  mp4: 'video/mp4',
+  m4v: 'video/mp4',
+  fmp4: 'video/mp4',
+  webm: 'video/webm',
+  ogg: 'video/ogg',
+  ogv: 'video/ogg',
+  mp2t: 'video/mp2t',
+  ts: 'video/mp2t',
+  m4a: 'audio/mp4',
+  aac: 'audio/aac',
+  mp3: 'audio/mpeg',
+  mpa: 'audio/mpeg',
+  wav: 'audio/wav',
+  flac: 'audio/flac'
+}
+
+const MEDIA_INFO_FIELDS = [
+  'contentUrl',
+  'streamType',
+  'duration',
+  'metadata',
+  'customData',
+  'hlsSegmentFormat',
+  'hlsVideoSegmentFormat'
+]
+
+function normalizeContentType(value) {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const contentType = value.trim()
+  if (!contentType) {
+    return null
+  }
+
+  const lower = contentType.toLowerCase()
+  if (lower.includes('/')) {
+    return contentType
+  }
+
+  return CONTENT_TYPE_ALIASES[lower.replace(/^\./, '')] || null
+}
+
 function inferContentType(url) {
-  if (/\.m3u8($|\?)/i.test(url)) return 'application/x-mpegURL'
-  if (/\.mpd($|\?)/i.test(url)) return 'application/dash+xml'
-  if (/\.mp4($|\?)/i.test(url)) return 'video/mp4'
-  return 'video/mp4'
+  const path = `${url}`.split(/[?#]/)[0]
+  const ext = path.match(/\.([^./]+)$/)?.[1]
+  return normalizeContentType(ext) || 'video/mp4'
 }
 
 function validateUrl(url, label) {
@@ -15,6 +63,12 @@ function validateUrl(url, label) {
   if (/^mediastream:/i.test(url)) {
     throw new Error('Cast requires a network URL, got mediastream URL')
   }
+  if (/^data:/i.test(url)) {
+    throw new Error('Cast requires a network URL, got data URL')
+  }
+  if (/^file:/i.test(url)) {
+    throw new Error('Cast requires a network URL, got file URL')
+  }
 }
 
 function isNetworkUrl(url) {
@@ -22,29 +76,133 @@ function isNetworkUrl(url) {
     typeof url === 'string' &&
     !!url &&
     !/^blob:/i.test(url) &&
-    !/^mediastream:/i.test(url)
+    !/^mediastream:/i.test(url) &&
+    !/^data:/i.test(url) &&
+    !/^file:/i.test(url)
   )
 }
 
-function resolveCandidateUrl(player) {
-  const candidates = [player?.curDefinition?.url, player?.url, player?.config?.url]
-  const networkUrl = candidates.find(isNetworkUrl)
-  if (networkUrl) {
-    return networkUrl
+function pickContentType(...sources) {
+  for (const source of sources) {
+    const contentType =
+      normalizeContentType(source?.contentType) ||
+      normalizeContentType(source?.mimeType) ||
+      normalizeContentType(source?.type)
+    if (contentType) {
+      return contentType
+    }
+  }
+  return null
+}
+
+function pickField(field, ...sources) {
+  for (const source of sources) {
+    if (source && typeof source === 'object' && source[field] !== undefined) {
+      return source[field]
+    }
+  }
+}
+
+function pickMediaInfoFields(...sources) {
+  return MEDIA_INFO_FIELDS.reduce((result, field) => {
+    const value = pickField(field, ...sources)
+    if (value !== undefined) {
+      result[field] = value
+    }
+    return result
+  }, {})
+}
+
+function toSourceCandidate(source, metadata = {}) {
+  if (!source) {
+    return []
   }
 
-  return candidates.find((url) => !!url) || null
+  if (Array.isArray(source)) {
+    return source.reduce(
+      (result, item) => result.concat(toSourceCandidate(item, metadata)),
+      []
+    )
+  }
+
+  if (typeof source === 'string') {
+    return [
+      {
+        url: source,
+        contentType: pickContentType(metadata),
+        source: metadata
+      }
+    ]
+  }
+
+  if (typeof source === 'object') {
+    const url = source.src || source.url
+    return [
+      {
+        url,
+        contentType: pickContentType(source, metadata),
+        source
+      }
+    ]
+  }
+
+  return [{ url: source, contentType: pickContentType(metadata), source: metadata }]
+}
+
+function getMediaElementCandidates(player) {
+  const media = player?.media || player?.video
+  if (!media) {
+    return []
+  }
+
+  const sourceEls = Array.from(media.querySelectorAll?.('source') || [])
+  const candidates = sourceEls.map((source) => ({
+    url: source.getAttribute('src') || source.src,
+    contentType: normalizeContentType(source.getAttribute('type') || source.type),
+    source
+  }))
+
+  const mediaUrl = media.currentSrc || media.src
+  if (mediaUrl) {
+    candidates.push({
+      url: mediaUrl,
+      contentType: normalizeContentType(media.getAttribute?.('type')),
+      source: media
+    })
+  }
+
+  return candidates
+}
+
+function resolveCandidateUrl(player) {
+  const candidates = [
+    ...toSourceCandidate(player?.curDefinition?.url, player?.curDefinition),
+    ...toSourceCandidate(player?.url),
+    ...toSourceCandidate(player?.config?.url, player?.config),
+    ...getMediaElementCandidates(player)
+  ]
+  const networkCandidate = candidates.find((candidate) => isNetworkUrl(candidate.url))
+  if (networkCandidate) {
+    return networkCandidate
+  }
+
+  return candidates.find((candidate) => !!candidate.url) || { url: null }
 }
 
 export function resolveCastMedia(player) {
   const candidate = resolveCandidateUrl(player)
+  const candidateUrl = candidate?.url
 
-  validateUrl(candidate, 'candidate')
+  validateUrl(candidateUrl, 'candidate')
 
   const processedUrl =
     typeof player.preProcessUrl === 'function'
-      ? player.preProcessUrl(candidate, { scene: 'cast', protocol: 'chromecast' })
-      : { url: candidate }
+      ? player.preProcessUrl(candidateUrl, {
+          scene: 'cast',
+          protocol: 'chromecast',
+          contentType: candidate.contentType || undefined
+        })
+      : { url: candidateUrl }
 
   if (!processedUrl || typeof processedUrl.url !== 'string') {
     throw new Error(
@@ -53,9 +211,18 @@ export function resolveCastMedia(player) {
   }
 
   validateUrl(processedUrl.url, 'processed')
+  const mediaInfoFields = pickMediaInfoFields(
+    processedUrl,
+    candidate,
+    candidate.source,
+    player?.config
+  )
 
   return {
     url: processedUrl.url,
-    contentType: inferContentType(processedUrl.url)
+    contentType:
+      pickContentType(processedUrl, candidate, candidate.source, player?.config) ||
+      inferContentType(processedUrl.url),
+    ...mediaInfoFields
   }
 }

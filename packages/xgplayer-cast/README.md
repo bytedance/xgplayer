@@ -65,7 +65,7 @@ const player = new Player({
 | chromecast.receiverApplicationId | string | `''` | Receiver app id. Empty string means default media receiver. |
 | chromecast.autoJoinPolicy | string | `'origin_scoped'` | Session auto join policy. |
 | chromecast.loadSdkTimeout | number | `3000` | Sender SDK load timeout in milliseconds. |
-| autoplayOnCast | boolean | `true` | Whether to keep playing after casting starts. Note: the plugin will still issue an initial play request to establish the cast route, then pause immediately when set to `false`. |
+| autoplayOnCast | boolean | `true` | Whether to keep playing after casting starts. AirPlay may still issue an initial local play request to establish the route, then pause immediately when set to `false`; Chromecast maps this value to `LoadRequest.autoplay`. |
 | showAirplayMutedTip | boolean | `true` | Whether to show a tip prompting the user to unmute when AirPlay is connected |
 
 
@@ -80,6 +80,75 @@ const player = new Player({
 | Event Name | Payload | Description |
 | ------ | ----- | ----- |
 | cast_error | `{ protocol, code, message, error?, media? }` | Emitted when Chromecast setup, session, media resolution, or remote media loading fails. |
+
+### Chromecast Media Type
+
+Chromecast requires a receiver-readable network URL and a MIME content type. The plugin resolves the URL from `curDefinition.url`, `player.url`, `config.url`, and media `<source>` elements, skipping `blob:`, `mediastream:`, `data:`, and `file:` URLs when a later network URL is available.
+
+For signed or extensionless URLs, business code should provide an explicit `contentType`, `mimeType`, or `type`. The resolver uses this priority:
+
+1. Object returned by `preProcessUrl`
+2. Current definition item (`player.curDefinition`)
+3. Selected source item in `url`
+4. Top-level player config
+5. URL extension fallback
+
+Short aliases such as `hls`, `m3u8`, `dash`, `mpd`, and `mp4` are normalized to Cast receiver MIME types. Prefer full MIME values when possible: `application/x-mpegURL` for HLS, `application/dash+xml` for DASH, and `video/mp4` for MP4.
+
+```js
+// Recommended for definition lists
+const player = new Player({
+  id,
+  definition: {
+    list: [
+      {
+        definition: '720p',
+        url: 'https://cdn.example.com/play?id=720',
+        contentType: 'application/x-mpegURL'
+      }
+    ]
+  },
+  plugins: [CastPlugin],
+  cast: { chromecast: true }
+})
+```
+
+```js
+// Recommended when the business layer signs or rewrites URLs
+const player = new Player({
+  id,
+  url: 'https://cdn.example.com/play?id=main',
+  contentType: 'application/x-mpegURL',
+  preProcessUrl(url, ext) {
+    if (ext?.scene === 'cast' && ext?.protocol === 'chromecast') {
+      return {
+        url: signForReceiver(url),
+        contentType: 'application/x-mpegURL'
+      }
+    }
+    return { url }
+  },
+  plugins: [CastPlugin],
+  cast: { chromecast: true }
+})
+```
+
+```js
+// Source-array form is also supported
+const player = new Player({
+  id,
+  url: [
+    {
+      src: 'https://cdn.example.com/play?id=main',
+      type: 'application/x-mpegURL'
+    }
+  ],
+  plugins: [CastPlugin],
+  cast: { chromecast: true }
+})
+```
+
+The resolver also forwards optional Cast `MediaInfo` fields including `contentUrl`, `streamType`, `duration`, `metadata`, `customData`, `hlsSegmentFormat`, and `hlsVideoSegmentFormat` when they are present on those same sources.
 
 ### Notes
 

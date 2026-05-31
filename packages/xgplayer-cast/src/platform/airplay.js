@@ -143,7 +143,10 @@ export class Airplay {
       this._tipTimeout = null
     }
     if (this._tipDom) {
-      this.player.root.removeChild(this._tipDom)
+      const tipDom = this._tipDom
+      if (tipDom.parentNode) {
+        tipDom.parentNode.removeChild(tipDom)
+      }
       this._tipDom = null
     }
   }
