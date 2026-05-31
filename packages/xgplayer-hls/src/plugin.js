@@ -122,7 +122,7 @@ export class HlsPlugin extends BasePlugin {
 
     // AirPlay 多 source 支持：
     // 原始的 config.url（一般为 m3u8），以 <source> 形式挂在 video 下，供 AirPlay 等远端拉流
-    const appendSource = !!(this.player.plugins.cast?.config?.airplay) && !this.softDecode
+    const appendSource = !!this.player.plugins?.cast?.config?.airplay && !this.softDecode
 
     this.hls = new Hls({
       softDecode: this.softDecode,
