@@ -1,4 +1,5 @@
 const VTT_CHECK = /^WEBVTT/i
+const SRT_CHECK = /^\d+\r?\n\d{2}:\d{2}:\d{2},\d{3}\s*-->/m
 const VTT_STYLE = /^STYLE+$/
 // eslint-disable-next-line no-useless-escape
 const VTT_CUE = /^\:\:cue/
@@ -115,6 +116,7 @@ export default class SubTitleParser {
       if (format === 'ass') {
         ret = SubTitleParser.parseASS(str)
       } else {
+        // 'vtt' and 'srt' both use parseVTT; TIME_REGEX_LIST[3] already handles SRT comma timestamps
         ret = SubTitleParser.parseVTT(str)
       }
       fun({ format, list: ret.list, styles: ret.styles })
@@ -416,6 +418,8 @@ export default class SubTitleParser {
       return 'vtt'
     } else if (ASS_CHECK.test(str)) {
       return 'ass'
+    } else if (SRT_CHECK.test(str)) {
+      return 'srt'
     }
     return ''
   }
