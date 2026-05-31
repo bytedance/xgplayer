@@ -34,6 +34,8 @@ describe('BufferService', () => {
   ]
   videoTrack.codec = 'video-codec'
   audioTrack.codec = 'audio-codec'
+  videoTrack.timescale = 1000
+  audioTrack.timescale = 44100
   videoTrack.exist = jest.fn().mockReturnValue(true)
   audioTrack.exist = jest.fn().mockReturnValue(true)
 
@@ -155,6 +157,18 @@ describe('BufferService', () => {
     expect(remove).not.toHaveBeenCalled()
     await bs.evictBuffer(19.9)
     expect(remove).not.toHaveBeenCalled()
+  })
+
+  test('uses audio timescale for init segment duration when MSE low latency is disabled', async () => {
+    const bs = new BufferService(flv, undefined, {
+      mseLowLatency: false,
+      durationForMSELowLatencyOff: 6
+    })
+
+    await bs.appendBuffer(data)
+
+    expect(videoTrack.duration).toBe(6000)
+    expect(audioTrack.duration).toBe(264600)
   })
 
   test('seamlessSwitch', async () => {

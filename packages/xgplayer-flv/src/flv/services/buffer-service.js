@@ -244,7 +244,7 @@ export class BufferService {
         // low latency mode通过解析封装的fmp4中对媒体播放时长的描述判断 https://issues.chromium.org/issues/41161663
         if (this._needInitSegment && !this._opts.mseLowLatency) {
           videoTrack.duration = this._opts.durationForMSELowLatencyOff * videoTrack.timescale
-          audioTrack.duration = this._opts.durationForMSELowLatencyOff * audioExist.timescale
+          audioTrack.duration = this._opts.durationForMSELowLatencyOff * audioTrack.timescale
         }
         this.flv._transferCost.start(TRANSFER_EVENT.REMUX)
         remuxResult = this._remuxer.remux(this._needInitSegment)
