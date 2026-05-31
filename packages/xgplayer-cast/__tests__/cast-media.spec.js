@@ -86,17 +86,45 @@ describe('resolveCastMedia', () => {
   })
 
   test('applies preProcessUrl transformation', () => {
+    const preProcessUrl = jest.fn((url, opts) => ({
+      url: url + '?token=abc'
+    }))
     const player = {
       curDefinition: null,
       url: null,
       config: { url: 'https://cdn.example.com/video.mp4' },
-      preProcessUrl: (url, opts) => ({
-        url: url + '?token=abc'
-      })
+      preProcessUrl
     }
 
     const result = resolveCastMedia(player)
     expect(result.url).toBe('https://cdn.example.com/video.mp4?token=abc')
+    expect(preProcessUrl).toHaveBeenCalledWith(
+      'https://cdn.example.com/video.mp4',
+      expect.objectContaining({
+        scene: 'cast',
+        protocol: 'chromecast'
+      })
+    )
+  })
+
+  test('passes custom protocol to preProcessUrl', () => {
+    const preProcessUrl = jest.fn((url) => ({ url }))
+    const player = {
+      curDefinition: null,
+      url: null,
+      config: { url: 'https://cdn.example.com/video.mp4' },
+      preProcessUrl
+    }
+
+    resolveCastMedia(player, { protocol: 'airplay' })
+
+    expect(preProcessUrl).toHaveBeenCalledWith(
+      'https://cdn.example.com/video.mp4',
+      expect.objectContaining({
+        scene: 'cast',
+        protocol: 'airplay'
+      })
+    )
   })
 
   test('uses explicit contentType from curDefinition for extensionless URLs', () => {

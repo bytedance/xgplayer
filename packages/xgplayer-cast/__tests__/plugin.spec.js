@@ -33,7 +33,7 @@ function createPluginStub(overrides = {}) {
 }
 
 describe('CastPlugin protocol-aware activation', () => {
-  test('airplay: suspends MSE plugin and runs local handshake', async () => {
+  test('airplay: runs local handshake without owning MSE handoff', async () => {
     const plugin = createPluginStub()
     plugin._suspendMSEPlugin = jest.fn()
     plugin._resumeMSEPlugin = jest.fn()
@@ -41,7 +41,7 @@ describe('CastPlugin protocol-aware activation', () => {
 
     await plugin._onCastTargetChange({ isCasting: true, protocol: 'airplay' })
 
-    expect(plugin._suspendMSEPlugin).toHaveBeenCalled()
+    expect(plugin._suspendMSEPlugin).not.toHaveBeenCalled()
     expect(plugin.player.play).toHaveBeenCalled()
   })
 
@@ -57,15 +57,17 @@ describe('CastPlugin protocol-aware activation', () => {
     expect(plugin.player.play).not.toHaveBeenCalled()
   })
 
-  test('airplay disconnect: resumes MSE plugin', async () => {
+  test('airplay disconnect: clears handshake state without owning MSE restore', async () => {
     const plugin = createPluginStub()
     plugin._suspendMSEPlugin = jest.fn()
     plugin._resumeMSEPlugin = jest.fn()
+    plugin._castHandshakeInProgress = true
     plugin._onCastTargetChange = CastPlugin.prototype._onCastTargetChange.bind(plugin)
 
     await plugin._onCastTargetChange({ isCasting: false, protocol: 'airplay' })
 
-    expect(plugin._resumeMSEPlugin).toHaveBeenCalled()
+    expect(plugin._resumeMSEPlugin).not.toHaveBeenCalled()
+    expect(plugin._castHandshakeInProgress).toBe(false)
   })
 
   test('chromecast disconnect: does NOT call resumeMSEPlugin', async () => {

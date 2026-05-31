@@ -81,6 +81,42 @@ const player = new Player({
 | ------ | ----- | ----- |
 | cast_error | `{ protocol, code, message, error?, media? }` | Emitted when Chromecast setup, session, media resolution, or remote media loading fails. |
 
+### Chromecast Flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant App as Business app
+  participant Plugin as CastPlugin
+  participant Chromecast as Chromecast adapter
+  participant CAF as Google Cast Sender SDK
+  participant Receiver as Chromecast receiver
+
+  Plugin->>Chromecast: install()
+  Chromecast->>CAF: load SDK and set CastContext options
+  CAF-->>Chromecast: CAST_STATE_CHANGED
+  Chromecast-->>Plugin: cast_availability_change(chromecast)
+
+  App->>Plugin: requestCast('chromecast') or click cast icon
+  Plugin-->>Chromecast: cast_request({ protocol: 'chromecast' })
+  Chromecast->>CAF: requestSession()
+  CAF-->>Receiver: user selects device
+  CAF-->>Chromecast: SESSION_STARTED or SESSION_RESUMED
+  Chromecast-->>Plugin: cast_target_change({ isCasting: true })
+  Chromecast->>Chromecast: resolveCastMedia(player)
+  Chromecast->>CAF: session.loadMedia(LoadRequest(MediaInfo))
+  CAF-->>Receiver: load receiver-readable media URL
+
+  opt local URL changes while casting
+    Plugin-->>Chromecast: loadstart
+    Chromecast->>Chromecast: reloadMedia(skipSameMedia)
+    Chromecast->>CAF: session.loadMedia(new LoadRequest)
+  end
+
+  CAF-->>Chromecast: SESSION_ENDED or SESSION_START_FAILED
+  Chromecast-->>Plugin: cast_target_change({ isCasting: false })
+```
+
 ### Chromecast Media Type
 
 Chromecast requires a receiver-readable network URL and a MIME content type. The plugin resolves the URL from `curDefinition.url`, `player.url`, `config.url`, and media `<source>` elements, skipping `blob:`, `mediastream:`, `data:`, and `file:` URLs when a later network URL is available.
@@ -149,6 +185,64 @@ const player = new Player({
 ```
 
 The resolver also forwards optional Cast `MediaInfo` fields including `contentUrl`, `streamType`, `duration`, `metadata`, `customData`, `hlsSegmentFormat`, and `hlsVideoSegmentFormat` when they are present on those same sources.
+
+### AirPlay and MSE
+
+AirPlay works best when Safari's native `<video>` element plays a receiver-readable HLS or MP4 URL directly. MSE and ManagedMediaSource playback create a sender-local media pipeline, often exposed as a `blob:` source or `srcObject`; AirPlay devices cannot fetch that local source from the sender page, which can result in local playback continuing or the receiver playing audio only.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant App as Business app
+  participant Plugin as CastPlugin
+  participant AirPlay as AirPlay adapter
+  participant WebKit as Safari/WebKit video
+  participant Receiver as AirPlay receiver
+
+  Plugin->>AirPlay: install()
+  AirPlay->>WebKit: set x-webkit-airplay="allow"
+  WebKit-->>AirPlay: webkitplaybacktargetavailabilitychanged
+  AirPlay-->>Plugin: cast_availability_change(airplay)
+
+  App->>Plugin: requestCast('airplay') or click cast icon
+  Plugin-->>AirPlay: cast_request({ protocol: 'airplay' })
+  AirPlay->>WebKit: enable remote playback for this request
+
+  alt current source is MSE, MMS, srcObject, or blob
+    AirPlay->>AirPlay: resolveCastMedia(player, { protocol: 'airplay' })
+    AirPlay->>WebKit: add receiver-readable HLS/MP4 source fallback
+  end
+
+  AirPlay->>WebKit: webkitShowPlaybackTargetPicker()
+  WebKit-->>Receiver: user selects AirPlay target
+  WebKit-->>AirPlay: webkitcurrentplaybacktargetiswirelesschanged(true)
+
+  alt media still uses sender-local source
+    AirPlay->>Plugin: suspend active streaming plugin
+    AirPlay->>WebKit: clear blob/srcObject and set network media URL
+    WebKit-->>Receiver: receiver fetches HLS/MP4 URL
+  end
+
+  AirPlay-->>Plugin: cast_target_change({ isCasting: true })
+  Plugin->>WebKit: play() handshake
+
+  WebKit-->>AirPlay: webkitcurrentplaybacktargetiswirelesschanged(false)
+  AirPlay->>AirPlay: debounce route settle
+  AirPlay->>Plugin: resume suspended streaming plugin
+  AirPlay-->>Plugin: cast_target_change({ isCasting: false })
+```
+
+When AirPlay is requested and the current media source is MSE, ManagedMediaSource, `srcObject`, or `blob:`, the plugin resolves the original network URL using the same source priority as Chromecast and adds a receiver-readable `<source>` fallback for WebKit/AirPlay before opening the native AirPlay picker. It does not suspend the active streaming plugin or replace the media element source just because the picker opened. After WebKit confirms that a wireless playback target was selected, the plugin clears the local MSE source, suspends the active streaming plugin, and assigns the network URL to the media element.
+
+The plugin enables remote playback at request time rather than during installation so it does not interfere with Safari ManagedMediaSource initialization in integrations that temporarily set `disableRemotePlayback`.
+
+For business integrations, prefer one of these patterns:
+
+1. On Safari/iOS where AirPlay is required, use native HLS playback whenever possible. This is the most reliable path because the media element already has a receiver-readable URL when the native picker opens.
+2. Provide a direct HLS or MP4 URL in `url`, `definition.list[].url`, or `preProcessUrl`.
+3. Avoid DRM, encrypted session-only URLs, `blob:`, `data:`, and localhost URLs for AirPlay media.
+4. Provide an HLS variant that is broadly AirPlay-compatible, such as H.264/AAC with a conservative profile/level for the target receiver.
+5. Keep captions in the HLS manifest if they need to appear on the AirPlay receiver.
 
 ### Notes
 

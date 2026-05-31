@@ -19,13 +19,48 @@ const diagnostics = {
   lastResolvedMedia: 'none',
   lastLoad: 'none',
   lastError: 'none',
+  mediaSrcAttr: 'none',
+  mediaSrc: 'none',
+  mediaCurrentSrc: 'none',
+  mediaSrcObject: 'none',
+  mediaDisableRemotePlayback: 'unknown',
+  mediaSources: 'none',
+  hlsPlugin: 'unknown',
   userAgent: navigator.userAgent
+}
+
+function getMediaDiagnostics() {
+  const media = window.player?.media || window.player?.video
+  if (!media) {
+    return {}
+  }
+
+  const sources = Array.from(media.querySelectorAll?.('source') || [])
+    .map((source) => {
+      const type = source.getAttribute('type') || source.type || 'unknown'
+      const src = source.getAttribute('src') || source.src || 'none'
+      return `${type} ${src}`
+    })
+    .join(' | ')
+
+  return {
+    mediaSrcAttr: media.getAttribute?.('src') || 'none',
+    mediaSrc: media.src || 'none',
+    mediaCurrentSrc: media.currentSrc || 'none',
+    mediaSrcObject: media.srcObject
+      ? media.srcObject.constructor?.name || 'present'
+      : 'none',
+    mediaDisableRemotePlayback: String(media.disableRemotePlayback),
+    mediaSources: sources || 'none',
+    hlsPlugin: window.player.getPlugin?.('HlsJsPlugin') ? 'active' : 'none'
+  }
 }
 
 function updateDiagnostics(patch = {}) {
   Object.assign(diagnostics, patch, {
     castFrameworkReady: !!window.cast?.framework,
-    chromeCastReady: !!window.chrome?.cast
+    chromeCastReady: !!window.chrome?.cast,
+    ...getMediaDiagnostics()
   })
 
   const root = document.getElementById('cast-diagnostics')
@@ -226,6 +261,8 @@ function requestCast(protocol) {
     updateDiagnostics({ lastError: error?.message || String(error) })
   }
   plugin?.requestCast?.(protocol)
+  setTimeout(() => updateDiagnostics(), 0)
+  setTimeout(() => updateDiagnostics(), 500)
 }
 
 window.castDemoResolveMedia = () => {

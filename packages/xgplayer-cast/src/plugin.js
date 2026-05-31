@@ -125,15 +125,9 @@ export class CastPlugin extends Plugin {
 
   async _onCastTargetChange({ isCasting, protocol }) {
     if (isCasting) {
-      if (protocol === 'airplay') {
-        this._suspendMSEPlugin()
-      }
       await this._handleCastActivated({ protocol })
     } else {
       this._castHandshakeInProgress = false
-      if (protocol === 'airplay') {
-        await this._resumeMSEPlugin()
-      }
     }
   }
 

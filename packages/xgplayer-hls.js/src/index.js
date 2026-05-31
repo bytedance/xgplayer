@@ -1,23 +1,25 @@
-import { BasePlugin, Events } from 'xgplayer'
 import Hls from 'hls.js/dist/hls.light.js'
+import { BasePlugin, Events } from 'xgplayer'
 import utils from './utils'
 
 class HlsJsPlugin extends BasePlugin {
-  static get pluginName () {
+  static get pluginName() {
     return 'HlsJsPlugin'
   }
 
-  static get defaultConfig () {
+  static isStreamingPlugin = true
+
+  static get defaultConfig() {
     return {
       hlsOpts: {}
     }
   }
 
-  static get isSupported () {
+  static get isSupported() {
     return Hls.isSupported
   }
 
-  constructor (args) {
+  constructor(args) {
     super(args)
     this.browser = utils.getBrowserVersion()
     this.hls = null
@@ -28,7 +30,7 @@ class HlsJsPlugin extends BasePlugin {
   /**
    * @private
    */
-  _adaptHlsJsConfig (hlsOpts = {}) {
+  _adaptHlsJsConfig(hlsOpts = {}) {
     const { playerConfig } = this
 
     if (!hlsOpts?.startPosition && typeof playerConfig.startTime === 'number') {
@@ -38,7 +40,7 @@ class HlsJsPlugin extends BasePlugin {
     return hlsOpts
   }
 
-  afterCreate () {
+  afterCreate() {
     const { hlsOpts } = this.config
     this.hlsOpts = this._adaptHlsJsConfig(hlsOpts)
 
@@ -67,12 +69,19 @@ class HlsJsPlugin extends BasePlugin {
     }
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     this.register(this.player.config.url)
   }
 
-  destroy () {
-    this.hls && this.hls.destroy()
+  destroy() {
+    if (this._statisticsTimmer) {
+      clearInterval(this._statisticsTimmer)
+      this._statisticsTimmer = null
+    }
+    if (this.hls) {
+      this.hls.destroy()
+      this.hls = null
+    }
     const { player } = this
     BasePlugin.defineGetterOrSetter(player, {
       url: {
@@ -88,8 +97,12 @@ class HlsJsPlugin extends BasePlugin {
     })
   }
 
-  register (url) {
+  register(url) {
     const { player } = this
+    if (this._statisticsTimmer) {
+      clearInterval(this._statisticsTimmer)
+      this._statisticsTimmer = null
+    }
     if (this.hls) {
       this.hls.destroy()
     }
@@ -123,7 +136,7 @@ class HlsJsPlugin extends BasePlugin {
     this._statistics()
   }
 
-  _statistics () {
+  _statistics() {
     const statsInfo = {
       speed: 0,
       playerType: 'HlsPlayer'
@@ -145,23 +158,27 @@ class HlsJsPlugin extends BasePlugin {
     })
 
     hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (flag, payload) => {
-      mediainfo.hasAudio = !!((payload.tracks && payload.tracks.audio))
-      mediainfo.hasVideo = !!((payload.tracks && payload.tracks.video))
+      mediainfo.hasAudio = !!(payload.tracks && payload.tracks.audio)
+      mediainfo.hasVideo = !!(payload.tracks && payload.tracks.video)
 
       if (mediainfo.hasAudio) {
         const track = payload.tracks.audio
-        mediainfo.audioChannelCount = (track.metadata && track.metadata.channelCount) ? track.metadata.channelCount : 0
+        mediainfo.audioChannelCount =
+          track.metadata && track.metadata.channelCount ? track.metadata.channelCount : 0
         mediainfo.audioCodec = track.codec
       }
 
       if (mediainfo.hasVideo) {
         const track = payload.tracks.video
         mediainfo.videoCodec = track.codec
-        mediainfo.width = (track.metadata && track.metadata.width) ? track.metadata.width : 0
-        mediainfo.height = (track.metadata && track.metadata.height) ? track.metadata.height : 0
+        mediainfo.width =
+          track.metadata && track.metadata.width ? track.metadata.width : 0
+        mediainfo.height =
+          track.metadata && track.metadata.height ? track.metadata.height : 0
       }
-      mediainfo.duration = (payload.frag && payload.frag.duration) ? payload.frag.duration : 0
-      mediainfo.level = (payload.frag && payload.frag.levels) ? payload.frag.levels : 0
+      mediainfo.duration =
+        payload.frag && payload.frag.duration ? payload.frag.duration : 0
+      mediainfo.level = payload.frag && payload.frag.levels ? payload.frag.levels : 0
       if (mediainfo.videoCodec || mediainfo.audioCodec) {
         mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"`
       }
