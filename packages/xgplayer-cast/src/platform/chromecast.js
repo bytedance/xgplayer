@@ -1,6 +1,16 @@
 import { resolveCastMedia } from './cast-media'
 import { loadChromecastSdk } from './chromecast-sdk'
 
+const MEDIA_INFO_FIELDS = [
+  'contentUrl',
+  'streamType',
+  'duration',
+  'metadata',
+  'customData',
+  'hlsSegmentFormat',
+  'hlsVideoSegmentFormat'
+]
+
 export class Chromecast {
   constructor(plugin, config) {
     this.plugin = plugin
@@ -70,28 +80,70 @@ export class Chromecast {
     )
   }
 
-  _onCastStateChanged = ({ castState }) => {
+  _getCastAvailability(castState) {
+    const states = window.cast?.framework?.CastState || {}
+    if (
+      !castState ||
+      castState === states.NO_DEVICES_AVAILABLE ||
+      castState === 'NO_DEVICES_AVAILABLE'
+    ) {
+      return 'not-available'
+    }
+
+    const availableStates = [
+      states.NOT_CONNECTED,
+      states.CONNECTING,
+      states.CONNECTED,
+      'NOT_CONNECTED',
+      'CONNECTING',
+      'CONNECTED'
+    ]
+    return availableStates.includes(castState) ? 'available' : 'not-available'
+  }
+
+  _onCastStateChanged = ({ castState } = {}) => {
     this._castState = castState
     this.player?.emit('cast_availability_change', {
       protocol: 'chromecast',
-      availability:
-        castState === window.cast.framework.CastState.NO_DEVICES_AVAILABLE
-          ? 'not-available'
-          : 'available'
+      availability: this._getCastAvailability(castState)
     })
   }
 
-  _onSessionStateChanged = ({ sessionState }) => {
-    const { SESSION_STARTED, SESSION_RESUMED, SESSION_ENDED } =
-      window.cast.framework.SessionState
+  _onSessionStateChanged = ({ sessionState } = {}) => {
+    const {
+      SESSION_STARTED,
+      SESSION_RESUMED,
+      SESSION_ENDED,
+      SESSION_ENDING,
+      SESSION_START_FAILED,
+      SESSION_RESUME_FAILED
+    } = window.cast.framework.SessionState
     if (sessionState === SESSION_STARTED || sessionState === SESSION_RESUMED) {
-      this.session = this.castContext.getCurrentSession()
+      const session = this.castContext?.getCurrentSession?.()
+      if (!session) {
+        this.session = null
+        this._isCasting = false
+        this._lastLoadedMediaKey = null
+        this._pendingMediaKey = null
+        this._emitError(
+          'session_unavailable',
+          'No Chromecast session after session state changed'
+        )
+        return
+      }
+
+      this.session = session
       this._isCasting = true
       this.player?.emit('cast_target_change', {
         protocol: 'chromecast',
         isCasting: true
       })
-    } else if (sessionState === SESSION_ENDED) {
+    } else if (
+      sessionState &&
+      [SESSION_ENDED, SESSION_ENDING, SESSION_START_FAILED, SESSION_RESUME_FAILED]
+        .filter(Boolean)
+        .includes(sessionState)
+    ) {
       this.session = null
       this._isCasting = false
       this._lastLoadedMediaKey = null
@@ -104,8 +156,9 @@ export class Chromecast {
   }
 
   canRequest() {
-    const noDevices = window.cast?.framework?.CastState?.NO_DEVICES_AVAILABLE
-    return !!this.castContext && this._castState !== noDevices
+    return (
+      !!this.castContext && this._getCastAvailability(this._castState) === 'available'
+    )
   }
 
   isCasting() {
@@ -176,7 +229,13 @@ export class Chromecast {
     }
 
     const { url, contentType } = castMedia
-    const mediaKey = `${contentType} ${url}`
+    const mediaKey = JSON.stringify({
+      url,
+      contentType,
+      contentUrl: castMedia.contentUrl,
+      hlsSegmentFormat: castMedia.hlsSegmentFormat,
+      hlsVideoSegmentFormat: castMedia.hlsVideoSegmentFormat
+    })
     if (
       skipSameMedia &&
       (mediaKey === this._lastLoadedMediaKey || mediaKey === this._pendingMediaKey)
@@ -185,6 +244,11 @@ export class Chromecast {
     }
 
     const mediaInfo = new window.chrome.cast.media.MediaInfo(url, contentType)
+    MEDIA_INFO_FIELDS.forEach((field) => {
+      if (castMedia[field] !== undefined) {
+        mediaInfo[field] = castMedia[field]
+      }
+    })
     const request = new window.chrome.cast.media.LoadRequest(mediaInfo)
     request.autoplay = !!this.plugin.config.autoplayOnCast
 
