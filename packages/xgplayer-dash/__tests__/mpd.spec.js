@@ -1,7 +1,6 @@
-const mockXHR = jest.fn()
+jest.mock('../src/util/xhr', () => jest.fn())
 
-jest.mock('../src/util/xhr', () => mockXHR)
-
+import mockXHR from '../src/util/xhr'
 import MPD from '../src/m4s/mpd'
 
 const waitForReady = (mpd) => new Promise(resolve => mpd.once('ready', resolve))
