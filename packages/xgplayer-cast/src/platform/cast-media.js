@@ -17,11 +17,27 @@ function validateUrl(url, label) {
   }
 }
 
+function isNetworkUrl(url) {
+  return (
+    typeof url === 'string' &&
+    !!url &&
+    !/^blob:/i.test(url) &&
+    !/^mediastream:/i.test(url)
+  )
+}
+
+function resolveCandidateUrl(player) {
+  const candidates = [player?.curDefinition?.url, player?.url, player?.config?.url]
+  const networkUrl = candidates.find(isNetworkUrl)
+  if (networkUrl) {
+    return networkUrl
+  }
+
+  return candidates.find((url) => !!url) || null
+}
+
 export function resolveCastMedia(player) {
-  const candidate =
-    player?.curDefinition?.url ||
-    player?.url ||
-    player?.config?.url
+  const candidate = resolveCandidateUrl(player)
 
   validateUrl(candidate, 'candidate')
 

@@ -75,6 +75,36 @@
       </div>
       <div class="message-pannel">
         <div class="message-info">
+          <h4>Chromecast Diagnostics</h4>
+          <div id="cast-diagnostics"></div>
+        </div>
+        <div class="message-info">
+          <h4>Fake Chromecast</h4>
+          <p>
+            Open with
+            <code>?fakeChromecast=available</code>
+            to test Chromecast plugin logic without a device.
+          </p>
+          <p>
+            Use
+            <code>?fakeChromecast=no-devices</code>
+            or
+            <code>?fakeChromecast=available&amp;fakeChromecastLoad=fail</code>
+            for failure paths.
+          </p>
+          <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btn-fake-chromecast-available" style="padding: 8px 16px; cursor: pointer;">
+              Fake Available
+            </button>
+            <button id="btn-fake-chromecast-none" style="padding: 8px 16px; cursor: pointer;">
+              Fake No Devices
+            </button>
+            <button id="btn-fake-chromecast-end" style="padding: 8px 16px; cursor: pointer;">
+              Fake End Session
+            </button>
+          </div>
+        </div>
+        <div class="message-info">
           <h4>Config examples</h4>
           <p><strong>Shorthand (default receiver):</strong> <code>chromecast: true</code></p>
           <p><strong>Explicit config:</strong></p>
