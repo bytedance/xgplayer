@@ -189,7 +189,7 @@ function resolveCandidateUrl(player) {
   return candidates.find((candidate) => !!candidate.url) || { url: null }
 }
 
-export function resolveCastMedia(player) {
+export function resolveCastMedia(player, { protocol = 'chromecast' } = {}) {
   const candidate = resolveCandidateUrl(player)
   const candidateUrl = candidate?.url
 
@@ -199,7 +199,7 @@ export function resolveCastMedia(player) {
     typeof player.preProcessUrl === 'function'
       ? player.preProcessUrl(candidateUrl, {
           scene: 'cast',
-          protocol: 'chromecast',
+          protocol,
           contentType: candidate.contentType || undefined
         })
       : { url: candidateUrl }
