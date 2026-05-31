@@ -1,10 +1,44 @@
-import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample } from '../model'
+import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample, VideoCodecType } from '../model'
 import { readBig32 } from '../utils'
 import { MP4Parser } from './mp4-parser'
 import { Logger } from './logger'
 import Crypto from './crypto/crypto'
 const NEW_ARRAY_MAX_CNT = 20
 const DELETE_BOX_LIST = ['stts','stsc','stsz','stco','co64','stss', 'ctts']
+const VVC_NAL_TYPE_RASL = 3
+const VVC_NAL_TYPE_IDR_W_RADL = 7
+const VVC_NAL_TYPE_IDR_N_LP = 8
+const VVC_NAL_TYPE_CRA = 9
+const SIDE_DATA_VVC_NAL_INFO = 'vvcNalInfo'
+
+function getVvcNalTypes (units) {
+  if (!units?.length) return []
+  return units
+    .filter(unit => unit?.byteLength > 1)
+    .map(unit => (unit[1] & 0xf8) >> 3)
+}
+
+function markVvcSample (sample) {
+  const nalTypes = getVvcNalTypes(sample.units)
+  if (!nalTypes.length) return
+
+  let randomAccessType = ''
+  if (nalTypes.includes(VVC_NAL_TYPE_IDR_W_RADL) || nalTypes.includes(VVC_NAL_TYPE_IDR_N_LP)) {
+    randomAccessType = 'idr'
+  } else if (nalTypes.includes(VVC_NAL_TYPE_CRA)) {
+    randomAccessType = 'cra'
+  }
+
+  sample.sideData = {
+    ...(sample.sideData || {}),
+    [SIDE_DATA_VVC_NAL_INFO]: {
+      nalTypes,
+      randomAccessType,
+      rasl: nalTypes.includes(VVC_NAL_TYPE_RASL)
+    }
+  }
+}
+
 export class MP4Demuxer {
   _videoSamples = []
   _audioSamples = []
@@ -100,6 +134,9 @@ export class MP4Demuxer {
           start += 4
           frame.units.push(sampleData.subarray(start, start + nalSize))
           start += nalSize
+        }
+        if (videoTrack.codecType === VideoCodecType.VVCC) {
+          markVvcSample(frame)
         }
         videoTrack.samples.push(frame)
       }
@@ -293,6 +330,9 @@ export class MP4Demuxer {
         start += 4
         videoTrack.samples[i].units.push(sampleData.subarray(start, start + nalSize))
         start += nalSize
+      }
+      if (videoTrack.codecType === VideoCodecType.VVCC) {
+        markVvcSample(videoTrack.samples[i])
       }
     }
     const usedPos = Math.max(videoEndByte, audioEndByte)

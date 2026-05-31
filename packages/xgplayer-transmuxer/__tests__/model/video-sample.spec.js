@@ -13,6 +13,7 @@ describe('AudioSample', () => {
     expect(sample.units).toEqual([1])
     expect(sample.keyframe).toBe(false)
     expect(sample.flag).toEqual({})
+    expect(sample.sideData).toBe(null)
 
     sample.setToKeyframe()
     expect(sample.keyframe).toBe(true)
