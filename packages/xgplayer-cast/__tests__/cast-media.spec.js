@@ -39,6 +39,19 @@ describe('resolveCastMedia', () => {
     expect(result.contentType).toBe('video/mp4')
   })
 
+  test('skips blob player.url and falls back to config.url', () => {
+    const player = {
+      curDefinition: null,
+      url: 'blob:https://example.com/123',
+      config: { url: 'https://cdn.example.com/main.m3u8' },
+      preProcessUrl: (url) => ({ url })
+    }
+
+    const result = resolveCastMedia(player)
+    expect(result.url).toBe('https://cdn.example.com/main.m3u8')
+    expect(result.contentType).toBe('application/x-mpegURL')
+  })
+
   test('rejects blob URL', () => {
     const player = {
       curDefinition: null,
