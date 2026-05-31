@@ -127,7 +127,7 @@ describe('BufferService', () => {
     expect(append).toHaveBeenNthCalledWith(3, videoTrack.type, videoSegment)
     expect(append).toHaveBeenNthCalledWith(4, audioTrack.type, audioSegment)
 
-    expect(flv.emit).toHaveBeenCalledTimes(16)
+    expect(flv.emit).toHaveBeenCalledWith(EVENT.SOURCEBUFFER_CREATED)
     
     expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_AV_FIRST_FRAME_GAP_DETECT })
     expect(flv.emit).toHaveBeenCalledWith(EVENT.STREAM_EXCEPTION, { type: EVENT.LARGE_VIDEO_DTS_GAP_DETECT })
