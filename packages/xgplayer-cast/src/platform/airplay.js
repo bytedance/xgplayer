@@ -1,4 +1,7 @@
 import { Util } from 'xgplayer'
+import { resolveCastMedia } from './cast-media'
+
+const AIRPLAY_ROUTE_SETTLE_DELAY_MS = 1000
 
 export function isAirPlayAvailable(player) {
   const video = player?.media || player?.video
@@ -18,13 +21,17 @@ export class Airplay {
     this.plugin = plugin
     this.player = plugin.player
     this._lastCastingState = null
+    this._airplaySourceEl = null
+    this._airplayMedia = null
+    this._nativeHandoffActive = false
     this._emitCastingFalseDebounced = Util.debounce(() => {
       const media = this.player?.media || this.player?.video
       const stillWireless = !!media?.webkitCurrentPlaybackTargetIsWireless
       if (!stillWireless) {
+        this._restoreNativeHandoff()
         this._emitCastTargetChange(false)
       }
-    }, 500)
+    }, AIRPLAY_ROUTE_SETTLE_DELAY_MS)
   }
 
   install() {
@@ -34,6 +41,7 @@ export class Airplay {
     const media = this.player.media || this.player.video
 
     if (media instanceof HTMLMediaElement) {
+      media.setAttribute('x-webkit-airplay', 'allow')
       media.addEventListener(
         'webkitplaybacktargetavailabilitychanged',
         this._onTargetAvailabilityChange
@@ -64,11 +72,12 @@ export class Airplay {
     const video = this.player.media || this.player.video
     const isWireless = !!video.webkitCurrentPlaybackTargetIsWireless
 
-    if (isWireless && /^blob:/.test(video.currentSrc)) {
-      // Wireless State: true -> false -> true，有3次状态变化。其中第一次状态变化时，
-      // AirPlay 会先用 MSE 作为选中目标，进入 wireless 状态，但这次选中会失败。
-      // 应该忽略掉这次状态变化，等待第三次状态变化才真正认为进入了 AirPlay 模式
-      return
+    if (isWireless && this._hasMSESource(video)) {
+      // MSE/MMS sources are sender-local. Switch only after WebKit confirms a
+      // remote route so opening the picker does not disturb local playback.
+      if (!this._activateNativeSource(video)) {
+        return
+      }
     }
 
     // Route changes may briefly bounce false during AirPlay handover.
@@ -80,6 +89,228 @@ export class Airplay {
     }
 
     this._emitCastingFalseDebounced()
+  }
+
+  _prepareNativeSource(mediaEl) {
+    const castMedia = this._resolveAirPlayMedia()
+    if (!castMedia) {
+      return false
+    }
+
+    this._airplayMedia = castMedia
+    this._allowRemotePlayback(mediaEl)
+    this._installAirPlaySource(mediaEl, castMedia)
+    return true
+  }
+
+  _activateNativeSource(mediaEl) {
+    const castMedia = this._airplayMedia || this._resolveAirPlayMedia()
+    if (!castMedia) {
+      return false
+    }
+
+    if (this._nativeHandoffActive && this._isNativeSourceApplied(mediaEl, castMedia)) {
+      return true
+    }
+
+    const currentTime = Number.isFinite(mediaEl.currentTime)
+      ? mediaEl.currentTime
+      : this.player?.currentTime || 0
+
+    this.plugin?._suspendMSEPlugin?.()
+    this._nativeHandoffActive = true
+    this._applyNativeSource(mediaEl, castMedia)
+    mediaEl.addEventListener(
+      'loadedmetadata',
+      () => {
+        if (currentTime > 0 && Number.isFinite(mediaEl.duration)) {
+          try {
+            mediaEl.currentTime = Math.min(currentTime, mediaEl.duration)
+          } catch {
+            // ignore seek failures while Safari is switching AirPlay routes
+          }
+        }
+      },
+      { once: true }
+    )
+
+    return true
+  }
+
+  _restoreNativeHandoff() {
+    if (!this._nativeHandoffActive) {
+      return
+    }
+    this._nativeHandoffActive = false
+    this._airplayMedia = null
+    this.plugin?._resumeMSEPlugin?.()
+  }
+
+  _resolveAirPlayMedia() {
+    let castMedia
+    try {
+      castMedia = resolveCastMedia(this.player, { protocol: 'airplay' })
+    } catch (err) {
+      console.warn('[xgplayer-cast] Cannot resolve AirPlay media URL:', err.message)
+      return null
+    }
+
+    if (!castMedia?.url || /^blob:/i.test(castMedia.url)) {
+      console.warn('[xgplayer-cast] AirPlay requires a receiver-readable media URL')
+      return null
+    }
+
+    return castMedia
+  }
+
+  _applyNativeSource(mediaEl, castMedia) {
+    this._clearMSESource(mediaEl)
+    this._installAirPlaySource(mediaEl, castMedia)
+    if (mediaEl.getAttribute?.('src') !== castMedia.url) {
+      mediaEl.src = castMedia.url
+    }
+    this._allowRemotePlayback(mediaEl)
+
+    try {
+      mediaEl.load?.()
+    } catch {
+      // Some test environments do not implement HTMLMediaElement.load().
+    }
+  }
+
+  _isNativeSourceApplied(mediaEl, castMedia) {
+    const mediaSrc = mediaEl.getAttribute?.('src') || mediaEl.src || ''
+    const source = mediaEl.querySelector?.('source[data-xgplayer-cast-airplay="true"]')
+    const sourceSrc = source?.getAttribute('src') || source?.src || ''
+
+    return (
+      mediaSrc === castMedia.url &&
+      sourceSrc === castMedia.url &&
+      !mediaEl.srcObject &&
+      !mediaEl.disableRemotePlayback &&
+      !this._hasAttachedLocalSource(mediaEl)
+    )
+  }
+
+  _needsNativeSource(mediaEl) {
+    if (this._hasMSESource(mediaEl)) {
+      return true
+    }
+
+    const currentSrc = mediaEl.currentSrc || mediaEl.src
+    if (!currentSrc && this._hasActiveStreamingPlugin()) {
+      return true
+    }
+
+    return false
+  }
+
+  _hasMSESource(mediaEl) {
+    const currentSrc = mediaEl.currentSrc || mediaEl.src
+    if (/^blob:/i.test(currentSrc)) {
+      return true
+    }
+
+    if (mediaEl.srcObject) {
+      return true
+    }
+
+    return this._getSourceElements(mediaEl).some((source) =>
+      /^blob:/i.test(source.getAttribute('src') || source.src || '')
+    )
+  }
+
+  _hasAttachedLocalSource(mediaEl) {
+    if (mediaEl.srcObject) {
+      return true
+    }
+
+    const attachedSrc = mediaEl.getAttribute?.('src') || mediaEl.src || ''
+    if (/^blob:/i.test(attachedSrc)) {
+      return true
+    }
+
+    return this._getSourceElements(mediaEl).some((source) =>
+      /^blob:/i.test(source.getAttribute('src') || source.src || '')
+    )
+  }
+
+  _hasActiveStreamingPlugin() {
+    return Object.values(this.player?.plugins ?? {}).some(
+      (plugin) => plugin?.constructor?.isStreamingPlugin === true
+    )
+  }
+
+  _getSourceElements(mediaEl) {
+    return Array.from(mediaEl.querySelectorAll?.('source') || [])
+  }
+
+  _allowRemotePlayback(mediaEl) {
+    mediaEl.removeAttribute('disableRemotePlayback')
+    if ('disableRemotePlayback' in mediaEl) {
+      mediaEl.disableRemotePlayback = false
+    }
+    if ('webkitWirelessVideoPlaybackDisabled' in mediaEl) {
+      mediaEl.webkitWirelessVideoPlaybackDisabled = false
+    }
+  }
+
+  _clearMSESource(mediaEl) {
+    this._allowRemotePlayback(mediaEl)
+
+    try {
+      if ('srcObject' in mediaEl && mediaEl.srcObject) {
+        mediaEl.srcObject = null
+      }
+    } catch {
+      // ignore srcObject cleanup failures while Safari is detaching MMS
+    }
+
+    if (/^blob:/i.test(mediaEl.getAttribute?.('src') || mediaEl.src || '')) {
+      mediaEl.removeAttribute('src')
+    }
+
+    this._getSourceElements(mediaEl).forEach((source) => {
+      const src = source.getAttribute('src') || source.src || ''
+      if (/^blob:/i.test(src)) {
+        source.remove()
+      }
+    })
+  }
+
+  _installAirPlaySource(mediaEl, castMedia) {
+    const url = castMedia?.url
+    if (!url || !mediaEl?.appendChild) {
+      return
+    }
+
+    let source = this._airplaySourceEl
+    if (!source || source.parentNode !== mediaEl) {
+      source =
+        mediaEl.querySelector?.('source[data-xgplayer-cast-airplay="true"]') ||
+        document.createElement('source')
+      source.setAttribute('data-xgplayer-cast-airplay', 'true')
+      mediaEl.appendChild(source)
+      this._airplaySourceEl = source
+    }
+
+    source.setAttribute('src', url)
+    const type = this._getAirPlayContentType(castMedia.contentType)
+    if (type) {
+      source.setAttribute('type', type)
+    } else {
+      source.removeAttribute('type')
+    }
+  }
+
+  _getAirPlayContentType(contentType) {
+    if (typeof contentType !== 'string') {
+      return ''
+    }
+    if (/mpegurl/i.test(contentType)) {
+      return 'application/vnd.apple.mpegurl'
+    }
+    return contentType
   }
 
   _emitCastTargetChange(isCasting) {
@@ -130,6 +361,11 @@ export class Airplay {
       }
 
       if (typeof mediaEl.webkitShowPlaybackTargetPicker === 'function') {
+        this._allowRemotePlayback(mediaEl)
+        const needsNativeSource = this._needsNativeSource(mediaEl)
+        if (needsNativeSource && !this._prepareNativeSource(mediaEl)) {
+          return false
+        }
         mediaEl.webkitShowPlaybackTargetPicker()
       }
     } catch {
@@ -174,5 +410,8 @@ export class Airplay {
     this.player = null
     this.plugin = null
     this._lastCastingState = null
+    this._airplaySourceEl = null
+    this._airplayMedia = null
+    this._nativeHandoffActive = false
   }
 }
