@@ -99,6 +99,80 @@ describe('resolveCastMedia', () => {
     expect(result.url).toBe('https://cdn.example.com/video.mp4?token=abc')
   })
 
+  test('uses explicit contentType from curDefinition for extensionless URLs', () => {
+    const player = {
+      curDefinition: {
+        url: 'https://cdn.example.com/play?id=1',
+        contentType: 'application/x-mpegURL'
+      },
+      preProcessUrl: (url) => ({ url })
+    }
+
+    const result = resolveCastMedia(player)
+
+    expect(result.contentType).toBe('application/x-mpegURL')
+  })
+
+  test('uses source array type before falling back to URL extension', () => {
+    const player = {
+      curDefinition: null,
+      url: 'blob:https://example.com/current',
+      config: {
+        url: [
+          { src: 'blob:https://example.com/old', type: 'video/mp4' },
+          { src: 'https://cdn.example.com/live', type: 'hls' }
+        ]
+      },
+      preProcessUrl: (url) => ({ url })
+    }
+
+    const result = resolveCastMedia(player)
+
+    expect(result.url).toBe('https://cdn.example.com/live')
+    expect(result.contentType).toBe('application/x-mpegURL')
+  })
+
+  test('lets preProcessUrl override content type metadata', () => {
+    const player = {
+      curDefinition: {
+        url: 'https://cdn.example.com/play',
+        contentType: 'video/mp4'
+      },
+      preProcessUrl: (url) => ({
+        url,
+        mimeType: 'application/dash+xml'
+      })
+    }
+
+    const result = resolveCastMedia(player)
+
+    expect(result.contentType).toBe('application/dash+xml')
+  })
+
+  test('passes optional MediaInfo fields from preProcessUrl', () => {
+    const player = {
+      curDefinition: null,
+      url: null,
+      config: { url: 'https://cdn.example.com/main.m3u8' },
+      preProcessUrl: (url) => ({
+        url,
+        hlsSegmentFormat: 'FMP4',
+        hlsVideoSegmentFormat: 'FMP4',
+        customData: { token: 'abc' }
+      })
+    }
+
+    const result = resolveCastMedia(player)
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        hlsSegmentFormat: 'FMP4',
+        hlsVideoSegmentFormat: 'FMP4',
+        customData: { token: 'abc' }
+      })
+    )
+  })
+
   test('throws if preProcessUrl returns non-object', () => {
     const player = {
       curDefinition: null,
@@ -119,6 +193,17 @@ describe('resolveCastMedia', () => {
     }
 
     expect(() => resolveCastMedia(player)).toThrow('got blob URL')
+  })
+
+  test('rejects data URL', () => {
+    const player = {
+      curDefinition: null,
+      url: null,
+      config: { url: 'data:video/mp4;base64,AAAA' },
+      preProcessUrl: (url) => ({ url })
+    }
+
+    expect(() => resolveCastMedia(player)).toThrow('got data URL')
   })
 
   test('infers mp4 content type as default', () => {
