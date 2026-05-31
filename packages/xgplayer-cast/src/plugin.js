@@ -132,7 +132,7 @@ export class CastPlugin extends Plugin {
     } else {
       this._castHandshakeInProgress = false
       if (protocol === 'airplay') {
-        this._resumeMSEPlugin()
+        await this._resumeMSEPlugin()
       }
     }
   }
@@ -178,7 +178,7 @@ export class CastPlugin extends Plugin {
   /**
    * @private
    */
-  _suspendMSEPlugin = () => {
+  _suspendMSEPlugin() {
     const instance =
       Object.values(this.player?.plugins ?? {}).find(
         (p) => p.constructor.isStreamingPlugin === true
@@ -186,45 +186,64 @@ export class CastPlugin extends Plugin {
     const plugin = instance?.constructor
     const pluginName = plugin?.pluginName
 
-    if (!pluginName || !plugin || !this.player.getPlugin(pluginName)) {
+    if (!pluginName || !plugin || !this.player?.getPlugin?.(pluginName)) {
       return
     }
 
     this._msePluginRestore = {
       plugin,
-      pluginName
+      pluginName,
+      config: instance.config ? { ...instance.config } : undefined
     }
 
     // Just unregister the plugin, do not call detachMedia or pause buffering, to avoid potential issues
-    this.player.unRegisterPlugin(pluginName)
+    this.player.unRegisterPlugin?.(pluginName)
   }
 
   /**
    * @private
    */
-  _resumeMSEPlugin = () => {
+  async _resumeMSEPlugin() {
     if (!this._msePluginRestore) {
-      return
+      return false
     }
 
-    const { plugin, pluginName } = this._msePluginRestore
+    const { plugin, pluginName, config } = this._msePluginRestore
     if (!plugin || !pluginName) {
       this._msePluginRestore = null
-      return
+      return false
+    }
+
+    if (!this.player?.getPlugin || !this.player?.registerPlugin) {
+      return false
     }
 
     if (this.player.getPlugin(pluginName)) {
       this._msePluginRestore = null
-      return
+      return true
     }
 
-    // try {
-    //   this.player.registerPlugin(plugin);
-    //   const instance = this.player.getPlugin(pluginName);
-    //   this._msePluginRestore = null;
-    // } catch (err) {
-    //   // ignore
-    // }
+    let instance = null
+    try {
+      instance = this.player.registerPlugin(plugin, config)
+      if (!instance) {
+        return false
+      }
+      if (typeof instance.beforePlayerInit === 'function') {
+        await instance.beforePlayerInit()
+      }
+      if (typeof instance.afterPlayerInit === 'function') {
+        instance.afterPlayerInit()
+      }
+      this._msePluginRestore = null
+      return true
+    } catch (error) {
+      console.warn('Failed to restore streaming plugin after AirPlay:', error)
+      if (instance && this.player.getPlugin(pluginName) === instance) {
+        this.player.unRegisterPlugin?.(pluginName)
+      }
+      return false
+    }
   }
 
   registerIcons() {

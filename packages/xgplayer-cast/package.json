@@ -4,7 +4,12 @@
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.scss",
+    "*.css",
+    "**/*.css",
+    "**/cast-i18n.js"
+  ],
   "libd": {
     "umdName": "CastPlugin"
   },
