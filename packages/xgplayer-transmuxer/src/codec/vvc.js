@@ -104,8 +104,50 @@ class StreamReader {
 
 }
 
+const VVC_NAL_TYPE_RASL = 3
+const VVC_NAL_TYPE_IDR_W_RADL = 7
+const VVC_NAL_TYPE_IDR_N_LP = 8
+const VVC_NAL_TYPE_CRA = 9
+
 // biome-ignore lint/complexity/noStaticOnlyClass: Allow static-only class for codec utilities
 export class VVC {
+  static getNalType (unit) {
+    if (!unit || unit.byteLength <= 1) {
+      return
+    }
+    return (unit[1] & 0xf8) >> 3
+  }
+
+  static getNalTypes (units) {
+    if (!units?.length) {
+      return []
+    }
+
+    return units
+      .map(unit => VVC.getNalType(unit))
+      .filter(type => typeof type === 'number')
+  }
+
+  static getNalInfo (units) {
+    const nalTypes = VVC.getNalTypes(units)
+    if (!nalTypes.length) {
+      return
+    }
+
+    let randomAccessType = ''
+    if (nalTypes.includes(VVC_NAL_TYPE_IDR_W_RADL) || nalTypes.includes(VVC_NAL_TYPE_IDR_N_LP)) {
+      randomAccessType = 'idr'
+    } else if (nalTypes.includes(VVC_NAL_TYPE_CRA)) {
+      randomAccessType = 'cra'
+    }
+
+    return {
+      nalTypes,
+      randomAccessType,
+      rasl: nalTypes.includes(VVC_NAL_TYPE_RASL)
+    }
+  }
+
   /**
    * Per RFC 9328 the VVC codec string is:
    *   <SampleEntry4CC>.<general_profile_idc>.<L|H><general_level_idc>[.C<constraints>][.O<sub_profiles>]
@@ -607,4 +649,3 @@ export class VVC {
     }
   }
 }
-
