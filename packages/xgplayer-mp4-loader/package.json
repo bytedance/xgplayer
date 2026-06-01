@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4-loader",
-  "version": "3.0.9-rc.31",
+  "version": "3.0.9-rc.32",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "rc"
+    "tag": "douyin"
   },
   "license": "MIT",
   "unpkgFiles": [
