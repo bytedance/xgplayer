@@ -109,7 +109,7 @@ export class MP4Loader extends EventEmitter {
     }
     const OnProgressHandle = async (data, state, options, response) => {
       if (!this.filesize && response?.headers) {
-        const contentRange = response.headers.get('content-range')
+        const contentRange = response.headers.get?.('content-range')
         if (contentRange) {
           const range = contentRange.split('/')
           if (Array.isArray(range) && range.length === 2) {
