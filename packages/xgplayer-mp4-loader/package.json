@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4-loader",
-  "version": "3.0.9-rc.33",
+  "version": "3.0.9-rc.34",
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
@@ -15,7 +15,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
-    "tag": "douyin"
+    "tag": "rc"
   },
   "license": "MIT",
   "unpkgFiles": [
@@ -23,7 +23,7 @@
   ],
   "dependencies": {
     "xgplayer-transmuxer": "3.0.9-rc.17",
-    "xgplayer-streaming-shared": "3.0.11-rc.11",
+    "xgplayer-streaming-shared": "3.0.11-rc.12",
     "eventemitter3": "^4.0.7"
   },
   "peerDependencies": {
