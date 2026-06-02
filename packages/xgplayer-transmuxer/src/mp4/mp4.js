@@ -4,6 +4,7 @@
 /** biome-ignore-all lint/suspicious/noPrototypeBuiltins: <explanation> */
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: <explanation> */
 import { TrackType, VideoCodecType } from '../model'
+import { getVideoCodec } from '../codec/video-codec-registry'
 import { concatUint8Array, parse /* hashVal */ } from '../utils'
 import Buffer from './buffer'
 // import Crypto from './crypto/crypto'
@@ -68,8 +69,6 @@ export class MP4 {
     'mehd',
     'fiel',
     'sdtp',
-    'bvc2',
-    'bv2C',
     'vvc1',
     'vvi1',
     'vvcC'
@@ -123,15 +122,6 @@ export class MP4 {
     0, 0, 0, 1,
     105, 115, 111, 109,
     118, 118, 99, 49 // vvc1
-  ]))
-
-  // Legacy 'bvc2' compatible ftyp for historical, pre-Amd.2 content that did
-  // not use the standard 'vvc1' / 'vvi1' sample-entry FourCCs.
-  static FTYPBVC2 = MP4.box(MP4.types.ftyp, new Uint8Array([
-    105, 115, 111, 109, // isom
-    0, 0, 0, 1,
-    105, 115, 111, 109,
-    98, 118, 99, 50 // bvc2
   ]))
 
   static DINF = MP4.box(MP4.types.dinf, MP4.box(MP4.types.dref, new Uint8Array([
@@ -194,6 +184,13 @@ export class MP4 {
     return ret
   }
 
+  static type (name) {
+    if (!MP4.types[name]) {
+      MP4.types[name] = [name.charCodeAt(0), name.charCodeAt(1), name.charCodeAt(2), name.charCodeAt(3)]
+    }
+    return MP4.types[name]
+  }
+
   static FullBox (type, version, flags, ...payload) {
     return MP4.box(type, new Uint8Array([
       version,
@@ -206,9 +203,8 @@ export class MP4 {
   static ftyp (tracks) {
     const videoTrack = tracks.find(t => t.type === TrackType.VIDEO)
     if (videoTrack?.codecType === VideoCodecType.HEVC) return MP4.FTYPHEV1
-    if (videoTrack?.codecType === VideoCodecType.VVCC) {
-      return videoTrack.vvccSampleEntryType === 'bvc2' ? MP4.FTYPBVC2 : MP4.FTYPVVC1
-    }
+    const codec = getVideoCodec({ track: videoTrack })
+    if (codec?.buildFtyp) return codec.buildFtyp({ track: videoTrack, tracks, MP4 })
     return MP4.FTYPAVC1
   }
 
@@ -484,10 +480,11 @@ export class MP4 {
     // so that MSE/EME can initialise the decoder. Build the right child box
     // (avcC / hvcC / vvcC) based on the underlying codec type.
     let configBox
+    const codec = getVideoCodec({ track })
     if (track.codecType === VideoCodecType.HEVC) {
       configBox = MP4.hvcC(track)
-    } else if (track.codecType === VideoCodecType.VVCC) {
-      configBox = MP4.vvcC(track)
+    } else if (codec?.buildConfigBox) {
+      configBox = codec.buildConfigBox({ track, MP4 })
     } else {
       const sps = track.sps && track.sps.length > 0 ? track.sps[0] : []
       const pps = track.pps && track.pps.length > 0 ? track.pps[0] : []
@@ -570,18 +567,10 @@ export class MP4 {
     if (track.codecType === VideoCodecType.HEVC) {
       config = MP4.hvcC(track)
       typ = MP4.types.hvc1
-    } else if (track.codecType === VideoCodecType.VVCC){
-      config = MP4.vvcC(track)
-      // Mirror the input sample entry FourCC so MSE sees the same codec it
-      // advertised via isTypeSupported (e.g. 'vvc1.*'). Fall back to the
-      // standard 'vvc1' 4CC when the source did not specify one.
-      if (track.vvccSampleEntryType === 'bvc2') {
-        typ = MP4.types.bvc2
-      } else if (track.vvccSampleEntryType === 'vvi1') {
-        typ = MP4.types.vvi1
-      } else {
-        typ = MP4.types.vvc1
-      }
+    } else if (getVideoCodec({ track })?.buildConfigBox) {
+      const codec = getVideoCodec({ track })
+      config = codec.buildConfigBox({ track, MP4 })
+      typ = MP4.type(codec.getSampleEntryType ? codec.getSampleEntryType({ track }) : codec.sampleEntries[0])
     } else {
       config = MP4.avcC(track)
       typ = MP4.types.avc1
@@ -658,12 +647,9 @@ export class MP4 {
   }
 
   static vvcC (track) {
-    const vvcC = track.vvcC
-    // Use the legacy 'bv2C' child box only when the source used the legacy
-    // 'bvc2' sample entry; otherwise emit the standard 'vvcC' box so the
-    // output init segment is valid per ISO/IEC 14496-15:2022 Amendment 2.
-    const boxType = track.vvccSampleEntryType === 'bvc2' ? MP4.types.bv2C : MP4.types.vvcC
-    return MP4.box(boxType, new Uint8Array(vvcC))
+    const codec = getVideoCodec({ track })
+    if (codec?.buildConfigBox) return codec.buildConfigBox({ track, MP4 })
+    return MP4.box(MP4.types.vvcC, new Uint8Array(track.vvcC))
   }
 
   static hvcC (track) {

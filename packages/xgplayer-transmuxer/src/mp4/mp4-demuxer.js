@@ -1,5 +1,5 @@
-import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample, VideoCodecType } from '../model'
-import { VVC } from '../codec'
+import { VideoTrack, AudioTrack, MetadataTrack, AudioSample, VideoSample } from '../model'
+import { getVideoCodec } from '../codec/video-codec-registry'
 import { readBig32 } from '../utils'
 import { MP4Parser } from './mp4-parser'
 import { Logger } from './logger'
@@ -41,14 +41,13 @@ export class MP4Demuxer {
     }
   }
 
-  _markVvcSample (sample) {
-    const vvcNalInfo = VVC.getNalInfo(sample.units)
-    if (!vvcNalInfo) return
-
-    sample.sideData = {
-      ...(sample.sideData || {}),
-      vvcNalInfo
-    }
+  _markVideoSample (sample) {
+    const codec = getVideoCodec({ track: this.videoTrack })
+    codec?.markSample?.({
+      sample,
+      track: this.videoTrack,
+      demuxer: this
+    })
   }
 
   parseSamples (moov) {
@@ -113,9 +112,7 @@ export class MP4Demuxer {
           frame.units.push(sampleData.subarray(start, start + nalSize))
           start += nalSize
         }
-        if (videoTrack.codecType === VideoCodecType.VVCC) {
-          this._markVvcSample(frame)
-        }
+        this._markVideoSample(frame)
         videoTrack.samples.push(frame)
       }
 
@@ -309,9 +306,7 @@ export class MP4Demuxer {
         videoTrack.samples[i].units.push(sampleData.subarray(start, start + nalSize))
         start += nalSize
       }
-      if (videoTrack.codecType === VideoCodecType.VVCC) {
-        this._markVvcSample(videoTrack.samples[i])
-      }
+      this._markVideoSample(videoTrack.samples[i])
     }
     const usedPos = Math.max(videoEndByte, audioEndByte)
     this._lastRemainBuffer = data.subarray(usedPos)

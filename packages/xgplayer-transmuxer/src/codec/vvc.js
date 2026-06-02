@@ -2,38 +2,6 @@
 // import { avc } from 'xgplayer-helper-codec'
 import ExpGolomb from './expGolomb'
 
-
-// bvc2结构体定义
-// aligned(8) class VvcDecoderConfigurationRecord {
-//   unsigned int(8) configurationVersion = 1;
-//   bit(5) reserved = '0'b;
-//   unsigned int(2) lengthSizeMinusOne;
-//   unsigned int(1) ptl_present_flag;
-//   if (ptl_present_flag) {
-//     unsigned int(2) chroma_format_idc;
-//     unsigned int(3) bit_depth_minus8;
-//     unsigned int(3) numTemporalLayers;
-//     unsigned int(2) constantFrameRate;
-//     bit(6) reserved = '0'b;
-//     VvcPTLRecord(numTemporalLayers) track_ptl;
-//     unsigned int(16) output_layer_set_idx;
-//     unsigned_int(16) picture_width;
-//     unsigned_int(16) picture_height;
-//     unsigned int(16) avgFrameRate;
-//   }
-//   unsigned int(8) numOfArrays;
-//   for (j=0; j < numOfArrays; j++) {
-//     unsigned int(1) array_completeness;
-//     bit(2) reserved = 0;
-//     unsigned int(5) NAL_unit_type;
-//     unsigned int(16) numNalus;
-//     for (i=0; i< numNalus; i++) {
-//       unsigned int(16) nalUnitLength;
-//       bit(8*nalUnitLength) nalUnit;
-//     }
-//   }
-// }
-
 // aligned(8) class VvcPTLRecord(num_sublayers) {
 //   bit(2) reserved = 0;
 //   unsigned int(6) num_bytes_constraint_info;
@@ -56,7 +24,7 @@ import ExpGolomb from './expGolomb'
 // }
 
 
-class StreamReader {
+export class StreamReader {
 
   constructor (uint8Arr) {
     this._buffer = uint8Arr
@@ -152,7 +120,7 @@ export class VVC {
    * Per RFC 9328 the VVC codec string is:
    *   <SampleEntry4CC>.<general_profile_idc>.<L|H><general_level_idc>[.C<constraints>][.O<sub_profiles>]
    * where:
-   *   - SampleEntry4CC: 'vvc1', 'vvi1', or the non-standard 'bvc2' used historically
+   *   - SampleEntry4CC: 'vvc1' or 'vvi1'
    *   - tier code 'L' for Main tier (general_tier_flag = 0), 'H' for High tier
    * We only emit the 4CC + profile + tier/level part here; constraint/sub-profile
    * info is optional and not required by MSE for isTypeSupported checks.
@@ -174,26 +142,10 @@ export class VVC {
   }
 
   /**
-   * Parse a VVC decoder configuration record. Two on-disk layouts exist in the
-   * wild:
-   *   1. The **standard** VvcDecoderConfigurationRecord defined by
-   *      ISO/IEC 14496-15:2022 / Amendment 2, carried inside a `vvcC` box next
-   *      to `vvc1` / `vvi1` sample entries. No configurationVersion byte; the
-   *      first byte holds `reserved(5='11111') | LengthSizeMinusOne(2) |
-   *      ptl_present_flag(1)`. Some writers (GPAC among them) emit the
-   *      enclosing `VvcConfigurationBox` as a FullBox, so a 4-byte
-   *      version+flags preamble may precede the record.
-   *   2. A legacy variant carried inside `bv2C` next to `bvc2` sample entries
-   *      (non-standard, pre-dates Amd.2). It starts with a
-   *      `configurationVersion` byte and uses a different field order.
-   *
-   * `sampleEntryType` is used as a hint to pick the right layout and to build
-   * the RFC 9328 codec string.
+   * Parse a standard VVC decoder configuration record carried inside `vvcC`
+   * next to `vvc1` / `vvi1` sample entries.
    */
   static parseVVCDecoderConfigurationRecord (data, sampleEntryType) {
-    if (sampleEntryType === 'bvc2') {
-      return VVC._parseLegacyVvcConfigurationRecord(data, sampleEntryType)
-    }
     return VVC._parseStandardVvcConfigurationRecord(data, sampleEntryType || 'vvc1')
   }
 
@@ -250,71 +202,6 @@ export class VVC {
       data,
       codec: VVC.buildCodecString(sampleEntryType, ptlRecord),
       sampleEntryType: sampleEntryType || 'vvc1',
-      nalUnitSize: lengthSizeMinusOne + 1,
-      ptlPresentFlag,
-      olsIdx,
-      numSublayers,
-      constantFrameRate,
-      chromaFormatIdc,
-      bitDepthLumaMinus8,
-      ptlRecord,
-      width: maxPictureWidth,
-      height: maxPictureHeight,
-      sampleRate: avgFrameRate,
-      numOfArrays: nalArrays.numOfArrays,
-      vps: nalArrays.vps,
-      sps: nalArrays.sps,
-      pps: nalArrays.pps,
-      spsParsed: nalArrays.spsParsed
-    }
-  }
-
-  /**
-   * Legacy VvcDecoderConfigurationRecord carried in `bv2C`. Kept for
-   * compatibility with pre-Amd.2 content that used the non-standard `bvc2`
-   * sample entry.
-   */
-  static _parseLegacyVvcConfigurationRecord (data, sampleEntryType) {
-    const reader = new StreamReader(data)
-    const configurationVersion = reader.readUint8()
-    reader.streamRead1Bytes()
-    reader.extractBits(5) // reserved
-
-    const lengthSizeMinusOne = reader.extractBits(2)
-    const ptlPresentFlag = reader.extractBits(1)
-
-    let olsIdx
-    let numSublayers = 1
-    let constantFrameRate
-    let chromaFormatIdc
-    let bitDepthLumaMinus8
-    let ptlRecord = {}
-    let maxPictureWidth
-    let maxPictureHeight
-    let avgFrameRate
-
-    if (ptlPresentFlag) {
-      reader.streamRead2Bytes()
-      chromaFormatIdc = reader.extractBits(2)
-      bitDepthLumaMinus8 = reader.extractBits(3)
-      numSublayers = reader.extractBits(3)
-      constantFrameRate = reader.extractBits(2)
-      reader.extractBits(6) // reserved
-
-      ptlRecord = VVC.parseVVCPTLRecord(reader, numSublayers)
-      olsIdx = reader.readUint16()
-      maxPictureWidth = reader.readUint16()
-      maxPictureHeight = reader.readUint16()
-      avgFrameRate = reader.readUint16()
-    }
-
-    const nalArrays = VVC._parseVVCNalArrays(reader)
-
-    return {
-      data,
-      configurationVersion,
-      codec: VVC.buildCodecString(sampleEntryType, ptlRecord),
-      sampleEntryType: sampleEntryType || 'bvc2',
       nalUnitSize: lengthSizeMinusOne + 1,
       ptlPresentFlag,
       olsIdx,
