@@ -1,5 +1,6 @@
 import { VideoCodecType } from '../../src/model'
 import { MP4Demuxer } from '../../src/mp4/mp4-demuxer'
+import { registerVideoCodec, unregisterVideoCodec } from '../../src/codec'
 
 function nal (type) {
   return new Uint8Array([0, type << 3])
@@ -19,6 +20,10 @@ function sampleData (...units) {
 }
 
 describe('MP4Demuxer', () => {
+  afterEach(() => {
+    unregisterVideoCodec('test-demux-codec')
+  })
+
   test('marks VVC random access samples from demuxPart units', () => {
     const cra = sampleData(nal(9))
     const rasl = sampleData(nal(3))
@@ -59,5 +64,39 @@ describe('MP4Demuxer', () => {
     expect(videoTrack.samples[1].sideData.vvcNalInfo.nalTypes).toEqual([3])
     expect(videoTrack.samples[1].sideData.vvcNalInfo.randomAccessType).toBe('')
     expect(videoTrack.samples[1].sideData.vvcNalInfo.rasl).toBe(true)
+  })
+
+  test('marks samples through registered codec hook', () => {
+    const data = sampleData(nal(1))
+    const markSample = jest.fn(({ sample }) => {
+      sample.sideData = { customMarked: true }
+    })
+    registerVideoCodec({
+      id: 'test-demux-codec',
+      kind: 'video',
+      codecType: 'test-demux',
+      sampleEntries: ['tdem'],
+      markSample
+    })
+
+    const demuxer = new MP4Demuxer([{
+      frames: [{
+        index: 0,
+        offset: 0,
+        size: data.byteLength,
+        dts: 0,
+        pts: 0,
+        duration: 40,
+        keyframe: true,
+        gopId: 0
+      }]
+    }])
+    demuxer.parseSamples = () => {}
+    demuxer.videoTrack.codecType = 'test-demux'
+
+    const { videoTrack } = demuxer.demuxPart(data, 0, [0, 0], null)
+
+    expect(markSample).toHaveBeenCalledTimes(1)
+    expect(videoTrack.samples[0].sideData.customMarked).toBe(true)
   })
 })

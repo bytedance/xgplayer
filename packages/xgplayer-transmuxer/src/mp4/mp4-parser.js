@@ -2,9 +2,14 @@
 /** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
 /** biome-ignore-all lint/complexity/useOptionalChain: <explanation> */
 /** biome-ignore-all lint/suspicious/noPrototypeBuiltins: <explanation> */
-import { AAC, VVC } from '../codec'
+import { AAC } from '../codec'
+import { getVideoCodec, videoCodecRegistry } from '../codec/video-codec-registry'
 import { AudioCodecType, VideoCodecType } from '../model'
 import { getAvcCodec, readBig16, readBig24, readBig32, readBig64, readInt32, readInt64 } from '../utils'
+
+function normalizeTypes (types) {
+  return (types || []).filter(Boolean)
+}
 
 // biome-ignore lint/complexity/noStaticOnlyClass: Allow static-only class for MP4Parser utilities
 export class MP4Parser {
@@ -336,50 +341,52 @@ export class MP4Parser {
     })
   }
 
-
-  static bvc2 (box) {
-    return parseBox(box, false, (ret, data, start) => {
-      const bodyStart = parseVisualSampleEntry(ret, data)
-      const bodyData = data.subarray(bodyStart)
-      start += bodyStart
-      ret.vvcC = MP4Parser.bv2C(MP4Parser.findBox(bodyData, ['bv2C'], start)[0])
-      ret.pasp = MP4Parser.pasp(MP4Parser.findBox(bodyData, ['pasp'], start)[0])
-    })
-  }
-
-  static bv2C (box) {
-    return parseBox(box, false, (ret, data, start) => {
-      const record = VVC.parseVVCDecoderConfigurationRecord(data, 'bvc2')
-      for (const key in record) {
-        if (Object.prototype.hasOwnProperty.call(record, key)) {
-          ret[key] = record[key]
-        }
-      }
-    })
-  }
-
   // Standard VVC sample entry (ISO/IEC 14496-15:2022 Amendment 2)
   //   vvc1: parameter sets MAY be stored only in vvcC
   //   vvi1: parameter sets are also stored inline in samples
   // Both use the standard 'vvcC' VVC decoder configuration box.
   static vvc1 (box) {
-    return parseBox(box, false, (ret, data, start) => {
-      const bodyStart = parseVisualSampleEntry(ret, data)
-      const bodyData = data.subarray(bodyStart)
-      start += bodyStart
-      ret.vvcC = MP4Parser.vvcC(MP4Parser.findBox(bodyData, ['vvcC'], start)[0], ret.type)
-      ret.pasp = MP4Parser.pasp(MP4Parser.findBox(bodyData, ['pasp'], start)[0])
-    })
+    return MP4Parser.videoSampleEntry(box)
   }
 
   static vvcC (box, sampleEntryType) {
+    return MP4Parser.videoConfigBox(box, sampleEntryType || 'vvc1')
+  }
+
+  static videoConfigBox (box, sampleEntryType) {
+    if (!box) return
+    const codec = getVideoCodec({ configBox: box.type })
+    if (!codec?.parseConfigBox) return
     return parseBox(box, false, (ret, data) => {
-      const record = VVC.parseVVCDecoderConfigurationRecord(data, sampleEntryType || 'vvc1')
+      const record = codec.parseConfigBox({
+        data,
+        box,
+        sampleEntryType,
+        parser: MP4Parser
+      })
       for (const key in record) {
         if (Object.prototype.hasOwnProperty.call(record, key)) {
           ret[key] = record[key]
         }
       }
+    })
+  }
+
+  static videoSampleEntry (box) {
+    const codec = getVideoCodec({ sampleEntry: box?.type })
+    if (!codec) return
+    return parseBox(box, false, (ret, data, start) => {
+      const bodyStart = parseVisualSampleEntry(ret, data)
+      const bodyData = data.subarray(bodyStart)
+      start += bodyStart
+      normalizeTypes(codec.configBoxes).some(configBoxType => {
+        const configBox = MP4Parser.findBox(bodyData, [configBoxType], start)[0]
+        const parsed = MP4Parser.videoConfigBox(configBox, ret.type)
+        if (!parsed) return false
+        ret[codec.trackConfigKey || configBoxType] = parsed
+        return true
+      })
+      ret.pasp = MP4Parser.pasp(MP4Parser.findBox(bodyData, ['pasp'], start)[0])
     })
   }
 
@@ -400,9 +407,6 @@ export class MP4Parser {
           case 'vvc1':
           case 'vvi1':
             return MP4Parser.vvc1(b)
-          // Legacy pre-Amd.2 sample entry sometimes used for H.266/VVC content.
-          case 'bvc2':
-            return MP4Parser.bvc2(b)
           case 'mp4a':
             return MP4Parser.mp4a(b)
           case 'alaw':
@@ -429,14 +433,21 @@ export class MP4Parser {
               ret.sinf = MP4Parser.sinf(MP4Parser.findBox(data, ['sinf'], start)[0])
               ret.avcC = MP4Parser.avcC(MP4Parser.findBox(data, ['avcC'], start)[0])
               ret.hvcC = MP4Parser.hvcC(MP4Parser.findBox(data, ['hvcC'], start)[0])
-              // VVC encrypted content may carry the standard 'vvcC' box or the
-              // legacy 'bv2C' box inside encv; try both so downstream stays agnostic.
               const underlyingFormat = ret.sinf?.frma?.data_format
-              ret.vvcC = MP4Parser.vvcC(MP4Parser.findBox(data, ['vvcC'], start)[0], underlyingFormat) ||
-                         MP4Parser.bv2C(MP4Parser.findBox(data, ['bv2C'], start)[0])
+              const encryptedCodec = getVideoCodec({ sampleEntry: underlyingFormat })
+              const codecs = encryptedCodec ? [encryptedCodec] : videoCodecRegistry.list()
+              codecs.some(codec => {
+                return normalizeTypes(codec.configBoxes).some(configBoxType => {
+                  const parsed = MP4Parser.videoConfigBox(MP4Parser.findBox(data, [configBoxType], start)[0], underlyingFormat)
+                  if (!parsed) return false
+                  ret[codec.trackConfigKey || configBoxType] = parsed
+                  return true
+                })
+              })
               ret.pasp = MP4Parser.pasp(MP4Parser.findBox(data, ['pasp'], start)[0])
             })
           default:
+            if (getVideoCodec({ sampleEntry: b.type })) return MP4Parser.videoSampleEntry(b)
         }
       }).filter(Boolean)
     })
@@ -890,19 +901,14 @@ export class MP4Parser {
         v.sps = e1.avcC.sps
         v.pps = e1.avcC.pps
       } else if (e1.vvcC) {
-        v.codecType = VideoCodecType.VVCC
-        v.codec = e1.vvcC.codec
-        v.sps = e1.vvcC.sps
-        v.pps = e1.vvcC.pps
-        v.vps = e1.vvcC.vps
-        v.vvcC = e1.vvcC.data
-        if (e1.vvcC.nalUnitSize) v.nalUnitSize = e1.vvcC.nalUnitSize
-        // Preserve the original sample entry FourCC ('vvc1' / 'vvi1' / 'bvc2')
-        // so the remuxer can emit an init segment that matches the source.
-        // For encrypted video the underlying codec 4CC lives in sinf.frma.
-        v.vvccSampleEntryType = e1.type === 'encv'
-          ? (e1.sinf?.frma?.data_format || e1.vvcC.sampleEntryType || 'vvc1')
-          : e1.type
+        const codec = getVideoCodec({ sampleEntry: e1.type === 'encv' ? e1.sinf?.frma?.data_format : e1.type }) ||
+          getVideoCodec({ configBox: 'vvcC' })
+        codec.applyTrackConfig({
+          track: v,
+          entry: e1,
+          config: e1.vvcC,
+          parser: MP4Parser
+        })
       } else {
         throw new Error('unknown video stsd entry')
       }
