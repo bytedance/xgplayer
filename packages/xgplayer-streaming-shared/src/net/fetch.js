@@ -134,10 +134,10 @@ export class FetchLoader extends EventEmitter {
         }
 
         const firstByteTime = Date.now()
+        this._priOptions.rtt = firstByteTime - startTime
         if (dynamicTimeoutIns && typeof dynamicTimeoutIns.update === 'function') {
-          const rtt = firstByteTime - startTime
-          this._logger.debug('[dytimeout] fetch update rtt,', rtt)
-          dynamicTimeoutIns.update(rtt)
+          this._logger.debug('[dytimeout] fetch update rtt,', this._priOptions.rtt)
+          dynamicTimeoutIns.update(this._priOptions.rtt)
         }
 
         let data

@@ -167,14 +167,16 @@ export class XhrLoader extends EventEmitter {
   _onReadyStatechange (e) {
     const xhr = e.target
     if (xhr.readyState === 2) {
-      this._firstRtt < 0 && (this._firstRtt = Date.now())
+      if (this._firstRtt < 0) {
+        this._firstRtt = Date.now()
+        this._priOptions.rtt = this._firstRtt - this._startTime
+      }
       if (
         this._dynamicTimeoutIns &&
         typeof this._dynamicTimeoutIns.update === 'function'
       ) {
-        const rtt = Date.now() - this._startTime
-        this._logger.debug('[dytimeout] xhr update rtt,', rtt)
-        this._dynamicTimeoutIns.update(rtt)
+        this._logger.debug('[dytimeout] xhr update rtt,', this._priOptions.rtt)
+        this._dynamicTimeoutIns.update(this._priOptions.rtt)
       }
     }
   }
