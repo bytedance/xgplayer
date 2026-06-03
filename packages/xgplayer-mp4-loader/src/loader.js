@@ -278,14 +278,23 @@ export class MP4Loader extends EventEmitter {
     let segments = moovToSegments(parsedMoov, this._config)
     let parsedSidx
     if (!isSegmentsOk(segments)) {
-      const moof = MP4Parser.findBox(this.buffer, ['moof'])[0]
-      const sidx = MP4Parser.findBox(this.buffer, ['sidx'])[0]
-      if (moof && moof.size <= moof.data.length && sidx) {
-        const parsedMoof = MP4Parser.moof(moof)
-
+      const getCompletedBox = async (data, name) => {
+        const box = MP4Parser.findBox(data, [name])[0]
+        if (!box) return
+        if (box.size > box.data.length) {
+          const boxRes = await this.loadData([box.start, box.start + box.size - 1], cache, config)
+          if (boxRes) {
+            responses.push(boxRes)
+            return MP4Parser.findBox(boxRes.data, [name], box.start)[0]
+          }
+        }
+        return box
+      }
+      const sidx = await getCompletedBox(responses[0]?.data, 'sidx')
+      if (sidx) {
         parsedSidx = MP4Parser.sidx(sidx)
-        if (parsedMoof && parsedSidx) {
-          segments = sidxToSegments(parsedMoov, parsedSidx, parsedMoof)
+        if (parsedSidx) {
+          segments = sidxToSegments(parsedMoov, parsedSidx)
         }
       }
     }
