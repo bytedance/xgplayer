@@ -1,5 +1,7 @@
 
 // import { avc } from 'xgplayer-helper-codec'
+import { BitReader } from '../utils/bit-reader'
+import { ByteReader } from '../utils/byte-reader'
 import ExpGolomb from './expGolomb'
 
 // aligned(8) class VvcPTLRecord(num_sublayers) {
@@ -24,52 +26,9 @@ import ExpGolomb from './expGolomb'
 // }
 
 
-export class StreamReader {
-
-  constructor (uint8Arr) {
-    this._buffer = uint8Arr
-    this._offset = 0
-    this._heldBits = 0
-    this._numHeldBits = 0
-  }
-
-  readUint8 () {
-    return this._buffer[this._offset++]
-  }
-
-  readUint16 () {
-    return (this._buffer[this._offset++] << 8) | this._buffer[this._offset++]
-  }
-
-  readUint32 () {
-    return (this._buffer[this._offset++] << 24) |
-    (this._buffer[this._offset++] << 16) |
-    (this._buffer[this._offset++] << 8) |
-    (this._buffer[this._offset++])
-  }
-
-  readUint8Array (len) {
-    const ret = this._buffer.slice(this._offset, this._offset + len)
-    this._offset += len
-    return ret
-  }
-
-  streamRead1Bytes () {
-    this._heldBits = this.readUint8()
-    this._numHeldBits = 1 * 8
-  }
-
-  streamRead2Bytes () {
-    this._heldBits = this.readUint16()
-    this._numHeldBits = 2 * 8
-  }
-
-  extractBits (numBits) {
-    const ret = (this._heldBits >> (this._numHeldBits - numBits)) & ((1 << numBits) - 1)
-    this._numHeldBits -= numBits
-    return ret
-  }
-
+function readUint8Array (reader, len) {
+  if (!len) return new Uint8Array()
+  return reader.readToUint8(len).slice()
 }
 
 const VVC_NAL_TYPE_RASL = 3
@@ -162,11 +121,11 @@ export class VVC {
       payload = payload.subarray(4)
     }
 
-    const reader = new StreamReader(payload)
-    reader.streamRead1Bytes()
-    reader.extractBits(5) // reserved = '11111'b
-    const lengthSizeMinusOne = reader.extractBits(2)
-    const ptlPresentFlag = reader.extractBits(1)
+    const reader = ByteReader.fromUint8(payload)
+    const headerBits = BitReader.fromByte(reader, 1)
+    headerBits.read(5) // reserved = '11111'b
+    const lengthSizeMinusOne = headerBits.read(2)
+    const ptlPresentFlag = headerBits.read(1)
 
     let olsIdx
     let numSublayers = 1
@@ -179,21 +138,21 @@ export class VVC {
     let avgFrameRate
 
     if (ptlPresentFlag) {
-      reader.streamRead2Bytes()
-      olsIdx = reader.extractBits(9)
-      numSublayers = reader.extractBits(3)
-      constantFrameRate = reader.extractBits(2)
-      chromaFormatIdc = reader.extractBits(2)
+      const olsBits = BitReader.fromByte(reader, 2)
+      olsIdx = olsBits.read(9)
+      numSublayers = olsBits.read(3)
+      constantFrameRate = olsBits.read(2)
+      chromaFormatIdc = olsBits.read(2)
 
-      reader.streamRead1Bytes()
-      bitDepthLumaMinus8 = reader.extractBits(3)
-      reader.extractBits(5) // reserved = '11111'b
+      const depthBits = BitReader.fromByte(reader, 1)
+      bitDepthLumaMinus8 = depthBits.read(3)
+      depthBits.read(5) // reserved = '11111'b
 
       ptlRecord = VVC.parseVVCPTLRecord(reader, numSublayers)
 
-      maxPictureWidth = reader.readUint16()
-      maxPictureHeight = reader.readUint16()
-      avgFrameRate = reader.readUint16()
+      maxPictureWidth = reader.read(2)
+      maxPictureHeight = reader.read(2)
+      avgFrameRate = reader.read(2)
     }
 
     const nalArrays = VVC._parseVVCNalArrays(reader)
@@ -230,31 +189,31 @@ export class VVC {
     const VVC_NALU_OPI = 12
     const VVC_NALU_DEC_PARAM = 13
 
-    const numOfArrays = reader.readUint8()
+    const numOfArrays = reader.read(1)
     const vpsArr = []
     const spsArr = []
     const ppsArr = []
     let spsParsed = null
 
     for (let i = 0; i < numOfArrays; i++) {
-      reader.streamRead1Bytes()
-      reader.extractBits(1) // array_completeness
-      reader.extractBits(2) // reserved
-      const naluType = reader.extractBits(5)
+      const arrayBits = BitReader.fromByte(reader, 1)
+      arrayBits.read(1) // array_completeness
+      arrayBits.read(2) // reserved
+      const naluType = arrayBits.read(5)
 
       let numNalus = 1
       if (naluType !== VVC_NALU_DEC_PARAM && naluType !== VVC_NALU_OPI) {
-        numNalus = reader.readUint16()
+        numNalus = reader.read(2)
       }
 
       for (let j = 0; j < numNalus; j++) {
-        const len = reader.readUint16()
+        const len = reader.read(2)
         switch (naluType) {
           case 14:
-            vpsArr.push(reader.readUint8Array(len))
+            vpsArr.push(readUint8Array(reader, len))
             break
           case 15: {
-            const sps = reader.readUint8Array(len)
+            const sps = readUint8Array(reader, len)
             if (!spsParsed) {
               try { spsParsed = VVC.parseSPS(VVC.removeEPB(sps)) } catch (e) { /* best-effort */ }
             }
@@ -262,12 +221,12 @@ export class VVC {
             break
           }
           case 16:
-            ppsArr.push(reader.readUint8Array(len))
+            ppsArr.push(readUint8Array(reader, len))
             break
           default:
             // Skip unknown NAL types (APS, DCI, OPI, …) – we only care about
             // SPS/PPS/VPS for downstream remuxing.
-            reader.readUint8Array(len)
+            readUint8Array(reader, len)
         }
       }
     }
@@ -276,55 +235,55 @@ export class VVC {
   }
 
   static parseVVCPTLRecord (reader, numSublayers) {
-    reader.streamRead2Bytes()
-    reader.extractBits(2)
-    const numBytesConstraintInfo = reader.extractBits(6)
-    const generalProfileIdc = reader.extractBits(7)
-    const generalTierFlag = reader.extractBits(1)
-    const generalLevelIdc = reader.readUint8()
+    const ptlBits = BitReader.fromByte(reader, 2)
+    ptlBits.read(2)
+    const numBytesConstraintInfo = ptlBits.read(6)
+    const generalProfileIdc = ptlBits.read(7)
+    const generalTierFlag = ptlBits.read(1)
+    const generalLevelIdc = reader.read(1)
 
-    reader.streamRead1Bytes()
-    const ptlFrameOnlyConstraintFlag = reader.extractBits(1)
-    const ptlMultilayerEnabledFlag = reader.extractBits(1)
+    let constraintBits = BitReader.fromByte(reader, 1)
+    const ptlFrameOnlyConstraintFlag = constraintBits.read(1)
+    const ptlMultilayerEnabledFlag = constraintBits.read(1)
     const generalConstraintInfo = new Uint8Array(numBytesConstraintInfo)
     if (numBytesConstraintInfo) {
       for (let i = 0; i < numBytesConstraintInfo - 1; i++) {
-        const cnstr1 = reader.extractBits(6)
-        reader.streamRead1Bytes()
-        const cnstr2 = reader.extractBits(2)
+        const cnstr1 = constraintBits.read(6)
+        constraintBits = BitReader.fromByte(reader, 1)
+        const cnstr2 = constraintBits.read(2)
         generalConstraintInfo[i] = ((cnstr1 << 2) | cnstr2)
       }
-      generalConstraintInfo[numBytesConstraintInfo - 1] = reader.extractBits(6)
+      generalConstraintInfo[numBytesConstraintInfo - 1] = constraintBits.read(6)
     } else {
-      reader.extractBits(6)
+      constraintBits.read(6)
     }
 
     const subLayerLevelIdc = []
     if (numSublayers > 1) {
-      reader.streamRead1Bytes()
+      const subLayerBits = BitReader.fromByte(reader, 1)
       let ptlSublayerPresentMask = 0
 
       for (let j = numSublayers - 2; j >= 0; --j) {
-        const val = reader.extractBits(1)
+        const val = subLayerBits.read(1)
         ptlSublayerPresentMask |= val << j
       }
 
       for (let j = numSublayers; j <= 8 && numSublayers > 1; ++j) {
-        reader.extractBits(1)
+        subLayerBits.read(1)
       }
 
       for (let j = numSublayers - 2; j >= 0; --j) {
         if (ptlSublayerPresentMask & (1 << j)) {
-          subLayerLevelIdc[j] = reader.readUint8()
+          subLayerLevelIdc[j] = reader.read(1)
         }
       }
     }
 
-    const ptlNumSubProfiles = reader.readUint8()
+    const ptlNumSubProfiles = reader.read(1)
     const generalSubProfileIdc = []
     if (ptlNumSubProfiles) {
       for (let i = 0; i < ptlNumSubProfiles; i++) {
-        generalSubProfileIdc.push(reader.readUint32())
+        generalSubProfileIdc.push(reader.readInt(4))
       }
     }
 

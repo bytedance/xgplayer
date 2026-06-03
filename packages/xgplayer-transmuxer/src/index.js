@@ -7,4 +7,8 @@ export {
   registerVideoCodec,
   unregisterVideoCodec
 } from './codec'
-export { Logger } from './utils'
+export {
+  BitReader,
+  ByteReader,
+  Logger
+} from './utils'

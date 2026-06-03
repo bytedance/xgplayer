@@ -1,5 +1,7 @@
 /* c8 ignore next 4 */
 export { ExpGolomb } from './exp-golomb'
+export { BitReader } from './bit-reader'
+export { ByteReader } from './byte-reader'
 export { Logger } from './logger'
 export { UTF8 } from './utf8'
 export * from './env'
