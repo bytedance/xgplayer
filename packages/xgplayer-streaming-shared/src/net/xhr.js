@@ -54,6 +54,7 @@ export class XhrLoader extends EventEmitter {
     this._body = req.body || null
     req.method && (this._method = req.method)
     this._timeout = req.timeout || null
+    this._dynamicTimeoutIns = req.dynamicTimeoutIns
     this._runing = true
     this._vid = req.vid || req.url
     this._responseType = req.responseType
@@ -116,8 +117,11 @@ export class XhrLoader extends EventEmitter {
         typeof this._dynamicTimeoutIns.getTimeout === 'function'
           ? this._dynamicTimeoutIns.getTimeout(this._timeout)
           : this._timeout
-      timeoutMs && (xhr.timeout = timeoutMs)
-      this._logger.debug('[dytimeout], xhr set timeout', timeoutMs)
+      if (timeoutMs) {
+        xhr.timeout = timeoutMs
+        this.curTimeout = timeoutMs
+      }
+      this._logger.debug('[dytimeout] xhr set timeout', timeoutMs)
       xhr.withCredentials = this._withCredentials
       xhr.onload = this._onLoad.bind(this)
       xhr.onreadystatechange = this._onReadyStatechange.bind(this)
@@ -128,14 +132,17 @@ export class XhrLoader extends EventEmitter {
         this._loadCompleteReject(error)
       }
       xhr.ontimeout = (event) => {
-        if (this._dynamicTimeoutIns && typeof this._dynamicTimeoutIns.update === 'function') {
-          this._logger.debug('[dytimeout], xhr timeout update rtt,', timeoutMs * 5)
+        if (
+          this._dynamicTimeoutIns &&
+          typeof this._dynamicTimeoutIns.update === 'function'
+        ) {
+          this._logger.debug('[dytimeout] xhr timeout update rtt,', xhr.timeout * 5)
           this._dynamicTimeoutIns.update(xhr.timeout * 5)
         }
         this.cancel()
         const error = new NetError(this._url, this._request, {status:408}, 'timeout')
+        error.isTimeout = true
         if (this._onTimeout) {
-          error.isTimeout = true
           this._onTimeout(error,{index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions})
         }
         error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}

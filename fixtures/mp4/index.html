@@ -28,7 +28,7 @@
 <script type="module">
   var vConsole = new window.VConsole();
   import Player from '../../packages/xgplayer/src/index'
-  import Mp4Plugin from '../../packages/xgplayer-mp4/src/index'
+  import Mp4Plugin  from '../../packages/xgplayer-mp4/src/index'
   var videoList = [
     {
       definition: '360p',
@@ -80,8 +80,10 @@
   let player = new Player({
     id: 'vs',
     autoplay: true,
-    volume: 1,
-    url: '//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4?test=10',
+    volume: 0.2,
+    // url: 'http://tosv.byted.org/obj/media-fe/badcase/av-not-sync-hevc.mp4',
+    // url:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
+    url: 'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4?test=10',
     poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
     playsinline: true,
     thumbnail: {
@@ -105,16 +107,25 @@
     // },
     height: window.innerHeight -300,
     width: window.innerWidth,
-    waitingInBufferTimeOut: 5000,
     // plugins: [Mp4Plugin],
-    //
-    // // set mp4Plugin support Apple's MMS
-    // mp4Plugin: {
-    //     dynamicTimeoutIns: sharedDynamicTimeoutIns,
-    //     changeUrlRetry:true,
+    // mp4plugin: {
+    //   // enableWorker:true,
+    //   disableBufferBreakCheck:true,
+    //   memoryOpt:true,
     // }
+    waitingInBufferTimeOut: 5000,
+    plugins: [Mp4Plugin],
+
+    // set mp4Plugin support Apple's MMS
+    mp4Plugin: {
+        dynamicTimeoutIns: sharedDynamicTimeoutIns,
+        changeUrlRetry:true,
+    }
   });
   window.player = player
+  window.player.on('networkError', (err) => {
+      console.log(err);
+  })
 
   function playNext() {
     player.playNext({
@@ -127,9 +138,10 @@
     })
   }
   window.playNext = playNext
-  // player.on('ended', () => {
-  //   player.replay()
-  // })
+  player.on('ended', () => {
+    console.log('duration:', player.duration)
+    // player.replay()
+  })
   player.on('pause', () => {
     console.log('>>>>pause')
   })

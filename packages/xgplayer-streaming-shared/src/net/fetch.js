@@ -20,6 +20,8 @@ export class FetchLoader extends EventEmitter {
   _onProcessMinLen = 0
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
+  _processMaxGapTime = Infinity
+  curTimeout = 0
 
   constructor () {
     super()
@@ -53,7 +55,8 @@ export class FetchLoader extends EventEmitter {
     onProcessMinLen,
     priOptions,
     streamRes,
-    firstMaxChunkSize
+    firstMaxChunkSize,
+    processMaxGapTime
   }) {
     this._logger = logger
     this._aborted = false
@@ -61,11 +64,13 @@ export class FetchLoader extends EventEmitter {
     this._onCancel = onCancel
     this._abortController = typeof AbortController !== 'undefined' && new AbortController()
     this._running = true
+    this._receivedLength = 0
     this._index = index
     this._range = range || [0, 0]
     this._vid = vid || url
     this._priOptions = priOptions || {}
     this._firstMaxChunkSize = firstMaxChunkSize
+    this._processMaxGapTime = processMaxGapTime
     const init = {
       method,
       headers,
@@ -97,20 +102,19 @@ export class FetchLoader extends EventEmitter {
         headers.Range = rangeValue
       }
     }
-
     const timeoutMs =
       dynamicTimeoutIns && typeof dynamicTimeoutIns.getTimeout === 'function'
         ? dynamicTimeoutIns.getTimeout(timeout)
         : timeout
-
+    this.curTimeout = timeoutMs
     if (timeoutMs) {
-      this._timeoutTimer = setTimeout(() => {
+      this._timeoutTimer = setTimeout(async()  => {
         isTimeout = true
         if (dynamicTimeoutIns && typeof dynamicTimeoutIns.update === 'function') {
-          this._logger.debug('[dytimeout], fetch timeout update rtt,', timeoutMs * 5)
+          this._logger.debug('[dytimeout] fetch timeout update rtt,', timeoutMs * 5)
           dynamicTimeoutIns.update(timeoutMs * 5)
         }
-        this.cancel()
+        await this.cancel()
         if (onTimeout) {
           const error = new NetError(url, init, null, 'timeout')
           error.isTimeout = true
@@ -244,6 +248,7 @@ export class FetchLoader extends EventEmitter {
 
     let startTime
     let endTime
+    let lastReadDataTime = Date.now()
     const pump = async () => {
       startTime = Date.now()
       try {
@@ -268,12 +273,12 @@ export class FetchLoader extends EventEmitter {
       }
       const curLen = data.value ? data.value.byteLength : 0
       this._receivedLength += curLen
-      this._logger.debug('【fetchLoader,onProgress call】,task,', this._range, ', start,', startByte, ', end,', startRange + this._receivedLength, ', done,', data.done)
+      // this._logger.debug('【fetchLoader,onProgress call】,task,', this._range, ', start,', startByte, ', end,', startRange + this._receivedLength, ', done,', data.done)
       let retData
       if (this._onProcessMinLen > 0) {
         if (this._writeIdx + curLen >= this._onProcessMinLen || data.done) {
           retData = new Uint8Array(this._writeIdx + curLen)
-          retData.set(this._cache.slice(0, this._writeIdx), 0)
+          retData.set(this._cache.subarray(0, this._writeIdx), 0)
           curLen > 0 && retData.set(data.value, this._writeIdx)
           this._writeIdx = 0
           this._logger.debug('【fetchLoader,onProgress enough】,done,', data.done, ',len,', retData.byteLength, ', writeIdx,', this._writeIdx)
@@ -285,7 +290,7 @@ export class FetchLoader extends EventEmitter {
           } else if (curLen > 0) {
             const temp = new Uint8Array(this._writeIdx + curLen + 2048)
             this._logger.debug('【fetchLoader,onProgress extra start】,size,', this._writeIdx + curLen + 2048, ', datalen,', curLen, ', writeIdx,', this._writeIdx)
-            temp.set(this._cache.slice(0, this._writeIdx), 0)
+            temp.set(this._cache.subarray(0, this._writeIdx), 0)
             curLen > 0 && temp.set(data.value, this._writeIdx)
             this._writeIdx += curLen
             delete this._cache
@@ -311,6 +316,7 @@ export class FetchLoader extends EventEmitter {
             this._cacheData = null
           }
         }
+        this._logger.debug('【fetchLoader,onProgress call】,task,', this._range, ', start,', startByte, ', end,', startRange + this._receivedLength, ', done,', data.done,st )
         onProgress(retData, data.done, {
           range: [this._range[0] + this._receivedLength - (retData ? retData.byteLength : 0), this._range[0] + this._receivedLength],
           vid: this._vid,
@@ -321,6 +327,15 @@ export class FetchLoader extends EventEmitter {
           firstByteTime,
           priOptions:this._priOptions
         }, response)
+        lastReadDataTime = Date.now()
+      } else if (Date.now() - lastReadDataTime >= this._processMaxGapTime) {
+        this._logger.debug(`[onProgress timeout],task: ${JSON.stringify(this._range)} done: ${data.done} processMaxGapTime: ${this._processMaxGapTime}`)
+        const error = new NetError(response.url, null, response, 'process timeout')
+        error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+        this.running = false
+        await this.cancel()
+        this.reject(error)
+        return
       }
       if (!data.done) {
         if (this._firstMaxChunkSize) {
