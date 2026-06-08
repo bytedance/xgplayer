@@ -159,6 +159,7 @@ module.exports = {
     '**/packages/xgplayer-dash/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
+    '**/packages/xgplayer-subtitles/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js'
   ],
 

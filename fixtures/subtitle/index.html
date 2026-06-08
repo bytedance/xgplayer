@@ -1,218 +1,348 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
-  <script>
-    var ua = navigator.userAgent.toLowerCase()
-    console.log('ua', ua, (ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1)
-    if ((ua.indexOf('mobile') > -1 || ua.indexOf('ipad') > -1) && location.href.indexOf('vconsole=1') > -1) {
-      var vConsole = new window.VConsole();
-    }
-  </script>
+    <title>xgplayer-subtitles demo</title>
     <style>
-      .pannel {
-        margin: 20px 0;
-        padding: 20px;
-        background: #72a0c8;
-      }
-      .message-pannel {
-        margin-top: 20px;
-        color: #333a3c;
-      }
-      .message-info {
-        margin-top: 20px;
-        border: 1px solid #728bb8;
-        padding: 10px 10px;
-      }
-      h4 {
-        margin-block-start: 0.2em;
-        margin-block-end: 0.2em;
-      }
-      p {
-        line-height: 18px;
-        display: block;
-        line-height: 16px;
-        /* margin: 10px; */
-        margin-block-start: 0.4em;
-        margin-block-end: 0.4em;
-      }
-      .ext-controls0 {
-        height: 80px !important;
-        background-color: #000;
-      }
-      .xgplayer .my-pop {
-        height: 100px;
-        width: 400px;
-        background-color: #72a0c8;
-        border: 2px solid red;
+      * {
         box-sizing: border-box;
       }
+
       body {
-        padding-left: 100px;
+        margin: 0;
+        background: #f5f7fb;
+        color: #1f2937;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .subtitle-demo {
+        width: min(1180px, calc(100vw - 48px));
+        margin: 0 auto;
+        padding: 32px 0;
+      }
+
+      .demo-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+
+      .demo-title {
+        margin: 0 0 6px;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .demo-description {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+      }
+
+      .source-link {
+        color: #2563eb;
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .source-link:hover {
+        text-decoration: underline;
+      }
+
+      .media-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 16px;
+        align-items: stretch;
+      }
+
+      .player-shell,
+      .timeline-panel {
+        overflow: hidden;
+        border: 1px solid #d8dee9;
+        border-radius: 8px;
+      }
+
+      .player-shell {
+        background: #0f172a;
+      }
+
+      #video0 {
+        min-height: 620px;
+      }
+
+      .timeline-panel {
+        display: flex;
+        min-height: 620px;
+        max-height: 620px;
+        flex-direction: column;
+        background: #fff;
+      }
+
+      .timeline-header {
+        border-bottom: 1px solid #e2e8f0;
+        padding: 16px 16px 12px;
+      }
+
+      .timeline-title {
+        margin: 0;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .timeline-list {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        overflow: auto;
+        padding: 12px;
+      }
+
+      .timeline-time {
+        color: #64748b;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .timeline-text {
+        color: #334155;
+        font-size: 12px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .timeline-empty {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+      }
+
+      .control-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .controls,
+      .status-panel {
+        background: #fff;
+        border: 1px solid #d8dee9;
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .controls {
+        display: grid;
+        align-content: start;
+        gap: 16px;
+      }
+
+      .section-title {
+        margin: 0 0 12px;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button {
+        height: 34px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 0 12px;
+      }
+
+      button:hover {
+        border-color: #2563eb;
+        color: #1d4ed8;
+      }
+
+      button.is-active {
+        border-color: #2563eb;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 600;
+      }
+
+      .timeline-item {
+        display: grid;
+        width: 100%;
+        height: auto;
+        min-height: 72px;
+        grid-template-columns: 68px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        border-color: #e2e8f0;
+        padding: 10px;
+        text-align: left;
+        white-space: pre-wrap;
+      }
+
+      .timeline-item.is-active {
+        border-color: #2563eb;
+        background: #eff6ff;
+      }
+
+      .status-list {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .status-row dt {
+        color: #64748b;
+        font-size: 12px;
+      }
+
+      .status-row dd {
+        margin: 0;
+        color: #0f172a;
+        font-size: 13px;
+        text-align: right;
+      }
+
+      .status-row .is-danger {
+        color: #b91c1c;
+        font-weight: 600;
+      }
+
+      .event-log {
+        min-height: 88px;
+        margin: 14px 0 0;
+        padding: 10px 10px 10px 24px;
+        background: #f8fafc;
+        border-radius: 6px;
+        color: #475569;
+        font-size: 12px;
+      }
+
+      .event-log li + li {
+        margin-top: 6px;
+      }
+
+      @media (max-width: 860px) {
+        .subtitle-demo {
+          width: calc(100vw - 24px);
+          padding: 16px 0;
+        }
+
+        .demo-header {
+          align-items: flex-start;
+        }
+
+        .control-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .media-panel {
+          grid-template-columns: 1fr;
+        }
+
+        #video0 {
+          min-height: 420px;
+        }
+
+        .timeline-panel {
+          min-height: 260px;
+          max-height: 320px;
+        }
       }
     </style>
   </head>
-
   <body>
-    <div id="video0" style="margin: 0 auto"></div>
-    <div class="pannel">
-      <div class="tool">
-        <button type="submit" class="btn" id="js-destroy0" onclick="window.destroy(0)">
-          销毁
-        </button>
-        <button type="submit" class="btn" id="js-reinit0" onclick="window.init(0)">
-          重新初始化
-        </button>
-        <button type="submit" class="btn" id="js-playnext0" onclick="window.playNext(0)">
-          播放下一个
-        </button>
-        <button
-          type="submit"
-          class="btn"
-          id="js-changelang0"
-          onclick="window.changeLang(0)"
+    <main class="subtitle-demo">
+      <header class="demo-header">
+        <div>
+          <h1 class="demo-title">xgplayer-subtitles demo</h1>
+          <p class="demo-description">External WebVTT, ASS, JSON, and dedicated XSS subtitle track examples.</p>
+        </div>
+        <a
+          class="source-link"
+          href="https://cesium.com/public/SandcastleSampleData/big-buck-bunny_trailer.mp4"
+          target="_blank"
+          rel="noreferrer"
         >
-          切换语言
-        </button>
-        <button
-          type="submit"
-          class="btn"
-          id="js-changelang0"
-          onclick="window.createDot(0)"
-        >
-          添加预览点
-        </button>
-      </div>
-      <div class="message-pannel">
-        <div class="message-info" id="js-show-lang0">
-          <h4>current lang:</h4>
+          Video source
+        </a>
+      </header>
+
+      <section class="media-panel" aria-label="Video player and subtitle timeline">
+        <div class="player-shell" aria-label="Video player">
+          <div id="video0"></div>
+        </div>
+        <aside class="timeline-panel" aria-label="Subtitle timeline">
+          <header class="timeline-header">
+            <h2 class="timeline-title">Timeline</h2>
+          </header>
+          <div class="timeline-list" id="timelineList"></div>
+        </aside>
+      </section>
+
+      <section class="control-panel" aria-label="Subtitle controls">
+        <div class="controls">
+          <div>
+            <h2 class="section-title">Tracks</h2>
+            <div class="button-row" id="trackControls" aria-label="Subtitle tracks"></div>
+          </div>
+          <div>
+            <h2 class="section-title">Actions</h2>
+            <div class="button-row" aria-label="Subtitle actions">
+              <button type="button" id="toggleSubtitle">关闭字幕</button>
+              <button type="button" id="resetDemo">Reset</button>
+            </div>
+          </div>
         </div>
 
-        <div class="message-info" id="js-show-log0">
-          <h4>log info:</h4>
-        </div>
-      </div>
-    </div>
-    <style>
-      .WorldBookDayQuestionOne__textWrap {
-            /* width: 150px; */
-            margin: 0 auto;
-            margin-top: 100px;
-            background-color: burlywood;
-          }
-        .WorldBookDayQuestionOne__text {
-            opacity: 0;
-            animation: fade-in 1500ms ease-out both  1/*infinite*/;
-            /* @for $idx from 1 through 50 {
-              &:nth-child(#{$idx}) {
-                animation-delay: #{($idx - 1) * $fadeInDur};
-              }
-            } */
-          }
-          .WorldBookDayQuestionOne__text:nth-child(1) {
-            animation-delay: 0ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(2) {
-            animation-delay: 100ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(3) {
-            animation-delay: 200ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(4) {
-            animation-delay: 300ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(5) {
-            animation-delay: 400ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(6) {
-            animation-delay: 500ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(7) {
-            animation-delay: 600ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(8) {
-            animation-delay: 700ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(9) {
-            animation-delay: 800ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(10) {
-            animation-delay: 900ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(11) {
-            animation-delay: 1000ms;
-          }
+        <aside class="status-panel" aria-label="Playback status">
+          <h2 class="section-title">Status</h2>
+          <dl class="status-list">
+            <div class="status-row">
+              <dt>Track</dt>
+              <dd id="activeTrack">-</dd>
+            </div>
+            <div class="status-row">
+              <dt>Case</dt>
+              <dd id="currentCase">-</dd>
+            </div>
+            <div class="status-row">
+              <dt>Playback</dt>
+              <dd id="playbackState">-</dd>
+            </div>
+            <div class="status-row">
+              <dt>XSS</dt>
+              <dd id="xssState">-</dd>
+            </div>
+          </dl>
+          <ol class="event-log" id="eventLog"></ol>
+        </aside>
+      </section>
+    </main>
 
-          .WorldBookDayQuestionOne__text:nth-child(12) {
-            animation-delay: 1100ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(13) {
-            animation-delay: 1200ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(14) {
-            animation-delay: 1300ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(15) {
-            animation-delay: 1400ms;
-          }
-          .WorldBookDayQuestionOne__text:nth-child(16) {
-            animation-delay: 1500ms;
-          }
-
-          @keyframes fade-in {
-          0% {
-            opacity: 0;
-          }
-
-          100%  {
-            opacity: 1;
-          }
-          }
-    </style>
-    <div class="WorldBookDayQuestionOne__textWrap">
-      <span key="0" class="WorldBookDayQuestionOne__text">你</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">好</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">我</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">是</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">布</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">莱</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">恩</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">哈</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">里</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">斯</span>
-      <span key="0" class="WorldBookDayQuestionOne__text"><b>图形技术总监游戏</b></span>
-      <span key="0" class="WorldBookDayQuestionOne__text">。嗨</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">我是</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">杰罗姆</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">请</span>
-      <span key="0" class="WorldBookDayQuestionOne__text">注意</span>
-    </div>
-    <style>
-        @keyframes typing {
-            from { width: 0 }
-            to {width: 100%;}
-        }
-        .my-texts {
-            font-size: 18px;
-            display: inline-block;
-            /* width: 1000px; */
-            white-space: nowrap;
-            overflow: hidden;
-            animation: typing 2s steps(30);
-        }
-    </style>
-    <p class="my-texts">你好，我是布莱恩哈里斯，<b>图形技术总监游戏</b>。嗨，我是杰罗姆请注意目标特别计划的一部分</p>
-    <script></script>
     <script type="module" defer src="./index.js"></script>
-    <script>
-      // window.onload = function(){
-      //   window.initPlayer()
-      // }
-    </script>
   </body>
 </html>
