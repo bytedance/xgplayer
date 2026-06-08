@@ -1,351 +1,273 @@
-import Player, { SimplePlayer, Util } from '../../packages/xgplayer/src/index'
-// import Poster from '../../packages/xgplayer/src/plugins/poster'
-// import Start from '../../packages/xgplayer/src/plugins/start'
-// import { TextTrack } from '../../packages/xgplayer/src/index'
-import { I18N } from '../../packages/xgplayer/src'
-// import DynamicBg from '../../packages/xgplayer/src/plugins/dynamicBg'
+import Player from '../../packages/xgplayer/src/index'
 import Subtitle from '../../packages/xgplayer-subtitles/src'
-console.log('vconsole')
-window.Util = Util
-window.POS = {
-  "h": 0.40625,
-  "y": 0.1899999976158142
-}
-// 全局配置语言
-I18N.extend([
-  {
-    LANG: 'zh',
-    TEXT: {
-      PAUSE_TIPS: '暂停0',
-      PLAY_TIPS: '起播0'
-    }
-  },
-  {
-    LANG: 'en',
-    TEXT: {
-      PAUSE_TIPS: 'Pause0',
-      PLAY_TIPS: 'Play0'
-    }
-  }
-])
+import { createTimeline } from './shared/timeline.js'
+import {
+  DEFAULT_TRACK_ID,
+  DEMO_VIDEO_URL,
+  DEMO_TRACKS,
+  PLAYER_ID,
+  XSS_TRACK_ID,
+  cloneSubtitleTracks,
+  getTrackById,
+  getXssCaseByTime
+} from './shared/tracks.js'
+import { formatTime, getMedia, getUnsafeDemoNodeCount } from './shared/utils.js'
 
-window.player = null
-window.player1 = null
-window.subtitle = null
-function init(index = 0, config = {}) {
-  const p = `player${index}`
-  if (window[p]) {
-    window[p].destroy()
-    window[p] = null
+const state = {
+  player: null,
+  subtitle: null,
+  activeTrackId: DEFAULT_TRACK_ID,
+  subtitleOpen: true,
+  statusTimer: null
+}
+
+const elements = {
+  activeTrack: document.getElementById('activeTrack'),
+  currentCase: document.getElementById('currentCase'),
+  playbackState: document.getElementById('playbackState'),
+  xssState: document.getElementById('xssState'),
+  log: document.getElementById('eventLog'),
+  timelineList: document.getElementById('timelineList'),
+  trackControls: document.getElementById('trackControls'),
+  toggleSubtitle: document.getElementById('toggleSubtitle')
+}
+
+const timeline = createTimeline({
+  list: elements.timelineList,
+  getMedia: () => getCurrentMedia(),
+  onSeek: seekToCue
+})
+
+function getCurrentMedia () {
+  return getMedia(state.player)
+}
+
+function getCurrentTimelineItems () {
+  const list = state.subtitle?.currentText?.list || []
+  return list.flatMap(group => group.list || [])
+}
+
+function writeLog (message) {
+  const item = document.createElement('li')
+  item.textContent = `${formatTime(getCurrentMedia()?.currentTime || 0)} ${message}`
+  elements.log.prepend(item)
+
+  while (elements.log.children.length > 6) {
+    elements.log.removeChild(elements.log.lastChild)
   }
-  window[p] = new Player({
-    id: 'video' + index,
-    url: './demo.mp4',
-    DynamicBg: {
-      disable: false
-    },
-    marginControls: true,
-    loop: false,
+}
+
+function renderTrackButtons () {
+  const fragment = document.createDocumentFragment()
+
+  DEMO_TRACKS.forEach(track => {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.dataset.trackId = track.id
+    button.textContent = track.label
+    button.addEventListener('click', () => switchTrack(track.id))
+    fragment.appendChild(button)
+  })
+
+  elements.trackControls.replaceChildren(fragment)
+}
+
+function updateTrackButtons () {
+  elements.trackControls.querySelectorAll('[data-track-id]').forEach(button => {
+    const isActive = button.dataset.trackId === state.activeTrackId
+    button.classList.toggle('is-active', isActive)
+    button.setAttribute('aria-pressed', String(isActive))
+  })
+}
+
+function updateStatus () {
+  const media = getCurrentMedia()
+  const track = getTrackById(state.activeTrackId)
+  const isXssTrack = state.activeTrackId === XSS_TRACK_ID
+  const activeXssCase = state.subtitleOpen && isXssTrack && media
+    ? getXssCaseByTime(media.currentTime)
+    : null
+  const hasUnsafeDemoNode = getUnsafeDemoNodeCount() > 0
+  const hasExecutedXss = Boolean(window.__xgSubtitleXss)
+  const hasXssIssue = hasExecutedXss || hasUnsafeDemoNode
+
+  elements.activeTrack.textContent = state.subtitleOpen ? track.label : '关闭'
+  elements.currentCase.textContent = state.subtitleOpen
+    ? activeXssCase?.label || track.description || '-'
+    : '-'
+  elements.playbackState.textContent = media
+    ? `${formatTime(media.currentTime)} / ${formatTime(media.duration)}`
+    : '未初始化'
+  elements.xssState.textContent = getXssStatusText(hasXssIssue, state.subtitleOpen && isXssTrack)
+  elements.xssState.classList.toggle('is-danger', hasXssIssue)
+  elements.toggleSubtitle.textContent = state.subtitleOpen ? '关闭字幕' : '打开字幕'
+
+  updateTrackButtons()
+  timeline.updateActive()
+}
+
+function getXssStatusText (hasXssIssue, isXssTrack) {
+  if (hasXssIssue) {
+    return '失败：检测到字幕或时间线中的可执行节点或脚本执行'
+  }
+  if (isXssTrack) {
+    return '通过：字幕与时间线 HTML 仅作为文本显示'
+  }
+  return '未运行'
+}
+
+function createPlayer () {
+  return new Player({
+    id: PLAYER_ID,
+    url: DEMO_VIDEO_URL,
     autoplay: true,
-    autoplayMuted: false,
-    videoInit: true,
-    preloadTime: 20,
-    width: '80%',
-    ignores:['playbackrate'],
-    plugins: [],
-    rotate: true,
-    // controls: {
-    //   // mode: 'normal',
-    //   // initShow: true
-    // },
-    fullscreen: {
-      // rotateFullscreen: true
-    },
-    progress: {
-      // root: document.getElementById('controls0')
-    },
-    DynamicBg: {
-      disable: false
-    },
-    volume: {
-      position: 'rootTop'
-    },
-    rotate: {
-      innerRotate: false
-    },
-    mobile: {
-      // gestureX: false
-    },
-    // timeSegments: ,
-    // timeSegmentsControls:{
-    //   disable: false,
-    //   segments: [{start: 0, end: 10}]
-    // },
-    keyboard: {
-      seekStep: 2
-    },
-    progresspreview: {
-      // width: 88.23,
-      // height: 50,
-      mode: 'short'
-    },
-    seekedStatus: 'auto',
-    texttrack: {
-      debugger: false,
-      list: [{
-        label: '双语',
-        language: 'double',
-        id: '0',
-        isDefault: true,
-        url: '../subtitle/vtt/double.vtt',
-      }, {
-        label: '中文',
-        language: 'cn',
-        id: '1',
-        isDefault: undefined,
-        url: '../subtitle/vtt/cn.vtt'
-      }, {
-        label: '英文',
-        url: '../subtitle/vtt/en.vtt',
-        id: '2',
-        isDefault: false,
-        language: 'en'
-      }],
-      updateMode: 'vod',
-      isDefaultOpen: true,
-      mode: 'external',
-    },
-    definition: {
-      position: 'controlsLeft',
-      list: [],
-      defaultDefinition: '360p',
-      isItemClickHide: false
-    },
-    height: 700,
-    startTime: 40,
-    ...config
-  })
-  window._onClick = function(id) {
-    console.log(id)
-  }
-
-  // setTimeout(() => {
-  //   window[p].registerPlugin(Poster)
-  // }, 10)
-  window[p].once('canplay',() => {
-    console.log('>>>>>canplay seek', window[p].media.seekable.end(0))
-    // window[p].seek(30)
-    // window[p].play()
-  })
-
-  window[p].on('source_success', (data) => {
-    console.log('source_success', data)
-  })
-  window[p].on('source_error', (data) => {
-    console.error('source_error', data)
-  })
-  // window[p].usePluginHooks('progresspreview', 'transformTime', (plugin, time) => {
-  //   plugin.setTimeContent(`~~${(time)}~~`)
-
-  //   // 阻止插件内部默认钩子逻辑
-  //   return false
-  // })
-
-  window[p].on('download_speed_change', data => {
-    console.log('[download_speed_change]', data)
-    // addLog(index, `[download_speed_change] speed:${data.speed}, realTimeSpeed:${data.realTimeSpeed || 0}`)
-  })
-
-  // window[p].on('xglog', data => {
-  //   console.log('[xglog]', data)
-  //   if (data.eventType === 'firstFrame' || data.eventType === 'waitingEnd') {
-  //     addLog(
-  //       index,
-  //       `[xglog] eventType:${data.eventType} ${data.costTime || 0} ${data.endType || ''}`
-  //     )
-  //   }
-  // })
-
-  window.currentTime = 0
-  window[p].on('timeupdate', () => {
-    // if (window[p].currentTime > currentTime) {
-    //   currentTime = window[p].currentTime
-    // }
-  })
-  window[p].useHooks('play', () => {
-    console.log('useHooks play dddd')
-    return true
-  })
-  window[p].usePluginHooks('mobile', 'videoClick', (plugin, event, data) =>{
-    console.log('mobile videoClick', event, data)
-    return true
-  })
-
-  window[p].usePluginHooks('mobile', 'videoDbClick', (plugin, event, data) =>{
-    console.log('mobile videoDbClick', event, data)
-    return true
-  })
-
-  // window[p].usePluginHooks('progress', 'dragstart', (plugin, event, data) =>{
-  //   console.log('progress', data)
-  //   // TODO
-  //   if (data.currentTime > currentTime) {
-  //     return false
-  //   }
-  // })
-
-  // window[p].usePluginHooks('progress', 'drag', (plugin, event, data) =>{
-  //   // TODO
-  //   if (data.currentTime > currentTime) {
-  //     return false
-  //   }
-  // })
-
-  window[p].on('user_action', data => {
-    console.log('[user_action]', data)
+    autoplayMuted: true,
+    height: getPlayerHeight(),
+    width: '100%',
+    loop: true,
+    ignores: ['playbackrate'],
+    startTime: 0,
+    videoInit: true
   })
 }
 
+function getPlayerHeight () {
+  return Math.max(420, Math.min(620, window.innerHeight - 240))
+}
 
-function initSubtitle(player) {
-  const options = {
-    player: player,
-    subTitles: [{
-      label: '中文',
-      language: 'cn',
-      id: '0',
-      isDefault: false,
-      url: './subtitle/double.vtt'
-    }, {
-      label: '中文',
-      language: 'cn',
-      id: '1',
-      isDefault: true,
-      url: './subtitle/cn1.vtt'
-    }, {
-      label: '英文',
-      language: 'en',
-      id: '1',
-      isDefault: false,
-      url: './subtitle/en2.vtt'
-    }],
+function createSubtitle (player) {
+  return new Subtitle({
+    player,
+    subTitles: cloneSubtitleTracks(),
     defaultOpen: true,
     mode: 'stroke',
-    // line: 'single',
     line: 'double',
-    offsetBottom: 10,
-    baseSizeX: 49, // 横向基准字号
-    baseSizeY: 28, // 竖向基准字号, 宽高比例大于1.2视作竖向视频
-    minSize: 16, // 最小字号
-    minMobileSize: 13, // 移动端兜底字号
-    fitVideo: true, // 是否适配视频画面
+    offsetBottom: 8,
+    fitVideo: true,
     domRender: true,
-    renderMode: 'step'
-  }
-  let subTitle = new Subtitle(options)
-  subTitle.on('resize', (data) => {
-    console.log('subTitle resize', data)
+    renderMode: 'normal'
   })
-  window.subTitle = subTitle
-  player && subTitle.attachPlayer(player)
 }
 
-init()
-initSubtitle(window.player0)
-
-// init(1, {
-//   i18n: [
-//     {
-//       LANG: 'zh',
-//       TEXT: {
-//         PLAY_TIPS: '播放1',
-//         PAUSE_TIPS: '暂停1',
-//         PAUSE_TIPS1: '测试1',
-//         CSSFULLSCREEN_TIPS: '网页全屏1'
-//       }
-//     },
-//     {
-//       LANG: 'en',
-//       TEXT: {
-//         PLAY_TIPS: 'Play1',
-//         PAUSE_TIPS: 'Pause1',
-//         PAUSE_TIPS1: 'test1',
-//         CSSFULLSCREEN_TIPS: 'pagefullscreen1'
-//       }
-//     }
-//   ],
-//   enableContextmenu: true
-// })
-
-function addLog(index, mse) {
-  const logDom = document.getElementById(`js-show-log${index}`)
-  const p = document.createElement('p')
-  p.innerHTML = mse
-  logDom.appendChild(p)
-}
-
-function clearLog(index) {
-  const logDom = document.getElementById(`js-show-log${index}`)
-  const ps = logDom.getElementsByTagName('p')
-  let _len = ps.length
-  while (ps.length > 0) {
-    logDom.removeChild(ps[0])
-    _len--
+function destroyDemo () {
+  if (state.statusTimer) {
+    clearInterval(state.statusTimer)
+    state.statusTimer = null
+  }
+  if (state.subtitle) {
+    state.subtitle.destroy()
+    state.subtitle = null
+  }
+  if (state.player) {
+    state.player.destroy()
+    state.player = null
   }
 }
 
-function changeLang(index) {
-  const logDom = document.getElementById(`js-show-lang${index}`)
-  const p = logDom.getElementsByTagName('p')
-  const player = window[`player${index}`]
-  if (player.lang === 'zh') {
-    player.lang = 'en'
-  } else if (player.lang === 'en') {
-    player.lang = 'zh'
+function initDemo () {
+  destroyDemo()
+
+  resetXssState()
+  state.activeTrackId = DEFAULT_TRACK_ID
+  state.subtitleOpen = true
+  elements.log.replaceChildren()
+  timeline.reset()
+
+  state.player = createPlayer()
+  state.subtitle = createSubtitle(state.player)
+
+  state.player.once('canplay', () => {
+    writeLog('video canplay')
+    timeline.render(getCurrentTimelineItems())
+    updateStatus()
+  })
+  state.player.on('error', error => {
+    writeLog(`video error: ${error?.message || 'unknown'}`)
+    updateStatus()
+  })
+  state.subtitle.on('change', data => {
+    state.subtitleOpen = true
+    state.activeTrackId = data.id || state.activeTrackId
+    resetXssState()
+    writeLog(`subtitle switched: ${getTrackById(state.activeTrackId).label}`)
+    timeline.render(getCurrentTimelineItems())
+    updateStatus()
+  })
+  state.subtitle.on('off', () => {
+    state.subtitleOpen = false
+    writeLog('subtitle closed')
+    updateStatus()
+  })
+
+  window.player0 = state.player
+  window.subTitle = state.subtitle
+  window.subtitleDemo = {
+    player: state.player,
+    subtitle: state.subtitle,
+    switchTrack,
+    reset: initDemo
   }
-  if (p.length === 0) {
-    const p = document.createElement('p')
-    p.innerHTML = player.lang
-    logDom.appendChild(p)
+
+  state.statusTimer = setInterval(updateStatus, 500)
+  writeLog('demo initialized')
+  updateStatus()
+}
+
+async function switchTrack (trackId) {
+  const track = getTrackById(trackId)
+  try {
+    await switchToTrack(track)
+  } catch (error) {
+    writeLog(`subtitle switch failed: ${error?.message || 'unknown'}`)
+    updateStatus()
+  }
+}
+
+function switchToTrack (track) {
+  if (!state.subtitle || !track) {
+    return Promise.reject(new Error('subtitle is not ready'))
+  }
+
+  return state.subtitle.switch({ id: track.id, language: track.language })
+}
+
+function resetXssState () {
+  window.__xgSubtitleXss = 0
+}
+
+function toggleSubtitle () {
+  if (!state.subtitle) {
+    return
+  }
+
+  if (state.subtitleOpen) {
+    state.subtitle.switchOff()
   } else {
-    p[0].innerHTML = player.lang
+    switchTrack(state.activeTrackId)
   }
-  console.log('p', p)
 }
 
-function playNext(index) {
-  console.log('playNext', index)
-  const p = `player${index}`
-  const config = {}
-}
-
-function destroy(index) {
-  console.log('destroy', index)
-  const p = `player${index}`
-  window[p] && window[p].destroy()
-}
-
-window.changeLang = changeLang
-window.clearLog = clearLog
-window.addLog = addLog
-window.playNext = playNext
-window.destroy = destroy
-window.initPlayer = init
-window.initSubtitle = initSubtitle
-window.createDot = (index) => {
-  const player = window[`player${index}`]
-  const time = parseInt(Math.random(1) * player.duration, 10)
-  const duration = parseInt(Math.random(1) * 30 + 10, 10)
-  const ISPOT = {
-    time: time, // 进度条在此时间戳打点 单位为s
-    text: '', // 打点处的自定义文案
-    id: time, // 标记唯一标识，用于删除的时候索引
-    duration: duration, // 进度条标识点的时长 默认1s【可选】单位为s
-    color: '#fff', // 进度条标识点的显示颜色【可选】
-    style: {}, // 指定样式
-    width: 6,
-    height: 6
+function seekToCue (index) {
+  const media = getCurrentMedia()
+  const cue = timeline.getItems()[index]
+  if (!media || !cue) {
+    return
   }
-  console.log(ISPOT)
-  player.plugins.progresspreview.createDot(ISPOT)
+
+  media.currentTime = cue.start + 0.05
+  media.play().catch(() => {})
+  if (state.activeTrackId === XSS_TRACK_ID) {
+    resetXssState()
+  }
+  writeLog(`seeked to cue ${index + 1}`)
+  updateStatus()
 }
+
+function bindControls () {
+  renderTrackButtons()
+  elements.toggleSubtitle.addEventListener('click', toggleSubtitle)
+  document.getElementById('resetDemo').addEventListener('click', initDemo)
+}
+
+bindControls()
+initDemo()

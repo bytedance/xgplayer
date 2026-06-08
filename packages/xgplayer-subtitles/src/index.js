@@ -7,6 +7,7 @@ import { addObserver, unObserver } from './observer'
 import { EVENTS } from './constants'
 import { _ERROR, SError } from './error'
 import ProxyPromise from './proxyPromise'
+import { appendSubtitleText, getSubtitleTextContent } from './xss/safeInlineRenderer'
 
 import './style/index.scss'
 
@@ -1048,12 +1049,12 @@ export default class Subtitle extends EventEmitter {
             // 用于宽度占位
             const _dom1 = Util.createDom('xg-text-track-span', '', attr, `${className} text-track-space`)
             this.innerRoot.appendChild(_dom1)
-            _dom1.innerHTML = itemText
+            appendSubtitleText(_dom1, itemText)
             setTimeout(() => {
               this._renderByWords(_dom, index, jsonItem.start, jsonItem.end, itemText)
             }, 600)
           } else {
-            _dom.innerHTML = itemText
+            appendSubtitleText(_dom, itemText)
           }
         })
       })
@@ -1063,7 +1064,7 @@ export default class Subtitle extends EventEmitter {
   _renderByWords (_dom, index, start, end, itemText) {
     const _textNode = document.createTextNode('')
     _dom.appendChild(_textNode)
-    const _words = Util.splitWords(itemText)
+    const _words = Util.splitWords(getSubtitleTextContent(itemText))
     let curTime = this._getPlayerCurrentTime()
     let duration = Util.toInt((end - curTime) * 1000)
     if (curTime >= end) {
