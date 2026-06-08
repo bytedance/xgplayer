@@ -91,6 +91,15 @@
 }
 
 ```
+### 安全渲染
+
+`domRender` 开启时，字幕内容不会通过 `innerHTML` 直接插入 DOM。组件会在最终渲染层统一处理字幕文本：
+
+- 支持基础字幕富文本标签：`b`、`i`、`u`、`span`、`c`、`ruby`、`rt`、`v`、`lang`、`br`
+- 不在白名单内的标签会作为普通文本展示
+- 事件属性、`style`、`href`、`src` 等可执行或外链属性不会写入字幕 DOM
+- VTT、ASS、JSON 字幕最终都走同一套安全渲染入口
+
 ### API
 #### atttchPlayer(player)
 挂载播放器实例

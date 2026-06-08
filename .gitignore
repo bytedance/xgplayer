@@ -86,6 +86,8 @@ packages/*/types/
 fixtures/*/*
 !fixtures/*/index.html
 !fixtures/*/index.js
+!fixtures/*/shared/
+!fixtures/*/shared/*.js
 
 #http-server cert
 *.pem

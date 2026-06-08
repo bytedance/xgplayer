@@ -1,3 +1,5 @@
+import { isSafeInlineTagName, normalizeSafeInlineTagName } from './xss/safeInlineTags'
+
 const VTT_CHECK = /^WEBVTT/i
 const SRT_CHECK = /^\d+\r?\n\d{2}:\d{2}:\d{2},\d{3}\s*-->/m
 const VTT_STYLE = /^STYLE+$/
@@ -66,8 +68,14 @@ function isNumber (str) {
  * @return {[type]}   [description]
  */
 function htmlEncodeAll (e) {
-  return e
-  // return null === e ? '' : e.replace(/\&/g, '&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  return e === null || e === undefined
+    ? ''
+    : String(e)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
 }
 
 function getByIndex (i, arr) {
@@ -76,6 +84,11 @@ function getByIndex (i, arr) {
   }
   return ''
 }
+
+function isSafeInlineTag (tag) {
+  return isSafeInlineTagName(normalizeSafeInlineTagName(tag))
+}
+
 export default class SubTitleParser {
   /**
    * 解析json数据进行分组
@@ -358,6 +371,12 @@ export default class SubTitleParser {
     if (langMatch) {
       // eslint-disable-next-line no-useless-escape
       tag = langMatch[0].replace(/\<|\>|\&/g, '')
+      if (isSafeInlineTag(tag)) {
+        return {
+          tag: 'default',
+          text: htmlEncodeAll(text.replace(/\\n+/g, '<br/>'))
+        }
+      }
       // 动态构造语言匹配规则
       // eslint-disable-next-line no-useless-escape
       const newReg = RegExp(`^<${tag}>(([\\s\\S])*?)<\/${tag}>$`)
