@@ -65,7 +65,7 @@ const player = new Player({
 | chromecast.receiverApplicationId | string | `''` | Receiver app id. Empty string means default media receiver. |
 | chromecast.autoJoinPolicy | string | `'origin_scoped'` | Session auto join policy. |
 | chromecast.loadSdkTimeout | number | `3000` | Sender SDK load timeout in milliseconds. |
-| autoplayOnCast | boolean | inherit pre-cast state | Whether the receiver should start playing after casting starts. When omitted, the plugin preserves the playback state from the moment `requestCast()` is called: playing content keeps playing on the receiver, paused content stays paused. Set `true` or `false` to override. AirPlay may still issue an initial local play request to establish the route, then pause immediately when the resolved value is `false`; Chromecast maps the resolved value to `LoadRequest.autoplay`. |
+| autoplayOnCast | boolean | inherit pre-cast state | Whether the receiver should start playing after casting starts. When omitted, the plugin preserves the play/pause state from the moment `requestCast()` is called: playing content keeps playing on the receiver, paused content stays paused. Set `true` or `false` to override. AirPlay may still issue an initial local play request to establish the route, then pause immediately when the resolved value is `false`; Chromecast maps the resolved value to `LoadRequest.autoplay`. |
 | showAirplayMutedTip | boolean | `true` | Whether to show a tip prompting the user to unmute when AirPlay is connected |
 
 
@@ -74,7 +74,7 @@ const player = new Player({
 | Method Name | Description |
 | ------ | ----- |
 | requestCast(protocol?) | Programmatically open the native cast dialog (AirPlay picker or Chromecast device chooser). Pass `'airplay'` or `'chromecast'` to force a specific protocol; omit to auto-select the best available one. Has no effect if no cast protocol is available. |
-| getCastRemoteState(protocol?) | Return the latest remote playback state when the selected protocol exposes a remote controller. Currently Chromecast only. |
+| getCastRemoteState(protocol?) | Return the latest remote receiver state when the selected protocol exposes a remote controller. Currently Chromecast only. |
 | controlCastRemote(action, payload?, protocol?) | Control the remote receiver when the selected protocol exposes a remote controller. Currently Chromecast supports `play`, `pause`, `toggle`, `seek`, `stop`, `setVolume`, `mute`, and `unmute`. |
 
 ### Events
@@ -83,17 +83,6 @@ const player = new Player({
 | ------ | ----- | ----- |
 | cast_error | `{ protocol, code, message, error?, media? }` | Emitted when Chromecast setup, session, media resolution, or remote media loading fails. |
 | cast_remote_state_change | `{ protocol, available, connected, mediaLoaded, playerState, paused, currentTime, duration, volume, muted, title, contentId }` | Emitted by the Chromecast remote controller when CAF reports remote player state changes. |
-
-### Terminology
-
-| Term | Meaning | Notes |
-| ------ | ----- | ----- |
-| Cast request | A user or business-code action that asks the browser/device picker to start casting. | Triggered by the cast icon or `requestCast(protocol?)`. The request only starts protocol selection; it does not guarantee a remote target is connected. |
-| Handoff | The playback transition from the local xgplayer instance to a remote playback target. | This is the cross-protocol playback semantics layer. It captures receiver-readable media URL, `autoplay`, and `currentTime` at request time so the receiver can continue from the same play/pause state and playback point. |
-| Handshake | A protocol-specific activation step required to establish a route or session. | This is an implementation detail, not the playback semantics. AirPlay may need a local `play()` call after the route becomes active, then pause again if the handoff state was paused. Chromecast uses `requestSession()` and `loadMedia()` instead. |
-| Local playback | Playback controlled by the sender page's local `<video>` element and local streaming plugins. | After Chromecast `loadMedia()` succeeds, local playback is paused because the receiver owns playback. For AirPlay, Safari/WebKit may continue routing the same media element to the receiver. |
-| Remote playback | Playback owned by the receiver device. | Chromecast exposes an independent remote media session through CAF `RemotePlayer`; AirPlay does not expose an equivalent receiver-control API and is driven through WebKit's media element route. |
-| Receiver-readable URL | A media URL that the receiver device can fetch directly. | `blob:`, `data:`, `file:`, `mediastream:`, localhost, DRM/session-bound, or sender-only URLs are not valid receiver media URLs. Business code can use `preProcessUrl` or `contentType` metadata to provide a receiver-compatible URL. |
 
 ### Chromecast Flow
 
@@ -136,16 +125,14 @@ sequenceDiagram
   Chromecast->>Chromecast: capture remote paused state and currentTime
   CAF-->>Chromecast: SESSION_ENDED or SESSION_START_FAILED
   Chromecast-->>Plugin: cast_target_change({ isCasting: false })
-  opt session ended after receiver playback
+  opt session ended after receiver media
     Chromecast->>Plugin: restore local currentTime and play/pause state
   end
 ```
 
-Chromecast playback runs on a separate receiver media session, not on the local `<video>` route. After `session.loadMedia()` succeeds, the plugin pauses the local player so local streaming plugins do not keep decoding or playing alongside the receiver. Use `cast_target_change` to switch business UI into a casting state, `cast_remote_state_change` to render receiver state, and `controlCastRemote()` for remote play/pause/seek controls. Continuing to drive the local video element will only control local playback.
+Chromecast runs on a separate receiver media session, not on the local `<video>` route. After `session.loadMedia()` succeeds, the plugin pauses the local player so local streaming plugins do not keep decoding or playing alongside the receiver. Use `cast_target_change` to switch business UI into a casting state, `cast_remote_state_change` to render receiver state, and `controlCastRemote()` for remote play/pause/seek controls. Continuing to drive the local video element will only control local media.
 
 Chromecast remote control is implemented with CAF `RemotePlayer` and `RemotePlayerController`. AirPlay does not expose the same independent receiver-control API, so AirPlay continues to use Safari/WebKit's native media element route.
-
-For the initial Chromecast handoff, autoplay and `currentTime` are captured at `requestCast()` time from `autoplayOnCast` or the pre-cast local playback state and passed to the Chromecast adapter. During an active cast session, media reloads preserve explicit `autoplayOnCast` when configured; otherwise they follow the current remote paused state and remote `currentTime` instead of reusing stale local playback state. When the receiver session ends, the adapter restores local `currentTime` and play/pause state from the last remote state before resetting the remote controller.
 
 ### Chromecast Media Type
 
@@ -218,7 +205,7 @@ The resolver also forwards optional Cast `MediaInfo` fields including `contentUr
 
 ### AirPlay and MSE
 
-AirPlay works best when Safari's native `<video>` element plays a receiver-readable HLS or MP4 URL directly. MSE and ManagedMediaSource playback create a sender-local media pipeline, often exposed as a `blob:` source or `srcObject`; AirPlay devices cannot fetch that local source from the sender page, which can result in local playback continuing or the receiver playing audio only.
+AirPlay works best when Safari's native `<video>` element plays a receiver-readable HLS or MP4 URL directly. MSE and ManagedMediaSource create a sender-local media pipeline, often exposed as a `blob:` source or `srcObject`; AirPlay devices cannot fetch that local source from the sender page, which can result in local media continuing or the receiver playing audio only.
 
 ```mermaid
 sequenceDiagram
@@ -236,7 +223,7 @@ sequenceDiagram
 
   App->>Plugin: requestCast('airplay') or click cast icon
   Plugin-->>AirPlay: cast_request({ protocol: 'airplay', autoplay, handoffState })
-  AirPlay->>WebKit: enable remote playback for this request
+  AirPlay->>WebKit: enable remote route for this request
 
   alt current source is MSE, MMS, srcObject, or blob
     AirPlay->>AirPlay: resolveCastMedia(player, { protocol: 'airplay' })
@@ -266,17 +253,37 @@ sequenceDiagram
   AirPlay-->>Plugin: cast_target_change({ isCasting: false })
 ```
 
-When AirPlay is requested and the current media source is MSE, ManagedMediaSource, `srcObject`, or `blob:`, the plugin resolves the original network URL using the same source priority as Chromecast and adds a receiver-readable `<source>` fallback for WebKit/AirPlay before opening the native AirPlay picker. It does not suspend the active streaming plugin or replace the media element source just because the picker opened. After WebKit confirms that a wireless playback target was selected, the plugin clears the local MSE source, suspends the active streaming plugin, assigns the network URL to the media element, and seeks to the `currentTime` captured at `requestCast()` time after metadata is loaded. When the AirPlay route returns to local playback after a native-source handoff, the plugin captures the routed media element's `currentTime` and paused state, restores the streaming plugin, then reapplies that playback state locally.
+When AirPlay is requested and the current media source is MSE, ManagedMediaSource, `srcObject`, or `blob:`, the plugin resolves the original network URL using the same source priority as Chromecast and adds a receiver-readable `<source>` fallback for WebKit/AirPlay before opening the native AirPlay picker. It does not suspend the active streaming plugin or replace the media element source just because the picker opened. After WebKit confirms that a wireless playback target was selected, the plugin clears the local MSE source, suspends the active streaming plugin, assigns the network URL to the media element, and seeks to the `currentTime` captured at `requestCast()` time after metadata is loaded.
 
-The plugin enables remote playback at request time rather than during installation so it does not interfere with Safari ManagedMediaSource initialization in integrations that temporarily set `disableRemotePlayback`.
+The plugin enables the remote route at request time rather than during installation so it does not interfere with Safari ManagedMediaSource initialization in integrations that temporarily set `disableRemotePlayback`.
 
 For business integrations, prefer one of these patterns:
 
-1. On Safari/iOS where AirPlay is required, use native HLS playback whenever possible. This is the most reliable path because the media element already has a receiver-readable URL when the native picker opens.
+1. On Safari/iOS where AirPlay is required, use native HLS whenever possible. This is the most reliable path because the media element already has a receiver-readable URL when the native picker opens.
 2. Provide a direct HLS or MP4 URL in `url`, `definition.list[].url`, or `preProcessUrl`.
 3. Avoid DRM, encrypted session-only URLs, `blob:`, `data:`, and localhost URLs for AirPlay media.
 4. Provide an HLS variant that is broadly AirPlay-compatible, such as H.264/AAC with a conservative profile/level for the target receiver.
 5. Keep captions in the HLS manifest if they need to appear on the AirPlay receiver.
+
+### Cast Handoff
+
+The cast plugin treats handoff as switching media ownership between local xgplayer and a receiver. `requestCast()` captures the local play/pause state and `currentTime`; `autoplayOnCast` can override the captured play/pause state. Receiver media must still be a receiver-readable URL.
+
+When returning from a receiver, the plugin restores local `currentTime` and play/pause state before emitting `cast_target_change({ isCasting: false })`. Business code can use that event to update UI after local state has been restored.
+
+On iOS Safari, returning from AirPlay cannot guarantee automatic local play for audible media. The plugin restores the time point and tries `play()` once when the route was playing, but Safari may reject it because of autoplay policy. Business UI should handle the paused state and show the normal play affordance.
+
+### Terminology
+
+| Term | Scope | Meaning | Notes |
+| ------ | ----- | ----- | ----- |
+| Cast request | Cross-platform | A user or business-code action that asks the browser/device picker to start casting. | Triggered by the cast icon or `requestCast(protocol?)`. The request only starts protocol selection; it does not guarantee a remote target is connected. |
+| CAF | Chromecast | Cast Application Framework, the high-level Google Cast SDK API exposed as `cast.framework`. | Web Sender integrations use CAF APIs such as `CastContext`, `RemotePlayer`, and `RemotePlayerController` to manage Cast sessions, receiver state, and remote controls. Lower-level media messages still use `chrome.cast.media.*`, such as `MediaInfo` and `LoadRequest`. |
+| Handoff | Cross-platform | The media transition from the local xgplayer instance to a remote receiver. | This is the cross-protocol media-state layer. It captures receiver-readable media URL, `autoplay`, and `currentTime` at request time so the receiver can continue from the same play/pause state and current play point. |
+| Handshake | Protocol-specific | A protocol-specific activation step required to establish a route or session. | This is an implementation detail, not the media-state contract. AirPlay may need a local `play()` call after the route becomes active, then pause again if the handoff state was paused. Chromecast uses `requestSession()` and `loadMedia()` instead. |
+| Local media | Cross-platform | Media controlled by the sender page's local `<video>` element and local streaming plugins. | After Chromecast `loadMedia()` succeeds, the local player is paused because the receiver owns the media session. For AirPlay, Safari/WebKit may continue routing the same media element to the receiver. |
+| Remote media | Cross-platform | Media owned by the receiver device. | Chromecast exposes an independent remote media session through CAF `RemotePlayer`; AirPlay does not expose an equivalent receiver-control API and is driven through WebKit's media element route. |
+| Receiver-readable URL | Business integration | A media URL that the receiver device can fetch directly. | `blob:`, `data:`, `file:`, `mediastream:`, localhost, DRM/session-bound, or sender-only URLs are not valid receiver media URLs. Business code can use `preProcessUrl` or `contentType` metadata to provide a receiver-compatible URL. |
 
 ### Notes
 
