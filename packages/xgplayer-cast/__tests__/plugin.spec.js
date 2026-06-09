@@ -11,7 +11,7 @@ function createPluginStub(overrides = {}) {
   }
   plugin.config = {}
   plugin._castHandshakeInProgress = false
-  plugin._castPlaybackState = null
+  plugin._handoffState = null
   plugin._castAvailability = { airplay: 'not-available', chromecast: 'not-available' }
   plugin._castAdapters = {}
   plugin.show = jest.fn()
@@ -28,10 +28,11 @@ function createPluginStub(overrides = {}) {
   plugin._updateCastIcon = CastPlugin.prototype._updateCastIcon.bind(plugin)
   plugin.requestCast = CastPlugin.prototype.requestCast.bind(plugin)
   plugin.getCastRemoteState = CastPlugin.prototype.getCastRemoteState.bind(plugin)
+  plugin.controlCastRemote = CastPlugin.prototype.controlCastRemote.bind(plugin)
   plugin.controlCast = CastPlugin.prototype.controlCast.bind(plugin)
   plugin._getPreferredCastProtocol = CastPlugin.prototype._getPreferredCastProtocol.bind(plugin)
   plugin._getProtocolOrder = CastPlugin.prototype._getProtocolOrder.bind(plugin)
-  plugin._captureCastPlaybackState = CastPlugin.prototype._captureCastPlaybackState.bind(plugin)
+  plugin._captureHandoffState = CastPlugin.prototype._captureHandoffState.bind(plugin)
   plugin._getCastAutoplay = CastPlugin.prototype._getCastAutoplay.bind(plugin)
   plugin._suspendMSEPlugin = CastPlugin.prototype._suspendMSEPlugin.bind(plugin)
   plugin._resumeMSEPlugin = CastPlugin.prototype._resumeMSEPlugin.bind(plugin)
@@ -326,7 +327,7 @@ describe('CastPlugin requestCast', () => {
       expect.objectContaining({
         protocol: 'airplay',
         autoplay: true,
-        playbackState: { protocol: 'airplay', paused: false, currentTime: 0 }
+        handoffState: { protocol: 'airplay', paused: false, currentTime: 0 }
       })
     )
   })
@@ -347,7 +348,7 @@ describe('CastPlugin requestCast', () => {
       expect.objectContaining({
         protocol: 'chromecast',
         autoplay: true,
-        playbackState: { protocol: 'chromecast', paused: false, currentTime: 0 }
+        handoffState: { protocol: 'chromecast', paused: false, currentTime: 0 }
       })
     )
   })
@@ -369,7 +370,7 @@ describe('CastPlugin requestCast', () => {
       expect.objectContaining({
         protocol: 'chromecast',
         autoplay: true,
-        playbackState: { protocol: 'chromecast', paused: false, currentTime: 0 }
+        handoffState: { protocol: 'chromecast', paused: false, currentTime: 0 }
       })
     )
   })
@@ -388,7 +389,7 @@ describe('CastPlugin requestCast', () => {
       expect.objectContaining({
         protocol: 'airplay',
         autoplay: true,
-        playbackState: { protocol: 'airplay', paused: false, currentTime: 0 }
+        handoffState: { protocol: 'airplay', paused: false, currentTime: 0 }
       })
     )
   })
@@ -405,7 +406,7 @@ describe('CastPlugin requestCast', () => {
       expect.objectContaining({
         protocol: 'airplay',
         autoplay: true,
-        playbackState: { protocol: 'airplay', paused: false, currentTime: 0 }
+        handoffState: { protocol: 'airplay', paused: false, currentTime: 0 }
       })
     )
   })
@@ -426,7 +427,7 @@ describe('CastPlugin requestCast', () => {
 
     plugin.requestCast()
 
-    expect(plugin._castPlaybackState).toEqual({
+    expect(plugin._handoffState).toEqual({
       protocol: 'airplay',
       paused: false,
       currentTime: 42
@@ -436,7 +437,7 @@ describe('CastPlugin requestCast', () => {
       expect.objectContaining({
         protocol: 'airplay',
         autoplay: true,
-        playbackState: { protocol: 'airplay', paused: false, currentTime: 42 }
+        handoffState: { protocol: 'airplay', paused: false, currentTime: 42 }
       })
     )
   })
@@ -462,14 +463,26 @@ describe('CastPlugin remote control delegation', () => {
     })
 
     expect(plugin.getCastRemoteState()).toBe(remoteState)
-    expect(plugin.controlCast('seek', { time: 12 })).toBe(true)
+    expect(plugin.controlCastRemote('seek', { time: 12 })).toBe(true)
     expect(chromecast.controlRemote).toHaveBeenCalledWith('seek', { time: 12 })
+  })
+
+  test('keeps controlCast as a compatibility alias for remote control', () => {
+    const chromecast = {
+      controlRemote: jest.fn(() => true)
+    }
+    const plugin = createPluginStub({
+      _castAdapters: { chromecast }
+    })
+
+    expect(plugin.controlCast('pause')).toBe(true)
+    expect(chromecast.controlRemote).toHaveBeenCalledWith('pause', undefined)
   })
 
   test('returns safe defaults when protocol has no remote controller', () => {
     const plugin = createPluginStub()
 
     expect(plugin.getCastRemoteState()).toBe(null)
-    expect(plugin.controlCast('play')).toBe(false)
+    expect(plugin.controlCastRemote('play')).toBe(false)
   })
 })

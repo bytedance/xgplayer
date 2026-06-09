@@ -1,6 +1,11 @@
 import { Util } from 'xgplayer'
+import {
+  applyRouteStateToLocal,
+  captureLocalStateForCast,
+  getLocalTime,
+  toNonNegativeTime
+} from './cast-handoff-state'
 import { resolveCastMedia } from './cast-media'
-import { getPlayerCurrentTime, normalizeCastCurrentTime } from './cast-playback-state'
 
 const AIRPLAY_ROUTE_SETTLE_DELAY_MS = 1000
 
@@ -24,13 +29,13 @@ export class Airplay {
     this._lastCastingState = null
     this._airplaySourceEl = null
     this._airplayMedia = null
-    this._playbackState = null
+    this._handoffState = null
     this._nativeHandoffActive = false
-    this._emitCastingFalseDebounced = Util.debounce(() => {
+    this._emitCastingFalseDebounced = Util.debounce(async () => {
       const media = this.player?.media || this.player?.video
       const stillWireless = !!media?.webkitCurrentPlaybackTargetIsWireless
       if (!stillWireless) {
-        this._restoreNativeHandoff()
+        await this._restoreNativeHandoff()
         this._emitCastTargetChange(false)
       }
     }, AIRPLAY_ROUTE_SETTLE_DELAY_MS)
@@ -137,14 +142,21 @@ export class Airplay {
     return true
   }
 
-  _restoreNativeHandoff() {
-    this._playbackState = null
+  async _restoreNativeHandoff() {
+    this._handoffState = null
     if (!this._nativeHandoffActive) {
-      return
+      return false
     }
+
+    const routeState = captureLocalStateForCast(this.player, 'airplay')
     this._nativeHandoffActive = false
     this._airplayMedia = null
-    this.plugin?._resumeMSEPlugin?.()
+    try {
+      await this.plugin?._resumeMSEPlugin?.()
+    } catch (error) {
+      console.warn('Failed to restore streaming plugin after AirPlay:', error)
+    }
+    return this._applyRouteStateToLocal(routeState)
   }
 
   _resolveAirPlayMedia() {
@@ -222,17 +234,17 @@ export class Airplay {
   }
 
   _getHandoffCurrentTime(mediaEl) {
-    const requestCurrentTime = normalizeCastCurrentTime(this._playbackState?.currentTime)
+    const requestCurrentTime = toNonNegativeTime(this._handoffState?.currentTime)
     if (requestCurrentTime !== null) {
       return requestCurrentTime
     }
 
-    const mediaCurrentTime = normalizeCastCurrentTime(mediaEl?.currentTime)
+    const mediaCurrentTime = toNonNegativeTime(mediaEl?.currentTime)
     if (mediaCurrentTime !== null) {
       return mediaCurrentTime
     }
 
-    return getPlayerCurrentTime(this.player)
+    return getLocalTime(this.player)
   }
 
   _hasAttachedLocalSource(mediaEl) {
@@ -248,6 +260,15 @@ export class Airplay {
     return this._getSourceElements(mediaEl).some((source) =>
       /^blob:/i.test(source.getAttribute('src') || source.src || '')
     )
+  }
+
+  async _applyRouteStateToLocal(routeState) {
+    try {
+      return await applyRouteStateToLocal(this.player, routeState)
+    } catch (error) {
+      console.warn('Failed to restore local playback after AirPlay:', error)
+      return false
+    }
   }
 
   _hasActiveStreamingPlugin() {
@@ -344,7 +365,7 @@ export class Airplay {
     return isAirPlayAvailable(this.player)
   }
 
-  _onRequestCast = ({ protocol, playbackState } = {}) => {
+  _onRequestCast = ({ protocol, handoffState } = {}) => {
     if (protocol && protocol !== 'airplay') return
     if (!isAirPlayAvailable(this.player)) {
       return false
@@ -352,7 +373,7 @@ export class Airplay {
 
     try {
       const mediaEl = this.player.media || this.player.video
-      this._playbackState = playbackState || null
+      this._handoffState = handoffState || null
       const wasMuted = mediaEl.muted
 
       // WebKit 的 AirPlay 实现中，静音的Media元素会被认为不需要音频输出设备，系统因此认为没有必要将其路由到外部播放目标
@@ -428,7 +449,7 @@ export class Airplay {
     this._lastCastingState = null
     this._airplaySourceEl = null
     this._airplayMedia = null
-    this._playbackState = null
+    this._handoffState = null
     this._nativeHandoffActive = false
   }
 }

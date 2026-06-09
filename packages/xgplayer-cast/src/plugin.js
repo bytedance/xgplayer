@@ -3,9 +3,9 @@ import AirplaySvg from './assets/airplay.svg'
 import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
 import {
-  captureCastPlaybackState,
+  captureLocalStateForCast,
   getConfiguredCastAutoplay
-} from './platform/cast-playback-state'
+} from './platform/cast-handoff-state'
 import { Chromecast } from './platform/chromecast'
 import {
   normalizeChromecastConfig,
@@ -48,7 +48,7 @@ export class CastPlugin extends Plugin {
     }
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
-    this._castPlaybackState = null
+    this._handoffState = null
     this._castAvailability = {
       airplay: 'not-available',
       chromecast: 'not-available'
@@ -133,7 +133,7 @@ export class CastPlugin extends Plugin {
       await this._handleCastActivated({ protocol })
     } else {
       this._castHandshakeInProgress = false
-      this._castPlaybackState = null
+      this._handoffState = null
     }
   }
 
@@ -177,9 +177,9 @@ export class CastPlugin extends Plugin {
   /**
    * @private
    */
-  _captureCastPlaybackState(protocol) {
-    const state = captureCastPlaybackState(this.player, protocol)
-    this._castPlaybackState = state
+  _captureHandoffState(protocol) {
+    const state = captureLocalStateForCast(this.player, protocol)
+    this._handoffState = state
     return state
   }
 
@@ -192,7 +192,7 @@ export class CastPlugin extends Plugin {
       return configuredAutoplay
     }
 
-    const state = this._castPlaybackState || this._captureCastPlaybackState()
+    const state = this._handoffState || this._captureHandoffState()
     return !state.paused
   }
 
@@ -291,11 +291,11 @@ export class CastPlugin extends Plugin {
     if (!targetProtocol) {
       return
     }
-    const playbackState = this._captureCastPlaybackState(targetProtocol)
+    const handoffState = this._captureHandoffState(targetProtocol)
     this.emit('cast_request', {
       protocol: targetProtocol,
       autoplay: this._getCastAutoplay(),
-      playbackState
+      handoffState
     })
   }
 
@@ -311,8 +311,16 @@ export class CastPlugin extends Plugin {
    * @public
    * Control remote playback for protocols that expose a remote controller.
    */
-  controlCast(action, payload, protocol = 'chromecast') {
+  controlCastRemote(action, payload, protocol = 'chromecast') {
     return this._castAdapters[protocol]?.controlRemote?.(action, payload) || false
+  }
+
+  /**
+   * @public
+   * Backward-compatible alias. Prefer controlCastRemote() for new integrations.
+   */
+  controlCast(action, payload, protocol = 'chromecast') {
+    return this.controlCastRemote(action, payload, protocol)
   }
 
   _getPreferredCastProtocol() {
@@ -347,7 +355,7 @@ export class CastPlugin extends Plugin {
     super.destroy()
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
-    this._castPlaybackState = null
+    this._handoffState = null
     this._castAdapters = {}
     this.off('loadstart', this._onLoadStart)
     this.off('cast_availability_change', this._onCastAvailabilityChange)
