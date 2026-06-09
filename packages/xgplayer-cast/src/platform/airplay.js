@@ -234,17 +234,13 @@ export class Airplay {
   }
 
   _getHandoffCurrentTime(mediaEl) {
-    const requestCurrentTime = toNonNegativeTime(this._handoffState?.currentTime)
-    if (requestCurrentTime !== null) {
-      return requestCurrentTime
-    }
-
     const mediaCurrentTime = toNonNegativeTime(mediaEl?.currentTime)
     if (mediaCurrentTime !== null) {
       return mediaCurrentTime
     }
 
-    return getLocalTime(this.player)
+    const requestCurrentTime = toNonNegativeTime(this._handoffState?.currentTime)
+    return requestCurrentTime !== null ? requestCurrentTime : getLocalTime(this.player)
   }
 
   _hasAttachedLocalSource(mediaEl) {
