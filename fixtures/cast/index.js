@@ -337,11 +337,11 @@ function requestCast(protocol) {
   setTimeout(() => updateDiagnostics(), 500)
 }
 
-function controlCast(action, payload) {
+function controlCastRemote(action, payload) {
   const plugin = getCastPlugin()
-  const ok = plugin?.controlCast?.(action, payload)
+  const ok = plugin?.controlCastRemote?.(action, payload)
   updateDiagnostics({
-    lastRequest: `controlCast(${action})=${ok ? 'ok' : 'ignored'}`
+    lastRequest: `controlCastRemote(${action})=${ok ? 'ok' : 'ignored'}`
   })
   setTimeout(() => updateDiagnostics(), 0)
 }
@@ -376,15 +376,15 @@ document.getElementById('btn-fake-chromecast-end')?.addEventListener('click', ()
 })
 document
   .getElementById('btn-cast-remote-play')
-  ?.addEventListener('click', () => controlCast('play'))
+  ?.addEventListener('click', () => controlCastRemote('play'))
 document
   .getElementById('btn-cast-remote-pause')
-  ?.addEventListener('click', () => controlCast('pause'))
+  ?.addEventListener('click', () => controlCastRemote('pause'))
 document
   .getElementById('btn-cast-remote-seek')
-  ?.addEventListener('click', () => controlCast('seek', { time: 30 }))
+  ?.addEventListener('click', () => controlCastRemote('seek', { time: 30 }))
 document
   .getElementById('btn-cast-remote-stop')
-  ?.addEventListener('click', () => controlCast('stop'))
+  ?.addEventListener('click', () => controlCastRemote('stop'))
 
 updateDiagnostics()
