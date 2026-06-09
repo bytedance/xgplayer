@@ -8,6 +8,8 @@ function createPluginStub() {
     player: {
       config: { url: 'https://example.com/video.m3u8' },
       paused: true,
+      currentTime: 0,
+      play: jest.fn().mockResolvedValue(undefined),
       pause: jest.fn(),
       on: jest.fn((event, fn) => {
         handlers[event] = fn
@@ -305,6 +307,91 @@ describe('Chromecast', () => {
     })
   })
 
+  test('restores local playback from remote state when Chromecast session ends', async () => {
+    const plugin = createPluginStub()
+
+    let sessionStateHandler
+    window.cast = buildCastFrameworkMock({
+      onAddEventListener: jest.fn((type, handler) => {
+        if (type === 'SESSION_STATE_CHANGED') sessionStateHandler = handler
+      })
+    })
+    window.chrome = {
+      cast: {
+        media: { DEFAULT_MEDIA_RECEIVER_APP_ID: 'default' },
+        AutoJoinPolicy: { ORIGIN_SCOPED: 'origin_scoped' }
+      }
+    }
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+    chromecast.remoteController.getState = jest.fn(() => ({
+      protocol: 'chromecast',
+      available: true,
+      connected: true,
+      mediaLoaded: true,
+      paused: false,
+      currentTime: 52
+    }))
+
+    sessionStateHandler({ sessionState: 'SESSION_ENDING' })
+    sessionStateHandler({ sessionState: 'SESSION_ENDED' })
+    await Promise.resolve()
+
+    expect(plugin.player.currentTime).toBe(52)
+    expect(plugin.player.play).toHaveBeenCalled()
+    expect(plugin.player.pause).not.toHaveBeenCalled()
+  })
+
+  test('restores local paused state when Chromecast receiver was paused', async () => {
+    const plugin = createPluginStub()
+
+    let sessionStateHandler
+    window.cast = buildCastFrameworkMock({
+      onAddEventListener: jest.fn((type, handler) => {
+        if (type === 'SESSION_STATE_CHANGED') sessionStateHandler = handler
+      })
+    })
+    window.chrome = {
+      cast: {
+        media: { DEFAULT_MEDIA_RECEIVER_APP_ID: 'default' },
+        AutoJoinPolicy: { ORIGIN_SCOPED: 'origin_scoped' }
+      }
+    }
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+    chromecast.remoteController.getState = jest.fn(() => ({
+      protocol: 'chromecast',
+      available: true,
+      connected: true,
+      mediaLoaded: true,
+      paused: true,
+      currentTime: 19
+    }))
+
+    sessionStateHandler({ sessionState: 'SESSION_ENDED' })
+    await Promise.resolve()
+
+    expect(plugin.player.currentTime).toBe(19)
+    expect(plugin.player.pause).toHaveBeenCalled()
+    expect(plugin.player.play).not.toHaveBeenCalled()
+  })
+
   test('does not crash if destroy() called during SDK load', async () => {
     const plugin = createPluginStub()
     window.cast = buildCastFrameworkMock()
@@ -503,7 +590,7 @@ describe('Chromecast', () => {
     const requestCast = chromecast._onRequestCast({
       protocol: 'chromecast',
       autoplay: true,
-      playbackState: { protocol: 'chromecast', paused: false, currentTime: 17 }
+      handoffState: { protocol: 'chromecast', paused: false, currentTime: 17 }
     })
     await new Promise((resolve) => setTimeout(resolve, 0))
 
@@ -548,7 +635,7 @@ describe('Chromecast', () => {
     await chromecast._onRequestCast({
       protocol: 'chromecast',
       autoplay: false,
-      playbackState: { protocol: 'chromecast', paused: true, currentTime: 9 }
+      handoffState: { protocol: 'chromecast', paused: true, currentTime: 9 }
     })
 
     expect(loadMedia).toHaveBeenCalledWith(

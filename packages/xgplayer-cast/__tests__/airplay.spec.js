@@ -9,6 +9,8 @@ function createAirplay(pluginOverrides = {}, playerOverrides = {}) {
     on: jest.fn(),
     off: jest.fn(),
     emit: jest.fn(),
+    play: jest.fn().mockResolvedValue(undefined),
+    pause: jest.fn(),
     i18n: { CAST_UNMUTE_TIP: 'Please unmute before casting' },
     config: {}
   }
@@ -228,7 +230,7 @@ describe('Airplay native source preparation', () => {
 
     airplay._onRequestCast({
       protocol: 'airplay',
-      playbackState: { protocol: 'airplay', paused: false, currentTime: 27 }
+      handoffState: { protocol: 'airplay', paused: false, currentTime: 27 }
     })
     airplay._onTargetChange()
     media.dispatchEvent(new Event('loadedmetadata'))
@@ -397,5 +399,24 @@ describe('Airplay native source preparation', () => {
 
     expect(plugin._suspendMSEPlugin).toHaveBeenCalled()
     expect(plugin._resumeMSEPlugin).toHaveBeenCalled()
+  })
+
+  test('restores local playback point and state after native AirPlay handoff disconnects', async () => {
+    const media = document.createElement('video')
+    media.currentTime = 64
+    Object.defineProperty(media, 'paused', {
+      configurable: true,
+      value: false
+    })
+
+    const { airplay, player, plugin } = createAirplay({}, { media })
+    airplay._nativeHandoffActive = true
+
+    await expect(airplay._restoreNativeHandoff()).resolves.toBe(true)
+
+    expect(plugin._resumeMSEPlugin).toHaveBeenCalled()
+    expect(player.media.currentTime).toBe(64)
+    expect(player.play).toHaveBeenCalled()
+    expect(player.pause).not.toHaveBeenCalled()
   })
 })
