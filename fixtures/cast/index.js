@@ -296,7 +296,6 @@ window.player = new Player({
   plugins: [HlsJSPlugin, CastPlugin],
   height: 300,
   cast: {
-    autoplayOnCast: false,
     chromecast: createChromecastConfig()
   },
   hls: {
