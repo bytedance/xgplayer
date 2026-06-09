@@ -202,7 +202,7 @@ describe('Airplay native source preparation', () => {
     })
   })
 
-  test('seeks to the request-time playback point during native handoff', () => {
+  test('seeks to the latest local point during native handoff', () => {
     const media = document.createElement('video')
     Object.defineProperty(media, 'currentSrc', {
       configurable: true,
@@ -216,7 +216,7 @@ describe('Airplay native source preparation', () => {
       configurable: true,
       value: 120
     })
-    media.currentTime = 5
+    media.currentTime = 27
     media.load = jest.fn()
     media.webkitShowPlaybackTargetPicker = jest.fn()
 
@@ -232,10 +232,11 @@ describe('Airplay native source preparation', () => {
       protocol: 'airplay',
       handoffState: { protocol: 'airplay', paused: false, currentTime: 27 }
     })
+    media.currentTime = 33
     airplay._onTargetChange()
     media.dispatchEvent(new Event('loadedmetadata'))
 
-    expect(player.media.currentTime).toBe(27)
+    expect(player.media.currentTime).toBe(33)
   })
 
   test('does not reapply native source while currentSrc still reports the detached blob', () => {
