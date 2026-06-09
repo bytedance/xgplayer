@@ -1,7 +1,7 @@
 import {
   applyRouteStateToLocal,
   getConfiguredCastAutoplay,
-  getLocalTime,
+  getLocalTimeOrNull,
   isLocalPaused,
   toNonNegativeTime
 } from './cast-handoff-state'
@@ -285,15 +285,14 @@ export class Chromecast {
     }
 
     this._pendingMediaKey = mediaKey
+    const localMediaState = this._pauseLocalForRemoteLoad()
     try {
       await session.loadMedia(request)
       this._lastLoadedMediaKey = mediaKey
       this._lastLoadAutoplay = request.autoplay
       this.remoteController.emitState()
-      // Keep local playback alive until the receiver accepts the media load.
-      // If loadMedia fails, the sender remains the active playback path.
-      this._pauseLocalAfterRemoteLoad()
     } catch (err) {
+      await this._resumeLocalAfterRemoteLoadError(localMediaState)
       this._emitError('media_load_failed', err, { media: castMedia })
       console.warn('[xgplayer-cast] Chromecast media load failed:', err)
       return false
@@ -319,12 +318,13 @@ export class Chromecast {
   }
 
   _resolveInitialCurrentTime(handoffState) {
-    const requestCurrentTime = toNonNegativeTime(handoffState?.currentTime)
-    if (requestCurrentTime !== null) {
-      return requestCurrentTime
+    const localCurrentTime = getLocalTimeOrNull(this.player)
+    if (localCurrentTime !== null) {
+      return localCurrentTime
     }
 
-    return getLocalTime(this.player)
+    const requestCurrentTime = toNonNegativeTime(handoffState?.currentTime)
+    return requestCurrentTime !== null ? requestCurrentTime : 0
   }
 
   _resolveLoadAutoplay(autoplay) {
@@ -386,16 +386,34 @@ export class Chromecast {
     }
   }
 
-  _pauseLocalAfterRemoteLoad() {
+  _pauseLocalForRemoteLoad() {
     if (isLocalPaused(this.player)) {
-      return
+      return null
     }
 
     try {
       this.player?.pause?.()
+      return { paused: false }
     } catch (error) {
-      console.warn('Failed to pause local playback after Chromecast media load:', error)
+      console.warn('Failed to pause local media before Chromecast load:', error)
     }
+
+    return null
+  }
+
+  async _resumeLocalAfterRemoteLoadError(localMediaState) {
+    if (!localMediaState || localMediaState.paused) {
+      return false
+    }
+
+    try {
+      await this.player?.play?.()
+      return true
+    } catch (error) {
+      console.warn('Failed to resume local media after Chromecast load failed:', error)
+    }
+
+    return false
   }
 
   getRemoteState() {

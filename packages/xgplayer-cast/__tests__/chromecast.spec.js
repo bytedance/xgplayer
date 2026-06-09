@@ -559,9 +559,10 @@ describe('Chromecast', () => {
     )
   })
 
-  test('_onRequestCast uses request autoplay and pauses local playback after load', async () => {
+  test('_onRequestCast uses request autoplay and pauses local media before load', async () => {
     const plugin = createPluginStub()
     plugin.player.paused = false
+    plugin.player.currentTime = 17
     plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
     plugin.player.url = 'https://cdn.example.com/video.mp4'
     plugin.player.preProcessUrl = (url) => ({ url })
@@ -602,17 +603,62 @@ describe('Chromecast', () => {
     expect(loadMedia).toHaveBeenCalledWith(
       expect.objectContaining({ autoplay: true, currentTime: 17 })
     )
-    expect(plugin.player.pause).not.toHaveBeenCalled()
+    expect(plugin.player.pause).toHaveBeenCalled()
+    expect(plugin.player.pause.mock.invocationCallOrder[0]).toBeLessThan(
+      loadMedia.mock.invocationCallOrder[0]
+    )
 
     resolveLoad()
     await requestCast
 
-    expect(plugin.player.pause).toHaveBeenCalled()
+    expect(plugin.player.pause).toHaveBeenCalledTimes(1)
+  })
+
+  test('_onRequestCast refreshes currentTime after Chromecast session is selected', async () => {
+    const plugin = createPluginStub()
+    plugin.player.paused = false
+    plugin.player.currentTime = 17
+    plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
+    plugin.player.url = 'https://cdn.example.com/video.mp4'
+    plugin.player.preProcessUrl = (url) => ({ url })
+
+    const loadMedia = jest.fn().mockResolvedValue(undefined)
+    const session = { loadMedia }
+    const requestSession = jest.fn().mockImplementation(async () => {
+      plugin.player.currentTime = 23
+    })
+
+    window.cast = buildCastFrameworkMock({
+      getCastState: jest.fn(() => 'NOT_CONNECTED'),
+      getCurrentSession: jest.fn(() => session),
+      requestSession
+    })
+    window.chrome = buildChromeMock()
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+    await chromecast._onRequestCast({
+      protocol: 'chromecast',
+      autoplay: true,
+      handoffState: { protocol: 'chromecast', paused: false, currentTime: 17 }
+    })
+
+    expect(loadMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ autoplay: true, currentTime: 23 })
+    )
   })
 
   test('_onRequestCast uses false request autoplay without forcing local pause', async () => {
     const plugin = createPluginStub()
     plugin.player.paused = true
+    plugin.player.currentTime = 9
     plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
     plugin.player.url = 'https://cdn.example.com/video.mp4'
     plugin.player.preProcessUrl = (url) => ({ url })
@@ -788,6 +834,51 @@ describe('Chromecast', () => {
       })
     )
     expect(plugin.player.pause).not.toHaveBeenCalled()
+  })
+
+  test('_loadCurrentMedia resumes local media when receiver load fails', async () => {
+    const plugin = createPluginStub()
+    plugin.player.paused = false
+    plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
+    plugin.player.preProcessUrl = (url) => ({ url })
+
+    const loadError = new Error('Receiver load failed')
+    const session = { loadMedia: jest.fn().mockRejectedValue(loadError) }
+
+    window.cast = buildCastFrameworkMock()
+    window.chrome = buildChromeMock()
+
+    const chromecast = new Chromecast(plugin, {
+      sdkLoader: jest.fn().mockResolvedValue(undefined),
+      sdkUrl: '',
+      receiverApplicationId: '',
+      autoJoinPolicy: 'origin_scoped',
+      loadSdkTimeout: 1000
+    })
+
+    await chromecast.install()
+    chromecast.session = session
+    chromecast._isCasting = true
+    plugin.player.emit.mockClear()
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    await expect(chromecast.reloadMedia()).resolves.toBe(false)
+    warnSpy.mockRestore()
+
+    expect(plugin.player.pause).toHaveBeenCalled()
+    expect(plugin.player.play).toHaveBeenCalled()
+    expect(plugin.player.play.mock.invocationCallOrder[0]).toBeLessThan(
+      plugin.player.emit.mock.invocationCallOrder[0]
+    )
+    expect(plugin.player.emit).toHaveBeenCalledWith(
+      'cast_error',
+      expect.objectContaining({
+        protocol: 'chromecast',
+        code: 'media_load_failed',
+        message: 'Receiver load failed',
+        error: loadError
+      })
+    )
   })
 
   test('reloadMedia loads changed media during an active session', async () => {

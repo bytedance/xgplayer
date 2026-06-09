@@ -21,6 +21,11 @@ export function toNonNegativeTime(value) {
 }
 
 export function getLocalTime(player) {
+  const currentTime = getLocalTimeOrNull(player)
+  return currentTime !== null ? currentTime : 0
+}
+
+export function getLocalTimeOrNull(player) {
   const media = player?.media || player?.video
   const candidates = [player?.currentTime, media?.currentTime]
 
@@ -31,7 +36,7 @@ export function getLocalTime(player) {
     }
   }
 
-  return 0
+  return null
 }
 
 export function captureLocalStateForCast(player, protocol) {
