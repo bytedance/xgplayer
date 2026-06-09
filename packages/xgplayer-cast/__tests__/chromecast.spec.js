@@ -299,7 +299,7 @@ describe('Chromecast', () => {
     })
 
     await chromecast.install()
-    sessionStateHandler({ sessionState: 'SESSION_ENDED' })
+    await sessionStateHandler({ sessionState: 'SESSION_ENDED' })
 
     expect(plugin.player.emit).toHaveBeenCalledWith('cast_target_change', {
       protocol: 'chromecast',
@@ -309,6 +309,7 @@ describe('Chromecast', () => {
 
   test('restores local playback from remote state when Chromecast session ends', async () => {
     const plugin = createPluginStub()
+    let currentTimeAtCastEnd
 
     let sessionStateHandler
     window.cast = buildCastFrameworkMock({
@@ -332,6 +333,11 @@ describe('Chromecast', () => {
     })
 
     await chromecast.install()
+    plugin.player.emit.mockImplementation((event, payload) => {
+      if (event === 'cast_target_change' && payload?.isCasting === false) {
+        currentTimeAtCastEnd = plugin.player.currentTime
+      }
+    })
     chromecast.remoteController.getState = jest.fn(() => ({
       protocol: 'chromecast',
       available: true,
@@ -341,11 +347,11 @@ describe('Chromecast', () => {
       currentTime: 52
     }))
 
-    sessionStateHandler({ sessionState: 'SESSION_ENDING' })
-    sessionStateHandler({ sessionState: 'SESSION_ENDED' })
-    await Promise.resolve()
+    await sessionStateHandler({ sessionState: 'SESSION_ENDING' })
+    await sessionStateHandler({ sessionState: 'SESSION_ENDED' })
 
     expect(plugin.player.currentTime).toBe(52)
+    expect(currentTimeAtCastEnd).toBe(52)
     expect(plugin.player.play).toHaveBeenCalled()
     expect(plugin.player.pause).not.toHaveBeenCalled()
   })
@@ -384,8 +390,7 @@ describe('Chromecast', () => {
       currentTime: 19
     }))
 
-    sessionStateHandler({ sessionState: 'SESSION_ENDED' })
-    await Promise.resolve()
+    await sessionStateHandler({ sessionState: 'SESSION_ENDED' })
 
     expect(plugin.player.currentTime).toBe(19)
     expect(plugin.player.pause).toHaveBeenCalled()

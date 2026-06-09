@@ -121,7 +121,7 @@ export class Chromecast {
     })
   }
 
-  _onSessionStateChanged = ({ sessionState } = {}) => {
+  _onSessionStateChanged = async ({ sessionState } = {}) => {
     const {
       SESSION_STARTED,
       SESSION_RESUMED,
@@ -169,7 +169,9 @@ export class Chromecast {
       this._pendingMediaKey = null
       this._lastLoadAutoplay = false
       this._pendingLocalRestoreState = null
-      this._applyRemoteStateToLocal(restoreState)
+      if (restoreState) {
+        await this._applyRemoteStateToLocal(restoreState)
+      }
       this.remoteController.reset()
       this.player?.emit('cast_target_change', {
         protocol: 'chromecast',
