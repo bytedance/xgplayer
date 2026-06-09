@@ -19,6 +19,7 @@ const diagnostics = {
   lastResolvedMedia: 'none',
   lastLoad: 'none',
   lastError: 'none',
+  remoteState: 'none',
   mediaSrcAttr: 'none',
   mediaSrc: 'none',
   mediaCurrentSrc: 'none',
@@ -76,9 +77,21 @@ function updateDiagnostics(patch = {}) {
 function createFakeChromecastLoader() {
   return async () => {
     const listeners = {}
+    const remoteListeners = {}
     let castState =
       fakeChromecastMode === 'no-devices' ? 'NO_DEVICES_AVAILABLE' : 'NOT_CONNECTED'
     let currentSession = null
+    const remotePlayer = {
+      isConnected: false,
+      isMediaLoaded: false,
+      playerState: '',
+      isPaused: true,
+      currentTime: 0,
+      duration: 0,
+      volumeLevel: 1,
+      isMuted: false,
+      mediaInfo: null
+    }
 
     const dispatch = (type, payload) => {
       const handlers = listeners[type] || []
@@ -86,6 +99,10 @@ function createFakeChromecastLoader() {
       if (type === 'CAST_STATE_CHANGED') {
         updateDiagnostics({ castState: payload.castState })
       }
+    }
+
+    const dispatchRemote = () => {
+      ;(remoteListeners.ANY_CHANGE || []).forEach((handler) => handler())
     }
 
     const castContext = {
@@ -120,8 +137,17 @@ function createFakeChromecastLoader() {
               updateDiagnostics({ lastError: 'Fake Chromecast loadMedia failed' })
               throw new Error('Fake Chromecast loadMedia failed')
             }
+            remotePlayer.isConnected = true
+            remotePlayer.isMediaLoaded = true
+            remotePlayer.isPaused = !request.autoplay
+            remotePlayer.playerState = request.autoplay ? 'PLAYING' : 'PAUSED'
+            remotePlayer.currentTime = Number(request.currentTime) || 0
+            remotePlayer.mediaInfo = media
+            remotePlayer.duration = Number(media.duration) || 0
+            dispatchRemote()
           }
         }
+        remotePlayer.isConnected = true
         castState = 'CONNECTED'
         dispatch('SESSION_STATE_CHANGED', { sessionState: 'SESSION_STARTED' })
         dispatch('CAST_STATE_CHANGED', { castState })
@@ -166,6 +192,43 @@ function createFakeChromecastLoader() {
           SESSION_RESUMED: 'SESSION_RESUMED',
           SESSION_ENDED: 'SESSION_ENDED'
         },
+        RemotePlayerEventType: {
+          ANY_CHANGE: 'ANY_CHANGE'
+        },
+        RemotePlayer: function RemotePlayer() {
+          return remotePlayer
+        },
+        RemotePlayerController: function RemotePlayerController(player) {
+          this.addEventListener = (type, handler) => {
+            remoteListeners[type] = remoteListeners[type] || []
+            remoteListeners[type].push(handler)
+          }
+          this.removeEventListener = (type, handler) => {
+            remoteListeners[type] = (remoteListeners[type] || []).filter(
+              (item) => item !== handler
+            )
+          }
+          this.playOrPause = () => {
+            player.isPaused = !player.isPaused
+            player.playerState = player.isPaused ? 'PAUSED' : 'PLAYING'
+            dispatchRemote()
+          }
+          this.seek = () => {
+            dispatchRemote()
+          }
+          this.stop = () => {
+            player.isMediaLoaded = false
+            player.playerState = 'IDLE'
+            dispatchRemote()
+          }
+          this.setVolumeLevel = () => {
+            dispatchRemote()
+          }
+          this.muteOrUnmute = () => {
+            player.isMuted = !player.isMuted
+            dispatchRemote()
+          }
+        },
         CastContext: {
           getInstance() {
             return castContext
@@ -185,6 +248,10 @@ function createFakeChromecastLoader() {
       endSession() {
         currentSession = null
         castState = 'NOT_CONNECTED'
+        remotePlayer.isConnected = false
+        remotePlayer.isMediaLoaded = false
+        remotePlayer.playerState = ''
+        dispatchRemote()
         dispatch('SESSION_STATE_CHANGED', { sessionState: 'SESSION_ENDED' })
         dispatch('CAST_STATE_CHANGED', { castState })
       }
@@ -247,6 +314,11 @@ window.player.on('cast_target_change', ({ protocol, isCasting }) => {
 window.player.on('cast_error', ({ protocol, code, message }) => {
   updateDiagnostics({ lastError: `${protocol}:${code} ${message}` })
 })
+window.player.on('cast_remote_state_change', (state) => {
+  updateDiagnostics({
+    remoteState: `${state.protocol}:${state.connected ? 'connected' : 'idle'}:${state.mediaLoaded ? 'media' : 'no-media'}:${state.playerState || 'unknown'}:${Math.round(state.currentTime || 0)}/${Math.round(state.duration || 0)}`
+  })
+})
 
 function getCastPlugin() {
   return window.player.getPlugin?.('cast') || window.player.plugins?.cast
@@ -263,6 +335,15 @@ function requestCast(protocol) {
   plugin?.requestCast?.(protocol)
   setTimeout(() => updateDiagnostics(), 0)
   setTimeout(() => updateDiagnostics(), 500)
+}
+
+function controlCast(action, payload) {
+  const plugin = getCastPlugin()
+  const ok = plugin?.controlCast?.(action, payload)
+  updateDiagnostics({
+    lastRequest: `controlCast(${action})=${ok ? 'ok' : 'ignored'}`
+  })
+  setTimeout(() => updateDiagnostics(), 0)
 }
 
 window.castDemoResolveMedia = () => {
@@ -293,5 +374,17 @@ document.getElementById('btn-fake-chromecast-none')?.addEventListener('click', (
 document.getElementById('btn-fake-chromecast-end')?.addEventListener('click', () => {
   window.__fakeChromecast?.endSession()
 })
+document
+  .getElementById('btn-cast-remote-play')
+  ?.addEventListener('click', () => controlCast('play'))
+document
+  .getElementById('btn-cast-remote-pause')
+  ?.addEventListener('click', () => controlCast('pause'))
+document
+  .getElementById('btn-cast-remote-seek')
+  ?.addEventListener('click', () => controlCast('seek', { time: 30 }))
+document
+  .getElementById('btn-cast-remote-stop')
+  ?.addEventListener('click', () => controlCast('stop'))
 
 updateDiagnostics()

@@ -2,6 +2,10 @@ import { Plugin } from 'xgplayer'
 import AirplaySvg from './assets/airplay.svg'
 import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
+import {
+  captureCastPlaybackState,
+  getConfiguredCastAutoplay
+} from './platform/cast-playback-state'
 import { Chromecast } from './platform/chromecast'
 import {
   normalizeChromecastConfig,
@@ -31,7 +35,7 @@ export class CastPlugin extends Plugin {
       index: 7,
       disable: false,
       showIcon: true,
-      autoplayOnCast: true, // 投屏后是否自动播放
+      autoplayOnCast: undefined, // 未配置时继承投屏前播放态
       airplay: true,
       chromecast: true,
       showAirplayMutedTip: true // 是否显示 AirPlay 连接时需要取消静音的提示
@@ -44,6 +48,7 @@ export class CastPlugin extends Plugin {
     }
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
+    this._castPlaybackState = null
     this._castAvailability = {
       airplay: 'not-available',
       chromecast: 'not-available'
@@ -128,6 +133,7 @@ export class CastPlugin extends Plugin {
       await this._handleCastActivated({ protocol })
     } else {
       this._castHandshakeInProgress = false
+      this._castPlaybackState = null
     }
   }
 
@@ -141,8 +147,8 @@ export class CastPlugin extends Plugin {
 
   /**
    * @private
-   * AirPlay/Chromecast often needs an explicit play command to complete route activation.
-   * If autoplayOnCast is false, pause immediately after the route is activated.
+   * AirPlay often needs an explicit play command to complete route activation.
+   * When autoplayOnCast is not configured, keep the pre-cast playback state.
    */
   async _playForCastHandshake() {
     if (this._castHandshakeInProgress) {
@@ -150,8 +156,7 @@ export class CastPlugin extends Plugin {
     }
     this._castHandshakeInProgress = true
 
-    const shouldKeepPlaying = !!this.config.autoplayOnCast
-    // console.log('autoplayOnCast', this.config.autoplayOnCast)
+    const shouldKeepPlaying = this._getCastAutoplay()
 
     try {
       await this.player.play()
@@ -167,6 +172,28 @@ export class CastPlugin extends Plugin {
     if (!shouldKeepPlaying) {
       this.player.pause()
     }
+  }
+
+  /**
+   * @private
+   */
+  _captureCastPlaybackState(protocol) {
+    const state = captureCastPlaybackState(this.player, protocol)
+    this._castPlaybackState = state
+    return state
+  }
+
+  /**
+   * @private
+   */
+  _getCastAutoplay() {
+    const configuredAutoplay = getConfiguredCastAutoplay(this.config)
+    if (configuredAutoplay !== undefined) {
+      return configuredAutoplay
+    }
+
+    const state = this._castPlaybackState || this._captureCastPlaybackState()
+    return !state.paused
   }
 
   /**
@@ -264,7 +291,28 @@ export class CastPlugin extends Plugin {
     if (!targetProtocol) {
       return
     }
-    this.emit('cast_request', { protocol: targetProtocol })
+    const playbackState = this._captureCastPlaybackState(targetProtocol)
+    this.emit('cast_request', {
+      protocol: targetProtocol,
+      autoplay: this._getCastAutoplay(),
+      playbackState
+    })
+  }
+
+  /**
+   * @public
+   * Return the latest remote playback state for protocols that expose one.
+   */
+  getCastRemoteState(protocol = 'chromecast') {
+    return this._castAdapters[protocol]?.getRemoteState?.() || null
+  }
+
+  /**
+   * @public
+   * Control remote playback for protocols that expose a remote controller.
+   */
+  controlCast(action, payload, protocol = 'chromecast') {
+    return this._castAdapters[protocol]?.controlRemote?.(action, payload) || false
   }
 
   _getPreferredCastProtocol() {
@@ -299,6 +347,7 @@ export class CastPlugin extends Plugin {
     super.destroy()
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
+    this._castPlaybackState = null
     this._castAdapters = {}
     this.off('loadstart', this._onLoadStart)
     this.off('cast_availability_change', this._onCastAvailabilityChange)

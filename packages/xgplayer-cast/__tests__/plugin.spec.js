@@ -4,11 +4,14 @@ import { CastPlugin } from '../src/plugin'
 function createPluginStub(overrides = {}) {
   const plugin = Object.create(CastPlugin.prototype)
   plugin.player = {
+    paused: false,
+    currentTime: 0,
     play: jest.fn().mockResolvedValue(undefined),
     pause: jest.fn()
   }
-  plugin.config = { autoplayOnCast: true }
+  plugin.config = {}
   plugin._castHandshakeInProgress = false
+  plugin._castPlaybackState = null
   plugin._castAvailability = { airplay: 'not-available', chromecast: 'not-available' }
   plugin._castAdapters = {}
   plugin.show = jest.fn()
@@ -24,8 +27,12 @@ function createPluginStub(overrides = {}) {
   plugin._updateCastIconVisibility = CastPlugin.prototype._updateCastIconVisibility.bind(plugin)
   plugin._updateCastIcon = CastPlugin.prototype._updateCastIcon.bind(plugin)
   plugin.requestCast = CastPlugin.prototype.requestCast.bind(plugin)
+  plugin.getCastRemoteState = CastPlugin.prototype.getCastRemoteState.bind(plugin)
+  plugin.controlCast = CastPlugin.prototype.controlCast.bind(plugin)
   plugin._getPreferredCastProtocol = CastPlugin.prototype._getPreferredCastProtocol.bind(plugin)
   plugin._getProtocolOrder = CastPlugin.prototype._getProtocolOrder.bind(plugin)
+  plugin._captureCastPlaybackState = CastPlugin.prototype._captureCastPlaybackState.bind(plugin)
+  plugin._getCastAutoplay = CastPlugin.prototype._getCastAutoplay.bind(plugin)
   plugin._suspendMSEPlugin = CastPlugin.prototype._suspendMSEPlugin.bind(plugin)
   plugin._resumeMSEPlugin = CastPlugin.prototype._resumeMSEPlugin.bind(plugin)
   Object.assign(plugin, overrides)
@@ -43,6 +50,57 @@ describe('CastPlugin protocol-aware activation', () => {
 
     expect(plugin._suspendMSEPlugin).not.toHaveBeenCalled()
     expect(plugin.player.play).toHaveBeenCalled()
+  })
+
+  test('airplay: preserves pre-cast paused state when autoplayOnCast is not configured', async () => {
+    const player = {
+      paused: true,
+      play: jest.fn().mockResolvedValue(undefined),
+      pause: jest.fn()
+    }
+    const plugin = createPluginStub({ player })
+    plugin._onCastTargetChange = CastPlugin.prototype._onCastTargetChange.bind(plugin)
+    plugin.requestCast('airplay')
+
+    await plugin._onCastTargetChange({ isCasting: true, protocol: 'airplay' })
+
+    expect(player.play).toHaveBeenCalled()
+    expect(player.pause).toHaveBeenCalled()
+  })
+
+  test('airplay: preserves pre-cast playing state when autoplayOnCast is not configured', async () => {
+    const player = {
+      paused: false,
+      play: jest.fn().mockResolvedValue(undefined),
+      pause: jest.fn()
+    }
+    const plugin = createPluginStub({ player })
+    plugin._onCastTargetChange = CastPlugin.prototype._onCastTargetChange.bind(plugin)
+    plugin.requestCast('airplay')
+
+    await plugin._onCastTargetChange({ isCasting: true, protocol: 'airplay' })
+
+    expect(player.play).toHaveBeenCalled()
+    expect(player.pause).not.toHaveBeenCalled()
+  })
+
+  test('airplay: explicit autoplayOnCast overrides the pre-cast state', async () => {
+    const player = {
+      paused: true,
+      play: jest.fn().mockResolvedValue(undefined),
+      pause: jest.fn()
+    }
+    const plugin = createPluginStub({
+      player,
+      config: { autoplayOnCast: true }
+    })
+    plugin._onCastTargetChange = CastPlugin.prototype._onCastTargetChange.bind(plugin)
+    plugin.requestCast('airplay')
+
+    await plugin._onCastTargetChange({ isCasting: true, protocol: 'airplay' })
+
+    expect(player.play).toHaveBeenCalled()
+    expect(player.pause).not.toHaveBeenCalled()
   })
 
   test('chromecast: does NOT suspend MSE plugin and does NOT call local play()', async () => {
@@ -263,7 +321,14 @@ describe('CastPlugin requestCast', () => {
 
     plugin.requestCast()
 
-    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'airplay' })
+    expect(plugin.emit).toHaveBeenCalledWith(
+      'cast_request',
+      expect.objectContaining({
+        protocol: 'airplay',
+        autoplay: true,
+        playbackState: { protocol: 'airplay', paused: false, currentTime: 0 }
+      })
+    )
   })
 
   test('emits cast_request with chromecast protocol when only chromecast available', () => {
@@ -277,7 +342,14 @@ describe('CastPlugin requestCast', () => {
 
     plugin.requestCast()
 
-    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'chromecast' })
+    expect(plugin.emit).toHaveBeenCalledWith(
+      'cast_request',
+      expect.objectContaining({
+        protocol: 'chromecast',
+        autoplay: true,
+        playbackState: { protocol: 'chromecast', paused: false, currentTime: 0 }
+      })
+    )
   })
 
   test('uses adapter protocol order instead of browser userAgent when multiple protocols are available', () => {
@@ -292,7 +364,14 @@ describe('CastPlugin requestCast', () => {
 
     plugin.requestCast()
 
-    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'chromecast' })
+    expect(plugin.emit).toHaveBeenCalledWith(
+      'cast_request',
+      expect.objectContaining({
+        protocol: 'chromecast',
+        autoplay: true,
+        playbackState: { protocol: 'chromecast', paused: false, currentTime: 0 }
+      })
+    )
   })
 
   test('falls back to requestable airplay adapter before availability event arrives', () => {
@@ -304,7 +383,14 @@ describe('CastPlugin requestCast', () => {
 
     plugin.requestCast()
 
-    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'airplay' })
+    expect(plugin.emit).toHaveBeenCalledWith(
+      'cast_request',
+      expect.objectContaining({
+        protocol: 'airplay',
+        autoplay: true,
+        playbackState: { protocol: 'airplay', paused: false, currentTime: 0 }
+      })
+    )
   })
 
   test('emits cast_request with explicit protocol override', () => {
@@ -314,7 +400,45 @@ describe('CastPlugin requestCast', () => {
 
     plugin.requestCast('airplay')
 
-    expect(plugin.emit).toHaveBeenCalledWith('cast_request', { protocol: 'airplay' })
+    expect(plugin.emit).toHaveBeenCalledWith(
+      'cast_request',
+      expect.objectContaining({
+        protocol: 'airplay',
+        autoplay: true,
+        playbackState: { protocol: 'airplay', paused: false, currentTime: 0 }
+      })
+    )
+  })
+
+  test('captures pre-cast playback state before emitting cast_request', () => {
+    const plugin = createPluginStub({
+      player: {
+        paused: false,
+        currentTime: 42,
+        play: jest.fn(),
+        pause: jest.fn()
+      },
+      _castAvailability: { airplay: 'available', chromecast: 'not-available' },
+      _castAdapters: {
+        airplay: {}
+      }
+    })
+
+    plugin.requestCast()
+
+    expect(plugin._castPlaybackState).toEqual({
+      protocol: 'airplay',
+      paused: false,
+      currentTime: 42
+    })
+    expect(plugin.emit).toHaveBeenCalledWith(
+      'cast_request',
+      expect.objectContaining({
+        protocol: 'airplay',
+        autoplay: true,
+        playbackState: { protocol: 'airplay', paused: false, currentTime: 42 }
+      })
+    )
   })
 
   test('does not emit when no protocol available or requestable', () => {
@@ -323,5 +447,29 @@ describe('CastPlugin requestCast', () => {
     plugin.requestCast()
 
     expect(plugin.emit).not.toHaveBeenCalled()
+  })
+})
+
+describe('CastPlugin remote control delegation', () => {
+  test('delegates remote state and control to the selected adapter', () => {
+    const remoteState = { protocol: 'chromecast', connected: true }
+    const chromecast = {
+      getRemoteState: jest.fn(() => remoteState),
+      controlRemote: jest.fn(() => true)
+    }
+    const plugin = createPluginStub({
+      _castAdapters: { chromecast }
+    })
+
+    expect(plugin.getCastRemoteState()).toBe(remoteState)
+    expect(plugin.controlCast('seek', { time: 12 })).toBe(true)
+    expect(chromecast.controlRemote).toHaveBeenCalledWith('seek', { time: 12 })
+  })
+
+  test('returns safe defaults when protocol has no remote controller', () => {
+    const plugin = createPluginStub()
+
+    expect(plugin.getCastRemoteState()).toBe(null)
+    expect(plugin.controlCast('play')).toBe(false)
   })
 })

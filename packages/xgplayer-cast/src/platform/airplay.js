@@ -1,5 +1,6 @@
 import { Util } from 'xgplayer'
 import { resolveCastMedia } from './cast-media'
+import { getPlayerCurrentTime, normalizeCastCurrentTime } from './cast-playback-state'
 
 const AIRPLAY_ROUTE_SETTLE_DELAY_MS = 1000
 
@@ -23,6 +24,7 @@ export class Airplay {
     this._lastCastingState = null
     this._airplaySourceEl = null
     this._airplayMedia = null
+    this._playbackState = null
     this._nativeHandoffActive = false
     this._emitCastingFalseDebounced = Util.debounce(() => {
       const media = this.player?.media || this.player?.video
@@ -113,9 +115,7 @@ export class Airplay {
       return true
     }
 
-    const currentTime = Number.isFinite(mediaEl.currentTime)
-      ? mediaEl.currentTime
-      : this.player?.currentTime || 0
+    const currentTime = this._getHandoffCurrentTime(mediaEl)
 
     this.plugin?._suspendMSEPlugin?.()
     this._nativeHandoffActive = true
@@ -138,6 +138,7 @@ export class Airplay {
   }
 
   _restoreNativeHandoff() {
+    this._playbackState = null
     if (!this._nativeHandoffActive) {
       return
     }
@@ -218,6 +219,20 @@ export class Airplay {
     return this._getSourceElements(mediaEl).some((source) =>
       /^blob:/i.test(source.getAttribute('src') || source.src || '')
     )
+  }
+
+  _getHandoffCurrentTime(mediaEl) {
+    const requestCurrentTime = normalizeCastCurrentTime(this._playbackState?.currentTime)
+    if (requestCurrentTime !== null) {
+      return requestCurrentTime
+    }
+
+    const mediaCurrentTime = normalizeCastCurrentTime(mediaEl?.currentTime)
+    if (mediaCurrentTime !== null) {
+      return mediaCurrentTime
+    }
+
+    return getPlayerCurrentTime(this.player)
   }
 
   _hasAttachedLocalSource(mediaEl) {
@@ -329,7 +344,7 @@ export class Airplay {
     return isAirPlayAvailable(this.player)
   }
 
-  _onRequestCast = ({ protocol } = {}) => {
+  _onRequestCast = ({ protocol, playbackState } = {}) => {
     if (protocol && protocol !== 'airplay') return
     if (!isAirPlayAvailable(this.player)) {
       return false
@@ -337,6 +352,7 @@ export class Airplay {
 
     try {
       const mediaEl = this.player.media || this.player.video
+      this._playbackState = playbackState || null
       const wasMuted = mediaEl.muted
 
       // WebKit 的 AirPlay 实现中，静音的Media元素会被认为不需要音频输出设备，系统因此认为没有必要将其路由到外部播放目标
@@ -412,6 +428,7 @@ export class Airplay {
     this._lastCastingState = null
     this._airplaySourceEl = null
     this._airplayMedia = null
+    this._playbackState = null
     this._nativeHandoffActive = false
   }
 }

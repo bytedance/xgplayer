@@ -1,4 +1,11 @@
 import { resolveCastMedia } from './cast-media'
+import {
+  getConfiguredCastAutoplay,
+  getPlayerCurrentTime,
+  isPlayerPaused,
+  normalizeCastCurrentTime
+} from './cast-playback-state'
+import { ChromecastRemoteController } from './chromecast-remote-controller'
 import { loadChromecastSdk } from './chromecast-sdk'
 
 const MEDIA_INFO_FIELDS = [
@@ -22,6 +29,8 @@ export class Chromecast {
     this._isCasting = false
     this._lastLoadedMediaKey = null
     this._pendingMediaKey = null
+    this._lastLoadAutoplay = false
+    this.remoteController = new ChromecastRemoteController(this.player)
   }
 
   async install() {
@@ -33,6 +42,7 @@ export class Chromecast {
         throw new Error('Chromecast sender sdk is not ready')
       }
       this._initCastContext()
+      this.remoteController.install()
       this.player.on('cast_request', this._onRequestCast)
     } catch (error) {
       console.warn('[xgplayer-cast] chromecast install failed:', error)
@@ -134,6 +144,7 @@ export class Chromecast {
 
       this.session = session
       this._isCasting = true
+      this.remoteController.emitState()
       this.player?.emit('cast_target_change', {
         protocol: 'chromecast',
         isCasting: true
@@ -148,6 +159,8 @@ export class Chromecast {
       this._isCasting = false
       this._lastLoadedMediaKey = null
       this._pendingMediaKey = null
+      this._lastLoadAutoplay = false
+      this.remoteController.reset()
       this.player?.emit('cast_target_change', {
         protocol: 'chromecast',
         isCasting: false
@@ -179,7 +192,7 @@ export class Chromecast {
     }
   }
 
-  _onRequestCast = async ({ protocol } = {}) => {
+  _onRequestCast = async ({ protocol, autoplay, playbackState } = {}) => {
     if (protocol && protocol !== 'chromecast') return
 
     if (!this.castContext) {
@@ -204,14 +217,17 @@ export class Chromecast {
 
       this.session = session
       this._isCasting = true
-      await this._loadCurrentMedia()
+      await this._loadCurrentMedia({
+        autoplay: this._resolveInitialAutoplay(autoplay),
+        currentTime: this._resolveInitialCurrentTime(playbackState)
+      })
     } catch (err) {
       console.warn('[xgplayer-cast] Chromecast cast request failed:', err)
       this._emitError('request_session_failed', err)
     }
   }
 
-  async _loadCurrentMedia({ skipSameMedia = false } = {}) {
+  async _loadCurrentMedia({ skipSameMedia = false, autoplay, currentTime } = {}) {
     const session = this.session || this.castContext?.getCurrentSession?.()
     if (!session) {
       console.warn('[xgplayer-cast] No Chromecast session for media load')
@@ -250,12 +266,21 @@ export class Chromecast {
       }
     })
     const request = new window.chrome.cast.media.LoadRequest(mediaInfo)
-    request.autoplay = !!this.plugin.config.autoplayOnCast
+    request.autoplay = this._resolveLoadAutoplay(autoplay)
+    const resolvedCurrentTime = this._resolveLoadCurrentTime(currentTime)
+    if (resolvedCurrentTime > 0) {
+      request.currentTime = resolvedCurrentTime
+    }
 
     this._pendingMediaKey = mediaKey
     try {
       await session.loadMedia(request)
       this._lastLoadedMediaKey = mediaKey
+      this._lastLoadAutoplay = request.autoplay
+      this.remoteController.emitState()
+      // Keep local playback alive until the receiver accepts the media load.
+      // If loadMedia fails, the sender remains the active playback path.
+      this._pauseLocalPlaybackAfterRemoteLoad()
     } catch (err) {
       this._emitError('media_load_failed', err, { media: castMedia })
       console.warn('[xgplayer-cast] Chromecast media load failed:', err)
@@ -266,6 +291,80 @@ export class Chromecast {
       }
     }
     return true
+  }
+
+  _resolveInitialAutoplay(autoplay) {
+    if (typeof autoplay === 'boolean') {
+      return autoplay
+    }
+
+    const configuredAutoplay = getConfiguredCastAutoplay(this.plugin?.config)
+    if (configuredAutoplay !== undefined) {
+      return configuredAutoplay
+    }
+
+    return !isPlayerPaused(this.player)
+  }
+
+  _resolveInitialCurrentTime(playbackState) {
+    const requestCurrentTime = normalizeCastCurrentTime(playbackState?.currentTime)
+    if (requestCurrentTime !== null) {
+      return requestCurrentTime
+    }
+
+    return getPlayerCurrentTime(this.player)
+  }
+
+  _resolveLoadAutoplay(autoplay) {
+    if (typeof autoplay === 'boolean') {
+      return autoplay
+    }
+
+    const configuredAutoplay = getConfiguredCastAutoplay(this.plugin?.config)
+    if (configuredAutoplay !== undefined) {
+      return configuredAutoplay
+    }
+
+    const remoteState = this.remoteController?.getState?.()
+    if (remoteState?.available && remoteState.mediaLoaded) {
+      return !remoteState.paused
+    }
+
+    return this._lastLoadAutoplay
+  }
+
+  _resolveLoadCurrentTime(currentTime) {
+    const requestCurrentTime = normalizeCastCurrentTime(currentTime)
+    if (requestCurrentTime !== null) {
+      return requestCurrentTime
+    }
+
+    const remoteState = this.remoteController?.getState?.()
+    if (remoteState?.available && remoteState.mediaLoaded) {
+      return normalizeCastCurrentTime(remoteState.currentTime)
+    }
+
+    return null
+  }
+
+  _pauseLocalPlaybackAfterRemoteLoad() {
+    if (isPlayerPaused(this.player)) {
+      return
+    }
+
+    try {
+      this.player?.pause?.()
+    } catch (error) {
+      console.warn('Failed to pause local playback after Chromecast media load:', error)
+    }
+  }
+
+  getRemoteState() {
+    return this.remoteController?.getState?.() || null
+  }
+
+  controlRemote(action, payload) {
+    return this.remoteController?.control?.(action, payload) || false
   }
 
   _emitError(code, error, extra = {}) {
@@ -297,6 +396,9 @@ export class Chromecast {
     this._isCasting = false
     this._lastLoadedMediaKey = null
     this._pendingMediaKey = null
+    this._lastLoadAutoplay = false
+    this.remoteController?.destroy()
+    this.remoteController = null
     this.player = null
     this.plugin = null
   }
