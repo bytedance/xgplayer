@@ -54,7 +54,11 @@ export function loadChromecastSdk(config) {
     return sdkPromise
   }
 
-  if (typeof config.sdkLoader !== 'function' && window.cast?.framework && window.chrome?.cast) {
+  if (
+    typeof config.sdkLoader !== 'function' &&
+    window.cast?.framework &&
+    window.chrome?.cast
+  ) {
     sdkPromise = Promise.resolve()
     return sdkPromise
   }
