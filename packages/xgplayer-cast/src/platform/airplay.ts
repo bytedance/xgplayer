@@ -160,7 +160,7 @@ export class Airplay {
     this._nativeHandoffActive = false
     this._airplayMedia = null
     try {
-      await this.plugin?._resumeMSEPlugin?.()
+      await this.plugin?._resumeMSEPlugin?.(routeState)
     } catch (error) {
       console.warn('Failed to restore streaming plugin after AirPlay:', error)
     }

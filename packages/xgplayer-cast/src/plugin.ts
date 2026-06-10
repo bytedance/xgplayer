@@ -4,7 +4,8 @@ import CastSvg from './assets/cast.svg'
 import { Airplay, isAirPlayAvailable } from './platform/airplay'
 import {
   captureLocalStateForCast,
-  getConfiguredCastAutoplay
+  getConfiguredCastAutoplay,
+  toNonNegativeTime
 } from './platform/cast-handoff-state'
 import { Chromecast } from './platform/chromecast'
 import {
@@ -233,7 +234,7 @@ export class CastPlugin extends Plugin {
     this.player.unRegisterPlugin?.(pluginName)
   }
 
-  async _resumeMSEPlugin() {
+  async _resumeMSEPlugin(routeState?: CastRouteState | null) {
     if (!this._msePluginRestore) {
       return false
     }
@@ -254,7 +255,17 @@ export class CastPlugin extends Plugin {
     }
 
     let instance = null
+    const resumeTime = toNonNegativeTime(routeState?.currentTime)
+    const playerConfig = this.player?.config
+    const hasStartTime =
+      !!playerConfig && Object.prototype.hasOwnProperty.call(playerConfig, 'startTime')
+    const previousStartTime = playerConfig?.startTime
+
     try {
+      if (resumeTime !== null && playerConfig) {
+        playerConfig.startTime = resumeTime
+      }
+
       instance = this.player.registerPlugin(plugin, config)
       if (!instance) {
         return false
@@ -273,6 +284,14 @@ export class CastPlugin extends Plugin {
         this.player.unRegisterPlugin?.(pluginName)
       }
       return false
+    } finally {
+      if (resumeTime !== null && playerConfig) {
+        if (hasStartTime) {
+          playerConfig.startTime = previousStartTime
+        } else {
+          delete playerConfig.startTime
+        }
+      }
     }
   }
 
