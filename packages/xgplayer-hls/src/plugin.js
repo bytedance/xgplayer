@@ -9,7 +9,7 @@ import PluginExtension from './plugin-extension'
  * @param { HlsPlugin } plugin
  * @returns
  */
-export function parseSwitchUrlArgs (args, plugin) {
+export function parseSwitchUrlArgs(args, plugin) {
   const { player } = plugin
   const curTime = player.currentTime
 
@@ -57,24 +57,29 @@ export class HlsPlugin extends BasePlugin {
 
   pluginExtension = null
 
-  static get pluginName () {
+  static get pluginName() {
     return 'hls'
   }
 
-  get core () {
+  get core() {
     return this.hls
   }
 
-  get version () {
+  get version() {
     return this.hls?.version
   }
 
-  get softDecode () {
+  get softDecode() {
     const mediaType = this.player?.config?.mediaType
-    return !!mediaType && mediaType !== 'video' && mediaType !== 'audio' && mediaType !== 'offscreen-video'
+    return (
+      !!mediaType &&
+      mediaType !== 'video' &&
+      mediaType !== 'audio' &&
+      mediaType !== 'offscreen-video'
+    )
   }
 
-  beforePlayerInit () {
+  beforePlayerInit() {
     const config = this.player.config
     const mediaElem = this.player.media || this.player.video
     const hlsOpts = config.hls || {}
@@ -101,7 +106,8 @@ export class HlsPlugin extends BasePlugin {
           if (hls) {
             const options = parseSwitchUrlArgs(args, this)
             player.config.url = url
-            hls.switchURL(url, options)
+            hls
+              .switchURL(url, options)
               .then(() => resolve(true))
               .catch(reject)
 
@@ -118,11 +124,8 @@ export class HlsPlugin extends BasePlugin {
     this.player.handleSource = false // disable player source handle
 
     hlsOpts.innerDegrade = hlsOpts.innerDegrade || config.innerDegrade
-    if (hlsOpts.disconnectTime === null || hlsOpts.disconnectTime === undefined) hlsOpts.disconnectTime = 0
-
-    // AirPlay 多 source 支持：
-    // 原始的 config.url（一般为 m3u8），以 <source> 形式挂在 video 下，供 AirPlay 等远端拉流
-    const appendSource = !!this.player.plugins?.cast?.config?.airplay && !this.softDecode
+    if (hlsOpts.disconnectTime === null || hlsOpts.disconnectTime === undefined)
+      hlsOpts.disconnectTime = 0
 
     this.hls = new Hls({
       softDecode: this.softDecode,
@@ -130,37 +133,30 @@ export class HlsPlugin extends BasePlugin {
       media: mediaElem,
       startTime: config.startTime,
       url: config.url,
-      appendSource,
       ...hlsOpts
     })
-
-    // // AirPlay 多 source 支持：
-    // if (config.airplay) {
-    //   this.on('airplaytargetchange', (e) => {
-    //     if (e.isWireless) {
-    //       this.core
-    //     } else {
-
-    //     }
-    //   })
-    // }
 
     if (!this.softDecode) {
       BasePlugin.defineGetterOrSetter(this.player, {
         url: {
-          get: () => this.hls?.media?.src,
+          get: () =>
+            this.hls?.config?.url || this.hls?.media?.currentSrc || this.hls?.media?.src,
           configurable: true
         }
       })
     }
 
     if (this.softDecode) {
-      this.pluginExtension = new PluginExtension({
-        isLive: config.isLive,
-        media: mediaElem,
-        ...hlsOpts
-      }, this)
-      this.player.forceDegradeToVideo = (...args) => this.pluginExtension?.forceDegradeToVideo(...args)
+      this.pluginExtension = new PluginExtension(
+        {
+          isLive: config.isLive,
+          media: mediaElem,
+          ...hlsOpts
+        },
+        this
+      )
+      this.player.forceDegradeToVideo = (...args) =>
+        this.pluginExtension?.forceDegradeToVideo(...args)
     }
 
     if (config.isLive) {
@@ -201,16 +197,18 @@ export class HlsPlugin extends BasePlugin {
     this._transCoreEvent(Event.APPEND_COST)
 
     if (config.url) {
-      this.hls.load(config.url, {
-        reuseMse: true
-      }).catch(e => {})
+      this.hls
+        .load(config.url, {
+          reuseMse: true
+        })
+        .catch((e) => {})
     }
   }
 
   /**
    * It needs to be supported as a subclass to be inherited externally, so don't write it as an attribute here
    */
-  destroy () {
+  destroy() {
     if (this.hls) {
       this.hls.destroy()
       this.hls = null
@@ -227,7 +225,6 @@ export class HlsPlugin extends BasePlugin {
     return this.hls?.getStats()
   }
 
-
   /**
    * @param {string | boolean} [mediaType]
    * @param {string} [codec]
@@ -235,11 +232,11 @@ export class HlsPlugin extends BasePlugin {
    * - mediaType: 默认检测 MSE 对 H264 codec是否支持，传入 true 或者配置参数的mediaType的取值检测 WebAssembly是否支持
    * - codec: 暂无使用
    */
-  static isSupported (mediaType, codec) {
+  static isSupported(mediaType, codec) {
     return Hls.isSupported(mediaType, codec)
   }
 
-  _onSwitchSubtitle = ({lang}) => {
+  _onSwitchSubtitle = ({ lang }) => {
     this.hls?.switchSubtitleStream(lang)
   }
 
@@ -251,7 +248,7 @@ export class HlsPlugin extends BasePlugin {
     })
   }
 
-  _transError () {
+  _transError() {
     this.hls.on(Event.ERROR, (err) => {
       if (this.player) {
         this.player.emit(Events.ERROR, new Errors(this.player, err))
@@ -259,7 +256,7 @@ export class HlsPlugin extends BasePlugin {
     })
   }
 
-  _transCoreEvent (eventName) {
+  _transCoreEvent(eventName) {
     this.hls.on(eventName, (e) => {
       if (this.player) {
         this.player.emit('core_event', {
@@ -274,9 +271,14 @@ export class HlsPlugin extends BasePlugin {
     })
   }
 
-  _emitSeiPaylodTime (e) {
+  _emitSeiPaylodTime(e) {
     try {
-      const seiJson = JSON.parse(Array.from(e.data.payload).map(x=>String.fromCharCode(x)).join('').slice(0,-1))
+      const seiJson = JSON.parse(
+        Array.from(e.data.payload)
+          .map((x) => String.fromCharCode(x))
+          .join('')
+          .slice(0, -1)
+      )
       if (!seiJson['rtmp_dts']) return
       this.player.emit('core_event', {
         eventName: Event.SEI_PAYLOAD_TIME,
@@ -284,5 +286,4 @@ export class HlsPlugin extends BasePlugin {
       })
     } catch (e) {}
   }
-
 }

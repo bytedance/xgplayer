@@ -69,6 +69,29 @@ describe('Plugin', () => {
       expect(plugin.player.switchURL).toBeTruthy()
     })
 
+    test('player url keeps the configured HLS url when media uses source element', () => {
+      const { BasePlugin } = require('xgplayer')
+      BasePlugin.defineGetterOrSetter.mockImplementationOnce((obj, map) => {
+        Object.keys(map).forEach(key => Object.defineProperty(obj, key, map[key]))
+      })
+      const plugin = new HlsPlugin()
+      plugin.player = {
+        config: {
+          url: 'https://cdn.example.com/main.m3u8',
+          mediaType: 'video'
+        },
+        useHooks: jest.fn()
+      }
+      plugin.beforePlayerInit()
+      plugin.hls.config = { url: 'https://cdn.example.com/main.m3u8' }
+      plugin.hls.media = {
+        currentSrc: 'blob:https://example.com/mse',
+        src: ''
+      }
+
+      expect(plugin.player.url).toBe('https://cdn.example.com/main.m3u8')
+    })
+
     test('should transfer event and error', () => {
       const plugin = new HlsPlugin()
       plugin.player = {
