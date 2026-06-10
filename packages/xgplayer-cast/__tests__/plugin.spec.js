@@ -215,6 +215,50 @@ describe('CastPlugin AirPlay streaming plugin restore', () => {
     expect(plugin._msePluginRestore).toBe(null)
   })
 
+  test('exposes the AirPlay resume time while restoring the streaming plugin', async () => {
+    class StreamingPlugin {}
+    StreamingPlugin.isStreamingPlugin = true
+    StreamingPlugin.pluginName = 'hls'
+
+    const originalInstance = {
+      constructor: StreamingPlugin,
+      config: { preferMMS: true }
+    }
+    const plugin = createPluginStub({
+      player: {
+        config: { startTime: 5 },
+        plugins: { hls: originalInstance },
+        getPlugin: jest.fn(() => null),
+        unRegisterPlugin: jest.fn(),
+        registerPlugin: jest.fn(() => ({
+          pluginName: 'hls',
+          beforePlayerInit: jest.fn(() => {
+            expect(plugin.player.config.startTime).toBe(64)
+          }),
+          afterPlayerInit: jest.fn(() => {
+            expect(plugin.player.config.startTime).toBe(64)
+          })
+        }))
+      }
+    })
+
+    plugin._msePluginRestore = {
+      plugin: StreamingPlugin,
+      pluginName: 'hls',
+      config: { preferMMS: true }
+    }
+
+    await expect(
+      plugin._resumeMSEPlugin({
+        protocol: 'airplay',
+        paused: false,
+        currentTime: 64
+      })
+    ).resolves.toBe(true)
+
+    expect(plugin.player.config.startTime).toBe(5)
+  })
+
   test('leaves restore token when streaming plugin registration is unavailable', async () => {
     const plugin = createPluginStub({
       player: {

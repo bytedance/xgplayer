@@ -415,7 +415,13 @@ describe('Airplay native source preparation', () => {
 
     await expect(airplay._restoreNativeHandoff()).resolves.toBe(true)
 
-    expect(plugin._resumeMSEPlugin).toHaveBeenCalled()
+    expect(plugin._resumeMSEPlugin).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: 'airplay',
+        currentTime: 64,
+        paused: false
+      })
+    )
     expect(player.media.currentTime).toBe(64)
     expect(player.play).toHaveBeenCalled()
     expect(player.pause).not.toHaveBeenCalled()
