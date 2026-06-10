@@ -10,6 +10,7 @@ Global agent map for this repo. Keep package-specific design/background in packa
 | Package metadata/docs | `packages/*/{package.json,README.md,CHANGELOG.md}` |
 | Build tooling | `scripts/{cli.js,commands/,workflow/}` |
 | Demos/repros | `fixtures/<format>/` |
+| Quality gates | `docs/ai-harness/quality-gates.md` |
 | Repo commands | root `package.json` |
 | Lint/test config | `biome.json`, `jest.config.js`, `jest.setup.js` |
 | Release process | `.github/release-guideline.md` |
@@ -30,15 +31,6 @@ Global agent map for this repo. Keep package-specific design/background in packa
 
 - Package manager: Yarn 1.x only; only touch `yarn.lock`.
 - Dependencies: keep pins deliberate; do not loosen/downgrade ad hoc.
-- Architecture: preserve plugin-first design; keep feature logic out of core.
-- Shared APIs: update affected downstream packages when shared APIs change.
-- Maintainability: prefer shared modules/factories and thin adapters over duplicated variant logic.
-- Generated code: separate/mark generated or vendored output; exclude from lint/format when needed.
-- Build outputs: document source, destination, and verification for scripts that create published files.
-- Public API: preserve entry points/options/events unless explicitly breaking; update demos/docs.
-- Quality: run Biome for touched JS/TS; keep relevant tests green.
-- AI/automation linting: prefer Biome with explicit touched file paths, or stage the intended files and run `yarn format:staged`. Avoid full-repo `yarn lint` / `yarn format` unless the user asks for whole-repo formatting.
-- Test output: for routine pass/fail checks, prefer targeted tests or quiet full runs with `--verbose=false --silent`; rerun verbose only when failures need full diagnostics.
 - Commits: conventional commits; use `monorepo` or `*` for cross-package changes.
 - CHANGELOG: only add entries for stable releases (patch/minor/major); skip prerelease tags (`rc`/`alpha`/`beta`) — fold their commits into the next stable entry.
 

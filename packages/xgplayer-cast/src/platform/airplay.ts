@@ -1,4 +1,5 @@
 import { Util } from 'xgplayer'
+import type { CastMediaInfo, CastPlayer, CastPluginLike, CastRouteState } from '../types'
 import {
   applyRouteStateToLocal,
   captureLocalStateForCast,
@@ -9,7 +10,7 @@ import { resolveCastMedia } from './cast-media'
 
 const AIRPLAY_ROUTE_SETTLE_DELAY_MS = 1000
 
-export function isAirPlayAvailable(player) {
+export function isAirPlayAvailable(player: CastPlayer) {
   const video = player?.media || player?.video
 
   if (!video) {
@@ -23,7 +24,18 @@ export function isAirPlayAvailable(player) {
 }
 
 export class Airplay {
-  constructor(plugin) {
+  plugin: CastPluginLike | null
+  player: CastPlayer | null
+  _lastCastingState: boolean | null
+  _airplaySourceEl: HTMLSourceElement | null
+  _airplayMedia: CastMediaInfo | null
+  _handoffState: CastRouteState | null
+  _nativeHandoffActive: boolean
+  _emitCastingFalseDebounced: any
+  _tipDom: HTMLElement | null
+  _tipTimeout: ReturnType<typeof setTimeout> | null
+
+  constructor(plugin: CastPluginLike) {
     this.plugin = plugin
     this.player = plugin.player
     this._lastCastingState = null
@@ -31,7 +43,9 @@ export class Airplay {
     this._airplayMedia = null
     this._handoffState = null
     this._nativeHandoffActive = false
-    this._emitCastingFalseDebounced = Util.debounce(async () => {
+    this._tipDom = null
+    this._tipTimeout = null
+    this._emitCastingFalseDebounced = (Util as any).debounce(async () => {
       const media = this.player?.media || this.player?.video
       const stillWireless = !!media?.webkitCurrentPlaybackTargetIsWireless
       if (!stillWireless) {
@@ -62,19 +76,13 @@ export class Airplay {
     this.player.on('cast_request', this._onRequestCast)
   }
 
-  /**
-   * @private
-   */
-  _onTargetAvailabilityChange = (e) => {
+  _onTargetAvailabilityChange = (e: any) => {
     this.player.emit('cast_availability_change', {
       protocol: 'airplay',
       availability: e.availability
     })
   }
 
-  /**
-   * @private
-   */
   _onTargetChange = () => {
     const video = this.player.media || this.player.video
     const isWireless = !!video.webkitCurrentPlaybackTargetIsWireless
@@ -98,7 +106,7 @@ export class Airplay {
     this._emitCastingFalseDebounced()
   }
 
-  _prepareNativeSource(mediaEl) {
+  _prepareNativeSource(mediaEl: HTMLMediaElement) {
     const castMedia = this._resolveAirPlayMedia()
     if (!castMedia) {
       return false
@@ -110,7 +118,7 @@ export class Airplay {
     return true
   }
 
-  _activateNativeSource(mediaEl) {
+  _activateNativeSource(mediaEl: HTMLMediaElement) {
     const castMedia = this._airplayMedia || this._resolveAirPlayMedia()
     if (!castMedia) {
       return false
@@ -159,8 +167,8 @@ export class Airplay {
     return this._applyRouteStateToLocal(routeState)
   }
 
-  _resolveAirPlayMedia() {
-    let castMedia
+  _resolveAirPlayMedia(): CastMediaInfo | null {
+    let castMedia: CastMediaInfo
     try {
       castMedia = resolveCastMedia(this.player, { protocol: 'airplay' })
     } catch (err) {
@@ -176,7 +184,7 @@ export class Airplay {
     return castMedia
   }
 
-  _applyNativeSource(mediaEl, castMedia) {
+  _applyNativeSource(mediaEl: HTMLMediaElement, castMedia: CastMediaInfo) {
     this._clearMSESource(mediaEl)
     this._installAirPlaySource(mediaEl, castMedia)
     if (mediaEl.getAttribute?.('src') !== castMedia.url) {
@@ -191,9 +199,11 @@ export class Airplay {
     }
   }
 
-  _isNativeSourceApplied(mediaEl, castMedia) {
+  _isNativeSourceApplied(mediaEl: HTMLMediaElement, castMedia: CastMediaInfo) {
     const mediaSrc = mediaEl.getAttribute?.('src') || mediaEl.src || ''
-    const source = mediaEl.querySelector?.('source[data-xgplayer-cast-airplay="true"]')
+    const source = mediaEl.querySelector?.(
+      'source[data-xgplayer-cast-airplay="true"]'
+    ) as HTMLSourceElement | null
     const sourceSrc = source?.getAttribute('src') || source?.src || ''
 
     return (
@@ -205,7 +215,7 @@ export class Airplay {
     )
   }
 
-  _needsNativeSource(mediaEl) {
+  _needsNativeSource(mediaEl: HTMLMediaElement) {
     if (this._hasMSESource(mediaEl)) {
       return true
     }
@@ -218,7 +228,7 @@ export class Airplay {
     return false
   }
 
-  _hasMSESource(mediaEl) {
+  _hasMSESource(mediaEl: HTMLMediaElement) {
     const currentSrc = mediaEl.currentSrc || mediaEl.src
     if (/^blob:/i.test(currentSrc)) {
       return true
@@ -233,7 +243,7 @@ export class Airplay {
     )
   }
 
-  _getHandoffCurrentTime(mediaEl) {
+  _getHandoffCurrentTime(mediaEl: HTMLMediaElement) {
     const mediaCurrentTime = toNonNegativeTime(mediaEl?.currentTime)
     if (mediaCurrentTime !== null) {
       return mediaCurrentTime
@@ -243,7 +253,7 @@ export class Airplay {
     return requestCurrentTime !== null ? requestCurrentTime : getLocalTime(this.player)
   }
 
-  _hasAttachedLocalSource(mediaEl) {
+  _hasAttachedLocalSource(mediaEl: HTMLMediaElement) {
     if (mediaEl.srcObject) {
       return true
     }
@@ -258,7 +268,7 @@ export class Airplay {
     )
   }
 
-  async _applyRouteStateToLocal(routeState) {
+  async _applyRouteStateToLocal(routeState: CastRouteState) {
     try {
       return await applyRouteStateToLocal(this.player, routeState)
     } catch (error) {
@@ -269,15 +279,15 @@ export class Airplay {
 
   _hasActiveStreamingPlugin() {
     return Object.values(this.player?.plugins ?? {}).some(
-      (plugin) => plugin?.constructor?.isStreamingPlugin === true
+      (plugin: any) => plugin?.constructor?.isStreamingPlugin === true
     )
   }
 
-  _getSourceElements(mediaEl) {
-    return Array.from(mediaEl.querySelectorAll?.('source') || [])
+  _getSourceElements(mediaEl: HTMLMediaElement) {
+    return Array.from(mediaEl.querySelectorAll?.('source') || []) as HTMLSourceElement[]
   }
 
-  _allowRemotePlayback(mediaEl) {
+  _allowRemotePlayback(mediaEl: HTMLMediaElement) {
     mediaEl.removeAttribute('disableRemotePlayback')
     if ('disableRemotePlayback' in mediaEl) {
       mediaEl.disableRemotePlayback = false
@@ -287,7 +297,7 @@ export class Airplay {
     }
   }
 
-  _clearMSESource(mediaEl) {
+  _clearMSESource(mediaEl: HTMLMediaElement) {
     this._allowRemotePlayback(mediaEl)
 
     try {
@@ -310,7 +320,7 @@ export class Airplay {
     })
   }
 
-  _installAirPlaySource(mediaEl, castMedia) {
+  _installAirPlaySource(mediaEl: HTMLMediaElement, castMedia: CastMediaInfo) {
     const url = castMedia?.url
     if (!url || !mediaEl?.appendChild) {
       return
@@ -335,7 +345,7 @@ export class Airplay {
     }
   }
 
-  _getAirPlayContentType(contentType) {
+  _getAirPlayContentType(contentType: unknown) {
     if (typeof contentType !== 'string') {
       return ''
     }
@@ -345,7 +355,7 @@ export class Airplay {
     return contentType
   }
 
-  _emitCastTargetChange(isCasting) {
+  _emitCastTargetChange(isCasting: boolean) {
     if (this._lastCastingState === isCasting) {
       return
     }
@@ -361,7 +371,13 @@ export class Airplay {
     return isAirPlayAvailable(this.player)
   }
 
-  _onRequestCast = ({ protocol, handoffState } = {}) => {
+  _onRequestCast = ({
+    protocol,
+    handoffState
+  }: {
+    protocol?: string
+    handoffState?: CastRouteState
+  } = {}) => {
     if (protocol && protocol !== 'airplay') return
     if (!isAirPlayAvailable(this.player)) {
       return false
