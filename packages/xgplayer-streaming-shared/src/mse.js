@@ -19,26 +19,33 @@ function isMMS(mediaSource) {
   return /ManagedMediaSource/gi.test(Object.prototype.toString.call(mediaSource))
 }
 
-function removeSource(media, filter) {
-  const sources = media.querySelectorAll('source')
-  sources.forEach((source) => {
-    if (!filter || filter.test(source.src)) {
-      media.removeChild(source)
-    }
-  })
-}
-
 function removeSrc(media) {
   if (media.getAttribute('src') || media.src) {
     media.removeAttribute('src')
   }
 }
 
-export function appendSource(media, mimeType, url) {
+function removeSourceElement(source) {
+  if (source?.parentNode) {
+    source.parentNode.removeChild(source)
+    return true
+  }
+  return false
+}
+
+function appendMseSource(media, mimeType, url) {
   const source = self.document.createElement('source')
   source.type = mimeType
   source.src = url
-  media.appendChild(source)
+  media.insertBefore(source, media.firstChild)
+  return source
+}
+
+function getAttachMode(mode, useMMS) {
+  if (mode === 'src' || mode === 'source-element') {
+    return mode
+  }
+  return useMMS ? 'source-element' : 'src'
 }
 
 /**
@@ -131,13 +138,17 @@ export class MSE {
 
   _config = null
   _url = null
+  _sourceElement = null
 
   static getDefaultConfig() {
     return {
       openLog: false,
       preferMMS: false,
-      useSourceTag: false,
-      alternativeSource: null // 备用 URL，配合 useSourceTag 使用，提供给 AirPlay 等远端拉流使用
+      // MediaSource object URL 绑定方式：
+      // - 'source-element': 通过生成的 <source> 挂载，便于 AirPlay fallback source 共存
+      // - 'src': 通过 video.src 挂载
+      // - 'auto': ManagedMediaSource 使用 'source-element'，其他 MediaSource 使用 'src'
+      attachMode: 'auto'
     }
   }
 
@@ -272,12 +283,11 @@ export class MSE {
     const ms = (this.mediaSource = new MediaSource())
     const useMMS = isMMS(ms)
     this._st = nowTime()
-
     const onOpen = () => {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      URL.revokeObjectURL(media.src)
+      URL.revokeObjectURL(this._url)
       this._openPromise.resolve({ costtime: costTime })
       media.dispatchEvent(new CustomEvent('mseAttached'))
     }
@@ -289,15 +299,20 @@ export class MSE {
 
     this._url = URL.createObjectURL(ms)
 
-    removeSource(media)
+    this._removeAttachedSource()
 
-    // 使用source标签来绑定MSE，能更好地兼容投屏等远端播放场景
-    if (config.useSourceTag) {
+    const attachMode = getAttachMode(config.attachMode, useMMS)
+
+    if (attachMode === 'source-element') {
       removeSrc(media)
-      appendSource(media, 'video/mp4', this._url)
-
-      if (config.alternativeSource) {
-        appendSource(media, config.alternativeSource.type, config.alternativeSource.src)
+      this._sourceElement = appendMseSource(media, 'video/mp4', this._url)
+      if (useMMS && 'disableRemotePlayback' in media) {
+        media.disableRemotePlayback = true
+      }
+      try {
+        media.load?.()
+      } catch (_error) {
+        // ignore load failures in test and detached environments
       }
     } else {
       media.src = this._url
@@ -347,20 +362,62 @@ export class MSE {
 
     if (this.media) {
       this.media.disableRemotePlayback = false
-      removeSource(this.media, /^blob:/)
-      this.media.removeAttribute('src')
-      try {
-        this.media.load()
-      } catch (_error) {
-        // ignore
+      const mediaSrc = this._getMediaSrc()
+      const src = this.media.getAttribute('src') || this.media.src || ''
+      const shouldReload = mediaSrc === this._url || src === this._url
+
+      if (src === this._url) {
+        this.media.removeAttribute('src')
+      }
+      this._removeAttachedSource()
+
+      if (shouldReload) {
+        try {
+          this.media.load()
+        } catch (_error) {
+          // ignore
+        }
       }
       this.media = null
     }
 
     this.mediaSource = null
+    this._url = null
+    this._sourceElement = null
     this._openPromise = createPublicPromise()
     this._queue = Object.create(null)
     this._sourceBuffer = Object.create(null)
+  }
+
+  _getAttachedSource() {
+    if (this._sourceElement?.parentNode === this.media) {
+      return this._sourceElement
+    }
+
+    if (!this.media || !this._url) {
+      return null
+    }
+
+    const sources = Array.from(this.media.querySelectorAll?.('source') || [])
+    return (
+      sources.find(
+        (source) => source.getAttribute('src') === this._url || source.src === this._url
+      ) || null
+    )
+  }
+
+  _removeAttachedSource() {
+    const source = this._getAttachedSource()
+    const removed = removeSourceElement(source)
+    if (source === this._sourceElement || removed) {
+      this._sourceElement = null
+    }
+    return removed
+  }
+
+  _getMediaSrc() {
+    const media = this._getAttachedSource() || this.media
+    return media?.src
   }
 
   /**
