@@ -65,10 +65,10 @@ export function getConfig(cfg) {
     preferMMS: false,
     preferMMSStreaming: false,
     // MSE object URL 绑定方式：
+    // - 'auto': ManagedMediaSource 或 AirPlay-capable WebKit 使用 'source-element'，其他 MediaSource 使用 'src'
     // - 'source-element': 通过生成的 <source> 挂载，便于 AirPlay fallback source 共存
     // - 'src': 通过 video.src 挂载
-    // - 'auto': ManagedMediaSource 使用 'source-element'，其他 MediaSource 使用 'src'
-    mseAttachMode: 'source-element',
+    mseAttachMode: 'auto',
     mseLowLatency: true, // mse 低延迟模式渲染 https://issues.chromium.org/issues/41161663
     fixerConfig: {
       forceFixLargeGap: false, // 强制修复音视频PTS LargeGap, PTS从0开始

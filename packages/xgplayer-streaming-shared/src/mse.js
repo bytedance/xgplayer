@@ -41,11 +41,20 @@ function appendMseSource(media, mimeType, url) {
   return source
 }
 
-function getAttachMode(mode, useMMS) {
+function isAirPlayCapableWebKit(media) {
+  const win = media?.ownerDocument?.defaultView || (isBrowser ? window : null)
+  return (
+    !!media &&
+    typeof media.webkitShowPlaybackTargetPicker === 'function' &&
+    typeof win?.WebKitPlaybackTargetAvailabilityEvent === 'function'
+  )
+}
+
+function getAttachMode(mode, useMMS, media) {
   if (mode === 'src' || mode === 'source-element') {
     return mode
   }
-  return useMMS ? 'source-element' : 'src'
+  return useMMS || isAirPlayCapableWebKit(media) ? 'source-element' : 'src'
 }
 
 /**
@@ -145,9 +154,9 @@ export class MSE {
       openLog: false,
       preferMMS: false,
       // MediaSource object URL 绑定方式：
+      // - 'auto': ManagedMediaSource 或 AirPlay-capable WebKit 使用 'source-element'，其他 MediaSource 使用 'src'
       // - 'source-element': 通过生成的 <source> 挂载，便于 AirPlay fallback source 共存
       // - 'src': 通过 video.src 挂载
-      // - 'auto': ManagedMediaSource 使用 'source-element'，其他 MediaSource 使用 'src'
       attachMode: 'auto'
     }
   }
@@ -300,7 +309,7 @@ export class MSE {
 
     this._removeAttachedSource()
 
-    const attachMode = getAttachMode(config.attachMode, useMMS)
+    const attachMode = getAttachMode(config.attachMode, useMMS, media)
 
     if (attachMode === 'source-element') {
       removeSrc(media)
