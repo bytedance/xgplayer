@@ -1,4 +1,6 @@
-export function isLocalPaused(player) {
+import type { CastPlayer, CastRouteState } from '../types'
+
+export function isLocalPaused(player: CastPlayer) {
   if (typeof player?.paused === 'boolean') {
     return player.paused
   }
@@ -11,7 +13,7 @@ export function isLocalPaused(player) {
   return true
 }
 
-export function toNonNegativeTime(value) {
+export function toNonNegativeTime(value: unknown) {
   if (value === undefined || value === null || value === '') {
     return null
   }
@@ -20,12 +22,12 @@ export function toNonNegativeTime(value) {
   return Number.isFinite(currentTime) && currentTime >= 0 ? currentTime : null
 }
 
-export function getLocalTime(player) {
+export function getLocalTime(player: CastPlayer) {
   const currentTime = getLocalTimeOrNull(player)
   return currentTime !== null ? currentTime : 0
 }
 
-export function getLocalTimeOrNull(player) {
+export function getLocalTimeOrNull(player: CastPlayer) {
   const media = player?.media || player?.video
   const candidates = [player?.currentTime, media?.currentTime]
 
@@ -39,7 +41,10 @@ export function getLocalTimeOrNull(player) {
   return null
 }
 
-export function captureLocalStateForCast(player, protocol) {
+export function captureLocalStateForCast(
+  player: CastPlayer,
+  protocol?: string
+): CastRouteState {
   return {
     protocol,
     paused: isLocalPaused(player),
@@ -47,7 +52,7 @@ export function captureLocalStateForCast(player, protocol) {
   }
 }
 
-export function seekLocalToTime(player, currentTime) {
+export function seekLocalToTime(player: CastPlayer, currentTime: unknown) {
   const resolvedCurrentTime = toNonNegativeTime(currentTime)
   if (resolvedCurrentTime === null) {
     return false
@@ -70,7 +75,10 @@ export function seekLocalToTime(player, currentTime) {
   return false
 }
 
-export async function applyRouteStateToLocal(player, routeState) {
+export async function applyRouteStateToLocal(
+  player: CastPlayer,
+  routeState: CastRouteState | null
+) {
   if (!routeState) {
     return false
   }
@@ -92,6 +100,6 @@ export async function applyRouteStateToLocal(player, routeState) {
   return true
 }
 
-export function getConfiguredCastAutoplay(config) {
+export function getConfiguredCastAutoplay(config: CastPlayer) {
   return typeof config?.autoplayOnCast === 'boolean' ? config.autoplayOnCast : undefined
 }

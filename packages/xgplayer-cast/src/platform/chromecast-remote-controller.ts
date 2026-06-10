@@ -1,16 +1,24 @@
+import type { CastPlayer, ChromecastRemoteState } from '../types'
+
 const REMOTE_EVENT = 'cast_remote_state_change'
 
-function toNumber(value, fallback = 0) {
+function toNumber(value: unknown, fallback = 0) {
   const number = Number(value)
   return Number.isFinite(number) ? number : fallback
 }
 
-function clamp(value, min, max) {
+function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
 export class ChromecastRemoteController {
-  constructor(player) {
+  player: CastPlayer | null
+  remotePlayer: any
+  controller: any
+  _eventType: string | null
+  _lastState: ChromecastRemoteState | null
+
+  constructor(player: CastPlayer) {
     this.player = player
     this.remotePlayer = null
     this.controller = null
@@ -40,7 +48,7 @@ export class ChromecastRemoteController {
     return !!this.controller
   }
 
-  getState() {
+  getState(): ChromecastRemoteState {
     const remote = this.remotePlayer
     if (!remote) {
       return {
@@ -111,7 +119,7 @@ export class ChromecastRemoteController {
     return true
   }
 
-  seek(time) {
+  seek(time: unknown) {
     if (!this.controller || !Number.isFinite(Number(time))) {
       return false
     }
@@ -128,7 +136,7 @@ export class ChromecastRemoteController {
     return true
   }
 
-  setVolume(volume) {
+  setVolume(volume: unknown) {
     if (!this.controller || !Number.isFinite(Number(volume))) {
       return false
     }
@@ -145,7 +153,7 @@ export class ChromecastRemoteController {
     return true
   }
 
-  control(action, payload) {
+  control(action: string, payload?: any) {
     switch (action) {
       case 'play':
         return this.play()

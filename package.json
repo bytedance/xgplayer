@@ -32,6 +32,9 @@
   "lint-staged": {
     "*.{cjs,css,js,jsx,json,md,mjs,scss,ts,tsx}": "biome check --write --no-errors-on-unmatched"
   },
+  "resolutions": {
+    "typescript": "6.0.3"
+  },
   "libd": {
     "legacy": {
       "enabled": true,
@@ -98,7 +101,8 @@
     "sass": "^1.43.4",
     "semver": "^7.3.5",
     "ts-jest": "^28.0.5",
-    "ts-morph": "^14.0.0",
+    "ts-morph": "28.0.0",
+    "typescript": "6.0.3",
     "url-toolkit": "2.1.6",
     "vite": "^2.9.8",
     "vite-plugin-externals": "0.5.1",

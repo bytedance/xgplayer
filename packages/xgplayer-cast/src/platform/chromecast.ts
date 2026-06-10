@@ -1,3 +1,10 @@
+import type {
+  CastMediaInfo,
+  CastPlayer,
+  CastPluginLike,
+  CastRouteState,
+  ChromecastConfig
+} from '../types'
 import {
   applyRouteStateToLocal,
   getConfiguredCastAutoplay,
@@ -20,7 +27,20 @@ const MEDIA_INFO_FIELDS = [
 ]
 
 export class Chromecast {
-  constructor(plugin, config) {
+  plugin: CastPluginLike | null
+  player: CastPlayer | null
+  config: ChromecastConfig
+  castContext: any
+  session: any
+  _castState: string | null
+  _isCasting: boolean
+  _lastLoadedMediaKey: string | null
+  _pendingMediaKey: string | null
+  _lastLoadAutoplay: boolean
+  _pendingLocalRestoreState: CastRouteState | null
+  remoteController: ChromecastRemoteController | null
+
+  constructor(plugin: CastPluginLike, config: ChromecastConfig) {
     this.plugin = plugin
     this.player = plugin.player
     this.config = config
@@ -84,7 +104,7 @@ export class Chromecast {
     this._onCastStateChanged({ castState: castContext.getCastState?.() })
   }
 
-  _mapAutoJoinPolicy(policy) {
+  _mapAutoJoinPolicy(policy: string) {
     const key = (policy || 'origin_scoped').toUpperCase().replace(/-/g, '_')
     return (
       window.chrome.cast.AutoJoinPolicy?.[key] ??
@@ -92,7 +112,7 @@ export class Chromecast {
     )
   }
 
-  _getCastAvailability(castState) {
+  _getCastAvailability(castState: string | null) {
     const states = window.cast?.framework?.CastState || {}
     if (
       !castState ||
@@ -113,7 +133,7 @@ export class Chromecast {
     return availableStates.includes(castState) ? 'available' : 'not-available'
   }
 
-  _onCastStateChanged = ({ castState } = {}) => {
+  _onCastStateChanged = ({ castState }: { castState?: string | null } = {}) => {
     this._castState = castState
     this.player?.emit('cast_availability_change', {
       protocol: 'chromecast',
@@ -121,7 +141,7 @@ export class Chromecast {
     })
   }
 
-  _onSessionStateChanged = async ({ sessionState } = {}) => {
+  _onSessionStateChanged = async ({ sessionState }: { sessionState?: string } = {}) => {
     const {
       SESSION_STARTED,
       SESSION_RESUMED,
@@ -204,7 +224,15 @@ export class Chromecast {
     }
   }
 
-  _onRequestCast = async ({ protocol, autoplay, handoffState } = {}) => {
+  _onRequestCast = async ({
+    protocol,
+    autoplay,
+    handoffState
+  }: {
+    protocol?: string
+    autoplay?: boolean
+    handoffState?: CastRouteState
+  } = {}) => {
     if (protocol && protocol !== 'chromecast') return
 
     if (!this.castContext) {
@@ -239,7 +267,15 @@ export class Chromecast {
     }
   }
 
-  async _loadCurrentMedia({ skipSameMedia = false, autoplay, currentTime } = {}) {
+  async _loadCurrentMedia({
+    skipSameMedia = false,
+    autoplay,
+    currentTime
+  }: {
+    skipSameMedia?: boolean
+    autoplay?: boolean
+    currentTime?: unknown
+  } = {}) {
     const session = this.session || this.castContext?.getCurrentSession?.()
     if (!session) {
       console.warn('[xgplayer-cast] No Chromecast session for media load')
@@ -247,7 +283,7 @@ export class Chromecast {
       return false
     }
 
-    let castMedia
+    let castMedia: CastMediaInfo
     try {
       castMedia = resolveCastMedia(this.player)
     } catch (err) {
@@ -304,7 +340,7 @@ export class Chromecast {
     return true
   }
 
-  _resolveInitialAutoplay(autoplay) {
+  _resolveInitialAutoplay(autoplay?: boolean) {
     if (typeof autoplay === 'boolean') {
       return autoplay
     }
@@ -317,7 +353,7 @@ export class Chromecast {
     return !isLocalPaused(this.player)
   }
 
-  _resolveInitialCurrentTime(handoffState) {
+  _resolveInitialCurrentTime(handoffState?: CastRouteState) {
     const localCurrentTime = getLocalTimeOrNull(this.player)
     if (localCurrentTime !== null) {
       return localCurrentTime
@@ -327,7 +363,7 @@ export class Chromecast {
     return requestCurrentTime !== null ? requestCurrentTime : 0
   }
 
-  _resolveLoadAutoplay(autoplay) {
+  _resolveLoadAutoplay(autoplay?: boolean) {
     if (typeof autoplay === 'boolean') {
       return autoplay
     }
@@ -345,7 +381,7 @@ export class Chromecast {
     return this._lastLoadAutoplay
   }
 
-  _resolveLoadCurrentTime(currentTime) {
+  _resolveLoadCurrentTime(currentTime?: unknown) {
     const requestCurrentTime = toNonNegativeTime(currentTime)
     if (requestCurrentTime !== null) {
       return requestCurrentTime
@@ -359,7 +395,7 @@ export class Chromecast {
     return null
   }
 
-  _captureRemoteStateForLocal() {
+  _captureRemoteStateForLocal(): CastRouteState | null {
     const remoteState = this.remoteController?.getState?.()
     if (!remoteState?.available || !remoteState.mediaLoaded) {
       return null
@@ -373,7 +409,7 @@ export class Chromecast {
     }
   }
 
-  async _applyRemoteStateToLocal(remoteState) {
+  async _applyRemoteStateToLocal(remoteState: CastRouteState | null) {
     if (!remoteState) {
       return false
     }
@@ -401,7 +437,7 @@ export class Chromecast {
     return null
   }
 
-  async _resumeLocalAfterRemoteLoadError(localMediaState) {
+  async _resumeLocalAfterRemoteLoadError(localMediaState: { paused: boolean } | null) {
     if (!localMediaState || localMediaState.paused) {
       return false
     }
@@ -420,11 +456,11 @@ export class Chromecast {
     return this.remoteController?.getState?.() || null
   }
 
-  controlRemote(action, payload) {
+  controlRemote(action: string, payload?: any) {
     return this.remoteController?.control?.(action, payload) || false
   }
 
-  _emitError(code, error, extra = {}) {
+  _emitError(code: string, error: any, extra = {}) {
     const message = error?.message || String(error || code)
     this.player?.emit('cast_error', {
       protocol: 'chromecast',
