@@ -139,6 +139,31 @@ describe('Airplay native source preparation', () => {
     expect(player.media.webkitShowPlaybackTargetPicker).toHaveBeenCalled()
   })
 
+  test('adds AirPlay fallback source while keeping MSE blob src before opening picker', () => {
+    const media = document.createElement('video')
+    media.src = 'blob:https://example.com/mse'
+    media.load = jest.fn()
+    media.webkitShowPlaybackTargetPicker = jest.fn()
+
+    const { airplay, player, plugin } = createAirplay(
+      {},
+      {
+        media,
+        config: { url: 'https://cdn.example.com/main.m3u8' }
+      }
+    )
+
+    airplay._onRequestCast({ protocol: 'airplay' })
+
+    const airplaySource = player.media.querySelector(
+      'source[data-xgplayer-cast-airplay="true"]'
+    )
+    expect(plugin._suspendMSEPlugin).not.toHaveBeenCalled()
+    expect(player.media.getAttribute('src')).toBe('blob:https://example.com/mse')
+    expect(airplaySource.src).toBe('https://cdn.example.com/main.m3u8')
+    expect(player.media.webkitShowPlaybackTargetPicker).toHaveBeenCalled()
+  })
+
   test('keeps srcObject while opening picker and only adds AirPlay fallback source', () => {
     const srcObject = { type: 'ManagedMediaSource' }
     const media = document.createElement('video')

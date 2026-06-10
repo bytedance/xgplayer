@@ -4,6 +4,8 @@ describe('MSE AirPlay handoff restore', () => {
   const originalMediaSource = window.MediaSource
   const originalCreateObjectURL = URL.createObjectURL
   const originalRevokeObjectURL = URL.revokeObjectURL
+  const originalWebKitPlaybackTargetAvailabilityEvent =
+    window.WebKitPlaybackTargetAvailabilityEvent
 
   beforeEach(() => {
     class FakeMediaSource {
@@ -19,12 +21,56 @@ describe('MSE AirPlay handoff restore', () => {
     window.MediaSource = FakeMediaSource
     URL.createObjectURL = jest.fn(() => 'blob:https://example.com/mse')
     URL.revokeObjectURL = jest.fn()
+    delete window.WebKitPlaybackTargetAvailabilityEvent
   })
 
   afterEach(() => {
     window.MediaSource = originalMediaSource
     URL.createObjectURL = originalCreateObjectURL
     URL.revokeObjectURL = originalRevokeObjectURL
+    if (originalWebKitPlaybackTargetAvailabilityEvent === undefined) {
+      delete window.WebKitPlaybackTargetAvailabilityEvent
+    } else {
+      window.WebKitPlaybackTargetAvailabilityEvent =
+        originalWebKitPlaybackTargetAvailabilityEvent
+    }
+  })
+
+  test('auto keeps non-AirPlay MSE attached through media src', async () => {
+    const media = document.createElement('video')
+    const mse = new MSE(null, {
+      attachMode: 'auto'
+    })
+
+    mse.bindMedia(media)
+
+    expect(media.getAttribute('src')).toBe('blob:https://example.com/mse')
+    expect(media.querySelectorAll('source')).toHaveLength(0)
+
+    await mse.unbindMedia()
+  })
+
+  test('auto uses source element for AirPlay-capable WebKit MSE', async () => {
+    window.WebKitPlaybackTargetAvailabilityEvent =
+      function WebKitPlaybackTargetAvailabilityEvent() {}
+    const media = document.createElement('video')
+    media.webkitShowPlaybackTargetPicker = jest.fn()
+
+    const mse = new MSE(null, {
+      attachMode: 'auto'
+    })
+
+    mse.bindMedia(media)
+
+    const sources = Array.from(media.querySelectorAll('source'))
+
+    expect(media.getAttribute('src')).toBe(null)
+    expect(media.src).toBe('')
+    expect(sources.map(source => source.src)).toEqual([
+      'blob:https://example.com/mse'
+    ])
+
+    await mse.unbindMedia()
   })
 
   test('binds owned MSE source element without removing cast fallback source', () => {
