@@ -1,4 +1,6 @@
-let sdkPromise = null
+import type { ChromecastConfig } from '../types'
+
+let sdkPromise: Promise<void> | null = null
 
 // Exported only for use in tests — do not call in production code
 export function resetSdkPromise() {
@@ -11,7 +13,7 @@ function _verifySdkReady() {
   }
 }
 
-function _doLoad(config) {
+function _doLoad(config: ChromecastConfig): Promise<void> {
   if (typeof config.sdkLoader === 'function') {
     return Promise.resolve(config.sdkLoader()).then(_verifySdkReady)
   }
@@ -49,7 +51,7 @@ function _doLoad(config) {
   })
 }
 
-export function loadChromecastSdk(config) {
+export function loadChromecastSdk(config: ChromecastConfig) {
   if (sdkPromise) {
     return sdkPromise
   }

@@ -1,7 +1,9 @@
+import type { CastPlayer, ChromecastConfig } from '../types'
+
 export const DEFAULT_CHROMECAST_SDK_URL =
   'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1'
 
-export function normalizeChromecastConfig(input) {
+export function normalizeChromecastConfig(input: any): ChromecastConfig {
   if (input === false) {
     return {
       enabled: false,
@@ -35,7 +37,7 @@ export function normalizeChromecastConfig(input) {
   }
 }
 
-export function shouldInstallChromecast(player, config) {
+export function shouldInstallChromecast(player: CastPlayer, config: ChromecastConfig) {
   const media = player?.media || player?.video
   if (!media || !config?.enabled) {
     return false

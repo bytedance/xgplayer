@@ -1,3 +1,5 @@
+import type { AnyRecord, CastMediaInfo, CastPlayer } from '../types'
+
 const CONTENT_TYPE_ALIASES = {
   hls: 'application/x-mpegURL',
   m3u8: 'application/x-mpegURL',
@@ -29,7 +31,7 @@ const MEDIA_INFO_FIELDS = [
   'hlsVideoSegmentFormat'
 ]
 
-function normalizeContentType(value) {
+function normalizeContentType(value: unknown) {
   if (typeof value !== 'string') {
     return null
   }
@@ -47,13 +49,13 @@ function normalizeContentType(value) {
   return CONTENT_TYPE_ALIASES[lower.replace(/^\./, '')] || null
 }
 
-function inferContentType(url) {
+function inferContentType(url: string) {
   const path = `${url}`.split(/[?#]/)[0]
   const ext = path.match(/\.([^./]+)$/)?.[1]
   return normalizeContentType(ext) || 'video/mp4'
 }
 
-function validateUrl(url, label) {
+function validateUrl(url: unknown, label: string) {
   if (!url || typeof url !== 'string') {
     throw new Error(`Cast requires a string media URL (got ${label}: ${url})`)
   }
@@ -71,7 +73,7 @@ function validateUrl(url, label) {
   }
 }
 
-function isNetworkUrl(url) {
+function isNetworkUrl(url: unknown) {
   return (
     typeof url === 'string' &&
     !!url &&
@@ -82,7 +84,7 @@ function isNetworkUrl(url) {
   )
 }
 
-function pickContentType(...sources) {
+function pickContentType(...sources: AnyRecord[]) {
   for (const source of sources) {
     const contentType =
       normalizeContentType(source?.contentType) ||
@@ -95,7 +97,7 @@ function pickContentType(...sources) {
   return null
 }
 
-function pickField(field, ...sources) {
+function pickField(field: string, ...sources: AnyRecord[]) {
   for (const source of sources) {
     if (source && typeof source === 'object' && source[field] !== undefined) {
       return source[field]
@@ -103,7 +105,7 @@ function pickField(field, ...sources) {
   }
 }
 
-function pickMediaInfoFields(...sources) {
+function pickMediaInfoFields(...sources: AnyRecord[]) {
   return MEDIA_INFO_FIELDS.reduce((result, field) => {
     const value = pickField(field, ...sources)
     if (value !== undefined) {
@@ -113,7 +115,7 @@ function pickMediaInfoFields(...sources) {
   }, {})
 }
 
-function toSourceCandidate(source, metadata = {}) {
+function toSourceCandidate(source: unknown, metadata: AnyRecord = {}) {
   if (!source) {
     return []
   }
@@ -136,12 +138,13 @@ function toSourceCandidate(source, metadata = {}) {
   }
 
   if (typeof source === 'object') {
-    const url = source.src || source.url
+    const sourceObject = source as AnyRecord
+    const url = sourceObject.src || sourceObject.url
     return [
       {
         url,
-        contentType: pickContentType(source, metadata),
-        source
+        contentType: pickContentType(sourceObject, metadata),
+        source: sourceObject
       }
     ]
   }
@@ -149,13 +152,15 @@ function toSourceCandidate(source, metadata = {}) {
   return [{ url: source, contentType: pickContentType(metadata), source: metadata }]
 }
 
-function getMediaElementCandidates(player) {
+function getMediaElementCandidates(player: CastPlayer) {
   const media = player?.media || player?.video
   if (!media) {
     return []
   }
 
-  const sourceEls = Array.from(media.querySelectorAll?.('source') || [])
+  const sourceEls = Array.from(
+    media.querySelectorAll?.('source') || []
+  ) as HTMLSourceElement[]
   const candidates = sourceEls.map((source) => ({
     url: source.getAttribute('src') || source.src,
     contentType: normalizeContentType(source.getAttribute('type') || source.type),
@@ -174,7 +179,7 @@ function getMediaElementCandidates(player) {
   return candidates
 }
 
-function resolveCandidateUrl(player) {
+function resolveCandidateUrl(player: CastPlayer) {
   const candidates = [
     ...toSourceCandidate(player?.curDefinition?.url, player?.curDefinition),
     ...toSourceCandidate(player?.url),
@@ -189,7 +194,10 @@ function resolveCandidateUrl(player) {
   return candidates.find((candidate) => !!candidate.url) || { url: null }
 }
 
-export function resolveCastMedia(player, { protocol = 'chromecast' } = {}) {
+export function resolveCastMedia(
+  player: CastPlayer,
+  { protocol = 'chromecast' }: { protocol?: string } = {}
+): CastMediaInfo {
   const candidate = resolveCandidateUrl(player)
   const candidateUrl = candidate?.url
 
