@@ -86,24 +86,28 @@ const player = new Player({
 
 ### Chromecast Flow
 
+The shaded area represents the native CAF and receiver boundary. Calls or events crossing that boundary are browser/device native APIs, native events, picker interactions, or receiver media actions.
+
 ```mermaid
 sequenceDiagram
   autonumber
   participant App as Business app
   participant Plugin as CastPlugin
   participant Chromecast as Chromecast adapter
-  participant CAF as Google Cast Sender SDK
-  participant Receiver as Chromecast receiver
+  box rgb(245, 250, 255) Native CAF and device boundary
+    participant CAF as Google Cast Sender SDK
+    participant Receiver as Chromecast receiver
+  end
 
   Plugin->>Chromecast: install()
-  Chromecast->>CAF: load SDK and set CastContext options
-  Chromecast->>CAF: create RemotePlayerController
+  Chromecast->>CAF: load sender SDK and CastContext.setOptions()
+  Chromecast->>CAF: new RemotePlayerController()
   CAF-->>Chromecast: CAST_STATE_CHANGED
   Chromecast-->>Plugin: cast_availability_change(chromecast)
 
   App->>Plugin: requestCast('chromecast') or click cast icon
   Plugin-->>Chromecast: cast_request({ protocol, autoplay, handoffState })
-  Chromecast->>CAF: requestSession()
+  Chromecast->>CAF: CastContext.requestSession()
   CAF-->>Receiver: user selects device
   CAF-->>Chromecast: SESSION_STARTED or SESSION_RESUMED
   Chromecast-->>Plugin: cast_target_change({ isCasting: true })
@@ -211,14 +215,18 @@ The resolver also forwards optional Cast `MediaInfo` fields including `contentUr
 
 AirPlay works best when Safari's native `<video>` element plays a receiver-readable HLS or MP4 URL directly. MSE and ManagedMediaSource create a sender-local media pipeline, often exposed as a `blob:` source or `srcObject`; AirPlay devices cannot fetch that local source from the sender page, which can result in local media continuing or the receiver playing audio only.
 
+The shaded area represents the native Safari/WebKit and receiver boundary. Calls or events crossing that boundary are WebKit/HTML media APIs, native events, picker interactions, or receiver media actions.
+
 ```mermaid
 sequenceDiagram
   autonumber
   participant App as Business app
   participant Plugin as CastPlugin
   participant AirPlay as AirPlay adapter
-  participant WebKit as Safari/WebKit video
-  participant Receiver as AirPlay receiver
+  box rgb(245, 250, 255) Native WebKit and device boundary
+    participant WebKit as Safari/WebKit video
+    participant Receiver as AirPlay receiver
+  end
 
   Plugin->>AirPlay: install()
   AirPlay->>WebKit: set x-webkit-airplay="allow"
@@ -246,7 +254,7 @@ sequenceDiagram
   end
 
   AirPlay-->>Plugin: cast_target_change({ isCasting: true })
-  Plugin->>WebKit: play() handshake
+  Plugin->>WebKit: media.play() handshake
   Plugin->>Plugin: restore pre-cast play or pause state
 
   WebKit-->>AirPlay: webkitcurrentplaybacktargetiswirelesschanged(false)

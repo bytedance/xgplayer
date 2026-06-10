@@ -28,7 +28,8 @@ export function normalizeChromecastConfig(input) {
     enabled: input.enabled !== false,
     sdkUrl: input.sdkUrl || DEFAULT_CHROMECAST_SDK_URL,
     sdkLoader: typeof input.sdkLoader === 'function' ? input.sdkLoader : null,
-    loadSdkTimeout: Number(input.loadSdkTimeout) > 0 ? Number(input.loadSdkTimeout) : 3000,
+    loadSdkTimeout:
+      Number(input.loadSdkTimeout) > 0 ? Number(input.loadSdkTimeout) : 3000,
     receiverApplicationId: input.receiverApplicationId || '',
     autoJoinPolicy: input.autoJoinPolicy || 'origin_scoped'
   }

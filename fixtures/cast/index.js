@@ -1,8 +1,9 @@
 import Player from '../../packages/xgplayer/src/index'
 import CastPlugin from '../../packages/xgplayer-cast/src/index'
 import { resolveCastMedia } from '../../packages/xgplayer-cast/src/platform/cast-media'
-// import HlsPlugin from '../../packages/xgplayer-hls/src/index'
-import HlsJSPlugin from '../../packages/xgplayer-hls.js/src/index'
+import HlsPlugin from '../../packages/xgplayer-hls/src/index'
+
+// import HlsPlugin from '../../packages/xgplayer-hls.js/src/index'
 
 const query = new URLSearchParams(location.search)
 const fakeChromecastMode = query.get('fakeChromecast')
@@ -293,7 +294,7 @@ window.player = new Player({
   autoplayMuted: true,
   preloadTime: 20,
   width: '96%',
-  plugins: [HlsJSPlugin, CastPlugin],
+  plugins: [HlsPlugin, CastPlugin],
   height: 300,
   cast: {
     chromecast: createChromecastConfig()
