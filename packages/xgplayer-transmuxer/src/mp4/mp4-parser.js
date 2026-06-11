@@ -996,6 +996,9 @@ export class MP4Parser {
         v.editListApplied = vTrack.editListApplied
       }
       const e1 = vTrack.mdia.minf.stbl.stsd.entries[0]
+      if (!e1) {
+        throw new Error('unknown video stsd entry')
+      }
       v.width = e1.width
       v.height = e1.height
       if (e1.pasp) {
@@ -1020,8 +1023,12 @@ export class MP4Parser {
         v.sps = e1.avcC.sps
         v.pps = e1.avcC.pps
       } else if (e1.vvcC) {
-        const codec = getVideoCodec({ sampleEntry: e1.type === 'encv' ? e1.sinf?.frma?.data_format : e1.type }) ||
+        const sampleEntryType = e1.type === 'encv' ? e1.sinf?.frma?.data_format : e1.type
+        const codec = getVideoCodec({ sampleEntry: sampleEntryType }) ||
           getVideoCodec({ configBox: 'vvcC' })
+        if (!codec?.applyTrackConfig) {
+          throw new Error(`video codec parser is not registered: ${sampleEntryType || 'vvcC'}`)
+        }
         codec.applyTrackConfig({
           track: v,
           entry: e1,
