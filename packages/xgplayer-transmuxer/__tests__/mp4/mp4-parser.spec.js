@@ -1,6 +1,25 @@
 import { registerVideoCodec, unregisterVideoCodec } from '../../src/codec'
 import { VideoTrack } from '../../src/model'
-import { MP4Parser } from '../../src/mp4/mp4-parser'
+import { getAudioSampleRate, MP4Parser } from '../../src/mp4/mp4-parser'
+
+function mp4Box (type, payload) {
+  const data = new Uint8Array(8 + payload.length)
+  data[0] = (data.length >>> 24) & 0xff
+  data[1] = (data.length >>> 16) & 0xff
+  data[2] = (data.length >>> 8) & 0xff
+  data[3] = data.length & 0xff
+  for (let i = 0; i < 4; i++) {
+    data[4 + i] = type.charCodeAt(i)
+  }
+  data.set(payload, 8)
+  return {
+    start: 0,
+    size: data.length,
+    headerSize: 8,
+    type,
+    data
+  }
+}
 
 function videoMoov (entries) {
   return {
@@ -62,5 +81,33 @@ describe('MP4Parser', () => {
         }
       }]), new VideoTrack())
     }).toThrow('video codec parser is not registered: mpla')
+  })
+
+  test('parses AV1 ICC color profile payload', () => {
+    const parsed = MP4Parser.colr(mp4Box('colr', new Uint8Array([
+      0x72, 0x49, 0x43, 0x43,
+      0x01, 0x02, 0x03
+    ])))
+
+    expect(parsed.colorType).toBe('rICC')
+    expect(Array.from(parsed.iccProfile)).toEqual([1, 2, 3])
+  })
+
+  test('uses AV1 profile when deriving 12-bit codec strings', () => {
+    const parsed = MP4Parser.av1C(mp4Box('av1C', new Uint8Array([
+      0x81,
+      0x48,
+      0x6c,
+      0x00
+    ])))
+
+    expect(parsed.codec).toBe('av01.2.08M.12')
+  })
+
+  test('falls back to zero for mp4a entries without sample rate data', () => {
+    expect(getAudioSampleRate({
+      type: 'mp4a',
+      sampleRate: 0
+    })).toBe(0)
   })
 })

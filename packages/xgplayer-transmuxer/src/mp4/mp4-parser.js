@@ -524,7 +524,7 @@ export class MP4Parser {
         ret.matrixCoefficients = byte.read(2)
         ret.fullRangeFlag = byte.read(1) >> 7
       } else if (ret.colorType === 'rICC' || ret.colorType === 'prof') {
-        ret.iccProfile = data.readToUint8()
+        ret.iccProfile = byte.readToUint8()
       }
     })
   }
@@ -570,7 +570,7 @@ export class MP4Parser {
       ret.configOBUs = byte.readToUint8()
 
       let bitdepth
-      if (ret.seqLevelIdx0 === 2 && ret.highBitdepth === 1) {
+      if (ret.seqProfile === 2 && ret.highBitdepth === 1) {
         bitdepth = ret.twelveBit === 1 ? '12' : '10'
       } else if (ret.seqProfile <= 2) {
         bitdepth = ret.highBitdepth === 1 ? '10' : '08'
@@ -1245,7 +1245,7 @@ export function getAudioSampleRate (audioSampleEntry) {
     if (audioSampleEntry.sampleRate > 0) {
       sampleRate = audioSampleEntry.sampleRate
     } else {
-      sampleRate = audioSampleEntry.esds.sampleRate
+      sampleRate = audioSampleEntry.esds?.sampleRate
     }
   } else {
     sampleRate = audioSampleEntry.sampleRate
