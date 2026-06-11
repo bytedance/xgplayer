@@ -2,7 +2,7 @@
 // import { avc } from 'xgplayer-helper-codec'
 import { BitReader } from '../utils/bit-reader'
 import { ByteReader } from '../utils/byte-reader'
-import ExpGolomb from './expGolomb'
+import ExpGolomb from './ExpGolomb'
 
 // aligned(8) class VvcPTLRecord(num_sublayers) {
 //   bit(2) reserved = 0;
