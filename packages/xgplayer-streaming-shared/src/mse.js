@@ -115,8 +115,7 @@ export class MSE {
     if (!MediaSource) return false
     try {
       return MediaSource.isTypeSupported(mime)
-    } catch (error) {
-      MSE._logger.error(mime, error)
+    } catch (_error) {
       return false
     }
   }
