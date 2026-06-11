@@ -67,16 +67,6 @@
       url: './video/1080p.mp4'
     }
   ]
-  const sharedDynamicTimeoutIns = Mp4Plugin.getSharedDynamicTimeoutIns(
-      {
-          alpha: 0.125,
-          beta: 0.25,
-          k:4,
-          type: 2,
-          minTimeout: 10,
-          maxTimeout: 3500,
-      }
-  )
   let player = new Player({
     id: 'vs',
     autoplay: true,
@@ -115,12 +105,6 @@
     // }
     waitingInBufferTimeOut: 5000,
     plugins: [Mp4Plugin],
-
-    // set mp4Plugin support Apple's MMS
-    mp4Plugin: {
-        dynamicTimeoutIns: sharedDynamicTimeoutIns,
-        changeUrlRetry:true,
-    }
   });
   window.player = player
   window.player.on('networkError', (err) => {
