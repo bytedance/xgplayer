@@ -93,6 +93,21 @@ describe('MP4Parser', () => {
     expect(Array.from(parsed.iccProfile)).toEqual([1, 2, 3])
   })
 
+  test('parses nclc color parameters without full-range flag', () => {
+    const parsed = MP4Parser.colr(mp4Box('colr', new Uint8Array([
+      0x6e, 0x63, 0x6c, 0x63,
+      0x00, 0x01,
+      0x00, 0x0d,
+      0x00, 0x06
+    ])))
+
+    expect(parsed.colorType).toBe('nclc')
+    expect(parsed.colorPrimaries).toBe(1)
+    expect(parsed.transferCharacteristics).toBe(13)
+    expect(parsed.matrixCoefficients).toBe(6)
+    expect(parsed.fullRangeFlag).toBeUndefined()
+  })
+
   test('uses AV1 profile when deriving 12-bit codec strings', () => {
     const parsed = MP4Parser.av1C(mp4Box('av1C', new Uint8Array([
       0x81,

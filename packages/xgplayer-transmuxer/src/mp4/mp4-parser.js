@@ -518,11 +518,13 @@ export class MP4Parser {
       ret.data = box.data
       ret.colorType = byte.readString(4)
       // Array.from(data.subarray(0, 4)).map(v => String.fromCharCode(v)).join('')
-      if (ret.colorType === 'nclx') {
+      if (ret.colorType === 'nclx' || ret.colorType === 'nclc') {
         ret.colorPrimaries = byte.read(2)
         ret.transferCharacteristics = byte.read(2)
         ret.matrixCoefficients = byte.read(2)
-        ret.fullRangeFlag = byte.read(1) >> 7
+        if (ret.colorType === 'nclx') {
+          ret.fullRangeFlag = byte.read(1) >> 7
+        }
       } else if (ret.colorType === 'rICC' || ret.colorType === 'prof') {
         ret.iccProfile = byte.readToUint8()
       }
