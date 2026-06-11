@@ -1,8 +1,7 @@
-
 // import { avc } from 'xgplayer-helper-codec'
 import { BitReader } from '../utils/bit-reader'
 import { ByteReader } from '../utils/byte-reader'
-import ExpGolomb from './ExpGolomb'
+import { ExpGolomb } from '../utils/exp-golomb'
 
 // aligned(8) class VvcPTLRecord(num_sublayers) {
 //   bit(2) reserved = 0;
@@ -25,8 +24,7 @@ import ExpGolomb from './ExpGolomb'
 //     unsigned int(32) general_sub_profile_idc[j];
 // }
 
-
-function readUint8Array (reader, len) {
+function readUint8Array(reader, len) {
   if (!len) return new Uint8Array()
   return reader.readToUint8(len).slice()
 }
@@ -36,16 +34,15 @@ const VVC_NAL_TYPE_IDR_W_RADL = 7
 const VVC_NAL_TYPE_IDR_N_LP = 8
 const VVC_NAL_TYPE_CRA = 9
 
-// biome-ignore lint/complexity/noStaticOnlyClass: Allow static-only class for codec utilities
 export class VVC {
-  static getNalType (unit) {
+  static getNalType(unit) {
     if (!unit || unit.byteLength <= 1) {
       return
     }
     return (unit[1] & 0xf8) >> 3
   }
 
-  static getNalTypes (units) {
+  static getNalTypes(units) {
     if (!units?.length) {
       return []
     }
@@ -55,14 +52,17 @@ export class VVC {
       .filter(type => typeof type === 'number')
   }
 
-  static getNalInfo (units) {
+  static getNalInfo(units) {
     const nalTypes = VVC.getNalTypes(units)
     if (!nalTypes.length) {
       return
     }
 
     let randomAccessType = ''
-    if (nalTypes.includes(VVC_NAL_TYPE_IDR_W_RADL) || nalTypes.includes(VVC_NAL_TYPE_IDR_N_LP)) {
+    if (
+      nalTypes.includes(VVC_NAL_TYPE_IDR_W_RADL) ||
+      nalTypes.includes(VVC_NAL_TYPE_IDR_N_LP)
+    ) {
       randomAccessType = 'idr'
     } else if (nalTypes.includes(VVC_NAL_TYPE_CRA)) {
       randomAccessType = 'cra'
@@ -84,7 +84,7 @@ export class VVC {
    * We only emit the 4CC + profile + tier/level part here; constraint/sub-profile
    * info is optional and not required by MSE for isTypeSupported checks.
    */
-  static buildCodecString (sampleEntryType, ptlRecord) {
+  static buildCodecString(sampleEntryType, ptlRecord) {
     const fourCC = sampleEntryType || 'vvc1'
     if (!ptlRecord) {
       // Fallback to something reasonable so downstream code always gets a codec string.
@@ -104,20 +104,20 @@ export class VVC {
    * Parse a standard VVC decoder configuration record carried inside `vvcC`
    * next to `vvc1` / `vvi1` sample entries.
    */
-  static parseVVCDecoderConfigurationRecord (data, sampleEntryType) {
+  static parseVVCDecoderConfigurationRecord(data, sampleEntryType) {
     return VVC._parseStandardVvcConfigurationRecord(data, sampleEntryType || 'vvc1')
   }
 
   /**
    * Standard VvcDecoderConfigurationRecord per ISO/IEC 14496-15:2022 / Amd.2.
    */
-  static _parseStandardVvcConfigurationRecord (data, sampleEntryType) {
+  static _parseStandardVvcConfigurationRecord(data, sampleEntryType) {
     let payload = data
     // Auto-detect a 4-byte FullBox version+flags preamble. Any valid
     // VvcDecoderConfigurationRecord starts with reserved = '11111'b, so its
     // first byte is always >= 0xF8; a leading 0x00 cannot be legal and is a
     // reliable signal that the enclosing box was written as a FullBox.
-    if (payload.length >= 5 && payload[0] < 0xF8) {
+    if (payload.length >= 5 && payload[0] < 0xf8) {
       payload = payload.subarray(4)
     }
 
@@ -185,7 +185,7 @@ export class VVC {
    * decoder configuration record. DCI (13) and OPI (12) NAL types carry a
    * single NAL without a num_nalus count per Amd.2.
    */
-  static _parseVVCNalArrays (reader) {
+  static _parseVVCNalArrays(reader) {
     const VVC_NALU_OPI = 12
     const VVC_NALU_DEC_PARAM = 13
 
@@ -215,7 +215,11 @@ export class VVC {
           case 15: {
             const sps = readUint8Array(reader, len)
             if (!spsParsed) {
-              try { spsParsed = VVC.parseSPS(VVC.removeEPB(sps)) } catch (e) { /* best-effort */ }
+              try {
+                spsParsed = VVC.parseSPS(VVC.removeEPB(sps))
+              } catch {
+                /* best-effort */
+              }
             }
             spsArr.push(sps)
             break
@@ -234,7 +238,7 @@ export class VVC {
     return { numOfArrays, vps: vpsArr, sps: spsArr, pps: ppsArr, spsParsed }
   }
 
-  static parseVVCPTLRecord (reader, numSublayers) {
+  static parseVVCPTLRecord(reader, numSublayers) {
     const ptlBits = BitReader.fromByte(reader, 2)
     ptlBits.read(2)
     const numBytesConstraintInfo = ptlBits.read(6)
@@ -251,7 +255,7 @@ export class VVC {
         const cnstr1 = constraintBits.read(6)
         constraintBits = BitReader.fromByte(reader, 1)
         const cnstr2 = constraintBits.read(2)
-        generalConstraintInfo[i] = ((cnstr1 << 2) | cnstr2)
+        generalConstraintInfo[i] = (cnstr1 << 2) | cnstr2
       }
       generalConstraintInfo[numBytesConstraintInfo - 1] = constraintBits.read(6)
     } else {
@@ -299,19 +303,20 @@ export class VVC {
       ptlNumSubProfiles,
       numBytesConstraintInfo
     }
-
   }
 
-  static getAvccNals (buffer) {
+  static getAvccNals(buffer) {
     const nals = []
     while (buffer.position < buffer.length - 4) {
       const length = buffer.dataview.getInt32(buffer.dataview.position)
       if (buffer.length - buffer.position >= length) {
         const header = buffer.buffer.slice(buffer.position, buffer.position + 4)
         buffer.skip(4)
-        const body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length))
+        const body = new Uint8Array(
+          buffer.buffer.slice(buffer.position, buffer.position + length)
+        )
         buffer.skip(length)
-        nals.push({header, body})
+        nals.push({ header, body })
         continue
       }
       break
@@ -319,7 +324,7 @@ export class VVC {
     return nals
   }
 
-  static analyseNal (unit) {
+  static analyseNal(unit) {
     const type = (unit.body[1] & 0xf8) >> 3
     unit.type = type
     switch (type) {
@@ -350,7 +355,7 @@ export class VVC {
     }
   }
 
-  static removeEPB (uint) {
+  static removeEPB(uint) {
     const length = uint.byteLength
     const emulationPreventionBytesPositions = []
     let i = 1
@@ -381,11 +386,9 @@ export class VVC {
     return newData
   }
 
-  static parseVps () {
+  static parseVps() {}
 
-  }
-
-  static parseSPS (sps) {
+  static parseSPS(sps) {
     // console.log(sps)
     const eg = new ExpGolomb(sps)
 
@@ -402,7 +405,6 @@ export class VVC {
 
     eg.readBits(2)
     eg.readBits(1)
-
 
     const ptlInfo = VVC._parseProfileTierLevel(eg, 1, spsMaxSubLayerMinus1)
 
@@ -425,7 +427,7 @@ export class VVC {
     }
   }
 
-  static _parseProfileTierLevel (eg, ptPresentFlag, spsMaxSubLayerMinus1) {
+  static _parseProfileTierLevel(eg, ptPresentFlag, spsMaxSubLayerMinus1) {
     const generalProfileIdc = eg.readBits(7)
     const generalTierFlag = eg.readBits(1)
     const generalLevelIdc = eg.readBits(8)
@@ -473,10 +475,9 @@ export class VVC {
       ptlSubProfileIdcs,
       gciInfo
     }
-
   }
 
-  static _parseGeneralConstraintsInfo (eg) {
+  static _parseGeneralConstraintsInfo(eg) {
     const gciPresentFlag = eg.readBits(1)
 
     if (gciPresentFlag) {
@@ -487,7 +488,7 @@ export class VVC {
       }
     }
 
-    const zeroBits = 8 - eg.bitsPos() % 8
+    const zeroBits = 8 - (eg.bitsPos() % 8)
     eg.skipBits(zeroBits)
 
     return {

@@ -1,22 +1,36 @@
 export class ExpGolomb {
-  _bytesAvailable
+  private _data: Uint8Array
 
-  _bitsAvailable = 0
+  private _bytesAvailable: number
 
-  _word = 0
+  private _bitsAvailable = 0
 
-  constructor (data) {
+  private _word = 0
+
+  constructor(data: Uint8Array) {
     if (!data) throw new Error('ExpGolomb data params is required')
     this._data = data
     this._bytesAvailable = data.byteLength
     if (this._bytesAvailable) this._loadWord()
   }
 
-  get bitsAvailable () {
+  get bitsAvailable(): number {
     return this._bitsAvailable
   }
 
-  _loadWord () {
+  bitsPos(): number {
+    return this._bytesAvailable * 8 - this._bitsAvailable
+  }
+
+  bitsLeft(): number {
+    return this._data.length * 8 - this.bitsPos()
+  }
+
+  byteAligned(): boolean {
+    return this.bitsPos() === 0 || this.bitsPos() % 8 === 0
+  }
+
+  private _loadWord(): void {
     const position = this._data.byteLength - this._bytesAvailable
     const availableBytes = Math.min(4, this._bytesAvailable)
     if (availableBytes === 0) throw new Error('No bytes available')
@@ -29,14 +43,14 @@ export class ExpGolomb {
     this._bytesAvailable -= availableBytes
   }
 
-  skipBits (count) {
+  skipBits(count: number): void {
     if (this._bitsAvailable > count) {
       this._word <<= count
       this._bitsAvailable -= count
     } else {
       count -= this._bitsAvailable
       const skipBytes = Math.floor(count / 8)
-      count -= (skipBytes * 8)
+      count -= skipBytes * 8
       this._bytesAvailable -= skipBytes
       this._loadWord()
       this._word <<= count
@@ -44,7 +58,7 @@ export class ExpGolomb {
     }
   }
 
-  readBits (size) {
+  readBits(size: number): number {
     if (size > 32) {
       throw new Error('Cannot read more than 32 bits')
     }
@@ -66,7 +80,7 @@ export class ExpGolomb {
     return val
   }
 
-  skipLZ () {
+  skipLZ(): number {
     let leadingZeroCount
     for (
       leadingZeroCount = 0;
@@ -83,16 +97,16 @@ export class ExpGolomb {
     return leadingZeroCount + this.skipLZ()
   }
 
-  skipUEG () {
+  skipUEG(): void {
     this.skipBits(1 + this.skipLZ())
   }
 
-  readUEG () {
+  readUEG(): number {
     const clz = this.skipLZ()
     return this.readBits(clz + 1) - 1
   }
 
-  readEG () {
+  readEG(): number {
     const val = this.readUEG()
     if (1 & val) {
       return (1 + val) >>> 1
@@ -100,18 +114,18 @@ export class ExpGolomb {
     return -1 * (val >>> 1)
   }
 
-  readBool () {
+  readBool(): boolean {
     return this.readBits(1) === 1
   }
 
-  readUByte () {
+  readUByte(): number {
     return this.readBits(8)
   }
 
-  skipScalingList (count) {
+  skipScalingList(count: number): void {
     let lastScale = 8
     let nextScale = 8
-    let deltaScale
+    let deltaScale: number
     for (let j = 0; j < count; j++) {
       if (nextScale !== 0) {
         deltaScale = this.readEG()
