@@ -139,6 +139,18 @@ describe('Hls', () => {
     expect(hls.getStats()).toEqual(MediaStatsServiceMockData)
   })
 
+  test('binds media lifecycle events', () => {
+    const localMedia = document.createElement('video')
+    const addEventListener = jest.spyOn(localMedia, 'addEventListener')
+    const hls = new Hls({ media: localMedia })
+
+    expect(addEventListener).toHaveBeenCalledWith('loadeddata', hls._onLoadeddata)
+    expect(addEventListener).toHaveBeenCalledWith('play', hls._onPlay)
+    expect(addEventListener).toHaveBeenCalledWith('pause', hls._onPause)
+    expect(addEventListener).toHaveBeenCalledWith('seeking', hls._onSeeking)
+    expect(addEventListener).toHaveBeenCalledWith('timeupdate', hls._onTimeupdate)
+  })
+
   test('info methods', () => {
     const hls = new Hls({ media })
     expect(hls.speedInfo()).toEqual({ speed: 1, avgSpeed: 1 })
