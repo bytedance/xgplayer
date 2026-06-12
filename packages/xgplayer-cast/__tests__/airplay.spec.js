@@ -59,6 +59,37 @@ describe('Airplay native source preparation', () => {
     jest.useRealTimers()
   })
 
+  test('shows muted tip and does not open picker by default', () => {
+    const media = document.createElement('video')
+    media.muted = true
+    media.webkitShowPlaybackTargetPicker = jest.fn()
+
+    const { airplay, player } = createAirplay({}, { media })
+
+    airplay._onRequestCast({ protocol: 'airplay' })
+
+    expect(player.root.querySelector('.xgplayer-cast-muted-tip')?.innerText).toBe(
+      'Please unmute before casting'
+    )
+    expect(player.media.webkitShowPlaybackTargetPicker).not.toHaveBeenCalled()
+  })
+
+  test('opens picker without muted tip when muted tip is disabled', () => {
+    const media = document.createElement('video')
+    media.muted = true
+    media.webkitShowPlaybackTargetPicker = jest.fn()
+
+    const { airplay, player } = createAirplay(
+      { config: { showAirplayMutedTip: false } },
+      { media }
+    )
+
+    airplay._onRequestCast({ protocol: 'airplay' })
+
+    expect(player.root.querySelector('.xgplayer-cast-muted-tip')).toBe(null)
+    expect(player.media.webkitShowPlaybackTargetPicker).toHaveBeenCalled()
+  })
+
   test('adds network source fallback before opening picker without switching playback', () => {
     const media = document.createElement('video')
     Object.defineProperty(media, 'currentSrc', {
@@ -425,6 +456,45 @@ describe('Airplay native source preparation', () => {
 
     expect(plugin._suspendMSEPlugin).toHaveBeenCalled()
     expect(plugin._resumeMSEPlugin).toHaveBeenCalled()
+  })
+
+  test('clears pending native seek when AirPlay exits before metadata loads', async () => {
+    let isWireless = true
+    const media = document.createElement('video')
+    Object.defineProperty(media, 'currentSrc', {
+      configurable: true,
+      value: 'blob:https://example.com/mse'
+    })
+    Object.defineProperty(media, 'webkitCurrentPlaybackTargetIsWireless', {
+      configurable: true,
+      get: () => isWireless
+    })
+    Object.defineProperty(media, 'duration', {
+      configurable: true,
+      value: 120
+    })
+    media.currentTime = 44
+    media.load = jest.fn()
+    media.webkitShowPlaybackTargetPicker = jest.fn()
+
+    const { airplay } = createAirplay(
+      {},
+      {
+        media,
+        config: { url: 'https://cdn.example.com/main.m3u8' }
+      }
+    )
+
+    airplay._onRequestCast({ protocol: 'airplay' })
+    airplay._onTargetChange()
+    isWireless = false
+    media.currentTime = 7
+    await airplay._restoreNativeHandoff()
+
+    media.currentTime = 9
+    media.dispatchEvent(new Event('loadedmetadata'))
+
+    expect(media.currentTime).toBe(9)
   })
 
   test('restores local playback point and state after native AirPlay handoff disconnects', async () => {
