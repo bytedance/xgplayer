@@ -371,17 +371,14 @@ export class CastPlugin extends Plugin {
   }
 
   destroy() {
-    super.destroy()
+    this._airplay?.destroy()
+    this._chromecast?.destroy()
     this._msePluginRestore = null
     this._castHandshakeInProgress = false
     this._handoffState = null
     this._castAdapters = {}
-    this.off('loadstart', this._onLoadStart)
-    this.off('cast_availability_change', this._onCastAvailabilityChange)
-    this.off('cast_target_change', this._onCastTargetChange)
-    this.unbind(['click', 'touchend'], this._handler)
-    this._airplay?.destroy()
-    this._chromecast?.destroy()
+    this._airplay = null
+    this._chromecast = null
   }
 
   render() {
