@@ -125,7 +125,8 @@ sequenceDiagram
 
   opt local URL changes while casting
     Plugin-->>Chromecast: loadstart
-    Chromecast->>Chromecast: reloadMedia(skipSameMedia, preserve remote play state; keep currentTime only when URL is unchanged)
+    Chromecast->>Chromecast: reloadMedia with remote play state
+    Chromecast->>Chromecast: keep currentTime only when URL is unchanged
     Chromecast->>CAF: session.loadMedia(new LoadRequest with remote state)
   end
 
