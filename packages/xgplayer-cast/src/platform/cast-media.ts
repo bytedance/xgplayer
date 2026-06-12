@@ -1,4 +1,9 @@
-import type { AnyRecord, CastMediaInfo, CastPlayer } from '../types'
+import type {
+  AnyRecord,
+  CastMediaInfo,
+  CastMediaResolveContext,
+  CastPlayer
+} from '../types'
 
 const CONTENT_TYPE_ALIASES = {
   hls: 'application/x-mpegURL',
@@ -30,6 +35,10 @@ const MEDIA_INFO_FIELDS = [
   'hlsSegmentFormat',
   'hlsVideoSegmentFormat'
 ]
+
+type StreamingPluginCtor = {
+  isStreamingPlugin?: boolean
+}
 
 function normalizeContentType(value: unknown) {
   if (typeof value !== 'string') {
@@ -179,10 +188,27 @@ function getMediaElementCandidates(player: CastPlayer) {
   return candidates
 }
 
+function getStreamingPluginCandidates(player: CastPlayer) {
+  const plugins = Object.values(player?.plugins ?? {}) as AnyRecord[]
+  const candidates: AnyRecord[] = []
+
+  plugins.forEach((plugin) => {
+    const PluginCtor = plugin?.constructor as StreamingPluginCtor | undefined
+    if (PluginCtor?.isStreamingPlugin !== true) {
+      return
+    }
+
+    const coreConfig = plugin?.core?.config
+    candidates.push(...toSourceCandidate(coreConfig?.url, coreConfig))
+  })
+
+  return candidates
+}
+
 function resolveCandidateUrl(player: CastPlayer) {
   const candidates = [
     ...toSourceCandidate(player?.curDefinition?.url, player?.curDefinition),
-    ...toSourceCandidate(player?.url),
+    ...getStreamingPluginCandidates(player),
     ...toSourceCandidate(player?.config?.url, player?.config),
     ...getMediaElementCandidates(player)
   ]
@@ -196,8 +222,13 @@ function resolveCandidateUrl(player: CastPlayer) {
 
 export function resolveCastMedia(
   player: CastPlayer,
-  { protocol = 'chromecast' }: { protocol?: string } = {}
+  context: CastMediaResolveContext
 ): CastMediaInfo {
+  const protocol = context?.protocol
+  if (!protocol) {
+    throw new Error('Cast media resolution requires a protocol')
+  }
+
   const candidate = resolveCandidateUrl(player)
   const candidateUrl = candidate?.url
 

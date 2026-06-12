@@ -505,7 +505,6 @@ describe('Chromecast', () => {
     const plugin = createPluginStub()
     plugin.config = { autoplayOnCast: false }
     plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
-    plugin.player.url = 'https://cdn.example.com/video.mp4'
     plugin.player.preProcessUrl = (url) => ({ url })
 
     const loadMedia = jest.fn().mockResolvedValue(undefined)
@@ -564,7 +563,6 @@ describe('Chromecast', () => {
     plugin.player.paused = false
     plugin.player.currentTime = 17
     plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
-    plugin.player.url = 'https://cdn.example.com/video.mp4'
     plugin.player.preProcessUrl = (url) => ({ url })
 
     let resolveLoad
@@ -619,7 +617,6 @@ describe('Chromecast', () => {
     plugin.player.paused = false
     plugin.player.currentTime = 17
     plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
-    plugin.player.url = 'https://cdn.example.com/video.mp4'
     plugin.player.preProcessUrl = (url) => ({ url })
 
     const loadMedia = jest.fn().mockResolvedValue(undefined)
@@ -660,7 +657,6 @@ describe('Chromecast', () => {
     plugin.player.paused = true
     plugin.player.currentTime = 9
     plugin.player.config = { url: 'https://cdn.example.com/video.mp4' }
-    plugin.player.url = 'https://cdn.example.com/video.mp4'
     plugin.player.preProcessUrl = (url) => ({ url })
 
     const loadMedia = jest.fn().mockResolvedValue(undefined)
@@ -1201,7 +1197,6 @@ describe('Chromecast', () => {
   test('_onRequestCast handles blob URL with warning and no crash', async () => {
     const plugin = createPluginStub()
     plugin.player.config = { url: 'blob:https://example.com/123' }
-    plugin.player.url = 'blob:https://example.com/123'
 
     const requestSession = jest.fn().mockResolvedValue(undefined)
     const session = { loadMedia: jest.fn() }
