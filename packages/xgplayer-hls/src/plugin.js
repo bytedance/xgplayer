@@ -139,8 +139,7 @@ export class HlsPlugin extends BasePlugin {
     if (!this.softDecode) {
       BasePlugin.defineGetterOrSetter(this.player, {
         url: {
-          get: () =>
-            this.hls?.config?.url || this.hls?.media?.currentSrc || this.hls?.media?.src,
+          get: () => this.hls?.media?.src,
           configurable: true
         }
       })
