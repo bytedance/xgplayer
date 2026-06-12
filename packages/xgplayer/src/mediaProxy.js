@@ -385,7 +385,7 @@ class MediaProxy extends EventEmitter {
     video.removeAttribute('src')
     video.load()
 
-    this.assembleSource(video, urls)
+    this.assembleSource(urls, video)
 
     const _c = video.children
     if (!_c) {
