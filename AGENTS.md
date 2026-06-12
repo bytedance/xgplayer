@@ -31,7 +31,7 @@ Global agent map for this repo. Keep package-specific design/background in packa
 
 - Package manager: Yarn 1.x only; only touch `yarn.lock`.
 - Dependencies: keep pins deliberate; do not loosen/downgrade ad hoc.
-- Commits: use meaningful conventional commit titles, `monorepo` or `*` for cross-package changes, and a short body for non-trivial changes covering problem, key change, and verification.
+- Commits: use meaningful conventional commit titles, `monorepo` or `*` for cross-package changes, and a short body for non-trivial changes covering problem and key change.
 - CHANGELOG: only add entries for stable releases (patch/minor/major); skip prerelease tags (`rc`/`alpha`/`beta`) — fold their commits into the next stable entry.
 
 ## Never
