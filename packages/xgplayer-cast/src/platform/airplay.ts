@@ -184,20 +184,12 @@ export class Airplay {
   }
 
   _resolveAirPlayMedia(): CastMediaInfo | null {
-    let castMedia: CastMediaInfo
     try {
-      castMedia = resolveCastMedia(this.player, { protocol: 'airplay' })
+      return resolveCastMedia(this.player, { protocol: 'airplay' })
     } catch (err) {
       console.warn('[xgplayer-cast] Cannot resolve AirPlay media URL:', err.message)
       return null
     }
-
-    if (!castMedia?.url || /^blob:/i.test(castMedia.url)) {
-      console.warn('[xgplayer-cast] AirPlay requires a receiver-readable media URL')
-      return null
-    }
-
-    return castMedia
   }
 
   _applyNativeSource(mediaEl: HTMLMediaElement, castMedia: CastMediaInfo) {
