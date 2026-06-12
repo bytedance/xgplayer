@@ -417,11 +417,11 @@ export class Hls extends EventEmitter {
 
   _bindMediaEvents(media) {
     if (!media) return
-    media.removeEventListener('loadeddata', this._onLoadeddata)
-    media.removeEventListener('play', this._onPlay)
-    media.removeEventListener('pause', this._onPause)
-    media.removeEventListener('seeking', this._onSeeking)
-    media.removeEventListener('timeupdate', this._onTimeupdate)
+    media.addEventListener('loadeddata', this._onLoadeddata)
+    media.addEventListener('play', this._onPlay)
+    media.addEventListener('pause', this._onPause)
+    media.addEventListener('seeking', this._onSeeking)
+    media.addEventListener('timeupdate', this._onTimeupdate)
   }
 
   _unbindMediaEvents(media) {
