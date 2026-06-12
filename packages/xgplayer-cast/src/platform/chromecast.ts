@@ -26,6 +26,25 @@ const MEDIA_INFO_FIELDS = [
   'hlsVideoSegmentFormat'
 ]
 
+interface ChromecastMediaIdentity {
+  key: string
+  url: string
+}
+
+function getMediaIdentity(castMedia: CastMediaInfo): ChromecastMediaIdentity {
+  const { url, contentType } = castMedia
+  return {
+    url,
+    key: JSON.stringify({
+      url,
+      contentType,
+      contentUrl: castMedia.contentUrl,
+      hlsSegmentFormat: castMedia.hlsSegmentFormat,
+      hlsVideoSegmentFormat: castMedia.hlsVideoSegmentFormat
+    })
+  }
+}
+
 export class Chromecast {
   plugin: CastPluginLike | null
   player: CastPlayer | null
@@ -34,8 +53,8 @@ export class Chromecast {
   session: any
   _castState: string | null
   _isCasting: boolean
-  _lastLoadedMediaKey: string | null
-  _pendingMediaKey: string | null
+  _loadedMedia: ChromecastMediaIdentity | null
+  _pendingMedia: ChromecastMediaIdentity | null
   _lastLoadAutoplay: boolean
   _pendingLocalRestoreState: CastRouteState | null
   remoteController: ChromecastRemoteController | null
@@ -48,8 +67,8 @@ export class Chromecast {
     this.session = null
     this._castState = null
     this._isCasting = false
-    this._lastLoadedMediaKey = null
-    this._pendingMediaKey = null
+    this._loadedMedia = null
+    this._pendingMedia = null
     this._lastLoadAutoplay = false
     this._pendingLocalRestoreState = null
     this.remoteController = new ChromecastRemoteController(this.player)
@@ -155,8 +174,7 @@ export class Chromecast {
       if (!session) {
         this.session = null
         this._isCasting = false
-        this._lastLoadedMediaKey = null
-        this._pendingMediaKey = null
+        this._resetRemoteLoadState()
         this._emitError(
           'session_unavailable',
           'No Chromecast session after session state changed'
@@ -185,9 +203,7 @@ export class Chromecast {
           : null
       this.session = null
       this._isCasting = false
-      this._lastLoadedMediaKey = null
-      this._pendingMediaKey = null
-      this._lastLoadAutoplay = false
+      this._resetRemoteLoadState()
       this._pendingLocalRestoreState = null
       if (restoreState) {
         await this._applyRemoteStateToLocal(restoreState)
@@ -293,17 +309,8 @@ export class Chromecast {
     }
 
     const { url, contentType } = castMedia
-    const mediaKey = JSON.stringify({
-      url,
-      contentType,
-      contentUrl: castMedia.contentUrl,
-      hlsSegmentFormat: castMedia.hlsSegmentFormat,
-      hlsVideoSegmentFormat: castMedia.hlsVideoSegmentFormat
-    })
-    if (
-      skipSameMedia &&
-      (mediaKey === this._lastLoadedMediaKey || mediaKey === this._pendingMediaKey)
-    ) {
+    const mediaIdentity = getMediaIdentity(castMedia)
+    if (skipSameMedia && this._isSameMediaIdentity(mediaIdentity)) {
       return false
     }
 
@@ -315,16 +322,16 @@ export class Chromecast {
     })
     const request = new window.chrome.cast.media.LoadRequest(mediaInfo)
     request.autoplay = this._resolveLoadAutoplay(autoplay)
-    const resolvedCurrentTime = this._resolveLoadCurrentTime(currentTime)
+    const resolvedCurrentTime = this._resolveLoadCurrentTime(currentTime, mediaIdentity)
     if (resolvedCurrentTime > 0) {
       request.currentTime = resolvedCurrentTime
     }
 
-    this._pendingMediaKey = mediaKey
+    this._pendingMedia = mediaIdentity
     const localMediaState = this._pauseLocalForRemoteLoad()
     try {
       await session.loadMedia(request)
-      this._lastLoadedMediaKey = mediaKey
+      this._loadedMedia = mediaIdentity
       this._lastLoadAutoplay = request.autoplay
       this.remoteController.emitState()
     } catch (err) {
@@ -333,8 +340,8 @@ export class Chromecast {
       console.warn('[xgplayer-cast] Chromecast media load failed:', err)
       return false
     } finally {
-      if (this._pendingMediaKey === mediaKey) {
-        this._pendingMediaKey = null
+      if (this._pendingMedia?.key === mediaIdentity.key) {
+        this._pendingMedia = null
       }
     }
     return true
@@ -381,18 +388,40 @@ export class Chromecast {
     return this._lastLoadAutoplay
   }
 
-  _resolveLoadCurrentTime(currentTime?: unknown) {
+  _isSameMediaIdentity(media: ChromecastMediaIdentity) {
+    return media.key === this._loadedMedia?.key || media.key === this._pendingMedia?.key
+  }
+
+  _resolveLoadCurrentTime(currentTime: unknown, media: ChromecastMediaIdentity) {
     const requestCurrentTime = toNonNegativeTime(currentTime)
     if (requestCurrentTime !== null) {
       return requestCurrentTime
     }
 
     const remoteState = this.remoteController?.getState?.()
-    if (remoteState?.available && remoteState.mediaLoaded) {
+    if (
+      this._canReuseRemoteTime(media, remoteState) &&
+      remoteState?.available &&
+      remoteState.mediaLoaded
+    ) {
       return toNonNegativeTime(remoteState.currentTime)
     }
 
     return null
+  }
+
+  _canReuseRemoteTime(media: ChromecastMediaIdentity, remoteState?: any) {
+    if (media.url === this._loadedMedia?.url || media.url === this._pendingMedia?.url) {
+      return true
+    }
+
+    return !this._loadedMedia && remoteState?.contentId === media.url
+  }
+
+  _resetRemoteLoadState() {
+    this._loadedMedia = null
+    this._pendingMedia = null
+    this._lastLoadAutoplay = false
   }
 
   _captureRemoteStateForLocal(): CastRouteState | null {
@@ -487,9 +516,7 @@ export class Chromecast {
     this.session = null
     this._castState = null
     this._isCasting = false
-    this._lastLoadedMediaKey = null
-    this._pendingMediaKey = null
-    this._lastLoadAutoplay = false
+    this._resetRemoteLoadState()
     this._pendingLocalRestoreState = null
     this.remoteController?.destroy()
     this.remoteController = null

@@ -31,6 +31,7 @@ export class Airplay {
   _airplayMedia: CastMediaInfo | null
   _handoffState: CastRouteState | null
   _nativeHandoffActive: boolean
+  _pendingNativeSeekCleanup: (() => void) | null
   _emitCastingFalseDebounced: any
   _tipDom: HTMLElement | null
   _tipTimeout: ReturnType<typeof setTimeout> | null
@@ -43,6 +44,7 @@ export class Airplay {
     this._airplayMedia = null
     this._handoffState = null
     this._nativeHandoffActive = false
+    this._pendingNativeSeekCleanup = null
     this._tipDom = null
     this._tipTimeout = null
     this._emitCastingFalseDebounced = (Util as any).debounce(async () => {
@@ -133,25 +135,39 @@ export class Airplay {
     this.plugin?._suspendMSEPlugin?.()
     this._nativeHandoffActive = true
     this._applyNativeSource(mediaEl, castMedia)
-    mediaEl.addEventListener(
-      'loadedmetadata',
-      () => {
-        if (currentTime > 0 && Number.isFinite(mediaEl.duration)) {
-          try {
-            mediaEl.currentTime = Math.min(currentTime, mediaEl.duration)
-          } catch {
-            // ignore seek failures while Safari is switching AirPlay routes
-          }
-        }
-      },
-      { once: true }
-    )
+    this._seekNativeSourceAfterMetadata(mediaEl, currentTime)
 
     return true
   }
 
+  _seekNativeSourceAfterMetadata(mediaEl: HTMLMediaElement, currentTime: number) {
+    this._clearPendingNativeSeek()
+
+    const onLoadedMetadata = () => {
+      this._clearPendingNativeSeek()
+      if (currentTime > 0 && Number.isFinite(mediaEl.duration)) {
+        try {
+          mediaEl.currentTime = Math.min(currentTime, mediaEl.duration)
+        } catch {
+          // ignore seek failures while Safari is switching AirPlay routes
+        }
+      }
+    }
+
+    mediaEl.addEventListener('loadedmetadata', onLoadedMetadata)
+    this._pendingNativeSeekCleanup = () => {
+      mediaEl.removeEventListener('loadedmetadata', onLoadedMetadata)
+    }
+  }
+
+  _clearPendingNativeSeek() {
+    this._pendingNativeSeekCleanup?.()
+    this._pendingNativeSeekCleanup = null
+  }
+
   async _restoreNativeHandoff() {
     this._handoffState = null
+    this._clearPendingNativeSeek()
     if (!this._nativeHandoffActive) {
       return false
     }
@@ -367,6 +383,35 @@ export class Airplay {
     })
   }
 
+  _shouldShowMutedTip() {
+    return this.plugin?.config?.showAirplayMutedTip !== false
+  }
+
+  _handleMutedRequest(mediaEl: HTMLMediaElement) {
+    if (!mediaEl.muted || !this._shouldShowMutedTip()) {
+      return false
+    }
+
+    // 这里如果取消静音，可能会涉及用户隐私，谨慎操作。
+    // video.muted = false;
+    this._showMutedTip()
+    return true
+  }
+
+  _showMutedTip() {
+    this._gcTip()
+
+    const tip = document.createElement('div')
+    tip.className = 'xgplayer-cast-muted-tip'
+    tip.innerText = this.player.i18n.CAST_UNMUTE_TIP
+    this.player.root.appendChild(tip)
+    this._tipDom = tip
+
+    this._tipTimeout = setTimeout(() => {
+      this._gcTip()
+    }, 3000)
+  }
+
   canRequest() {
     return isAirPlayAvailable(this.player)
   }
@@ -386,26 +431,9 @@ export class Airplay {
     try {
       const mediaEl = this.player.media || this.player.video
       this._handoffState = handoffState || null
-      const wasMuted = mediaEl.muted
-
       // WebKit 的 AirPlay 实现中，静音的Media元素会被认为不需要音频输出设备，系统因此认为没有必要将其路由到外部播放目标
       // 具体见：https://bugs.webkit.org/show_bug.cgi?id=146366
-      if (wasMuted) {
-        // 这里如果取消静音，可能会涉及用户隐私，谨慎操作
-        // video.muted = false;
-
-        this._gcTip()
-
-        // 展示UI提示，告知用户需要取消静音才能投屏
-        const tip = document.createElement('div')
-        tip.className = 'xgplayer-cast-muted-tip'
-        tip.innerText = this.player.i18n.CAST_UNMUTE_TIP
-        this.player.root.appendChild(tip)
-        this._tipDom = tip
-
-        this._tipTimeout = setTimeout(() => {
-          this._gcTip()
-        }, 3000)
+      if (this._handleMutedRequest(mediaEl)) {
         return
       }
 
@@ -441,6 +469,7 @@ export class Airplay {
       return
     }
     this._gcTip()
+    this._clearPendingNativeSeek()
     this._emitCastingFalseDebounced?.cancel?.()
     this._emitCastingFalseDebounced = null
 
@@ -463,5 +492,6 @@ export class Airplay {
     this._airplayMedia = null
     this._handoffState = null
     this._nativeHandoffActive = false
+    this._pendingNativeSeekCleanup = null
   }
 }
