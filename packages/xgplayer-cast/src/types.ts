@@ -19,6 +19,10 @@ export interface CastMediaInfo extends AnyRecord {
   contentType: string
 }
 
+export interface CastMediaResolveContext {
+  protocol: CastProtocol
+}
+
 export interface ChromecastConfig extends AnyRecord {
   enabled: boolean
   sdkUrl: string

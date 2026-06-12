@@ -301,7 +301,7 @@ export class Chromecast {
 
     let castMedia: CastMediaInfo
     try {
-      castMedia = resolveCastMedia(this.player)
+      castMedia = resolveCastMedia(this.player, { protocol: 'chromecast' })
     } catch (err) {
       console.warn('[xgplayer-cast] Cannot resolve cast media URL:', err.message)
       this._emitError('unsupported_source', err)

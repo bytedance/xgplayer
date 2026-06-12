@@ -1,6 +1,14 @@
 import { resolveCastMedia } from '../src/platform/cast-media'
 
+const CAST_MEDIA_CONTEXT = { protocol: 'airplay' }
+
 describe('resolveCastMedia', () => {
+  test('requires an explicit cast protocol context', () => {
+    expect(() => resolveCastMedia({}, undefined)).toThrow(
+      'Cast media resolution requires a protocol'
+    )
+  })
+
   test('uses curDefinition.url first', () => {
     const player = {
       curDefinition: { url: 'https://cdn.example.com/main.m3u8' },
@@ -8,22 +16,34 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
     expect(result.url).toBe('https://cdn.example.com/main.m3u8')
     expect(result.contentType).toBe('application/x-mpegURL')
   })
 
-  test('falls back to player.url', () => {
+  test('uses active streaming plugin core url before config.url', () => {
+    class StreamingPlugin {}
+    StreamingPlugin.isStreamingPlugin = true
+
     const player = {
       curDefinition: null,
-      url: 'https://cdn.example.com/video.mpd',
+      plugins: {
+        hls: {
+          constructor: StreamingPlugin,
+          core: {
+            config: {
+              url: 'https://cdn.example.com/main.m3u8'
+            }
+          }
+        }
+      },
       config: { url: 'https://fallback.example.com/video.mp4' },
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
-    expect(result.url).toBe('https://cdn.example.com/video.mpd')
-    expect(result.contentType).toBe('application/dash+xml')
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
+    expect(result.url).toBe('https://cdn.example.com/main.m3u8')
+    expect(result.contentType).toBe('application/x-mpegURL')
   })
 
   test('falls back to config.url', () => {
@@ -34,20 +54,20 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
     expect(result.url).toBe('https://cdn.example.com/video.mp4')
     expect(result.contentType).toBe('video/mp4')
   })
 
-  test('skips blob player.url and falls back to config.url', () => {
+  test('ignores player.url and falls back to config.url', () => {
     const player = {
       curDefinition: null,
-      url: 'blob:https://example.com/123',
+      url: 'https://cdn.example.com/video.mpd',
       config: { url: 'https://cdn.example.com/main.m3u8' },
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
     expect(result.url).toBe('https://cdn.example.com/main.m3u8')
     expect(result.contentType).toBe('application/x-mpegURL')
   })
@@ -60,7 +80,7 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    expect(() => resolveCastMedia(player)).toThrow('got blob URL')
+    expect(() => resolveCastMedia(player, CAST_MEDIA_CONTEXT)).toThrow('got blob URL')
   })
 
   test('rejects mediastream URL', () => {
@@ -71,7 +91,9 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    expect(() => resolveCastMedia(player)).toThrow('got mediastream URL')
+    expect(() => resolveCastMedia(player, CAST_MEDIA_CONTEXT)).toThrow(
+      'got mediastream URL'
+    )
   })
 
   test('rejects missing URL', () => {
@@ -82,7 +104,9 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    expect(() => resolveCastMedia(player)).toThrow('Cast requires a string media URL')
+    expect(() => resolveCastMedia(player, CAST_MEDIA_CONTEXT)).toThrow(
+      'Cast requires a string media URL'
+    )
   })
 
   test('applies preProcessUrl transformation', () => {
@@ -96,13 +120,13 @@ describe('resolveCastMedia', () => {
       preProcessUrl
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
     expect(result.url).toBe('https://cdn.example.com/video.mp4?token=abc')
     expect(preProcessUrl).toHaveBeenCalledWith(
       'https://cdn.example.com/video.mp4',
       expect.objectContaining({
         scene: 'cast',
-        protocol: 'chromecast'
+        protocol: 'airplay'
       })
     )
   })
@@ -136,7 +160,7 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
 
     expect(result.contentType).toBe('application/x-mpegURL')
   })
@@ -154,7 +178,7 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
 
     expect(result.url).toBe('https://cdn.example.com/live')
     expect(result.contentType).toBe('application/x-mpegURL')
@@ -172,7 +196,7 @@ describe('resolveCastMedia', () => {
       })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
 
     expect(result.contentType).toBe('application/dash+xml')
   })
@@ -190,7 +214,7 @@ describe('resolveCastMedia', () => {
       })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
 
     expect(result).toEqual(
       expect.objectContaining({
@@ -209,7 +233,9 @@ describe('resolveCastMedia', () => {
       preProcessUrl: () => 'invalid'
     }
 
-    expect(() => resolveCastMedia(player)).toThrow('preProcessUrl must return an object')
+    expect(() => resolveCastMedia(player, CAST_MEDIA_CONTEXT)).toThrow(
+      'preProcessUrl must return an object'
+    )
   })
 
   test('throws if preProcessUrl returns blob url', () => {
@@ -220,7 +246,7 @@ describe('resolveCastMedia', () => {
       preProcessUrl: () => ({ url: 'blob:https://example.com/123' })
     }
 
-    expect(() => resolveCastMedia(player)).toThrow('got blob URL')
+    expect(() => resolveCastMedia(player, CAST_MEDIA_CONTEXT)).toThrow('got blob URL')
   })
 
   test('rejects data URL', () => {
@@ -231,7 +257,7 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    expect(() => resolveCastMedia(player)).toThrow('got data URL')
+    expect(() => resolveCastMedia(player, CAST_MEDIA_CONTEXT)).toThrow('got data URL')
   })
 
   test('infers mp4 content type as default', () => {
@@ -242,7 +268,7 @@ describe('resolveCastMedia', () => {
       preProcessUrl: (url) => ({ url })
     }
 
-    const result = resolveCastMedia(player)
+    const result = resolveCastMedia(player, CAST_MEDIA_CONTEXT)
     expect(result.contentType).toBe('video/mp4')
   })
 })

@@ -111,7 +111,7 @@ sequenceDiagram
   CAF-->>Receiver: user selects device
   CAF-->>Chromecast: SESSION_STARTED or SESSION_RESUMED
   Chromecast-->>Plugin: cast_target_change({ isCasting: true })
-  Chromecast->>Chromecast: resolveCastMedia(player)
+  Chromecast->>Chromecast: resolveCastMedia(player, cast media context)
   Chromecast->>Chromecast: resolve autoplay from request payload
   Chromecast->>Chromecast: refresh local currentTime before receiver load
   Chromecast->>Plugin: pause local player before receiver load
@@ -144,7 +144,7 @@ Chromecast remote control is implemented with CAF `RemotePlayer` and `RemotePlay
 
 ### Chromecast Media Type
 
-Chromecast requires a receiver-readable network URL and a MIME content type. The plugin resolves the URL from `curDefinition.url`, `player.url`, `config.url`, and media `<source>` elements, skipping `blob:`, `mediastream:`, `data:`, and `file:` URLs when a later network URL is available.
+AirPlay and Chromecast share the same cast media resolver. Receiver-readable network URLs are resolved from `curDefinition.url`, the active streaming plugin's `core.config.url`, `config.url`, and media `<source>` elements, skipping `blob:`, `mediastream:`, `data:`, and `file:` URLs when a later network URL is available.
 
 For signed or extensionless URLs, business code should provide an explicit `contentType`, `mimeType`, or `type`. The resolver uses this priority:
 
@@ -238,7 +238,7 @@ sequenceDiagram
   AirPlay->>WebKit: enable remote route for this request
 
   alt current source is MSE, MMS, srcObject, or blob
-    AirPlay->>AirPlay: resolveCastMedia(player, { protocol: 'airplay' })
+    AirPlay->>AirPlay: resolveCastMedia(player, cast media context)
     AirPlay->>WebKit: add receiver-readable HLS/MP4 source fallback
   end
 
