@@ -247,6 +247,7 @@ export class MSE {
       ms.removeEventListener('sourceopen', onOpen)
       URL.revokeObjectURL(media.src)
       this._openPromise.resolve({costtime: costTime})
+      media.dispatchEvent(new CustomEvent('mseAttached'))
     }
     ms.addEventListener('sourceopen', onOpen)
     if (useMMS) {
@@ -257,7 +258,7 @@ export class MSE {
     this._url = URL.createObjectURL(ms)
     media.src = this._url
     media.disableRemotePlayback = useMMS
-
+    media.dispatchEvent(new CustomEvent('mseAttaching'))
     return this._openPromise
   }
 
@@ -437,22 +438,32 @@ export class MSE {
     return p
   }
 
-  clearOpQueues (type, allClear) {
-    this._logger.debug('MSE clearOpQueue START')
+  clearOpQueues (type, allClear = true) {
     const queue = this._queue[type]
+    const sb = this._sourceBuffer[type]
+
+    this._logger.debug('MSE clearOpQueue', type, allClear, 'sb updating: ', sb?.updating)
+
+    let keepLast = false
+    if (sb?.updating) {
+      keepLast = true
+    }
     if (allClear && queue) {
-      this._queue[type] = []
+      const delCount = keepLast ? Math.max(queue.length - 1, 0) : queue.length
+      if (delCount > 0) {
+        queue.splice(0, delCount)
+      }
       return
     }
-    if (!queue || !queue[type] || queue.length < 5) return
-    const initQueue = []
-    queue.forEach(op => {
-      if (op.context && op.context.isinit) {
-        initQueue.push(op)
-      }
-    })
-    this._queue[type] = queue.slice(0, 2)
-    initQueue.length > 0 && this._queue[type].push(...initQueue)
+    // if (!Array.isArray(queue) || queue.length < 5) return
+    // const initOpque = []
+    // queue.forEach(op => {
+    //   if (op.context && op.context.isinit) {
+    //     initOpque.push(op)
+    //   }
+    // })
+    // this._queue[type] = queue.slice(0, 2)
+    // initOpque.length > 0 && this._queue[type].push(...initOpque)
   }
 
   /**
@@ -658,7 +669,8 @@ export class MSE {
       return Promise.resolve()
     }
     return this._enqueueOp(type, () => {
-      this._sourceBuffer[type].abort()
+      this._logger.debug('MSE abort', type, context)
+      this._sourceBuffer[type]?.abort()
       this._onSBUpdateEnd(type)
     }, 'abort', context)
   }

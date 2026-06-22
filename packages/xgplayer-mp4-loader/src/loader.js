@@ -1,9 +1,9 @@
-import { NetLoader, concatUint8Array, Logger, EVENT } from 'xgplayer-streaming-shared'
+import { NetLoader, newUint8Array, concatUint8Array, Logger, EVENT } from 'xgplayer-streaming-shared'
 import { MP4Parser } from 'xgplayer-transmuxer'
 import { getConfig } from './config'
 import { MediaError } from './error'
 import { Cache } from './cache'
-import { isNumber, moovToMeta, moovToSegments, sidxToSegments } from './utils'
+import { isNumber, moovToMeta, moovToSegments, sidxToSegments, isSegmentsOk } from './utils'
 import EventEmitter from 'eventemitter3'
 
 export class MP4Loader extends EventEmitter {
@@ -17,6 +17,7 @@ export class MP4Loader extends EventEmitter {
   _currentSegmentIndex = -1
   _currentLoadingSegmentIndex = -1
   buffer
+  bufferDataLen = 0
   _error
 
   constructor (config) {
@@ -34,10 +35,14 @@ export class MP4Loader extends EventEmitter {
     this.logger = new Logger('MP4Loader_' + this.vid)
     !!config.openLog && Logger.enable()
     rest.logger = this.logger
+    this.filesize = 0
 
     this._loader = new NetLoader(rest)
     this._loader.on(EVENT.REAL_TIME_SPEED, (data) => {
       this.emit(EVENT.REAL_TIME_SPEED, data)
+    })
+    this._loader.on('networkError', data => {
+      this.emit('networkError', data)
     })
   }
 
@@ -76,11 +81,48 @@ export class MP4Loader extends EventEmitter {
     return this.meta
   }
 
-  async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config) {
+  newBufferArray (size, isExp) {
+    if (!this.buffer) {
+      this.buffer = newUint8Array(size)
+      this.bufferDataLen = 0
+    } else if (isExp || this.buffer?.byteLength < size) {
+      const data = this.buffer.subarray(0,this.bufferDataLen)
+      const temp = newUint8Array((this.buffer?.byteLength || 0) + size)
+      temp.set(data,0)
+      delete this.buffer
+      this.buffer = temp
+    }
+  }
+
+  async loadMetaProcess (cache, [moovStart, moovEnd], onProgress, config = {}) {
     this._error = false
+    this.filesize = 0
     this.logger.debug('[loadMetaProcess start], range,', [moovStart, moovEnd])
-    const OnProgressHandle = async (data, state, options) => {
-      if (this.meta && options?.range && options.range.length > 0 && options.range[1] >= moovEnd) {
+    if (this._config?.memoryOpt) {
+      if (!this.buffer || config?.isExp) {
+        try {
+          this.newBufferArray(moovEnd - moovStart + 1, config?.isExp)
+        } catch (e) {
+          onProgress(null, true, {}, new MediaError(e?.message), {})
+        }
+      }
+    }
+    const OnProgressHandle = async (data, state, options, response) => {
+      if (!this.filesize && response?.headers) {
+        const contentRange = response.headers.get?.('content-range')
+        if (contentRange) {
+          const range = contentRange.split('/')
+          if (Array.isArray(range) && range.length === 2) {
+            this.filesize = parseInt(range[1])
+
+            if (this.filesize > 0 && moovEnd > this.filesize) {
+              moovEnd = this.filesize
+              this.logger.debug(`[loadMetaProcess] moovEnd changed by content-range in header, [${moovStart}-${moovEnd}]`)
+            }
+          }
+        }
+      }
+      if (!state && this.meta && options?.range && options.range.length > 0 && options.range[1] >= moovEnd) {
         state = true
         this.logger.debug('[loadMetaProcess],data done,setstate true,[', moovStart, moovEnd, ']')
       }
@@ -89,17 +131,30 @@ export class MP4Loader extends EventEmitter {
         this.logger.debug('[loadMetaProcess],data not done,setstate false,[', moovStart, moovEnd, ']')
       }
       this.logger.debug('[loadMetaProcess],task,[', moovStart, moovEnd, '], range,', options.range, ',dataLen,', (data ? data.byteLength : undefined), ', state,', state, ',err,',this._error)
-      !this._error && data && data.byteLength > 0 && onProgress(data, state, options)
+      !this._error && data && data.byteLength > 0 && onProgress(data, state, options, null, response)
       if (this.meta.moov || this._error) return
+      let parseData
       if (data && data.byteLength > 0) {
-        this.buffer = concatUint8Array(this.buffer, data)
-        let moov = MP4Parser.findBox(this.buffer, ['moov'])[0]
+        try {
+          if (this._config?.memoryOpt) {
+            this.buffer.set(data, this.bufferDataLen)
+            this.bufferDataLen += data?.byteLength || 0
+            parseData = this.buffer.subarray(0, this.bufferDataLen)
+          } else {
+            this.buffer = concatUint8Array(this.buffer, data)
+            parseData = this.buffer
+          }
+        } catch (e) {
+          onProgress(null, state, options, new MediaError(e?.message), response)
+          return
+        }
+        let moov = MP4Parser.findBox(parseData, ['moov'])[0]
         if (!moov) {
-          const mdat = MP4Parser.findBox(this.buffer, ['mdat'])[0]
+          const mdat = MP4Parser.findBox(parseData, ['mdat'])[0]
           if (state) {
             if (!mdat) {
               this._error = true
-              onProgress(null, state, options, {err:'cannot find moov or mdat box'})
+              onProgress(null, state, options, new MediaError('cannot find moov or mdat box'), response)
               return
               // throw new MediaError('cannot find moov or mdat box')
             } else {
@@ -112,19 +167,19 @@ export class MP4Loader extends EventEmitter {
           }
         }
         if (moov && state && moov.size > moov.data.length) {
-          this.logger.debug('[loadMetaProcess],moov not all, range,', options.range[1], ',dataLen,', this.buffer.byteLength, ', state,', state)
-          await this.loadMetaProcess(cache, [options.range[1], moov.start + moov.size - 1], onProgress)
+          this.logger.debug('[loadMetaProcess],moov not all, range,', options.range[1], ',dataLen,', this.bufferDataLen, ', state,', state)
+          await this.loadMetaProcess(cache, [options.range[1], moov.start + moov.size - 1], onProgress, {isExp:true})
         }
         if (moov && moov.size <= moov.data.length && !this.meta.moov) {
           const parsedMoov = MP4Parser.moov(moov)
           if (!parsedMoov) {
             this._error = true
-            onProgress(null, state, options, {err:'cannot parse moov box'})
+            onProgress(null, state, options, new MediaError('cannot parse moov box'), response)
             return
             // throw new MediaError('cannot parse moov box', moov.data)
           }
 
-          let segments = moovToSegments(parsedMoov, this._config.segmentDuration)
+          let segments = moovToSegments(parsedMoov, this._config)
 
           // 当box存在但不完整时，补全box
           const getCompletedBox = async (name) => {
@@ -146,7 +201,7 @@ export class MP4Loader extends EventEmitter {
           // 而sidx和moof的size都是动态的（且sidx不一定存在），导致每个环节都需要判断是否满足解析条件以及对应的兜底处理
           // todo: 后续加载逻辑需要改为【开区间range+主动取消】才能更好的处理fmp4
           let isFragmentMP4 = false
-          if (!(segments && segments.videoSegments.length && segments.audioSegments.length)) {
+          if (!isSegmentsOk(segments)) {
             const sidx = await getCompletedBox('sidx')
             if (sidx) {
               const parsedSidx = MP4Parser.sidx(sidx)
@@ -160,9 +215,9 @@ export class MP4Loader extends EventEmitter {
             }
           }
 
-          if (!segments) {
+          if (!isSegmentsOk(segments)) {
             this._error = true
-            onProgress(null, state, options, {err:'cannot parse segments'})
+            onProgress(null, state, options, new MediaError('cannot parse segments'), response)
             return
             // throw new MediaError('cannot parse segments', moov.data)
           }
@@ -171,6 +226,10 @@ export class MP4Loader extends EventEmitter {
           const { videoSegments, audioSegments } = segments
           this.videoSegments = videoSegments
           this.audioSegments = audioSegments
+          if (this._config?.memoryOpt) {
+            delete this.buffer
+            this.bufferDataLen = 0
+          }
           this.logger.debug('[loadMetaProcess] moov ok')
           onProgress(undefined, state, {
             meta: {
@@ -178,14 +237,14 @@ export class MP4Loader extends EventEmitter {
               videoSegments,
               audioSegments
             }
-          })
+          }, null, response)
         }
       }
     }
     await this.loadData([moovStart, moovEnd || this._config.moovEnd], cache, { onProgress: OnProgressHandle, ...config})
   }
 
-  async loadMeta (cache, moovEnd, config) {
+  async loadMeta (cache, moovEnd, config = {}) {
     const responses = []
     this.logger.debug('[loadMeta start]')
     let res = await this.loadData([0, moovEnd || this._config.moovEnd], cache, config)
@@ -216,30 +275,39 @@ export class MP4Loader extends EventEmitter {
     if (!parsedMoov) {
       throw new MediaError('cannot parse moov box', moov.data)
     }
-
-    let segments = moovToSegments(parsedMoov, this._config.segmentDuration)
-    if (!segments) {
-      throw new MediaError('cannot parse segments', moov.data)
-    }
-
+    let segments = moovToSegments(parsedMoov, this._config)
     let parsedSidx
-    if (!(segments.videoSegments.length && segments.audioSegments.length)) {
-      const moof = MP4Parser.findBox(this.buffer, ['moof'])[0]
-      const sidx = MP4Parser.findBox(this.buffer, ['sidx'])[0]
-      if (moof && moof.size <= moof.data.length && sidx) {
-        const parsedMoof = MP4Parser.moof(moof)
-
+    if (!isSegmentsOk(segments)) {
+      const getCompletedBox = async (data, name) => {
+        const box = MP4Parser.findBox(data, [name])[0]
+        if (!box) return
+        if (box.size > box.data.length) {
+          const boxRes = await this.loadData([box.start, box.start + box.size - 1], cache, config)
+          if (boxRes) {
+            responses.push(boxRes)
+            return MP4Parser.findBox(boxRes.data, [name], box.start)[0]
+          }
+        }
+        return box
+      }
+      const sidx = await getCompletedBox(responses[0]?.data, 'sidx')
+      if (sidx) {
         parsedSidx = MP4Parser.sidx(sidx)
-        if (parsedMoof && parsedSidx) {
-          segments = sidxToSegments(parsedMoov, parsedSidx, parsedMoof)
+        if (parsedSidx) {
+          segments = sidxToSegments(parsedMoov, parsedSidx)
         }
       }
     }
+    if (!isSegmentsOk(segments)) {
+      throw new MediaError('cannot parse segments', moov.data)
+    }
 
-    this.meta = moovToMeta(parsedMoov, parsedSidx)
+    this.meta = moovToMeta(parsedMoov, !!parsedSidx)
     const { videoSegments, audioSegments } = segments
     this.videoSegments = videoSegments
     this.audioSegments = audioSegments
+    delete this.buffer
+    this.bufferDataLen = 0
     this.logger.debug('[load moov end!!!!!]')
     return {
       meta: this.meta,
@@ -251,7 +319,7 @@ export class MP4Loader extends EventEmitter {
 
   loadCacheMeta (meta, segmentIndex){
     const { moov } = meta
-    const segments = moovToSegments(moov, this._config.segmentDuration)
+    const segments = moovToSegments(moov, this._config)
     const { videoSegments, audioSegments } = segments
     this.videoSegments = videoSegments
     this.audioSegments = audioSegments
@@ -331,6 +399,10 @@ export class MP4Loader extends EventEmitter {
     this.audioSegments = []
     this._currentSegmentIndex = -1
     this._currentLoadingSegmentIndex = -1
+    if (this._config?.memoryOpt) {
+      delete this.buffer
+      this.bufferDataLen = 0
+    }
   }
 
   async destroy () {
@@ -364,12 +436,12 @@ export class MP4Loader extends EventEmitter {
     return res
   }
 
-  async loadData (range, cache, config) {
+  async loadData (range, cache, config = {}) {
     const cacheKey = this._getCacheKey(range)
     const data = await this.cache.get(cacheKey)
     let res
     if (!data) {
-      const url = config && config.url ? config.url : this.url
+      const url = config?.url ? config.url : this.url
       res = await this._loader.load(url, { range, vid: this.vid, ...config })
     } else {
       res = { data, state: true, options: { fromCache: true, range, vid: this.vid } }

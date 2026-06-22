@@ -1,4 +1,10 @@
+/** biome-ignore-all lint/suspicious/noAssignInExpressions: <explanation> */
+/** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
+/** biome-ignore-all lint/complexity/useOptionalChain: <explanation> */
+/** biome-ignore-all lint/suspicious/noPrototypeBuiltins: <explanation> */
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: <explanation> */
 import { AudioCodecType, TrackType, VideoCodecType } from '../model'
+import { getVideoCodec } from '../codec/video-codec-registry'
 import { concatUint8Array, parse } from '../utils'
 import Buffer from './buffer'
 
@@ -16,6 +22,8 @@ export class MP4 {
     'hvcC',
     'dinf',
     'dref',
+    'edts',
+    'elst',
     'esds',
     'ftyp',
     'hdlr',
@@ -64,7 +72,10 @@ export class MP4 {
     'schi',
     'mehd',
     'fiel',
-    'sdtp'
+    'sdtp',
+    'vvc1',
+    'vvi1',
+    'vvcC'
   ].reduce((p, c) => {
     p[c] = [c.charCodeAt(0), c.charCodeAt(1), c.charCodeAt(2), c.charCodeAt(3)]
     return p
@@ -107,6 +118,14 @@ export class MP4 {
     0, 0, 0, 1,
     105, 115, 111, 109,
     104, 101, 118, 49 // hev1
+  ]))
+
+  // Standard H.266/VVC init segment ftyp (ISO/IEC 14496-15:2022 Amendment 2).
+  static FTYPVVC1 = MP4.box(MP4.types.ftyp, new Uint8Array([
+    105, 115, 111, 109, // isom
+    0, 0, 0, 1,
+    105, 115, 111, 109,
+    118, 118, 99, 49 // vvc1
   ]))
 
   static DINF = MP4.box(MP4.types.dinf, MP4.box(MP4.types.dref, new Uint8Array([
@@ -169,12 +188,35 @@ export class MP4 {
     return ret
   }
 
+  static type (name) {
+    if (!MP4.types[name]) {
+      MP4.types[name] = [name.charCodeAt(0), name.charCodeAt(1), name.charCodeAt(2), name.charCodeAt(3)]
+    }
+    return MP4.types[name]
+  }
+
+  static FullBox (type, version, flags, ...payload) {
+    return MP4.box(type, new Uint8Array([
+      version,
+      (flags >> 16) & 0xff,
+      (flags >> 8) & 0xff,
+      flags & 0xff
+    ]), ...payload)
+  }
+
   static ftyp (tracks) {
-    const isHevc = tracks.find(t => t.type === TrackType.VIDEO && t.codecType === VideoCodecType.HEVC)
-    return isHevc ? MP4.FTYPHEV1 : MP4.FTYPAVC1
+    const videoTrack = tracks.find(t => t.type === TrackType.VIDEO)
+    if (videoTrack?.codecType === VideoCodecType.HEVC) return MP4.FTYPHEV1
+    const codec = getVideoCodec({ track: videoTrack })
+    if (codec?.buildFtyp) return codec.buildFtyp({ track: videoTrack, tracks, MP4 })
+    return MP4.FTYPAVC1
   }
 
   static initSegment (tracks) {
+    // Defensive: callers (e.g. FMP4Remuxer) may pass an empty array when no
+    // track satisfies `exist()`. Emitting a crashy `moov` without any trak is
+    // worse than returning an empty init — bail out cleanly instead.
+    if (!tracks || !tracks.length) return new Uint8Array()
     const ftyp = MP4.ftyp(tracks)
     // console.log('[remux],ftyp ,len ', ftyp.byteLength, hashVal(ftyp.toString()))
     const init = concatUint8Array(ftyp, MP4.moov(tracks))
@@ -263,6 +305,7 @@ export class MP4 {
     const trak = MP4.box(
       MP4.types.trak,
       MP4.tkhd(track.id, track.tkhdDuration || 0, track.width, track.height),
+      // track.editList ? MP4.edts(track.editList) : undefined,
       MP4.mdia(track)
     )
     // console.log('[remux],trak, len,', trak.byteLength, track.id, hashVal(trak.toString()))
@@ -297,6 +340,14 @@ export class MP4 {
     ]))
     // console.log('[remux],tkhd, len,', tkhd.byteLength, hashVal(tkhd.toString()))
     return tkhd
+  }
+
+  static edts (elstData) {
+    return MP4.box(MP4.types.edts, MP4.elst(elstData))
+  }
+
+  static elst ({entries, entriesData, version}) {
+    return MP4.FullBox(MP4.types.elst, version, 0, entriesData)
   }
 
   static mdia (track) {
@@ -335,7 +386,7 @@ export class MP4 {
   static stbl (track) {
     const extBox = []
     if (track && track.ext) {
-      track.ext.stss && extBox.push(MP4.stss(track.ext.stss.entries))
+      // track.ext.stss && extBox.push(MP4.stss(track.ext.stss.entries))
       // track.ext.stss && extBox.push(MP4.ctts(track.ext.stss.entries))
     }
     const stbl = MP4.box(MP4.types.stbl, MP4.stsd(track), MP4.STTS, extBox[0], MP4.STSC, MP4.STSZ, MP4.STCO)
@@ -363,7 +414,7 @@ export class MP4 {
     } else if (track.av1C) {
       content = MP4.av01(track)
     } else {
-      content = MP4.avc1hev1(track)
+      content = MP4.avc1hev1vvc1(track)
       // console.log('[remux],avc1hev1, len,', content.byteLength, track.type, hashVal(content.toString()))
     }
     const stsd = MP4.box(MP4.types.stsd, new Uint8Array([
@@ -399,12 +450,10 @@ export class MP4 {
   }
 
   static encv (track) {
-    const sps = track.sps.length > 0 ? track.sps[0] : []
-    const pps = track.pps.length > 0 ? track.pps[0] : []
     const width = track.width
     const height = track.height
-    const hSpacing = track.sarRatio[0]
-    const vSpacing = track.sarRatio[1]
+    const hSpacing = track.sarRatio && track.sarRatio.length > 1 ? track.sarRatio[0] : 0
+    const vSpacing = track.sarRatio && track.sarRatio.length > 1 ? track.sarRatio[1] : 0
 
     const content = new Uint8Array([
       0x00, 0x00, 0x00, // reserved
@@ -436,37 +485,56 @@ export class MP4 {
       0x00, 0x00, 0x00, // compressorname
       0x00, 0x18, // depth = 24
       0x11, 0x11]) // pre_defined = -1;
-    const avcc = new Uint8Array([
-      0x01, // version
-      sps[1], // profile
-      sps[2], // profile compatible
-      sps[3], // level
-      0xfc | 3,
-      0xE0 | 1, // 目前只处理一个sps
-      sps.length >>> 8 & 0xff,
-      sps.length & 0xff
-    ].concat(...sps).concat([
-      0x01,
-      pps.length >>> 8 & 0xff,
-      pps.length & 0xff
-    ]).concat(...pps))
+
+    // The `encv` sample entry must contain the *real* codec configuration box
+    // so that MSE/EME can initialise the decoder. Build the right child box
+    // (avcC / hvcC / vvcC) based on the underlying codec type.
+    let configBox
+    const codec = getVideoCodec({ track })
+    if (track.codecType === VideoCodecType.HEVC) {
+      configBox = MP4.hvcC(track)
+    } else if (codec?.buildConfigBox) {
+      configBox = codec.buildConfigBox({ track, MP4 })
+    } else {
+      const sps = track.sps && track.sps.length > 0 ? track.sps[0] : []
+      const pps = track.pps && track.pps.length > 0 ? track.pps[0] : []
+      const avcc = new Uint8Array([
+        0x01, // version
+        sps[1], // profile
+        sps[2], // profile compatible
+        sps[3], // level
+        0xfc | 3,
+        0xE0 | 1, // 目前只处理一个sps
+        sps.length >>> 8 & 0xff,
+        sps.length & 0xff
+      ].concat(...sps).concat([
+        0x01,
+        pps.length >>> 8 & 0xff,
+        pps.length & 0xff
+      ]).concat(...pps))
+      configBox = MP4.box(MP4.types.avcC, avcc)
+    }
     const btrt = new Uint8Array([
       0x00, 0x00, 0x58, 0x39,
       0x00, 0x0F, 0xC8, 0xC0,
       0x00, 0x04, 0x56, 0x48
     ])
     const sinf = MP4.sinf(track.encv)
-    const pasp = new Uint8Array([
-      (hSpacing >> 24), // hSpacing
-      (hSpacing >> 16) & 0xff,
-      (hSpacing >> 8) & 0xff,
-      hSpacing & 0xff,
-      (vSpacing >> 24), // vSpacing
-      (vSpacing >> 16) & 0xff,
-      (vSpacing >> 8) & 0xff,
-      vSpacing & 0xff
-    ])
-    return MP4.box(MP4.types.encv, content, MP4.box(MP4.types.avcC, avcc), MP4.box(MP4.types.btrt, btrt), sinf, MP4.box(MP4.types.pasp, pasp))
+    const boxes = [content, configBox, MP4.box(MP4.types.btrt, btrt), sinf]
+    if (track.sarRatio && track.sarRatio.length > 1) {
+      const pasp = new Uint8Array([
+        (hSpacing >> 24), // hSpacing
+        (hSpacing >> 16) & 0xff,
+        (hSpacing >> 8) & 0xff,
+        hSpacing & 0xff,
+        (vSpacing >> 24), // vSpacing
+        (vSpacing >> 16) & 0xff,
+        (vSpacing >> 8) & 0xff,
+        vSpacing & 0xff
+      ])
+      boxes.push(MP4.box(MP4.types.pasp, pasp))
+    }
+    return MP4.box(MP4.types.encv, ...boxes)
   }
 
   static schi (data) {
@@ -527,10 +595,24 @@ export class MP4 {
       0x11, 0x11 // pre_defined = -1 //todo
     ]), track.av1C, track.colr)
   }
-  static avc1hev1 (track) {
-    const isHevc = track.codecType === VideoCodecType.HEVC
-    const typ = isHevc ? MP4.types.hvc1 : MP4.types.avc1
-    const config = isHevc ? MP4.hvcC(track) : MP4.avcC(track)
+
+  static avc1hev1vvc1 (track) {
+    let config
+    let typ
+    if (track.codecType === VideoCodecType.HEVC) {
+      config = MP4.hvcC(track)
+      typ = MP4.types.hvc1
+    } else if (getVideoCodec({ track })?.buildConfigBox) {
+      const codec = getVideoCodec({ track })
+      config = codec.buildConfigBox({ track, MP4 })
+      typ = MP4.type(codec.getSampleEntryType ? codec.getSampleEntryType({ track }) : codec.sampleEntries[0])
+    } else {
+      config = MP4.avcC(track)
+      typ = MP4.types.avc1
+    }
+    // const isHevc = track.codecType === VideoCodecType.HEVC
+    // const typ = isHevc ? MP4.types.hvc1 : MP4.types.avc1
+    // const config = isHevc ? MP4.hvcC(track) : MP4.avcC(track)
     const boxes = [
       new Uint8Array([
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // reserved
@@ -558,7 +640,7 @@ export class MP4 {
     ]
     // console.log('[remux],avc1hev1_0, len,', boxes[0].byteLength, hashVal(boxes[0].toString()))
     // console.log('[remux],avc1hev1_1, len,', boxes[1].byteLength, hashVal(boxes[1].toString()))
-    if (isHevc) {
+    if (track.codecType === VideoCodecType.HEVC) {
       boxes.push(MP4.box(MP4.types.fiel, new Uint8Array([0x01, 0x00])))
       // console.log('[remux],fiel, len,', boxes[2].byteLength, hashVal(boxes[2].toString()))
     } else if (track.sarRatio && track.sarRatio.length > 1) {
@@ -597,6 +679,12 @@ export class MP4 {
     ].concat(...sps)
       .concat([track.pps.length]) // numOfPictureParameterSets
       .concat(...pps)))
+  }
+
+  static vvcC (track) {
+    const codec = getVideoCodec({ track })
+    if (codec?.buildConfigBox) return codec.buildConfigBox({ track, MP4 })
+    return MP4.box(MP4.types.vvcC, new Uint8Array(track.vvcC))
   }
 
   static hvcC (track) {
@@ -857,11 +945,10 @@ export class MP4 {
 
   static traf (track) {
     const tfhd = MP4.tfhd(track.id)
-    // console.log('[remux],tfhd, len,', tfhd.byteLength, hashVal(tfhd.toString()), ', trackid = ', track.id)
-    // console.log('[remux],tfdt,baseMediaDecodeTime,', track.baseMediaDecodeTime)
-    const tfdt = MP4.tfdt(track, track.baseMediaDecodeTime)
+    const tfdt = MP4.tfdt(track.baseMediaDecodeTime)
     let sencLength = 0
     let samples
+
     if (track.isVideo && track.videoSenc) {
       samples = track.videoSenc
       samples.forEach(function (item) {
@@ -873,11 +960,8 @@ export class MP4 {
       })
     }
     track.videoSencLength = sencLength
-    // console.log('[remux],tfdt, len,', tfdt.toString().length)
-    // console.log('[remux],tfdt, len,', tfdt.byteLength, hashVal(tfdt.toString()))
     if (!track.useEME || (!track.isVideoEncryption && !track.isAudioEncryption)) {
       const sdtp = MP4.sdtp(track)
-      // console.log('[remux],sdtp, len,', sdtp.byteLength, hashVal(sdtp.toString()))
       const offset = 16 + // tfhd
         20 + // tfdt
         8 + // traf header
@@ -926,7 +1010,6 @@ export class MP4 {
         const senc = MP4.senc(track)
         const trun = MP4.trun1(track)
         const traf = MP4.box(MP4.types.traf, tfhd, tfdt, sbgp, saiz, saio, senc, trun)
-        // console.log('[remux],trex, len,', traf.byteLength, hashVal(traf.toString()))
         return traf
       }
     }
@@ -945,41 +1028,36 @@ export class MP4 {
     // const ceil = id === 1 ? 12 : 4
     const buffer = new Buffer()
     const sampleCount = Buffer.writeUint32(data.samples.length)
+    const baseOffset =
+      16 + // tfhd
+      20 + // tfdt
+      8 + // traf header
+      16 + // mfhd
+      8 + // moof header
+      8 // mdat header
     let offset = null
+
     if (data.isVideo) {
       const sencLength = data.videoSencLength
       /*
-      16 + // mfhd
-      16 + // tfhd
-      20 + // tfdt
-      17 + //saiz
-      24 + //saio
-      data.samples.length*16
-      4(offset) + 4(sampleCount) + 12(header)  //trun
-      12(header) + sencLength //senc
-      8 + // traf header
-      8 + // moof header
-      8 // mdat header
-      = 149+data.samples.length * 16 + sencLength
+        17 + //saiz
+        24 + //saio
+        data.samples.length*16
+        4(offset) + 4(sampleCount) + 12(header)  //trun
+        12(header) + sencLength //senc
        */
-      offset = Buffer.writeUint32(data.samples.length * 16 + sencLength + 149)
+      offset = Buffer.writeUint32(baseOffset + data.samples.length * 16 + sencLength + 77)
       if (!data.isVideoEncryption && data.isAudioEncryption) {
-        offset = Buffer.writeUint32(data.samples.length * 16 + 92)
+        offset = Buffer.writeUint32(baseOffset + data.samples.length * 16 + 20)
       }
     } else {
       /*
-      16 + // mfhd
-      16 + // tfhd
-      20 + // tfdt
-      28 + //sbgp
-      4(offset) + 4(sampleCount) + 12(header)  //trun
-      8 + // traf header
-      8 + // moof header
-      8 // mdat header
+        28 + // sbgp
+        4(offset) + 4(sampleCount) + 12(header)  //trun
        */
-      let len = data.samples.length * 12 + 124
+      let len = baseOffset + data.samples.length * 12 + 52
       if (data.isAudioEncryption) {
-        len = data.samples.length * 12 + 8 * data.audioSenc.length + 177
+        len = baseOffset + data.samples.length * 12 + 8 * data.audioSenc.length + 105
       }
       offset = Buffer.writeUint32(len)
     }
@@ -1087,32 +1165,21 @@ export class MP4 {
     ]))
   }
 
-  static tfdt (data, baseMediaDecodeTime) {
+  static tfdt (baseMediaDecodeTime) {
     const upperWordBaseMediaDecodeTime = Math.floor(baseMediaDecodeTime / (UINT32_MAX + 1))
     const lowerWordBaseMediaDecodeTime = Math.floor(baseMediaDecodeTime % (UINT32_MAX + 1))
-    if (data.useEME && (data.isVideoEncryption || data.isAudioEncryption)) {
-      return MP4.box(MP4.types.tfdt, new Uint8Array([
-        0x00, // version 0
-        0x00, 0x00, 0x00, // flags
-        lowerWordBaseMediaDecodeTime >> 24,
-        (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
-        (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
-        lowerWordBaseMediaDecodeTime & 0xff
-      ]))
-    } else {
-      return MP4.box(MP4.types.tfdt, new Uint8Array([
-        0x01, // version 1
-        0x00, 0x00, 0x00, // flags
-        upperWordBaseMediaDecodeTime >> 24,
-        (upperWordBaseMediaDecodeTime >> 16) & 0xff,
-        (upperWordBaseMediaDecodeTime >> 8) & 0xff,
-        upperWordBaseMediaDecodeTime & 0xff,
-        lowerWordBaseMediaDecodeTime >> 24,
-        (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
-        (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
-        lowerWordBaseMediaDecodeTime & 0xff
-      ]))
-    }
+    return MP4.box(MP4.types.tfdt, new Uint8Array([
+      0x01, // version 1
+      0x00, 0x00, 0x00, // flags
+      upperWordBaseMediaDecodeTime >> 24,
+      (upperWordBaseMediaDecodeTime >> 16) & 0xff,
+      (upperWordBaseMediaDecodeTime >> 8) & 0xff,
+      upperWordBaseMediaDecodeTime & 0xff,
+      lowerWordBaseMediaDecodeTime >> 24,
+      (lowerWordBaseMediaDecodeTime >> 16) & 0xff,
+      (lowerWordBaseMediaDecodeTime >> 8) & 0xff,
+      lowerWordBaseMediaDecodeTime & 0xff
+    ]))
   }
 
   static trun (samples, offset) {

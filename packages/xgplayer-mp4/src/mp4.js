@@ -68,6 +68,7 @@ class MP4 extends EventEmitter {
       timeout: this.options.timeout,
       ...options.reqOptions,
       preferMMS: this.options.preferMMS,
+      memoryOpt: this.options.memoryOpt,
       openLog: checkOpenLog()
     })
     this.fMP4Demuxer = null
@@ -450,7 +451,7 @@ class MP4 extends EventEmitter {
           demuxRet = this.fMP4Demuxer.demuxPart(buffer, start, this.meta.moov)
         } else {
           if (!this.MP4Demuxer) {
-            this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog()})
+            this.MP4Demuxer = new MP4Demuxer(this.videoTrak, this.audioTrak, null,{openLog: checkOpenLog(), memoryOpt: this.options.memoryOpt})
           }
           demuxRet = this.MP4Demuxer.demuxPart(buffer, start, videoIndexRange, audioIndexRange, this.meta.moov, this.useEME, this.kidValue)
         }

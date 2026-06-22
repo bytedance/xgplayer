@@ -25,6 +25,9 @@ export class VideoSample {
 
   chromaFormat = 420
 
+  /** @type {Object | null} */
+  sideData = null
+
   // sampleOffset = 0
 
   /**

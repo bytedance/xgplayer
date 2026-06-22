@@ -3,4 +3,12 @@ export * from './flv'
 export * from './mpeg-ts'
 export * from './mp4'
 export * from './model'
-export { Logger } from './utils'
+export {
+  registerVideoCodec,
+  unregisterVideoCodec
+} from './codec'
+export {
+  BitReader,
+  ByteReader,
+  Logger
+} from './utils'
