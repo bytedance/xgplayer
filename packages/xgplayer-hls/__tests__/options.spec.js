@@ -13,6 +13,7 @@ describe('getOption', () => {
     expect(opts.bufferBehind).toBe(10)
     expect(opts.maxJumpDistance).toBe(3)
     expect(opts.startTime).toBe(0)
+    expect(opts.mseAttachMode).toBe('auto')
     expect(opts.fetchOptions).toBe(undefined)
     expect(opts.isLive).toBe(undefined)
   })

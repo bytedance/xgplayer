@@ -16,15 +16,24 @@
     "dev:music": "yarn libd dev fixtures/music",
     "dev:subtitle": "yarn libd dev fixtures/subtitle",
     "dev:ads": "yarn libd dev fixtures/ads",
+    "dev:cast": "yarn libd dev fixtures/cast",
     "build": "yarn libd build",
     "build:all": "yarn libd build -a",
     "release": "yarn libd release",
+    "prepare": "husky",
     "lint": "biome check --write packages",
     "format": "biome format --write",
+    "format:staged": "lint-staged",
     "test": "jest --verbose",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --verbose --ci --coverage"
+  },
+  "lint-staged": {
+    "*.{cjs,css,js,jsx,json,md,mjs,scss,ts,tsx}": "biome check --write --no-errors-on-unmatched"
+  },
+  "resolutions": {
+    "typescript": "6.0.3"
   },
   "libd": {
     "legacy": {
@@ -60,7 +69,6 @@
   "homepage": "https://github.com/bytedance/xgplayer#readme",
   "devDependencies": {
     "@babel/core": "^7.17.9",
-
     "@babel/parser": "^7.15.3",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.26.0",
@@ -81,21 +89,24 @@
     "core-js": "3.12.1",
     "dts-bundle-generator": "^6.4.0",
     "enquirer": "^2.3.6",
-
     "execa": "^5.1.1",
     "fs-extra": "^10.0.0",
+    "husky": "^9.1.7",
     "jest": "^28.1.1",
     "jest-environment-jsdom": "^28.1.1",
     "klaw-sync": "^6.0.0",
+    "lint-staged": "^17.0.7",
     "rollup-plugin-visualizer": "^5.9.0",
     "sade": "^1.7.4",
     "sass": "^1.43.4",
     "semver": "^7.3.5",
     "ts-jest": "^28.0.5",
-    "ts-morph": "^14.0.0",
+    "ts-morph": "28.0.0",
+    "typescript": "6.0.3",
     "url-toolkit": "2.1.6",
     "vite": "^2.9.8",
     "vite-plugin-externals": "0.5.1",
     "zlib": "^1.0.5"
-  }
+  },
+  "dependencies": {}
 }

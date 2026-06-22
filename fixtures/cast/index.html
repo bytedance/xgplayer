@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
+    <script>
+      var ua = navigator.userAgent.toLowerCase();
+      if (
+        (ua.indexOf("mobile") > -1 || ua.indexOf("ipad") > -1) &&
+        location.href.indexOf("vconsole=1") > -1
+      ) {
+        var vConsole = new window.VConsole();
+      }
+    </script>
+    <style>
+      .pannel {
+        margin: 20px 0;
+        padding: 20px;
+        background: #72a0c8;
+      }
+      .message-pannel {
+        margin-top: 20px;
+        color: #333a3c;
+      }
+      .message-info {
+        margin-top: 20px;
+        border: 1px solid #728bb8;
+        padding: 10px 10px;
+      }
+      h4 {
+        margin-block-start: 0.2em;
+        margin-block-end: 0.2em;
+      }
+      p {
+        line-height: 18px;
+        display: block;
+        line-height: 16px;
+        /* margin: 10px; */
+        margin-block-start: 0.4em;
+        margin-block-end: 0.4em;
+      }
+      .ext-controls0 {
+        height: 80px !important;
+        background-color: #000;
+      }
+      .xgplayer .my-pop {
+        height: 100px;
+        width: 400px;
+        background-color: #72a0c8;
+        border: 2px solid red;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="video" style="margin: 0 auto"></div>
+
+    <div class="pannel">
+      <h4>Cast Controls</h4>
+      <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <button id="btn-cast-auto" style="padding: 8px 16px; cursor: pointer;">
+          Request Cast (auto-detect)
+        </button>
+        <button id="btn-cast-airplay" style="padding: 8px 16px; cursor: pointer;">
+          Request AirPlay
+        </button>
+        <button id="btn-cast-chromecast" style="padding: 8px 16px; cursor: pointer;">
+          Request Chromecast
+        </button>
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <button id="btn-cast-remote-play" style="padding: 8px 16px; cursor: pointer;">
+          Remote Play
+        </button>
+        <button id="btn-cast-remote-pause" style="padding: 8px 16px; cursor: pointer;">
+          Remote Pause
+        </button>
+        <button id="btn-cast-remote-seek" style="padding: 8px 16px; cursor: pointer;">
+          Remote Seek 30s
+        </button>
+        <button id="btn-cast-remote-stop" style="padding: 8px 16px; cursor: pointer;">
+          Remote Stop
+        </button>
+      </div>
+      <div class="message-pannel">
+        <div class="message-info">
+          <h4>Chromecast Diagnostics</h4>
+          <div id="cast-diagnostics"></div>
+        </div>
+        <div class="message-info">
+          <h4>Fake Chromecast</h4>
+          <p>
+            Open with
+            <code>?fakeChromecast=available</code>
+            to test Chromecast plugin logic without a device.
+          </p>
+          <p>
+            Use
+            <code>?fakeChromecast=no-devices</code>
+            or
+            <code>?fakeChromecast=available&amp;fakeChromecastLoad=fail</code>
+            for failure paths.
+          </p>
+          <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btn-fake-chromecast-available" style="padding: 8px 16px; cursor: pointer;">
+              Fake Available
+            </button>
+            <button id="btn-fake-chromecast-none" style="padding: 8px 16px; cursor: pointer;">
+              Fake No Devices
+            </button>
+            <button id="btn-fake-chromecast-end" style="padding: 8px 16px; cursor: pointer;">
+              Fake End Session
+            </button>
+          </div>
+        </div>
+        <div class="message-info">
+          <h4>Config examples</h4>
+          <p><strong>Shorthand (default receiver):</strong> <code>chromecast: true</code></p>
+          <p><strong>Explicit config:</strong></p>
+          <pre style="margin:4px 0; font-size: 12px;">chromecast: {
+  appId: 'CC1AD845',            // default media receiver
+  autoJoinPolicy: 'tab_and_origin_scoped',
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" defer src="./index.js"></script>
+  </body>
+</html>

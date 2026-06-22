@@ -1,8 +1,15 @@
-import { TsDemuxer, MP4Parser } from 'xgplayer-transmuxer'
-import { MSE, Buffer, ERR, StreamingError, Logger, EVENT } from 'xgplayer-streaming-shared'
+import {
+  Buffer,
+  ERR,
+  EVENT,
+  Logger,
+  MSE,
+  StreamingError
+} from 'xgplayer-streaming-shared'
+import { MP4Parser, TsDemuxer } from 'xgplayer-transmuxer'
+import { Event } from '../constants'
 import { Decryptor } from './decrypt'
 import { Transmuxer } from './transmuxer'
-import { Event } from '../constants'
 
 const logger = new Logger('BufferService')
 
@@ -17,13 +24,15 @@ export class BufferService {
   _needInitSegment = true
   _directAppend = false
 
-  constructor (hls) {
+  constructor(hls) {
     this.hls = hls
-    if (hls.config.softDecode) { // soft decode
+    if (hls.config.softDecode) {
+      // soft decode
       this._softVideo = hls.media
     } else {
       this._mse = new MSE(null, {
-        preferMMS: hls.config.preferMMS
+        preferMMS: hls.config.preferMMS,
+        attachMode: hls.config.mseAttachMode
       })
 
       if (hls.config.url) {
@@ -39,29 +48,29 @@ export class BufferService {
     }
   }
 
-  get baseDts () {
+  get baseDts() {
     return this._transmuxer?._demuxer?._fixer?._baseDts
   }
 
-  get nbSb () {
+  get nbSb() {
     if (!this._mse?._sourceBuffer) return 0
 
     return Object.keys(this._mse._sourceBuffer).length
   }
 
-  get msIsOpened () {
+  get msIsOpened() {
     return this._mse?.isOpened
   }
 
-  get msHasOpTasks () {
+  get msHasOpTasks() {
     return this._mse?.hasOpTasks
   }
 
-  get msStreaming () {
+  get msStreaming() {
     return this._mse?.streaming
   }
 
-  async updateDuration (duration) {
+  async updateDuration(duration) {
     logger.debug('update duration', duration)
     if (this._mse) {
       if (!this._mse.isOpened) {
@@ -73,21 +82,39 @@ export class BufferService {
     }
   }
 
-  createSource (videoChunk, audioChunk, videoCodec, audioCodec) {
+  createSource(videoChunk, audioChunk, videoCodec, audioCodec) {
     if (this._sourceCreated) return
     const chunk = videoChunk || audioChunk
     if (!chunk) return
     if (TsDemuxer.probe(chunk)) {
-      if (!this._transmuxer) this._transmuxer = new Transmuxer(this.hls, false, !this._softVideo, this.hls.config.fixerConfig)
+      if (!this._transmuxer)
+        this._transmuxer = new Transmuxer(
+          this.hls,
+          false,
+          !this._softVideo,
+          this.hls.config.fixerConfig
+        )
     } else if (MP4Parser.probe(chunk)) {
       if (this._softVideo) {
-        if (!this._transmuxer) this._transmuxer = new Transmuxer(this.hls, true, null, this.hls.config.fixerConfig)
+        if (!this._transmuxer)
+          this._transmuxer = new Transmuxer(
+            this.hls,
+            true,
+            null,
+            this.hls.config.fixerConfig
+          )
       } else {
         this._directAppend = true
         let mix = false
         if (videoChunk && !videoCodec) {
-          MP4Parser.findBox(videoChunk, ['moov', 'trak']).forEach(t => {
-            const box = MP4Parser.findBox(t.data, ['trak', 'mdia', 'minf', 'stbl', 'stsd'])[0]
+          MP4Parser.findBox(videoChunk, ['moov', 'trak']).forEach((t) => {
+            const box = MP4Parser.findBox(t.data, [
+              'trak',
+              'mdia',
+              'minf',
+              'stbl',
+              'stsd'
+            ])[0]
             if (box) {
               const e = MP4Parser.stsd(box).entries[0]
               if (e) {
@@ -104,7 +131,14 @@ export class BufferService {
           })
         }
         if (audioChunk && !audioCodec) {
-          MP4Parser.findBox(audioChunk, ['moov', 'trak', 'mdia', 'minf', 'stbl', 'stsd']).forEach(stsd => {
+          MP4Parser.findBox(audioChunk, [
+            'moov',
+            'trak',
+            'mdia',
+            'minf',
+            'stbl',
+            'stsd'
+          ]).forEach((stsd) => {
             const e = MP4Parser.stsd(stsd).entries[0]
             if (e && e.esds) audioCodec = e.esds.codec
           })
@@ -123,7 +157,15 @@ export class BufferService {
     if (this._softVideo) this._sourceCreated = true
   }
 
-  async appendBuffer (segment, audioSegment, videoChunk, audioChunk, discontinuity, contiguous, startTime) {
+  async appendBuffer(
+    segment,
+    audioSegment,
+    videoChunk,
+    audioChunk,
+    discontinuity,
+    contiguous,
+    startTime
+  ) {
     if (!videoChunk?.length && !audioChunk?.length) return
 
     const afterAppend = () => {
@@ -140,13 +182,26 @@ export class BufferService {
       const p = []
       if (needInit) {
         const videoOffset = this._getFmp4TimeOffset(videoChunk, segment?.start)
-        const audioOffset = this._getFmp4TimeOffset(audioChunk, audioSegment?.start ?? segment?.start)
+        const audioOffset = this._getFmp4TimeOffset(
+          audioChunk,
+          audioSegment?.start ?? segment?.start
+        )
 
         if (videoChunk && Number.isFinite(videoOffset)) {
-          p.push(this._mse.setTimeoffset(MSE.VIDEO, videoOffset, { start: segment?.start, offset: videoOffset }))
+          p.push(
+            this._mse.setTimeoffset(MSE.VIDEO, videoOffset, {
+              start: segment?.start,
+              offset: videoOffset
+            })
+          )
         }
         if (audioChunk && Number.isFinite(audioOffset)) {
-          p.push(this._mse.setTimeoffset(MSE.AUDIO, audioOffset, { start: audioSegment?.start ?? segment?.start, offset: audioOffset }))
+          p.push(
+            this._mse.setTimeoffset(MSE.AUDIO, audioOffset, {
+              start: audioSegment?.start ?? segment?.start,
+              offset: audioOffset
+            })
+          )
         }
       }
       if (videoChunk) p.push(this._mse.append(MSE.VIDEO, videoChunk))
@@ -155,7 +210,14 @@ export class BufferService {
       return Promise.all(p).then(afterAppend)
     }
     const needInit = this._needInitSegment || discontinuity
-    const [video, audio] = this._transmuxer.transmux(videoChunk, audioChunk, needInit, contiguous, startTime, this._needInitSegment || discontinuity)
+    const [video, audio] = this._transmuxer.transmux(
+      videoChunk,
+      audioChunk,
+      needInit,
+      contiguous,
+      startTime,
+      this._needInitSegment || discontinuity
+    )
 
     if (audioChunk && audioSegment) {
       audioSegment?.setTrackExist(false, true)
@@ -168,7 +230,6 @@ export class BufferService {
     if (!audioSegment) {
       segment?.setTrackExist(!!video, !!audio)
     }
-
 
     if (video && !audio) {
       this.hls.emit(Event.NO_AUDIO_TRACK)
@@ -190,15 +251,15 @@ export class BufferService {
 
       if (needInit && !isFirstAppend) {
         // handle codec change during midstream
-        this._handleCodecChange(video, audio).forEach(task => p.push(task))
+        this._handleCodecChange(video, audio).forEach((task) => p.push(task))
       }
 
       if (video) {
-        const {data: videoData, ...videoRest} = video
+        const { data: videoData, ...videoRest } = video
         p.push(mse.append(MSE.VIDEO, videoData, videoRest))
       }
       if (audio) {
-        const {data: audioData, ...audioRest} = audio
+        const { data: audioData, ...audioRest } = audio
         p.push(mse.append(MSE.AUDIO, audioData, audioRest))
       }
 
@@ -213,7 +274,7 @@ export class BufferService {
    * @param {number} start
    * @private
    */
-  _getFmp4TimeOffset (chunk, start = 0) {
+  _getFmp4TimeOffset(chunk, start = 0) {
     if (!chunk?.length) return null
 
     try {
@@ -227,7 +288,7 @@ export class BufferService {
       const moovBox = MP4Parser.findBox(chunk, ['moov'])[0]
       if (moovBox) {
         const moov = MP4Parser.moov(moovBox)
-        moov?.trak?.forEach(trak => {
+        moov?.trak?.forEach((trak) => {
           const trackId = trak?.tkhd?.trackId
           const timescale = trak?.mdia?.mdhd?.timescale
           if (trackId !== undefined && Number.isFinite(timescale) && timescale > 0) {
@@ -237,11 +298,15 @@ export class BufferService {
       }
 
       const decodeTimes = []
-      moof.traf.forEach(traf => {
+      moof.traf.forEach((traf) => {
         const trackId = traf?.tfhd?.trackId
         const baseMediaDecodeTime = traf?.tfdt?.baseMediaDecodeTime
         const timescale = trackTimescale[trackId]
-        if (Number.isFinite(baseMediaDecodeTime) && Number.isFinite(timescale) && timescale > 0) {
+        if (
+          Number.isFinite(baseMediaDecodeTime) &&
+          Number.isFinite(timescale) &&
+          timescale > 0
+        ) {
           decodeTimes.push(baseMediaDecodeTime / timescale)
         }
       })
@@ -258,16 +323,17 @@ export class BufferService {
     }
   }
 
-  async removeBuffer (start = 0, end = Infinity) {
+  async removeBuffer(start = 0, end = Infinity) {
     const media = this.hls.media
-    if (!this._mse || !media || start < 0 || end < start || start >= this._mse.duration) return
+    if (!this._mse || !media || start < 0 || end < start || start >= this._mse.duration)
+      return
 
     return this._mse
       .clearBuffer(start, end)
       .then(() => this.hls.emit(EVENT.REMOVE_BUFFER, { start, end, removeEnd: end }))
   }
 
-  async evictBuffer (bufferBehind) {
+  async evictBuffer(bufferBehind) {
     const media = this.hls.media
     if (!this._mse || !media || !bufferBehind || bufferBehind < 0) return
     const currentTime = media.currentTime
@@ -278,15 +344,15 @@ export class BufferService {
     return this.removeBuffer(0, removeEnd)
   }
 
-  async clearAllBuffer () {
+  async clearAllBuffer() {
     if (this._mse) return this._mse.clearAllBuffer()
   }
 
-  decryptBuffer (video, audio) {
+  decryptBuffer(video, audio) {
     return this._decryptor.decrypt(video, audio)
   }
 
-  async reset (reuseMse = false) {
+  async reset(reuseMse = false) {
     if (this._mse && !reuseMse) {
       this._transmuxer = null
       this._sourceCreated = false
@@ -297,7 +363,7 @@ export class BufferService {
     this._directAppend = false
   }
 
-  async endOfStream () {
+  async endOfStream() {
     if (this._mse) {
       if (this._sourceCreated) {
         await this._mse.endOfStream()
@@ -309,17 +375,17 @@ export class BufferService {
     }
   }
 
-  async setLiveSeekableRange (start, end) {
+  async setLiveSeekableRange(start, end) {
     if (this._mse) this._mse.setLiveSeekableRange(start, end)
   }
 
-  async detachMedia () {
+  async detachMedia() {
     if (this._mse) {
       await this._mse.unbindMedia()
     }
   }
 
-  async destroy () {
+  async destroy() {
     this._decryptor?.destroy()
     await this.detachMedia()
 
@@ -331,7 +397,7 @@ export class BufferService {
   /**
    * @private
    */
-  _createMseSource (videoCodec, audioCodec, container) {
+  _createMseSource(videoCodec, audioCodec, container) {
     logger.debug(`create mse source, videoCodec=${videoCodec}, audioCodec=${audioCodec}`)
     const mse = this._mse
     if (!mse) return
@@ -353,36 +419,39 @@ export class BufferService {
    * This makes it possible to change codecs or container type mid-stream.
    * @private
    */
-  _handleCodecChange (video, audio) {
+  _handleCodecChange(video, audio) {
     const tasks = []
     const mse = this._mse
-    const codecList = [{
-      type: MSE.VIDEO,
-      codecs: video?.codec
-    }, {
-      type: MSE.AUDIO,
-      codecs: audio?.codec
-    }]
-
-    codecList.filter(item => !!item.codecs).forEach(({type, codecs}) => {
-      const sourceBuffer = mse.getSourceBuffer(type)
-      if (sourceBuffer) {
-        const codec = codecs.split(',')[0]
-        if (!new RegExp(codec, 'ig').test(sourceBuffer.mimeType)) {
-          tasks.push(
-            mse.changeType(type, `${type}/mp4;codecs=${codecs}`)
-          )
-        }
+    const codecList = [
+      {
+        type: MSE.VIDEO,
+        codecs: video?.codec
+      },
+      {
+        type: MSE.AUDIO,
+        codecs: audio?.codec
       }
-    })
+    ]
+
+    codecList
+      .filter((item) => !!item.codecs)
+      .forEach(({ type, codecs }) => {
+        const sourceBuffer = mse.getSourceBuffer(type)
+        if (sourceBuffer) {
+          const codec = codecs.split(',')[0]
+          if (!new RegExp(codec, 'ig').test(sourceBuffer.mimeType)) {
+            tasks.push(mse.changeType(type, `${type}/mp4;codecs=${codecs}`))
+          }
+        }
+      })
     return tasks
   }
 
-  seamlessSwitch () {
+  seamlessSwitch() {
     this._needInitSegment = true
   }
 
-  isFull (mediaType = MSE.VIDEO){
+  isFull(mediaType = MSE.VIDEO) {
     return this._mse?.isFull(mediaType)
   }
 }

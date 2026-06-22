@@ -71,7 +71,7 @@ export default {
     MINISCREEN: '小屏幕',
     REFRESH_TIPS: '請試試',
     REFRESH: '刷新',
-    FORWARD: '快进中',
+    FORWARD: '快進中',
     LIVE_TIP: '直播'
   }
 }

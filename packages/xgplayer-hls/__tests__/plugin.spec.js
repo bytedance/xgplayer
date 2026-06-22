@@ -69,6 +69,29 @@ describe('Plugin', () => {
       expect(plugin.player.switchURL).toBeTruthy()
     })
 
+    test('player url keeps media element src semantics', () => {
+      const { BasePlugin } = require('xgplayer')
+      BasePlugin.defineGetterOrSetter.mockImplementationOnce((obj, map) => {
+        Object.keys(map).forEach(key => Object.defineProperty(obj, key, map[key]))
+      })
+      const plugin = new HlsPlugin()
+      plugin.player = {
+        config: {
+          url: 'https://cdn.example.com/main.m3u8',
+          mediaType: 'video'
+        },
+        useHooks: jest.fn()
+      }
+      plugin.beforePlayerInit()
+      plugin.hls.config = { url: 'https://cdn.example.com/main.m3u8' }
+      plugin.hls.media = {
+        currentSrc: 'blob:https://example.com/mse',
+        src: 'blob:https://example.com/mse'
+      }
+
+      expect(plugin.player.url).toBe('blob:https://example.com/mse')
+    })
+
     test('should transfer event and error', () => {
       const plugin = new HlsPlugin()
       plugin.player = {
