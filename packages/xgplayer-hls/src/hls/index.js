@@ -117,6 +117,23 @@ export class Hls extends EventEmitter {
     return Buffer.info(Buffer.get(this.media), this.media?.currentTime, maxHole)
   }
 
+  _getPreloadBufferLength (bInfo, nextSegment) {
+    const remaining = bInfo?.remaining || 0
+    const buffers = bInfo?.buffers
+    const nextStart = bInfo?.nextStart
+    if (!buffers?.length || !nextSegment || !nextStart || nextSegment.start <= nextStart) return remaining
+
+    let fullBufferLength = remaining
+    const bufferedIndex = bInfo.end ? bInfo.index : -1
+    for (let i = buffers.length - 1; i > bufferedIndex; i--) {
+      const item = buffers[i]
+      if (item[0] < nextSegment.start) {
+        fullBufferLength += item[1] - item[0]
+      }
+    }
+    return fullBufferLength
+  }
+
   /**
    * @returns {Stats}
    */
@@ -520,8 +537,9 @@ export class Hls extends EventEmitter {
         bInfo = this.bufferInfo(bInfo.nextStart || 0.5)
       }
       const bufferThroughout = Math.abs(bInfo.end - this.media.duration) < maxBufferThroughout
+      const preloadBufferLength = this._getPreloadBufferLength(bInfo, nextSegment)
       // Only stop loading if we've buffered enough preload time or reached end AND all segments are loaded
-      if (bInfo.remaining >= config.preloadTime || (bufferThroughout && !nextSegment)) {
+      if (preloadBufferLength >= config.preloadTime || (bufferThroughout && !nextSegment)) {
         this._tryEos()
         return
       }
