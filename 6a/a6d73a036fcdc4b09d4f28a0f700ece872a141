@@ -1,0 +1,16 @@
+packages/xgplayer-hls/src/hls/index.js
+  h_2dda53b2bdc77f 3-14,102,312,358,430,435-441,444-452,524,720,751,782,784,1094
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6aa6d73a036fcdc4b09d4f28a0f700ece872a141",
+  "prompts": {},
+  "humans": {
+    "h_2dda53b2bdc77f": {
+      "author": "gemstone <gems.xu@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
