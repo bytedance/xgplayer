@@ -102,10 +102,11 @@ export class FetchLoader extends EventEmitter {
         headers.Range = rangeValue
       }
     }
-    const timeoutMs =
-      dynamicTimeoutIns && typeof dynamicTimeoutIns.getTimeout === 'function'
-        ? dynamicTimeoutIns.getTimeout(timeout)
-        : timeout
+    let timeoutMs = timeout
+    if(dynamicTimeoutIns && typeof dynamicTimeoutIns.getTimeout === 'function'){
+      timeoutMs = dynamicTimeoutIns.getTimeout(this._timeout) * (this._priOptions.useTimeoutRatio ? dynamicTimeoutIns.timeoutRatio : 1)
+      timeoutMs = dynamicTimeoutIns.getClampedTimeout(timeoutMs)
+    }
     this.curTimeout = timeoutMs
     if (timeoutMs) {
       this._timeoutTimer = setTimeout(async()  => {

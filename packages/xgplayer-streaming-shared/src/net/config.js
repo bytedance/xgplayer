@@ -29,6 +29,7 @@ export function getConfig (cfg) {
     integrity: undefined,
     onProcessMinLen: 0,
     processMaxGapTime: Infinity, // process流式获取数据时，在请求没有结束前，两次读取到数据的最大超时时间
+    rangeRequestZeroContentLengthAsError: false,
     ...cfg
   }
 }

@@ -37,6 +37,7 @@ export class XhrLoader extends EventEmitter {
   _onCancel = null
   _priOptions = null // 比较私有化的参数传递，回调时候透传
   _dynamicTimeoutIns = null
+  _rangeRequestZeroContentLengthAsError = false
 
 
   constructor () {
@@ -54,7 +55,6 @@ export class XhrLoader extends EventEmitter {
     this._body = req.body || null
     req.method && (this._method = req.method)
     this._timeout = req.timeout || null
-    this._dynamicTimeoutIns = req.dynamicTimeoutIns
     this._runing = true
     this._vid = req.vid || req.url
     this._responseType = req.responseType
@@ -64,6 +64,7 @@ export class XhrLoader extends EventEmitter {
     this._onCancel = req.onCancel
     this._request = req.request
     this._priOptions = req.priOptions || {}
+    this._rangeRequestZeroContentLengthAsError = !!req.rangeRequestZeroContentLengthAsError
     this._logger.debug('【xhrLoader task】, range', this._range)
 
     this._url = setUrlParams(req.url, req.params)
@@ -112,11 +113,12 @@ export class XhrLoader extends EventEmitter {
       const xhr = this._xhr = new XMLHttpRequest()
       xhr.open(this._method || 'GET', this._url, true)
       xhr.responseType = this._responseType
-      const timeoutMs =
-        this._dynamicTimeoutIns &&
-        typeof this._dynamicTimeoutIns.getTimeout === 'function'
-          ? this._dynamicTimeoutIns.getTimeout(this._timeout)
-          : this._timeout
+      let timeoutMs = this._timeout
+      if( this._dynamicTimeoutIns &&
+        typeof this._dynamicTimeoutIns.getTimeout === 'function'){
+          timeoutMs = this._dynamicTimeoutIns.getTimeout(this._timeout) * (this._priOptions.useTimeoutRatio ? this._dynamicTimeoutIns.timeoutRatio : 1)
+          timeoutMs = this._dynamicTimeoutIns.getClampedTimeout(timeoutMs)
+      }
       if (timeoutMs) {
         xhr.timeout = timeoutMs
         this.curTimeout = timeoutMs
@@ -190,6 +192,17 @@ export class XhrLoader extends EventEmitter {
       error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
       return this._loadCompleteReject(error)
     }
+    const responseHeaders = this._getHeaders(this._xhr)
+    if (this._shouldTreatRangeZeroContentLengthAsError(status, responseHeaders)) {
+      const error = new NetError(
+        this._url,
+        this._request,
+        { status, headers: responseHeaders },
+        'bad response,range request returned 200 with zero content-length'
+      )
+      error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+      return this._loadCompleteReject(error)
+    }
     let data = null
     let done = false
     let byteStart
@@ -219,7 +232,7 @@ export class XhrLoader extends EventEmitter {
       status,
       statusText: this._xhr.statusText,
       url: this._xhr.responseURL,
-      headers: this._getHeaders(this._xhr),
+      headers: responseHeaders,
       body: this._xhr.response
     }
     if (this._transformResponse) {
@@ -286,5 +299,12 @@ export class XhrLoader extends EventEmitter {
       headers[parts[0].toLowerCase()] = parts.slice(1).join(': ')
     }
     return headers
+  }
+
+  _shouldTreatRangeZeroContentLengthAsError (status, headers) {
+    if (!this._rangeRequestZeroContentLengthAsError) return false
+    if (!Array.isArray(this._range) || this._range.length < 2) return false
+    const contentLength = parseInt(headers?.['content-length'] || '', 10)
+    return contentLength === 0
   }
 }
