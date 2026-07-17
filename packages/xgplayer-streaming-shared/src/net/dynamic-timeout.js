@@ -78,7 +78,8 @@ export class JacobsonKarelsTimeout {
       k = 4,
       minTimeout = 0,
       maxTimeout = Infinity,
-      initialTimeout
+      initialTimeout,
+      timeoutRatio = 1
     } = opts
 
     this._alpha = alpha
@@ -89,6 +90,11 @@ export class JacobsonKarelsTimeout {
     this._initial = initialTimeout || 1000
     this._srtt = undefined
     this._rttvar = undefined
+    this._timeoutRatio = timeoutRatio
+  }
+
+  get timeoutRatio() {
+    return this._timeoutRatio
   }
 
   getTimeout(fallback = 0) {
@@ -96,6 +102,10 @@ export class JacobsonKarelsTimeout {
       this._srtt !== undefined && this._rttvar !== undefined
         ? this._srtt + this._k * this._rttvar
         : (fallback ?? this._initial)
+    return clamp(Math.round(timeout), this._min, this._max)
+  }
+
+  getClampedTimeout(timeout) {
     return clamp(Math.round(timeout), this._min, this._max)
   }
 
