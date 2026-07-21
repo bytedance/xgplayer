@@ -38,6 +38,8 @@ export class XhrLoader extends EventEmitter {
   _priOptions = null // 比较私有化的参数传递，回调时候透传
   _dynamicTimeoutIns = null
   _rangeRequestZeroContentLengthAsError = false
+  _rangeRequestMustReturn206 = false
+  _abortByHeaderValidation = false
 
 
   constructor () {
@@ -65,6 +67,8 @@ export class XhrLoader extends EventEmitter {
     this._request = req.request
     this._priOptions = req.priOptions || {}
     this._rangeRequestZeroContentLengthAsError = !!req.rangeRequestZeroContentLengthAsError
+    this._rangeRequestMustReturn206 = !!req.rangeRequestMustReturn206
+    this._abortByHeaderValidation = false
     this._logger.debug('【xhrLoader task】, range', this._range)
 
     this._url = setUrlParams(req.url, req.params)
@@ -129,6 +133,7 @@ export class XhrLoader extends EventEmitter {
       xhr.onreadystatechange = this._onReadyStatechange.bind(this)
       xhr.onerror = (errorEvent) => {
         this._running = false
+        if (this._abortByHeaderValidation) return
         const error = new NetError(this._url, this._request, errorEvent?.currentTarget?.response, ('xhr.onerror.status:' + errorEvent?.currentTarget?.status + ',statusText,' + errorEvent?.currentTarget?.statusText))
         error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
         this._loadCompleteReject(error)
@@ -171,6 +176,7 @@ export class XhrLoader extends EventEmitter {
   _onReadyStatechange (e) {
     const xhr = e.target
     if (xhr.readyState === 2) {
+      const responseHeaders = this._getHeaders(xhr)
       if (this._firstRtt < 0) {
         this._firstRtt = Date.now()
         this._priOptions.rtt = this._firstRtt - this._startTime
@@ -181,6 +187,14 @@ export class XhrLoader extends EventEmitter {
       ) {
         this._logger.debug('[dytimeout] xhr update rtt,', this._priOptions.rtt)
         this._dynamicTimeoutIns.update(this._priOptions.rtt)
+      }
+      const headerValidationError = this._getRangeHeaderValidationError(xhr.status, responseHeaders, xhr.responseURL)
+      if (headerValidationError) {
+        this._abortByHeaderValidation = true
+        this._running = false
+        xhr.abort()
+        headerValidationError.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+        this._loadCompleteReject(headerValidationError)
       }
     }
   }
@@ -304,7 +318,38 @@ export class XhrLoader extends EventEmitter {
   _shouldTreatRangeZeroContentLengthAsError (status, headers) {
     if (!this._rangeRequestZeroContentLengthAsError) return false
     if (!Array.isArray(this._range) || this._range.length < 2) return false
+    if (status !== 200) return false
     const contentLength = parseInt(headers?.['content-length'] || '', 10)
     return contentLength === 0
+  }
+
+  _getRangeHeaderValidationError (status, headers, responseURL) {
+    if (this._shouldAbortRangeRequestForNon206(status, responseURL)) {
+      return new NetError(
+        this._url,
+        this._request,
+        { status, headers, url: responseURL },
+        'bad response,range request must return 206 unless redirected'
+      )
+    }
+    if (this._shouldTreatRangeZeroContentLengthAsError(status, headers)) {
+      return new NetError(
+        this._url,
+        this._request,
+        { status, headers, url: responseURL },
+        'bad response,range request returned 200 with zero content-length'
+      )
+    }
+  }
+
+  _shouldAbortRangeRequestForNon206 (status, responseURL) {
+    if (!this._rangeRequestMustReturn206) return false
+    if (!Array.isArray(this._range) || this._range.length < 2) return false
+    if (status === 206) return false
+    return !this._isRedirectedResponse(responseURL)
+  }
+
+  _isRedirectedResponse (responseURL) {
+    return !!(responseURL && responseURL !== this._url)
   }
 }
