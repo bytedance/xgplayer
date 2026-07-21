@@ -5,6 +5,12 @@ const logger = {
   debug: jest.fn()
 }
 
+function createHeaders (headers) {
+  return {
+    get: jest.fn((key) => headers[key.toLowerCase()] || null)
+  }
+}
+
 describe('FetchLoader', () => {
   const realFetch = global.fetch
 
@@ -23,9 +29,7 @@ describe('FetchLoader', () => {
       status: 200,
       redirected: false,
       url: 'https://example.com/video.mp4',
-      headers: {
-        get: jest.fn(() => '10')
-      },
+      headers: createHeaders({ 'content-length': '10' }),
       arrayBuffer
     }))
 
@@ -51,9 +55,7 @@ describe('FetchLoader', () => {
       status: 200,
       redirected: true,
       url: 'https://redirected.example.com/video.mp4',
-      headers: {
-        get: jest.fn(() => '10')
-      },
+      headers: createHeaders({ 'content-length': '10' }),
       arrayBuffer: async () => new ArrayBuffer(10)
     }))
 
@@ -75,9 +77,10 @@ describe('FetchLoader', () => {
       status: 206,
       redirected: false,
       url: 'https://example.com/video.mp4',
-      headers: {
-        get: jest.fn(() => '10')
-      },
+      headers: createHeaders({
+        'content-length': '10',
+        'content-range': 'bytes 0-9/100'
+      }),
       arrayBuffer: async () => new ArrayBuffer(10)
     }))
 
@@ -90,5 +93,34 @@ describe('FetchLoader', () => {
     })
 
     expect(res.response.status).toBe(206)
+  })
+
+  test('rejects range request when content-range and content-length do not match request range', async () => {
+    const arrayBuffer = jest.fn(async () => new ArrayBuffer(10))
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 206,
+      redirected: false,
+      url: 'https://example.com/video.mp4',
+      headers: createHeaders({
+        'content-length': '10',
+        'content-range': 'bytes 1-10/100'
+      }),
+      arrayBuffer
+    }))
+
+    await expect(new FetchLoader().load({
+      url: 'https://example.com/video.mp4',
+      logger,
+      range: [0, 9],
+      responseType: ResponseType.ARRAY_BUFFER
+    })).rejects.toMatchObject({
+      message: 'bad response,response range start does not match request range',
+      response: {
+        status: 206,
+        redirected: false
+      }
+    })
+    expect(arrayBuffer).not.toHaveBeenCalled()
   })
 })

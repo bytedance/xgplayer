@@ -54,6 +54,50 @@ export function setUrlParams (url, params) {
   return url
 }
 
+export function getRangeResponseMismatchReason (requestRange, contentRangeValue, contentLengthValue) {
+  if (!Array.isArray(requestRange) || requestRange.length < 2) return ''
+  const parsedContentRange = parseContentRange(contentRangeValue)
+  if (!parsedContentRange) return ''
+
+  const requestStart = parseInt(requestRange[0], 10)
+  const requestEnd = normalizeRequestRangeEnd(requestRange[1])
+  if (Number.isNaN(requestStart)) return ''
+
+  if (parsedContentRange.start !== requestStart) {
+    return 'response range start does not match request range'
+  }
+  if (requestEnd !== null && parsedContentRange.end !== requestEnd) {
+    return 'response range end does not match request range'
+  }
+
+  const contentLength = parseInt(contentLengthValue || '', 10)
+  if (Number.isNaN(contentLength)) return ''
+
+  const responseLength = parsedContentRange.end - parsedContentRange.start + 1
+  if (contentLength !== responseLength) {
+    return 'content-length does not match content-range'
+  }
+
+  return ''
+}
+
+function normalizeRequestRangeEnd (value) {
+  if (value === null || value === undefined || value === '') return null
+  const end = parseInt(value, 10)
+  if (Number.isNaN(end) || end === 0) return null
+  return end
+}
+
+function parseContentRange (value) {
+  if (!value || typeof value !== 'string') return null
+  const match = value.match(/^bytes\s+(\d+)-(\d+)\/(?:\d+|\*)$/i)
+  if (!match) return null
+  const start = parseInt(match[1], 10)
+  const end = parseInt(match[2], 10)
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null
+  return { start, end }
+}
+
 export function createResponse (
   data,
   done,
