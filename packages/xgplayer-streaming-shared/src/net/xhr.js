@@ -1,5 +1,5 @@
 import { NetError } from './error'
-import { createResponse, getRangeValue, setUrlParams, calculateSpeed } from './helper'
+import { createResponse, getRangeValue, setUrlParams, calculateSpeed, getRangeResponseMismatchReason } from './helper'
 import { ResponseType } from './types'
 import { EVENT } from '../event'
 import EventEmitter from 'eventemitter3'
@@ -40,6 +40,7 @@ export class XhrLoader extends EventEmitter {
   _rangeRequestZeroContentLengthAsError = false
   _rangeRequestMustReturn206 = false
   _abortByHeaderValidation = false
+  _currentRequestRange = null
 
 
   constructor () {
@@ -69,6 +70,7 @@ export class XhrLoader extends EventEmitter {
     this._rangeRequestZeroContentLengthAsError = !!req.rangeRequestZeroContentLengthAsError
     this._rangeRequestMustReturn206 = !!req.rangeRequestMustReturn206
     this._abortByHeaderValidation = false
+    this._currentRequestRange = null
     this._logger.debug('【xhrLoader task】, range', this._range)
 
     this._url = setUrlParams(req.url, req.params)
@@ -113,6 +115,7 @@ export class XhrLoader extends EventEmitter {
 
   _internalOpen (range) {
     try {
+      this._currentRequestRange = range
       this._startTime = Date.now()
       const xhr = this._xhr = new XMLHttpRequest()
       xhr.open(this._method || 'GET', this._url, true)
@@ -332,6 +335,15 @@ export class XhrLoader extends EventEmitter {
         'bad response,range request must return 206 unless redirected'
       )
     }
+    const rangeMismatchReason = this._getRangeResponseMismatchReason(headers)
+    if (rangeMismatchReason) {
+      return new NetError(
+        this._url,
+        this._request,
+        { status, headers, url: responseURL },
+        `bad response,${rangeMismatchReason}`
+      )
+    }
     if (this._shouldTreatRangeZeroContentLengthAsError(status, headers)) {
       return new NetError(
         this._url,
@@ -351,5 +363,14 @@ export class XhrLoader extends EventEmitter {
 
   _isRedirectedResponse (responseURL) {
     return !!(responseURL && responseURL !== this._url)
+  }
+
+  _getRangeResponseMismatchReason (headers) {
+    if (!this._rangeRequestMustReturn206) return false
+    return getRangeResponseMismatchReason(
+      this._currentRequestRange || this._range,
+      headers?.['content-range'],
+      headers?.['content-length']
+    )
   }
 }

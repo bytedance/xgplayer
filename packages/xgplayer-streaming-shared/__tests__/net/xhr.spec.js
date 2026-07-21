@@ -104,7 +104,7 @@ describe('XhrLoader', () => {
   test('allows range request when status is 206', async () => {
     MockXMLHttpRequest.nextResponse = {
       status: 206,
-      headers: 'content-length: 10',
+      headers: 'content-length: 10\r\ncontent-range: bytes 0-9/100',
       responseURL: 'https://example.com/video.mp4',
       response: new ArrayBuffer(10)
     }
@@ -118,5 +118,27 @@ describe('XhrLoader', () => {
     })
 
     expect(res.response.status).toBe(206)
+  })
+
+  test('rejects range request when content-range and content-length do not match request range', async () => {
+    MockXMLHttpRequest.nextResponse = {
+      status: 206,
+      headers: 'content-length: 10\r\ncontent-range: bytes 1-10/100',
+      responseURL: 'https://example.com/video.mp4',
+      response: new ArrayBuffer(10)
+    }
+
+    await expect(new XhrLoader().load({
+      url: 'https://example.com/video.mp4',
+      logger,
+      range: [0, 9],
+      responseType: ResponseType.ARRAY_BUFFER
+    })).rejects.toMatchObject({
+      message: 'bad response,response range start does not match request range',
+      response: {
+        status: 206,
+        url: 'https://example.com/video.mp4'
+      }
+    })
   })
 })

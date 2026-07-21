@@ -1,5 +1,5 @@
 import { NetError } from './error'
-import { createResponse, getRangeValue, setUrlParams, calculateSpeed } from './helper'
+import { createResponse, getRangeValue, setUrlParams, calculateSpeed, getRangeResponseMismatchReason } from './helper'
 import { ResponseType } from './types'
 import { EVENT } from '../event'
 import EventEmitter from 'eventemitter3'
@@ -148,7 +148,7 @@ export class FetchLoader extends EventEmitter {
         if (!response.ok) {
           throw new NetError(url, init, response, 'bad network response')
         }
-        if (this._shouldAbortRangeRequestForNon206(response)) {
+        if (this._getRangeResponseMismatchReason(response) || this._shouldAbortRangeRequestForNon206(response)) {
           const error = new NetError(url, init, response, 'bad response,range request must return 206 unless redirected')
           error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
           await this.cancel()
@@ -403,5 +403,14 @@ export class FetchLoader extends EventEmitter {
     if (!Array.isArray(this._range) || this._range.length < 2) return false
     if (response?.status === 206) return false
     return !response?.redirected
+  }
+
+  _getRangeResponseMismatchReason (response) {
+    if (!this._rangeRequestMustReturn206) return false
+    return getRangeResponseMismatchReason(
+      this._range,
+      response?.headers?.get?.('Content-Range'),
+      response?.headers?.get?.('Content-Length')
+    )
   }
 }
