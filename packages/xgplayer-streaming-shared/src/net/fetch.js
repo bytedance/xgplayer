@@ -22,6 +22,7 @@ export class FetchLoader extends EventEmitter {
   _priOptions = null // 比较私有化的参数传递，回调时候透传
   _processMaxGapTime = Infinity
   curTimeout = 0
+  _rangeRequestMustReturn206 = false
 
   constructor () {
     super()
@@ -56,7 +57,8 @@ export class FetchLoader extends EventEmitter {
     priOptions,
     streamRes,
     firstMaxChunkSize,
-    processMaxGapTime
+    processMaxGapTime,
+    rangeRequestMustReturn206
   }) {
     this._logger = logger
     this._aborted = false
@@ -71,6 +73,7 @@ export class FetchLoader extends EventEmitter {
     this._priOptions = priOptions || {}
     this._firstMaxChunkSize = firstMaxChunkSize
     this._processMaxGapTime = processMaxGapTime
+    this._rangeRequestMustReturn206 = !!rangeRequestMustReturn206
     const init = {
       method,
       headers,
@@ -144,6 +147,13 @@ export class FetchLoader extends EventEmitter {
         }
         if (!response.ok) {
           throw new NetError(url, init, response, 'bad network response')
+        }
+        if (this._shouldAbortRangeRequestForNon206(response)) {
+          const error = new NetError(url, init, response, 'bad response,range request must return 206 unless redirected')
+          error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
+          await this.cancel()
+          reject(error)
+          return
         }
 
         const firstByteTime = Date.now()
@@ -386,5 +396,12 @@ export class FetchLoader extends EventEmitter {
 
   static isSupported () {
     return !!(typeof fetch !== 'undefined')
+  }
+
+  _shouldAbortRangeRequestForNon206 (response) {
+    if (!this._rangeRequestMustReturn206) return false
+    if (!Array.isArray(this._range) || this._range.length < 2) return false
+    if (response?.status === 206) return false
+    return !response?.redirected
   }
 }
