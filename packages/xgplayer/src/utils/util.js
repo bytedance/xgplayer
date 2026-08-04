@@ -261,6 +261,10 @@ util.typeOf = function (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
 
+util.isUnsafeObjectKey = function (key) {
+  return key === '__proto__' || key === 'constructor' || key === 'prototype'
+}
+
 /**
  *
  * @param { any } dst
@@ -270,6 +274,9 @@ util.typeOf = function (obj) {
 util.deepCopy = function (dst, src) {
   if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
+      if (util.isUnsafeObjectKey(key)) {
+        return
+      }
       // eslint-disable-next-line no-undef
       if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
         if (dst[key] === undefined || dst[key] === undefined) {
@@ -295,6 +302,9 @@ util.deepCopy = function (dst, src) {
  */
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
+    if (util.isUnsafeObjectKey(key)) {
+      return
+    }
     if (util.typeOf(src[key]) === 'Array' && util.typeOf(dst[key]) === 'Array') {
       if (util.typeOf(dst[key]) === 'Array') {
         dst[key].push(...src[key])
