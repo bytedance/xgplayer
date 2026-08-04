@@ -25,6 +25,9 @@ const XGI18nLang = {
 
 function deepMerge (dst, src) {
   Object.keys(src).forEach(key => {
+    if (Util.isUnsafeObjectKey(key)) {
+      return
+    }
     const _s = Util.typeOf(src[key])
     const _t = Util.typeOf(dst[key])
     if (_s === 'Array') {
