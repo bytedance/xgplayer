@@ -83,9 +83,10 @@ types/
 types/*
 packages/*/types/
 .DS_Store
+# Keep fixture entry pages and scripts, but ignore local media and generated assets.
 fixtures/*/*
-!fixtures/*/index.html
-!fixtures/*/index.js
+!fixtures/*/*.html
+!fixtures/*/*.js
 !fixtures/*/shared/
 !fixtures/*/shared/*.js
 
