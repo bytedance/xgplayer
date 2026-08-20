@@ -143,8 +143,8 @@ function usePluginHooks(pluginName, ...args) {
   if (!plugin) {
     return
   }
-  if (!plugin.useHooks) {
-    return plugin.useHooks
+  if (typeof plugin.useHooks !== 'function') {
+    return
   }
   return plugin.useHooks(...args)
 }
