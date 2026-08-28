@@ -38,6 +38,7 @@ import TestSpeed from '../plugins/testspeed'
 import I18N from '../lang/i18n'
 import FpsDetect from '../plugins/fpsDetect'
 // import Heatmap from '../plugins/heatmap'
+import AudioLanguage from '../plugins/audioLanguage'
 
 I18N.use(ZH)
 
@@ -48,7 +49,7 @@ export default class DefaultPreset {
     const vodPlugins = isLive ? [] : [TimeSegments, Progress, MiniProgress, ProgressPreview, TimeIcon]
 
     const contolsIcons = [...vodPlugins, PlayIcon, FullScreen,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon, AudioLanguage]
 
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, Miniscreen]
 

@@ -34,6 +34,9 @@ import GapJump from '../plugins/gapJump'
 import WaitingTimeoutJump from '../plugins/waitingTimeoutJump'
 import TestSpeed from '../plugins/testspeed'
 import FpsDetect from '../plugins/fpsDetect'
+import AudioLanguage from '../plugins/audioLanguage'
+
+
 
 export default class DefaultPreset {
   constructor (options, playerConfig) {
@@ -42,7 +45,7 @@ export default class DefaultPreset {
     const vodPlugins = isLive ? [] : [Progress, MiniProgress, ProgressPreview, TimeIcon]
 
     const contolsIcons = [...vodPlugins, PlayIcon, FullScreen,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon, AudioLanguage]
 
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, Miniscreen]
 
