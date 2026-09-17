@@ -496,6 +496,13 @@ util.getFullScreenEl = function () {
 }
 
 /**
+ * @returns { number }
+ */
+util.getPixelRatio = function () {
+  return typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
+}
+
+/**
  * @param { any }
  * @returns { boolean }
  */
