@@ -55,7 +55,7 @@
     })
     ```
 
-    This is the easiest way to configure the player,then it runs with video. For more advanced content, see the plug-in section or documentation. [more config](http://h5player.bytedance.com/config.html)
+    This is the easiest way to configure the player,then it runs with video. For more advanced content, see the plug-in section or documentation. [more config](https://h5player.bytedance.com/en/config/)
 
 
 ### Mobile Support
