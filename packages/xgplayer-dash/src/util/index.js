@@ -77,20 +77,10 @@ util.padStart = function (str, length, pad) {
  * @return {String}       [秒数]
  */
 util.durationConvert = function (value) {
-  let Hours = 0
-  let Minutes = 0
-  let Seconds = 0
-  value = value.slice(value.indexOf('PT') + 2)
-  if (value.indexOf('H') > -1 && value.indexOf('M') > -1 && value.indexOf('S') > -1) {
-    Hours = parseFloat(value.slice(0, value.indexOf('H')))
-    Minutes = parseFloat(value.slice(value.indexOf('H') + 1, value.indexOf('M')))
-    Seconds = parseFloat(value.slice(value.indexOf('M') + 1, value.indexOf('S')))
-  } else if (value.indexOf('H') < 0 && value.indexOf('M') > 0 && value.indexOf('S') > -1) {
-    Minutes = parseFloat(value.slice(0, value.indexOf('M')))
-    Seconds = parseFloat(value.slice(value.indexOf('M') + 1, value.indexOf('S')))
-  } else if (value.indexOf('H') < 0 && value.indexOf('M') < 0 && value.indexOf('S') > -1) {
-    Seconds = parseFloat(value.slice(0, value.indexOf('S')))
-  }
+  const match = /PT(?:([\d.]+)H)?(?:([\d.]+)M)?(?:([\d.]+)S)?/.exec(value) || []
+  const Hours = parseFloat(match[1]) || 0
+  const Minutes = parseFloat(match[2]) || 0
+  const Seconds = parseFloat(match[3]) || 0
   return Hours * 3600 + Minutes * 60 + Seconds
 }
 
