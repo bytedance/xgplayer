@@ -2,6 +2,7 @@ jest.mock('../src/util/xhr', () => jest.fn())
 
 import mockXHR from '../src/util/xhr'
 import MPD from '../src/m4s/mpd'
+import util from '../src/util'
 
 const waitForReady = (mpd) => new Promise(resolve => mpd.once('ready', resolve))
 
@@ -81,5 +82,17 @@ describe('MPD SegmentList parsing', () => {
       [150, 249],
       [250, 349]
     ])
+  })
+})
+
+describe('util.durationConvert', () => {
+  test('converts ISO 8601 durations with any combination of H, M and S', () => {
+    expect(util.durationConvert('PT1H2M3.5S')).toBe(3723.5)
+    expect(util.durationConvert('PT2M3S')).toBe(123)
+    expect(util.durationConvert('PT6S')).toBe(6)
+    expect(util.durationConvert('PT2M')).toBe(120)
+    expect(util.durationConvert('PT1H')).toBe(3600)
+    expect(util.durationConvert('PT1H30M')).toBe(5400)
+    expect(util.durationConvert('PT1H5S')).toBe(3605)
   })
 })
