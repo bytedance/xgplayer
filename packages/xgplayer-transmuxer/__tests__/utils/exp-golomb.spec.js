@@ -2,6 +2,43 @@ import { ExpGolomb } from '../../src/utils'
 
 describe('ExpGolomb', () => {
 
+  test('count remaining bits across word boundaries and exhaustion', () => {
+    const eg = new ExpGolomb(new Uint8Array([0xff, 0xff, 0xff, 0xff, 0xff]))
+    expect(eg.bitsLeft()).toBe(40)
+    expect(eg.bitsPos()).toBe(0)
+    eg.readBits(29)
+    expect(eg.bitsLeft()).toBe(11)
+    expect(eg.bitsPos()).toBe(29)
+    expect(eg.byteAligned()).toBe(false)
+    eg.readBits(7)
+    expect(eg.bitsLeft()).toBe(4)
+    expect(eg.bitsPos()).toBe(36)
+    eg.readBits(4)
+    expect(eg.bitsLeft()).toBe(0)
+    expect(eg.bitsPos()).toBe(40)
+    expect(eg.byteAligned()).toBe(true)
+    expect(new ExpGolomb(new Uint8Array()).bitsLeft()).toBe(0)
+  })
+
+  test('read and skip validate the available bit range', () => {
+    const reader = new ExpGolomb(new Uint8Array([0xff]))
+    expect(reader.readBits(0)).toBe(0)
+    expect(reader.bitsLeft()).toBe(8)
+    expect(() => reader.readBits(9)).toThrow('Cannot read beyond available bits')
+    expect(reader.bitsLeft()).toBe(8)
+    expect(() => reader.skipBits(9)).toThrow('Cannot skip beyond available bits')
+    reader.skipBits(8)
+    expect(reader.bitsLeft()).toBe(0)
+    expect(reader.bitsPos()).toBe(8)
+  })
+
+  test('load the next word after skipping exactly 32 bits', () => {
+    const reader = new ExpGolomb(new Uint8Array([0x12, 0x34, 0x56, 0x78, 0x9a]))
+    reader.skipBits(32)
+    expect(reader.bitsLeft()).toBe(8)
+    expect(reader.readBits(8)).toBe(0x9a)
+  })
+
   test('Throw error when not enough data', () => {
     expect(() => {
       new ExpGolomb()

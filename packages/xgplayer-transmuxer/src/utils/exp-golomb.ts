@@ -19,11 +19,11 @@ export class ExpGolomb {
   }
 
   bitsPos(): number {
-    return this._bytesAvailable * 8 - this._bitsAvailable
+    return this._data.byteLength * 8 - this.bitsLeft()
   }
 
   bitsLeft(): number {
-    return this._data.length * 8 - this.bitsPos()
+    return this._bytesAvailable * 8 + this._bitsAvailable
   }
 
   byteAligned(): boolean {
@@ -44,6 +44,9 @@ export class ExpGolomb {
   }
 
   skipBits(count: number): void {
+    if (count < 0 || count > this.bitsLeft()) {
+      throw new Error('Cannot skip beyond available bits')
+    }
     if (this._bitsAvailable > count) {
       this._word <<= count
       this._bitsAvailable -= count
@@ -52,6 +55,10 @@ export class ExpGolomb {
       const skipBytes = Math.floor(count / 8)
       count -= skipBytes * 8
       this._bytesAvailable -= skipBytes
+      if (!this._bytesAvailable) {
+        this._bitsAvailable = 0
+        return
+      }
       this._loadWord()
       this._word <<= count
       this._bitsAvailable -= count
@@ -62,6 +69,10 @@ export class ExpGolomb {
     if (size > 32) {
       throw new Error('Cannot read more than 32 bits')
     }
+    if (size < 0 || size > this.bitsLeft()) {
+      throw new Error('Cannot read beyond available bits')
+    }
+    if (size === 0) return 0
 
     let bits = Math.min(this._bitsAvailable, size)
     const val = this._word >>> (32 - bits)
