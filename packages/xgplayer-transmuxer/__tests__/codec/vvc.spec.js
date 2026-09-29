@@ -1,4 +1,5 @@
 import { VVC } from '../../src/codec'
+import { ExpGolomb } from '../../src/utils'
 
 function nal (type) {
   return new Uint8Array([0, type << 3])
@@ -23,5 +24,18 @@ describe('VVC', () => {
       randomAccessType: 'idr',
       rasl: false
     })
+  })
+
+  test('aligns general constraint parsing from the final loaded word', () => {
+    const data = new Uint8Array(20)
+    data[6] = 0x20 // gci_present_flag at bit position 50
+    const eg = new ExpGolomb(data)
+    eg.skipBits(50)
+
+    expect(VVC._parseGeneralConstraintsInfo(eg)).toEqual({
+      gciPresentFlag: 1
+    })
+    expect(eg.bitsPos()).toBe(136)
+    expect(eg.byteAligned()).toBe(true)
   })
 })
