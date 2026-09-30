@@ -1,4 +1,4 @@
-import { TsDemuxer } from '../../src'
+import { TsDemuxer, VideoSample } from '../../src'
 import { readMovie, trackSnapshotTest } from '../test-utils'
 
 describe('TsDemuxer', () => {
@@ -23,6 +23,19 @@ describe('TsDemuxer', () => {
     expect(() => {
       new TsDemuxer().demuxAndFix(new Uint8Array(Array(188).fill(1)))
     }).toThrow('TS packet did not start with 0x47')
+  })
+
+  test('keep a video sample after recovering its timestamps', () => {
+    const demuxer = new TsDemuxer()
+    const previous = new VideoSample(90000, 90000, [new Uint8Array([1])])
+    const current = new VideoSample(undefined, undefined, [new Uint8Array([1])])
+    demuxer.videoTrack.samples.push(previous)
+
+    demuxer._pushVideoSample(demuxer.videoTrack, current)
+
+    expect(demuxer.videoTrack.samples).toEqual([previous, current])
+    expect(current.pts).toBe(previous.pts)
+    expect(current.dts).toBe(previous.dts)
   })
 
   test('ts-avc', () => {
