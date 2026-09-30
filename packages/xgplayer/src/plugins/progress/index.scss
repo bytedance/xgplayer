@@ -13,6 +13,7 @@
     outline: none;
     flex: 1;
     cursor: pointer;
+    touch-action: none;
   }
 
   .xgplayer-progress-outer {

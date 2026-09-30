@@ -326,12 +326,16 @@ class Progress extends Plugin {
     this._mouseUpHandlerHook = this.hook('dragend', this._mouseUpHandler)
     this._mouseMoveHandlerHook = this.hook('drag', this._mouseMoveHandler)
 
-    if (this.domEventType === 'touch' || this.domEventType === 'compatible') {
+    if (this._supportsPointerEvents()) {
+      this.root.addEventListener('pointerdown', this.onMouseDown)
+    } else if (this.domEventType === 'touch' || this.domEventType === 'compatible') {
       this.root.addEventListener('touchstart', this.onMouseDown)
     }
 
     if (this.domEventType === 'mouse' || this.domEventType === 'compatible') {
-      this.bind('mousedown', this.onMouseDown)
+      if (!this._supportsPointerEvents()) {
+        this.bind('mousedown', this.onMouseDown)
+      }
       config.isMobileSimulateMode !== 'mobile' && this.bind('mouseenter', this.onMouseEnter)
       this.bind('mouseover', this.onMouseOver)
       this.bind('mouseout', this.onMouseOut)
@@ -344,18 +348,31 @@ class Progress extends Plugin {
     return this.root?.ownerDocument || document
   }
 
-  _addDragDocumentEvents () {
+  _supportsPointerEvents () {
+    return typeof window !== 'undefined' && 'PointerEvent' in window
+  }
+
+  _addDragDocumentEvents (startEventType = 'mousedown') {
     const dragDocument = this._getRootDocument()
     this._dragDocument = dragDocument
-    dragDocument.addEventListener('mousemove', this.onMouseMove, false)
-    dragDocument.addEventListener('mouseup', this.onMouseUp, false)
+    this._dragDocumentEventNames = startEventType === 'pointerdown'
+      ? ['pointermove', 'pointerup', 'pointercancel']
+      : ['mousemove', 'mouseup']
+    dragDocument.addEventListener(this._dragDocumentEventNames[0], this.onMouseMove, false)
+    this._dragDocumentEventNames.slice(1).forEach(eventName => {
+      dragDocument.addEventListener(eventName, this.onMouseUp, false)
+    })
   }
 
   _removeDragDocumentEvents () {
     const dragDocument = this._dragDocument || this._getRootDocument()
-    dragDocument.removeEventListener('mousemove', this.onMouseMove, false)
-    dragDocument.removeEventListener('mouseup', this.onMouseUp, false)
+    const eventNames = this._dragDocumentEventNames || ['mousemove', 'mouseup']
+    dragDocument.removeEventListener(eventNames[0], this.onMouseMove, false)
+    eventNames.slice(1).forEach(eventName => {
+      dragDocument.removeEventListener(eventName, this.onMouseUp, false)
+    })
     this._dragDocument = null
+    this._dragDocumentEventNames = null
   }
 
   focus () {
@@ -445,7 +462,7 @@ class Progress extends Plugin {
     const { _state, player, pos, config, playerConfig } = this
     const _ePos = Util.getEventPos(e, player.zoom)
     const x = player.rotateDeg === 90 ? _ePos.clientY : _ePos.clientX
-    if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
+    if (pos.isDown || player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
     }
 
@@ -462,6 +479,7 @@ class Progress extends Plugin {
     pos.x = x
     pos.isDown = true
     pos.moving = false
+    this._activePointerId = e.type === 'pointerdown' ? e.pointerId : null
     _state.prePlayTime = player.currentTime
 
     // 交互开始 禁止控制栏的自动隐藏功能
@@ -480,7 +498,7 @@ class Progress extends Plugin {
       this.root.addEventListener('touchcancel', this.onMouseUp)
     } else {
       this.unbind('mousemove', this.onMoveOnly)
-      this._addDragDocumentEvents()
+      this._addDragDocumentEvents(eventType)
       // this.bind('mouseup', this.onMouseUp, false)
     }
     return true
@@ -489,6 +507,9 @@ class Progress extends Plugin {
   onMouseUp = (e) => {
     const { player, config, pos, playerConfig, _state } = this
     if (!pos) {
+      return
+    }
+    if (e.type.startsWith('pointer') && e.pointerId !== this._activePointerId) {
       return
     }
     e.stopPropagation()
@@ -514,17 +535,23 @@ class Progress extends Plugin {
     pos.x = 0
     pos.y = 0
     pos.isLocked = true
+    this._activePointerId = null
     _state.prePlayTime = 0
     _state.time = 0
     const eventType = e.type
+    const isTouchInteraction = eventType === 'touchend' || eventType === 'touchcancel' ||
+      (eventType.startsWith('pointer') && e.pointerType !== 'mouse')
     if (eventType === 'touchend' || eventType === 'touchcancel') {
       this.root.removeEventListener('touchmove', this.onMouseMove)
       this.root.removeEventListener('touchend', this.onMouseUp)
       this.root.removeEventListener('touchcancel', this.onMouseUp)
+    } else {
+      this._removeDragDocumentEvents()
+    }
+    if (isTouchInteraction) {
       // 交互结束 恢复控制栏的隐藏流程
       this.blur()
     } else {
-      this._removeDragDocumentEvents()
       if (!pos.isEnter) {
         this.onMouseLeave(e)
       } else {
@@ -548,6 +575,7 @@ class Progress extends Plugin {
     this.root.removeEventListener('touchend', this.onMouseUp)
     this.root.removeEventListener('touchcancel', this.onMouseUp)
     this._removeDragDocumentEvents()
+    this._activePointerId = null
     if (!pos.isDown && !this.isProgressMoving) {
       return
     }
@@ -567,6 +595,9 @@ class Progress extends Plugin {
 
   onMouseMove = (e) => {
     const { _state, pos, player, config } = this
+    if (e.type === 'pointermove' && e.pointerId !== this._activePointerId) {
+      return
+    }
     if (Util.checkTouchSupport()) {
       // e.stopPropagation()
       e.preventDefault()
@@ -776,6 +807,9 @@ class Progress extends Plugin {
     this.innerList.destroy()
     this.innerList = null
     const { domEventType } = this
+    if (this._supportsPointerEvents()) {
+      this.root.removeEventListener('pointerdown', this.onMouseDown)
+    }
     if (domEventType === 'touch' || domEventType === 'compatible') {
       this.root.removeEventListener('touchstart', this.onMouseDown)
       this.root.removeEventListener('touchmove', this.onMouseMove)
