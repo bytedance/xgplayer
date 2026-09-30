@@ -329,20 +329,18 @@ export class TsDemuxer {
   }
 
   private _pushVideoSample(track: VideoTrack, sample: VideoSample) {
-    if (sample.units.length) {
-      if (sample.pts === null || sample.pts === undefined) {
-        logger.warn('Video sample no pts', sample)
-        const lastSample = track.samples[track.samples.length - 1]
-        if (lastSample) {
-          sample.pts = lastSample.pts
-          sample.dts = lastSample.dts
-        } else {
-          logger.warn('Drop video sample', sample)
-        }
-      } else {
-        track.samples.push(sample)
+    if (!sample.units.length) return
+    if (sample.pts === null || sample.pts === undefined) {
+      logger.warn('Video sample no pts', sample)
+      const lastSample = track.samples[track.samples.length - 1]
+      if (!lastSample) {
+        logger.warn('Drop video sample', sample)
+        return
       }
+      sample.pts = lastSample.pts
+      sample.dts = lastSample.dts
     }
+    track.samples.push(sample)
   }
 
   private _parseAudioData() {
