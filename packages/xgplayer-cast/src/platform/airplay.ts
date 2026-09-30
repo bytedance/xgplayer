@@ -58,10 +58,11 @@ export class Airplay {
   }
 
   install() {
-    if (!isAirPlayAvailable(this.player)) {
+    const player = this.player
+    if (!player || !isAirPlayAvailable(player)) {
       return
     }
-    const media = this.player.media || this.player.video
+    const media = player.media || player.video
 
     if (media instanceof HTMLMediaElement) {
       media.setAttribute('x-webkit-airplay', 'allow')
@@ -75,18 +76,22 @@ export class Airplay {
       )
     }
 
-    this.player.on('cast_request', this._onRequestCast)
+    player.on('cast_request', this._onRequestCast)
   }
 
   _onTargetAvailabilityChange = (e: any) => {
-    this.player.emit('cast_availability_change', {
+    this.player?.emit('cast_availability_change', {
       protocol: 'airplay',
       availability: e.availability
     })
   }
 
   _onTargetChange = () => {
-    const video = this.player.media || this.player.video
+    const player = this.player
+    if (!player) {
+      return
+    }
+    const video = player.media || player.video
     const isWireless = !!video.webkitCurrentPlaybackTargetIsWireless
 
     if (isWireless && this._hasMSESource(video)) {
@@ -121,6 +126,10 @@ export class Airplay {
   }
 
   _activateNativeSource(mediaEl: HTMLMediaElement) {
+    const player = this.player
+    if (!player) {
+      return false
+    }
     const castMedia = this._airplayMedia || this._resolveAirPlayMedia()
     if (!castMedia) {
       return false
@@ -130,7 +139,7 @@ export class Airplay {
       return true
     }
 
-    const currentTime = this._getHandoffCurrentTime(mediaEl)
+    const currentTime = this._getHandoffCurrentTime(mediaEl, player)
 
     this.plugin?._suspendMSEPlugin?.()
     this._nativeHandoffActive = true
@@ -171,8 +180,12 @@ export class Airplay {
     if (!this._nativeHandoffActive) {
       return false
     }
+    const player = this.player
+    if (!player) {
+      return false
+    }
 
-    const routeState = captureLocalStateForCast(this.player, 'airplay')
+    const routeState = captureLocalStateForCast(player, 'airplay')
     this._nativeHandoffActive = false
     this._airplayMedia = null
     try {
@@ -184,10 +197,20 @@ export class Airplay {
   }
 
   _resolveAirPlayMedia(): CastMediaInfo | null {
+    const player = this.player
+    if (!player) {
+      return null
+    }
+
     try {
-      return resolveCastMedia(this.player, { protocol: 'airplay' })
+      return resolveCastMedia(player, { protocol: 'airplay' })
     } catch (err) {
-      console.warn('[xgplayer-cast] Cannot resolve AirPlay media URL:', err.message)
+      console.warn(
+        '[xgplayer-cast] Cannot resolve AirPlay media URL:',
+        typeof err === 'object' && err !== null && 'message' in err
+          ? err.message
+          : String(err)
+      )
       return null
     }
   }
@@ -251,14 +274,14 @@ export class Airplay {
     )
   }
 
-  _getHandoffCurrentTime(mediaEl: HTMLMediaElement) {
+  _getHandoffCurrentTime(mediaEl: HTMLMediaElement, player: CastPlayer) {
     const mediaCurrentTime = toNonNegativeTime(mediaEl?.currentTime)
     if (mediaCurrentTime !== null) {
       return mediaCurrentTime
     }
 
     const requestCurrentTime = toNonNegativeTime(this._handoffState?.currentTime)
-    return requestCurrentTime !== null ? requestCurrentTime : getLocalTime(this.player)
+    return requestCurrentTime !== null ? requestCurrentTime : getLocalTime(player)
   }
 
   _hasAttachedLocalSource(mediaEl: HTMLMediaElement) {
@@ -277,8 +300,13 @@ export class Airplay {
   }
 
   async _applyRouteStateToLocal(routeState: CastRouteState) {
+    const player = this.player
+    if (!player) {
+      return false
+    }
+
     try {
-      return await applyRouteStateToLocal(this.player, routeState)
+      return await applyRouteStateToLocal(player, routeState)
     } catch (error) {
       console.warn('Failed to restore local playback after AirPlay:', error)
       return false
@@ -364,12 +392,13 @@ export class Airplay {
   }
 
   _emitCastTargetChange(isCasting: boolean) {
-    if (this._lastCastingState === isCasting) {
+    const player = this.player
+    if (!player || this._lastCastingState === isCasting) {
       return
     }
     this._lastCastingState = isCasting
 
-    this.player.emit('cast_target_change', {
+    player.emit('cast_target_change', {
       protocol: 'airplay',
       isCasting
     })
@@ -393,10 +422,14 @@ export class Airplay {
   _showMutedTip() {
     this._gcTip()
 
+    const player = this.player
+    if (!player) {
+      return
+    }
     const tip = document.createElement('div')
     tip.className = 'xgplayer-cast-muted-tip'
-    tip.innerText = this.player.i18n.CAST_UNMUTE_TIP
-    this.player.root.appendChild(tip)
+    tip.innerText = player.i18n.CAST_UNMUTE_TIP
+    player.root.appendChild(tip)
     this._tipDom = tip
 
     this._tipTimeout = setTimeout(() => {
@@ -405,7 +438,8 @@ export class Airplay {
   }
 
   canRequest() {
-    return isAirPlayAvailable(this.player)
+    const player = this.player
+    return !!player && isAirPlayAvailable(player)
   }
 
   _onRequestCast = ({
@@ -416,12 +450,13 @@ export class Airplay {
     handoffState?: CastRouteState
   } = {}) => {
     if (protocol && protocol !== 'airplay') return
-    if (!isAirPlayAvailable(this.player)) {
+    const player = this.player
+    if (!player || !isAirPlayAvailable(player)) {
       return false
     }
 
     try {
-      const mediaEl = this.player.media || this.player.video
+      const mediaEl = player.media || player.video
       this._handoffState = handoffState || null
       // WebKit 的 AirPlay 实现中，静音的Media元素会被认为不需要音频输出设备，系统因此认为没有必要将其路由到外部播放目标
       // 具体见：https://bugs.webkit.org/show_bug.cgi?id=146366
@@ -457,7 +492,8 @@ export class Airplay {
   }
 
   destroy() {
-    if (!this.player) {
+    const player = this.player
+    if (!player) {
       return
     }
     this._gcTip()
@@ -465,7 +501,7 @@ export class Airplay {
     this._emitCastingFalseDebounced?.cancel?.()
     this._emitCastingFalseDebounced = null
 
-    const media = this.player.media || this.player.video
+    const media = player.media || player.video
     if (media instanceof HTMLMediaElement) {
       media.removeEventListener(
         'webkitplaybacktargetavailabilitychanged',
@@ -476,7 +512,7 @@ export class Airplay {
         this._onTargetChange
       )
     }
-    this.player.off('cast_request', this._onRequestCast)
+    player.off('cast_request', this._onRequestCast)
     this.player = null
     this.plugin = null
     this._lastCastingState = null

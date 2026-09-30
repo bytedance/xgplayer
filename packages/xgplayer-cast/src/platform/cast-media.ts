@@ -5,7 +5,7 @@ import type {
   CastPlayer
 } from '../types'
 
-const CONTENT_TYPE_ALIASES = {
+const CONTENT_TYPE_ALIASES: Record<string, string> = {
   hls: 'application/x-mpegURL',
   m3u8: 'application/x-mpegURL',
   mpd: 'application/dash+xml',
@@ -115,7 +115,7 @@ function pickField(field: string, ...sources: AnyRecord[]) {
 }
 
 function pickMediaInfoFields(...sources: AnyRecord[]) {
-  return MEDIA_INFO_FIELDS.reduce((result, field) => {
+  return MEDIA_INFO_FIELDS.reduce<AnyRecord>((result, field) => {
     const value = pickField(field, ...sources)
     if (value !== undefined) {
       result[field] = value

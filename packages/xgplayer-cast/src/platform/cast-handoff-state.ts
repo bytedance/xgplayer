@@ -22,6 +22,15 @@ export function toNonNegativeTime(value: unknown) {
   return Number.isFinite(currentTime) && currentTime >= 0 ? currentTime : null
 }
 
+export function isAbortError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    error.name === 'AbortError'
+  )
+}
+
 export function getLocalTime(player: CastPlayer) {
   const currentTime = getLocalTimeOrNull(player)
   return currentTime !== null ? currentTime : 0
@@ -93,7 +102,7 @@ export async function applyRouteStateToLocal(
   try {
     await player?.play?.()
   } catch (error) {
-    if (error?.name !== 'AbortError') {
+    if (!isAbortError(error)) {
       throw error
     }
   }

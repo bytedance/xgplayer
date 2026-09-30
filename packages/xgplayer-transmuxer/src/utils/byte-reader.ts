@@ -1,5 +1,5 @@
 export class ByteReader {
-  private dv: DataView
+  private dv: DataView<ArrayBuffer>
   start: number
   offset: number
   end: number
@@ -9,6 +9,9 @@ export class ByteReader {
     this.end = len ? this.start + len : this.start + this.dv.byteLength
   }
   static fromUint8(uint8: Uint8Array) {
+    if (!(uint8.buffer instanceof ArrayBuffer)) {
+      return new ByteReader(new Uint8Array(uint8).buffer, 0, uint8.byteLength)
+    }
     return new ByteReader(uint8.buffer, uint8.byteOffset, uint8.byteLength)
   }
   static concatUint8s(args: Uint8Array[]) {
@@ -67,7 +70,7 @@ export class ByteReader {
         throw new Error(`read ${byteNum}-byte integers is not supported`)
     }
   }
-  read(byteNum: number) {
+  read(byteNum: number): number {
     const offset = this.offset
     this.offset += byteNum
     switch (byteNum) {

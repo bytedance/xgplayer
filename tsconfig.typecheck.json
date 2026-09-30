@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true
+  },
+  "include": [
+    "packages/xgplayer-cast/src/**/*.ts",
+    "packages/xgplayer-hls/src/**/*.ts",
+    "packages/xgplayer-transmuxer/src/**/*.ts"
+  ]
+}
