@@ -1,17 +1,25 @@
+import type { HEVCDecoderConfiguration } from '../codec/hevc'
+import type { TrackExtension, TrackWarning } from './types'
 import { TrackType, VideoCodecType } from './types'
+import type { VideoSample } from './video-sample'
+
+export interface PsshData {
+  kid: string | string[] | null
+  data_size?: number
+  system_id?: string[]
+  buffer?: Uint8Array
+}
 
 export class VideoTrack {
   id = 1
 
-  /** @readonly */
-  type = TrackType.VIDEO
+  readonly type = TrackType.VIDEO
 
   codecType = VideoCodecType.AVC
 
   pid = -1 // ts use
 
-  /** @type {Uint8Array | Object} */
-  hvcC = undefined
+  hvcC: HEVCDecoderConfiguration | null | undefined
 
   codec = ''
 
@@ -27,26 +35,21 @@ export class VideoTrack {
 
   duration = 0
 
-  warnings = []
+  warnings: TrackWarning[] = []
 
-  /** @type {import('./video-sample').VideoSample[]} */
-  samples = []
+  samples: VideoSample[] = []
 
-  /** @type {Uint8Array[]} */
-  pps = []
+  pps: Uint8Array[] = []
 
-  /** @type {Uint8Array[]} */
-  sps = []
+  sps: Uint8Array[] = []
 
-  /** @type {Uint8Array[]} */
-  vps = []
+  vps: Uint8Array[] = []
 
   fpsNum = 0
 
   fpsDen = 0
 
-  /** @type {[number, number]} */
-  sarRatio = [] // [hSpacing, vSpacing]
+  sarRatio: [number, number] | [] = [] // [hSpacing, vSpacing]
 
   width = 0
 
@@ -64,22 +67,22 @@ export class VideoTrack {
 
   lastKeyFrameDts = 0
 
-  kid = null
+  kid: string | null = null
 
-  pssh = null
+  pssh: PsshData | null | undefined = null
 
-  /** @type {any} */
-  ext
+  ext: TrackExtension | undefined
 
-  reset () {
+  reset() {
     this.sequenceNumber =
-    this.width =
-    this.height =
-    this.fpsDen =
-    this.fpsNum =
-    this.duration =
-    this.baseMediaDecodeTime =
-    this.timescale = 0
+      this.width =
+      this.height =
+      this.fpsDen =
+      this.fpsNum =
+      this.duration =
+      this.baseMediaDecodeTime =
+      this.timescale =
+        0
     this.codec = ''
     this.present = false
     this.pid = -1
@@ -92,15 +95,15 @@ export class VideoTrack {
     this.hvcC = null
   }
 
-  get firstDts () {
+  get firstDts() {
     return this.samples.length ? this.samples[0].dts : null
   }
 
-  get firstPts () {
+  get firstPts() {
     return this.samples.length ? this.samples[0].pts : null
   }
 
-  get samplesDuration () {
+  get samplesDuration() {
     if (this.samples.length > 0) {
       const first = this.samples[0]
       const last = this.samples[this.samples.length - 1]
@@ -109,24 +112,18 @@ export class VideoTrack {
     return 0
   }
 
-  /**
-   * @returns {boolean}
-   */
-  exist () {
+  exist() {
     if (/av01/.test(this.codec)) {
       return true
     }
     return !!(this.pps.length && this.sps.length && this.codec)
   }
 
-  /**
-   * @returns {boolean}
-   */
-  hasSample () {
+  hasSample() {
     return !!this.samples.length
   }
 
-  get isEncryption (){
+  get isEncryption() {
     return this.isVideoEncryption
   }
 }

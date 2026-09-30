@@ -48,4 +48,34 @@ describe('TsDemuxer', () => {
     trackSnapshotTest(snap, videoTrack, audioTrack)
   })
 
+  test('keep a repeated HEVC segment decodable without mutating the TS input', () => {
+    const [file, snap] = readMovie('ts-hevc.ts')
+    const original = file.slice()
+    const demuxer = new TsDemuxer(null, null, null, {
+      fixHevcDiscontinuity: true
+    })
+
+    demuxer.demuxAndFix(file, false, true)
+    const videoEnd = demuxer.videoTrack.firstDts + demuxer.videoTrack.samplesDuration
+    const { videoTrack, audioTrack } = demuxer.demuxAndFix(file, false, true)
+
+    expect(videoTrack.samples).toHaveLength(snap.videoFrameCount)
+    expect(audioTrack.samples).toHaveLength(snap.audioFrameCount)
+    expect(videoTrack.firstDts).toBe(videoEnd)
+    expect(file).toEqual(original)
+  })
+
+  test('keep a duplicated HEVC segment after a non-contiguous load', () => {
+    const [file, snap] = readMovie('ts-hevc.ts')
+    const demuxer = new TsDemuxer(null, null, null, {
+      fixHevcDiscontinuity: true
+    })
+
+    demuxer.demuxAndFix(file, false, true)
+    const { videoTrack, audioTrack } = demuxer.demuxAndFix(file, true, false)
+
+    expect(videoTrack.samples).toHaveLength(snap.videoFrameCount)
+    expect(audioTrack.samples).toHaveLength(snap.audioFrameCount)
+  })
+
 })

@@ -1,0 +1,128 @@
+/* c8 ignore next 4 */
+
+export { BitReader } from './bit-reader'
+export { ByteReader } from './byte-reader'
+export * from './env'
+export { ExpGolomb } from './exp-golomb'
+export { Logger } from './logger'
+export { UTF8 } from './utf8'
+
+type ByteArray = ArrayLike<number | undefined>
+type Falsy = false | 0 | '' | null | undefined
+
+export function concatUint8Array(...arr: Array<Uint8Array | Falsy>) {
+  const arrays = arr.filter(Boolean) as Uint8Array[]
+  const data = new Uint8Array(arrays.reduce((p, c) => p + c.byteLength, 0))
+  let prevLen = 0
+  arrays.forEach((d) => {
+    data.set(d, prevLen)
+    prevLen += d.byteLength
+  })
+  return data
+}
+
+export const MAX_SIZE = 2 ** 32
+
+export function readBig16(data: ByteArray, i = 0) {
+  return ((data[i] as number) << 8) + (data[i + 1] || 0)
+}
+
+export function readBig24(data: ByteArray, i = 0) {
+  return ((data[i] as number) << 16) + ((data[i + 1] as number) << 8) + (data[i + 2] || 0)
+}
+
+export function readBig32(data: ByteArray, i = 0) {
+  return (
+    (((data[i] as number) << 24) >>> 0) +
+    ((data[i + 1] as number) << 16) +
+    ((data[i + 2] as number) << 8) +
+    (data[i + 3] || 0)
+  )
+}
+
+export function readInt32(data: Uint8Array, i = 0) {
+  const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)
+  return dv.getInt32(i)
+}
+
+export function readBig64(data: ByteArray, i = 0) {
+  return readBig32(data, i) * MAX_SIZE + readBig32(data, i + 4)
+}
+
+export function readInt64(data: Uint8Array, i = 0) {
+  const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)
+  return (dv.getUint32(i) << 32) | dv.getUint32(i + 4)
+}
+
+export function getAvcCodec(codecs: ArrayLike<number>) {
+  let codec = 'avc1.'
+  let h
+  for (let i = 0; i < 3; i++) {
+    h = codecs[i].toString(16)
+    if (h.length < 2) h = `0${h}`
+    codec += h
+  }
+  return codec
+}
+
+export function formatIV(arr: ReadonlyArray<number> | Uint8Array) {
+  let iv = ''
+  arr.forEach((value) => {
+    iv += bufferToString(value)
+  })
+  if (iv.length <= 32) {
+    const len = 32 - iv.length
+    for (let i = 0; i < len; i++) {
+      iv += '0'
+    }
+  }
+  return iv
+}
+
+export function parse(a: string | string[]) {
+  if (!Array.isArray(a)) {
+    const arr = []
+    let value = ''
+    for (let i = 0; i < a.length; i++) {
+      if (i % 2) {
+        value = a[i - 1] + a[i]
+        arr.push(parseInt(value, 16))
+        value = ''
+      }
+    }
+    return arr
+  }
+  return a.map((item) => {
+    return parseInt(item, 16)
+  })
+}
+
+function bufferToString(value: number) {
+  return ('0' + Number(value).toString(16)).slice(-2).toUpperCase()
+}
+
+export function hashVal(str: string) {
+  let hash = 0
+  let i
+  let chr
+  if (str.length === 0) return hash
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i)
+    hash = (hash << 5) - hash + chr
+    hash |= 0
+  }
+  return hash
+}
+
+export function combineToFloat(integer: number, decimal: number) {
+  return Number(integer + '.' + decimal)
+}
+
+export function toDegree(matrix: ArrayLike<number>) {
+  if (matrix.length < 5) return 0
+  const scaled0 = Math.hypot(matrix[0], matrix[3]),
+    scaled1 = Math.hypot(matrix[1], matrix[4])
+  return 0 === scaled0 || 0 === scaled1
+    ? 0
+    : (180 * Math.atan2(matrix[1] / scaled1, matrix[0] / scaled0)) / Math.PI
+}
