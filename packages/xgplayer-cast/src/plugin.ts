@@ -5,6 +5,7 @@ import { Airplay, isAirPlayAvailable } from './platform/airplay'
 import {
   captureLocalStateForCast,
   getConfiguredCastAutoplay,
+  isAbortError,
   toNonNegativeTime
 } from './platform/cast-handoff-state'
 import { Chromecast } from './platform/chromecast'
@@ -27,14 +28,17 @@ export class CastPlugin extends Plugin {
     plugin: any
     pluginName: string
     config?: Record<string, any>
-  } | null
-  _castHandshakeInProgress: boolean
-  _handoffState: CastRouteState | null
-  _castAvailability: Record<string, CastAvailability>
-  _castAdapters: Record<string, any>
+  } | null = null
+  _castHandshakeInProgress = false
+  _handoffState: CastRouteState | null = null
+  _castAvailability: Record<string, CastAvailability> = {
+    airplay: 'not-available',
+    chromecast: 'not-available'
+  }
+  _castAdapters: Record<string, any> = {}
   _handler: any
-  _airplay?: Airplay
-  _chromecast?: Chromecast
+  _airplay: Airplay | null = null
+  _chromecast: Chromecast | null = null
   _chromecastConfig?: ChromecastConfig
   _castIconProtocol?: string
 
@@ -75,7 +79,7 @@ export class CastPlugin extends Plugin {
 
     this.appendChild('.xgplayer-icon', (this.icons as any).cast)
     this._handler = this.hook('click', this._doCast, {
-      pre: (e) => {
+      pre: (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
       }
@@ -183,7 +187,7 @@ export class CastPlugin extends Plugin {
     try {
       await this.player.play()
     } catch (error) {
-      if (error?.name !== 'AbortError') {
+      if (!isAbortError(error)) {
         console.warn('Failed to play media for cast handshake:', error)
       }
       return
@@ -303,7 +307,7 @@ export class CastPlugin extends Plugin {
     }
   }
 
-  _doCast = (e) => {
+  _doCast = (e: Event) => {
     this.emitUserAction(e, 'cast')
     this.requestCast()
   }
@@ -383,7 +387,7 @@ export class CastPlugin extends Plugin {
 
   render() {
     if (this.config.disable) {
-      return
+      return ''
     }
     return `<xg-icon class="xgplayer-cast">
       <div class="xgplayer-icon"></div>
