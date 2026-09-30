@@ -1,10 +1,11 @@
-import { TrackType, AudioCodecType } from './types'
+import type { AudioSample } from './audio-sample'
+import type { TrackExtension, TrackWarning } from './types'
+import { AudioCodecType, TrackType } from './types'
 
 export class AudioTrack {
   id = 2
 
-  /** @readonly */
-  type = TrackType.AUDIO
+  readonly type = TrackType.AUDIO
 
   codecType = AudioCodecType.AAC
 
@@ -26,10 +27,9 @@ export class AudioTrack {
 
   duration = 0
 
-  warnings = []
+  warnings: TrackWarning[] = []
 
-  /** @type {import('./audio-sample').AudioSample[]} */
-  samples = []
+  samples: AudioSample[] = []
 
   baseDts = 0
 
@@ -43,10 +43,9 @@ export class AudioTrack {
 
   sampleRateIndex = 0
 
-  parsedCodec = null
+  parsedCodec: string | null = null
 
-  /** @type {number[]} */
-  config = []
+  config: number[] = []
 
   present = false
 
@@ -54,12 +53,11 @@ export class AudioTrack {
 
   isAudioEncryption = false
 
-  kid = null
+  kid: string | null = null
 
-  /** @type {any} */
-  ext
+  ext: TrackExtension | undefined
 
-  reset () {
+  reset() {
     this.sequenceNumber = 0
     this.timescale = 0
     this.sampleDuration = 0
@@ -74,10 +72,7 @@ export class AudioTrack {
     this.warnings = []
   }
 
-  /**
-   * @returns {boolean}
-   */
-  exist () {
+  exist() {
     return !!(
       this.sampleRate &&
       this.channelCount &&
@@ -85,30 +80,28 @@ export class AudioTrack {
       (this.codecType === AudioCodecType.AAC ||
         this.codecType === AudioCodecType.G711PCMA ||
         this.codecType === AudioCodecType.G711PCMU ||
-        this.codecType === AudioCodecType.OPUS || this.codecType === AudioCodecType.MP3)
+        this.codecType === AudioCodecType.OPUS ||
+        this.codecType === AudioCodecType.MP3)
     )
   }
 
-  /**
-   * @returns {boolean}
-   */
-  hasSample () {
+  hasSample() {
     return !!this.samples.length
   }
 
-  get isEncryption () {
+  get isEncryption() {
     return this.isAudioEncryption
   }
 
-  get firstDts () {
+  get firstDts() {
     return this.samples.length ? this.samples[0].dts : null
   }
 
-  get firstPts () {
+  get firstPts() {
     return this.samples.length ? this.samples[0].pts : null
   }
 
-  get samplesDuration () {
+  get samplesDuration() {
     if (this.samples.length > 0) {
       const first = this.samples[0]
       const last = this.samples[this.samples.length - 1]

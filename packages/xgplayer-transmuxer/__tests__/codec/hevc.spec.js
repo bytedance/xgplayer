@@ -1,4 +1,4 @@
-import { HEVC } from '../../src/codec'
+import { HEVC, NALu } from '../../src/codec'
 
 describe('HEVC', () => {
 
@@ -43,6 +43,90 @@ describe('HEVC', () => {
     expect(result.width).toBe(388)
     expect(result.height).toBe(300)
     expect(result.codec).toBe('hev1.1.6.L93.B0')
+  })
+
+  test('parse slice POC from SPS and PPS state', () => {
+    const sps = Uint8Array.from(Buffer.from(
+      '420103016000000300000300000300000300960000a0021c801e0596452bc9264677efbeced390808080820000030002000003003c10',
+      'hex'
+    ))
+    const pps = Uint8Array.from(Buffer.from('4401c154f8788424', 'hex'))
+    const cra = Uint8Array.from(Buffer.from('2a01add31875bb8786886874', 'hex'))
+
+    const { hvcC } = HEVC.parseSPS(NALu.removeEPB(sps))
+    HEVC.parsePPS(NALu.removeEPB(pps), hvcC)
+    const slice = HEVC.parseSliceHeader(cra, hvcC)
+
+    expect(hvcC.log2MaxPicOrderCntLsb).toBe(8)
+    expect(hvcC.ppsPicParameterSetId).toBe(0)
+    expect(slice).toEqual({
+      nalUnitType: 21,
+      temporalId: 0,
+      sliceType: 2,
+      picOrderCntLsb: 116
+    })
+  })
+
+  const config = {
+    spsSeqParameterSetId: 0,
+    ppsSeqParameterSetId: 0,
+    ppsPicParameterSetId: 0,
+    log2MaxPicOrderCntLsb: 8,
+    numExtraSliceHeaderBits: 0,
+    outputFlagPresentFlag: 0,
+    separateColourPlaneFlag: 0
+  }
+
+  test('parse IDR without a POC field', () => {
+    expect(HEVC.parseSliceHeader(new Uint8Array([38, 1, 0xac]), config)).toEqual({
+      nalUnitType: 19, temporalId: 0, sliceType: 2, picOrderCntLsb: 0
+    })
+  })
+
+  test('retain dimensions when optional SPS POC metadata is truncated', () => {
+    const sps = new Uint8Array([66, 1, 1, ...new Array(12).fill(0), 0xa0, 0x88, 0x45, 0x80])
+    const state = { log2MaxPicOrderCntLsb: 8 }
+    const result = HEVC.parseSPS(sps, state)
+    expect(result.width).toBe(16)
+    expect(result.height).toBe(16)
+    expect(state.log2MaxPicOrderCntLsb).toBeUndefined()
+  })
+
+  test('remove emulation prevention bytes before reading a slice header', () => {
+    const state = { ...config, numExtraSliceHeaderBits: 7, log2MaxPicOrderCntLsb: 16 }
+    const bytes = new Uint8Array([2, 1, 0xc0, 0x40, 0, 0, 3, 1])
+    expect(HEVC.parseSliceHeader(bytes, state)).toEqual(
+      HEVC.parseSliceHeader(NALu.removeEPB(bytes), state)
+    )
+    expect(HEVC.parseSliceHeader(bytes, state)).toBeDefined()
+  })
+
+  test.each([
+    [], [42], [42, 1], [42, 1, 0], [42, 1, 0xac],
+    [170, 1, 0xac, 0], [42, 0, 0xac, 0], [43, 1, 0xac, 0],
+    [42, 2, 0xac, 0], [68, 1, 0xac, 0]
+  ])('ignore unsupported or truncated slice header %j', (...bytes) => {
+    expect(HEVC.parseSliceHeader(Uint8Array.from(bytes), config)).toBeUndefined()
+  })
+
+  test.each([
+    { ppsSeqParameterSetId: 1 },
+    { ppsPicParameterSetId: 1 },
+    { log2MaxPicOrderCntLsb: 33 },
+    { log2MaxPicOrderCntLsb: 0 },
+    { numExtraSliceHeaderBits: 8 }
+  ])('reject incompatible parameter sets %j', override => {
+    expect(HEVC.parseSliceHeader(
+      new Uint8Array([42, 1, 0xac, 0]), { ...config, ...override }
+    )).toBeUndefined()
+  })
+
+  test('ignore truncated PPS without partially overwriting caller state', () => {
+    const state = { ...config }
+    expect(HEVC.parsePPS(new Uint8Array([68, 1, 0x20]), state)).toBeUndefined()
+    expect(state).toEqual(config)
+    expect(HEVC.parsePPS(new Uint8Array([68, 1, 0]), state)).toBeUndefined()
+    expect(HEVC.parsePPS(new Uint8Array([68, 1, 0, 0, 0, 1, 0xff, 0xff, 0xff, 0xff]), state)).toBeUndefined()
   })
 
 })

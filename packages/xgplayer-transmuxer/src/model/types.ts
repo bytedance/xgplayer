@@ -1,11 +1,9 @@
-/** @enum {string} */
 export const TrackType = {
   VIDEO: 'video',
   AUDIO: 'audio',
   METADATA: 'metadata'
 }
 
-/** @enum {string} */
 export const VideoCodecType = {
   AV1: 'av1',
   AVC: 'avc',
@@ -13,7 +11,6 @@ export const VideoCodecType = {
   VVCC: 'vvcC'
 }
 
-/** @enum {string} */
 export const AudioCodecType = {
   AAC: 'aac',
   G711PCMA: 'g7110a',
@@ -22,7 +19,6 @@ export const AudioCodecType = {
   MP3: 'mp3'
 }
 
-/** @enum {string} */
 export const WarningType = {
   LARGE_AV_SHIFT: 'LARGE_AV_SHIFT',
   LARGE_VIDEO_GAP: 'LARGE_VIDEO_GAP',
@@ -31,3 +27,30 @@ export const WarningType = {
   AUDIO_FILLED: 'AUDIO_FILLED',
   AUDIO_DROPPED: 'AUDIO_DROPPED'
 }
+
+export type TrackType = string
+export type VideoCodecType = string
+export type AudioCodecType = string
+export type WarningType = string
+
+export interface TrackWarning {
+  type: WarningType
+  nextDts?: number
+  nextPts?: number
+  firstSampleDts?: number
+  nextSampleDts?: number
+  sampleDuration?: number
+  time?: number
+  dts?: number
+  originDts?: number
+  refSampleDuration?: number
+  videoBaseDts?: number
+  audioBasePts?: number
+  baseDts?: number
+  delta?: number
+  pts?: number
+  originPts?: number
+  count?: number
+}
+
+export type TrackExtension = Record<string, unknown>

@@ -14,6 +14,7 @@ describe('getOption', () => {
     expect(opts.maxJumpDistance).toBe(3)
     expect(opts.startTime).toBe(0)
     expect(opts.mseAttachMode).toBe('auto')
+    expect(opts.fixerConfig.fixHevcDiscontinuity).toBe(false)
     expect(opts.fetchOptions).toBe(undefined)
     expect(opts.isLive).toBe(undefined)
   })
