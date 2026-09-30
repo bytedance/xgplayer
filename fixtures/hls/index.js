@@ -85,10 +85,34 @@ window.onload = () => {
   var dsOption = document.getElementById('option')
 
   dTestPoint.selectedIndex = testPoint
-  dsOption.innerHTML = `<pre>${JSON.stringify(opts, null, 2)}</pre>`
+  renderOptions()
 
   function inp(d) {
     return d.getElementsByTagName('input')[0]
+  }
+
+  function renderOptions() {
+    const pre = document.createElement('pre')
+    pre.textContent = JSON.stringify(opts, null, 2)
+    dsOption.textContent = ''
+    dsOption.appendChild(pre)
+  }
+
+  function renderLines(container, lines) {
+    container.textContent = ''
+    lines.forEach((text) => {
+      const paragraph = document.createElement('p')
+      paragraph.textContent = text
+      container.appendChild(paragraph)
+    })
+  }
+
+  function renderTextWithBreaks(container, text) {
+    container.textContent = ''
+    text.split('<br>').forEach((line, index) => {
+      if (index) container.appendChild(document.createElement('br'))
+      container.appendChild(document.createTextNode(line))
+    })
   }
 
   var player
@@ -101,7 +125,7 @@ window.onload = () => {
     }
     opts[key] = value
     localStorage.setItem('xg:test:hls:opt', JSON.stringify(opts))
-    dsOption.innerHTML = '<pre>' + JSON.stringify(opts, null, 2) + '</pre>'
+    renderOptions()
   }
   function resetOpts() {
     opts = Object.assign({ url: opts.url }, defaultOpt())
@@ -135,8 +159,8 @@ window.onload = () => {
           )
         })
       })
-      dlEvent.innerHTML = ''
-      dlError.innerHTML = ''
+      dlEvent.textContent = ''
+      dlError.textContent = ''
 
       function pushEvent(name, value, container) {
         container = container || dlEvent
@@ -152,14 +176,14 @@ window.onload = () => {
           value = JSON.stringify(value)
         } catch (error) {}
         var record = document.createElement('div')
-        record.innerHTML =
-          '<div class="mb-2"><span class="text-base pr-2 bg-green-500 text-white">' +
-          name +
-          ' / ' +
-          player.video.currentTime +
-          '</span>' +
-          value +
-          '</div>'
+        var content = document.createElement('div')
+        var label = document.createElement('span')
+        content.setAttribute('class', 'mb-2')
+        label.setAttribute('class', 'text-base pr-2 bg-green-500 text-white')
+        label.textContent = `${name} / ${player.video.currentTime}`
+        content.appendChild(label)
+        content.appendChild(document.createTextNode(String(value ?? '')))
+        record.appendChild(content)
         container.prepend(record)
       }
 
@@ -228,8 +252,8 @@ window.onload = () => {
         const streams = hls.streams
         const currentStream = hls.currentStream
         dStreamsContainer.style.display = 'none'
-        dVideoStreams.innerHTML = ''
-        dAudioStreams.innerHTML = ''
+        dVideoStreams.textContent = ''
+        dAudioStreams.textContent = ''
         if (streams.length > 2) {
           dStreamsContainer.style.display = 'block'
           streams.forEach((s) => {
@@ -372,7 +396,7 @@ window.onload = () => {
       }
       break
   }
-  dTestPointDesc.innerHTML = desc
+  renderTextWithBreaks(dTestPointDesc, desc)
 
   inp(doUrl).value = opts.url
   inp(doIsLive).checked = opts.isLive
@@ -508,41 +532,24 @@ window.onload = () => {
         }
         lastPlayback = pq
 
-        dsBuffer.innerHTML =
-          '<p>当前时间：' +
-          t +
-          's</p>' +
-          '<p>剩余缓存时长：' +
-          buf.remaining +
-          's</p>' +
-          '<p>当前时间之前缓存时长：' +
-          buf.behind +
-          's</p>' +
-          '<p>总缓存时长：' +
-          buf.length +
-          's</p>' +
-          '<p>buffers：' +
-          JSON.stringify(buf.buffers) +
-          '</p>'
+        renderLines(dsBuffer, [
+          `当前时间：${t}s`,
+          `剩余缓存时长：${buf.remaining}s`,
+          `当前时间之前缓存时长：${buf.behind}s`,
+          `总缓存时长：${buf.length}s`,
+          `buffers：${JSON.stringify(buf.buffers)}`
+        ])
 
-        dsFrame.innerHTML =
-          '<p>总渲染帧数：' +
-          pq.totalVideoFrames +
-          '</p>' +
-          '<p>掉帧数量：' +
-          pq.droppedVideoFrames +
-          '</p>' +
-          '<p>fps:' +
-          fps +
-          '</p>'
+        renderLines(dsFrame, [
+          `总渲染帧数：${pq.totalVideoFrames}`,
+          `掉帧数量：${pq.droppedVideoFrames}`,
+          `fps:${fps}`
+        ])
 
-        dsSpeed.innerHTML =
-          '<p>当前速度：' +
-          Math.round(sp.speed / (8 * 1024)) +
-          'KB/s</p>' +
-          '<p>平均速度：' +
-          Math.round(sp.avgSpeed / (8 * 1024)) +
-          'KB/s</p>'
+        renderLines(dsSpeed, [
+          `当前速度：${Math.round(sp.speed / (8 * 1024))}KB/s`,
+          `平均速度：${Math.round(sp.avgSpeed / (8 * 1024))}KB/s`
+        ])
       }
     }, 1000)
   })
