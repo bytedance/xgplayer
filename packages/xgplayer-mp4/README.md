@@ -20,7 +20,7 @@ const player = new Player({
     height: window.innerHeight,
     width: window.innerWidth,
     plugins: [Mp4Plugin],
-    mp4plugin: {
+    mp4: {
       maxBufferLength: 30,
       minBufferLength: 10, 
       reqOptions:{
