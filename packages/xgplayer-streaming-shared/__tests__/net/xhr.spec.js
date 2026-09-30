@@ -141,4 +141,22 @@ describe('XhrLoader', () => {
       }
     })
   })
+
+  test('rejects range request when content-length does not match content-range', async () => {
+    MockXMLHttpRequest.nextResponse = {
+      status: 206,
+      headers: 'content-length: 9\r\ncontent-range: bytes 0-9/100',
+      responseURL: 'https://example.com/video.mp4',
+      response: new ArrayBuffer(9)
+    }
+
+    await expect(new XhrLoader().load({
+      url: 'https://example.com/video.mp4',
+      logger,
+      range: [0, 9],
+      responseType: ResponseType.ARRAY_BUFFER
+    })).rejects.toMatchObject({
+      message: 'bad response,content-length does not match content-range'
+    })
+  })
 })
