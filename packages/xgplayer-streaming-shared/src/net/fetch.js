@@ -148,8 +148,12 @@ export class FetchLoader extends EventEmitter {
         if (!response.ok) {
           throw new NetError(url, init, response, 'bad network response')
         }
-        if (this._getRangeResponseMismatchReason(response) || this._shouldAbortRangeRequestForNon206(response)) {
-          const error = new NetError(url, init, response, 'bad response,range request must return 206 unless redirected')
+        const rangeMismatchReason = this._getRangeResponseMismatchReason(response)
+        if (rangeMismatchReason || this._shouldAbortRangeRequestForNon206(response)) {
+          const message = rangeMismatchReason
+            ? `bad response,${rangeMismatchReason}`
+            : 'bad response,range request must return 206 unless redirected'
+          const error = new NetError(url, init, response, message)
           error.options = {index: this._index, range: this._range, vid: this._vid, priOptions: this._priOptions}
           await this.cancel()
           reject(error)
@@ -406,7 +410,9 @@ export class FetchLoader extends EventEmitter {
   }
 
   _getRangeResponseMismatchReason (response) {
-    if (!this._rangeRequestMustReturn206) return false
+    // Whether a declared Content-Range/Content-Length actually matches the
+    // requested bytes is independent of rangeRequestMustReturn206, which
+    // only controls whether a non-206 response is permitted.
     return getRangeResponseMismatchReason(
       this._range,
       response?.headers?.get?.('Content-Range'),
