@@ -2,6 +2,35 @@ import { TextDecoder } from 'util'
 import { UTF8 } from '../../src/utils'
 
 describe('UTF8.decode', () => {
+  // Encoder for the differential oracle. Packs the RAW unicode scalar into
+  // canonical UTF-8. NOTE: the 4-byte form uses the raw 21-bit codepoint
+  // directly (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx) — it must NOT subtract
+  // 0x10000; that is the UTF-16 surrogate-pair offset and would mis-pack the
+  // astral plane (e.g. U+10000 -> F0 80 80 80 instead of F0 90 80 80).
+  const encodeUtf8 = cp => {
+    if (cp < 0x80) return [cp]
+    if (cp < 0x800) return [0xc0 | (cp >> 6), 0x80 | (cp & 0x3f)]
+    if (cp < 0x10000) return [0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f)]
+    return [
+      0xf0 | (cp >> 18),
+      0x80 | ((cp >> 12) & 0x3f),
+      0x80 | ((cp >> 6) & 0x3f),
+      0x80 | (cp & 0x3f),
+    ]
+  }
+  // Surrogate halves (U+D800..U+DFFF) are not encodable in UTF-8. U+FEFF is
+  // skipped because the stream TextDecoder strips a leading BOM whereas this
+  // length-prefixed decoder keeps it.
+  const encodable = cp => !(cp >= 0xd800 && cp <= 0xdfff) && cp !== 0xfeff
+
+  test('encoder packs canonical UTF-8 bytes (fixed vectors)', () => {
+    expect(encodeUtf8(0x10000)).toEqual([0xf0, 0x90, 0x80, 0x80])
+    expect(encodeUtf8(0x10ffff)).toEqual([0xf4, 0x8f, 0xbf, 0xbf])
+    expect(encodeUtf8(0x4e2d)).toEqual([0xe4, 0xb8, 0xad])
+    expect(encodeUtf8(0x80)).toEqual([0xc2, 0x80])
+    for (let cp = 0xd800; cp <= 0xdfff; cp++) expect(encodable(cp)).toBe(false)
+  })
+
   test('passes through ASCII', () => {
     expect(UTF8.decode(new Uint8Array([0x61, 0x62, 0x63]))).toBe('abc')
   })
@@ -78,16 +107,8 @@ describe('UTF8.decode', () => {
 
   test('matches the WHATWG TextDecoder for boundary and sampled codepoints', () => {
     const td = new TextDecoder('utf-8')
-    const encode = cp => {
-      if (cp < 0x80) return [cp]
-      if (cp < 0x800) return [0xc0 | (cp >> 6), 0x80 | (cp & 0x3f)]
-      if (cp < 0x10000) return [0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f)]
-      cp -= 0x10000
-      return [0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f)]
-    }
-    const encodable = cp => !(cp >= 0xd800 && cp <= 0xdfff) && cp !== 0xfeff
     const check = cp => {
-      const bytes = new Uint8Array(encode(cp))
+      const bytes = new Uint8Array(encodeUtf8(cp))
       expect(UTF8.decode(bytes)).toBe(td.decode(bytes))
     }
     // Exhaustively probe just around each sequence-length boundary, where
