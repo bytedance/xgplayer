@@ -27,6 +27,7 @@ export function getAbsoluteUrl (url, parentUrl) {
   if (!parentUrl || !url || REGEXP_ABSOLUTE_URL.test(url)) return url
   const pairs = REGEXP_URL_PAIR.exec(parentUrl)
   if (!pairs) return url
+  if (url[0] === '?') return `${parentUrl.split(/[?#]/)[0]}${url}`
   if (url[0] === '/') return pairs[1] + url
   return pairs[1] + pairs[2] + url
 }

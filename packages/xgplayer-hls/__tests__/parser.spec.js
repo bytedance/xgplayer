@@ -2,6 +2,53 @@ import { M3U8Parser } from '../src/hls/manifest-loader/parser'
 
 describe('m3u8 parser', () => {
 
+  test.each([
+    ['?segment=1.ts', 'https://example.test/live/playlist.m3u8?segment=1.ts'],
+    ['?', 'https://example.test/live/playlist.m3u8?'],
+    ['?segment=1.ts#part', 'https://example.test/live/playlist.m3u8?segment=1.ts#part'],
+    ['?segment=/a/b.ts', 'https://example.test/live/playlist.m3u8?segment=/a/b.ts']
+  ])('resolves a query-only media URL: %s', (uri, expected) => {
+    const ret = M3U8Parser.parse(
+      '#EXTM3U\n#EXT-X-TARGETDURATION:4\n#EXTINF:4,\n' + uri,
+      'https://example.test/live/playlist.m3u8?old=1#old'
+    )
+    expect(ret.segments[0].url).toBe(expected)
+  })
+
+  test('resolves query-only key and map URLs against the playlist file', () => {
+    const ret = M3U8Parser.parse(
+      '#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n' +
+      '#EXT-X-KEY:METHOD=AES-128,URI="?key=example",IV=0x00000000000000000000000000000001\n' +
+      '#EXT-X-MAP:URI="?init=1.mp4"\n#EXTINF:4,\nseg.m4s',
+      'https://example.test/live/playlist.m3u8?old=1#old'
+    )
+    expect(ret.segments[0].key.url).toBe('https://example.test/live/playlist.m3u8?key=example')
+    expect(ret.segments[0].initSegment.url).toBe('https://example.test/live/playlist.m3u8?init=1.mp4')
+  })
+
+  test('resolves query-only variant and rendition URLs against the master file', () => {
+    const ret = M3U8Parser.parse(
+      '#EXTM3U\n' +
+      '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="Audio",URI="?audio=1"\n' +
+      '#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="Subtitles",URI="?subs=1"\n' +
+      '#EXT-X-STREAM-INF:BANDWIDTH=100000,AUDIO="audio",SUBTITLES="subs"\n?variant=1',
+      'https://example.test/live/master.m3u8?old=1#old'
+    )
+    expect(ret.streams[0].url).toBe('https://example.test/live/master.m3u8?variant=1')
+    expect(ret.streams[0].audioStreams[0].url).toBe('https://example.test/live/master.m3u8?audio=1')
+    expect(ret.streams[0].subtitleStreams[0].url).toBe('https://example.test/live/master.m3u8?subs=1')
+  })
+
+  test('resolves a query-only low-latency part URL against the playlist file', () => {
+    const ret = M3U8Parser.parse(
+      '#EXTM3U\n#EXT-X-TARGETDURATION:4\n#EXT-X-PART-INF:PART-TARGET=1\n' +
+      '#EXT-X-PART:DURATION=1,URI="?part=1",INDEPENDENT=YES',
+      'https://example.test/live/playlist.m3u8?old=1#old',
+      true
+    )
+    expect(ret.segments[0].url).toBe('https://example.test/live/playlist.m3u8?part=1')
+  })
+
   test('No #EXTM3U', () => {
     expect(() => {
       M3U8Parser.parse('')
