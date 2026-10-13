@@ -80,6 +80,9 @@ module.exports = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
+    '^xgplayer-mp4-loader$': '<rootDir>/packages/xgplayer-mp4-loader/src/',
+    '^xgplayer-mp4-loader/(.*)$': '<rootDir>/packages/xgplayer-mp4-loader/$1',
+    '^xgplayer-transmuxer/(.*)$': '<rootDir>/packages/xgplayer-transmuxer/$1',
     'xgplayer-streaming-shared': '<rootDir>/packages/xgplayer-streaming-shared/src/',
     'xgplayer-transmuxer': '<rootDir>/packages/xgplayer-transmuxer/src/',
     xgplayer: '<rootDir>/packages/xgplayer/src/',
@@ -148,6 +151,7 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
+    '**/packages/xgplayer-mp4/__tests__/range-loading.spec.js',
     '**/packages/xgplayer/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-dash/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
