@@ -1,0 +1,57 @@
+{
+  "appDesc": {
+    "message": "Zero-intrusion debugging tools for web players: instance discovery, event timeline, buffer/network/log inspection, recording and snapshot export."
+  },
+  "tabOverview": { "message": "Overview" },
+  "tabTimeline": { "message": "Events" },
+  "tabBuffer": { "message": "Buffer" },
+  "tabNetwork": { "message": "Network" },
+  "tabMedia": { "message": "Media" },
+  "tabLogs": { "message": "Logs" },
+  "noInstances": { "message": "No instances" },
+  "statusActive": {
+    "message": "$count$ instances · current #$id$ · events $events$",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "id": { "content": "$2" },
+      "events": { "content": "$3" }
+    }
+  },
+  "statusWaiting": { "message": "Waiting for player instances on the page…" },
+  "overviewEmpty": { "message": "No data for the current instance" },
+  "playerState": { "message": "Player state" },
+  "resolution": { "message": "resolution" },
+  "noData": { "message": "No data" },
+  "bufferedCurrentTime": { "message": "buffered / currentTime" },
+  "bufferedRanges": { "message": "buffered ranges" },
+  "notStream": { "message": "Not a streaming instance, or HLS not ready" },
+  "speedStreamInfo": { "message": "Speed / stream info" },
+  "recentNetEvents": { "message": "Recent network events" },
+  "none": { "message": "None" },
+  "colTime": { "message": "Time" },
+  "colEvent": { "message": "Event" },
+  "colDetail": { "message": "Detail" },
+  "mediaDecode": { "message": "Media / decode" },
+  "abrInternal": { "message": "ABR (enhanced)" },
+  "kernelLogs": { "message": "Kernel logs" },
+  "loggerEnabled": { "message": "Logger enabled" },
+  "debugLevelKey": { "message": "debug level" },
+  "loggerHint": {
+    "message": "Tip: reading the Logger cache requires the player to expose Logger on window; for console logs use the DevTools Console panel."
+  },
+  "loggerLabel": {
+    "message": "Logs: $state$",
+    "placeholders": { "state": { "content": "$1" } }
+  },
+  "on": { "message": "on" },
+  "off": { "message": "off" },
+  "btnRecord": { "message": "● Record" },
+  "btnRecording": { "message": "■ Stop" },
+  "titleRecord": { "message": "Record events" },
+  "btnSnapshot": { "message": "⤓ Snapshot" },
+  "titleSnapshot": { "message": "Export snapshot" },
+  "titleLogger": { "message": "Toggle kernel logs" },
+  "btnClear": { "message": "Clear" },
+  "titleClear": { "message": "Clear events" },
+  "unknownNotExposed": { "message": "unknown / not exposed" }
+}
