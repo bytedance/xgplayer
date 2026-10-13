@@ -1,0 +1,57 @@
+{
+  "appDesc": {
+    "message": "面向 Web 播放器的零侵入调试工具：实例发现、事件时间轴、缓冲/网络/日志检查、录制与快照导出。"
+  },
+  "tabOverview": { "message": "概览" },
+  "tabTimeline": { "message": "事件" },
+  "tabBuffer": { "message": "缓冲" },
+  "tabNetwork": { "message": "网络" },
+  "tabMedia": { "message": "媒体" },
+  "tabLogs": { "message": "日志" },
+  "noInstances": { "message": "无实例" },
+  "statusActive": {
+    "message": "$count$ 个实例 · 当前 #$id$ · 事件 $events$",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "id": { "content": "$2" },
+      "events": { "content": "$3" }
+    }
+  },
+  "statusWaiting": { "message": "等待页面中的播放器实例…" },
+  "overviewEmpty": { "message": "当前实例暂无数据" },
+  "playerState": { "message": "播放器状态" },
+  "resolution": { "message": "分辨率" },
+  "noData": { "message": "无数据" },
+  "bufferedCurrentTime": { "message": "buffered / currentTime" },
+  "bufferedRanges": { "message": "buffered 区间" },
+  "notStream": { "message": "非流媒体实例或 HLS 未就绪" },
+  "speedStreamInfo": { "message": "速度 / 流信息" },
+  "recentNetEvents": { "message": "最近网络事件" },
+  "none": { "message": "暂无" },
+  "colTime": { "message": "时间" },
+  "colEvent": { "message": "事件" },
+  "colDetail": { "message": "详情" },
+  "mediaDecode": { "message": "媒体 / 解码" },
+  "abrInternal": { "message": "ABR (增强)" },
+  "kernelLogs": { "message": "内核日志" },
+  "loggerEnabled": { "message": "Logger 启用" },
+  "debugLevelKey": { "message": "debug 级别" },
+  "loggerHint": {
+    "message": "提示：读取 Logger 缓存需要播放器在 window 上暴露 Logger；console 日志请结合 DevTools Console 面板查看。"
+  },
+  "loggerLabel": {
+    "message": "日志: $state$",
+    "placeholders": { "state": { "content": "$1" } }
+  },
+  "on": { "message": "开" },
+  "off": { "message": "关" },
+  "btnRecord": { "message": "● 录制" },
+  "btnRecording": { "message": "■ 停止" },
+  "titleRecord": { "message": "录制事件" },
+  "btnSnapshot": { "message": "⤓ 快照" },
+  "titleSnapshot": { "message": "导出快照" },
+  "titleLogger": { "message": "开关内核日志" },
+  "btnClear": { "message": "清空" },
+  "titleClear": { "message": "清空事件" },
+  "unknownNotExposed": { "message": "未知/未暴露" }
+}
