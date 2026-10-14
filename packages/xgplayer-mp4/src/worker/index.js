@@ -1,41 +1,58 @@
-import EventEmitter from 'eventemitter3'
 import TransmuxerWorker from './transmuxerworker?worker&inline'
 
-export default class TransmuxerWorkerControl extends EventEmitter {
-  constructor (options) {
-    super()
-    this.openlog = options.openLog
-    this.codecType = options.codecType
-    this.supportHevc = options.supportHevc
+/**
+ * Worker 转封装控制器：把 mp4→fmp4 的 demux/remux 放到 Worker 线程执行，避免主线程卡顿。
+ * 对外提供 Promise 化的 transmux 接口，内部用自增 id 关联请求与回包。
+ */
+export default class TransmuxerWorkerControl {
+  constructor() {
+    this._id = 0
+    this._pending = new Map()
     this.worker = new TransmuxerWorker()
     this.worker.onmessage = (e) => {
-      this.emit(e.data.method, e.data)
+      const { method, id, result, error } = e.data
+      if (method !== 'transmux') return
+      const task = this._pending.get(id)
+      if (!task) return
+      this._pending.delete(id)
+      if (error) task.reject(new Error(error.message))
+      else task.resolve(result)
     }
-    this.worker.postMessage({
-      method: 'init',
-      id: options.id || 0,
-      args: { openlog: this.openlog, supportHevc: this.supportHevc, codecType: this.codecType}
+    this.worker.postMessage({ method: 'init' })
+  }
+
+  transmux(data, dataStart, videoIndexRange, audioIndexRange, moov) {
+    if (!this.worker) return Promise.reject(new Error('worker destroyed'))
+    const id = ++this._id
+    // 拷贝一份用于 transfer，避免影响调用方持有的 data
+    const buffer = data.slice().buffer
+    return new Promise((resolve, reject) => {
+      this._pending.set(id, { resolve, reject })
+      this.worker.postMessage(
+        {
+          method: 'transmux',
+          id,
+          buffer,
+          args: { dataStart, videoIndexRange, audioIndexRange, moov }
+        },
+        [buffer]
+      )
     })
   }
 
-  transmux (id, data, start, videoIdx, audioIdx, moov, useEME, kidValue, context) {
-    const buffer = data.buffer
-    this.worker && this.worker.postMessage({
-      method: 'transmux',
-      id,
-      buffer,
-      args: { start, videoIdx, audioIdx, moov, useEME, kidValue, context}
-    },[buffer])
+  reset() {
+    this._rejectAll('worker reset')
+    this.worker?.postMessage({ method: 'reset' })
   }
 
-  reset () {
-    this.worker && this.worker.postMessage({
-      method: 'reset'
-    })
+  destroy() {
+    this._rejectAll('worker destroyed')
+    this.worker?.terminate()
+    this.worker = null
   }
 
-  destroy () {
-    this.worker && this.worker.terminate()
+  _rejectAll(reason) {
+    this._pending.forEach((task) => task.reject(new Error(reason)))
+    this._pending.clear()
   }
-
 }

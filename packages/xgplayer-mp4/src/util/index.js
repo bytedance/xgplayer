@@ -1,36 +1,28 @@
 /* eslint-disable camelcase */
 const util = {}
 
-util.nowTime = function () {
+util.nowTime = () => {
   try {
     return parseInt(performance.now(), 10)
-  } catch (e) {
+  } catch {
     return new Date().getTime()
   }
 }
 
-
-util.concatData = function (video, audio) {
-  const resBuffers = []
-  let bufferSize = 0
-  if (video) {
-    resBuffers.push(video)
-  }
-  if (audio) {
-    resBuffers.push(audio)
-  }
-  resBuffers.every(item => {
-    item && (bufferSize += item.byteLength)
-    return true
+/**
+ * 合并音视频两段 Uint8Array（任一为空则跳过）。
+ */
+util.concatData = (video, audio) => {
+  const buffers = [video, audio].filter(Boolean)
+  let size = 0
+  buffers.forEach((item) => {
+    size += item.byteLength
   })
-  const buffer = new Uint8Array(bufferSize)
+  const buffer = new Uint8Array(size)
   let offset = 0
-  resBuffers.every(item => {
-    if (item) {
-      buffer.set(item, offset)
-      offset += item.byteLength
-    }
-    return true
+  buffers.forEach((item) => {
+    buffer.set(item, offset)
+    offset += item.byteLength
   })
   return buffer
 }

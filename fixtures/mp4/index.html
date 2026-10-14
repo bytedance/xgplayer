@@ -97,14 +97,20 @@
     // },
     height: window.innerHeight -300,
     width: window.innerWidth,
-    // plugins: [Mp4Plugin],
-    // mp4plugin: {
-    //   // enableWorker:true,
-    //   disableBufferBreakCheck:true,
-    //   memoryOpt:true,
-    // }
-    waitingInBufferTimeOut: 5000,
     plugins: [Mp4Plugin],
+    // mp4 插件配置（key 为 'mp4'）
+    mp4: {
+      // enableWorker: true,          // demux/remux 放到 Worker 线程
+      // preferMMS: true,             // iOS 17.1+ / Safari 使用 ManagedMediaSource（issue #1932）
+      // closeDowngrade: false,       // 出错时是否关闭「降级到原生 video」
+      // disableBufferBreakCheck: false,
+      // waitingInBufferTimeOut: 5000,
+      // reqOptions: {                // 透传给 loader 的请求配置
+      //   mode: 'cors',
+      //   method: 'GET',
+      //   headers: { 'x-test-header': 'rrrr' }
+      // }
+    }
   });
   window.player = player
   window.player.on('networkError', (err) => {
