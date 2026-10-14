@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "default_locale": "en",
   "description": "__MSG_appDesc__",
-  "minimum_chrome_version": "102",
+  "minimum_chrome_version": "111",
   "devtools_page": "src/devtools/devtools.html",
   "background": {
     "service_worker": "src/background/service-worker.js",
@@ -15,13 +15,14 @@
       "matches": ["<all_urls>"],
       "all_frames": true,
       "run_at": "document_start",
-      "js": ["src/content/content-script.js"]
-    }
-  ],
-  "web_accessible_resources": [
+      "world": "MAIN",
+      "js": ["src/inject/inject.js"]
+    },
     {
-      "resources": ["src/inject/inject.js"],
-      "matches": ["<all_urls>"]
+      "matches": ["<all_urls>"],
+      "all_frames": true,
+      "run_at": "document_start",
+      "js": ["src/content/content-script.js"]
     }
   ],
   "action": {
