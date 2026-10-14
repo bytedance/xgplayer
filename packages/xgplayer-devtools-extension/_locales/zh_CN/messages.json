@@ -24,13 +24,6 @@
   "noData": { "message": "无数据" },
   "bufferedCurrentTime": { "message": "buffered / currentTime" },
   "bufferedRanges": { "message": "buffered 区间" },
-  "notStream": { "message": "非流媒体实例或 HLS 未就绪" },
-  "speedStreamInfo": { "message": "速度 / 流信息" },
-  "recentNetEvents": { "message": "最近网络事件" },
-  "none": { "message": "暂无" },
-  "colTime": { "message": "时间" },
-  "colEvent": { "message": "事件" },
-  "colDetail": { "message": "详情" },
   "mediaDecode": { "message": "媒体 / 解码" },
   "abrInternal": { "message": "ABR (增强)" },
   "kernelLogs": { "message": "内核日志" },
@@ -45,13 +38,18 @@
   },
   "on": { "message": "开" },
   "off": { "message": "关" },
-  "btnRecord": { "message": "● 录制" },
-  "btnRecording": { "message": "■ 停止" },
   "titleRecord": { "message": "录制事件" },
-  "btnSnapshot": { "message": "⤓ 快照" },
+  "titleRecording": { "message": "停止录制" },
   "titleSnapshot": { "message": "导出快照" },
   "titleLogger": { "message": "开关内核日志" },
-  "btnClear": { "message": "清空" },
   "titleClear": { "message": "清空事件" },
-  "unknownNotExposed": { "message": "未知/未暴露" }
+  "evtSearchPlaceholder": { "message": "按事件名或内容过滤…" },
+  "collapseAll": { "message": "全部折叠" },
+  "copy": { "message": "复制" },
+  "copied": { "message": "已复制" },
+  "unknownNotExposed": { "message": "未知/未暴露" },
+  "netPendingTitle": { "message": "网络 — 待施工" },
+  "netPendingDesc": {
+    "message": "真实请求观测（fetch / XHR）尚未实现。此处不展示播放器的 load/speed 事件，因为它们不是真实的网络请求。"
+  }
 }

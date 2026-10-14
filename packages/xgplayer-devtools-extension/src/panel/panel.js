@@ -10,6 +10,15 @@
   const PV = 1
   const tabId = chrome.devtools.inspectedWindow.tabId
 
+  // Toolbar glyphs — icon-only buttons keep the top bar compact in narrow docks.
+  const ICON = {
+    record: '●',
+    recording: '■',
+    snapshot: '⤓',
+    logger: '✎',
+    clear: '🗑'
+  }
+
   // Localized string lookup — follows the DevTools/browser UI language via
   // chrome.i18n (locales in _locales/*). Falls back to the key if missing.
   const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key
@@ -32,6 +41,7 @@
       abr: true,
       other: true
     },
+    query: '',
     selectedEvent: null
   }
 
@@ -56,6 +66,9 @@
       setTimeout(connect, 500)
     })
     send('ping')
+    // Ask the always-on probe for the event history captured before this panel
+    // connected (DevTools may be opened long after playback started).
+    send('request-replay')
   }
 
   function send(type, payload, playerId) {
@@ -78,7 +91,8 @@
   // ---------------------------------------------------------- page messages
   function handlePageMessage(data) {
     switch (data.type) {
-      case 'instances':
+      case 'instances': {
+        const prevSelected = state.selectedId
         state.instances = data.payload.instances || []
         if (
           !state.selectedId ||
@@ -90,15 +104,25 @@
             null
         }
         renderInstances()
-        renderActive()
+        // Periodic instance pushes must not rebuild the main view, or they would
+        // wipe the Events list every ~1.5s (collapsing an expanded row, resetting
+        // scroll). Only re-render when the selected instance actually changed.
+        if (state.selectedId !== prevSelected) renderActive()
         renderStatus()
         break
+      }
       case 'metrics':
         state.metrics[data.payload.playerId] = data.payload.metrics
-        if (data.payload.playerId === state.selectedId) renderActive()
+        // Metrics feed Overview/Buffer/Media only; never re-render on the Events
+        // tab, or the ~1s metrics tick would collapse any expanded row.
+        if (data.payload.playerId === state.selectedId && state.activeTab !== 'timeline')
+          renderActive()
         break
       case 'event':
         pushEvent(data.payload)
+        break
+      case 'replay':
+        mergeReplay((data.payload && data.payload.events) || [])
         break
       case 'logs':
         state.logs = data.payload || {}
@@ -117,8 +141,45 @@
   function pushEvent(evt) {
     state.events.push(evt)
     if (state.events.length > state.maxEvents) state.events.shift()
-    if (state.activeTab === 'timeline') renderTimelineIncremental()
+    if (state.activeTab === 'timeline' && isCurrentInstance(evt))
+      renderTimelineIncremental(evt)
     updateTabBadges()
+  }
+
+  // Merge the probe's pre-connection history (replay) into the live buffer.
+  // De-dupe by ts+type+playerId so a reconnect — or replay overlapping with
+  // live events already arriving — never double-counts. Sort by ts to keep the
+  // timeline ordered, then do one full re-render (batched insert, unlike the
+  // per-event incremental path).
+  function mergeReplay(events) {
+    if (!events.length) return
+    const seen = new Set(state.events.map((e) => e.ts + '|' + e.type + '|' + e.playerId))
+    let added = 0
+    events.forEach((e) => {
+      const key = e.ts + '|' + e.type + '|' + e.playerId
+      if (seen.has(key)) return
+      seen.add(key)
+      state.events.push(e)
+      added++
+    })
+    if (!added) return
+    state.events.sort((a, b) => a.ts - b.ts)
+    if (state.events.length > state.maxEvents)
+      state.events.splice(0, state.events.length - state.maxEvents)
+    if (state.activeTab === 'timeline') renderTimelineFull()
+    updateTabBadges()
+    renderStatus()
+  }
+
+  // Events are stored for every instance; views scope to the selected one so
+  // switching instances shows only that instance's events (matching the other
+  // per-instance tabs). Events without a playerId (global) are always shown.
+  function isCurrentInstance(evt) {
+    return evt.playerId == null || String(evt.playerId) === String(state.selectedId)
+  }
+
+  function currentEvents() {
+    return state.events.filter(isCurrentInstance)
   }
 
   // ----------------------------------------------------------------- render
@@ -139,6 +200,24 @@
     return (
       d.toLocaleTimeString('en-GB') + '.' + String(d.getMilliseconds()).padStart(3, '0')
     )
+  }
+  // Relative gap to the previous event — the number debuggers actually read.
+  const fmtDelta = (ms) =>
+    ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(2) + 's'
+  // Copy to clipboard with a brief inline confirmation on the trigger button.
+  function copyText(text, btn) {
+    try {
+      navigator.clipboard.writeText(text)
+      if (btn) {
+        const prev = btn.textContent
+        btn.textContent = t('copied')
+        setTimeout(() => {
+          btn.textContent = prev
+        }, 1200)
+      }
+    } catch {
+      /* clipboard unavailable */
+    }
   }
   const num = (v, d) =>
     typeof v === 'number' && isFinite(v) ? v.toFixed(d == null ? 2 : d) : '—'
@@ -162,9 +241,18 @@
   }
 
   function updateTabBadges() {
+    const evts = currentEvents()
+    const hasError = evts.some((e) => e.category === 'error')
     document.querySelectorAll('[data-badge]').forEach((b) => {
-      if (b.dataset.badge === 'timeline') b.textContent = state.events.length || ''
-      else b.textContent = ''
+      if (b.dataset.badge === 'timeline') {
+        b.textContent = evts.length || ''
+        // Red-tint the count when the current instance has error events, so the
+        // Events tab flags problems at a glance without opening the list.
+        b.classList.toggle('error', hasError)
+      } else {
+        b.textContent = ''
+        b.classList.remove('error')
+      }
     })
   }
 
@@ -175,24 +263,42 @@
       bar.appendChild(el('span', 'muted', t('noInstances')))
       return
     }
-    state.instances.forEach((inst) => {
-      const chip = el(
-        'div',
-        'inst-chip' +
-          (inst.active ? ' active' : '') +
-          (inst.id === state.selectedId ? ' selected' : '')
-      )
+    // Single instance: a compact text line. Multiple: a dropdown so the top bar
+    // stays one row high regardless of instance count (no horizontal scrolling).
+    if (state.instances.length === 1) {
+      const inst = state.instances[0]
+      const line = el('div', 'inst-single' + (inst.active ? ' active' : ''))
       const url = (inst.overview && inst.overview.url) || ''
-      chip.innerHTML =
-        '<span>#' + esc(inst.id) + '</span><small>' + esc(shortUrl(url)) + '</small>'
-      chip.onclick = () => {
-        state.selectedId = inst.id
-        send('select-instance', null, inst.id)
-        renderInstances()
-        renderActive()
-      }
-      bar.appendChild(chip)
+      line.innerHTML =
+        '<span class="id">#' +
+        esc(inst.id) +
+        '</span>' +
+        '<span class="url">' +
+        esc(shortUrl(url)) +
+        '</span>'
+      bar.appendChild(line)
+      return
+    }
+    const sel = el('select', 'inst-select')
+    state.instances.forEach((inst) => {
+      const url = (inst.overview && inst.overview.url) || ''
+      const opt = el('option')
+      opt.value = inst.id
+      opt.textContent = (inst.active ? '● ' : '') + '#' + inst.id + ' · ' + shortUrl(url)
+      if (inst.id === state.selectedId) opt.selected = true
+      sel.appendChild(opt)
     })
+    sel.onchange = (e) => selectInstance(e.target.value)
+    bar.appendChild(sel)
+  }
+
+  function selectInstance(id) {
+    state.selectedId = id
+    send('select-instance', null, id)
+    renderInstances()
+    renderActive()
+    renderStatus()
+    updateTabBadges()
   }
 
   function shortUrl(u) {
@@ -210,7 +316,7 @@
       ? t('statusActive', [
           String(state.instances.length),
           String(state.selectedId || '-'),
-          String(state.events.length)
+          String(currentEvents().length)
         ])
       : t('statusWaiting')
   }
@@ -233,7 +339,7 @@
         break
       case 'network':
         c.innerHTML = ''
-        c.appendChild(viewNetwork(m))
+        c.appendChild(viewNetwork())
         break
       case 'media':
         c.innerHTML = ''
@@ -306,6 +412,7 @@
   // ---- Timeline
   function viewTimelineShell() {
     const wrap = el('div')
+    const toolbar = el('div', 'evt-toolbar')
     const filters = el('div', 'evt-filters')
     Object.keys(state.filters).forEach((cat) => {
       const lbl = el('label')
@@ -319,43 +426,92 @@
         '</span>'
       lbl.querySelector('input').onchange = (e) => {
         state.filters[cat] = e.target.checked
-        renderTimelineFull()
+        renderTimelineRows()
       }
       filters.appendChild(lbl)
     })
-    wrap.appendChild(filters)
+    toolbar.appendChild(filters)
+    const search = el('input', 'evt-search')
+    search.type = 'search'
+    search.placeholder = t('evtSearchPlaceholder')
+    search.value = state.query
+    // Re-filter rows only (not the whole shell) so the input keeps focus while typing.
+    search.oninput = (e) => {
+      state.query = e.target.value
+      renderTimelineRows()
+    }
+    toolbar.appendChild(search)
+    const collapse = el('button', 'btn evt-collapse', t('collapseAll'))
+    collapse.onclick = () =>
+      document.querySelectorAll('.evt-detail').forEach((d) => d.remove())
+    toolbar.appendChild(collapse)
+    wrap.appendChild(toolbar)
     const list = el('div', 'evt-list')
     list.id = 'evtList'
     wrap.appendChild(list)
     return wrap
   }
 
+  // Current-instance events after category + text-query filtering.
+  function filteredEvents() {
+    const q = state.query.trim().toLowerCase()
+    return currentEvents().filter((e) => {
+      if (state.filters[e.category] === false) return false
+      if (!q) return true
+      const hay = (e.type + ' ' + JSON.stringify(e.data || '')).toLowerCase()
+      return hay.indexOf(q) !== -1
+    })
+  }
+
   function renderTimelineFull() {
     const c = $('#content')
     c.innerHTML = ''
     c.appendChild(viewTimelineShell())
+    renderTimelineRows()
+  }
+
+  // Rebuild only the row list (keeps the toolbar/search focus intact). Relative
+  // time (+Δ) is computed against the previous visible row in this instance.
+  function renderTimelineRows() {
     const list = $('#evtList')
-    const rows = state.events.filter((e) => state.filters[e.category] !== false)
-    rows.slice(-800).forEach((e) => list.appendChild(evtRow(e)))
+    if (!list) return
+    list.innerHTML = ''
+    const rows = filteredEvents().slice(-800)
+    let prevTs = null
+    rows.forEach((e) => {
+      list.appendChild(evtRow(e, prevTs))
+      prevTs = e.ts
+    })
     list.scrollTop = list.scrollHeight
   }
 
-  function renderTimelineIncremental() {
+  function renderTimelineIncremental(e) {
     const list = $('#evtList')
     if (!list) return renderTimelineFull()
-    const e = state.events[state.events.length - 1]
-    if (state.filters[e.category] === false) return
+    if (!e || state.filters[e.category] === false) return
+    const q = state.query.trim().toLowerCase()
+    if (q) {
+      const hay = (e.type + ' ' + JSON.stringify(e.data || '')).toLowerCase()
+      if (hay.indexOf(q) === -1) return
+    }
     const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 40
-    list.appendChild(evtRow(e))
+    const prevTs = list.lastElementChild ? Number(list.lastElementChild.dataset.ts) : null
+    list.appendChild(evtRow(e, prevTs))
     if (atBottom) list.scrollTop = list.scrollHeight
   }
 
-  function evtRow(e) {
+  function evtRow(e, prevTs) {
     const row = el('div', 'evt-row')
+    row.dataset.ts = e.ts
+    // Timestamp + relative time (+Δ) form one grouped time cell (.evt-time), so
+    // the delta reads as part of the timestamp and never overflows into category.
+    const delta = prevTs != null ? '+' + fmtDelta(e.ts - prevTs) : ''
     row.innerHTML =
-      '<span class="t">' +
+      '<span class="evt-time"><span class="t">' +
       fmtTime(e.ts) +
-      '</span>' +
+      '</span><span class="dt">' +
+      delta +
+      '</span></span>' +
       '<span class="cat-' +
       e.category +
       '">' +
@@ -370,10 +526,23 @@
         existing.remove()
         return
       }
-      const d = el('div', 'evt-detail', esc(JSON.stringify(e.data, null, 2)))
-      row.after(d)
+      row.after(evtDetail(e))
     }
     return row
+  }
+
+  // Expandable JSON payload with a copy button (top-right).
+  function evtDetail(e) {
+    const d = el('div', 'evt-detail')
+    const json = JSON.stringify(e.data, null, 2)
+    const copy = el('button', 'copy-btn', t('copy'))
+    copy.onclick = (ev) => {
+      ev.stopPropagation()
+      copyText(json, copy)
+    }
+    d.appendChild(copy)
+    d.appendChild(el('pre', 'evt-detail-pre', esc(json)))
+    return d
   }
 
   // ---- Buffer
@@ -422,60 +591,15 @@
   }
 
   // ---- Network
-  function viewNetwork(m) {
+  // Under construction: the real fetch/xhr observation approach is undecided.
+  // We intentionally do NOT show player "load*"/speed events here, as they are
+  // not real requests and would misrepresent network activity.
+  function viewNetwork() {
     const wrap = el('div')
-    if (!m.hls) {
-      wrap.appendChild(el('div', 'empty', t('notStream')))
-      return wrap
-    }
     const card = el('div', 'card')
-    card.appendChild(el('h3', null, t('speedStreamInfo')))
-    card.appendChild(
-      kv({
-        isLive: m.hls.isLive,
-        speedInfo: m.hls.speedInfo ? JSON.stringify(m.hls.speedInfo) : '—',
-        baseDts: m.hls.baseDts,
-        stats: m.hls.stats ? JSON.stringify(m.hls.stats).slice(0, 200) : '—'
-      })
-    )
+    card.appendChild(el('h3', null, t('netPendingTitle')))
+    card.appendChild(el('div', 'muted', t('netPendingDesc')))
     wrap.appendChild(card)
-    // recent network events table
-    const netEvents = state.events
-      .filter((e) => e.category === 'network')
-      .slice(-50)
-      .reverse()
-    const t2 = el('div', 'card')
-    t2.appendChild(el('h3', null, t('recentNetEvents')))
-    if (!netEvents.length) t2.appendChild(el('div', 'muted', t('none')))
-    else {
-      const tbl = el(
-        'table',
-        'tbl',
-        '<tr><th>' +
-          esc(t('colTime')) +
-          '</th><th>' +
-          esc(t('colEvent')) +
-          '</th><th>' +
-          esc(t('colDetail')) +
-          '</th></tr>'
-      )
-      netEvents.forEach((e) => {
-        const tr = el(
-          'tr',
-          null,
-          '<td>' +
-            fmtTime(e.ts) +
-            '</td><td>' +
-            esc(e.type) +
-            '</td><td>' +
-            esc(JSON.stringify(e.data).slice(0, 120)) +
-            '</td>'
-        )
-        tbl.appendChild(tr)
-      })
-      t2.appendChild(tbl)
-    }
-    wrap.appendChild(t2)
     return wrap
   }
 
@@ -542,14 +666,16 @@
   // ------------------------------------------------------- toolbar actions
   function updateLoggerBtn() {
     const b = $('#btnLogger')
-    b.textContent = t('loggerLabel', [state.logs.enabled ? t('on') : t('off')])
+    b.classList.toggle('recording', !!state.logs.enabled)
+    b.title = t('loggerLabel', [state.logs.enabled ? t('on') : t('off')])
   }
 
   function toggleRecord() {
     state.recording = !state.recording
     const b = $('#btnRecord')
     b.classList.toggle('recording', state.recording)
-    b.textContent = state.recording ? t('btnRecording') : t('btnRecord')
+    b.textContent = state.recording ? ICON.recording : ICON.record
+    b.title = state.recording ? t('titleRecording') : t('titleRecord')
     send(state.recording ? 'start-record' : 'stop-record')
   }
 
@@ -584,7 +710,8 @@
     }
   }
 
-  // Fill the static HTML labels so markup stays language-neutral.
+  // Fill the static toolbar icons + tooltips so markup stays language-neutral.
+  // Buttons are icon-only (DevTools convention); the i18n label becomes the title.
   function localizeStatic() {
     const set = (sel, text, title) => {
       const n = $(sel)
@@ -592,10 +719,10 @@
       n.textContent = text
       if (title) n.title = title
     }
-    set('#btnRecord', t('btnRecord'), t('titleRecord'))
-    set('#btnSnapshot', t('btnSnapshot'), t('titleSnapshot'))
-    set('#btnLogger', t('loggerLabel', [t('off')]), t('titleLogger'))
-    set('#btnClear', t('btnClear'), t('titleClear'))
+    set('#btnRecord', ICON.record, t('titleRecord'))
+    set('#btnSnapshot', ICON.snapshot, t('titleSnapshot'))
+    set('#btnLogger', ICON.logger, t('titleLogger'))
+    set('#btnClear', ICON.clear, t('titleClear'))
     set('#statusbar', t('statusWaiting'))
   }
 
