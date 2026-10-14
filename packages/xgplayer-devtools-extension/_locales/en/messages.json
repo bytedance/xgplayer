@@ -24,13 +24,6 @@
   "noData": { "message": "No data" },
   "bufferedCurrentTime": { "message": "buffered / currentTime" },
   "bufferedRanges": { "message": "buffered ranges" },
-  "notStream": { "message": "Not a streaming instance, or HLS not ready" },
-  "speedStreamInfo": { "message": "Speed / stream info" },
-  "recentNetEvents": { "message": "Recent network events" },
-  "none": { "message": "None" },
-  "colTime": { "message": "Time" },
-  "colEvent": { "message": "Event" },
-  "colDetail": { "message": "Detail" },
   "mediaDecode": { "message": "Media / decode" },
   "abrInternal": { "message": "ABR (enhanced)" },
   "kernelLogs": { "message": "Kernel logs" },
@@ -45,13 +38,18 @@
   },
   "on": { "message": "on" },
   "off": { "message": "off" },
-  "btnRecord": { "message": "● Record" },
-  "btnRecording": { "message": "■ Stop" },
   "titleRecord": { "message": "Record events" },
-  "btnSnapshot": { "message": "⤓ Snapshot" },
+  "titleRecording": { "message": "Stop recording" },
   "titleSnapshot": { "message": "Export snapshot" },
   "titleLogger": { "message": "Toggle kernel logs" },
-  "btnClear": { "message": "Clear" },
   "titleClear": { "message": "Clear events" },
-  "unknownNotExposed": { "message": "unknown / not exposed" }
+  "evtSearchPlaceholder": { "message": "Filter events by type or payload…" },
+  "collapseAll": { "message": "Collapse all" },
+  "copy": { "message": "Copy" },
+  "copied": { "message": "Copied" },
+  "unknownNotExposed": { "message": "unknown / not exposed" },
+  "netPendingTitle": { "message": "Network — under construction" },
+  "netPendingDesc": {
+    "message": "Real request observation (fetch / XHR) is not implemented yet. Player load/speed events are not shown here because they are not real network requests."
+  }
 }

@@ -46,12 +46,18 @@ body {
 
 .topbar {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
   padding: 6px 10px;
   background: var(--bg-alt);
   border-bottom: 1px solid var(--border);
   flex: none;
+}
+.topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 .brand {
   font-weight: 600;
@@ -62,34 +68,47 @@ body {
 }
 .instances {
   display: flex;
+  align-items: center;
   gap: 6px;
   flex: 1;
-  overflow-x: auto;
+  min-width: 0;
 }
-.inst-chip {
-  display: flex;
-  flex-direction: column;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
+.inst-select {
+  max-width: 100%;
   background: var(--bg-elev);
-  white-space: nowrap;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 12px;
+  cursor: pointer;
 }
-.inst-chip.selected {
+.inst-select:hover {
   border-color: var(--brand);
 }
-.inst-chip.active::before {
+.inst-single {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.inst-single .id {
+  font-weight: 600;
+}
+.inst-single .url {
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inst-single.active .id::before {
   content: "● ";
   color: var(--brand);
-}
-.inst-chip small {
-  color: var(--text-dim);
 }
 .actions {
   display: flex;
   gap: 6px;
-  flex: none;
+  flex-wrap: wrap;
 }
 .btn {
   background: var(--bg-elev);
@@ -102,6 +121,11 @@ body {
 }
 .btn:hover {
   border-color: var(--brand);
+}
+.icon-btn {
+  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 1;
 }
 .btn.recording {
   color: var(--error);
@@ -132,6 +156,10 @@ body {
   border-radius: 8px;
   padding: 0 6px;
   font-size: 10px;
+}
+.tab .badge.error {
+  background: var(--error);
+  color: #fff;
 }
 
 .content {
@@ -182,10 +210,16 @@ body {
 }
 
 /* timeline */
+.evt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
 .evt-filters {
   display: flex;
   gap: 6px;
-  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 .evt-filters label {
@@ -193,12 +227,29 @@ body {
   align-items: center;
   gap: 3px;
 }
+.evt-search {
+  flex: 1;
+  min-width: 120px;
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.evt-search:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+.evt-collapse {
+  flex: none;
+}
 .evt-list {
   font-family: var(--mono);
 }
 .evt-row {
   display: grid;
-  grid-template-columns: 90px 72px 1fr;
+  grid-template-columns: 150px 72px 1fr;
   gap: 8px;
   padding: 2px 4px;
   border-bottom: 1px solid var(--border);
@@ -207,8 +258,18 @@ body {
 .evt-row:hover {
   background: var(--bg-elev);
 }
+.evt-time {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
 .evt-row .t {
   color: var(--text-dim);
+}
+.evt-row .dt {
+  color: var(--text-dim);
+  opacity: 0.7;
 }
 .cat-error {
   color: var(--error);
@@ -223,11 +284,33 @@ body {
   color: var(--brand);
 }
 .evt-detail {
+  position: relative;
   background: var(--bg-elev);
   padding: 6px 8px;
+}
+.evt-detail-pre {
+  margin: 0;
+  padding-right: 48px;
   white-space: pre-wrap;
+  word-break: break-all;
   font-family: var(--mono);
   font-size: 11px;
+}
+.copy-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--bg-alt);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.copy-btn:hover {
+  color: var(--text);
+  border-color: var(--brand);
 }
 
 /* buffer bar */
@@ -270,4 +353,22 @@ table.tbl th {
   position: sticky;
   top: 0;
   background: var(--bg-alt);
+}
+
+/* Narrow docks (bottom-docked DevTools / small windows): stack the key/value
+   grids and drop the event category column so rows stay readable. */
+@media (max-width: 480px) {
+  .kv {
+    grid-template-columns: 1fr;
+    gap: 0 10px;
+  }
+  .kv dt {
+    margin-top: 4px;
+  }
+  .evt-row {
+    grid-template-columns: 150px 1fr;
+  }
+  .evt-row [class^="cat-"] {
+    display: none;
+  }
 }
