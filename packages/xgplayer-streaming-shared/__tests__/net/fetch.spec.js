@@ -123,4 +123,29 @@ describe('FetchLoader', () => {
     })
     expect(arrayBuffer).not.toHaveBeenCalled()
   })
+
+  test('rejects range request when content-length does not match content-range', async () => {
+    const arrayBuffer = jest.fn(async () => new ArrayBuffer(9))
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 206,
+      redirected: false,
+      url: 'https://example.com/video.mp4',
+      headers: createHeaders({
+        'content-length': '9',
+        'content-range': 'bytes 0-9/100'
+      }),
+      arrayBuffer
+    }))
+
+    await expect(new FetchLoader().load({
+      url: 'https://example.com/video.mp4',
+      logger,
+      range: [0, 9],
+      responseType: ResponseType.ARRAY_BUFFER
+    })).rejects.toMatchObject({
+      message: 'bad response,content-length does not match content-range'
+    })
+    expect(arrayBuffer).not.toHaveBeenCalled()
+  })
 })
