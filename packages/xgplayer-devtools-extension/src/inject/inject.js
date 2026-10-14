@@ -18,6 +18,7 @@
   const OUT = {
     INSTANCES: 'instances',
     EVENT: 'event',
+    REPLAY: 'replay',
     METRICS: 'metrics',
     LOGS: 'logs',
     SNAPSHOT: 'snapshot',
@@ -30,6 +31,7 @@
     START_RECORD: 'start-record',
     STOP_RECORD: 'stop-record',
     REQUEST_SNAPSHOT: 'request-snapshot',
+    REQUEST_REPLAY: 'request-replay',
     INVOKE: 'invoke',
     PING: 'ping'
   }
@@ -446,10 +448,12 @@
     if (type === 'error' || /error|exception|lowdecode|failed/i.test(type)) return 'error'
     if (/buffer|append|remove|sourcebuffer|mediasource|eos|gap|overlap|dts/i.test(type))
       return 'buffer'
-    if (/ttfb|load|speed|retry|switchurl/i.test(type)) return 'network'
+    // Network = player network-layer signals only (prefixed core.* / speed / retry).
+    // Native media events (loadstart/loadeddata/loadedmetadata) are playback, not network.
+    if (/ttfb|core\.load|speed|retry|switchurl/i.test(type)) return 'network'
     if (/definition|abr/i.test(type)) return 'abr'
     if (
-      /seek|waiting|stalled|play|pause|canplay|ended|timeupdate|ratechange|replay/i.test(
+      /seek|waiting|stalled|play|pause|canplay|ended|load|timeupdate|ratechange|replay/i.test(
         type
       )
     )
@@ -458,9 +462,13 @@
   }
 
   // ------------------------------------------------------------------ recorder
-  const recorder = { active: false, buffer: [], startedAt: 0, max: 20000 }
+  // Always-on bounded ring buffer of recent events. Because native media events
+  // (loadstart/loadedmetadata/canplay/…) are one-shot and the player bus does
+  // not replay them, the probe records from page load so a panel that connects
+  // late (DevTools opened after playback started) can still replay the history.
+  // `max` caps memory; high-frequency events are already throttled before here.
+  const recorder = { buffer: [], max: 20000, markTs: 0 }
   function recordEvent(rec) {
-    if (!recorder.active) return
     recorder.buffer.push(rec)
     if (recorder.buffer.length > recorder.max) recorder.buffer.shift()
   }
@@ -497,13 +505,13 @@
       ts: nowTs(),
       data: evt.data
     }
-    recordEvent(rec)
     if (HIGH_FREQ.includes(evt.type)) {
       const key = playerId + ':' + evt.type
       const last = throttleState.get(key) || 0
       if (rec.ts - last < THROTTLE_MS) return
       throttleState.set(key, rec.ts)
     }
+    recordEvent(rec)
     post(OUT.EVENT, rec, playerId)
   }
 
@@ -606,6 +614,11 @@
       case IN.PING:
         pushInstances()
         break
+      case IN.REQUEST_REPLAY:
+        // A freshly connected panel asks for the event history captured before
+        // it attached. Replay the whole ring buffer in one batched message.
+        post(OUT.REPLAY, { events: recorder.buffer.slice() })
+        break
       case IN.SELECT_INSTANCE:
         if (instances.has(msg.playerId)) {
           selectedId = msg.playerId
@@ -631,17 +644,16 @@
         break
       }
       case IN.START_RECORD:
-        recorder.active = true
-        recorder.buffer = []
-        recorder.startedAt = nowTs()
+        // The ring buffer is always on; a manual recording is just a time
+        // window over it. Mark the start instead of clearing captured history.
+        recorder.markTs = nowTs()
         break
       case IN.STOP_RECORD:
-        recorder.active = false
         post(OUT.SNAPSHOT, {
           kind: 'recording',
-          startedAt: recorder.startedAt,
+          startedAt: recorder.markTs,
           endedAt: nowTs(),
-          events: recorder.buffer.slice()
+          events: recorder.buffer.filter((e) => e.ts >= recorder.markTs)
         })
         break
       case IN.REQUEST_SNAPSHOT:

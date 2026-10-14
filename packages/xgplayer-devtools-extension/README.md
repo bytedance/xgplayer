@@ -47,7 +47,7 @@ inject.js (MAIN world 探针)
 ```
 src/
 ├── inject/inject.js          # MAIN world 探针：发现 + 订阅 + 采集
-├── content/content-script.js # 注入 + postMessage 桥接
+├── content/content-script.js # postMessage ↔ chrome.runtime 桥接
 ├── background/service-worker.js # 按 tabId 路由
 ├── devtools/                 # devtools 页 + 面板注册 + panel.html
 ├── panel/                    # 面板 UI (panel.js / panel.css)
@@ -56,7 +56,8 @@ src/
 
 ## 限制 / 已知事项
 
-- 探针运行在 MAIN world；若实例在 inject 注入前已创建，依赖 `InstManager` 新增事件或轮询补发。
+- 探针以声明式 `world: "MAIN"` + `document_start` 注入，在页面脚本前同步执行；对同页创建的播放器可在其出生前就位。
+- DevTools 晚于播放器打开时，一次性原生事件（loadstart/canplay 等）已 emit 且不重放：探针维护常驻有界事件缓冲，面板连接时回放历史；信标 `scan` 同步当前实例与状态。
 - 高频事件（timeupdate / core.speed）在探针侧节流（250ms）。
 - `Logger` 缓存读取需播放器在 `window` 暴露 `Logger`；否则日志面板仅能开关 `XG_DEBUG`。
 - 远程 `invoke` 严格白名单（play/pause/seek/switchURL/reload/destroy）。
