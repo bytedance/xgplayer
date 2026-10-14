@@ -15,6 +15,7 @@ export const SOURCE_PANEL = 'player-devtools-panel'
 export const OUT = {
   INSTANCES: 'instances',
   EVENT: 'event',
+  REPLAY: 'replay',
   METRICS: 'metrics',
   LOGS: 'logs',
   SNAPSHOT: 'snapshot',
@@ -29,6 +30,7 @@ export const IN = {
   START_RECORD: 'start-record',
   STOP_RECORD: 'stop-record',
   REQUEST_SNAPSHOT: 'request-snapshot',
+  REQUEST_REPLAY: 'request-replay',
   INVOKE: 'invoke',
   PING: 'ping'
 }

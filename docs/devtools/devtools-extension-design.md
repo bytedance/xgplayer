@@ -46,7 +46,7 @@
 ### 2.1 分层职责
 
 1. **inject.js（注入到页面 MAIN world）** — 核心采集探针。负责实例发现、事件订阅、指标轮询。必须运行在 MAIN world 才能访问页面的 `Player` / 实例对象（内容脚本的隔离世界访问不到页面 JS 变量）。
-2. **content-script.js（隔离世界）** — 用 `window.postMessage` 与 inject 通信，再经 `chrome.runtime` 转发给扩展侧；按 tab 路由。负责把 inject 脚本以 `<script>` 形式注入 MAIN world。
+2. **content-script.js（隔离世界）** — 用 `window.postMessage` 与 inject 通信，再经 `chrome.runtime` 转发给扩展侧；按 tab 路由。inject.js 本身以声明式 `content_scripts`（manifest `world: "MAIN"` + `run_at: "document_start"`）注入，在页面脚本之前同步执行，无需手动插入 `<script>`，也没有拉取扩展资源的时间间隙。
 3. **background（MV3 service worker）** — 会话存储、面板↔页面消息中转、录制缓冲落盘。
 4. **devtools panel** — 多标签 UI（主交互）。
 
@@ -73,7 +73,7 @@ interface OutboundMessage {
   source: 'player-devtools-inject'
   v: 1
   sessionId: string          // 页面加载会话
-  type: 'instances' | 'event' | 'metrics' | 'logs' | 'snapshot' | 'error'
+  type: 'instances' | 'event' | 'replay' | 'metrics' | 'logs' | 'snapshot' | 'error'
   playerId?: string
   ts: number                 // performance.now() + timeOrigin
   payload: unknown
@@ -89,6 +89,7 @@ interface InboundMessage {
     | 'enable-logger'        // Logger.enable / disable
     | 'start-record' | 'stop-record'
     | 'request-snapshot'     // 聚合快照
+    | 'request-replay'       // 请求连接前已捕获的事件历史回放
     | 'invoke'               // 远程调用白名单方法（play/pause/seek…）
   playerId?: string
   payload?: unknown
@@ -221,6 +222,6 @@ packages/xgplayer-devtools-extension/
 ## 10. 待确认 / 风险
 
 1. **增强探针面板范围**:当前文档按「可选探针适配、开源自动降级」处理;若需深度对接 ABR/加密等增强字段,需进一步确认各能力暴露的可观测接口（核对其 public API）。
-2. **MAIN world 注入时机**:信标方案的 `__player_devtools_scan__` 回放已覆盖「调试器晚于播放器加载」的历史实例补发（见 [接入点设计](./devtools-beacon-design.md)）；降级链（①②③）下仍建议尽早注入。
+2. **MAIN world 注入时机与事件历史**:inject.js 以声明式 `world: "MAIN"` + `document_start` 注入，在页面脚本前同步执行，消除了手动 `<script>` 注入的拉取间隙，使「同页创建的播放器」时序问题基本归零。对「DevTools 晚于播放器加载」这类**面板后连**场景——此时一次性原生事件（loadstart/canplay 等）早已 emit 且总线不重放——探针侧维护一个常驻有界事件环形缓冲，面板连接时经 `request-replay` / `replay` 回放历史；信标的 `__player_devtools_scan__` 则负责同步当前实例与状态。二者互补：scan 补状态，缓冲补事件历史。
 3. **高频事件通道压力**:`timeupdate` / `core.speed` 必须节流,否则 postMessage 会成为瓶颈。
 4. **跨源 iframe**:若播放器在 iframe 内,content-script 需声明 `all_frames` 并处理 frame 路由。
