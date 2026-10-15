@@ -29,6 +29,7 @@
   var vConsole = new window.VConsole();
   import Player from '../../packages/xgplayer/src/index'
   import Mp4Plugin  from '../../packages/xgplayer-mp4/src/index'
+  const demoUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4'
   var videoList = [
     {
       definition: '360p',
@@ -73,7 +74,7 @@
     volume: 0.2,
     // url: 'http://tosv.byted.org/obj/media-fe/badcase/av-not-sync-hevc.mp4',
     // url:'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4',
-    url: 'https://lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/xgplayer-demo-720p.mp4?test=10',
+    url: `${demoUrl}?test=10`,
     poster: "//lf3-static.bytednsdoc.com/obj/eden-cn/nupenuvpxnuvo/xgplayer_doc/poster.jpg",
     playsinline: true,
     thumbnail: {
@@ -116,7 +117,6 @@
   window.player.on('networkError', (err) => {
       console.log(err);
   })
-
   function playNext() {
     player.playNext({
       vid: 'v02d02g10000cag6m4gmmdqu846g76ag123',
@@ -124,7 +124,7 @@
       isLive: false,
       autoplay: true,
       // plugins: [Mp4Plugin],
-      url: './video/1080p.mp4'
+      url: `${demoUrl}?test=play-next`
     })
   }
   window.playNext = playNext

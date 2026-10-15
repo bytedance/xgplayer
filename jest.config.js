@@ -24,6 +24,7 @@ module.exports = {
     'packages/xgplayer-dash/src/**/*.js',
     'packages/xgplayer-flv/src/**/*.js',
     'packages/xgplayer-hls/src/**/*.{js,ts}',
+    'packages/xgplayer-mp4/src/**/*.ts',
     'packages/xgplayer-transmuxer/src/**/*.{js,ts}',
     'packages/xgplayer-cast/src/**/*.js',
     '!**/node_modules/**'
@@ -152,6 +153,7 @@ module.exports = {
     '**/packages/xgplayer-dash/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
+    '**/packages/xgplayer-mp4/__tests__/**/*.(spec|test).(js|ts)',
     '**/packages/xgplayer-streaming-shared/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-subtitles/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-transmuxer/__tests__/**/*.(spec|test).js',
