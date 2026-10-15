@@ -1,3 +1,5 @@
+import type { MP4Config, MP4MediaElement, MP4Options } from '../types'
+
 /**
  * MP4 插件配置。
  *
@@ -7,10 +9,10 @@
  * - `retryCount` → `retry`。
  * - `reqOptions`：透传给 loader 的请求配置（headers/method/mode/credentials 等）。
  */
-export function getConfig(cfg = {}) {
-  const media = cfg.media || document.createElement('video')
+export function getConfig(cfg: MP4Options = {}): MP4Config {
+  const media = cfg.media || (document.createElement('video') as MP4MediaElement)
 
-  const config = {
+  const config: MP4Config = {
     softDecode: false,
     // 预加载窗口（秒）
     maxBufferLength: 40,
@@ -19,7 +21,6 @@ export function getConfig(cfg = {}) {
     bufferBehind: 10,
     // 驱动下载的 timer 间隔（毫秒）
     tickInterval: 500,
-    segmentDuration: undefined,
     url: '',
 
     // 网络请求：重试 / 超时 / 自定义请求配置
