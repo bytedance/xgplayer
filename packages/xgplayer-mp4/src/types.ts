@@ -93,6 +93,11 @@ export interface LoadedSegment {
   audio?: SegmentTrack
 }
 
+export interface MP4Metadata {
+  moov?: unknown
+  isFragmentMP4?: boolean
+}
+
 export interface WorkerTransmuxTrack {
   type: string
   codec: string
@@ -120,6 +125,7 @@ export type WorkerRequest =
       videoSegments: unknown[]
       audioSegments: unknown[]
       memoryOpt: boolean
+      isFragmentMP4: boolean
     }
   | {
       method: 'transmux'

@@ -127,7 +127,7 @@ export function sidxToSegments (moov, sidx) {
         startTime: prevTime,
         endTime: prevTime + (ref.subsegment_duration / sidx.timescale),
         duration: ref.subsegment_duration / sidx.timescale,
-        range: [prevOffset, prevOffset + ref.referenced_size],
+        range: [prevOffset, prevOffset + ref.referenced_size - 1],
         frames: []
       })
       prevTime += ref.subsegment_duration / sidx.timescale

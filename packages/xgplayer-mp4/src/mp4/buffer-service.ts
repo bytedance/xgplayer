@@ -1,5 +1,5 @@
 import { Buffer, ERR, MSE, StreamingError } from 'xgplayer-streaming-shared'
-import { FMP4Remuxer, MP4Demuxer } from 'xgplayer-transmuxer'
+import { FMP4Demuxer, FMP4Remuxer, MP4Demuxer } from 'xgplayer-transmuxer'
 import type {
   MP4Config,
   MP4MediaElement,
@@ -16,7 +16,7 @@ interface SourceInfo {
 }
 
 export class BufferService {
-  _demuxer: MP4Demuxer | null = null
+  _demuxer: MP4Demuxer | FMP4Demuxer | null = null
   _remuxer: FMP4Remuxer | null = null
   _mse: MSE | null = null
   _softVideo: MP4MediaElement | null = null
@@ -25,6 +25,7 @@ export class BufferService {
   _worker: TransmuxerWorkerControl | null = null
 
   private _sourceTypes = new Set<string>()
+  private _isFragmentMP4 = false
   private _destroyed = false
   private readonly _config: MP4Config
   private readonly mp4: MP4
@@ -48,18 +49,26 @@ export class BufferService {
     return /ManagedMediaSource/i.test(Object.prototype.toString.call(mediaSource))
   }
 
-  setSegmentList(videoSegments: unknown[], audioSegments: unknown[]) {
+  setSegmentList(
+    videoSegments: unknown[],
+    audioSegments: unknown[],
+    isFragmentMP4: boolean
+  ) {
     if (this._destroyed || this._demuxer) return
-    const demuxer = new MP4Demuxer(videoSegments, audioSegments, undefined, {
-      memoryOpt: this._config.memoryOpt
-    })
+    this._isFragmentMP4 = isFragmentMP4
+    const demuxer = isFragmentMP4
+      ? new FMP4Demuxer(undefined, undefined, undefined)
+      : new MP4Demuxer(videoSegments, audioSegments, undefined, {
+          memoryOpt: this._config.memoryOpt
+        })
     this._demuxer = demuxer
     if (!this._softVideo) {
       this._remuxer = new FMP4Remuxer(demuxer.videoTrack, demuxer.audioTrack, {})
       this._worker?.configure(
         videoSegments,
         audioSegments,
-        this._config.memoryOpt === true
+        this._config.memoryOpt === true,
+        isFragmentMP4
       )
     }
   }
@@ -74,12 +83,13 @@ export class BufferService {
     if (this._destroyed || !data?.length) return
     const videoIndexRange = this.getIndexRange(videoFrames)
     const audioIndexRange = this.getIndexRange(audioFrames)
-    if (!videoIndexRange && !audioIndexRange) return
+    if (!this._isFragmentMP4 && !videoIndexRange && !audioIndexRange) return
 
     if (this._softVideo) {
       const demuxer = this._demuxer
       if (!demuxer) return
-      const { videoTrack, audioTrack } = demuxer.demux(
+      const { videoTrack, audioTrack } = this._demux(
+        demuxer,
         data,
         dataStart,
         videoIndexRange,
@@ -115,7 +125,7 @@ export class BufferService {
     return this._appendByMain(data, dataStart, videoIndexRange, audioIndexRange, moov)
   }
 
-  async _appendByMain(
+  private _appendByMain(
     data: Uint8Array,
     dataStart: number,
     videoIndexRange: SegmentIndexRange | undefined,
@@ -127,7 +137,8 @@ export class BufferService {
     const remuxer = this._remuxer
     if (!mse || !demuxer || !remuxer || this._destroyed) return
 
-    const { videoTrack, audioTrack } = demuxer.demux(
+    const { videoTrack, audioTrack } = this._demux(
+      demuxer,
       data,
       dataStart,
       videoIndexRange,
@@ -194,7 +205,7 @@ export class BufferService {
     return this._appendAll(tasks)
   }
 
-  async _appendByWorker(
+  private async _appendByWorker(
     data: Uint8Array,
     dataStart: number,
     videoIndexRange: SegmentIndexRange | undefined,
@@ -290,8 +301,7 @@ export class BufferService {
 
   async evictBuffer(bufferBehind: number) {
     const media = this.mp4.media
-    const demuxer = this._demuxer
-    if (!this._mse || !demuxer || !media || bufferBehind <= 0) return
+    if (!this._mse || !media || bufferBehind <= 0) return
     const removeEnd = media.currentTime - bufferBehind
     if (removeEnd <= 0) return
     const buffered = Buffer.get(media)
@@ -301,10 +311,8 @@ export class BufferService {
 
     const mse = this._mse
     const tasks: Promise<unknown>[] = []
-    ;[demuxer.videoTrack, demuxer.audioTrack].forEach((track) => {
-      if (track.exist()) {
-        tasks.push(mse.remove(track.type, 0, removeEnd, undefined))
-      }
+    this._sourceTypes.forEach((type) => {
+      tasks.push(mse.remove(type, 0, removeEnd, undefined))
     })
 
     return Promise.all(tasks).catch((error) => {
@@ -326,6 +334,7 @@ export class BufferService {
     this._sourceTypes.clear()
     this._sourceCreated = false
     this._needInitSegment = true
+    this._isFragmentMP4 = false
 
     const mse = this._mse
     if (mse) {
@@ -363,8 +372,29 @@ export class BufferService {
     this._worker = null
     this._sourceTypes.clear()
     this._sourceCreated = false
+    this._isFragmentMP4 = false
 
     if (mse) await mse.unbindMedia()
+  }
+
+  private _demux(
+    demuxer: MP4Demuxer | FMP4Demuxer,
+    data: Uint8Array,
+    dataStart: number,
+    videoIndexRange: SegmentIndexRange | undefined,
+    audioIndexRange: SegmentIndexRange | undefined,
+    moov: unknown
+  ) {
+    if (this._isFragmentMP4) {
+      return (demuxer as FMP4Demuxer).demuxPart(data, dataStart, moov)
+    }
+    return (demuxer as MP4Demuxer).demux(
+      data,
+      dataStart,
+      videoIndexRange,
+      audioIndexRange,
+      moov
+    )
   }
 
   private getIndexRange(frames?: SegmentFrame[]): SegmentIndexRange | undefined {

@@ -77,12 +77,18 @@ export default class TransmuxerWorkerControl {
     })
   }
 
-  configure(videoSegments: unknown[], audioSegments: unknown[], memoryOpt: boolean) {
+  configure(
+    videoSegments: unknown[],
+    audioSegments: unknown[],
+    memoryOpt: boolean,
+    isFragmentMP4: boolean
+  ) {
     this.post({
       method: 'configure',
       videoSegments,
       audioSegments,
-      memoryOpt
+      memoryOpt,
+      isFragmentMP4
     })
   }
 

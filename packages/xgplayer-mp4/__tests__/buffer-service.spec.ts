@@ -24,6 +24,15 @@ interface MockDemuxer {
   reset: jest.Mock<void, []>
 }
 
+interface MockFragmentDemuxer {
+  videoTrack: MockTrack
+  audioTrack: MockTrack
+  demuxPart: jest.Mock<
+    { videoTrack: MockTrack; audioTrack: MockTrack },
+    unknown[]
+  >
+}
+
 interface MockRemuxer {
   remux: jest.Mock<
     {
@@ -37,10 +46,17 @@ interface MockRemuxer {
   reset: jest.Mock<void, []>
 }
 
+interface MockWorkerTrack {
+  type: string
+  codec: string
+  initSegment?: Uint8Array
+  segment?: Uint8Array
+}
+
 interface MockWorker {
-  configure: jest.Mock<void, [unknown[], unknown[], boolean]>
+  configure: jest.Mock<void, [unknown[], unknown[], boolean, boolean]>
   transmux: jest.Mock<
-    Promise<{ video: null; audio: null }>,
+    Promise<{ video: MockWorkerTrack | null; audio: MockWorkerTrack | null }>,
     [Uint8Array, number, unknown, unknown, unknown]
   >
   reset: jest.Mock<void, []>
@@ -51,6 +67,7 @@ var mockMSE: MockMSE
 var mockVideoTrack: MockTrack
 var mockAudioTrack: MockTrack
 var mockDemuxer: MockDemuxer
+var mockFragmentDemuxer: MockFragmentDemuxer
 var mockRemuxer: MockRemuxer
 var mockWorker: MockWorker
 
@@ -122,12 +139,18 @@ jest.mock('xgplayer-transmuxer', () => {
     demux: jest.fn(),
     reset: jest.fn()
   }
+  mockFragmentDemuxer = {
+    videoTrack: mockVideoTrack,
+    audioTrack: mockAudioTrack,
+    demuxPart: jest.fn()
+  }
   mockRemuxer = {
     remux: jest.fn(),
     reset: jest.fn()
   }
   return {
     MP4Demuxer: jest.fn(() => mockDemuxer),
+    FMP4Demuxer: jest.fn(() => mockFragmentDemuxer),
     FMP4Remuxer: jest.fn(() => mockRemuxer)
   }
 })
@@ -181,6 +204,10 @@ describe('BufferService', () => {
       videoTrack: mockVideoTrack,
       audioTrack: mockAudioTrack
     })
+    mockFragmentDemuxer.demuxPart.mockReturnValue({
+      videoTrack: mockVideoTrack,
+      audioTrack: mockAudioTrack
+    })
     mockRemuxer.remux.mockReturnValue({
       videoInitSegment: new Uint8Array([1]),
       audioInitSegment: new Uint8Array([2]),
@@ -220,7 +247,7 @@ describe('BufferService', () => {
 
   test('resets demux, remux, worker and source state on URL changes', async () => {
     const { service } = createService({ enableWorker: true })
-    service.setSegmentList([], [])
+    service.setSegmentList([], [], false)
     service._sourceCreated = true
 
     await service.reset()
@@ -234,7 +261,7 @@ describe('BufferService', () => {
   test('creates separate audio/video sources once and appends all outputs', async () => {
     const { service } = createService()
     const frames = [{ index: 0 }, { index: 2 }]
-    service.setSegmentList([{ frames }], [{ frames }])
+    service.setSegmentList([{ frames }], [{ frames }], false)
 
     await service.appendBuffer(new Uint8Array([1, 2]), 10, frames, frames, {})
     await service.appendBuffer(new Uint8Array([3, 4]), 20, frames, frames, {})
@@ -268,7 +295,7 @@ describe('BufferService', () => {
     Object.assign(media, { appendBuffer, endOfStream })
     const config = getConfig({ media, softDecode: true })
     const service = new BufferService({ media } as never, config)
-    service.setSegmentList([{ frames: [{ index: 0 }] }], [])
+    service.setSegmentList([{ frames: [{ index: 0 }] }], [], false)
 
     await service.appendBuffer(
       new Uint8Array([1]),
@@ -284,12 +311,26 @@ describe('BufferService', () => {
     expect(endOfStream).toHaveBeenCalled()
   })
 
+  test('demuxes fragmented MP4 segments without sample index ranges', async () => {
+    const { service } = createService()
+    const moov = { type: 'moov' }
+    const data = new Uint8Array([1, 2, 3])
+    service.setSegmentList([{ frames: [] }], [{ frames: [] }], true)
+
+    await service.appendBuffer(data, 100, undefined, undefined, moov)
+
+    expect(mockFragmentDemuxer.demuxPart).toHaveBeenCalledWith(data, 100, moov)
+    expect(mockDemuxer.demux).not.toHaveBeenCalled()
+    expect(mockMSE.createSource).toHaveBeenCalledTimes(2)
+    expect(mockMSE.append).toHaveBeenCalledTimes(4)
+  })
+
   test('does not append stale worker data on reset cancellation', async () => {
     mockWorker.transmux.mockRejectedValue(
       new WorkerTaskCancelledError('worker reset')
     )
     const { service } = createService({ enableWorker: true })
-    service.setSegmentList([{ frames: [{ index: 0 }] }], [])
+    service.setSegmentList([{ frames: [{ index: 0 }] }], [], false)
 
     await service.appendBuffer(
       new Uint8Array([1]),
@@ -307,7 +348,7 @@ describe('BufferService', () => {
   test('falls back to the main thread after a real worker failure', async () => {
     mockWorker.transmux.mockRejectedValue(new Error('worker crashed'))
     const { service } = createService({ enableWorker: true })
-    service.setSegmentList([{ frames: [{ index: 0 }] }], [])
+    service.setSegmentList([{ frames: [{ index: 0 }] }], [], false)
 
     await service.appendBuffer(
       new Uint8Array([1]),
@@ -322,11 +363,63 @@ describe('BufferService', () => {
     expect(mockMSE.append).toHaveBeenCalled()
   })
 
+  test('routes fragmented MP4 through the worker and evicts its sources', async () => {
+    mockWorker.transmux.mockResolvedValue({
+      video: {
+        type: 'video',
+        codec: 'avc1.64001f',
+        initSegment: new Uint8Array([1]),
+        segment: new Uint8Array([2])
+      },
+      audio: {
+        type: 'audio',
+        codec: 'mp4a.40.2',
+        initSegment: new Uint8Array([3]),
+        segment: new Uint8Array([4])
+      }
+    })
+    ;(Buffer.get as jest.Mock).mockReturnValue({ length: 1 })
+    ;(Buffer.start as jest.Mock).mockReturnValue(0)
+    mockVideoTrack.exist.mockReturnValue(false)
+    mockAudioTrack.exist.mockReturnValue(false)
+    const { service } = createService({ enableWorker: true })
+    const data = new Uint8Array([1, 2, 3])
+    service.setSegmentList([{ frames: [] }], [{ frames: [] }], true)
+
+    await service.appendBuffer(data, 100, undefined, undefined, {})
+    await service.evictBuffer(10)
+
+    expect(mockWorker.configure).toHaveBeenCalledWith(
+      [{ frames: [] }],
+      [{ frames: [] }],
+      false,
+      true
+    )
+    expect(mockWorker.transmux).toHaveBeenCalledWith(
+      data,
+      100,
+      undefined,
+      undefined,
+      {}
+    )
+    expect(mockMSE.remove).toHaveBeenCalledWith('video', 0, 10, undefined)
+    expect(mockMSE.remove).toHaveBeenCalledWith('audio', 0, 10, undefined)
+  })
+
   test('evicts old audio and video buffers and destroys without rebinding', async () => {
     ;(Buffer.get as jest.Mock).mockReturnValue({ length: 1 })
     ;(Buffer.start as jest.Mock).mockReturnValue(0)
     const { service } = createService()
-    service.setSegmentList([], [])
+    const frames = [{ index: 0 }]
+    service.setSegmentList([{ frames }], [{ frames }], false)
+    await service.appendBuffer(
+      new Uint8Array([1]),
+      0,
+      frames,
+      frames,
+      {}
+    )
+    mockMSE.remove.mockClear()
 
     await service.evictBuffer(10)
     expect(mockMSE.remove).toHaveBeenCalledWith('video', 0, 10, undefined)

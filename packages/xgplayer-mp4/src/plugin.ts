@@ -19,6 +19,8 @@ export class MP4Plugin extends BasePlugin {
   private _nativeSwitchURL: Player['switchURL'] | null = null
   private _nativePlayNext: Player['playNext'] | null = null
   private _nativeChangeDefinition: Player['changeDefinition'] | null = null
+  private _nativeHandleSource: boolean | null = null
+  private _sourceChangeId = 0
   private _eventsBound = false
 
   get core(): MP4 | null {
@@ -54,10 +56,12 @@ export class MP4Plugin extends BasePlugin {
       (!this.softDecode && !MSE.isSupported(undefined, mp4Config.preferMMS === true))
     ) {
       this._restoreNativeApi()
+      this._restoreSourceHandling()
       return
     }
 
     this._degraded = false
+    this._sourceChangeId++
     this._captureAndProxyNativeApi(player)
 
     const core = new MP4({
@@ -92,11 +96,14 @@ export class MP4Plugin extends BasePlugin {
 
   destroy = () => {
     const player = this.player
+    this._sourceChangeId++
     this._restoreNativeApi()
     const core = this.mp4
     this.mp4 = null
-    if (core) void core.destroy()
     this.getMedia(player)?.removeEventListener('lowdecode', this._onLowDecode)
+    const destroyPromise = core?.destroy()
+    this._restoreSourceHandling(player)
+    if (destroyPromise) void destroyPromise.catch(() => undefined)
   }
 
   static isSupported(softDecode?: boolean) {
@@ -122,7 +129,8 @@ export class MP4Plugin extends BasePlugin {
       return this._nativeSwitchURL?.call(this.player, url) || null
     }
     player.config.url = nextUrl
-    const loadPromise = this.mp4.load(nextUrl)
+    const core = this.mp4
+    const loadPromise = this._reloadAtCurrentTime(core, nextUrl)
     void loadPromise.catch((error) => this._onFatalError(error))
     return loadPromise
   }
@@ -136,6 +144,7 @@ export class MP4Plugin extends BasePlugin {
 
     player.resetState()
     player.setConfig(config)
+    this._sourceChangeId++
     const loadPromise = this.mp4.load(nextUrl)
     void loadPromise.catch((error) => this._onFatalError(error))
     void Promise.resolve(player.play()).catch(() => undefined)
@@ -163,10 +172,10 @@ export class MP4Plugin extends BasePlugin {
     player.emit(Events.DEFINITION_CHANGE, { from, to: definition })
     player.config.url = url
     const core = this.mp4
-    const loadPromise = core.load(url)
+    const loadPromise = this._reloadAtCurrentTime(core, url)
     void loadPromise
-      .then(() => {
-        if (this.mp4 === core) {
+      .then((restored) => {
+        if (restored) {
           player.emit(Events.AFTER_DEFINITION_CHANGE, { from, to: definition })
         }
       })
@@ -179,6 +188,8 @@ export class MP4Plugin extends BasePlugin {
     this._nativeSwitchURL ||= player.switchURL
     this._nativePlayNext ||= player.playNext
     this._nativeChangeDefinition ||= player.changeDefinition
+    this._nativeHandleSource ??= player.handleSource
+    player.handleSource = false
     player.switchURL = this._onSwitchURL
     player.playNext = this._onPlayNext
     player.changeDefinition = this._onChangeDefinition
@@ -201,6 +212,31 @@ export class MP4Plugin extends BasePlugin {
     this._nativeSwitchURL = null
     this._nativePlayNext = null
     this._nativeChangeDefinition = null
+  }
+
+  private _restoreSourceHandling(player: Player = this.player) {
+    if (this._nativeHandleSource == null) return
+    player.handleSource = this._nativeHandleSource
+    this._nativeHandleSource = null
+  }
+
+  private async _reloadAtCurrentTime(core: MP4, url: string): Promise<boolean> {
+    const player = this.player
+    const currentTime =
+      !player.ended && Number.isFinite(player.currentTime) ? player.currentTime : 0
+    const paused = player.paused
+    const sourceChangeId = ++this._sourceChangeId
+
+    const restoredTime = await core.load(url, currentTime)
+    if (this.mp4 !== core || sourceChangeId !== this._sourceChangeId) return false
+
+    if (player.currentTime !== restoredTime) player.currentTime = restoredTime
+    if (paused) {
+      player.pause()
+    } else {
+      await Promise.resolve(player.play()).catch(() => undefined)
+    }
+    return true
   }
 
   private _transError(core: MP4) {
@@ -228,11 +264,13 @@ export class MP4Plugin extends BasePlugin {
     const currentTime = player.currentTime
     const paused = player.paused
     const core = this.mp4
+    this._sourceChangeId++
     this.mp4 = null
     this._restoreNativeApi()
 
     // 先彻底卸载 MSE，再写入原生 URL。反向执行会被异步 unbind 清掉新 URL。
     if (core) await core.destroy()
+    this._restoreSourceHandling(player)
 
     const media = this.getMedia(player)
     if (!media || !url) return

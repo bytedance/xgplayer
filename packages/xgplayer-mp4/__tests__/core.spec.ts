@@ -1,6 +1,6 @@
 const mockLoader = {
   url: '',
-  meta: { moov: {} },
+  meta: { moov: {}, isFragmentMP4: false },
   videoSegments: [],
   audioSegments: [],
   changeUrl: jest.fn(),
@@ -51,6 +51,7 @@ describe('MP4 core lifecycle', () => {
     jest.useFakeTimers()
     jest.clearAllMocks()
     mockLoader.url = ''
+    mockLoader.meta = { moov: {}, isFragmentMP4: false }
     mockLoader.changeUrl.mockResolvedValue(undefined)
     mockLoader.loadSegmentByTime.mockResolvedValue(undefined)
     mockLoader.loadNextSegment.mockResolvedValue(undefined)
@@ -88,6 +89,51 @@ describe('MP4 core lifecycle', () => {
       undefined
     )
     expect(mockLoader.loadSegmentByTime).toHaveBeenCalledWith(0, undefined)
+    await core.destroy()
+  })
+
+  test('loads the segment containing the requested restore time', async () => {
+    mockLoader.loadSegmentByTime.mockResolvedValue({
+      data: new Uint8Array([1]),
+      options: { range: [100, 199] },
+      video: {
+        index: 1,
+        startTime: 30,
+        endTime: 40,
+        frames: [{ index: 1 }]
+      }
+    })
+    mockLoader.isLastSegment.mockReturnValue(true)
+    const core = new MP4({ media: createMedia(), url: 'video.mp4' })
+
+    const restoredTime = await core.load('video.mp4', 32)
+
+    expect(mockLoader.loadSegmentByTime).toHaveBeenCalledWith(32, undefined)
+    expect(restoredTime).toBe(32)
+    await core.destroy()
+  })
+
+  test('falls back to the first segment when the restore time is out of range', async () => {
+    mockLoader.loadSegmentByTime
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        data: new Uint8Array([1]),
+        options: { range: [0, 99] },
+        video: {
+          index: 0,
+          startTime: 0,
+          endTime: 10,
+          frames: [{ index: 0 }]
+        }
+      })
+    mockLoader.isLastSegment.mockReturnValue(true)
+    const core = new MP4({ media: createMedia(), url: 'shorter.mp4' })
+
+    const restoredTime = await core.load('shorter.mp4', 90)
+
+    expect(mockLoader.loadSegmentByTime).toHaveBeenNthCalledWith(1, 90, undefined)
+    expect(mockLoader.loadSegmentByTime).toHaveBeenNthCalledWith(2, 0, undefined)
+    expect(restoredTime).toBe(0)
     await core.destroy()
   })
 
@@ -156,11 +202,44 @@ describe('MP4 core lifecycle', () => {
     )
     expect(mockBufferService.setSegmentList).toHaveBeenCalledWith(
       mockLoader.videoSegments,
-      mockLoader.audioSegments
+      mockLoader.audioSegments,
+      false
     )
     expect(mockBufferService.evictBuffer).toHaveBeenCalledWith(12)
     expect(mockBufferService.endOfStream).toHaveBeenCalled()
     expect(core._inited).toBe(true)
+    await core.destroy()
+  })
+
+  test('passes fragmented MP4 metadata to the buffer service', async () => {
+    const segment = {
+      data: new Uint8Array([1, 2, 3]),
+      options: { range: [100, 199] },
+      video: {
+        index: 0,
+        startTime: 0,
+        endTime: 2,
+        frames: []
+      }
+    }
+    mockLoader.meta = { moov: {}, isFragmentMP4: true }
+    mockLoader.loadSegmentByTime.mockResolvedValue(segment)
+    const core = new MP4({ media: createMedia(), url: 'fragmented.mp4' })
+
+    await core.load()
+
+    expect(mockBufferService.setSegmentList).toHaveBeenCalledWith(
+      mockLoader.videoSegments,
+      mockLoader.audioSegments,
+      true
+    )
+    expect(mockBufferService.appendBuffer).toHaveBeenCalledWith(
+      segment.data,
+      100,
+      [],
+      undefined,
+      mockLoader.meta.moov
+    )
     await core.destroy()
   })
 
@@ -268,6 +347,90 @@ describe('MP4 core lifecycle', () => {
 
     expect(media.currentTime).toBe(1)
     void core.destroy()
+  })
+
+  test('limits buffered waiting recovery across seeking events', () => {
+    const media = createMedia()
+    Object.defineProperty(media, 'paused', {
+      configurable: true,
+      value: false,
+      writable: true
+    })
+    jest.spyOn(Buffer, 'get').mockReturnValue({} as TimeRanges)
+    jest.spyOn(Buffer, 'end').mockReturnValue(10)
+    const core = new MP4({
+      media,
+      url: 'video.mp4',
+      waitingInBufferTimeOut: 20,
+      waitJampBufferMaxCnt: 2
+    })
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      media.dispatchEvent(new Event('waiting'))
+      jest.advanceTimersByTime(20)
+      media.dispatchEvent(new Event('seeking'))
+    }
+    media.dispatchEvent(new Event('waiting'))
+    jest.advanceTimersByTime(20)
+
+    expect(media.currentTime).toBe(1)
+    void core.destroy()
+  })
+
+  test('keeps stall monitoring active after the last segment is downloaded', async () => {
+    const media = createMedia()
+    Object.defineProperties(media, {
+      paused: { configurable: true, value: false, writable: true },
+      readyState: { configurable: true, value: 2, writable: true }
+    })
+    mockLoader.loadSegmentByTime.mockResolvedValue({
+      data: new Uint8Array([1]),
+      options: { range: [0, 99] },
+      video: {
+        index: 0,
+        startTime: 0,
+        endTime: 2,
+        frames: [{ index: 0 }]
+      }
+    })
+    mockLoader.isLastSegment.mockReturnValue(true)
+    const core = new MP4({
+      media,
+      url: 'video.mp4',
+      tickInterval: 5,
+      waitingTimeOut: 20
+    })
+    const onError = jest.fn()
+    core.on(EVENT.ERROR, onError)
+
+    await core.load()
+    jest.advanceTimersByTime(25)
+
+    expect(mockBufferService.endOfStream).toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledTimes(1)
+    await core.destroy()
+  })
+
+  test('stops stall monitoring after the first fatal error', async () => {
+    const media = createMedia()
+    Object.defineProperties(media, {
+      paused: { configurable: true, value: false, writable: true },
+      readyState: { configurable: true, value: 2, writable: true }
+    })
+    const core = new MP4({
+      media,
+      url: 'video.mp4',
+      tickInterval: 5,
+      waitingTimeOut: 20
+    })
+    const onError = jest.fn()
+    core.on(EVENT.ERROR, onError)
+
+    await core.load()
+    jest.advanceTimersByTime(70)
+
+    expect(onError).toHaveBeenCalledTimes(1)
+    await core.destroy()
   })
 
   test('reports a playback stall after waitingTimeOut', () => {

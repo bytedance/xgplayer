@@ -9,7 +9,11 @@ jest.mock('../src/mp4', () => {
   const MP4 = jest.fn().mockImplementation((config) => {
     const core = {
       config,
-      load: jest.fn().mockResolvedValue(undefined),
+      load: jest
+        .fn()
+        .mockImplementation((_url: string, startTime = 0) =>
+          Promise.resolve(startTime)
+        ),
       destroy: jest.fn().mockResolvedValue(undefined),
       on: jest.fn(),
       _inited: false
@@ -87,6 +91,7 @@ function createPlayer(overrides: Record<string, unknown> = {}) {
     },
     video,
     media: video,
+    handleSource: true,
     switchURL: nativeSwitchURL,
     playNext: nativePlayNext,
     changeDefinition: nativeChangeDefinition,
@@ -97,6 +102,7 @@ function createPlayer(overrides: Record<string, unknown> = {}) {
     emit: jest.fn(),
     currentTime: 0,
     paused: true,
+    ended: false,
     curDefinition: null,
     _currentTime: 0,
     _duration: 0,
@@ -152,6 +158,7 @@ describe('MP4Plugin', () => {
     expect(player.switchURL).not.toBe(player.nativeSwitchURL)
     expect(player.playNext).not.toBe(player.nativePlayNext)
     expect(player.changeDefinition).not.toBe(player.nativeChangeDefinition)
+    expect(player.handleSource).toBe(false)
   })
 
   test('does not take over when hard decode has no MediaSource support', async () => {
@@ -164,10 +171,13 @@ describe('MP4Plugin', () => {
 
     expect(mockMP4).not.toHaveBeenCalled()
     expect(player.switchURL).toBe(player.nativeSwitchURL)
+    expect(player.handleSource).toBe(true)
   })
 
   test('routes switchURL and playNext through the current core', async () => {
     const player = createPlayer({
+      currentTime: 12,
+      paused: false,
       _currentTime: 12,
       _duration: 90
     })
@@ -177,8 +187,11 @@ describe('MP4Plugin', () => {
     const core = mockMP4.cores[0]
 
     const switchResult = player.switchURL('switch.mp4')
-    expect(switchResult).toBe(core.load.mock.results[1].value)
+    await switchResult
+    expect(core.load).toHaveBeenNthCalledWith(2, 'switch.mp4', 12)
     expect(player.config.url).toBe('switch.mp4')
+    expect(player.currentTime).toBe(12)
+    expect(player.play).toHaveBeenCalled()
 
     const nextConfig = { url: 'next.mp4', autoplay: true }
     const nextResult = player.playNext(nextConfig)
@@ -192,8 +205,10 @@ describe('MP4Plugin', () => {
   })
 
   test('emits AFTER_DEFINITION_CHANGE only after the new definition loads', async () => {
-    let resolveLoad: (() => void) | undefined
+    let resolveLoad: ((startTime: number) => void) | undefined
     const player = createPlayer({
+      currentTime: 24,
+      paused: true,
       config: {
         url: 'video.mp4',
         mediaType: 'video',
@@ -209,7 +224,7 @@ describe('MP4Plugin', () => {
     const core = mockMP4.cores[0]
     core.load.mockImplementationOnce(
       () =>
-        new Promise<void>((resolve) => {
+        new Promise<number>((resolve) => {
           resolveLoad = resolve
         })
     )
@@ -225,9 +240,12 @@ describe('MP4Plugin', () => {
       Events.AFTER_DEFINITION_CHANGE,
       expect.anything()
     )
-    resolveLoad?.()
+    resolveLoad?.(24)
     await result
     await Promise.resolve()
+    expect(core.load).toHaveBeenLastCalledWith('hd.mp4', 24)
+    expect(player.currentTime).toBe(24)
+    expect(player.pause).toHaveBeenCalled()
     expect(to.bitrate).toBe(1200)
     expect(player.curDefinition).toEqual({
       definition: 'hd',
@@ -240,18 +258,56 @@ describe('MP4Plugin', () => {
     })
   })
 
-  test('restores native APIs on destroy', async () => {
+  test('starts from zero when switching after playback ended', async () => {
+    const player = createPlayer({
+      currentTime: 90,
+      paused: true,
+      ended: true
+    })
+    const plugin = new MP4Plugin({} as never)
+    attachPlayer(plugin, player)
+    await plugin.beforePlayerInit()
+    const core = mockMP4.cores[0]
+
+    await player.switchURL('replay.mp4')
+
+    expect(core.load).toHaveBeenNthCalledWith(2, 'replay.mp4', 0)
+    expect(player.currentTime).toBe(0)
+    expect(player.pause).toHaveBeenCalled()
+  })
+
+  test('uses the start time returned by the core after an out-of-range fallback', async () => {
+    const player = createPlayer({
+      currentTime: 120,
+      paused: false
+    })
+    const plugin = new MP4Plugin({} as never)
+    attachPlayer(plugin, player)
+    await plugin.beforePlayerInit()
+    const core = mockMP4.cores[0]
+    core.load.mockResolvedValueOnce(0)
+
+    await player.switchURL('shorter.mp4')
+
+    expect(core.load).toHaveBeenNthCalledWith(2, 'shorter.mp4', 120)
+    expect(player.currentTime).toBe(0)
+    expect(player.play).toHaveBeenCalled()
+  })
+
+  test('restores native APIs and source handling synchronously on destroy', async () => {
     const player = createPlayer()
     const plugin = new MP4Plugin({} as never)
     attachPlayer(plugin, player)
     await plugin.beforePlayerInit()
     const core = mockMP4.cores[0]
+    core.destroy.mockReturnValue(new Promise<void>(() => undefined))
 
     plugin.destroy()
 
     expect(player.switchURL).toBe(player.nativeSwitchURL)
     expect(player.playNext).toBe(player.nativePlayNext)
     expect(player.changeDefinition).toBe(player.nativeChangeDefinition)
+    expect(player.handleSource).toBe(true)
     expect(core.destroy).toHaveBeenCalled()
   })
 
@@ -276,10 +332,12 @@ describe('MP4Plugin', () => {
     const fallback = fatal._onFatalError(new Error('append failed'))
     await Promise.resolve()
     expect(player.video.src).toContain('blob:')
+    expect(player.handleSource).toBe(false)
 
     resolveDestroy?.()
     await fallback
     expect(player.video.src).toContain('/video.mp4')
+    expect(player.handleSource).toBe(true)
     expect(player.switchURL).toBe(player.nativeSwitchURL)
     expect(player.emit).toHaveBeenCalledWith(
       'playCatch',
