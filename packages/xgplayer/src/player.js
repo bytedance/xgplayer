@@ -1277,6 +1277,8 @@ class Player extends MediaProxy {
     this.isError = false
     this._useAutoplay = false
     this.mediaPause()
+    this._currentTime = 0
+    this._duration = 0
     this._accPlayed.acc = 0
     this._accPlayed.t = 0
     this._accPlayed.loopAcc = 0
@@ -2206,8 +2208,6 @@ class Player extends MediaProxy {
   playNext (config) {
     this.resetState()
     this.setConfig(config)
-    this._currentTime = 0
-    this._duration = 0
     runHooks(this, 'playnext', () => {
       this.start()
       this.emit(Events.PLAYNEXT, config)
