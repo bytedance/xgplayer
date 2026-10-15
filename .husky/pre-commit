@@ -1,1 +1,8 @@
 yarn -s format:staged
+
+# TypeScript strict gate: source and test TS are discovered by root globs, so
+# newly staged .ts/.tsx files are checked automatically — nothing to add by hand.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '\.tsx?$'; then
+  echo "Staged TS detected — running strict typecheck (yarn typecheck)…"
+  yarn -s typecheck
+fi

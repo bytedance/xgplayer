@@ -11,10 +11,9 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "forceConsistentCasingInFileNames": true
   },
-  "files": [],
-  "references": [{ "path": "./packages/xgplayer-cast" }]
+  "include": ["packages/*/src/**/*.ts", "packages/*/src/**/*.tsx"]
 }
