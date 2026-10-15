@@ -8,6 +8,7 @@ Verification rules for engineering quality in this repository.
 
 - Use the workspace toolchain with package project context; prefer package-level build, typecheck, or test commands.
 - Do not use `tsc --noEmit <single-file>`; it ignores package context and can report misleading errors.
+- Strict gate: root `tsconfig.json` checks all package TS source with `strict: true`; `allowJs` plus `checkJs: false` keeps unmigrated JS outside type checking. `tsconfig.test.json` adds TS tests. Both use root globs so new files are gated automatically, and pre-commit runs the combined `yarn typecheck` gate whenever TS is staged. Published TS packages use thin package configs to define declaration source boundaries explicitly; build tooling must not infer whole-package language from entry extensions.
 - Prefer `async` / `await`; use `return` or explicit promise chains only when clearer.
 
 ### Naming / Comments

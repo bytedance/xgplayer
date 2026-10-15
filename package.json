@@ -22,6 +22,7 @@
     "release": "yarn libd release",
     "prepare": "husky",
     "lint": "biome check --write packages",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "format": "biome format --write",
     "format:staged": "lint-staged",
     "test": "jest --verbose",
