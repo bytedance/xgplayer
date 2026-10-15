@@ -1,5 +1,9 @@
 import { EventEmitter } from 'eventemitter3'
 
+const PLAYER_DT_EVENT = '__player_devtools__'
+const PLAYER_DT_SCAN = '__player_devtools_scan__'
+const PLAYER_DT_HOOK = '__PLAYER_DEVTOOLS_HOOK__'
+
 /**
  * @typedef { (Player) => ?boolean } IterateFunction
  */
@@ -16,6 +20,7 @@ import { EventEmitter } from 'eventemitter3'
 const store = {}
 
 let instance = null
+let scanBound = false
 /**
  * Design as a class so that can be inherited to enhance functionality
  */
@@ -23,6 +28,38 @@ export class InstManager extends EventEmitter {
   static getInstance () {
     instance ||= new InstManager()
     return instance
+  }
+
+  constructor () {
+    super()
+    this._bindDevtools()
+  }
+
+  /** @private */
+  _bindDevtools () {
+    if (
+      scanBound ||
+      typeof window === 'undefined' ||
+      typeof window.addEventListener !== 'function'
+    ) {
+      return
+    }
+    scanBound = true
+    window.addEventListener(PLAYER_DT_SCAN, () => {
+      this.forEach(player => this._broadcastDevtools('add', player))
+    })
+  }
+
+  /** @private */
+  _broadcastDevtools (action, player) {
+    if (typeof window === 'undefined' || !window[PLAYER_DT_HOOK] || !player) {
+      return
+    }
+    try {
+      window.dispatchEvent(new CustomEvent(PLAYER_DT_EVENT, {
+        detail: { action, playerId: player.playerId, player }
+      }))
+    } catch {}
   }
 
   add (player) {
@@ -35,12 +72,14 @@ export class InstManager extends EventEmitter {
     if (Object.keys(store).length === 1) {
       this.setActive(player.playerId, true)
     }
+    this._broadcastDevtools('add', player)
   }
 
   remove (player) {
     if (!player) {
       return
     }
+    this._broadcastDevtools('remove', player)
     const isUserActive = player.isUserActive
 
     delete store[player.playerId]
