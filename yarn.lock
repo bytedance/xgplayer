@@ -2625,11 +2625,6 @@ core-js-compat@^3.25.1:
   dependencies:
     browserslist "^4.21.5"
 
-core-js@3:
-  version "3.30.2"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.30.2.tgz#6528abfda65e5ad728143ea23f7a14f0dcf503fc"
-  integrity sha512-uBJiDmwqsbJCWHAwjrx3cvjbMXP7xD72Dmsn5LOJpiRmE3WbBbN5rCqQ2Qh6Ek6/eOrjlWngEynBWo4VxerQhg==
-
 core-js@3.12.1:
   version "3.12.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.12.1.tgz#6b5af4ff55616c08a44d386f1f510917ff204112"
@@ -5918,71 +5913,6 @@ ws@^8.2.3:
   version "8.13.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.13.0.tgz#9a9fb92f93cf41512a0735c8f4dd09b8a1211cd0"
   integrity sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==
-
-xgplayer-mp4-loader@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/xgplayer-mp4-loader/-/xgplayer-mp4-loader-0.0.1.tgz#12f485eb817c89b44f345278181edafae4e50cf7"
-  integrity sha512-LLjWW0IHkyuG5FZIZE8TQferYEB0DO+ady007izL90reLovELcta8YaoEy4XzKWUwhG+DQl5HqeQoPZRcC9MlQ==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    core-js "3"
-    xgplayer-streaming-shared "3.0.0-next.2-1"
-    xgplayer-transmuxer "3.0.0-next.2-1"
-
-xgplayer-mp4-loader@3.0.24:
-  version "3.0.24"
-  resolved "https://registry.yarnpkg.com/xgplayer-mp4-loader/-/xgplayer-mp4-loader-3.0.24.tgz#0ef722468d3cd3402aaab91ef181d2006c253514"
-  integrity sha512-nK57uCuoBopZa0Wdy1vBnLoYT10ynuUjFwajxtnFNZ7vqREqsUA7JohdaVKR3HikOrzBjObjgypiY/AU5sfgwg==
-  dependencies:
-    eventemitter3 "^4.0.7"
-    xgplayer-streaming-shared "3.0.24"
-    xgplayer-transmuxer "3.0.24"
-
-xgplayer-streaming-shared@3.0.0-next.2-1:
-  version "3.0.0-next.2-1"
-  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.2-1.tgz#357cd2d160f3f12a21dacd8a8fadb7f598639166"
-  integrity sha512-lPFpMhrVRBYWQFzrJBiIpCAqmSaouq6PKVcqsmzFUxlXfmn7l8pTDouIhFofE0sAStB93oYgafj4NHAixOVQOw==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    core-js "3"
-
-xgplayer-streaming-shared@3.0.0-next.8:
-  version "3.0.0-next.8"
-  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.0-next.8.tgz#a1c01f7fa763597b3912a7e2063f1a13ff35292c"
-  integrity sha512-RO07xPrb6AnRIEIOt7X2ZaGz/WB6+tM6+2ItHyV8su4a+RDk9/VuDnBF1uGzsy/S4P4a+Z/Dvs/e0xoAHGb7Ng==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    core-js "3"
-
-xgplayer-streaming-shared@3.0.24:
-  version "3.0.24"
-  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.24.tgz#665fdb7a91bc1d60a9ff8de23f54b34f91ef2f32"
-  integrity sha512-6ROPxuwAIYWysF8qWMeVTHzlc+KFVhU0d79WY9B3st1RqBidEhysGqQRbwd9WHMuWePbLQv2zj6yRg7PVcdXKA==
-  dependencies:
-    eventemitter3 "^4.0.7"
-
-xgplayer-streaming-shared@3.0.25-rc.4:
-  version "3.0.25-rc.4"
-  resolved "https://registry.yarnpkg.com/xgplayer-streaming-shared/-/xgplayer-streaming-shared-3.0.25-rc.4.tgz#bf7e121be478e31bc0093320e865f144681a00ac"
-  integrity sha512-aIFQ39QpZaw9uwOEv3lZG68+B+mwh63hi834s8SLgranwH5G4VH7ESOG5UOo77Xv3zT1R0FMslK1ZPKBvHS7pA==
-  dependencies:
-    eventemitter3 "^4.0.7"
-
-xgplayer-transmuxer@3.0.0-next.2-1:
-  version "3.0.0-next.2-1"
-  resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.0-next.2-1.tgz#9e2deb51b83d4252bad07b3ae47139df19d43864"
-  integrity sha512-4qR+UJ08cWMhPg2NqJPMmFkvwjFwjgWreosgS0n3J8039JYHZ9nS/dpU3y9t8ftPKCjfUBpmUTC041G5lAmbwg==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    core-js "3"
-
-xgplayer-transmuxer@3.0.0-next.8:
-  version "3.0.0-next.8"
-  resolved "https://registry.yarnpkg.com/xgplayer-transmuxer/-/xgplayer-transmuxer-3.0.0-next.8.tgz#73c99976905cd8ca7f3b7d20a82a1ae4a3786bdb"
-  integrity sha512-PED7iAeLpfbbblEGYMf/Nt8rEt2YsE49yHoMDbWDoiF2tdHl49K2rN4M3C9oHe6VYGV1YdL5XaaZR9tCQLD1jg==
-  dependencies:
-    "@babel/runtime" "^7.15.3"
-    core-js "3"
 
 xml-name-validator@^4.0.0:
   version "4.0.0"
