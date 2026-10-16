@@ -31,6 +31,7 @@ export const IN = {
   STOP_RECORD: 'stop-record',
   REQUEST_SNAPSHOT: 'request-snapshot',
   REQUEST_REPLAY: 'request-replay',
+  HIGHLIGHT_INSTANCE: 'highlight-instance',
   INVOKE: 'invoke',
   PING: 'ping'
 }
