@@ -1,0 +1,113 @@
+{
+  "appDesc": {
+    "message": "Zero-intrusion debugging tools for web players: instance discovery, event timeline, buffer/network/log inspection, recording and snapshot export."
+  },
+  "tabOverview": { "message": "Overview" },
+  "tabTimeline": { "message": "Events" },
+  "tabMse": { "message": "MSE" },
+  "tabNetwork": { "message": "Network" },
+  "tabMedia": { "message": "Media" },
+  "tabLogs": { "message": "Logs" },
+  "noInstances": { "message": "No instances" },
+  "instancePlaying": { "message": "Playing" },
+  "instanceActive": { "message": "Active instance" },
+  "instanceIdle": { "message": "Idle instance" },
+  "titleLocateInstance": { "message": "Locate player on page" },
+  "statusActive": {
+    "message": "$count$ instances · current #$id$ · events $events$",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "id": { "content": "$2" },
+      "events": { "content": "$3" }
+    }
+  },
+  "statusWaiting": { "message": "Waiting for player instances on the page…" },
+  "overviewEmpty": { "message": "No data for the current instance" },
+  "playerState": { "message": "Player state" },
+  "resolution": { "message": "resolution" },
+  "noData": { "message": "No data" },
+  "mseUnavailable": { "message": "No active MSE / MMS instance" },
+  "mseRuntime": { "message": "MSE runtime" },
+  "mseBufferedTracks": { "message": "Buffered tracks" },
+  "mseSourceBuffers": { "message": "SourceBuffers" },
+  "mseNoSourceBuffers": { "message": "No SourceBuffer has been created" },
+  "mseRecentEvents": { "message": "Recent MSE events" },
+  "mseNoEvents": { "message": "No MSE events captured" },
+  "mseMetricState": { "message": "runtime" },
+  "mseMetricTracks": { "message": "tracks" },
+  "mseMetricQueue": { "message": "pending" },
+  "mseMetricAhead": { "message": "min ahead" },
+  "mseMetricAvDelta": { "message": "A/V end delta" },
+  "mseAhead": {
+    "message": "ahead $value$",
+    "placeholders": { "value": { "content": "$1" } }
+  },
+  "mseRanges": {
+    "message": "$count$ ranges",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseQueue": {
+    "message": "queue $count$",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseUpdating": { "message": "updating" },
+  "mseQueueLabel": { "message": "queue" },
+  "mseCurrentOperation": { "message": "current op" },
+  "mseCurrentTimeValue": {
+    "message": "current $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mseDurationValue": {
+    "message": "duration $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mseEventCount": {
+    "message": "$count$ events",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseTrackCount": {
+    "message": "$count$ tracks",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseFull": { "message": "SourceBuffer full" },
+  "mseCovered": { "message": "currentTime covered" },
+  "mediaElementState": { "message": "HTMLMediaElement state" },
+  "mediaBufferedSeekable": { "message": "Buffered and seekable ranges" },
+  "mediaBuffered": { "message": "buffered" },
+  "mediaSeekable": { "message": "seekable" },
+  "mediaRangeCount": {
+    "message": "$count$ ranges",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mediaCurrentTimeValue": {
+    "message": "current $time$s",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mediaPlaybackRendering": { "message": "Playback and rendering" },
+  "kernelLogs": { "message": "Kernel logs" },
+  "loggerEnabled": { "message": "Logger enabled" },
+  "debugLevelKey": { "message": "debug level" },
+  "loggerHint": {
+    "message": "Tip: reading the Logger cache requires the player to expose Logger on window; for console logs use the DevTools Console panel."
+  },
+  "loggerLabel": {
+    "message": "Logs: $state$",
+    "placeholders": { "state": { "content": "$1" } }
+  },
+  "on": { "message": "on" },
+  "off": { "message": "off" },
+  "titleRecord": { "message": "Record events" },
+  "titleRecording": { "message": "Stop recording" },
+  "titleSnapshot": { "message": "Export snapshot" },
+  "titleLogger": { "message": "Toggle kernel logs" },
+  "titleClear": { "message": "Clear events" },
+  "evtSearchPlaceholder": { "message": "Filter events by type or payload…" },
+  "collapseAll": { "message": "Collapse all" },
+  "copy": { "message": "Copy" },
+  "copied": { "message": "Copied" },
+  "unknownNotExposed": { "message": "unknown / not exposed" },
+  "netPendingTitle": { "message": "Network — under construction" },
+  "netPendingDesc": {
+    "message": "Real request observation (fetch / XHR) is not implemented yet. Player load/speed events are not shown here because they are not real network requests."
+  }
+}
