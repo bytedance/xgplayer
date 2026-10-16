@@ -4,11 +4,15 @@
   },
   "tabOverview": { "message": "概览" },
   "tabTimeline": { "message": "事件" },
-  "tabBuffer": { "message": "缓冲" },
+  "tabMse": { "message": "MSE" },
   "tabNetwork": { "message": "网络" },
   "tabMedia": { "message": "媒体" },
   "tabLogs": { "message": "日志" },
   "noInstances": { "message": "无实例" },
+  "instancePlaying": { "message": "正在播放" },
+  "instanceActive": { "message": "当前激活实例" },
+  "instanceIdle": { "message": "空闲实例" },
+  "titleLocateInstance": { "message": "在页面中定位播放器" },
   "statusActive": {
     "message": "$count$ 个实例 · 当前 #$id$ · 事件 $events$",
     "placeholders": {
@@ -22,10 +26,64 @@
   "playerState": { "message": "播放器状态" },
   "resolution": { "message": "分辨率" },
   "noData": { "message": "无数据" },
-  "bufferedCurrentTime": { "message": "buffered / currentTime" },
-  "bufferedRanges": { "message": "buffered 区间" },
-  "mediaDecode": { "message": "媒体 / 解码" },
-  "abrInternal": { "message": "ABR (增强)" },
+  "mseUnavailable": { "message": "当前没有活动的 MSE / MMS 实例" },
+  "mseRuntime": { "message": "MSE 运行状态" },
+  "mseBufferedTracks": { "message": "分轨缓冲" },
+  "mseSourceBuffers": { "message": "SourceBuffer 状态" },
+  "mseNoSourceBuffers": { "message": "尚未创建 SourceBuffer" },
+  "mseRecentEvents": { "message": "最近 MSE 事件" },
+  "mseNoEvents": { "message": "尚未捕获 MSE 事件" },
+  "mseMetricState": { "message": "运行状态" },
+  "mseMetricTracks": { "message": "轨道" },
+  "mseMetricQueue": { "message": "待处理" },
+  "mseMetricAhead": { "message": "最小 ahead" },
+  "mseMetricAvDelta": { "message": "A/V 末端差" },
+  "mseAhead": {
+    "message": "ahead $value$",
+    "placeholders": { "value": { "content": "$1" } }
+  },
+  "mseRanges": {
+    "message": "$count$ 个区间",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseQueue": {
+    "message": "队列 $count$",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseUpdating": { "message": "更新中" },
+  "mseQueueLabel": { "message": "队列" },
+  "mseCurrentOperation": { "message": "当前操作" },
+  "mseCurrentTimeValue": {
+    "message": "当前 $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mseDurationValue": {
+    "message": "时长 $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mseEventCount": {
+    "message": "$count$ 条",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseTrackCount": {
+    "message": "$count$ 个轨道",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseFull": { "message": "SourceBuffer 已满" },
+  "mseCovered": { "message": "currentTime 已覆盖" },
+  "mediaElementState": { "message": "HTMLMediaElement 状态" },
+  "mediaBufferedSeekable": { "message": "缓冲与可跳转区间" },
+  "mediaBuffered": { "message": "buffered" },
+  "mediaSeekable": { "message": "seekable" },
+  "mediaRangeCount": {
+    "message": "$count$ 个区间",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mediaCurrentTimeValue": {
+    "message": "当前 $time$s",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mediaPlaybackRendering": { "message": "播放与渲染属性" },
   "kernelLogs": { "message": "内核日志" },
   "loggerEnabled": { "message": "Logger 启用" },
   "debugLevelKey": { "message": "debug 级别" },

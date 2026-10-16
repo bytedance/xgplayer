@@ -90,6 +90,7 @@ interface InboundMessage {
     | 'start-record' | 'stop-record'
     | 'request-snapshot'     // 聚合快照
     | 'request-replay'       // 请求连接前已捕获的事件历史回放
+    | 'highlight-instance'   // 在页面中定位并短暂高亮播放器
     | 'invoke'               // 远程调用白名单方法（play/pause/seek…）
   playerId?: string
   payload?: unknown
@@ -111,16 +112,16 @@ interface InboundMessage {
 |------|----------|--------------|
 | **概览 Overview** | instManager + player 状态/config | 多实例列表、当前 active 实例、url、codec、`readyState`、画面尺寸、关键 config |
 | **事件时间轴 Timeline** | player events + `core.*` | seek/waiting/stall/error 时序，定位卡顿与状态竞争 |
-| **缓冲 Buffer** | `bufferInfo()` / `player.buffered` / MSE SourceBuffer | buffer hole、evict、append 节奏、DTS gap/overlap 检测 |
+| **MSE** | MediaSource / SourceBuffer / MSE 操作队列 | MSE/MMS 生命周期、分轨 ranges、append/remove 阻塞与 buffer full |
 | **网络 Network** | `core.ttfb` / `core.loadcomplete` / `core.speed` / `core.appendcost` | 分片下载耗时、带宽、重试、首帧 |
 | **日志 Logs** | `Logger.getLogCache()` + console 捕获 | 一键 `Logger.enable()`、按 tag/级别过滤、导出 |
-| **媒体/解码 Media** | `getStats()` + video 元素属性 | 分辨率切换、低帧、hvcC/avcC codec、HEVC CRA/RASL 线索 |
+| **媒体 Media** | HTMLMediaElement 属性 | 播放状态、buffered/seekable 空洞、媒体元素错误与渲染属性 |
 | **ABR**（可选探针） | ABR 探针 | 清晰度决策轨迹、带宽估计、切换原因 |
 | **加密**（可选探针） | 加密探针 | key 加载、解密失败点、SAMPLE-AES 场景 |
 | **埋点**（可选探针） | 埋点探针 | 上报事件流、字段校验 |
 
 ### 4.1 概览 Overview
-- 实例卡片列表（active 高亮，对应 `getActiveId()`），点击切换 panel 关注实例。
+- 实例列表区分 playing / active / idle 状态；支持切换关注实例，并通过定位按钮在页面中短暂高亮对应 `player.root`。
 - 展示：`playerId`、`url`、`config` 摘要（autoplay/isLive/preloadTime/mseAttachMode 等）、当前 state、`videoWidth×videoHeight`、`currentTime/duration`。
 
 ### 4.2 事件时间轴 Timeline
@@ -128,10 +129,11 @@ interface InboundMessage {
 - 支持过滤、放大、hover 查看 payload。
 - **录制 / 回放**:录制窗口内全部事件 → 导出 JSON，可配合 `fixtures/<format>/` 做可复现 case。
 
-### 4.3 缓冲 Buffer
-- 可视化 `player.buffered` 多区间 + currentTime 游标。
-- `hls.bufferInfo()` 的 `start/end/remaining/nextStart` 实时读数。
-- 标注 `core.appendbuffer` / `core.removebuffer` / gap-overlap 检测事件，便于定位空洞与 evict。
+### 4.3 MSE
+- 通过 HLS / FLV / MP4 的 BufferService 能力探测 MSE/MMS 实例，每秒生成只读快照。
+- 展示 MediaSource 状态、实际挂载方式、每轨 MIME/codec、`updating`、`timestampOffset`、append window、操作队列与 full flag。
+- audio/video 分轨绘制 buffered ranges 与 currentTime 游标，并汇总 A/V buffer end 差值。
+- 只传输裁剪后的普通对象；不复制媒体字节，不跨消息传递 MediaSource / SourceBuffer / Promise，也不 patch `append/remove`。
 
 ### 4.4 网络 Network
 - 分片表:url、`ttfb`、下载耗时、大小、速度、重试次数、append 耗时。
@@ -141,9 +143,10 @@ interface InboundMessage {
 - 一键远程 `Logger.enable()` / 调级别。
 - 拉取 `getLogCache()` 环形缓冲 + 捕获 `console.*`，按 `[tag]` / 级别过滤、搜索、导出。
 
-### 4.6 媒体/解码 Media
-- `getStats()` 汇总 + video 元素(`videoWidth/Height`、`playbackQuality`、`error`)。
-- codec 变化记录(hvcC/avcC、`changeType` 时机),辅助 HEVC 开放 GOP / 参考帧类问题初筛。
+### 4.6 媒体 Media
+- 仅展示 HTMLMediaElement 可直接观测的信息，不混入 HLS、ABR 或 MSE 内部状态。
+- 可视化 `buffered` / `seekable` 多区间和 `currentTime` 游标，并兼容直播时间轴。
+- 展示播放状态、`readyState`、`networkState`、画面尺寸、音量、倍速与媒体元素错误。
 
 ---
 
@@ -168,7 +171,7 @@ interface InstanceProbe {
 }
 ```
 
-- 内核探针:`CoreProbe`（player 事件/状态）、`HlsProbe`（core.* / bufferInfo / stats）。
+- 内核探针:`CoreProbe`（player 事件/状态）、`HlsProbe`（core.* / bufferInfo / stats）、`MseProbe`（MediaSource / SourceBuffer / 操作队列）。
 - 可选探针:`AbrProbe`、`EncryptProbe`、`AppLoggerProbe`、`PreloadProbe` —— 仅当对应增强能力在运行时存在时 `detect` 通过。
 - 探针注册表集中管理，面板根据探针可用性动态显隐，实现「开源精简 / 增强形态」的平滑降级。
 
@@ -188,7 +191,7 @@ packages/xgplayer-devtools-extension/
 │   ├── content/               # 注入 inject.js + 消息转发
 │   ├── background/            # service worker:会话/存储/中转
 │   ├── devtools/              # devtools 页 + 面板注册
-│   ├── panel/                 # UI(Overview/Timeline/Buffer/Network/Logs/Media/…)
+│   ├── panel/                 # UI(Overview/Timeline/MSE/Network/Media/Logs/…)
 │   └── shared/                # 消息协议、裁剪/节流工具
 ├── public/                    # 图标等
 └── README.md
@@ -213,7 +216,7 @@ packages/xgplayer-devtools-extension/
 | 阶段 | 内容 | 产物 |
 |------|------|------|
 | **M1 MVP** | MV3 骨架 + 实例发现（信标 + 三级兜底，见 §2.2）+ 概览面板 + 基础事件时间轴 | 可加载扩展，能看到实例与事件流 |
-| **M2** | 缓冲 / 网络 / 日志面板 + Logger/XG_DEBUG 一键开关 | 覆盖开源内核主要排查维度 |
+| **M2** | 媒体缓冲 / 网络 / 日志面板 + Logger/XG_DEBUG 一键开关 | 覆盖开源内核主要排查维度 |
 | **M3** | 事件录制 / 回放 + 快照导出 | 可复现 case |
 | **M4（增强）** | ABR / 加密 / 埋点 / preload 可选探针与面板 | 对接增强发行版 |
 

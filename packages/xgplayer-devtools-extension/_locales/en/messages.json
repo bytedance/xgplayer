@@ -4,11 +4,15 @@
   },
   "tabOverview": { "message": "Overview" },
   "tabTimeline": { "message": "Events" },
-  "tabBuffer": { "message": "Buffer" },
+  "tabMse": { "message": "MSE" },
   "tabNetwork": { "message": "Network" },
   "tabMedia": { "message": "Media" },
   "tabLogs": { "message": "Logs" },
   "noInstances": { "message": "No instances" },
+  "instancePlaying": { "message": "Playing" },
+  "instanceActive": { "message": "Active instance" },
+  "instanceIdle": { "message": "Idle instance" },
+  "titleLocateInstance": { "message": "Locate player on page" },
   "statusActive": {
     "message": "$count$ instances · current #$id$ · events $events$",
     "placeholders": {
@@ -22,10 +26,64 @@
   "playerState": { "message": "Player state" },
   "resolution": { "message": "resolution" },
   "noData": { "message": "No data" },
-  "bufferedCurrentTime": { "message": "buffered / currentTime" },
-  "bufferedRanges": { "message": "buffered ranges" },
-  "mediaDecode": { "message": "Media / decode" },
-  "abrInternal": { "message": "ABR (enhanced)" },
+  "mseUnavailable": { "message": "No active MSE / MMS instance" },
+  "mseRuntime": { "message": "MSE runtime" },
+  "mseBufferedTracks": { "message": "Buffered tracks" },
+  "mseSourceBuffers": { "message": "SourceBuffers" },
+  "mseNoSourceBuffers": { "message": "No SourceBuffer has been created" },
+  "mseRecentEvents": { "message": "Recent MSE events" },
+  "mseNoEvents": { "message": "No MSE events captured" },
+  "mseMetricState": { "message": "runtime" },
+  "mseMetricTracks": { "message": "tracks" },
+  "mseMetricQueue": { "message": "pending" },
+  "mseMetricAhead": { "message": "min ahead" },
+  "mseMetricAvDelta": { "message": "A/V end delta" },
+  "mseAhead": {
+    "message": "ahead $value$",
+    "placeholders": { "value": { "content": "$1" } }
+  },
+  "mseRanges": {
+    "message": "$count$ ranges",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseQueue": {
+    "message": "queue $count$",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseUpdating": { "message": "updating" },
+  "mseQueueLabel": { "message": "queue" },
+  "mseCurrentOperation": { "message": "current op" },
+  "mseCurrentTimeValue": {
+    "message": "current $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mseDurationValue": {
+    "message": "duration $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mseEventCount": {
+    "message": "$count$ events",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseTrackCount": {
+    "message": "$count$ tracks",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mseFull": { "message": "SourceBuffer full" },
+  "mseCovered": { "message": "currentTime covered" },
+  "mediaElementState": { "message": "HTMLMediaElement state" },
+  "mediaBufferedSeekable": { "message": "Buffered and seekable ranges" },
+  "mediaBuffered": { "message": "buffered" },
+  "mediaSeekable": { "message": "seekable" },
+  "mediaRangeCount": {
+    "message": "$count$ ranges",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "mediaCurrentTimeValue": {
+    "message": "current $time$s",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "mediaPlaybackRendering": { "message": "Playback and rendering" },
   "kernelLogs": { "message": "Kernel logs" },
   "loggerEnabled": { "message": "Logger enabled" },
   "debugLevelKey": { "message": "debug level" },
