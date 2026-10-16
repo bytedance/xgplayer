@@ -1,3 +1,5 @@
+import { createMseView } from './mse.js'
+
 /**
  * Player DevTools panel (runs in the DevTools context).
  *
@@ -27,7 +29,7 @@
   const state = {
     instances: [],
     selectedId: null,
-    metrics: {}, // playerId -> { core, hls, abr }
+    metrics: {}, // playerId -> { core, hls, mse, abr }
     logs: { enabled: null, debugLevel: null },
     events: [], // live ring buffer for the Timeline
     maxEvents: 5000,
@@ -48,7 +50,7 @@
   const TABS = [
     { id: 'overview', label: t('tabOverview') },
     { id: 'timeline', label: t('tabTimeline') },
-    { id: 'buffer', label: t('tabBuffer') },
+    { id: 'mse', label: t('tabMse') },
     { id: 'network', label: t('tabNetwork') },
     { id: 'media', label: t('tabMedia') },
     { id: 'logs', label: t('tabLogs') }
@@ -113,8 +115,9 @@
       }
       case 'metrics':
         state.metrics[data.payload.playerId] = data.payload.metrics
-        // Metrics feed Overview/Buffer/Media only; never re-render on the Events
-        // tab, or the ~1s metrics tick would collapse any expanded row.
+        updateTabBadges()
+        // Metrics feed the diagnostic views; never re-render on the Events tab,
+        // or the ~1s metrics tick would collapse any expanded row.
         if (data.payload.playerId === state.selectedId && state.activeTab !== 'timeline')
           renderActive()
         break
@@ -243,17 +246,40 @@
   function updateTabBadges() {
     const evts = currentEvents()
     const hasError = evts.some((e) => e.category === 'error')
+    const mse = (state.metrics[state.selectedId] || {}).mse
     document.querySelectorAll('[data-badge]').forEach((b) => {
       if (b.dataset.badge === 'timeline') {
         b.textContent = evts.length || ''
         // Red-tint the count when the current instance has error events, so the
         // Events tab flags problems at a glance without opening the list.
         b.classList.toggle('error', hasError)
+      } else if (b.dataset.badge === 'mse') {
+        b.textContent = mse?.full ? '!' : mse?.pendingOperations || ''
+        b.classList.toggle('error', !!(mse && mse.full))
       } else {
         b.textContent = ''
         b.classList.remove('error')
       }
     })
+  }
+
+  function instanceState(inst) {
+    if (inst.overview?.playing) {
+      return { icon: '▶', className: 'playing', label: t('instancePlaying') }
+    }
+    if (inst.active) {
+      return { icon: '●', className: 'active', label: t('instanceActive') }
+    }
+    return { icon: '○', className: 'idle', label: t('instanceIdle') }
+  }
+
+  function appendLocateButton(bar) {
+    const locate = el('button', 'btn icon-btn inst-locate', '⌖')
+    locate.type = 'button'
+    locate.title = t('titleLocateInstance')
+    locate.disabled = !state.selectedId
+    locate.onclick = () => send('highlight-instance')
+    bar.appendChild(locate)
   }
 
   function renderInstances() {
@@ -267,9 +293,17 @@
     // stays one row high regardless of instance count (no horizontal scrolling).
     if (state.instances.length === 1) {
       const inst = state.instances[0]
+      const status = instanceState(inst)
       const line = el('div', 'inst-single' + (inst.active ? ' active' : ''))
       const url = (inst.overview && inst.overview.url) || ''
       line.innerHTML =
+        '<span class="inst-state ' +
+        status.className +
+        '" title="' +
+        esc(status.label) +
+        '">' +
+        status.icon +
+        '</span>' +
         '<span class="id">#' +
         esc(inst.id) +
         '</span>' +
@@ -277,19 +311,22 @@
         esc(shortUrl(url)) +
         '</span>'
       bar.appendChild(line)
+      appendLocateButton(bar)
       return
     }
     const sel = el('select', 'inst-select')
     state.instances.forEach((inst) => {
       const url = (inst.overview && inst.overview.url) || ''
+      const status = instanceState(inst)
       const opt = el('option')
       opt.value = inst.id
-      opt.textContent = (inst.active ? '● ' : '') + '#' + inst.id + ' · ' + shortUrl(url)
+      opt.textContent = status.icon + ' #' + inst.id + ' · ' + shortUrl(url)
       if (inst.id === state.selectedId) opt.selected = true
       sel.appendChild(opt)
     })
     sel.onchange = (e) => selectInstance(e.target.value)
     bar.appendChild(sel)
+    appendLocateButton(bar)
   }
 
   function selectInstance(id) {
@@ -301,13 +338,26 @@
     updateTabBadges()
   }
 
-  function shortUrl(u) {
-    if (!u) return '(no url)'
+  function sourceUrl(source) {
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        const url = sourceUrl(item)
+        if (url) return url
+      }
+      return ''
+    }
+    if (typeof source === 'string') return source
+    return source && typeof source.src === 'string' ? source.src : ''
+  }
+
+  function shortUrl(source) {
+    const url = sourceUrl(source)
+    if (!url) return '(no url)'
     try {
-      const x = new URL(u)
+      const x = new URL(url)
       return x.pathname.split('/').pop() || x.hostname
     } catch {
-      return String(u).slice(0, 24)
+      return url.slice(0, 24)
     }
   }
 
@@ -333,9 +383,9 @@
       case 'timeline':
         renderTimelineFull()
         break
-      case 'buffer':
+      case 'mse':
         c.innerHTML = ''
-        c.appendChild(viewBuffer(m))
+        c.appendChild(viewMse(m))
         break
       case 'network':
         c.innerHTML = ''
@@ -362,6 +412,8 @@
     return dl
   }
 
+  const viewMse = createMseView({ el, kv, t, num, fmtTime, currentEvents })
+
   // ---- Overview
   function viewOverview(m) {
     const wrap = el('div')
@@ -376,6 +428,7 @@
       kv({
         playerId: core.playerId,
         url: core.url,
+        ...(core.sources ? { sources: core.sources } : {}),
         state: core.state,
         currentTime: num(core.currentTime),
         duration: num(core.duration),
@@ -545,51 +598,6 @@
     return d
   }
 
-  // ---- Buffer
-  function viewBuffer(m) {
-    const wrap = el('div')
-    const core = m.core
-    if (!core) {
-      wrap.appendChild(el('div', 'empty', t('noData')))
-      return wrap
-    }
-    const dur =
-      core.duration ||
-      (core.buffered.length ? core.buffered[core.buffered.length - 1].end : 1) ||
-      1
-    const card = el('div', 'card')
-    card.appendChild(el('h3', null, t('bufferedCurrentTime')))
-    const bar = el('div', 'timeline-bar')
-    core.buffered.forEach((r) => {
-      const seg = el('div', 'range')
-      seg.style.left = (r.start / dur) * 100 + '%'
-      seg.style.width = Math.max(0.5, ((r.end - r.start) / dur) * 100) + '%'
-      bar.appendChild(seg)
-    })
-    const cur = el('div', 'cursor')
-    cur.style.left = ((core.currentTime || 0) / dur) * 100 + '%'
-    bar.appendChild(cur)
-    card.appendChild(bar)
-    card.appendChild(
-      kv({
-        duration: num(dur),
-        currentTime: num(core.currentTime),
-        [t('bufferedRanges')]:
-          core.buffered
-            .map((r) => '[' + num(r.start) + ',' + num(r.end) + ']')
-            .join(' ') || '—'
-      })
-    )
-    wrap.appendChild(card)
-    if (m.hls && m.hls.bufferInfo) {
-      const h = el('div', 'card')
-      h.appendChild(el('h3', null, 'HLS bufferInfo'))
-      h.appendChild(kv(flat(m.hls.bufferInfo)))
-      wrap.appendChild(h)
-    }
-    return wrap
-  }
-
   // ---- Network
   // Under construction: the real fetch/xhr observation approach is undecided.
   // We intentionally do NOT show player "load*"/speed events here, as they are
@@ -604,6 +612,70 @@
   }
 
   // ---- Media
+  function mediaTimelineDomain(core) {
+    const ranges = [...(core.buffered || []), ...(core.seekable || [])]
+    if (Number.isFinite(core.duration) && core.duration > 0) {
+      return { start: 0, end: core.duration }
+    }
+    if (!ranges.length) {
+      return { start: 0, end: Math.max(core.currentTime || 0, 1) }
+    }
+    const start = Math.min(...ranges.map((range) => range.start))
+    const end = Math.max(
+      ...ranges.map((range) => range.end),
+      core.currentTime >= start ? core.currentTime : start + 1
+    )
+    return { start, end: Math.max(end, start + 1) }
+  }
+
+  function mediaRangeRow(label, ranges, currentTime, domain) {
+    const row = el('div', 'media-range-row')
+    const head = el('div', 'media-range-head')
+    head.appendChild(el('strong', null, label))
+    head.appendChild(el('span', 'muted', t('mediaRangeCount', [String(ranges.length)])))
+    row.appendChild(head)
+
+    const span = domain.end - domain.start
+    const bar = el('div', 'media-range-bar')
+    ranges.forEach((range) => {
+      const segment = el('div', 'range')
+      segment.style.left = `${Math.max(
+        0,
+        Math.min(100, ((range.start - domain.start) / span) * 100)
+      )}%`
+      segment.style.width = `${Math.max(
+        0.5,
+        Math.min(100, ((range.end - range.start) / span) * 100)
+      )}%`
+      segment.title = `${num(range.start)}s – ${num(range.end)}s`
+      bar.appendChild(segment)
+    })
+    const cursor = el('div', 'cursor')
+    cursor.style.left = `${Math.max(
+      0,
+      Math.min(100, ((currentTime - domain.start) / span) * 100)
+    )}%`
+    cursor.title = t('mediaCurrentTimeValue', [num(currentTime)])
+    bar.appendChild(cursor)
+    row.appendChild(bar)
+
+    const scale = el('div', 'media-range-scale')
+    scale.appendChild(el('span', null, `${num(domain.start)}s`))
+    scale.appendChild(
+      el('span', 'media-range-current', t('mediaCurrentTimeValue', [num(currentTime)]))
+    )
+    scale.appendChild(el('span', null, `${num(domain.end)}s`))
+    row.appendChild(scale)
+    row.appendChild(
+      el(
+        'code',
+        'media-range-values',
+        ranges.map((range) => `[${num(range.start)}, ${num(range.end)}]`).join(' ') || '—'
+      )
+    )
+    return row
+  }
+
   function viewMedia(m) {
     const wrap = el('div')
     const core = m.core
@@ -611,29 +683,61 @@
       wrap.appendChild(el('div', 'empty', t('noData')))
       return wrap
     }
-    const card = el('div', 'card')
-    card.appendChild(el('h3', null, t('mediaDecode')))
-    card.appendChild(
+    const stateCard = el('div', 'card')
+    stateCard.appendChild(el('h3', null, t('mediaElementState')))
+    stateCard.appendChild(
       kv({
-        [t('resolution')]: (core.videoWidth || '?') + '×' + (core.videoHeight || '?'),
+        currentSrc: core.currentSrc || '—',
+        src: core.src || '—',
+        currentTime: num(core.currentTime),
+        duration: num(core.duration),
+        paused: core.paused,
+        ended: core.ended,
+        seeking: core.seeking,
         readyState: core.readyState,
         networkState: core.networkState,
-        error: core.error ? JSON.stringify(core.error) : '—'
+        error: core.error || '—'
       })
     )
-    wrap.appendChild(card)
-    if (m.hls && m.hls.currentStream) {
-      const s = el('div', 'card')
-      s.appendChild(el('h3', null, 'currentStream'))
-      s.appendChild(kv(flat(m.hls.currentStream)))
-      wrap.appendChild(s)
-    }
-    if (m.abr) {
-      const a = el('div', 'card')
-      a.appendChild(el('h3', null, t('abrInternal')))
-      a.appendChild(kv(flat(m.abr)))
-      wrap.appendChild(a)
-    }
+    wrap.appendChild(stateCard)
+
+    const rangesCard = el('div', 'card media-ranges')
+    rangesCard.appendChild(el('h3', null, t('mediaBufferedSeekable')))
+    const domain = mediaTimelineDomain(core)
+    rangesCard.appendChild(
+      mediaRangeRow(
+        t('mediaBuffered'),
+        core.buffered || [],
+        core.currentTime || 0,
+        domain
+      )
+    )
+    rangesCard.appendChild(
+      mediaRangeRow(
+        t('mediaSeekable'),
+        core.seekable || [],
+        core.currentTime || 0,
+        domain
+      )
+    )
+    wrap.appendChild(rangesCard)
+
+    const playbackCard = el('div', 'card')
+    playbackCard.appendChild(el('h3', null, t('mediaPlaybackRendering')))
+    playbackCard.appendChild(
+      kv({
+        [t('resolution')]: `${core.videoWidth || '?'}×${core.videoHeight || '?'}`,
+        playbackRate: core.playbackRate,
+        volume: core.volume,
+        muted: core.muted,
+        autoplay: core.autoplay,
+        loop: core.loop,
+        controls: core.controls,
+        preload: core.preload || '—',
+        crossOrigin: core.crossOrigin || '—'
+      })
+    )
+    wrap.appendChild(playbackCard)
     return wrap
   }
 
