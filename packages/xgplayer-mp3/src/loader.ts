@@ -28,22 +28,21 @@ function getFileSize(response: Response | undefined, dataLength: number): number
 }
 
 export class MP3Loader {
-  readonly logger: Logger
-
-  metadata: MP3Metadata | null = null
-  url: string
-
   private readonly config: MP3Config
   private readonly netLoader: NetLoader
+  private readonly logger: Logger
+  private _metadata: MP3Metadata | null = null
+  private _url: string
   private fullData: Uint8Array | null = null
   private currentIndex = -1
   private currentOffset = 0
   private currentTime = 0
   private linearFromStart = false
+  private destroyed = false
 
   constructor(config: MP3Config) {
     this.config = config
-    this.url = config.url
+    this._url = config.url
     this.logger = new Logger(`MP3Loader_${config.vid || config.url}`, undefined)
     this.netLoader = new NetLoader({
       url: config.url,
@@ -56,18 +55,30 @@ export class MP3Loader {
     })
   }
 
+  get metadata(): MP3Metadata | null {
+    return this._metadata
+  }
+
+  get url(): string {
+    return this._url
+  }
+
   async changeUrl(url: string): Promise<void> {
+    this.ensureActive()
     await this.reset()
-    this.url = url
+    this.ensureActive()
+    this._url = url
   }
 
   async loadMetadata(): Promise<MP3Metadata> {
-    if (this.metadata) return this.metadata
+    this.ensureActive()
+    if (this._metadata) return this._metadata
 
     let probeEnd = this.config.probeSize - 1
     let lastError: unknown
     while (probeEnd < this.config.maxProbeSize) {
       const range = await this.loadRange(0, probeEnd)
+      this.ensureActive()
       const fileSize = this.fullData?.byteLength || this.getRangeFileSize(range)
       if (!fileSize) {
         throw new Error(
@@ -76,10 +87,10 @@ export class MP3Loader {
       }
 
       try {
-        this.metadata = parseMP3Metadata(range.data, fileSize)
-        this.currentOffset = this.metadata.firstFrameOffset
+        this._metadata = parseMP3Metadata(range.data, fileSize)
+        this.currentOffset = this._metadata.firstFrameOffset
         this.currentTime = 0
-        return this.metadata
+        return this._metadata
       } catch (error) {
         lastError = error
         if (
@@ -99,11 +110,13 @@ export class MP3Loader {
 
   async loadSegmentByTime(time: number): Promise<MP3Segment | undefined> {
     const metadata = await this.loadMetadata()
+    this.ensureActive()
     if (time < 0 || time >= metadata.duration) return
 
     this.linearFromStart = time === 0
     const offset = timeToByteOffset(metadata, time)
     const segment = await this.loadSegment(offset, time, this.currentIndex + 1, true)
+    this.ensureActive()
     if (segment) {
       this.setCurrentSegment(segment)
       this.correctDurationAtEnd(segment)
@@ -113,12 +126,14 @@ export class MP3Loader {
 
   async loadNextSegment(): Promise<MP3Segment | undefined> {
     await this.loadMetadata()
+    this.ensureActive()
     const segment = await this.loadSegment(
       this.currentOffset,
       this.currentTime,
       this.currentIndex + 1,
       false
     )
+    this.ensureActive()
     if (segment) {
       this.setCurrentSegment(segment)
       this.correctDurationAtEnd(segment)
@@ -130,9 +145,22 @@ export class MP3Loader {
     await this.netLoader.cancel()
   }
 
-  async reset(): Promise<void> {
+  private async reset(): Promise<void> {
+    this.ensureActive()
     await this.cancel()
-    this.metadata = null
+    this.ensureActive()
+    this.clearState()
+  }
+
+  destroy(): void {
+    if (this.destroyed) return
+    this.destroyed = true
+    this.clearState()
+    void this.netLoader.cancel().catch(() => undefined)
+  }
+
+  private clearState(): void {
+    this._metadata = null
     this.fullData = null
     this.currentIndex = -1
     this.currentOffset = 0
@@ -140,8 +168,8 @@ export class MP3Loader {
     this.linearFromStart = false
   }
 
-  async destroy(): Promise<void> {
-    await this.reset()
+  private ensureActive(): void {
+    if (this.destroyed) throw new Error('MP3 loader has been destroyed')
   }
 
   private async loadSegment(
@@ -150,7 +178,7 @@ export class MP3Loader {
     index: number,
     seek: boolean
   ): Promise<MP3Segment | undefined> {
-    const metadata = this.metadata
+    const metadata = this._metadata
     if (!metadata) return
 
     const searchStart = seek
@@ -213,8 +241,8 @@ export class MP3Loader {
   }
 
   private correctDurationAtEnd(segment: MP3Segment): void {
-    if (!segment.isLast || !this.linearFromStart || !this.metadata) return
-    this.metadata.duration = segment.endTime
+    if (!segment.isLast || !this.linearFromStart || !this._metadata) return
+    this._metadata.duration = segment.endTime
   }
 
   private getRangeFileSize(range: RangeData): number {
@@ -222,6 +250,7 @@ export class MP3Loader {
   }
 
   private async loadRange(start: number, end: number): Promise<RangeData> {
+    this.ensureActive()
     if (this.fullData) {
       const rangeEnd = Math.min(end, this.fullData.byteLength - 1)
       return {
@@ -232,10 +261,11 @@ export class MP3Loader {
       }
     }
 
-    const result = (await this.netLoader.load(this.url, {
+    const result = (await this.netLoader.load(this._url, {
       range: [start, end],
       responseType: 'arraybuffer'
     })) as NetworkResponse | undefined
+    this.ensureActive()
     if (!result?.data?.length) throw new Error('Empty MP3 network response')
 
     const response = result.response

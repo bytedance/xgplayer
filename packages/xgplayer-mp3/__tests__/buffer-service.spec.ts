@@ -151,8 +151,27 @@ describe('MP3 BufferService', () => {
     )
 
     mockMSE.bindMedia.mockClear()
-    await service.destroy()
+    expect(service.destroy()).toBeUndefined()
     expect(mockMSE.unbindMedia).toHaveBeenCalled()
+    expect(mockMSE.bindMedia).not.toHaveBeenCalled()
+  })
+
+  test('does not rebind media when destroyed during reset', async () => {
+    let resolveUnbind: (() => void) | undefined
+    mockMSE.unbindMedia.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolveUnbind = resolve
+      })
+    )
+    const service = new BufferService(
+      getConfig({ media: document.createElement('audio') })
+    )
+
+    const resetPromise = service.reset()
+    expect(service.destroy()).toBeUndefined()
+    resolveUnbind?.()
+    await resetPromise
+
     expect(mockMSE.bindMedia).not.toHaveBeenCalled()
   })
 })

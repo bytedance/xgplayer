@@ -3,7 +3,7 @@ jest.mock('../src/mp3', () => {
     load: jest.Mock
     destroy: jest.Mock
     on: jest.Mock
-    _inited: boolean
+    isInitialized: boolean
   }> = []
   const MP3 = jest.fn().mockImplementation(() => {
     const core = {
@@ -12,9 +12,9 @@ jest.mock('../src/mp3', () => {
         .mockImplementation((_url: string, startTime = 0) =>
           Promise.resolve(startTime)
         ),
-      destroy: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
       on: jest.fn(),
-      _inited: false
+      isInitialized: false
     }
     cores.push(core)
     return core
@@ -66,7 +66,7 @@ type MockCore = {
   load: jest.Mock
   destroy: jest.Mock
   on: jest.Mock
-  _inited: boolean
+  isInitialized: boolean
 }
 
 const mockMP3 = MP3 as unknown as jest.Mock & {
@@ -111,6 +111,15 @@ function attachPlayer(plugin: MP3Plugin, player: ReturnType<typeof createPlayer>
   target.config = player.config.mp3
 }
 
+function emitCoreError(core: MockCore, error: Error) {
+  const errorListener = core.on.mock.calls.find(
+    ([event]) => event === 'error'
+  )?.[1] as ((error: Error) => void) | undefined
+
+  expect(errorListener).toEqual(expect.any(Function))
+  errorListener?.(error)
+}
+
 describe('MP3Plugin', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -118,13 +127,13 @@ describe('MP3Plugin', () => {
     mockMP3.isSupported.mockReturnValue(true)
   })
 
-  test('takes over a string URL and starts the MP3 core', async () => {
+  test('takes over a string URL synchronously and starts the MP3 core', () => {
     const player = createPlayer()
     const nativeSwitchURL = player.switchURL
     const plugin = new MP3Plugin({} as never)
     attachPlayer(plugin, player)
 
-    await plugin.beforePlayerInit()
+    expect(plugin.beforePlayerInit()).toBeUndefined()
 
     expect(mockMP3).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -144,7 +153,7 @@ describe('MP3Plugin', () => {
     const plugin = new MP3Plugin({} as never)
     attachPlayer(plugin, player)
 
-    await plugin.beforePlayerInit()
+    plugin.beforePlayerInit()
 
     expect(mockMP3).not.toHaveBeenCalled()
     expect(player.handleSource).toBe(true)
@@ -155,7 +164,7 @@ describe('MP3Plugin', () => {
     const player = createPlayer({ currentTime: 12, paused: false })
     const plugin = new MP3Plugin({} as never)
     attachPlayer(plugin, player)
-    await plugin.beforePlayerInit()
+    plugin.beforePlayerInit()
 
     await player.switchURL('next.mp3')
 
@@ -164,29 +173,28 @@ describe('MP3Plugin', () => {
     expect(player.play).toHaveBeenCalled()
   })
 
-  test('waits for core destruction before native fallback', async () => {
-    let resolveDestroy: (() => void) | undefined
+  test('restores native player APIs synchronously on destroy', () => {
+    const player = createPlayer()
+    const nativeSwitchURL = player.switchURL
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    plugin.beforePlayerInit()
+
+    expect(plugin.destroy()).toBeUndefined()
+    expect(mockMP3.cores[0].destroy).toHaveBeenCalledTimes(1)
+    expect(player.handleSource).toBe(true)
+    expect(player.switchURL).toBe(nativeSwitchURL)
+  })
+
+  test('destroys the core and restores native fallback synchronously', () => {
     const player = createPlayer()
     player.media.src = 'blob:http://localhost/mp3'
     const plugin = new MP3Plugin({} as never)
     attachPlayer(plugin, player)
-    await plugin.beforePlayerInit()
-    mockMP3.cores[0].destroy.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveDestroy = resolve
-        })
-    )
+    plugin.beforePlayerInit()
 
-    const fatal = plugin as unknown as {
-      onFatalError: (error: Error) => Promise<void>
-    }
-    const fallback = fatal.onFatalError(new Error('invalid MP3'))
-    await Promise.resolve()
-    expect(player.handleSource).toBe(false)
-
-    resolveDestroy?.()
-    await fallback
+    expect(emitCoreError(mockMP3.cores[0], new Error('invalid MP3'))).toBeUndefined()
+    expect(mockMP3.cores[0].destroy).toHaveBeenCalledTimes(1)
     expect(player.handleSource).toBe(true)
     expect(player.media.src).toContain('/audio.mp3')
     expect(player.emit).toHaveBeenCalledWith(
@@ -196,7 +204,7 @@ describe('MP3Plugin', () => {
     )
   })
 
-  test('closeDowngrade emits one terminal player error', async () => {
+  test('closeDowngrade emits one terminal player error', () => {
     const player = createPlayer({
       config: {
         url: 'audio.mp3',
@@ -206,13 +214,10 @@ describe('MP3Plugin', () => {
     })
     const plugin = new MP3Plugin({} as never)
     attachPlayer(plugin, player)
-    await plugin.beforePlayerInit()
-    const fatal = plugin as unknown as {
-      onFatalError: (error: Error) => Promise<void>
-    }
+    plugin.beforePlayerInit()
 
-    await fatal.onFatalError(new Error('failed'))
-    await fatal.onFatalError(new Error('failed again'))
+    emitCoreError(mockMP3.cores[0], new Error('failed'))
+    emitCoreError(mockMP3.cores[0], new Error('failed again'))
 
     expect(mockMP3.cores[0].destroy).not.toHaveBeenCalled()
     expect(

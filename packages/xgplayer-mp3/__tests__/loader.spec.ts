@@ -204,4 +204,33 @@ describe('MP3Loader', () => {
       'must expose Content-Range'
     )
   })
+
+  test('invalidates pending loads synchronously on destroy', async () => {
+    let resolveLoad: ((value: unknown) => void) | undefined
+    mockLoad.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveLoad = resolve
+      })
+    )
+    const loader = new MP3Loader(
+      getConfig({
+        media: document.createElement('audio'),
+        url: 'audio.mp3'
+      })
+    )
+
+    const loadPromise = loader.loadMetadata()
+    expect(loader.destroy()).toBeUndefined()
+    resolveLoad?.({
+      data: concat(createID3(), createFrames(4)),
+      response: {
+        status: 200,
+        headers: headers({})
+      }
+    })
+
+    await expect(loadPromise).rejects.toThrow('loader has been destroyed')
+    expect(loader.metadata).toBeNull()
+    expect(mockCancel).toHaveBeenCalled()
+  })
 })

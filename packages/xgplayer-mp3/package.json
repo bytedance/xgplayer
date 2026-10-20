@@ -13,7 +13,8 @@
     "dist",
     "es",
     "docs",
-    "README.md"
+    "README.md",
+    "README.zh-CN.md"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
