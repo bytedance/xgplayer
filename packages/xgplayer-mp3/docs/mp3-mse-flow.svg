@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" role="img" aria-labelledby="title desc">
+  <title id="title">xgplayer-mp3 playback pipeline</title>
+  <desc id="desc">A standalone MP3 URL is probed, indexed, loaded with HTTP Range, and appended directly to an audio/mpeg SourceBuffer. Unsupported inputs fall back to native audio playback.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#52525b"/>
+    </marker>
+    <style>
+      .title { font: 600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #171717; }
+      .label { font: 600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #171717; }
+      .meta { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52525b; }
+      .code { font: 500 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #004d26; }
+      .node { fill: #f7f7f8; stroke: rgba(23, 23, 23, .16); stroke-width: 1.5; }
+      .focus { fill: #e5fff2; stroke: #0fdc78; stroke-width: 2; }
+      .fallback { fill: #f7f7f8; stroke: #efaa17; stroke-width: 1.5; }
+      .line { fill: none; stroke: #52525b; stroke-width: 1.5; stroke-linecap: round; marker-end: url(#arrow); }
+      .branch { fill: none; stroke: #efaa17; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 6 5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="380" rx="12" fill="#ffffff"/>
+  <text class="title" x="48" y="54">Standalone MP3 to MSE, without remuxing</text>
+
+  <rect class="node" x="48" y="112" width="176" height="102" rx="8"/>
+  <text class="label" x="72" y="146">MP3 URL</text>
+  <text class="meta" x="72" y="172">ID3 + Layer III frames</text>
+  <text class="meta" x="72" y="192">CBR or indexed VBR</text>
+
+  <path class="line" d="M224 163 H272"/>
+
+  <rect class="node" x="280" y="96" width="210" height="134" rx="8"/>
+  <text class="label" x="304" y="130">Probe and index</text>
+  <text class="meta" x="304" y="156">MPEG version and frame size</text>
+  <text class="meta" x="304" y="178">ID3 / Xing / Info / VBRI</text>
+  <text class="meta" x="304" y="200">time → byte offset</text>
+
+  <path class="line" d="M490 163 H538"/>
+
+  <rect class="node" x="546" y="112" width="176" height="102" rx="8"/>
+  <text class="label" x="570" y="146">Range loader</text>
+  <text class="meta" x="570" y="172">Frame-aligned segments</text>
+  <text class="meta" x="570" y="192">Seek and preload</text>
+
+  <path class="line" d="M722 163 H770"/>
+
+  <rect class="focus" x="778" y="104" width="176" height="118" rx="8"/>
+  <text class="label" x="802" y="140">SourceBuffer</text>
+  <text class="code" x="802" y="168">audio/mpeg</text>
+  <text class="meta" x="802" y="194">Raw MP3 passthrough</text>
+
+  <path class="line" d="M954 163 H1002"/>
+
+  <rect class="node" x="1010" y="112" width="142" height="102" rx="8"/>
+  <text class="label" x="1034" y="146">Audio</text>
+  <text class="meta" x="1034" y="172">HTMLMediaElement</text>
+  <text class="meta" x="1034" y="192">xgplayer UI</text>
+
+  <path class="branch" d="M385 230 V292 H546"/>
+  <rect class="fallback" x="554" y="270" width="398" height="72" rx="8"/>
+  <text class="label" x="578" y="300">Native fallback</text>
+  <text class="meta" x="578" y="324">Unsupported MSE, malformed MP3, or unindexed VBR</text>
+</svg>

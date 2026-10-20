@@ -4,6 +4,7 @@ export * from './mpeg-ts'
 export * from './mp4'
 export * from './model'
 export {
+  MPEG,
   registerVideoCodec,
   unregisterVideoCodec
 } from './codec'

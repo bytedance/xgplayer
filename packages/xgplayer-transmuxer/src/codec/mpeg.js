@@ -140,7 +140,19 @@ export class MPEG {
         data[offset + 3] = data[offset + 3] | 0x80
       }
 
-      return { sampleRate, channelCount, frameLength, samplesPerFrame }
+      return {
+        bitRate,
+        channelCount,
+        channelMode,
+        frameLength,
+        layer: mpegLayer,
+        paddingBit,
+        protectionBit: data[offset + 1] & 1,
+        sampleRate,
+        sampleRateIndex,
+        samplesPerFrame,
+        version: mpegVersion
+      }
     }
   }
 }
