@@ -90,7 +90,8 @@ describe('MP3 BufferService', () => {
 
     expect(MSE).toHaveBeenCalledWith(undefined, {
       preferMMS: false,
-      attachMode: 'auto'
+      attachMode: 'auto',
+      openLog: false
     })
     expect(mockMSE.createSource).toHaveBeenCalledWith('audio', 'audio/mpeg')
     expect(mockMSE.updateDuration).toHaveBeenCalledWith(10)

@@ -1,9 +1,12 @@
 import { BasePlugin, Errors, Events } from 'xgplayer'
-import { EVENT, StreamingError } from 'xgplayer-streaming-shared'
+import { EVENT, Logger, StreamingError } from 'xgplayer-streaming-shared'
+import { getLogSource } from './log'
 import { MP3 } from './mp3'
 import type { MP3Options } from './types'
 
 type Player = BasePlugin['player']
+
+const logger = new Logger('MP3Plugin', undefined)
 
 export class MP3Plugin extends BasePlugin {
   static readonly isStreamingPlugin = true
@@ -29,14 +32,29 @@ export class MP3Plugin extends BasePlugin {
     const player = this.player
     const url = this.getStringUrl(player.config.url)
     const media = player.media as HTMLMediaElement | null
+    const supported = MP3.isSupported(this.mp3Config.preferMMS === true)
+    if (this.mp3Config.openLog) MP3.enableLogger()
+
+    logger.log('beforePlayerInit', {
+      ...getLogSource(url, this.mp3Config.vid),
+      hasMedia: !!media,
+      supported,
+      closeDowngrade: this.mp3Config.closeDowngrade
+    })
 
     if (this.mp3) {
       const previous = this.mp3
       this.mp3 = null
+      logger.log('destroy previous core before reinit')
       previous.destroy()
     }
 
-    if (!url || !media || !MP3.isSupported(this.mp3Config.preferMMS === true)) {
+    if (!url || !media || !supported) {
+      logger.warn('skip MP3 takeover', {
+        hasUrl: !!url,
+        hasMedia: !!media,
+        supported
+      })
       this.restoreNativeApi()
       this.restoreSourceHandling()
       return
@@ -52,6 +70,7 @@ export class MP3Plugin extends BasePlugin {
       ...this.mp3Config
     })
     this.mp3 = core
+    logger.log('core created', getLogSource(url, this.mp3Config.vid))
 
     BasePlugin.defineGetterOrSetter(player, {
       __url: {
@@ -62,10 +81,21 @@ export class MP3Plugin extends BasePlugin {
 
     this.bindEvents()
     this.bindCoreError(core)
-    void core.load(url).catch((error) => this.handleFatalError(error))
+    void core
+      .load(url)
+      .then((restoredTime) => {
+        if (this.mp3 === core) {
+          logger.log('initial load done', {
+            ...getLogSource(url, this.mp3Config.vid),
+            restoredTime
+          })
+        }
+      })
+      .catch((error) => this.handleFatalError(error))
   }
 
   destroy(): void {
+    logger.log('destroy')
     this.degraded = true
     this.sourceChangeId++
     this.restoreNativeApi()
@@ -77,6 +107,14 @@ export class MP3Plugin extends BasePlugin {
 
   static isSupported(preferMMS = false): boolean {
     return MP3.isSupported(preferMMS)
+  }
+
+  static enableLogger(): void {
+    MP3.enableLogger()
+  }
+
+  static disableLogger(): void {
+    MP3.disableLogger()
   }
 
   private get mp3Config(): MP3Options {
@@ -99,8 +137,10 @@ export class MP3Plugin extends BasePlugin {
   private onSwitchURL: Player['switchURL'] = (url) => {
     const nextUrl = this.getStringUrl(url)
     if (!this.mp3 || !nextUrl) {
+      logger.debug('switchURL passthrough', getLogSource(nextUrl, this.mp3Config.vid))
       return this.nativeSwitchURL?.call(this.player, url) || null
     }
+    logger.log('switchURL', getLogSource(nextUrl, this.mp3Config.vid))
     this.player.config.url = nextUrl
     const core = this.mp3
     const loadPromise = this.reloadAtCurrentTime(core, nextUrl)
@@ -112,9 +152,11 @@ export class MP3Plugin extends BasePlugin {
     const player = this.player
     const nextUrl = this.getStringUrl(config.url || player.config.url)
     if (!this.mp3 || !nextUrl) {
+      logger.debug('playNext passthrough', getLogSource(nextUrl, this.mp3Config.vid))
       return this.nativePlayNext?.call(player, config)
     }
 
+    logger.log('playNext', getLogSource(nextUrl, this.mp3Config.vid))
     player.resetState()
     player.setConfig(config)
     this.sourceChangeId++
@@ -129,9 +171,15 @@ export class MP3Plugin extends BasePlugin {
     const player = this.player
     const url = this.getStringUrl(definition.url)
     if (!this.mp3 || !url) {
+      logger.debug('changeDefinition passthrough', getLogSource(url, this.mp3Config.vid))
       return this.nativeChangeDefinition?.call(player, definition, from)
     }
 
+    logger.log('changeDefinition', {
+      ...getLogSource(url, this.mp3Config.vid),
+      from,
+      definition: definition.definition
+    })
     const definitionConfig = player.config.definition
     if (Array.isArray(definitionConfig?.list)) {
       definitionConfig.list.forEach((item) => {
@@ -213,11 +261,17 @@ export class MP3Plugin extends BasePlugin {
 
     const error = this.createPlayerError(reason)
     const vtype = this.mp3?.isInitialized ? 'MP3_2' : 'MP3_1'
+    logger.error('fatal error', {
+      vtype,
+      closeDowngrade: this.mp3Config.closeDowngrade,
+      error
+    })
     player.vtype = vtype
     player.emit('playCatch', vtype, error)
     this.degraded = true
 
     if (this.mp3Config.closeDowngrade) {
+      logger.warn('emit terminal error without native downgrade', { vtype })
       player.emit(Events.ERROR, error)
       return
     }
@@ -230,6 +284,11 @@ export class MP3Plugin extends BasePlugin {
     this.mp3 = null
     this.restoreNativeApi()
 
+    logger.warn('downgrade to native audio', {
+      ...getLogSource(url, this.mp3Config.vid),
+      currentTime,
+      paused
+    })
     core?.destroy()
     this.restoreSourceHandling(player)
 

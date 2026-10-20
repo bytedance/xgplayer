@@ -1,9 +1,18 @@
 import EventEmitter from 'eventemitter3'
-import { Buffer, EVENT, isMediaPlaying, StreamingError } from 'xgplayer-streaming-shared'
+import {
+  Buffer,
+  EVENT,
+  isMediaPlaying,
+  Logger,
+  StreamingError
+} from 'xgplayer-streaming-shared'
 import { BufferService } from './buffer-service'
 import { getConfig } from './config'
 import { MP3Loader } from './loader'
+import { getLogSource } from './log'
 import type { MP3Config, MP3Options } from './types'
+
+const logger = new Logger('MP3', undefined)
 
 export class MP3 extends EventEmitter {
   static readonly version = __VERSION__
@@ -25,6 +34,7 @@ export class MP3 extends EventEmitter {
   constructor(options: MP3Options) {
     super()
     this.config = getConfig(options)
+    if (this.config.openLog) MP3.enableLogger()
     this.media = this.config.media
     this.loader = new MP3Loader(this.config)
     this.bufferService = new BufferService(this.config)
@@ -34,6 +44,14 @@ export class MP3 extends EventEmitter {
 
   static isSupported(preferMMS = false): boolean {
     return BufferService.isSupported(preferMMS)
+  }
+
+  static enableLogger(): void {
+    Logger.enable()
+  }
+
+  static disableLogger(): void {
+    Logger.disable()
   }
 
   get isInitialized(): boolean {
@@ -48,6 +66,11 @@ export class MP3 extends EventEmitter {
     if (!nextUrl) return Promise.reject(new Error('Source url is missing'))
 
     const loadId = ++this.loadId
+    logger.log('load enqueue', {
+      ...getLogSource(nextUrl, this.config.vid),
+      startTime,
+      loadId
+    })
     const task = this.loadQueue
       .catch(() => undefined)
       .then(() => this.loadInternal(nextUrl, loadId, startTime))
@@ -57,6 +80,7 @@ export class MP3 extends EventEmitter {
 
   destroy(): void {
     if (this.destroyed) return
+    logger.log('destroy')
     this.destroyed = true
     this.loadId++
     this.fatalError = true
@@ -80,6 +104,11 @@ export class MP3 extends EventEmitter {
     this.initialized = false
     this.fatalError = false
     this.downloadComplete = false
+    logger.log('load start', {
+      ...getLogSource(url, this.config.vid),
+      loadId,
+      startTime
+    })
 
     try {
       await this.loader.changeUrl(url)
@@ -91,15 +120,35 @@ export class MP3 extends EventEmitter {
 
       this.config.url = url
       const restoredTime = startTime >= 0 && startTime < metadata.duration ? startTime : 0
+      logger.log('metadata ready', {
+        ...getLogSource(url, this.config.vid),
+        loadId,
+        duration: metadata.duration,
+        bitRate: metadata.bitRate,
+        sampleRate: metadata.sampleRate,
+        channelCount: metadata.channelCount,
+        seekMode: metadata.seekMode,
+        restoredTime
+      })
       this.startTick(this.config.tickInterval)
       const restored = await this.loadSegment(restoredTime, loadId, true)
       if (!restored && restoredTime > 0 && this.isActiveLoad(loadId)) {
+        logger.warn('restore segment failed, fallback to start', {
+          loadId,
+          restoredTime
+        })
         await this.loadSegment(0, loadId, true)
         return 0
       }
+      logger.log('load done', {
+        ...getLogSource(url, this.config.vid),
+        loadId,
+        restoredTime
+      })
       return restoredTime
     } catch (error) {
       if (!this.isActiveLoad(loadId)) return 0
+      logger.error('load failed', error)
       const streamingError = this.toStreamingError(error)
       this.emitError(streamingError, false)
       throw streamingError
@@ -114,6 +163,11 @@ export class MP3 extends EventEmitter {
     if (!this.isActiveLoad(loadId) || this.loading) return false
     this.loading = true
     this.loadingId = loadId
+    logger.debug('loadSegment start', {
+      time,
+      loadId,
+      discontinuity
+    })
 
     try {
       const segment =
@@ -121,7 +175,10 @@ export class MP3 extends EventEmitter {
           ? await this.loader.loadNextSegment()
           : await this.loader.loadSegmentByTime(time)
       if (!this.isActiveLoad(loadId)) return false
-      if (!segment) return false
+      if (!segment) {
+        logger.debug('loadSegment empty', { time, loadId })
+        return false
+      }
 
       const metadata = this.loader.metadata
       if (!metadata) throw new Error('MP3 metadata is missing')
@@ -130,6 +187,14 @@ export class MP3 extends EventEmitter {
       await this.bufferService.evictBuffer(this.config.bufferBehind)
 
       this.initialized = true
+      logger.log('loadSegment appended', {
+        loadId,
+        index: segment.index,
+        range: segment.range,
+        startTime: segment.startTime,
+        endTime: segment.endTime,
+        isLast: segment.isLast
+      })
       if (segment.isLast) {
         await this.completeDownload()
       } else {
@@ -145,6 +210,7 @@ export class MP3 extends EventEmitter {
       return true
     } catch (error) {
       if (!this.isActiveLoad(loadId)) return false
+      logger.error('loadSegment failed', error)
       const streamingError = this.toStreamingError(error)
       this.emitError(streamingError)
       throw streamingError
@@ -156,6 +222,7 @@ export class MP3 extends EventEmitter {
   private async completeDownload(): Promise<void> {
     await this.bufferService.endOfStream()
     this.downloadComplete = true
+    logger.log('download complete')
   }
 
   private bindEvents(): void {
@@ -179,6 +246,7 @@ export class MP3 extends EventEmitter {
       if (info.remaining > 0.1) return
     }
 
+    logger.log('seek outside buffer', { seekTime })
     const loadId = this.loadId
     void this.loader.cancel().then(() => {
       if (!this.isActiveLoad(loadId)) return
@@ -218,12 +286,18 @@ export class MP3 extends EventEmitter {
       ? Buffer.info(buffered, this.media.currentTime, 0.1)
       : { remaining: 0 }
     if (info.remaining < this.config.maxBufferLength) {
+      logger.debug('tick load next segment', {
+        loadId: this.loadId,
+        currentTime: this.media.currentTime,
+        remaining: info.remaining
+      })
       void this.loadSegment(undefined, this.loadId, false).catch(() => undefined)
     }
   }
 
   private emitError(error: StreamingError, endOfStream = true): void {
     if (this.fatalError) return
+    logger.error('emit error', error)
     this.fatalError = true
     this.downloadComplete = true
     this.stopTick()

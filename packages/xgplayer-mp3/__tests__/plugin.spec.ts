@@ -21,6 +21,8 @@ jest.mock('../src/mp3', () => {
   })
   Object.assign(MP3, {
     cores,
+    disableLogger: jest.fn(),
+    enableLogger: jest.fn(),
     version: 'test',
     isSupported: jest.fn().mockReturnValue(true)
   })
@@ -71,6 +73,8 @@ type MockCore = {
 
 const mockMP3 = MP3 as unknown as jest.Mock & {
   cores: MockCore[]
+  disableLogger: jest.Mock
+  enableLogger: jest.Mock
   isSupported: jest.Mock
 }
 
@@ -125,6 +129,14 @@ describe('MP3Plugin', () => {
     jest.clearAllMocks()
     mockMP3.cores.length = 0
     mockMP3.isSupported.mockReturnValue(true)
+  })
+
+  test('forwards logger controls to the MP3 core', () => {
+    MP3Plugin.enableLogger()
+    MP3Plugin.disableLogger()
+
+    expect(mockMP3.enableLogger).toHaveBeenCalledTimes(1)
+    expect(mockMP3.disableLogger).toHaveBeenCalledTimes(1)
   })
 
   test('takes over a string URL synchronously and starts the MP3 core', () => {

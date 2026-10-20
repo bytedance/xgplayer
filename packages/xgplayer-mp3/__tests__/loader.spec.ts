@@ -1,15 +1,27 @@
 var mockLoad: jest.Mock
 var mockCancel: jest.Mock
+var mockLoggerEnable: jest.Mock
+var mockLoggerNames: string[]
 
 jest.mock('xgplayer-streaming-shared', () => {
   mockLoad = jest.fn()
   mockCancel = jest.fn().mockResolvedValue(undefined)
+  mockLoggerEnable = jest.fn()
+  mockLoggerNames = []
   return {
     Logger: class {
+      static enable = mockLoggerEnable
+      static disable = jest.fn()
       constructor(
-        _name: string,
+        name: string,
         _config: unknown
-      ) {}
+      ) {
+        mockLoggerNames.push(name)
+      }
+      debug() {}
+      error() {}
+      log() {}
+      warn() {}
     },
     NetLoader: class {
       load = mockLoad
@@ -56,6 +68,30 @@ function headers(values: Record<string, string>): Headers {
 describe('MP3Loader', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockLoggerNames.length = 0
+  })
+
+  test('enables shared logger when openLog is configured', () => {
+    new MP3Loader(
+      getConfig({
+        media: document.createElement('audio'),
+        url: 'audio.mp3',
+        openLog: true
+      })
+    )
+
+    expect(mockLoggerEnable).toHaveBeenCalledTimes(1)
+  })
+
+  test('uses a stable logger namespace instead of appending the URL', () => {
+    new MP3Loader(
+      getConfig({
+        media: document.createElement('audio'),
+        url: 'https://example.com/audio/very-long-file-name.mp3'
+      })
+    )
+
+    expect(mockLoggerNames).toEqual(['MP3Loader'])
   })
 
   test('uses a full 200 response when the server ignores Range', async () => {
@@ -184,15 +220,56 @@ describe('MP3Loader', () => {
     expect(mockLoad).toHaveBeenCalledTimes(2)
   })
 
-  test('requires total file size in a partial Range response', async () => {
-    const data = concat(createID3(), createFrames(4))
-    mockLoad.mockResolvedValue({
-      data,
-      response: {
-        status: 206,
-        headers: headers({ 'content-length': String(data.length) })
-      }
+  test('falls back to HEAD content-length when content-range is not exposed', async () => {
+    const data = concat(createID3(), createFrames(8))
+    mockLoad
+      .mockResolvedValueOnce({
+        data,
+        response: {
+          status: 206,
+          headers: headers({ 'content-length': String(data.length) })
+        }
+      })
+      .mockResolvedValueOnce({
+        data: '',
+        response: {
+          status: 200,
+          headers: headers({ 'content-length': String(data.length) })
+        }
+      })
+    const loader = new MP3Loader(
+      getConfig({
+        media: document.createElement('audio'),
+        url: 'audio.mp3'
+      })
+    )
+
+    const metadata = await loader.loadMetadata()
+
+    expect(metadata.fileSize).toBe(data.length)
+    expect(mockLoad).toHaveBeenNthCalledWith(2, 'audio.mp3', {
+      method: 'HEAD',
+      responseType: 'text'
     })
+  })
+
+  test('requires total file size when range and HEAD responses both omit it', async () => {
+    const data = concat(createID3(), createFrames(4))
+    mockLoad
+      .mockResolvedValueOnce({
+        data,
+        response: {
+          status: 206,
+          headers: headers({ 'content-length': String(data.length) })
+        }
+      })
+      .mockResolvedValueOnce({
+        data: '',
+        response: {
+          status: 200,
+          headers: headers({})
+        }
+      })
     const loader = new MP3Loader(
       getConfig({
         media: document.createElement('audio'),
@@ -201,7 +278,7 @@ describe('MP3Loader', () => {
     )
 
     await expect(loader.loadMetadata()).rejects.toThrow(
-      'must expose Content-Range'
+      'must expose the complete file size'
     )
   })
 
