@@ -1,7 +1,29 @@
-import { isFirefox, isAndroid } from '../utils'
+import { isAndroid, isFirefox } from '../utils'
 
+export interface AACFrame {
+  pts: number
+  data: Uint8Array
+}
+
+export interface AACConfig {
+  samplingFrequencyIndex: number
+  sampleRate: number
+  objectType: number
+  channelCount: number
+  config: number[]
+  codec: string
+  originCodec: string
+}
+
+export interface ADTSConfig extends AACConfig {
+  skip: number
+  remaining: Uint8Array | undefined
+  frames: AACFrame[]
+}
+
+// biome-ignore format: preserve the codec tables and parser layout during migration
 export class AAC {
-  static FREQ = [
+  static readonly FREQ = [
     96000,
     88200,
     64000,
@@ -15,13 +37,13 @@ export class AAC {
     11025,
     8000,
     7350
-  ];
+  ]
 
-  static getRateIndexByRate (rate) {
+  static getRateIndexByRate(rate: number): number {
     return AAC.FREQ.indexOf(rate)
   }
 
-  static parseADTS (data, pts) {
+  static parseADTS(data: Uint8Array, pts: number): ADTSConfig | undefined {
     const len = data.length
     let i = 0
 
@@ -35,13 +57,13 @@ export class AAC {
     if (i >= len) return
 
     const skip = i
-    const frames = []
+    const frames: AACFrame[] = []
     const samplingFrequencyIndex = (data[i + 2] & 0x3c) >>> 2
     const sampleRate = AAC.FREQ[samplingFrequencyIndex]
     if (!sampleRate) throw new Error(`Invalid sampling index: ${samplingFrequencyIndex}`)
     const objectType = ((data[i + 2] & 0xc0) >>> 6) + 1
     const channelCount = ((data[i + 2] & 1) << 2) | ((data[i + 3] & 0xc0) >>> 6)
-    const { config, codec } = AAC._getConfig(samplingFrequencyIndex, channelCount, objectType)
+    const { config, codec } = AAC._getConfig(samplingFrequencyIndex, channelCount)
 
     let protectionSkipBytes
     let frameLength
@@ -81,7 +103,7 @@ export class AAC {
     }
   }
 
-  static parseAudioSpecificConfig (data) {
+  static parseAudioSpecificConfig(data: Uint8Array): AACConfig | undefined {
     if (!data.length) return
     const objectType = data[0] >>> 3
     const samplingFrequencyIndex = ((data[0] & 0x07) << 1) | (data[1] >>> 7)
@@ -89,7 +111,7 @@ export class AAC {
     const sampleRate = AAC.FREQ[samplingFrequencyIndex]
     // play as no audio track stream
     if (!sampleRate) return
-    const { config, codec } = AAC._getConfig(samplingFrequencyIndex, channelCount, objectType)
+    const { config, codec } = AAC._getConfig(samplingFrequencyIndex, channelCount)
 
     return {
       samplingFrequencyIndex,
@@ -102,14 +124,17 @@ export class AAC {
     }
   }
 
-  static getFrameDuration (rate, timescale = 90000) {
+  static getFrameDuration(rate: number, timescale = 90000): number {
     return 1024 * timescale / rate
   }
 
-  static _getConfig (samplingIndex, channelCount, originObjectType) {
-    const config = []
-    let objectType
-    let extensionSamplingIndex
+  private static _getConfig(
+    samplingIndex: number,
+    channelCount: number
+  ): { config: number[]; codec: string } {
+    const config: number[] = []
+    let objectType: number
+    let extensionSamplingIndex: number
     if (isFirefox) {
       if (samplingIndex >= 6) { // use SBR (HE-AAC)
         objectType = 5
@@ -151,7 +176,10 @@ export class AAC {
   }
 
   /* c8 ignore next 65 */
-  static getSilentFrame (codec, channelCount) {
+  static getSilentFrame(
+    codec?: string,
+    channelCount?: number
+  ): Uint8Array | undefined {
     switch (codec) {
       case 'mp4a.40.2':
         if (channelCount === 1) {

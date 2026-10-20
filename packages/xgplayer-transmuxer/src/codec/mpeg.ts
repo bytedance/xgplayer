@@ -1,16 +1,41 @@
 import { isFirefox } from '../utils'
 
+export interface MPEGHeader {
+  bitRate: number
+  channelCount: number
+  channelMode: number
+  frameLength: number
+  layer: number
+  paddingBit: number
+  protectionBit: number
+  sampleRate: number
+  sampleRateIndex: number
+  samplesPerFrame: number
+  version: number
+}
+
+export interface MPEGTrack {
+  channelCount: number
+  codec: string
+  config: number[]
+  container: string
+  sampleRate: number
+  samples: Array<{
+    data: Uint8Array
+    dts: number
+    pts: number
+    size: number
+  }>
+}
+
 const BitratesMap = [
-  32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 32, 48, 56,
-  64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 32, 40, 48, 56, 64, 80,
-  96, 112, 128, 160, 192, 224, 256, 320, 32, 48, 56, 64, 80, 96, 112, 128, 144,
-  160, 176, 192, 224, 256, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144,
-  160
+  32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 32, 48, 56, 64, 80,
+  96, 112, 128, 160, 192, 224, 256, 320, 384, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160,
+  192, 224, 256, 320, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256, 8,
+  16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160
 ]
 
-const FREQ = [
-  44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000
-]
+const FREQ = [44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000]
 
 const SamplesCoefficients = [
   // MPEG 2.5
@@ -50,24 +75,25 @@ const BytesInSlot = [
   4 // Layer1
 ]
 
-let chromeVersion = null
+let chromeVersion: number | null = null
 
 export class MPEG {
-  static isHeader (data, offset) {
-    return offset + 1 < data.length && (
+  static isHeader(data: Uint8Array, offset: number): boolean {
+    return (
+      offset + 1 < data.length &&
       data[offset] === 0xff &&
       (data[offset + 1] & 0xe0) === 0xe0 &&
       (data[offset + 1] & 0x06) !== 0x00
     )
   }
 
-  static appendFrame (
-    track,
-    data,
-    offset,
-    pts,
-    frameIndex
-  ) {
+  static appendFrame(
+    track: MPEGTrack,
+    data: Uint8Array,
+    offset: number,
+    pts: number,
+    frameIndex: number
+  ): { length: number } | undefined {
     if (offset + 24 > data.length) {
       return
     }
@@ -76,12 +102,13 @@ export class MPEG {
     if (header && offset + header.frameLength <= data.length) {
       const frameDuration = (header.samplesPerFrame * 90000) / header.sampleRate
       const stamp = pts + frameIndex * frameDuration
+      const frameData = data.subarray(offset, offset + header.frameLength)
       const sample = {
-        data: data.subarray(offset, offset + header.frameLength),
+        data: frameData,
         pts: stamp,
-        dts: stamp
+        dts: stamp,
+        size: frameData.byteLength
       }
-      sample.size = sample.data.byteLength
       track.config = []
       track.channelCount = header.channelCount
       track.sampleRate = header.sampleRate
@@ -96,7 +123,7 @@ export class MPEG {
     }
   }
 
-  static parseHeader (data, offset) {
+  static parseHeader(data: Uint8Array, offset: number): MPEGHeader | undefined {
     const mpegVersion = (data[offset + 1] >> 3) & 3
     const mpegLayer = (data[offset + 1] >> 1) & 3
     const bitRateIndex = (data[offset + 2] >> 4) & 15
@@ -109,20 +136,16 @@ export class MPEG {
     ) {
       const paddingBit = (data[offset + 2] >> 1) & 1
       const channelMode = data[offset + 3] >> 6
-      const columnInBitrates =
-        mpegVersion === 3 ? 3 - mpegLayer : mpegLayer === 3 ? 3 : 4
-      const bitRate =
-        BitratesMap[columnInBitrates * 14 + bitRateIndex - 1] * 1000
-      const columnInSampleRates =
-        mpegVersion === 3 ? 0 : mpegVersion === 2 ? 1 : 2
+      const columnInBitrates = mpegVersion === 3 ? 3 - mpegLayer : mpegLayer === 3 ? 3 : 4
+      const bitRate = BitratesMap[columnInBitrates * 14 + bitRateIndex - 1] * 1000
+      const columnInSampleRates = mpegVersion === 3 ? 0 : mpegVersion === 2 ? 1 : 2
       const sampleRate = FREQ[columnInSampleRates * 3 + sampleRateIndex]
       const channelCount = channelMode === 3 ? 1 : 2
       const sampleCoefficient = SamplesCoefficients[mpegVersion][mpegLayer]
       const bytesInSlot = BytesInSlot[mpegLayer]
       const samplesPerFrame = sampleCoefficient * 8 * bytesInSlot
       const frameLength =
-        Math.floor((sampleCoefficient * bitRate) / sampleRate + paddingBit) *
-        bytesInSlot
+        Math.floor((sampleCoefficient * bitRate) / sampleRate + paddingBit) * bytesInSlot
 
       if (chromeVersion === null) {
         const userAgent = navigator.userAgent || ''
@@ -131,12 +154,7 @@ export class MPEG {
       }
       const needChromeFix = !!chromeVersion && chromeVersion <= 87
 
-      if (
-        needChromeFix &&
-        mpegLayer === 2 &&
-        bitRate >= 224000 &&
-        channelMode === 0
-      ) {
+      if (needChromeFix && mpegLayer === 2 && bitRate >= 224000 && channelMode === 0) {
         data[offset + 3] = data[offset + 3] | 0x80
       }
 

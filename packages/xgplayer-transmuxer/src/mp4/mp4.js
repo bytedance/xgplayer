@@ -840,7 +840,7 @@ export class MP4 {
       track.config[6] = (track.sampleRate >>> 8) & 0xFF
       track.config[7] = (track.sampleRate) & 0xFF
 
-      return MP4.box(MP4.types.dOps, track.config)
+      return MP4.box(MP4.types.dOps, new Uint8Array(track.config))
     }
 
     // const {channelCount, channelConfigCode, sampleRate } = track
