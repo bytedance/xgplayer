@@ -6,16 +6,28 @@ describe('MSE AirPlay handoff restore', () => {
   const originalRevokeObjectURL = URL.revokeObjectURL
   const originalWebKitPlaybackTargetAvailabilityEvent =
     window.WebKitPlaybackTargetAvailabilityEvent
+  let fakeMediaSource
 
   beforeEach(() => {
     class FakeMediaSource {
+      constructor() {
+        this.listeners = {}
+        fakeMediaSource = this
+      }
+
       static isTypeSupported() {
         return true
       }
 
-      addEventListener() {}
+      addEventListener(event, listener) {
+        this.listeners[event] = listener
+      }
 
-      removeEventListener() {}
+      removeEventListener(event, listener) {
+        if (this.listeners[event] === listener) {
+          delete this.listeners[event]
+        }
+      }
     }
 
     window.MediaSource = FakeMediaSource
@@ -120,5 +132,26 @@ describe('MSE AirPlay handoff restore', () => {
 
     expect(sources).toEqual(['https://cdn.example.com/airplay.m3u8'])
     expect(media.querySelectorAll('source')).toHaveLength(1)
+  })
+
+  test('unbind before sourceopen removes the listener and revokes the object URL', async () => {
+    const media = document.createElement('video')
+    media.load = jest.fn()
+    const mse = new MSE(null, {
+      attachMode: 'src'
+    })
+
+    mse.bindMedia(media)
+
+    expect(fakeMediaSource.listeners.sourceopen).toEqual(expect.any(Function))
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+
+    await mse.unbindMedia()
+
+    expect(fakeMediaSource.listeners.sourceopen).toBeUndefined()
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(
+      'blob:https://example.com/mse'
+    )
   })
 })

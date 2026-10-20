@@ -146,6 +146,8 @@ export class MSE {
 
   _config = null
   _url = null
+  _urlRevoked = false
+  _onSourceOpen = null
   _sourceElement = null
 
   static getDefaultConfig() {
@@ -295,10 +297,12 @@ export class MSE {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      URL.revokeObjectURL(this._url)
+      if (this._onSourceOpen === onOpen) this._onSourceOpen = null
+      this._revokeObjectURL()
       this._openPromise.resolve({ costtime: costTime })
       media.dispatchEvent(new CustomEvent('mseAttached'))
     }
+    this._onSourceOpen = onOpen
     ms.addEventListener('sourceopen', onOpen)
     if (useMMS) {
       ms.addEventListener('startstreaming', this._onStartStreaming)
@@ -306,6 +310,7 @@ export class MSE {
     }
 
     this._url = URL.createObjectURL(ms)
+    this._urlRevoked = false
 
     this._removeAttachedSource()
 
@@ -336,6 +341,11 @@ export class MSE {
     const ms = this.mediaSource
 
     if (ms) {
+      if (this._onSourceOpen) {
+        ms.removeEventListener('sourceopen', this._onSourceOpen)
+        this._onSourceOpen = null
+      }
+
       Object.keys(this._queue).forEach((t) => {
         const queue = this._queue[t]
         if (queue) {
@@ -389,12 +399,20 @@ export class MSE {
       this.media = null
     }
 
+    this._revokeObjectURL()
     this.mediaSource = null
     this._url = null
     this._sourceElement = null
     this._openPromise = createPublicPromise()
     this._queue = Object.create(null)
     this._sourceBuffer = Object.create(null)
+  }
+
+  _revokeObjectURL() {
+    if (this._url && !this._urlRevoked) {
+      URL.revokeObjectURL(this._url)
+      this._urlRevoked = true
+    }
   }
 
   _getAttachedSource() {
