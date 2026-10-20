@@ -72,12 +72,10 @@ describe('MP3 core', () => {
     mockLoader.loadSegmentByTime.mockResolvedValue(undefined)
     mockLoader.loadNextSegment.mockResolvedValue(undefined)
     mockLoader.cancel.mockResolvedValue(undefined)
-    mockLoader.destroy.mockResolvedValue(undefined)
     mockBufferService.reset.mockResolvedValue(undefined)
     mockBufferService.appendSegment.mockResolvedValue(undefined)
     mockBufferService.evictBuffer.mockResolvedValue(undefined)
     mockBufferService.endOfStream.mockResolvedValue(undefined)
-    mockBufferService.destroy.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -114,8 +112,8 @@ describe('MP3 core', () => {
     )
     expect(mockBufferService.evictBuffer).toHaveBeenCalledWith(12)
     expect(mockBufferService.endOfStream).toHaveBeenCalled()
-    expect(core._inited).toBe(true)
-    await core.destroy()
+    expect(core.isInitialized).toBe(true)
+    core.destroy()
   })
 
   test('falls back to time zero when the requested restore time is out of range', async () => {
@@ -135,7 +133,7 @@ describe('MP3 core', () => {
 
     expect(restoredTime).toBe(0)
     expect(mockLoader.loadSegmentByTime).toHaveBeenCalledWith(0)
-    await core.destroy()
+    core.destroy()
   })
 
   test('passes request and buffering settings to the loader', async () => {
@@ -162,6 +160,36 @@ describe('MP3 core', () => {
         headers: { 'x-audio-token': '1' }
       }
     })
-    await core.destroy()
+    core.destroy()
+  })
+
+  test('invalidates the core synchronously on destroy', async () => {
+    const core = new MP3({ media: createMedia(), url: 'audio.mp3' })
+
+    expect(core.destroy()).toBeUndefined()
+    expect(mockLoader.destroy).toHaveBeenCalledTimes(1)
+    expect(mockBufferService.destroy).toHaveBeenCalledTimes(1)
+    await expect(core.load()).rejects.toThrow('has been destroyed')
+  })
+
+  test('binds and unbinds media events as a group', () => {
+    const media = createMedia()
+    const addEventListener = jest.spyOn(media, 'addEventListener')
+    const removeEventListener = jest.spyOn(media, 'removeEventListener')
+    const core = new MP3({ media, url: 'audio.mp3' })
+
+    expect(addEventListener.mock.calls.map(([event]) => event)).toEqual([
+      'seeking',
+      'playing',
+      'ended'
+    ])
+
+    core.destroy()
+
+    expect(removeEventListener.mock.calls.map(([event]) => event)).toEqual([
+      'seeking',
+      'playing',
+      'ended'
+    ])
   })
 })

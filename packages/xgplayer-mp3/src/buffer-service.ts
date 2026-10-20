@@ -24,11 +24,12 @@ export class BufferService {
   }
 
   async reset(): Promise<void> {
-    if (this.destroyed || !this.mse) return
+    const mse = this.mse
+    if (!this.isActiveMSE(mse)) return
     this.sourceCreated = false
     this.appended = false
-    await this.mse.unbindMedia()
-    if (!this.destroyed) await this.mse.bindMedia(this.config.media)
+    await mse.unbindMedia()
+    if (this.isActiveMSE(mse)) await mse.bindMedia(this.config.media)
   }
 
   async appendSegment(
@@ -47,18 +48,22 @@ export class BufferService {
             reason: 'mp3-seek',
             startTime: segment.startTime
           })
+          if (!this.isActiveMSE(mse)) return
         }
         await mse.setTimeoffset(AUDIO_TYPE, segment.startTime, {
           reason: 'mp3-seek',
           startTime: segment.startTime
         })
+        if (!this.isActiveMSE(mse)) return
       }
       await mse.append(AUDIO_TYPE, this.asBufferSource(segment.data), {
         range: segment.range,
         startTime: segment.startTime,
         endTime: segment.endTime
       })
+      if (!this.isActiveMSE(mse)) return
       await mse.updateDuration(duration)
+      if (!this.isActiveMSE(mse)) return
       this.appended = true
     } catch (error) {
       throw StreamingError.create(
@@ -115,20 +120,24 @@ export class BufferService {
     }
   }
 
-  async destroy(): Promise<void> {
+  destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
     const mse = this.mse
     this.mse = null
     this.sourceCreated = false
     this.appended = false
-    if (mse) await mse.unbindMedia()
+    if (mse) void mse.unbindMedia().catch(() => undefined)
   }
 
   private ensureSource(mse: MSE): void {
     if (this.sourceCreated) return
     mse.createSource(AUDIO_TYPE, MP3_MIME)
     this.sourceCreated = true
+  }
+
+  private isActiveMSE(mse: MSE | null): mse is MSE {
+    return !this.destroyed && this.mse === mse
   }
 
   private asBufferSource(data: Uint8Array): Uint8Array<ArrayBuffer> {

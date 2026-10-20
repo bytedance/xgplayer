@@ -3,18 +3,16 @@ import { Buffer, EVENT, isMediaPlaying, StreamingError } from 'xgplayer-streamin
 import { BufferService } from './buffer-service'
 import { getConfig } from './config'
 import { MP3Loader } from './loader'
-import type { MP3Config, MP3Metadata, MP3Options } from './types'
+import type { MP3Config, MP3Options } from './types'
 
 export class MP3 extends EventEmitter {
-  static version = __VERSION__
+  static readonly version = __VERSION__
 
-  readonly media: HTMLMediaElement
-  readonly config: MP3Config
-  readonly loader: MP3Loader
-  readonly bufferService: BufferService
-
-  _inited = false
-
+  private readonly media: HTMLMediaElement
+  private readonly config: MP3Config
+  private readonly loader: MP3Loader
+  private readonly bufferService: BufferService
+  private initialized = false
   private loadId = 0
   private loadQueue: Promise<number> = Promise.resolve(0)
   private loading = false
@@ -31,17 +29,15 @@ export class MP3 extends EventEmitter {
     this.loader = new MP3Loader(this.config)
     this.bufferService = new BufferService(this.config)
 
-    this.media.addEventListener('seeking', this.onSeeking)
-    this.media.addEventListener('playing', this.onPlaying)
-    this.media.addEventListener('ended', this.onEnded)
+    this.bindEvents()
   }
 
   static isSupported(preferMMS = false): boolean {
     return BufferService.isSupported(preferMMS)
   }
 
-  get metadata(): MP3Metadata | null {
-    return this.loader.metadata
+  get isInitialized(): boolean {
+    return this.initialized
   }
 
   load(url?: string, startTime = 0): Promise<number> {
@@ -59,20 +55,18 @@ export class MP3 extends EventEmitter {
     return task
   }
 
-  async destroy(): Promise<void> {
+  destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
     this.loadId++
-    this.media.removeEventListener('seeking', this.onSeeking)
-    this.media.removeEventListener('playing', this.onPlaying)
-    this.media.removeEventListener('ended', this.onEnded)
+    this.fatalError = true
+    this.downloadComplete = true
+    this.unbindEvents()
     this.stopTick()
     this.loading = false
-
-    await Promise.all([
-      this.loader.destroy().catch(() => undefined),
-      this.bufferService.destroy().catch(() => undefined)
-    ])
+    this.removeAllListeners()
+    this.loader.destroy()
+    this.bufferService.destroy()
   }
 
   private async loadInternal(
@@ -83,7 +77,7 @@ export class MP3 extends EventEmitter {
     if (!this.isActiveLoad(loadId)) return 0
     this.stopTick()
     this.loading = false
-    this._inited = false
+    this.initialized = false
     this.fatalError = false
     this.downloadComplete = false
 
@@ -135,7 +129,7 @@ export class MP3 extends EventEmitter {
       if (!this.isActiveLoad(loadId)) return false
       await this.bufferService.evictBuffer(this.config.bufferBehind)
 
-      this._inited = true
+      this.initialized = true
       if (segment.isLast) {
         await this.completeDownload()
       } else {
@@ -162,6 +156,18 @@ export class MP3 extends EventEmitter {
   private async completeDownload(): Promise<void> {
     await this.bufferService.endOfStream()
     this.downloadComplete = true
+  }
+
+  private bindEvents(): void {
+    this.media.addEventListener('seeking', this.onSeeking)
+    this.media.addEventListener('playing', this.onPlaying)
+    this.media.addEventListener('ended', this.onEnded)
+  }
+
+  private unbindEvents(): void {
+    this.media.removeEventListener('seeking', this.onSeeking)
+    this.media.removeEventListener('playing', this.onPlaying)
+    this.media.removeEventListener('ended', this.onEnded)
   }
 
   private onSeeking = (): void => {
