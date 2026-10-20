@@ -138,29 +138,6 @@ mediaSource.addSourceBuffer('audio/mpeg; codecs="mp3"')
 mediaSource.addSourceBuffer('audio/mp4; codecs="mp4a.69"')
 ```
 
-## 与历史 HLS MP3 支持的区别
-
-xgplayer-transmuxer 中已有的 `MPEG` parser 最初服务于以下链路：
-
-```text
-.m3u8 → MPEG-TS → PMT stream_type 0x03/0x04 → PES + PTS → MP3 frames
-```
-
-在该链路中：
-
-- MPEG-TS 提供分片边界。
-- PES 提供时间戳。
-- `xgplayer-hls` 负责下载、seek 和 buffer 生命周期。
-
-独立 MP3 文件没有 TS/PES，因此 `xgplayer-mp3` 额外实现：
-
-- 文件头与任意位置 ID3 扫描。
-- Xing、Info、VBRI 索引。
-- CBR 时间与字节映射。
-- HTTP Range 分段。
-- frame-aligned seek。
-- SourceBuffer timestampOffset 管理。
-
 ## HTTP 和 CORS 要求
 
 推荐服务器支持：
