@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>xgplayer-mp3 fixture</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        color: #171717;
+        background: #f7f7f8;
+        font: 14px/20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      input[type="url"] {
+        width: min(560px, 80vw);
+        padding: 8px 12px;
+      }
+      button {
+        padding: 8px 14px;
+        border: 1px solid #02743b;
+        background: #0fdc78;
+        color: #004d26;
+        cursor: pointer;
+      }
+      #player {
+        width: min(760px, 100%);
+        min-height: 72px;
+      }
+      #status {
+        margin-top: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <input id="url" type="url" placeholder="https://example.com/audio.mp3" />
+      <button id="load-url" type="button">加载 URL</button>
+      <input id="file" type="file" accept="audio/mpeg,.mp3" />
+    </div>
+    <div id="player"></div>
+    <pre id="status">等待选择 MP3 文件</pre>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>
