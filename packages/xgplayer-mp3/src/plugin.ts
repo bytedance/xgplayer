@@ -157,14 +157,8 @@ export class MP3Plugin extends BasePlugin {
     }
 
     logger.log('playNext', getLogSource(nextUrl, this.mp3Config.vid))
-    player.resetState()
-    player.setConfig(config)
     this.sourceChangeId++
-    const loadPromise = this.mp3.load(nextUrl)
-    void loadPromise.catch((error) => this.handleFatalError(error))
-    void Promise.resolve(player.play()).catch(() => undefined)
-    player.emit(Events.PLAYNEXT, config)
-    return loadPromise
+    return this.nativePlayNext?.call(player, config)
   }
 
   private onChangeDefinition: Player['changeDefinition'] = (definition, from) => {

@@ -52,11 +52,37 @@ import { MP3 } from '../src/mp3'
 function createMedia(): HTMLMediaElement {
   const media = document.createElement('audio')
   Object.defineProperties(media, {
+    currentTime: { configurable: true, value: 0, writable: true },
     paused: { configurable: true, value: true, writable: true },
     ended: { configurable: true, value: false, writable: true },
     readyState: { configurable: true, value: 0, writable: true }
   })
   return media
+}
+
+function createSegment(overrides: Record<string, unknown> = {}) {
+  return {
+    data: new Uint8Array([0xff, 0xf3, 0xa8, 0xc4]),
+    range: [45, 476] as [number, number],
+    index: 0,
+    startTime: 0,
+    endTime: 0.036,
+    nextOffset: 477,
+    isLast: false,
+    ...overrides
+  }
+}
+
+async function flushPromises(times = 5): Promise<void> {
+  for (let i = 0; i < times; i++) await Promise.resolve()
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
 }
 
 describe('MP3 core', () => {
@@ -83,15 +109,7 @@ describe('MP3 core', () => {
   })
 
   test('loads metadata and appends a frame-aligned MP3 segment', async () => {
-    const segment = {
-      data: new Uint8Array([0xff, 0xf3, 0xa8, 0xc4]),
-      range: [45, 476] as [number, number],
-      index: 0,
-      startTime: 0,
-      endTime: 0.036,
-      nextOffset: 477,
-      isLast: true
-    }
+    const segment = createSegment({ isLast: true })
     mockLoader.loadSegmentByTime.mockResolvedValue(segment)
     const core = new MP3({
       media: createMedia(),
@@ -117,15 +135,12 @@ describe('MP3 core', () => {
   })
 
   test('falls back to time zero when the requested restore time is out of range', async () => {
-    const segment = {
+    const segment = createSegment({
       data: new Uint8Array([1]),
-      range: [45, 46] as [number, number],
-      index: 0,
-      startTime: 0,
+      range: [45, 46],
       endTime: 1,
-      nextOffset: 47,
-      isLast: false
-    }
+      nextOffset: 47
+    })
     mockLoader.loadSegmentByTime.mockResolvedValue(segment)
     const core = new MP3({ media: createMedia(), url: 'audio.mp3' })
 
@@ -191,5 +206,34 @@ describe('MP3 core', () => {
       'playing',
       'ended'
     ])
+  })
+
+  test('ignores stale out-of-buffer seek cancellation callbacks', async () => {
+    const media = createMedia()
+    const firstCancel = createDeferred<void>()
+    const secondCancel = createDeferred<void>()
+    mockLoader.cancel
+      .mockReturnValueOnce(firstCancel.promise)
+      .mockReturnValueOnce(secondCancel.promise)
+    mockLoader.loadSegmentByTime.mockResolvedValue(createSegment())
+    const core = new MP3({ media, url: 'audio.mp3' })
+    await core.load()
+    mockLoader.loadSegmentByTime.mockClear()
+
+    media.currentTime = 3
+    media.dispatchEvent(new Event('seeking'))
+    media.currentTime = 7
+    media.dispatchEvent(new Event('seeking'))
+
+    firstCancel.resolve()
+    await flushPromises()
+    expect(mockLoader.loadSegmentByTime).not.toHaveBeenCalled()
+
+    secondCancel.resolve()
+    await flushPromises()
+    expect(mockLoader.loadSegmentByTime).toHaveBeenCalledTimes(1)
+    expect(mockLoader.loadSegmentByTime).toHaveBeenCalledWith(7)
+
+    core.destroy()
   })
 })
