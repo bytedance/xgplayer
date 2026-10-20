@@ -1,14 +1,39 @@
-import { NALu } from './nalu'
 import { ExpGolomb, getAvcCodec } from '../utils'
+import { NALu } from './nalu'
 
+export interface AVCSequenceParameterSet {
+  codec: string
+  profileIdc: number
+  profileCompatibility: number
+  levelIdc: number
+  chromaFormat: number
+  width: number
+  height: number
+  sarRatio: [number, number] | undefined
+  fpsNum: number | undefined
+  fpsDen: number | undefined
+  fps: number | undefined
+  fixedFrame: boolean | undefined
+}
+
+export interface AVCDecoderConfiguration {
+  sps: AVCSequenceParameterSet | undefined
+  spsArr: Uint8Array[]
+  ppsArr: Uint8Array[]
+  nalUnitSize: number
+}
+
+// biome-ignore format: preserve the parser layout during migration
 export class AVC {
-  static parseAVCDecoderConfigurationRecord (data) {
+  static parseAVCDecoderConfigurationRecord(
+    data: Uint8Array
+  ): AVCDecoderConfiguration | undefined {
     if (data.length < 7) return
     const nalUnitSize = (data[4] & 3) + 1
 
-    let spsParsed
-    const spsArr = []
-    const ppsArr = []
+    let spsParsed: AVCSequenceParameterSet | undefined
+    const spsArr: Uint8Array[] = []
+    const ppsArr: Uint8Array[] = []
 
     let offset = 6
     const spsCount = data[5] & 0x1f
@@ -46,7 +71,7 @@ export class AVC {
     }
   }
 
-  static parseSPS (unit) {
+  static parseSPS(unit: Uint8Array): AVCSequenceParameterSet {
     const eg = new ExpGolomb(unit)
     eg.readUByte()
 
@@ -123,11 +148,11 @@ export class AVC {
       frameCropBottomOffset = eg.readUEG()
     }
 
-    let sarRatio
-    let fixedFrame
-    let fpsNum
-    let fpsDen
-    let fps
+    let sarRatio: [number, number] | undefined
+    let fixedFrame: boolean | undefined
+    let fpsNum: number | undefined
+    let fpsDen: number | undefined
+    let fps: number | undefined
     if (eg.readBool()) {
       if (eg.readBool()) {
         const aspectRatioIdc = eg.readUByte()
