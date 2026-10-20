@@ -1,4 +1,5 @@
 import { Logger, NetLoader } from 'xgplayer-streaming-shared'
+import { getLogSource } from './log'
 import {
   MP3ParserError,
   parseMP3Metadata,
@@ -8,7 +9,7 @@ import {
 import type { MP3Config, MP3Metadata, MP3Segment } from './types'
 
 interface NetworkResponse {
-  data?: Uint8Array
+  data?: Uint8Array | string
   response?: Response
 }
 
@@ -19,12 +20,17 @@ interface RangeData {
   start: number
 }
 
-function getFileSize(response: Response | undefined, dataLength: number): number {
+function getRangeFileSize(response: Response | undefined, dataLength: number): number {
   const contentRange = response?.headers?.get('content-range')
   const match = contentRange?.match(/\/(\d+)$/)
   if (match) return Number.parseInt(match[1], 10)
   if (response?.status === 200) return dataLength
   return 0
+}
+
+function getContentLength(response: Response | undefined): number {
+  const contentLength = response?.headers?.get('content-length')
+  return contentLength ? Number.parseInt(contentLength, 10) || 0 : 0
 }
 
 export class MP3Loader {
@@ -34,6 +40,7 @@ export class MP3Loader {
   private _metadata: MP3Metadata | null = null
   private _url: string
   private fullData: Uint8Array | null = null
+  private fileSize = 0
   private currentIndex = -1
   private currentOffset = 0
   private currentTime = 0
@@ -43,7 +50,8 @@ export class MP3Loader {
   constructor(config: MP3Config) {
     this.config = config
     this._url = config.url
-    this.logger = new Logger(`MP3Loader_${config.vid || config.url}`, undefined)
+    this.logger = new Logger('MP3Loader', undefined)
+    if (config.openLog) Logger.enable()
     this.netLoader = new NetLoader({
       url: config.url,
       retry: config.retry,
@@ -65,6 +73,10 @@ export class MP3Loader {
 
   async changeUrl(url: string): Promise<void> {
     this.ensureActive()
+    this.logger.log('changeUrl', {
+      from: getLogSource(this._url, this.config.vid).source,
+      ...getLogSource(url, this.config.vid)
+    })
     await this.reset()
     this.ensureActive()
     this._url = url
@@ -76,13 +88,18 @@ export class MP3Loader {
 
     let probeEnd = this.config.probeSize - 1
     let lastError: unknown
+    this.logger.log('loadMetadata start', {
+      ...getLogSource(this._url, this.config.vid),
+      probeSize: this.config.probeSize,
+      maxProbeSize: this.config.maxProbeSize
+    })
     while (probeEnd < this.config.maxProbeSize) {
       const range = await this.loadRange(0, probeEnd)
       this.ensureActive()
       const fileSize = this.fullData?.byteLength || this.getRangeFileSize(range)
       if (!fileSize) {
         throw new Error(
-          'MP3 Range response must expose Content-Range with the complete file size'
+          'MP3 response must expose the complete file size by Content-Range or HEAD Content-Length'
         )
       }
 
@@ -90,6 +107,16 @@ export class MP3Loader {
         this._metadata = parseMP3Metadata(range.data, fileSize)
         this.currentOffset = this._metadata.firstFrameOffset
         this.currentTime = 0
+        this.logger.log('loadMetadata done', {
+          ...getLogSource(this._url, this.config.vid),
+          fileSize: this._metadata.fileSize,
+          duration: this._metadata.duration,
+          bitRate: this._metadata.bitRate,
+          sampleRate: this._metadata.sampleRate,
+          channelCount: this._metadata.channelCount,
+          seekMode: this._metadata.seekMode,
+          firstFrameOffset: this._metadata.firstFrameOffset
+        })
         return this._metadata
       } catch (error) {
         lastError = error
@@ -99,10 +126,20 @@ export class MP3Loader {
         ) {
           throw error
         }
+        this.logger.log('loadMetadata probe incomplete', {
+          ...getLogSource(this._url, this.config.vid),
+          code: error.code,
+          probeEnd
+        })
       }
 
       if (range.end >= fileSize - 1) break
       probeEnd = Math.min(fileSize - 1, Math.max(probeEnd + 1, (probeEnd + 1) * 2) - 1)
+      this.logger.log('loadMetadata expand probe', {
+        ...getLogSource(this._url, this.config.vid),
+        nextProbeEnd: probeEnd,
+        fileSize
+      })
     }
 
     throw lastError instanceof Error ? lastError : new Error('Cannot parse MP3 metadata')
@@ -162,6 +199,7 @@ export class MP3Loader {
   private clearState(): void {
     this._metadata = null
     this.fullData = null
+    this.fileSize = 0
     this.currentIndex = -1
     this.currentOffset = 0
     this.currentTime = 0
@@ -192,6 +230,15 @@ export class MP3Loader {
       metadata.fileSize - 1,
       searchStart + requestSize + this.config.syncSearchSize - 1
     )
+    this.logger.debug('loadSegment start', {
+      ...getLogSource(this._url, this.config.vid),
+      index,
+      seek,
+      startTime,
+      estimatedOffset,
+      searchStart,
+      requestEnd
+    })
     const range = await this.loadRange(searchStart, requestEnd)
     const localTarget = Math.max(0, estimatedOffset - range.start)
     const frames = scanMP3Frames(range.data, localTarget)
@@ -223,6 +270,16 @@ export class MP3Loader {
     const nextOffset = absoluteEnd
     const isLast = selected.length === frames.length && range.end >= metadata.fileSize - 1
 
+    this.logger.log('loadSegment done', {
+      ...getLogSource(this._url, this.config.vid),
+      index,
+      frameCount: selected.length,
+      range: [absoluteStart, absoluteEnd - 1],
+      startTime,
+      endTime: Math.min(metadata.duration, startTime + duration),
+      isLast
+    })
+
     return {
       data: range.data.subarray(firstFrame.offset, lastFrame.end),
       range: [absoluteStart, absoluteEnd - 1],
@@ -253,6 +310,12 @@ export class MP3Loader {
     this.ensureActive()
     if (this.fullData) {
       const rangeEnd = Math.min(end, this.fullData.byteLength - 1)
+      this.logger.log('loadRange from full data', {
+        ...getLogSource(this._url, this.config.vid),
+        start,
+        end: rangeEnd,
+        fileSize: this.fullData.byteLength
+      })
       return {
         data: this.fullData.subarray(start, rangeEnd + 1),
         start,
@@ -266,12 +329,21 @@ export class MP3Loader {
       responseType: 'arraybuffer'
     })) as NetworkResponse | undefined
     this.ensureActive()
-    if (!result?.data?.length) throw new Error('Empty MP3 network response')
+    if (!(result?.data instanceof Uint8Array) || !result.data.length) {
+      throw new Error('Empty MP3 network response')
+    }
 
     const response = result.response
     if (response?.status === 200) {
       this.fullData = result.data
+      this.fileSize = result.data.byteLength
       const rangeEnd = Math.min(end, result.data.byteLength - 1)
+      this.logger.log('loadRange full response', {
+        ...getLogSource(this._url, this.config.vid),
+        requestRange: [start, end],
+        dataLength: result.data.byteLength,
+        fileSize: this.fileSize
+      })
       return {
         data: result.data.subarray(start, rangeEnd + 1),
         start,
@@ -280,12 +352,15 @@ export class MP3Loader {
       }
     }
 
-    const fileSize = getFileSize(response, result.data.byteLength)
+    const fileSize =
+      getRangeFileSize(response, result.data.byteLength) || (await this.loadFileSize())
+    this.ensureActive()
     if (!fileSize) {
       throw new Error(
-        'MP3 Range response must expose Content-Range with the complete file size'
+        'MP3 response must expose the complete file size by Content-Range or HEAD Content-Length'
       )
     }
+    this.fileSize = fileSize
     const contentRange = response?.headers?.get('content-range')
     const match = contentRange?.match(/^bytes\s+(\d+)-(\d+)\//i)
     const responseStart = match ? Number.parseInt(match[1], 10) : start
@@ -296,11 +371,41 @@ export class MP3Loader {
       throw new Error(`Unexpected MP3 range start: ${responseStart}, expected ${start}`)
     }
 
+    this.logger.log('loadRange done', {
+      ...getLogSource(this._url, this.config.vid),
+      requestRange: [start, end],
+      responseStatus: response?.status,
+      responseRange: [responseStart, responseEnd],
+      dataLength: result.data.byteLength,
+      fileSize
+    })
+
     return {
       data: result.data,
       start: responseStart,
       end: responseEnd,
       fileSize
     }
+  }
+
+  private async loadFileSize(): Promise<number> {
+    if (this.fileSize) return this.fileSize
+
+    this.logger.log(
+      'loadFileSize by HEAD start',
+      getLogSource(this._url, this.config.vid)
+    )
+    const result = (await this.netLoader.load(this._url, {
+      method: 'HEAD',
+      responseType: 'text'
+    })) as NetworkResponse | undefined
+    this.ensureActive()
+
+    this.fileSize = getContentLength(result?.response)
+    this.logger.log('loadFileSize by HEAD done', {
+      ...getLogSource(this._url, this.config.vid),
+      fileSize: this.fileSize
+    })
+    return this.fileSize
   }
 }

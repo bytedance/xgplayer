@@ -7,21 +7,52 @@
     <style>
       body {
         margin: 0;
-        padding: 24px;
+        padding: 16px;
         color: #171717;
-        background: #f7f7f8;
+        background: #f5f6f8;
         font: 14px/20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
+      * {
+        box-sizing: border-box;
+      }
+      .page {
+        display: grid;
+        gap: 12px;
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      .panel,
+      .source-panel {
+        border: 1px solid #dedede;
+        background: #fff;
+      }
+      .panel {
+        min-width: 0;
+        padding: 16px;
+      }
+      .player-panel {
+        display: grid;
+        gap: 12px;
+      }
+      .source-panel {
+        min-width: 0;
+      }
       .toolbar {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         gap: 12px;
         align-items: center;
-        margin-bottom: 20px;
+        padding: 16px;
+        border-bottom: 1px solid #ececec;
       }
       input[type="url"] {
-        width: min(560px, 80vw);
+        width: 100%;
+        min-width: 0;
         padding: 8px 12px;
+        border: 1px solid #cfcfcf;
+      }
+      input[type="file"] {
+        max-width: 100%;
       }
       button {
         padding: 8px 14px;
@@ -31,23 +62,179 @@
         cursor: pointer;
       }
       #player {
-        width: min(760px, 100%);
+        width: 100%;
         min-height: 72px;
       }
+      .runtime-strip {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        border: 1px solid #e5e5e5;
+        background: #fafafa;
+      }
+      .runtime-item {
+        min-width: 0;
+        padding: 8px 10px;
+        border-right: 1px solid #e5e5e5;
+      }
+      .runtime-item span {
+        display: block;
+        color: #666;
+        font-size: 12px;
+        line-height: 16px;
+      }
+      .runtime-item strong {
+        display: block;
+        margin-top: 2px;
+        overflow: hidden;
+        color: #151515;
+        font-size: 13px;
+        line-height: 18px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .runtime-details {
+        grid-column: 1 / -1;
+        padding: 8px 10px;
+        border-top: 1px solid #e5e5e5;
+      }
+      .runtime-details summary {
+        cursor: pointer;
+        font-weight: 600;
+        line-height: 20px;
+      }
       #status {
-        margin-top: 16px;
+        width: 100%;
+        min-height: 120px;
+        max-height: 180px;
+        margin: 12px 0 0;
+        padding: 12px;
+        overflow: auto;
+        border: 1px solid #e3e3e3;
+        background: #111820;
+        color: #dce8ed;
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 18px;
+      }
+      .sample-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 0;
+      }
+      .sample-group {
+        padding: 16px;
+        border-right: 1px solid #ececec;
+        border-bottom: 1px solid #ececec;
+      }
+      .sample-group h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+      .sample-card {
+        padding: 12px 0;
+        border-top: 1px solid #ececec;
+      }
+      .sample-card__header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .sample-card h3 {
+        margin: 0;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+      }
+      .sample-card p {
+        margin: 8px 0 0;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .tags span {
+        padding: 2px 6px;
+        border: 1px solid #d7d7d7;
+        background: #fafafa;
+        font-size: 12px;
+      }
+      @media (max-width: 980px) {
+        body {
+          padding: 12px;
+        }
+        .toolbar {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+        input[type="file"] {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 640px) {
+        .panel,
+        .toolbar,
+        .sample-group {
+          padding: 12px;
+        }
+        .toolbar {
+          grid-template-columns: 1fr;
+        }
+        input[type="url"],
+        input[type="file"],
+        button {
+          width: 100%;
+        }
+        #status {
+          min-height: 110px;
+          max-height: 180px;
+        }
+        .runtime-strip {
+          grid-template-columns: 1fr 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="toolbar">
-      <input id="url" type="url" placeholder="https://example.com/audio.mp3" />
-      <button id="load-url" type="button">加载 URL</button>
-      <input id="file" type="file" accept="audio/mpeg,.mp3" />
-    </div>
-    <div id="player"></div>
-    <pre id="status">等待选择 MP3 文件</pre>
+    <main class="page">
+      <section class="panel player-panel">
+        <div class="runtime-strip" aria-label="MP3 runtime status">
+          <div class="runtime-item">
+            <span>Sample</span>
+            <strong id="status-sample">-</strong>
+          </div>
+          <div class="runtime-item">
+            <span>Time</span>
+            <strong id="status-time">-</strong>
+          </div>
+          <div class="runtime-item">
+            <span>Buffered</span>
+            <strong id="status-buffered">-</strong>
+          </div>
+          <div class="runtime-item">
+            <span>Media</span>
+            <strong id="status-media">-</strong>
+          </div>
+          <div class="runtime-item">
+            <span>Mode</span>
+            <strong id="status-mode">-</strong>
+          </div>
+          <details class="runtime-details">
+            <summary>Details</summary>
+            <pre id="status">等待选择 MP3 文件</pre>
+          </details>
+        </div>
+        <div id="player"></div>
+      </section>
+      <aside class="source-panel" aria-label="MP3 source controls">
+        <div class="toolbar">
+          <input id="url" type="url" placeholder="https://example.com/audio.mp3" />
+          <button id="load-url" type="button">加载 URL</button>
+          <input id="file" type="file" accept="audio/mpeg,.mp3" />
+        </div>
+        <div id="sample-list" class="sample-list" aria-label="MP3 samples"></div>
+      </aside>
+    </main>
     <script type="module" src="./index.js"></script>
   </body>
 </html>

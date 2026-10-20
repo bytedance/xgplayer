@@ -21,6 +21,7 @@ export function getConfig(options: MP3Options = {}): MP3Config {
     closeDowngrade: false,
     preferMMS: false,
     mseAttachMode: 'auto',
+    openLog: false,
     ...options
   }
 

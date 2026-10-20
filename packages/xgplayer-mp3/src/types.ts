@@ -31,6 +31,7 @@ export interface MP3Options {
   closeDowngrade?: boolean
   preferMMS?: boolean
   mseAttachMode?: MSEAttachMode
+  openLog?: boolean
 }
 
 export interface MP3Config extends MP3Options {
@@ -52,6 +53,7 @@ export interface MP3Config extends MP3Options {
   closeDowngrade: boolean
   preferMMS: boolean
   mseAttachMode: MSEAttachMode
+  openLog: boolean
 }
 
 export interface MP3FrameHeader {

@@ -15,7 +15,8 @@ export class BufferService {
     this.config = config
     this.mse = new MSE(undefined, {
       preferMMS: config.preferMMS,
-      attachMode: config.mseAttachMode
+      attachMode: config.mseAttachMode,
+      openLog: config.openLog
     })
   }
 
