@@ -6,11 +6,17 @@ import {
   scanMP3Frames,
   timeToByteOffset
 } from './parser'
-import type { MP3Config, MP3Metadata, MP3Segment } from './types'
+import type { MP3Config, MP3Frame, MP3Metadata, MP3Segment } from './types'
+
+type NetworkHeaders = Headers | Record<string, string | undefined>
+interface NetworkResponseInfo {
+  headers?: NetworkHeaders
+  status?: number
+}
 
 interface NetworkResponse {
   data?: Uint8Array | string
-  response?: Response
+  response?: NetworkResponseInfo
 }
 
 interface RangeData {
@@ -20,16 +26,32 @@ interface RangeData {
   start: number
 }
 
-function getRangeFileSize(response: Response | undefined, dataLength: number): number {
-  const contentRange = response?.headers?.get('content-range')
+function getResponseHeader(
+  response: NetworkResponseInfo | undefined,
+  name: string
+): string | null {
+  const headers = response?.headers
+  if (!headers) return null
+  if (typeof (headers as Headers).get === 'function') {
+    return (headers as Headers).get(name)
+  }
+  const record = headers as Record<string, string | undefined>
+  return record[name.toLowerCase()] || record[name] || null
+}
+
+function getRangeFileSize(
+  response: NetworkResponseInfo | undefined,
+  dataLength: number
+): number {
+  const contentRange = getResponseHeader(response, 'content-range')
   const match = contentRange?.match(/\/(\d+)$/)
   if (match) return Number.parseInt(match[1], 10)
   if (response?.status === 200) return dataLength
   return 0
 }
 
-function getContentLength(response: Response | undefined): number {
-  const contentLength = response?.headers?.get('content-length')
+function getContentLength(response: NetworkResponseInfo | undefined): number {
+  const contentLength = getResponseHeader(response, 'content-length')
   return contentLength ? Number.parseInt(contentLength, 10) || 0 : 0
 }
 
@@ -133,8 +155,9 @@ export class MP3Loader {
         })
       }
 
-      if (range.end >= fileSize - 1) break
-      probeEnd = Math.min(fileSize - 1, Math.max(probeEnd + 1, (probeEnd + 1) * 2) - 1)
+      const maxProbeEnd = Math.min(fileSize - 1, this.config.maxProbeSize - 1)
+      if (range.end >= maxProbeEnd) break
+      probeEnd = Math.min(maxProbeEnd, Math.max(probeEnd + 1, (probeEnd + 1) * 2) - 1)
       this.logger.log('loadMetadata expand probe', {
         ...getLogSource(this._url, this.config.vid),
         nextProbeEnd: probeEnd,
@@ -226,35 +249,61 @@ export class MP3Loader {
       (metadata.bitRate / 8) * this.config.segmentDuration * 1.5
     )
     const requestSize = Math.max(64 * 1024, estimatedSegmentSize)
-    const requestEnd = Math.min(
+    let requestEnd = Math.min(
       metadata.fileSize - 1,
       searchStart + requestSize + this.config.syncSearchSize - 1
     )
-    this.logger.debug('loadSegment start', {
-      ...getLogSource(this._url, this.config.vid),
-      index,
-      seek,
-      startTime,
-      estimatedOffset,
-      searchStart,
-      requestEnd
-    })
-    const range = await this.loadRange(searchStart, requestEnd)
-    const localTarget = Math.max(0, estimatedOffset - range.start)
-    const frames = scanMP3Frames(range.data, localTarget)
-    if (!frames.length) {
-      if (range.end >= metadata.fileSize - 1) return
+    const maxRequestEnd = Math.min(
+      metadata.fileSize - 1,
+      searchStart + Math.max(requestEnd - searchStart + 1, this.config.maxProbeSize) - 1
+    )
+    let range: RangeData | undefined
+    let frames: MP3Frame[] = []
+    let firstFrameIndex = -1
+    while (requestEnd <= maxRequestEnd) {
+      this.logger.debug('loadSegment start', {
+        ...getLogSource(this._url, this.config.vid),
+        index,
+        seek,
+        startTime,
+        estimatedOffset,
+        searchStart,
+        requestEnd
+      })
+      range = await this.loadRange(searchStart, requestEnd)
+      const localTarget = Math.max(0, estimatedOffset - range.start)
+      frames = scanMP3Frames(range.data, seek ? 0 : localTarget)
+      firstFrameIndex = this.getFirstSegmentFrameIndex(frames, localTarget, seek, range)
+      if (firstFrameIndex >= 0) break
+      if (range.end >= metadata.fileSize - 1 || requestEnd >= maxRequestEnd) break
+      requestEnd = Math.min(
+        metadata.fileSize - 1,
+        maxRequestEnd,
+        searchStart + (requestEnd - searchStart + 1) * 2 - 1
+      )
+      this.logger.log('loadSegment expand range', {
+        ...getLogSource(this._url, this.config.vid),
+        index,
+        requestEnd
+      })
+    }
+
+    if (!range || firstFrameIndex < 0) {
+      if (range && range.end >= metadata.fileSize - 1) return
       throw new Error(`Cannot find an MP3 frame near byte ${estimatedOffset}`)
     }
 
-    const selected = []
+    const segmentStartTime = seek
+      ? Math.max(
+          0,
+          Math.floor(startTime / metadata.frameDuration) * metadata.frameDuration
+        )
+      : startTime
+    const selected: MP3Frame[] = []
     let duration = 0
-    const availableDuration = metadata.duration - startTime
-    for (const frame of frames) {
-      if (
-        selected.length &&
-        (duration >= this.config.segmentDuration || duration >= availableDuration)
-      ) {
+    for (let i = firstFrameIndex; i < frames.length; i++) {
+      const frame = frames[i]
+      if (selected.length && duration >= this.config.segmentDuration) {
         break
       }
       selected.push(frame)
@@ -268,15 +317,18 @@ export class MP3Loader {
     const absoluteStart = range.start + firstFrame.offset
     const absoluteEnd = range.start + lastFrame.end
     const nextOffset = absoluteEnd
-    const isLast = selected.length === frames.length && range.end >= metadata.fileSize - 1
+    const segmentEndTime = segmentStartTime + duration
+    const isLast =
+      firstFrameIndex + selected.length === frames.length &&
+      range.end >= metadata.fileSize - 1
 
     this.logger.log('loadSegment done', {
       ...getLogSource(this._url, this.config.vid),
       index,
       frameCount: selected.length,
       range: [absoluteStart, absoluteEnd - 1],
-      startTime,
-      endTime: Math.min(metadata.duration, startTime + duration),
+      startTime: segmentStartTime,
+      endTime: segmentEndTime,
       isLast
     })
 
@@ -284,8 +336,8 @@ export class MP3Loader {
       data: range.data.subarray(firstFrame.offset, lastFrame.end),
       range: [absoluteStart, absoluteEnd - 1],
       index,
-      startTime,
-      endTime: Math.min(metadata.duration, startTime + duration),
+      startTime: segmentStartTime,
+      endTime: segmentEndTime,
       nextOffset,
       isLast
     }
@@ -295,6 +347,19 @@ export class MP3Loader {
     this.currentIndex = segment.index
     this.currentOffset = segment.nextOffset
     this.currentTime = segment.endTime
+  }
+
+  private getFirstSegmentFrameIndex(
+    frames: MP3Frame[],
+    localTarget: number,
+    seek: boolean,
+    range: RangeData
+  ): number {
+    if (!frames.length) return -1
+    if (!seek) return 0
+    const targetFrameIndex = frames.findIndex((frame) => frame.end > localTarget)
+    if (targetFrameIndex >= 0) return targetFrameIndex
+    return range.end >= range.fileSize - 1 ? frames.length - 1 : -1
   }
 
   private correctDurationAtEnd(segment: MP3Segment): void {
@@ -361,7 +426,7 @@ export class MP3Loader {
       )
     }
     this.fileSize = fileSize
-    const contentRange = response?.headers?.get('content-range')
+    const contentRange = getResponseHeader(response, 'content-range')
     const match = contentRange?.match(/^bytes\s+(\d+)-(\d+)\//i)
     const responseStart = match ? Number.parseInt(match[1], 10) : start
     const responseEnd = match

@@ -185,6 +185,23 @@ describe('MP3Plugin', () => {
     expect(player.play).toHaveBeenCalled()
   })
 
+  test('delegates playNext to the native player lifecycle', () => {
+    const player = createPlayer()
+    const nativePlayNext = player.playNext
+    nativePlayNext.mockReturnValue('native-result')
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    plugin.beforePlayerInit()
+
+    const result = player.playNext({ url: 'next.mp3' })
+
+    expect(result).toBe('native-result')
+    expect(nativePlayNext).toHaveBeenCalledWith({ url: 'next.mp3' })
+    expect(player.resetState).not.toHaveBeenCalled()
+    expect(player.setConfig).not.toHaveBeenCalled()
+    expect(mockMP3.cores[0].load).not.toHaveBeenCalledWith('next.mp3')
+  })
+
   test('restores native player APIs synchronously on destroy', () => {
     const player = createPlayer()
     const nativeSwitchURL = player.switchURL
