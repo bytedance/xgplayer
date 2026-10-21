@@ -31,6 +31,7 @@ Global agent map for this repo. Keep package-specific design/background in packa
 
 ## Rules
 
+- Code quality: prioritize long-term human readability and maintainability for every code change; fix root causes with the smallest coherent solution, avoid hacks and overengineering, and read and follow `docs/ai-harness/quality-gates.md`.
 - Package manager: Yarn 1.x only; only touch `yarn.lock`.
 - TS migration: root `tsconfig.json` strict-checks all package TS source while `allowJs` + `checkJs: false` keeps unmigrated JS outside type checking; `tsconfig.test.json` adds TS tests. `yarn typecheck` runs both and is enforced in pre-commit. Published TS packages keep a thin package `tsconfig.json` to define their declaration source boundary; do not infer whole-package language from the entry extension or add package configs where declaration requirements do not differ.
 - Dependencies: keep pins deliberate; do not loosen/downgrade ad hoc.
