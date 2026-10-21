@@ -1,13 +1,13 @@
 
 import semver from 'semver';
+import { execSync } from 'node:child_process';
 const VALID_VERSION_REGEX =
     /^v(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z][0-9a-zA-Z-]*))?/;
 
 const STABLE_VERSION_REGEX = /^v\d+\.\d+\.\d+$/;
 
 function exec(cmd) {
-    return require('child_process')
-        .execSync(cmd, { stdio: 'pipe' })
+    return execSync(cmd, { stdio: 'pipe' })
         .toString()
         .trim();
 }
@@ -39,7 +39,7 @@ export default {
         let commitish = '';
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            const tag = await $`git describe --tag --abbrev=0 --match="v*" ${commitish}`;
+            const tag = exec(`git describe --tag --abbrev=0 --match="v*" ${commitish}`);
             if (!tag) {
                 throw new Error('Could not find tag.');
             }

@@ -1,10 +1,14 @@
-#!/usr/bin/env zx
+#!/usr/bin/env node
 
 import { getPackageVersion } from './get-package-version.mjs'
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'fs-extra';
 import versionHelper from './version-helper.mjs';
 import semver from 'semver';
 import blockList from './block-list.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgDirs = path.resolve(__dirname, '../../packages')
 
 const pkgNames = fs.readdirSync(pkgDirs).filter(name => !blockList.includes(name));
@@ -48,5 +52,4 @@ for (let name of pkgNames) {
         }
     )
 }    
-
 
