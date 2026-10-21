@@ -32,6 +32,13 @@ jest.mock('xgplayer-streaming-shared', () => {
 
 import { getConfig } from '../src/config'
 import { MP3Loader } from '../src/loader'
+import type { MP3LoadResult, MP3Segment } from '../src/types'
+
+function requireSegment(result: MP3LoadResult | undefined): MP3Segment {
+  expect(result?.segment).toBeTruthy()
+  if (!result?.segment) throw new Error('Expected an MP3 segment')
+  return result.segment
+}
 
 function concat(...items: Uint8Array[]): Uint8Array {
   const data = new Uint8Array(items.reduce((total, item) => total + item.length, 0))
@@ -163,7 +170,7 @@ describe('MP3Loader', () => {
     )
 
     const metadata = await loader.loadMetadata()
-    const segment = await loader.loadSegmentByTime(0)
+    const segment = requireSegment(await loader.loadSegmentByTime(0))
 
     expect(metadata.firstFrameOffset).toBe(45)
     expect(metadata.sampleRate).toBe(16000)
@@ -194,7 +201,7 @@ describe('MP3Loader', () => {
     )
 
     await loader.loadMetadata()
-    const segment = await loader.loadSegmentByTime(3)
+    const segment = requireSegment(await loader.loadSegmentByTime(3))
 
     expect(segment?.startTime).toBeLessThanOrEqual(3)
     expect(segment?.endTime).toBeGreaterThan(3)
@@ -227,10 +234,14 @@ describe('MP3Loader', () => {
     )
 
     await loader.loadMetadata()
-    let segment = await loader.loadSegmentByTime(0)
-    while (segment && !segment.isLast) segment = await loader.loadNextSegment()
+    let result = await loader.loadSegmentByTime(0)
+    while (result && !result.endOfFile) {
+      result = await loader.loadNextSegment()
+    }
 
-    expect(segment?.isLast).toBe(true)
+    expect(result?.endOfFile).toBe(true)
+    requireSegment(result)
+    expect(loader.hasNextSegment).toBe(false)
     expect(loader.metadata?.duration).toBeCloseTo(100 * 0.036)
   })
 
@@ -311,9 +322,10 @@ describe('MP3Loader', () => {
     )
 
     await loader.loadMetadata()
-    const segment = await loader.loadSegmentByTime(7.19)
+    const result = await loader.loadSegmentByTime(7.19)
+    const segment = requireSegment(result)
 
-    expect(segment?.isLast).toBe(true)
+    expect(result?.endOfFile).toBe(true)
     expect(segment?.startTime).toBeLessThan(7.19)
     expect(segment?.endTime).toBeGreaterThan(7.19)
     expect(segment?.data.subarray(0, 4)).toEqual(
@@ -334,8 +346,8 @@ describe('MP3Loader', () => {
     )
 
     await loader.loadMetadata()
-    const first = await loader.loadSegmentByTime(0)
-    const second = await loader.loadNextSegment()
+    const first = requireSegment(await loader.loadSegmentByTime(0))
+    const second = requireSegment(await loader.loadNextSegment())
 
     expect(first?.range[1]).toBe(leadingFrames.length - 1)
     expect(second?.range[0]).toBeGreaterThan(leadingFrames.length + 100 * 1024)
@@ -362,10 +374,76 @@ describe('MP3Loader', () => {
     )
 
     await loader.loadMetadata()
-    let segment = await loader.loadSegmentByTime(0)
-    while (segment && !segment.isLast) segment = await loader.loadNextSegment()
+    let result = await loader.loadSegmentByTime(0)
+    while (result && !result.endOfFile) {
+      result = await loader.loadNextSegment()
+    }
 
+    expect(result?.endOfFile).toBe(true)
     expect(loader.metadata?.duration).toBeCloseTo((200 * 1152) / 44100)
+  })
+
+  test('reports EOF and corrects duration after a trailing ID3 tag', async () => {
+    const audio = createFrames(28)
+    const data = concat(audio, createID3(100 * 1024))
+    mockRangeResponse(data)
+    const loader = new MP3Loader(getConfig({
+      media: document.createElement('audio'),
+      url: 'audio.mp3',
+      segmentDuration: 1
+    }))
+
+    const metadata = await loader.loadMetadata()
+    expect(metadata.duration).toBeGreaterThan(9)
+    const first = await loader.loadSegmentByTime(0)
+    requireSegment(first)
+    expect(first?.endOfFile).toBe(false)
+    expect(loader.hasNextSegment).toBe(true)
+
+    const result = await loader.loadNextSegment()
+
+    expect(result).toEqual({ segment: null, endOfFile: true })
+    expect(loader.hasNextSegment).toBe(false)
+    expect(loader.nextTime).toBeCloseTo(28 * 0.036)
+    expect(loader.metadata?.duration).toBeCloseTo(28 * 0.036)
+    expect(mockLoad.mock.calls.at(-1)?.[1].range[1]).toBe(data.length - 1)
+    const requestsAtEnd = mockLoad.mock.calls.length
+    expect(await loader.loadNextSegment()).toEqual({ segment: null, endOfFile: true })
+    expect(mockLoad).toHaveBeenCalledTimes(requestsAtEnd)
+  })
+
+  test('can resume reading from an earlier time after reaching EOF', async () => {
+    mockRangeResponse(createFrames(200))
+    const loader = new MP3Loader(getConfig({
+      media: document.createElement('audio'),
+      url: 'audio.mp3',
+      segmentDuration: 1
+    }))
+
+    expect((await loader.loadSegmentByTime(7))?.endOfFile).toBe(true)
+    expect(loader.hasNextSegment).toBe(false)
+
+    const result = await loader.loadSegmentByTime(1)
+
+    expect(result?.endOfFile).toBe(false)
+    expect(requireSegment(result).startTime).toBeLessThanOrEqual(1)
+    expect(loader.hasNextSegment).toBe(true)
+    const next = requireSegment(await loader.loadNextSegment())
+    expect(next.startTime).toBeCloseTo(requireSegment(result).endTime)
+  })
+
+  test('does not report EOF from a random seek into trailing metadata', async () => {
+    const data = concat(createFrames(28), createID3(100 * 1024))
+    mockRangeResponse(data)
+    const loader = new MP3Loader(getConfig({
+      media: document.createElement('audio'),
+      url: 'audio.mp3',
+      segmentDuration: 1
+    }))
+    await loader.loadMetadata()
+
+    expect(await loader.loadSegmentByTime(9)).toBeUndefined()
+    expect(loader.metadata?.duration).toBeGreaterThan(9)
   })
 
   test('falls back to HEAD content-length when content-range is not exposed', async () => {

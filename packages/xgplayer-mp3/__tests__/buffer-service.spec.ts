@@ -71,7 +71,6 @@ function createSegment(overrides: Partial<MP3Segment> = {}): MP3Segment {
     startTime: 0,
     endTime: 0.036,
     nextOffset: 477,
-    isLast: false,
     ...overrides
   }
 }
@@ -86,7 +85,9 @@ describe('MP3 BufferService', () => {
     const media = document.createElement('audio')
     const service = new BufferService(getConfig({ media }))
     await service.reset()
-    await service.appendSegment(createSegment(), 10, false)
+    await service.appendSegment(createSegment(), false)
+    expect(mockMSE.updateDuration).not.toHaveBeenCalled()
+    await service.updateDuration(10)
 
     expect(MSE).toHaveBeenCalledWith(undefined, {
       preferMMS: false,
@@ -109,14 +110,13 @@ describe('MP3 BufferService', () => {
     const media = document.createElement('audio')
     const service = new BufferService(getConfig({ media }))
     await service.reset()
-    await service.appendSegment(createSegment(), 30, false)
+    await service.appendSegment(createSegment(), false)
     await service.appendSegment(
       createSegment({
         index: 1,
         startTime: 20,
         endTime: 20.036
       }),
-      30,
       true
     )
 
@@ -141,7 +141,7 @@ describe('MP3 BufferService', () => {
     ;(Buffer.start as jest.Mock).mockReturnValue(0)
     const service = new BufferService(getConfig({ media }))
     await service.reset()
-    await service.appendSegment(createSegment(), 100, false)
+    await service.appendSegment(createSegment(), false)
 
     await service.evictBuffer(10)
     expect(mockMSE.remove).toHaveBeenCalledWith(
@@ -174,5 +174,41 @@ describe('MP3 BufferService', () => {
     await resetPromise
 
     expect(mockMSE.bindMedia).not.toHaveBeenCalled()
+  })
+
+  test('keeps duration updates separate from ending the stream', async () => {
+    const service = new BufferService(getConfig({ media: document.createElement('audio') }))
+    await service.reset()
+    await service.appendSegment(createSegment(), false)
+    mockMSE.updateDuration.mockClear()
+
+    await service.updateDuration(1.008)
+
+    expect(mockMSE.updateDuration).toHaveBeenCalledWith(1.008)
+    expect(mockMSE.endOfStream).not.toHaveBeenCalled()
+    await service.endOfStream()
+    expect(mockMSE.updateDuration).toHaveBeenCalledTimes(1)
+    expect(mockMSE.endOfStream).toHaveBeenCalledWith()
+    expect(mockMSE.updateDuration.mock.invocationCallOrder[0]).toBeLessThan(
+      mockMSE.endOfStream.mock.invocationCallOrder[0]
+    )
+  })
+
+  test('does not end a detached stream after a pending duration update', async () => {
+    const service = new BufferService(getConfig({ media: document.createElement('audio') }))
+    await service.reset()
+    await service.appendSegment(createSegment(), false)
+    let resolveDuration!: () => void
+    mockMSE.updateDuration.mockReturnValueOnce(new Promise<void>((resolve) => {
+      resolveDuration = resolve
+    }))
+
+    const updating = service.updateDuration(1.008)
+    service.destroy()
+    resolveDuration()
+    await updating
+    await service.endOfStream()
+
+    expect(mockMSE.endOfStream).not.toHaveBeenCalled()
   })
 })

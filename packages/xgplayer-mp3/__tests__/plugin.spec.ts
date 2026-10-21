@@ -89,6 +89,7 @@ function createPlayer(overrides: Record<string, unknown> = {}) {
     },
     media: audio,
     handleSource: true,
+    preProcessUrl: jest.fn((url: string) => ({ url })),
     switchURL: jest.fn(),
     playNext: jest.fn(),
     changeDefinition: jest.fn(),
@@ -122,6 +123,20 @@ function emitCoreError(core: MockCore, error: Error) {
 
   expect(errorListener).toEqual(expect.any(Function))
   errorListener?.(error)
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason: Error) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
+
+async function flushPromises(): Promise<void> {
+  for (let i = 0; i < 10; i++) await Promise.resolve()
 }
 
 describe('MP3Plugin', () => {
@@ -252,5 +267,180 @@ describe('MP3Plugin', () => {
     expect(
       player.emit.mock.calls.filter(([event]) => event === Events.ERROR)
     ).toHaveLength(1)
+  })
+
+  test('preprocesses initial and replacement URLs before loading them', async () => {
+    const player = createPlayer({ currentTime: 12 })
+    player.preProcessUrl.mockImplementation((url: string) => ({ url: `${url}?signed=1` }))
+    const nativePlayNext = player.playNext
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    plugin.beforePlayerInit()
+
+    expect(mockMP3.cores[0].load).toHaveBeenCalledWith('audio.mp3?signed=1')
+    await player.switchURL('next.mp3')
+    expect(mockMP3.cores[0].load).toHaveBeenLastCalledWith('next.mp3?signed=1', 12)
+    await player.changeDefinition({ url: 'high.mp3', definition: 'high' }, {})
+    expect(mockMP3.cores[0].load).toHaveBeenLastCalledWith('high.mp3?signed=1', 12)
+    expect(player.config.url).toBe('high.mp3')
+
+    nativePlayNext.mockImplementation((config: { url: string }) => {
+      player.config.url = config.url
+      plugin.beforePlayerInit()
+    })
+    player.playNext({ url: 'track.mp3' })
+    expect(mockMP3.cores[1].load).toHaveBeenCalledWith('track.mp3?signed=1')
+    expect(player.preProcessUrl.mock.calls.map(([url]) => url)).toEqual([
+      'audio.mp3', 'next.mp3', 'high.mp3', 'track.mp3'
+    ])
+  })
+
+  test.each(['destroy', 'fallback'])(
+    'preserves the real Player.url setter and descriptor through %s',
+    (action) => {
+      const player = createPlayer()
+      const Player = jest.requireActual('xgplayer').SimplePlayer
+      const descriptor = Object.getOwnPropertyDescriptor(Player.prototype, 'url')
+      if (!descriptor) throw new Error('Player.url descriptor not found')
+      Object.defineProperty(player, 'url', descriptor)
+      Object.defineProperty(player, '__url', {
+        value: 'original.mp3', writable: true, configurable: true, enumerable: true
+      })
+      const original = Object.getOwnPropertyDescriptor(player, '__url')
+      const plugin = new MP3Plugin({} as never)
+      attachPlayer(plugin, player)
+      plugin.beforePlayerInit()
+      expect(Object.getOwnPropertyDescriptor(player, '__url')).toEqual(original)
+
+      Reflect.set(player, 'url', 'assigned.mp3')
+      expect(Reflect.get(player, 'url')).toBe('assigned.mp3')
+      if (action === 'destroy') plugin.destroy()
+      else emitCoreError(mockMP3.cores[0], new Error('failed'))
+
+      expect(Object.getOwnPropertyDescriptor(player, '__url')).toEqual({
+        ...original, value: 'assigned.mp3'
+      })
+      Reflect.set(player, 'url', 'native.mp3')
+      expect(Reflect.get(player, 'url')).toBe('native.mp3')
+    }
+  )
+
+  test.each([false, true])(
+    'preserves saved playback state on failed replacement with paused %s',
+    async (paused) => {
+      const player = createPlayer({ currentTime: 12, paused })
+      player.preProcessUrl.mockImplementation((url: string) => ({ url: `${url}?signed=1` }))
+      const plugin = new MP3Plugin({} as never)
+      attachPlayer(plugin, player)
+      plugin.beforePlayerInit()
+      await flushPromises()
+      const core = mockMP3.cores[0]
+      const error = new Error('replacement failed')
+      core.load.mockImplementation(async () => {
+        player.currentTime = 0
+        player.paused = true
+        emitCoreError(core, error)
+        throw error
+      })
+
+      await expect(player.switchURL('failed.mp3')).rejects.toThrow('replacement failed')
+      expect(player.media.getAttribute('src')).toBe('failed.mp3?signed=1')
+      player.media.dispatchEvent(new Event('loadedmetadata'))
+
+      expect(player.media.currentTime).toBe(12)
+      expect(player.play).toHaveBeenCalledTimes(paused ? 0 : 1)
+      expect(player.pause).toHaveBeenCalledTimes(paused ? 1 : 0)
+      expect(player.preProcessUrl).toHaveBeenCalledTimes(2)
+    }
+  )
+
+  test('a superseded switch cannot degrade the current source', async () => {
+    const player = createPlayer({ currentTime: 12, paused: false })
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    plugin.beforePlayerInit()
+    await flushPromises()
+    const first = createDeferred<number>()
+    const second = createDeferred<number>()
+    const core = mockMP3.cores[0]
+    core.load
+      .mockImplementationOnce(() => {
+        player.currentTime = 0
+        player.paused = true
+        return first.promise
+      })
+      .mockReturnValueOnce(second.promise)
+
+    const firstSwitch = player.switchURL('first.mp3')
+    const secondSwitch = player.switchURL('second.mp3')
+    expect(core.load).toHaveBeenLastCalledWith('second.mp3', 12)
+    first.reject(new Error('stale source failed'))
+    await expect(firstSwitch).rejects.toThrow('stale source failed')
+    expect(player.emit).not.toHaveBeenCalledWith('playCatch', expect.anything(), expect.anything())
+    expect(core.destroy).not.toHaveBeenCalled()
+
+    second.resolve(12)
+    await expect(secondSwitch).resolves.toBe(true)
+    expect(player.currentTime).toBe(12)
+    expect(player.play).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not restore obsolete switch state after the replacement succeeds', async () => {
+    const player = createPlayer({ currentTime: 12, paused: false })
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    plugin.beforePlayerInit()
+    await player.switchURL('next.mp3')
+    player.currentTime = 20
+    player.paused = true
+    player.play.mockClear()
+    player.pause.mockClear()
+
+    emitCoreError(mockMP3.cores[0], new Error('runtime error'))
+    player.media.dispatchEvent(new Event('loadedmetadata'))
+
+    expect(player.media.currentTime).toBe(20)
+    expect(player.pause).toHaveBeenCalledTimes(1)
+    expect(player.play).not.toHaveBeenCalled()
+  })
+
+  test('ignores an initial load rejection after the core is replaced', async () => {
+    const player = createPlayer()
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    const pending = createDeferred<number>()
+    const core: MockCore = {
+      load: jest.fn(() => pending.promise),
+      destroy: jest.fn(),
+      on: jest.fn(),
+      isInitialized: false
+    }
+    mockMP3.mockImplementationOnce(() => {
+      mockMP3.cores.push(core)
+      return core
+    })
+    plugin.beforePlayerInit()
+    player.config.url = 'new.mp3'
+    plugin.beforePlayerInit()
+    emitCoreError(core, new Error('stale core event'))
+    pending.reject(new Error('stale initial failure'))
+    await flushPromises()
+
+    expect(player.emit).not.toHaveBeenCalled()
+    expect(mockMP3.cores[1].destroy).not.toHaveBeenCalled()
+  })
+
+  test('clears native fallback listeners on destroy', () => {
+    const player = createPlayer({ currentTime: 12, paused: false })
+    const plugin = new MP3Plugin({} as never)
+    attachPlayer(plugin, player)
+    plugin.beforePlayerInit()
+    emitCoreError(mockMP3.cores[0], new Error('failed'))
+    plugin.destroy()
+
+    player.media.dispatchEvent(new Event('loadedmetadata'))
+
+    expect(player.media.currentTime).toBe(0)
+    expect(player.play).not.toHaveBeenCalled()
   })
 })
