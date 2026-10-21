@@ -21,6 +21,11 @@ Verification rules for engineering quality in this repository.
 
 - Preserve the plugin-first design; keep feature logic out of core.
 - Prefer shared modules, factories, and thin adapters over duplicated variant logic.
+- All designs, fixes, refactors, and optimizations must prioritize human readability and long-term maintainability. Use clear domain names, explicit contracts, and cohesive responsibilities.
+- Fix root causes at the correct owner. Choose the smallest coherent solution, including necessary local refactoring; avoid unrelated rewrites, whole-file formatting, and abstractions for hypothetical requirements.
+- Give state and resources clear owners; derive state instead of maintaining overlapping flags where practical. Keep completion, failure, and cancellation distinct, and prevent stale asynchronous work from affecting current state.
+- Do not mask defects with arbitrary delays/retries, swallowed unexpected errors, or unexplained resets. Necessary platform workarounds require evidence, a narrow scope, documented constraints, and appropriate verification.
+- Before handoff, review the affected flow for simpler alternatives and meaningful verification; passing checks alone is insufficient. For non-trivial changes, briefly explain the design choice, material tradeoffs, and verification limits. Performance claims must be supported by evidence.
 
 ### Lint / Format
 
