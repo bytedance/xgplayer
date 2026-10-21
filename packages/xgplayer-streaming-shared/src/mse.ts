@@ -1,31 +1,102 @@
 /* eslint-disable no-undef */
+import EventEmitter from 'eventemitter3'
 import { Buffer } from './buffer'
 import { isBrowser } from './env'
 import { ERR, StreamingError } from './error'
 import { Logger } from './logger'
-import { createPublicPromise, nowTime, SafeJSON } from './utils'
+import { createPublicPromise, nowTime, type PublicPromise, SafeJSON } from './utils'
 
-function getMediaSource(preferMMS = true) {
+// 当前 lib.dom 尚未声明 MMS，只补充这里实际使用的字段。
+type ManagedMediaSource = MediaSource & {
+  readonly streaming: boolean
+}
+
+export type MSESourceBuffer = SourceBuffer & {
+  mimeType?: string
+}
+
+type SourceBufferBufferedChangeEvent = Event & {
+  readonly addedRanges: TimeRanges
+  readonly removedRanges: TimeRanges
+}
+
+export type MSEBufferRange = {
+  readonly start: number
+  readonly end: number
+}
+
+const MSE_BUFFERED_CHANGE_EVENT = 'mseBufferedChange'
+
+/**
+ * SourceBuffer changes, including append/remove and browser eviction.
+ * Range arrays describe the change; use MSE.buffered(type) for current track
+ * coverage or media.buffered for the playable intersection across tracks.
+ */
+export type MSEBufferedChangePayload = {
+  readonly target: MSE
+  readonly type: string
+  readonly event: Event
+  readonly addedRanges: readonly MSEBufferRange[]
+  readonly removedRanges: readonly MSEBufferRange[]
+}
+
+export type MSEEvents = {
+  [MSE_BUFFERED_CHANGE_EVENT]: (payload: MSEBufferedChangePayload) => void
+}
+
+export type MSEAttachMode = 'auto' | 'source-element' | 'src'
+
+export type MSEConfig = {
+  openLog: boolean
+  preferMMS: boolean
+  attachMode: MSEAttachMode
+}
+
+export type MSEOperationContext = Record<string, unknown> & {
+  callback?: (context: MSEOperationContext) => void
+  isFull?: boolean
+}
+
+type QueueOp = {
+  exec: () => void
+  promise: PublicPromise
+  opName: string
+  context?: MSEOperationContext
+}
+
+function getManagedMediaSource(): typeof MediaSource | undefined {
+  if (!isBrowser) return undefined
+  return (
+    window as Window & {
+      ManagedMediaSource?: typeof MediaSource
+    }
+  ).ManagedMediaSource
+}
+
+function getMediaSource(preferMMS = true): typeof MediaSource | null {
   try {
     if (!isBrowser) return null
 
-    if (preferMMS && typeof ManagedMediaSource !== 'undefined') return ManagedMediaSource
+    const ManagedMediaSource = getManagedMediaSource()
+    if (preferMMS && ManagedMediaSource) return ManagedMediaSource
 
-    return window.MediaSource
-  } catch (_e) {}
+    return window.MediaSource || null
+  } catch (_e) {
+    return null
+  }
 }
 
-function isMMS(mediaSource) {
+function isMMS(mediaSource?: MediaSource | null): mediaSource is ManagedMediaSource {
   return /ManagedMediaSource/gi.test(Object.prototype.toString.call(mediaSource))
 }
 
-function removeSrc(media) {
+function removeSrc(media: HTMLMediaElement): void {
   if (media.getAttribute('src') || media.src) {
     media.removeAttribute('src')
   }
 }
 
-function removeSourceElement(source) {
+function removeSourceElement(source: HTMLSourceElement | null): boolean {
   if (source?.parentNode) {
     source.parentNode.removeChild(source)
     return true
@@ -33,37 +104,45 @@ function removeSourceElement(source) {
   return false
 }
 
-function appendMseSource(media, mimeType, url) {
-  const source = self.document.createElement('source')
+function appendMseSource(
+  media: HTMLMediaElement,
+  mimeType: string,
+  url: string
+): HTMLSourceElement {
+  const source = document.createElement('source')
   source.type = mimeType
   source.src = url
   media.insertBefore(source, media.firstChild)
   return source
 }
 
-function isAirPlayCapableWebKit(media) {
-  const win = media?.ownerDocument?.defaultView || (isBrowser ? window : null)
+function isAirPlayCapableWebKit(media: HTMLMediaElement): boolean {
+  const win = media.ownerDocument?.defaultView || (isBrowser ? window : null)
+  const airPlayMedia = media as HTMLMediaElement & {
+    webkitShowPlaybackTargetPicker?: () => void
+  }
   return (
-    !!media &&
-    typeof media.webkitShowPlaybackTargetPicker === 'function' &&
-    typeof win?.WebKitPlaybackTargetAvailabilityEvent === 'function'
+    typeof airPlayMedia.webkitShowPlaybackTargetPicker === 'function' &&
+    typeof (win as (Window & { WebKitPlaybackTargetAvailabilityEvent?: unknown }) | null)
+      ?.WebKitPlaybackTargetAvailabilityEvent === 'function'
   )
 }
 
-function getAttachMode(mode, useMMS, media) {
+function getAttachMode(
+  mode: MSEAttachMode,
+  useMMS: boolean,
+  media: HTMLMediaElement
+): MSEAttachMode {
   if (mode === 'src' || mode === 'source-element') {
     return mode
   }
   return useMMS || isAirPlayCapableWebKit(media) ? 'source-element' : 'src'
 }
 
-/**
- * @param {TimeRanges} buffered
- */
-function getTimeRanges(buffered) {
-  const ranges = []
+function getTimeRanges(buffered?: TimeRanges | null): MSEBufferRange[] {
+  const ranges: MSEBufferRange[] = []
 
-  if (buffered instanceof TimeRanges) {
+  if (typeof TimeRanges !== 'undefined' && buffered instanceof TimeRanges) {
     for (let i = 0; i < buffered.length; i++) {
       ranges.push({
         start: buffered.start(i),
@@ -74,43 +153,53 @@ function getTimeRanges(buffered) {
   return ranges
 }
 
-/** @enum {string} */
+function getSourceBufferRanges(sourceBuffer?: SourceBuffer): TimeRanges | undefined {
+  if (!sourceBuffer) return undefined
+  return Buffer.get(sourceBuffer) || undefined
+}
+
+function loadMedia(media: HTMLMediaElement): void {
+  try {
+    media.load()
+  } catch (_error) {
+    // ignore load failures in test and detached environments
+  }
+}
+
 export const MSEErrorType = {
   UPDATE_ERROR: 'updateError'
-}
+} as const
+
+export type MSEErrorType = (typeof MSEErrorType)[keyof typeof MSEErrorType]
 
 const OP_NAME = {
   APPEND: 'appendBuffer',
   REMOVE: 'removeBuffer',
   UPDATE_DURATION: 'updateDuration'
-}
+} as const
 
 export class MSEError extends Error {
-  /**
-   * @param {MSEErrorType} type
-   * @param {any} [msg]
-   */
-  constructor(type, msg) {
-    super(msg || type)
+  type: MSEErrorType
+  msg: unknown
+
+  constructor(type: MSEErrorType, msg?: unknown) {
+    super(String(msg || type))
     this.type = type
     this.msg = msg
   }
 }
 
-export class MSE {
+export class MSE extends EventEmitter<MSEEvents> {
   static VIDEO = 'video'
 
   static AUDIO = 'audio'
 
-  /**
-   * @param {string} [mime='video/mp4; codecs="avc1.42E01E,mp4a.40.2"']
-   * @param { boolean} preferMMS
-   * @returns {boolean}
-   */
+  static readonly BUFFERED_CHANGE = MSE_BUFFERED_CHANGE_EVENT
+
   static isSupported(
     mime = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"',
     preferMMS = true
-  ) {
+  ): boolean {
     const MediaSource = getMediaSource(preferMMS)
     if (!MediaSource) return false
     try {
@@ -120,35 +209,25 @@ export class MSE {
     }
   }
 
-  static isMMSOnly() {
-    return typeof ManagedMediaSource !== 'undefined' && typeof MediaSource === 'undefined'
+  static isMMSOnly(): boolean {
+    return !!getManagedMediaSource() && typeof MediaSource === 'undefined'
   }
 
-  /** @type { HTMLMediaElement | null } */
-  media = null
+  media: HTMLMediaElement | null = null
+  mediaSource: MediaSource | null = null
 
-  /** @type { MediaSource | null } */
-  mediaSource = null
+  private _openPromise = createPublicPromise()
+  private _queue: Record<string, QueueOp[] | undefined> = Object.create(null)
+  private _sourceBuffer: Record<string, MSESourceBuffer | undefined> = Object.create(null)
+  private _mseFullFlag: Record<string, boolean | undefined> = {}
+  private _st = 0
+  private _opst = 0
+  private _logger = new Logger('MSE')
+  private _config: MSEConfig
+  private _url: string | null = null
+  private _sourceElement: HTMLSourceElement | null = null
 
-  _openPromise = createPublicPromise()
-
-  _queue = Object.create(null)
-
-  _sourceBuffer = Object.create(null)
-
-  _mseFullFlag = {}
-
-  _st = 0
-
-  _opst = 0
-
-  _logger = null
-
-  _config = null
-  _url = null
-  _sourceElement = null
-
-  static getDefaultConfig() {
+  static getDefaultConfig(): MSEConfig {
     return {
       openLog: false,
       preferMMS: false,
@@ -160,23 +239,20 @@ export class MSE {
     }
   }
 
-  /**
-   * @param {HTMLMediaElement} [media]
-   */
-  constructor(media, config) {
+  constructor(media?: HTMLMediaElement | null, config?: Partial<MSEConfig>) {
+    super()
     this._config = Object.assign(MSE.getDefaultConfig(), config)
     if (media) this.bindMedia(media)
-    this._logger = new Logger('MSE')
     if (this._config.openLog) {
       Logger.enable()
     }
   }
 
-  get isOpened() {
+  get isOpened(): boolean {
     return this.mediaSource?.readyState === 'open'
   }
 
-  get hasOpTasks() {
+  get hasOpTasks(): boolean {
     let flag = false
     Object.keys(this._queue).forEach((k) => {
       const queue = this._queue[k]
@@ -187,32 +263,28 @@ export class MSE {
     return flag
   }
 
-  get url() {
+  get url(): string | null {
     return this._url
   }
 
-  get duration() {
+  get duration(): number {
     return this.mediaSource?.duration || -1
   }
 
-  get isEnded() {
+  get isEnded(): boolean {
     return this.mediaSource ? this.mediaSource.readyState === 'ended' : false
   }
 
-  get streaming() {
+  get streaming(): boolean {
     return isMMS(this.mediaSource) ? this.mediaSource.streaming : true
   }
 
-  isFull(type) {
-    return type ? this._mseFullFlag[type] : this._mseFullFlag[MSE.VIDEO]
+  isFull(type = MSE.VIDEO): boolean | undefined {
+    return this._mseFullFlag[type]
   }
 
-  /**
-   * @param { number } duration
-   * @return { Promise }
-   */
-  updateDuration(duration) {
-    const isReduceDuration = this.mediaSource && this.mediaSource.duration > duration
+  updateDuration(duration: number): Promise<unknown> {
+    const isReduceDuration = !!this.mediaSource && this.mediaSource.duration > duration
     if (this.mediaSource && this.mediaSource.duration > duration) {
       let bufferEnd = 0
       Object.keys(this._sourceBuffer).forEach((k) => {
@@ -244,8 +316,7 @@ export class MSE {
     )
   }
 
-  /** @return { Promise } */
-  open() {
+  open(): Promise<unknown> {
     if (this._openPromise.used && !this.isOpened && this.mediaSource) {
       const ms = this.mediaSource
       const onOpen = () => {
@@ -261,32 +332,23 @@ export class MSE {
     return this._openPromise
   }
 
-  /**
-   * @private
-   */
-  _onStartStreaming = () => {
+  private _onStartStreaming = (): void => {
     this._logger.debug('startstreaming')
   }
 
-  /**
-   * @private
-   */
-  _onEndStreaming = () => {
+  private _onEndStreaming = (): void => {
     this._logger.debug('endstreaming')
   }
 
-  /**
-   * @param { HTMLMediaElement } media
-   * @return { Promise }
-   */
-  async bindMedia(media) {
+  async bindMedia(media: HTMLMediaElement): Promise<unknown> {
     if (this.mediaSource || this.media) await this.unbindMedia()
 
     const config = this._config
     const MediaSource = getMediaSource(config.preferMMS)
 
-    if (!media || !MediaSource)
+    if (!media || !MediaSource) {
       throw new Error('Param media or MediaSource does not exist')
+    }
     this.media = media
     const ms = (this.mediaSource = new MediaSource())
     const useMMS = isMMS(ms)
@@ -295,7 +357,9 @@ export class MSE {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      URL.revokeObjectURL(this._url)
+      if (this._url) {
+        URL.revokeObjectURL(this._url)
+      }
       this._openPromise.resolve({ costtime: costTime })
       media.dispatchEvent(new CustomEvent('mseAttached'))
     }
@@ -317,11 +381,7 @@ export class MSE {
       if (useMMS && 'disableRemotePlayback' in media) {
         media.disableRemotePlayback = true
       }
-      try {
-        media.load?.()
-      } catch (_error) {
-        // ignore load failures in test and detached environments
-      }
+      loadMedia(media)
     } else {
       media.src = this._url
       media.disableRemotePlayback = useMMS
@@ -330,8 +390,7 @@ export class MSE {
     return this._openPromise
   }
 
-  /** @return { Promise } */
-  async unbindMedia() {
+  async unbindMedia(): Promise<void> {
     if (!this._openPromise.used) this._openPromise.resolve()
     const ms = this.mediaSource
 
@@ -355,10 +414,14 @@ export class MSE {
       }
 
       Object.keys(this._sourceBuffer).forEach((k) => {
-        try {
-          ms.removeSourceBuffer(this._sourceBuffer[k])
-        } catch (_error) {
-          // ignore
+        const sourceBuffer = this._sourceBuffer[k]
+        if (sourceBuffer) {
+          sourceBuffer.removeEventListener('bufferedchange', this._onSBBufferedChange)
+          try {
+            ms.removeSourceBuffer(sourceBuffer)
+          } catch (_error) {
+            // ignore
+          }
         }
       })
 
@@ -380,11 +443,7 @@ export class MSE {
       this._removeAttachedSource()
 
       if (shouldReload) {
-        try {
-          this.media.load()
-        } catch (_error) {
-          // ignore
-        }
+        loadMedia(this.media)
       }
       this.media = null
     }
@@ -397,7 +456,7 @@ export class MSE {
     this._sourceBuffer = Object.create(null)
   }
 
-  _getAttachedSource() {
+  private _getAttachedSource(): HTMLSourceElement | null {
     if (this._sourceElement?.parentNode === this.media) {
       return this._sourceElement
     }
@@ -406,7 +465,7 @@ export class MSE {
       return null
     }
 
-    const sources = Array.from(this.media.querySelectorAll?.('source') || [])
+    const sources = Array.from(this.media.querySelectorAll('source'))
     return (
       sources.find(
         (source) => source.getAttribute('src') === this._url || source.src === this._url
@@ -414,7 +473,7 @@ export class MSE {
     )
   }
 
-  _removeAttachedSource() {
+  private _removeAttachedSource(): boolean {
     const source = this._getAttachedSource()
     const removed = removeSourceElement(source)
     if (source === this._sourceElement || removed) {
@@ -423,18 +482,14 @@ export class MSE {
     return removed
   }
 
-  _getMediaSrc() {
+  private _getMediaSrc(): string | undefined {
     const media = this._getAttachedSource() || this.media
     return media?.src
   }
 
-  /**
-   * @param { string } type
-   * @param { string } mimeType
-   */
-  createSource(type, mimeType) {
+  createSource(type: string, mimeType: string): void {
     if (this._sourceBuffer[type] || !this.mediaSource) return
-    let sb
+    let sb: MSESourceBuffer
     try {
       sb = this._sourceBuffer[type] = this.mediaSource.addSourceBuffer(mimeType)
     } catch (error) {
@@ -443,14 +498,12 @@ export class MSE {
     sb.mimeType = mimeType
     sb.addEventListener('updateend', this._onSBUpdateEnd.bind(this, type))
     sb.addEventListener('error', this._onSBUpdateError.bind(this, type))
+    if (isMMS(this.mediaSource)) {
+      sb.addEventListener('bufferedchange', this._onSBBufferedChange)
+    }
   }
 
-  /**
-   * @param { string } type
-   * @param { string } mimeType
-   * @return { Promise }
-   */
-  changeType(type, mimeType) {
+  changeType(type: string, mimeType: string): Promise<unknown> {
     const sb = this._sourceBuffer[type]
     if (!this.mediaSource || !sb || sb.mimeType === mimeType) return Promise.resolve()
 
@@ -481,22 +534,16 @@ export class MSE {
     )
   }
 
-  /**
-   * @param { string } type
-   * @param { string } mimeType
-   * @return { Promise }
-   */
-  createOrChangeSource(type, mimeType) {
+  createOrChangeSource(type: string, mimeType: string): Promise<unknown> {
     this.createSource(type, mimeType)
     return this.changeType(type, mimeType)
   }
 
-  /**
-   * @param { string } type
-   * @param { BufferSource } buffer
-   * @return { Promise }
-   */
-  append(type, buffer, context) {
+  append(
+    type: string,
+    buffer?: BufferSource,
+    context?: MSEOperationContext
+  ): Promise<unknown> {
     if (!buffer || !buffer.byteLength) {
       return Promise.resolve()
     }
@@ -506,7 +553,7 @@ export class MSE {
     return this._enqueueOp(
       type,
       () => {
-        if (!this.mediaSource || this.media.error) return
+        if (!this.mediaSource || this.media?.error) return
         this._logger.debug('MSE APPEND START', context)
         this._opst = nowTime()
         this._sourceBuffer[type]?.appendBuffer(buffer)
@@ -516,14 +563,12 @@ export class MSE {
     )
   }
 
-  /**
-   * @param { string } type
-   * @param { number } startTime
-   * @param { number } endTime
-   * @return { Promise }
-   */
-  remove(type, startTime, endTime, context) {
-    // if (Object.keys(this._sourceBuffer).length === 1) return Promise.resolve()
+  remove(
+    type: string,
+    startTime: number,
+    endTime: number,
+    context?: MSEOperationContext
+  ): Promise<unknown> {
     let isInsertHead = false
     if (this._mseFullFlag[type]) {
       isInsertHead = true
@@ -531,7 +576,7 @@ export class MSE {
     return this._enqueueOp(
       type,
       () => {
-        if (!this.mediaSource || this.media.error) return
+        if (!this.mediaSource || this.media?.error) return
         const sb = this._sourceBuffer[type]
         if (startTime >= endTime || !sb) {
           this._onSBUpdateEnd(type)
@@ -547,24 +592,27 @@ export class MSE {
     )
   }
 
-  clearBuffer(startTime, endTime) {
-    let p
+  clearBuffer(startTime: number, endTime: number): Promise<unknown> {
+    let p: Promise<unknown> | undefined
     Object.keys(this._sourceBuffer).forEach((k) => {
       p = this.remove(k, startTime, endTime)
     })
     return p || Promise.resolve()
   }
 
-  clearAllBuffer() {
-    let p
+  clearAllBuffer(): Promise<unknown> | undefined {
+    let p: Promise<unknown> | undefined
     Object.keys(this._sourceBuffer).forEach((k) => {
       const sb = this._sourceBuffer[k]
-      p = this.remove(k, 0, Buffer.end(Buffer.get(sb)))
+      if (sb) {
+        const buffered = getSourceBufferRanges(sb)
+        p = this.remove(k, 0, buffered ? Buffer.end(buffered) : 0)
+      }
     })
     return p
   }
 
-  clearOpQueues(type, allClear = true) {
+  clearOpQueues(type: string, allClear = true): void {
     const queue = this._queue[type]
     const sb = this._sourceBuffer[type]
 
@@ -579,26 +627,13 @@ export class MSE {
       if (delCount > 0) {
         queue.splice(0, delCount)
       }
-      return
     }
-    // if (!Array.isArray(queue) || queue.length < 5) return
-    // const initOpque = []
-    // queue.forEach((op) => {
-    //   if (op.context?.isinit) {
-    //     initOpque.push(op)
-    //   }
-    // })
-    // this._queue[type] = queue.slice(0, 2)
-    // initOpque.length > 0 && this._queue[type].push(...initOpque)
   }
 
-  /**
-   * @param {EndOfStreamError} [reason]
-   * @returns {Promise}
-   */
-  endOfStream(reason) {
-    if (!this.mediaSource || this.mediaSource.readyState !== 'open')
+  endOfStream(reason?: EndOfStreamError): Promise<unknown> {
+    if (!this.mediaSource || this.mediaSource.readyState !== 'open') {
       return Promise.resolve()
+    }
     return this._enqueueBlockingOp(() => {
       const ms = this.mediaSource
       if (!ms || ms.readyState !== 'open') return
@@ -611,49 +646,47 @@ export class MSE {
     }, 'endOfStream')
   }
 
-  setLiveSeekableRange(start, end) {
+  setLiveSeekableRange(start: number, end: number): void {
     const ms = this.mediaSource
-    if (start < 0 || end < start || !ms?.setLiveSeekableRange || ms.readyState !== 'open')
+    if (
+      start < 0 ||
+      end < start ||
+      !ms?.setLiveSeekableRange ||
+      ms.readyState !== 'open'
+    ) {
       return
+    }
     ms.setLiveSeekableRange(start, end)
   }
 
-  /**
-   * @param {string} type
-   * @returns {?SourceBuffer}
-   */
-  getSourceBuffer(type) {
+  getSourceBuffer(type: string): MSESourceBuffer | undefined {
     return this._sourceBuffer[type]
   }
 
-  /**
-   * @param { string } type
-   * @return { TimeRanges | void }
-   */
-  buffered(type) {
-    return Buffer.get(this._sourceBuffer[type])
+  buffered(type: string): TimeRanges | undefined {
+    return getSourceBufferRanges(this._sourceBuffer[type])
   }
 
-  /**
-   * @param { string } type
-   * @return { number }
-   */
-  bufferStart(type) {
-    return Buffer.start(this.buffered(type))
+  bufferStart(type: string): number {
+    const buffered = this.buffered(type)
+    return buffered ? Buffer.start(buffered) : 0
   }
 
-  /**
-   * @param { string } type
-   * @return { number }
-   */
-  bufferEnd(type) {
-    return Buffer.end(this.buffered(type))
+  bufferEnd(type: string): number {
+    const buffered = this.buffered(type)
+    return buffered ? Buffer.end(buffered) : 0
   }
 
-  _enqueueOp(type, exec, opName, context, isInsertHead) {
+  private _enqueueOp(
+    type: string,
+    exec: () => void,
+    opName: string,
+    context?: MSEOperationContext,
+    isInsertHead?: boolean
+  ): Promise<unknown> {
     if (!this.mediaSource) return Promise.resolve()
     const queue = (this._queue[type] = this._queue[type] || [])
-    const op = {
+    const op: QueueOp = {
       exec,
       promise: createPublicPromise(),
       opName,
@@ -683,16 +716,20 @@ export class MSE {
     return op.promise
   }
 
-  async _enqueueBlockingOp(exec, opName, context) {
+  private async _enqueueBlockingOp(
+    exec: () => unknown,
+    opName: string,
+    context?: MSEOperationContext
+  ): Promise<unknown> {
     if (!this.mediaSource) return Promise.resolve()
     const types = Object.keys(this._sourceBuffer)
     if (!types.length) {
       return exec()
     }
 
-    const waiters = []
+    const waiters: PublicPromise[] = []
     types.forEach((t) => {
-      const queue = this._queue[t]
+      const queue = (this._queue[t] = this._queue[t] || [])
       const prom = createPublicPromise()
       waiters.push(prom)
       queue.push({
@@ -724,91 +761,120 @@ export class MSE {
     })
   }
 
-  _startQueue(type) {
+  private _startQueue(type: string): void {
     const queue = this._queue[type]
-    if (queue) {
-      const op = queue[0]
-      if (op && !this._mseFullFlag[type]) {
-        try {
-          op.exec()
-        } catch (error) {
-          if (error?.message && error.message.indexOf('SourceBuffer is full') >= 0) {
-            this._mseFullFlag[type] = true
-            if (op.context && typeof op.context === 'object') {
-              op.context.isFull = true
-            }
-            this._logger.error(
-              '[MSE error],  context,',
-              op.context,
-              ' ,name,',
-              op.opName,
-              ',err,SourceBuffer is full'
-            )
-            op?.promise?.reject(
-              new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error)
-            )
-          } else {
-            this._logger.error(error)
-            op?.promise?.reject(
-              error.constructor === StreamingError
-                ? error
-                : new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error)
-            )
-            queue.shift()
-            this._startQueue(type)
-          }
+    if (!queue) return
+    const op = queue[0]
+    if (!op || this._mseFullFlag[type]) return
+
+    try {
+      op.exec()
+    } catch (error) {
+      const message =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? String(error.message)
+          : ''
+      if (message.includes('SourceBuffer is full')) {
+        this._mseFullFlag[type] = true
+        if (op.context && typeof op.context === 'object') {
+          op.context.isFull = true
         }
-      }
-    }
-  }
-
-  _onSBUpdateEnd = (type) => {
-    const queue = this._queue[type]
-    if (queue) {
-      const op = queue[0]
-      if (!(op?.opName === OP_NAME.UPDATE_DURATION)) {
-        queue.shift()
-      }
-      if (op) {
-        const costtime = nowTime() - this._opst
-        this._logger.debug(
-          `UpdateEnd(${type}/${op.opName})`,
-          SafeJSON.stringify(getTimeRanges(this._sourceBuffer[type]?.buffered)),
-          costtime,
-          op.context
+        this._logger.error(
+          '[MSE error],  context,',
+          op.context,
+          ' ,name,',
+          op.opName,
+          ',err,SourceBuffer is full'
         )
-        op.promise.resolve({ name: op.opName, context: op.context, costtime })
-        const callback = op.context?.callback
-        if (callback && typeof callback === 'function') {
-          callback(op.context)
-        }
-        this._startQueue(type)
+        op.promise.reject(new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_FULL, error))
+        return
       }
+
+      this._logger.error(error)
+      op.promise.reject(
+        error instanceof StreamingError
+          ? error
+          : new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_OTHER, error)
+      )
+      queue.shift()
+      this._startQueue(type)
     }
   }
 
-  _onSBUpdateError = (type, event) => {
+  private _onSBUpdateEnd = (type: string): void => {
     const queue = this._queue[type]
-    if (queue) {
-      const op = queue[0]
-      if (op) {
-        this._logger.error('UpdateError', type, op.opName, op.context)
-        op.promise.reject(
-          new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_APPEND_BUFFER, event)
-        )
-        // Do not shift from queue, 'updateend' event will fire next
-      }
+    const op = queue?.[0]
+    if (!op) return
+
+    if (op.opName !== OP_NAME.UPDATE_DURATION) {
+      queue?.shift()
     }
+
+    const costtime = nowTime() - this._opst
+    this._logger.debug(
+      `UpdateEnd(${type}/${op.opName})`,
+      SafeJSON.stringify(getTimeRanges(this._sourceBuffer[type]?.buffered)),
+      costtime,
+      op.context
+    )
+    op.promise.resolve({ name: op.opName, context: op.context, costtime })
+    if (op.context && typeof op.context.callback === 'function') {
+      op.context.callback(op.context)
+    }
+    this._startQueue(type)
   }
 
-  setTimeoffset(type, timestampOffset, context) {
+  private _onSBUpdateError = (type: string, event: Event): void => {
+    const queue = this._queue[type]
+    const op = queue?.[0]
+    if (!op) return
+
+    this._logger.error('UpdateError', type, op.opName, op.context)
+    op.promise.reject(
+      new StreamingError(ERR.MEDIA, ERR.SUB_TYPES.MSE_APPEND_BUFFER, event)
+    )
+    // Do not shift from queue, 'updateend' event will fire next
+  }
+
+  private _onSBBufferedChange = (event: Event): void => {
+    const type = Object.keys(this._sourceBuffer).find(
+      (key) => this._sourceBuffer[key] === event.currentTarget
+    )
+    if (!type) return
+
+    const bufferedChangeEvent = event as SourceBufferBufferedChangeEvent
+    const addedRanges = getTimeRanges(bufferedChangeEvent.addedRanges)
+    const removedRanges = getTimeRanges(bufferedChangeEvent.removedRanges)
+    this._logger.debug(
+      'BufferedChange',
+      type,
+      SafeJSON.stringify({ addedRanges, removedRanges })
+    )
+    this.emit(MSE.BUFFERED_CHANGE, {
+      target: this,
+      type,
+      event: bufferedChangeEvent,
+      addedRanges,
+      removedRanges
+    })
+  }
+
+  setTimeoffset(
+    type: string,
+    timestampOffset: number,
+    context?: MSEOperationContext
+  ): Promise<unknown> {
+    const sourceBuffer = this._sourceBuffer[type]
+    if (!sourceBuffer) return Promise.resolve()
+
     return this._enqueueOp(
       type,
       () => {
         if (timestampOffset < 0) {
           timestampOffset += 0.001
         }
-        this._sourceBuffer[type].timestampOffset = timestampOffset
+
+        sourceBuffer.timestampOffset = timestampOffset
         this._onSBUpdateEnd(type)
       },
       'setTimeoffset',
@@ -817,7 +883,7 @@ export class MSE {
   }
 
   /** *重置decode时间戳 */
-  abort(type, context) {
+  abort(type = MSE.VIDEO, context?: MSEOperationContext): Promise<unknown> {
     if (!this.isOpened) {
       return Promise.resolve()
     }

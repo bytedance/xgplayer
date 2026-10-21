@@ -47,6 +47,7 @@ export class NetLoader extends EventEmitter {
     return FetchLoader.isSupported()
   }
 
+  /** @returns {Promise<any>} */
   load (url, config = {}) {
     if (typeof url === 'string' || !url) {
       config.url = url || config.url || this._config.url
