@@ -6,6 +6,18 @@ import type { MP3Options } from './types'
 
 type Player = BasePlugin['player']
 
+interface SourceContext {
+  readonly url: string
+  readonly requestUrl: string
+}
+
+interface SourceChangeContext {
+  readonly core: MP3
+  readonly source: SourceContext
+  readonly currentTime: number
+  readonly paused: boolean
+}
+
 const logger = new Logger('MP3Plugin', undefined)
 
 export class MP3Plugin extends BasePlugin {
@@ -21,7 +33,9 @@ export class MP3Plugin extends BasePlugin {
   private nativePlayNext: Player['playNext'] | null = null
   private nativeChangeDefinition: Player['changeDefinition'] | null = null
   private nativeHandleSource: boolean | null = null
-  private sourceChangeId = 0
+  private source: SourceContext | null = null
+  private sourceChange: SourceChangeContext | null = null
+  private clearFallbackListener: (() => void) | null = null
   private eventsBound = false
 
   get version(): string {
@@ -42,6 +56,10 @@ export class MP3Plugin extends BasePlugin {
       closeDowngrade: this.mp3Config.closeDowngrade
     })
 
+    this.sourceChange = null
+    this.source = null
+    this.clearFallbackListener?.()
+    this.clearFallbackListener = null
     if (this.mp3) {
       const previous = this.mp3
       this.mp3 = null
@@ -61,28 +79,22 @@ export class MP3Plugin extends BasePlugin {
     }
 
     this.degraded = false
-    this.sourceChangeId++
+    const source = this.resolveSource(url)
+    this.source = source
     this.captureAndProxyNativeApi(player)
 
     const core = new MP3({
+      ...this.mp3Config,
       media,
-      url,
-      ...this.mp3Config
+      url: source.requestUrl
     })
     this.mp3 = core
     logger.log('core created', getLogSource(url, this.mp3Config.vid))
 
-    BasePlugin.defineGetterOrSetter(player, {
-      __url: {
-        get: () => media.src || this.getStringUrl(player.config.url),
-        configurable: true
-      }
-    })
-
     this.bindEvents()
     this.bindCoreError(core)
     void core
-      .load(url)
+      .load(source.requestUrl)
       .then((restoredTime) => {
         if (this.mp3 === core) {
           logger.log('initial load done', {
@@ -91,13 +103,18 @@ export class MP3Plugin extends BasePlugin {
           })
         }
       })
-      .catch((error) => this.handleFatalError(error))
+      .catch((error) => {
+        if (this.mp3 === core && this.source === source) this.handleFatalError(error)
+      })
   }
 
   destroy(): void {
     logger.log('destroy')
     this.degraded = true
-    this.sourceChangeId++
+    this.sourceChange = null
+    this.source = null
+    this.clearFallbackListener?.()
+    this.clearFallbackListener = null
     this.restoreNativeApi()
     const core = this.mp3
     this.mp3 = null
@@ -130,7 +147,7 @@ export class MP3Plugin extends BasePlugin {
 
   private bindCoreError(core: MP3): void {
     core.on(EVENT.ERROR, (error) => {
-      if (this.mp3 === core) this.handleFatalError(error)
+      if (this.mp3 === core && this.source) this.handleFatalError(error)
     })
   }
 
@@ -141,10 +158,9 @@ export class MP3Plugin extends BasePlugin {
       return this.nativeSwitchURL?.call(this.player, url) || null
     }
     logger.log('switchURL', getLogSource(nextUrl, this.mp3Config.vid))
-    this.player.config.url = nextUrl
     const core = this.mp3
     const loadPromise = this.reloadAtCurrentTime(core, nextUrl)
-    void loadPromise.catch((error) => this.handleFatalError(error))
+    void loadPromise.catch(() => undefined)
     return loadPromise
   }
 
@@ -157,7 +173,8 @@ export class MP3Plugin extends BasePlugin {
     }
 
     logger.log('playNext', getLogSource(nextUrl, this.mp3Config.vid))
-    this.sourceChangeId++
+    this.sourceChange = null
+    this.source = null
     return this.nativePlayNext?.call(player, config)
   }
 
@@ -185,7 +202,6 @@ export class MP3Plugin extends BasePlugin {
     }
 
     player.emit(Events.DEFINITION_CHANGE, { from, to: definition })
-    player.config.url = url
     const core = this.mp3
     const loadPromise = this.reloadAtCurrentTime(core, url)
     void loadPromise
@@ -194,7 +210,7 @@ export class MP3Plugin extends BasePlugin {
           player.emit(Events.AFTER_DEFINITION_CHANGE, { from, to: definition })
         }
       })
-      .catch((error) => this.handleFatalError(error))
+      .catch(() => undefined)
     return loadPromise
   }
 
@@ -235,18 +251,47 @@ export class MP3Plugin extends BasePlugin {
 
   private async reloadAtCurrentTime(core: MP3, url: string): Promise<boolean> {
     const player = this.player
-    const currentTime =
-      !player.ended && Number.isFinite(player.currentTime) ? player.currentTime : 0
-    const paused = player.paused
-    const sourceChangeId = ++this.sourceChangeId
+    const source = this.resolveSource(url)
+    const change: SourceChangeContext = {
+      core,
+      source,
+      currentTime:
+        this.sourceChange?.currentTime ??
+        (!player.ended && Number.isFinite(player.currentTime) ? player.currentTime : 0),
+      paused: this.sourceChange?.paused ?? player.paused
+    }
+    this.source = source
+    this.sourceChange = change
+    player.config.url = source.url
 
-    const restoredTime = await core.load(url, currentTime)
-    if (this.mp3 !== core || sourceChangeId !== this.sourceChangeId) return false
+    try {
+      const restoredTime = await core.load(source.requestUrl, change.currentTime)
+      if (!this.isActiveSourceChange(change)) return false
 
-    if (player.currentTime !== restoredTime) player.currentTime = restoredTime
-    if (paused) player.pause()
-    else await Promise.resolve(player.play()).catch(() => undefined)
-    return true
+      if (player.currentTime !== restoredTime) player.currentTime = restoredTime
+      if (change.paused) player.pause()
+      else await Promise.resolve(player.play()).catch(() => undefined)
+      if (!this.isActiveSourceChange(change)) return false
+      this.sourceChange = null
+      return true
+    } catch (error) {
+      if (this.isActiveSourceChange(change)) this.handleFatalError(error)
+      throw error
+    }
+  }
+
+  private isActiveSourceChange(change: SourceChangeContext): boolean {
+    return (
+      this.mp3 === change.core &&
+      this.source === change.source &&
+      this.sourceChange === change
+    )
+  }
+
+  private resolveSource(url: string): SourceContext {
+    const requestUrl = this.getStringUrl(this.player.preProcessUrl(url))
+    if (!requestUrl) throw new Error('MP3 source preprocessing returned an empty URL')
+    return { url, requestUrl }
   }
 
   private handleFatalError(reason: unknown): void {
@@ -270,16 +315,16 @@ export class MP3Plugin extends BasePlugin {
       return
     }
 
-    const url = this.getStringUrl(player.config.url)
-    const currentTime = player.currentTime
-    const paused = player.paused
+    const source = this.source
+    const currentTime = this.sourceChange?.currentTime ?? player.currentTime
+    const paused = this.sourceChange?.paused ?? player.paused
     const core = this.mp3
-    this.sourceChangeId++
+    this.sourceChange = null
     this.mp3 = null
     this.restoreNativeApi()
 
     logger.warn('downgrade to native audio', {
-      ...getLogSource(url, this.mp3Config.vid),
+      ...getLogSource(source?.requestUrl || '', this.mp3Config.vid),
       currentTime,
       paused
     })
@@ -287,15 +332,24 @@ export class MP3Plugin extends BasePlugin {
     this.restoreSourceHandling(player)
 
     const media = player.media as HTMLMediaElement | null
-    if (!media || !url) return
+    if (!media || !source) return
     const onLoadedMetadata = (): void => {
       media.removeEventListener('loadedmetadata', onLoadedMetadata)
+      this.clearFallbackListener = null
+      if (
+        this.source !== source ||
+        !this.degraded ||
+        media.getAttribute('src') !== source.requestUrl
+      )
+        return
       if (currentTime) media.currentTime = currentTime
       if (paused) player.pause()
       else void Promise.resolve(player.play()).catch(() => undefined)
     }
     media.addEventListener('loadedmetadata', onLoadedMetadata)
-    media.src = url
+    this.clearFallbackListener = () =>
+      media.removeEventListener('loadedmetadata', onLoadedMetadata)
+    media.src = source.requestUrl
   }
 
   private createPlayerError(reason: unknown): unknown {

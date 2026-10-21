@@ -6,7 +6,7 @@ import {
   scanMP3Frames,
   timeToByteOffset
 } from './parser'
-import type { MP3Config, MP3Frame, MP3Metadata, MP3Segment } from './types'
+import type { MP3Config, MP3Frame, MP3LoadResult, MP3Metadata } from './types'
 
 type NetworkHeaders = Headers | Record<string, string | undefined>
 interface NetworkResponseInfo {
@@ -93,6 +93,14 @@ export class MP3Loader {
     return this._url
   }
 
+  get nextTime(): number {
+    return this.currentTime
+  }
+
+  get hasNextSegment(): boolean {
+    return !!this._metadata && this.currentOffset < this._metadata.fileSize
+  }
+
   async changeUrl(url: string): Promise<void> {
     this.ensureActive()
     this.logger.log('changeUrl', {
@@ -168,37 +176,33 @@ export class MP3Loader {
     throw lastError instanceof Error ? lastError : new Error('Cannot parse MP3 metadata')
   }
 
-  async loadSegmentByTime(time: number): Promise<MP3Segment | undefined> {
+  async loadSegmentByTime(time: number): Promise<MP3LoadResult | undefined> {
     const metadata = await this.loadMetadata()
     this.ensureActive()
     if (time < 0 || time >= metadata.duration) return
 
     this.linearFromStart = time === 0
     const offset = timeToByteOffset(metadata, time)
-    const segment = await this.loadSegment(offset, time, this.currentIndex + 1, true)
+    const result = await this.loadSegment(offset, time, this.currentIndex + 1, true)
     this.ensureActive()
-    if (segment) {
-      this.setCurrentSegment(segment)
-      this.correctDurationAtEnd(segment)
-    }
-    return segment
+    if (result) this.updateCursor(result)
+    return result
   }
 
-  async loadNextSegment(): Promise<MP3Segment | undefined> {
+  async loadNextSegment(): Promise<MP3LoadResult | undefined> {
     await this.loadMetadata()
     this.ensureActive()
-    const segment = await this.loadSegment(
+    if (!this.hasNextSegment) return { segment: null, endOfFile: true }
+
+    const result = await this.loadSegment(
       this.currentOffset,
       this.currentTime,
       this.currentIndex + 1,
       false
     )
     this.ensureActive()
-    if (segment) {
-      this.setCurrentSegment(segment)
-      this.correctDurationAtEnd(segment)
-    }
-    return segment
+    if (result) this.updateCursor(result)
+    return result
   }
 
   async cancel(): Promise<void> {
@@ -238,7 +242,7 @@ export class MP3Loader {
     startTime: number,
     index: number,
     seek: boolean
-  ): Promise<MP3Segment | undefined> {
+  ): Promise<MP3LoadResult | undefined> {
     const metadata = this._metadata
     if (!metadata) return
 
@@ -289,7 +293,10 @@ export class MP3Loader {
     }
 
     if (!range || firstFrameIndex < 0) {
-      if (range && range.end >= metadata.fileSize - 1) return
+      if (range && range.end >= metadata.fileSize - 1) {
+        if (!seek) return { segment: null, endOfFile: true }
+        return
+      }
       throw new Error(`Cannot find an MP3 frame near byte ${estimatedOffset}`)
     }
 
@@ -318,7 +325,7 @@ export class MP3Loader {
     const absoluteEnd = range.start + lastFrame.end
     const nextOffset = absoluteEnd
     const segmentEndTime = segmentStartTime + duration
-    const isLast =
+    const endOfFile =
       firstFrameIndex + selected.length === frames.length &&
       range.end >= metadata.fileSize - 1
 
@@ -329,24 +336,35 @@ export class MP3Loader {
       range: [absoluteStart, absoluteEnd - 1],
       startTime: segmentStartTime,
       endTime: segmentEndTime,
-      isLast
+      endOfFile
     })
 
     return {
-      data: range.data.subarray(firstFrame.offset, lastFrame.end),
-      range: [absoluteStart, absoluteEnd - 1],
-      index,
-      startTime: segmentStartTime,
-      endTime: segmentEndTime,
-      nextOffset,
-      isLast
+      segment: {
+        data: range.data.subarray(firstFrame.offset, lastFrame.end),
+        range: [absoluteStart, absoluteEnd - 1],
+        index,
+        startTime: segmentStartTime,
+        endTime: segmentEndTime,
+        nextOffset
+      },
+      endOfFile
     }
   }
 
-  private setCurrentSegment(segment: MP3Segment): void {
-    this.currentIndex = segment.index
-    this.currentOffset = segment.nextOffset
-    this.currentTime = segment.endTime
+  private updateCursor(result: MP3LoadResult): void {
+    const metadata = this._metadata
+    if (!metadata) return
+    const segment = result.segment
+    if (segment) {
+      this.currentIndex = segment.index
+      this.currentOffset = segment.nextOffset
+      this.currentTime = segment.endTime
+    }
+    if (result.endOfFile) {
+      this.currentOffset = metadata.fileSize
+      if (this.linearFromStart) metadata.duration = this.currentTime
+    }
   }
 
   private getFirstSegmentFrameIndex(
@@ -360,11 +378,6 @@ export class MP3Loader {
     const targetFrameIndex = frames.findIndex((frame) => frame.end > localTarget)
     if (targetFrameIndex >= 0) return targetFrameIndex
     return range.end >= range.fileSize - 1 ? frames.length - 1 : -1
-  }
-
-  private correctDurationAtEnd(segment: MP3Segment): void {
-    if (!segment.isLast || !this.linearFromStart || !this._metadata) return
-    this._metadata.duration = segment.endTime
   }
 
   private getRangeFileSize(range: RangeData): number {

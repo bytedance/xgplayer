@@ -108,5 +108,10 @@ export interface MP3Segment {
   startTime: number
   endTime: number
   nextOffset: number
-  isLast: boolean
+}
+
+// EOF can accompany the final audio segment or a metadata-only tail.
+export interface MP3LoadResult {
+  segment: MP3Segment | null
+  endOfFile: boolean
 }

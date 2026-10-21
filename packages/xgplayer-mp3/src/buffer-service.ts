@@ -33,11 +33,7 @@ export class BufferService {
     if (this.isActiveMSE(mse)) await mse.bindMedia(this.config.media)
   }
 
-  async appendSegment(
-    segment: MP3Segment,
-    duration: number,
-    discontinuity: boolean
-  ): Promise<void> {
+  async appendSegment(segment: MP3Segment, discontinuity: boolean): Promise<void> {
     const mse = this.mse
     if (!mse || this.destroyed) return
     this.ensureSource(mse)
@@ -62,8 +58,6 @@ export class BufferService {
         startTime: segment.startTime,
         endTime: segment.endTime
       })
-      if (!this.isActiveMSE(mse)) return
-      await mse.updateDuration(duration)
       if (!this.isActiveMSE(mse)) return
       this.appended = true
     } catch (error) {
@@ -106,10 +100,27 @@ export class BufferService {
     }
   }
 
-  async endOfStream(): Promise<void> {
-    if (!this.mse || !this.sourceCreated) return
+  async updateDuration(duration: number): Promise<void> {
+    const mse = this.mse
+    if (!this.isActiveMSE(mse) || !this.sourceCreated) return
     try {
-      await this.mse.endOfStream()
+      await mse.updateDuration(duration)
+    } catch (error) {
+      throw StreamingError.create(
+        ERR.MEDIA,
+        ERR.SUB_TYPES.MSE_OTHER,
+        error,
+        undefined,
+        undefined
+      )
+    }
+  }
+
+  async endOfStream(): Promise<void> {
+    const mse = this.mse
+    if (!this.isActiveMSE(mse) || !this.sourceCreated) return
+    try {
+      await mse.endOfStream()
     } catch (error) {
       throw StreamingError.create(
         ERR.MEDIA,

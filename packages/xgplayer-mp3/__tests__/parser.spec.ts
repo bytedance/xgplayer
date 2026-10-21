@@ -163,6 +163,38 @@ describe('MP3 parser', () => {
     )
   })
 
+  test('limits a partial VBRI final entry to the declared frame count', () => {
+    const first = createFrame([0xff, 0xfb, 0x90, 0x64], 417)
+    first.set([0x56, 0x42, 0x52, 0x49], 36)
+    writeUint32(first, 46, 125000)
+    writeUint32(first, 50, 1250)
+    writeUint16(first, 54, 3)
+    writeUint16(first, 56, 1)
+    writeUint16(first, 58, 2)
+    writeUint16(first, 60, 500)
+    writeUint16(first, 62, 50000)
+    writeUint16(first, 64, 50000)
+    writeUint16(first, 66, 25000)
+    const data = concat(first, createFrame([0xff, 0xfb, 0x90, 0x64], 417))
+
+    const metadata = parseMP3Metadata(data, 125000)
+
+    expect(metadata.seekPoints?.[3].time).toBe(metadata.duration)
+    expect(timeToByteOffset(metadata, metadata.duration * 0.9)).toBe(112500)
+  })
+
+  test('detects bitrate changes after the first 32 scanned frames', () => {
+    const data = concat(
+      ...Array.from({ length: 32 }, () => createFrame([0xff, 0xfb, 0x90, 0x64], 417)),
+      createFrame([0xff, 0xfb, 0xa0, 0x64], 522)
+    )
+
+    expect(scanMP3Frames(data)).toHaveLength(33)
+    expect(() => parseMP3Metadata(data, data.length)).toThrow(
+      'VBR MP3 requires a Xing, Info, or VBRI seek header'
+    )
+  })
+
   test('does not treat MPEG Audio Layer II as MP3', () => {
     const layer2 = createFrame([0xff, 0xfd, 0x80, 0x00], 417)
     expect(parseFrameHeader(layer2, 0)).toBeUndefined()

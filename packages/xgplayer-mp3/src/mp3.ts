@@ -34,11 +34,9 @@ export class MP3 extends EventEmitter {
   private activeLoad: LoadContext | null = null
   private activeRequest: RequestContext | null = null
   private loadQueue: Promise<number> = Promise.resolve(0)
-  private loading = false
   private loadingRequest: RequestContext | null = null
   private destroyed = false
   private fatalError = false
-  private downloadComplete = false
   private tickTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(options: MP3Options) {
@@ -94,10 +92,8 @@ export class MP3 extends EventEmitter {
     this.activeLoad = null
     this.activeRequest = null
     this.fatalError = true
-    this.downloadComplete = true
     this.unbindEvents()
     this.stopTick()
-    this.loading = false
     this.loadingRequest = null
     this.removeAllListeners()
     this.loader.destroy()
@@ -111,10 +107,9 @@ export class MP3 extends EventEmitter {
   ): Promise<number> {
     if (!this.isActiveLoad(load)) return 0
     this.stopTick()
-    this.loading = false
+    this.loadingRequest = null
     this.initialized = false
     this.fatalError = false
-    this.downloadComplete = false
     const request = this.startRequest(load, 'load')
     logger.log('load start', {
       ...getLogSource(url, this.config.vid),
@@ -158,7 +153,7 @@ export class MP3 extends EventEmitter {
       if (!this.isActiveRequest(request)) return 0
       logger.error('load failed', error)
       const streamingError = this.toStreamingError(error)
-      this.emitError(streamingError, false)
+      this.emitError(streamingError)
       throw streamingError
     }
   }
@@ -168,8 +163,8 @@ export class MP3 extends EventEmitter {
     request: RequestContext,
     discontinuity: boolean
   ): Promise<boolean> {
-    if (!this.isActiveRequest(request) || this.loading) return false
-    this.loading = true
+    if (!this.isActiveRequest(request) || this.loadingRequest || this.fatalError)
+      return false
     this.loadingRequest = request
     logger.debug('loadSegment start', {
       time,
@@ -178,41 +173,50 @@ export class MP3 extends EventEmitter {
     })
 
     try {
-      const segment =
+      const result =
         time == null
           ? await this.loader.loadNextSegment()
           : await this.loader.loadSegmentByTime(time)
       if (!this.isActiveRequest(request)) return false
-      if (!segment) {
+      if (!result) {
         logger.debug('loadSegment empty', { time, reason: request.reason })
         return false
       }
 
       const metadata = this.loader.metadata
       if (!metadata) throw new Error('MP3 metadata is missing')
-      await this.bufferService.appendSegment(segment, metadata.duration, discontinuity)
+      const segment = result.segment
+      if (segment) {
+        await this.bufferService.appendSegment(segment, discontinuity)
+        if (!this.isActiveRequest(request)) return false
+      }
+      await this.bufferService.updateDuration(metadata.duration)
       if (!this.isActiveRequest(request)) return false
-      await this.bufferService.evictBuffer(this.config.bufferBehind)
-      if (!this.isActiveRequest(request)) return false
+      if (segment) {
+        await this.bufferService.evictBuffer(this.config.bufferBehind)
+        if (!this.isActiveRequest(request)) return false
 
-      this.initialized = true
-      logger.log('loadSegment appended', {
-        reason: request.reason,
-        index: segment.index,
-        range: segment.range,
-        startTime: segment.startTime,
-        endTime: segment.endTime,
-        isLast: segment.isLast
-      })
-      if (segment.isLast) {
-        await this.completeDownload(request)
-      } else {
+        this.initialized = true
+        logger.log('loadSegment appended', {
+          reason: request.reason,
+          index: segment.index,
+          range: segment.range,
+          startTime: segment.startTime,
+          endTime: segment.endTime
+        })
+      }
+
+      if (result.endOfFile) {
+        await this.bufferService.endOfStream()
+        if (!this.isActiveRequest(request)) return false
+        logger.log('end of stream')
+      } else if (segment) {
         const preloadTime = this.media.paused
           ? this.config.minBufferLength
           : this.config.maxBufferLength
         if (segment.endTime <= this.media.currentTime + preloadTime) {
           void Promise.resolve().then(() =>
-            this.loadSegment(undefined, request, false).catch(() => false)
+            this.loadNextSegment(request).catch(() => false)
           )
         }
       }
@@ -226,13 +230,6 @@ export class MP3 extends EventEmitter {
     } finally {
       this.finishLoading(request)
     }
-  }
-
-  private async completeDownload(request: RequestContext): Promise<void> {
-    await this.bufferService.endOfStream()
-    if (!this.isActiveRequest(request)) return
-    this.downloadComplete = true
-    logger.log('download complete')
   }
 
   private bindEvents(): void {
@@ -253,7 +250,10 @@ export class MP3 extends EventEmitter {
     const buffered = Buffer.get(this.media)
     if (buffered) {
       const info = Buffer.info(buffered, seekTime, 0.1)
-      if (info.remaining > 0.1) return
+      if (info.remaining > 0.1) {
+        this.startTick()
+        return
+      }
     }
 
     logger.log('seek outside buffer', { seekTime })
@@ -262,8 +262,7 @@ export class MP3 extends EventEmitter {
     const request = this.startRequest(load, 'seek')
     void this.loader.cancel().then(() => {
       if (!this.isActiveRequest(request)) return
-      this.loading = false
-      this.downloadComplete = false
+      this.loadingRequest = null
       void this.loadSegment(seekTime, request, true).catch(() => undefined)
     })
     this.startTick()
@@ -291,7 +290,7 @@ export class MP3 extends EventEmitter {
     this.stopTick()
     if (this.destroyed || this.fatalError) return
     this.startTick(this.config.tickInterval)
-    if (this.downloadComplete || !isMediaPlaying(this.media)) return
+    if (!isMediaPlaying(this.media)) return
 
     const buffered = Buffer.get(this.media)
     const info = buffered
@@ -305,20 +304,38 @@ export class MP3 extends EventEmitter {
         currentTime: this.media.currentTime,
         remaining: info.remaining
       })
-      void this.loadSegment(undefined, request, false).catch(() => undefined)
+      void this.loadNextSegment(request).catch(() => undefined)
     }
   }
 
-  private emitError(error: StreamingError, endOfStream = true): void {
+  private loadNextSegment(request: RequestContext): Promise<boolean> {
+    if (!this.isActiveRequest(request) || this.loadingRequest || this.fatalError)
+      return Promise.resolve(false)
+    const buffered = Buffer.get(this.media)
+    const metadata = this.loader.metadata
+    const info = buffered?.length
+      ? Buffer.info(buffered, this.media.currentTime, 0.1)
+      : null
+    const continuationTime = info
+      ? info.end || this.media.currentTime
+      : this.loader.nextTime
+    // The cursor may belong to a different buffered range after a backward seek.
+    const discontinuity = Math.abs(continuationTime - this.loader.nextTime) > 0.1
+    if (discontinuity) {
+      if (!metadata || continuationTime >= metadata.duration)
+        return Promise.resolve(false)
+      return this.loadSegment(continuationTime, request, true)
+    }
+    if (!this.loader.hasNextSegment) return Promise.resolve(false)
+    return this.loadSegment(undefined, request, false)
+  }
+
+  private emitError(error: StreamingError): void {
     if (this.fatalError) return
     logger.error('emit error', error)
     this.fatalError = true
-    this.downloadComplete = true
     this.stopTick()
     this.emit(EVENT.ERROR, error)
-    if (endOfStream) {
-      void this.bufferService.endOfStream().catch(() => undefined)
-    }
   }
 
   private toStreamingError(error: unknown): StreamingError {
@@ -364,7 +381,6 @@ export class MP3 extends EventEmitter {
 
   private finishLoading(request: RequestContext): void {
     if (this.loadingRequest === request) {
-      this.loading = false
       this.loadingRequest = null
     }
   }

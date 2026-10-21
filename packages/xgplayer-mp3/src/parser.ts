@@ -265,7 +265,7 @@ function parseVBRIHeader(data: Uint8Array, frame: MP3Frame): VBRHeader | undefin
   for (let i = 0; i < entryCount; i++) {
     accumulatedBytes +=
       readVariableInteger(data, tableOffset + i * entrySize, entrySize) * scale
-    accumulatedFrames += framesPerEntry
+    accumulatedFrames = Math.min(frameCount, accumulatedFrames + framesPerEntry)
     seekPoints.push({
       time: (accumulatedFrames * frame.header.samplesPerFrame) / frame.header.sampleRate,
       offset: accumulatedBytes
@@ -311,7 +311,7 @@ export function parseMP3Metadata(data: Uint8Array, fileSize: number): MP3Metadat
       (vbr.frameCount * firstFrame.header.samplesPerFrame) / firstFrame.header.sampleRate
     bitRate = duration > 0 ? (dataSize * 8) / duration : firstFrame.header.bitRate
   } else {
-    const bitRates = new Set(frames.slice(0, 32).map((frame) => frame.header.bitRate))
+    const bitRates = new Set(frames.map((frame) => frame.header.bitRate))
     if (bitRates.size > 1) {
       throw new MP3ParserError(
         'MP3_VBR_INDEX_REQUIRED',
