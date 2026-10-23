@@ -14,7 +14,8 @@
     "es",
     "docs",
     "README.md",
-    "README.zh-CN.md"
+    "README.zh-CN.md",
+    "CHANGELOG.md"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",

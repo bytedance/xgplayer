@@ -10,7 +10,8 @@
   },
   "files": [
     "dist",
-    "es"
+    "es",
+    "CHANGELOG.md"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
