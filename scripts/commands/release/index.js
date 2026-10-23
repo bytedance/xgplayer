@@ -1,5 +1,5 @@
 const fs = require('fs-extra')
-const path = require('path')
+const path = require('node:path')
 const execa = require('execa')
 const semver = require('semver')
 const { prompt } = require('enquirer')
@@ -106,13 +106,13 @@ async function main (skipLint, skipTest, skipBuild, skipPublish, buildScript) {
     }
   }
 
-  if (rootPkgInfo.scripts.changelog) {
+  if (!ctx.isMonorepo && rootPkgInfo.scripts.changelog) {
     run('yarn', ['changelog'])
     await prompt({
       type: 'toggle',
       name: 'yes',
       initial: 'y',
-      message: 'Please update CHANGELOG.md'
+      message: 'Please review the generated CHANGELOG.md files'
     })
   }
 
