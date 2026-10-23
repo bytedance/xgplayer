@@ -1,55 +1,17 @@
-#!/usr/bin/env node
+import { createRequire } from 'node:module'
+import path from 'node:path'
+import fs from 'fs-extra'
 
-import { getPackageVersion } from './get-package-version.mjs'
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import fs from 'fs-extra';
-import versionHelper from './version-helper.mjs';
-import semver from 'semver';
-import blockList from './block-list.mjs';
+const require = createRequire(import.meta.url)
+const { getReleasePackages } = require('./release-packages')
+const { parseReleaseTag, updatePackageVersion } = require('./release-metadata')
+const { version, npmTag } = parseReleaseTag(process.env.TAG)
+const cwd = process.cwd()
+const packages = getReleasePackages(cwd)
+const names = packages.map((pkg) => pkg.name)
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const pkgDirs = path.resolve(__dirname, '../../packages')
-
-const pkgNames = fs.readdirSync(pkgDirs).filter(name => !blockList.includes(name));
-
-const version = getPackageVersion();
-
-if (!version) {
-    console.error('Failed to get a target version');
-    process.exit(1)
+for (const pkg of packages) {
+  const file = path.join(cwd, pkg.path, 'package.json')
+  const updated = updatePackageVersion(await fs.readJson(file), version, npmTag, names)
+  await fs.outputJson(file, updated, { spaces: 2 })
 }
-
-for (let name of pkgNames) {
-    const jsonFilePath = path.resolve(__dirname, '../../packages/' + name + '/package.json')
-
-    const pkgJson = await fs.readJson(jsonFilePath);
-    pkgJson.version = version;
-    
-    const tag = versionHelper.getVersionTag(versionHelper.addVersionPrefix(version));
-    pkgJson.publishConfig = Object.assign(pkgJson.publishConfig, {
-        tag: tag
-    });
-    const { dependencies = {}, devDependencies = {}, peerDependencies = {} } = pkgJson;
-    const updateDeps = (deps) => {
-        Object.keys(deps).forEach((depName) => {
-            if (pkgNames.includes(depName)) {
-                const oriVer = semver.clean(deps[depName]);
-                deps[depName] = deps[depName].replace(oriVer, version);
-            }
-        })
-    }
-
-    updateDeps(dependencies);
-    updateDeps(devDependencies);
-    updateDeps(peerDependencies);
-
-    await fs.outputJson(
-        jsonFilePath,
-        pkgJson,
-        {
-            spaces: 2
-        }
-    )
-}    
-

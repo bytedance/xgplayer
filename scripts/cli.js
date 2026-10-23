@@ -42,8 +42,14 @@ cli
 cli
   .command('changelog', 'Generate or update CHANGELOG.md')
   .option('-s, --single', 'monorepo only generates one CHANGELOG.md')
-  .action(({ single }) => {
-    changelog(single)
+  .option('--from', 'Previous release tag')
+  .option('--to', 'Current release tag or git ref')
+  .option('--releaseVersion', 'Release version written to changelogs')
+  .option('--releaseNotes', 'Write aggregate release notes to this path')
+  .option('--skipPackages', 'Generate release notes without updating package changelogs')
+  .option('--dryRun', 'Preview release notes without writing changelogs')
+  .action((options) => {
+    return changelog(options)
   })
 
 cli
