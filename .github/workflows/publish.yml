@@ -1,227 +1,242 @@
 name: Release Version
-# Publish npm packages based on git tags (v*)
+run-name: Release ${{ github.ref_name }}
 
 on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  prepare_release:
+    name: Prepare release metadata
     if: github.repository == 'bytedance/xgplayer'
     runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: read
-      id-token: write
     outputs:
-      tag: ${{ steps.extract_tag.outputs.result }}
-      is_stable: ${{ steps.release_meta.outputs.is_stable }}
+      tag: ${{ steps.prepare.outputs.tag }}
+      version: ${{ steps.prepare.outputs.version }}
+      is_stable: ${{ steps.prepare.outputs.is_stable }}
+      npm_tag: ${{ steps.prepare.outputs.npm_tag }}
+      source_sha: ${{ steps.prepare.outputs.source_sha }}
+      from_tag: ${{ steps.prepare.outputs.from_tag }}
     steps:
-      - name: Extract tag
-        id: extract_tag
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const prefix = 'refs/tags/';
-            const ref = context.ref;
-            if (!ref.startsWith(prefix)) {
-              throw new Error('Invalid ref: not a tag');
-            }
-            return ref.substring(prefix.length);
-          result-encoding: string
-
-      - name: Determine release mode
-        id: release_meta
-        uses: actions/github-script@v8
-        env:
-          TAG: ${{ steps.extract_tag.outputs.result }}
-        with:
-          script: |
-            const isStable = /^v\d+\.\d+\.\d+$/.test(process.env.TAG);
-            core.setOutput('is_stable', String(isStable));
-            core.notice(`Release mode for ${process.env.TAG}: ${isStable ? 'stable' : 'prerelease'}`);
-
-      - name: Checkout code
+      - name: Checkout release tag and history
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          ref: ${{ github.sha }}
+          fetch-depth: 0
 
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
 
-      - name: Set package version
-        run: |
-          node scripts/workflow/set-package-version.mjs
+      - name: Prepare version, changelogs and release notes
+        id: prepare
+        run: node scripts/workflow/release-metadata.js prepare "$RUNNER_TEMP/release-metadata"
         env:
-          TAG: ${{ steps.extract_tag.outputs.result }}
+          TAG: ${{ github.ref_name }}
 
-      - name: Build packages
-        run: |
-          yarn build:all
-
-      - name: Upload build artifacts
+      - name: Upload release metadata
         uses: actions/upload-artifact@v6
         with:
-          name: build
-          path: |
-            packages/*/dist/**
-            packages/*/es/**
-            packages/*/package.json
-            package.json
+          name: release-metadata
+          path: ${{ runner.temp }}/release-metadata/
+          if-no-files-found: error
           retention-days: 7
-  release_npm:
-    if: github.repository == 'bytedance/xgplayer'
-    permissions:
-      id-token: write
-      
-    needs: [build]
-    environment: release
-    runs-on: ubuntu-latest
 
+  build:
+    name: Build and pack release
+    needs: prepare_release
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout tag
+      - name: Checkout fixed release source
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ needs.prepare_release.outputs.source_sha }}
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Download release metadata
+        uses: actions/download-artifact@v7
+        with:
+          name: release-metadata
+          path: ${{ runner.temp }}/release-metadata
+
+      - name: Apply prepared metadata
+        run: |
+          PATCH="$RUNNER_TEMP/release-metadata/metadata.patch"
+          if [ -s "$PATCH" ]; then
+            git apply --check "$PATCH"
+            git apply "$PATCH"
+          fi
+
+      - name: Build packages
+        run: yarn build:all
+
+      - name: Pack and verify release archives
+        run: |
+          node scripts/workflow/release-archives.js \
+            "$RUNNER_TEMP/release-metadata" "$RUNNER_TEMP/release-archives"
+
+      - name: Upload release archives
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-archives
+          path: ${{ runner.temp }}/release-archives/
+          if-no-files-found: error
+          retention-days: 7
+
+  commit_to_main:
+    name: Commit stable release metadata
+    if: needs.prepare_release.outputs.is_stable == 'true'
+    needs: [prepare_release, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-main-metadata
+      cancel-in-progress: false
+    steps:
+      - name: Checkout fixed release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare_release.outputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Download release metadata
+        uses: actions/download-artifact@v7
+        with:
+          name: release-metadata
+          path: ${{ runner.temp }}/release-metadata
+
+      - name: Apply prepared metadata to latest main
+        run: node scripts/workflow/release-metadata.js apply "$RUNNER_TEMP/release-metadata"
+
+      - name: Commit and push release metadata
+        run: |
+          git config user.name "$RELEASE_ACTOR"
+          git config user.email "${RELEASE_ACTOR}@users.noreply.github.com"
+          if ! git diff --cached --quiet; then
+            git -c core.hooksPath=/dev/null commit -m "chore(release): release version $TAG"
+            git push origin HEAD:main
+          fi
+        env:
+          RELEASE_ACTOR: ${{ github.actor }}
+          TAG: ${{ needs.prepare_release.outputs.tag }}
+
+  release_npm:
+    name: Publish npm archives
+    if: >-
+      !cancelled() &&
+      needs.prepare_release.result == 'success' &&
+      needs.build.result == 'success' &&
+      ((needs.prepare_release.outputs.is_stable == 'true' && needs.commit_to_main.result == 'success') ||
+       (needs.prepare_release.outputs.is_stable == 'false' && needs.commit_to_main.result == 'skipped'))
+    needs: [prepare_release, build, commit_to_main]
+    environment: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout fixed release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare_release.outputs.source_sha }}
 
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Download build artifacts
+      - name: Download verified release archives
         uses: actions/download-artifact@v7
         with:
-          name: build
+          name: release-archives
+          path: ${{ runner.temp }}/release-archives
 
       - name: Publish to npm
-        run: |
-          node scripts/workflow/npm-publish.mjs
+        run: node scripts/workflow/npm-publish.mjs "$RUNNER_TEMP/release-archives"
         env:
           NPM_CONFIG_PROVENANCE: true
 
   release_github:
-    if: github.repository == 'bytedance/xgplayer'
+    name: Publish GitHub Release
+    if: >-
+      !cancelled() &&
+      needs.prepare_release.result == 'success' &&
+      needs.release_npm.result == 'success'
+    needs: [prepare_release, release_npm]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: [build, release_npm]
-    runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout fixed release source
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare_release.outputs.source_sha }}
 
-      - name: Create GitHub Release
+      - name: Download release metadata
+        uses: actions/download-artifact@v7
+        with:
+          name: release-metadata
+          path: ${{ runner.temp }}/release-metadata
+
+      - name: Create or update GitHub Release
         uses: actions/github-script@v8
         env:
-          TAG: ${{ needs.build.outputs.tag }}
-          IS_STABLE: ${{ needs.build.outputs.is_stable }}
+          TAG: ${{ needs.prepare_release.outputs.tag }}
+          IS_STABLE: ${{ needs.prepare_release.outputs.is_stable }}
+          RELEASE_NOTES_PATH: ${{ runner.temp }}/release-metadata/release-notes.md
         with:
           script: |
+            const fs = require('node:fs');
             const createGitHubRelease = require('./scripts/workflow/create-github-release');
             await createGitHubRelease({
               github,
               context,
               core,
               tag: process.env.TAG,
-              isStable: process.env.IS_STABLE === 'true'
+              isStable: process.env.IS_STABLE === 'true',
+              body: fs.readFileSync(process.env.RELEASE_NOTES_PATH, 'utf8')
             });
 
-  commit_to_main:
-    permissions:
-      contents: write
-    if: github.repository == 'bytedance/xgplayer' && needs.build.outputs.is_stable == 'true'
-    needs: [build, release_npm, release_github]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v6
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Setup Git
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-
-      - name: Setup Node environment
-        uses: ./.github/actions/setup-node-env
-
-      - name: Apply version changes
-        run: |
-          node scripts/workflow/set-package-version.mjs
-        env:
-          TAG: ${{ needs.build.outputs.tag }}
-
-      - name: Commit and push to main
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: "."
-          default_author: github_actor
-          fetch: true
-          push: 'origin HEAD:main'
-          message: 'chore(release): release version ${{ needs.build.outputs.tag }}'
-
   release_summary:
+    name: Summarize release
     if: always() && github.repository == 'bytedance/xgplayer'
-    needs: [build, release_npm, release_github, commit_to_main]
+    needs: [prepare_release, build, commit_to_main, release_npm, release_github]
     runs-on: ubuntu-latest
-
     steps:
       - name: Generate release summary
-        run: |
-          VERSION="${{ needs.build.outputs.tag }}"
-          IS_STABLE="${{ needs.build.outputs.is_stable }}"
-          BUILD_STATUS="${{ needs.build.result }}"
-          RELEASE_STATUS="${{ needs.release_npm.result }}"
-          GITHUB_RELEASE_STATUS="${{ needs.release_github.result }}"
-          MAIN_COMMIT_STATUS="${{ needs.commit_to_main.result }}"
-          
-          BUILD_BADGE=$([ "$BUILD_STATUS" = "success" ] && echo "✅" || echo "❌")
-          RELEASE_BADGE=$([ "$RELEASE_STATUS" = "success" ] && echo "✅" || echo "❌")
-          GITHUB_RELEASE_BADGE=$([ "$GITHUB_RELEASE_STATUS" = "success" ] && echo "✅" || echo "❌")
-          if [ "$MAIN_COMMIT_STATUS" = "success" ]; then
-            MAIN_COMMIT_BADGE="✅"
-          elif [ "$MAIN_COMMIT_STATUS" = "skipped" ]; then
-            MAIN_COMMIT_BADGE="⏭️"
-          else
-            MAIN_COMMIT_BADGE="❌"
-          fi
-          RELEASE_MODE=$([ "$IS_STABLE" = "true" ] && echo "stable" || echo "prerelease")
-          
-          {
-            echo "# 🎉 Release Summary"
-            echo ""
-            echo "## Version Information"
-            echo "| Field | Value |"
-            echo "|-------|-------|"
-            echo "| Version | \`$VERSION\` |"
-            echo "| Tag | \`${{ github.ref }}\` |"
-            echo "| Release Mode | \`$RELEASE_MODE\` |"
-            echo "| Commit | [\`${{ github.sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) |"
-            echo ""
-            echo "## Workflow Status"
-            echo "| Step | Status |"
-            echo "|------|--------|"
-            echo "| Build | $BUILD_BADGE $BUILD_STATUS |"
-            echo "| NPM Release | $RELEASE_BADGE $RELEASE_STATUS |"
-            echo "| GitHub Release | $GITHUB_RELEASE_BADGE $GITHUB_RELEASE_STATUS |"
-            echo "| Commit To Main | $MAIN_COMMIT_BADGE $MAIN_COMMIT_STATUS |"
-            echo ""
-            echo "## Links"
-            echo "- 📦 [View on NPM](https://www.npmjs.com/search?q=%40xgplayer)"
-            echo "- 🏷️ [View GitHub Release](https://github.com/${{ github.repository }}/releases/tag/$VERSION)"
-            echo "- 🔗 [Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-            echo ""
-            echo "*Auto-generated by GitHub Actions*"
-          } >> $GITHUB_STEP_SUMMARY
-
-          if [ "$BUILD_STATUS" != "success" ] || [ "$RELEASE_STATUS" != "success" ] || [ "$GITHUB_RELEASE_STATUS" != "success" ]; then
-            exit 1
-          fi
-
-          if [ "$IS_STABLE" = "true" ] && [ "$MAIN_COMMIT_STATUS" != "success" ]; then
-            exit 1
-          fi
+        uses: actions/github-script@v8
+        env:
+          RELEASE_NEEDS: ${{ toJSON(needs) }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        with:
+          script: |
+            const jobs = JSON.parse(process.env.RELEASE_NEEDS);
+            const release = jobs.prepare_release.outputs;
+            const rows = Object.entries(jobs).map(([name, job]) => [name, job.result]);
+            await core.summary
+              .addHeading(`Release ${process.env.RELEASE_TAG}`)
+              .addTable([
+                [{ data: 'Field', header: true }, { data: 'Value', header: true }],
+                ['Tag', process.env.RELEASE_TAG],
+                ['Source commit', release.source_sha || context.sha],
+                ['Previous tag', release.from_tag || 'unavailable'],
+                ['npm channel', release.npm_tag || 'unavailable']
+              ])
+              .addTable([
+                [{ data: 'Job', header: true }, { data: 'Result', header: true }],
+                ...rows
+              ])
+              .write();
+            const required = ['prepare_release', 'build', 'release_npm', 'release_github'];
+            if (release.is_stable === 'true') required.push('commit_to_main');
+            if (required.some(name => jobs[name].result !== 'success')) {
+              core.setFailed('Release did not complete successfully');
+            }

@@ -24,6 +24,18 @@ git tag v3.2.1-rc.1
 git push origin v3.2.1-rc.1
 ```
 
+预发布渠道取 SemVer 预发布版本的第一个标识：
+
+| Tag | npm dist-tag | GitHub Release |
+| --- | --- | --- |
+| `v3.2.1` | `latest` | Release |
+| `v3.2.1-alpha.1` | `alpha` | Prerelease |
+| `v3.2.1-beta.1` | `beta` | Prerelease |
+| `v3.2.1-rc.1` | `rc` | Prerelease |
+| `v3.2.1-next.1` | `next` | Prerelease |
+
+也支持 `canary` 等其他具名渠道。无效 SemVer、纯数字渠道以及使用 `latest` 的预发布 tag 会被拒绝；不使用构建元数据（`+...`）区分 npm 发布版本。
+
 <!-- ## 本地手动发布（可选）
 
 本地流程只用于辅助升级版本号和创建 tag，最终发布仍由 CI 完成。
@@ -60,11 +72,19 @@ git push origin --tags
 
 ## Release Notes
 
-GitHub Release notes 由 CI 自动生成。正式版本比较当前版本之前最新的正式版 tag（`vX.Y.Z`）。非正式版本比较最临近的上一个版本 tag，有可用的非正式版本 tag 时也会参与比较。
+Release Notes 和各包 CHANGELOG 在 `prepare_release` 中由仓库的同一个命令生成一次。正式版本比较当前版本之前最新的正式版 tag（`vX.Y.Z`），并在 npm 发布前将各包 CHANGELOG 回写 `main`。非正式版本比较最临近的上一个版本 tag，有可用的非正式版本 tag 时也会参与比较，但不会修改各包 CHANGELOG。
 
-### 自动 Release Notes 注意事项
+生成器遵循 Angular Conventional Commits；commit body 中存在 `Release note (<type>): ...` 时，优先使用该内容。空内容和 `N/A` 占位内容回退到 commit 标题；标准 `git revert` 与原提交同时位于发布区间内时，两者相互抵消。
 
-`What's Changed` 由发布工作流调用 GitHub 的 `generateReleaseNotes` API 生成，不是本地解析 commit log。它主要展示所选 compare 范围内的 merged PR。direct commit 可能只出现在 `Full Changelog` 中，如需对外说明，需要手动补充到 release body。
+所有包统一使用 `# Changelog`、二级版本标题、三级英文变更分类和 `-` 列表。分类采用固定顺序，无用户可见变更的版本归入 `Maintenance`。新增 Release Notes 使用英文；已有中文提交说明及历史代码示例保留原文。
+
+本地审阅或回填日志时，应显式指定版本区间：
+
+```bash
+yarn changelog --from v3.0.25 --to v3.0.26 --releaseVersion 3.0.26
+```
+
+重复执行只刷新指定版本的条目，保留其他版本；生成内容相同时不写入文件。
 
 ## CI 工作流说明
 
@@ -74,17 +94,27 @@ GitHub Release notes 由 CI 自动生成。正式版本比较当前版本之前�
 
 工作流步骤：
 
-1. `build`
-   - 提取 tag 名称
-   - 判断是否为稳定版
-   - 设置版本号并构建产物
-2. `release_npm`
-   - 下载构建产物
-   - 发布到 npm
-3. `release_github`
-   - 基于 tag 创建 GitHub Release（非稳定版为 Prerelease）
-4. `commit_to_main`（仅稳定版执行）
-   - 应用版本变更
-   - commit 并 push 到 `main`
-5. `release_summary`
+1. `prepare_release`
+   - 校验 tag，固定源提交 SHA、比较区间和公开包清单
+   - 生成版本、正式版 CHANGELOG 和汇总 Release Notes
+   - 将 `release.json`、`metadata.patch` 和 `release-notes.md` 保存为同一份 artifact
+2. `build`
+   - checkout 固定 SHA 并应用准备好的元数据补丁
+   - 构建并生成 `.tgz` 归档
+   - 校验包名、版本、CHANGELOG 和构建输出，并保存校验和
+3. `commit_to_main`（仅稳定版执行）
+   - 向最新 `main` 应用同一份补丁，不重新生成元数据
+   - 拒绝冲突及版本回退，已应用的补丁自动跳过
+   - 仅提交并推送发布元数据
+4. `release_npm`
+   - 校验并发布 `build` 生成的原始 `.tgz`
+   - 正式版等待 main 提交成功，预发布跳过该提交
+   - 重跑失败 job 时跳过已经发布的包版本
+5. `release_github`
+   - 使用生成的 Release Notes 创建 GitHub Release（非稳定版为 Prerelease）
+6. `release_summary`
    - 汇总并展示发布状态
+
+私有包不参与版本更新、CHANGELOG 生成和 npm 发布。通过应用准备好的补丁保留 main 后续依赖变更；若改动与发布元数据重叠则终止发布，等待处理。原始 tag 不会移动。
+
+构建失败不会写入 main。npm 失败时正式版元数据提交会留在 main；重跑失败 job 可复用已生成的 artifact 继续发布。
