@@ -37,6 +37,7 @@ Global agent map for this repo. Keep package-specific design/background in packa
 - Dependencies: keep pins deliberate; do not loosen/downgrade ad hoc.
 - Commits: focus titles and bodies on the problem solved rather than listing implementation changes, so reviewers and generated changelogs can understand the intent. Use conventional commit titles, `monorepo` or `*` for cross-package changes, and a short body for non-trivial changes covering the problem and key change.
 - CHANGELOG: only add entries for stable releases (patch/minor/major); skip prerelease tags (`rc`/`alpha`/`beta`) — fold their commits into the next stable entry.
+- Do not add test cases, test files, or test directories anywhere under `scripts/`, or register script tests in Jest.
 
 ## Never
 
