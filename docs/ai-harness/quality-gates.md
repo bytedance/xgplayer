@@ -48,6 +48,7 @@ Verification rules for engineering quality in this repository.
 ### Tests
 
 - Prefer focused tests for the touched behavior before broad fixture or manual checks.
+- Verify changes to `scripts/` with temporary regression checks outside the repository and remove them afterward.
 - New executable files need meaningful tests unless type-only, generated, or explicitly unreachable in unit tests.
 - When behavior spans runtime, protocol, source selection, fallback, or lifecycle boundaries, cover both local unit behavior and the integration path when feasible.
 - Keep test scope honest: do not weaken assertions, skip affected cases, or move code out of coverage scope.
