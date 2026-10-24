@@ -22,6 +22,36 @@ function parseReleaseTag(tag) {
   return { tag, version, isStable, npmTag }
 }
 
+function validateReleaseVersion({ metadata, tags, packageVersions }) {
+  for (const tag of tags) {
+    if (tag === metadata.tag) continue
+    const version = tag.startsWith('v') ? tag.slice(1) : ''
+    const parsed = semver.parse(version)
+    if (!parsed || parsed.version !== version || parsed.build.length) continue
+    const isStable = parsed.prerelease.length === 0
+    const channel = isStable ? 'stable' : String(parsed.prerelease[0])
+    if (!isStable && (metadata.isStable || channel !== metadata.npmTag)) {
+      continue
+    }
+    if (!semver.gt(metadata.version, version)) {
+      throw new Error(
+        `Release version ${metadata.version} must be greater than existing ${channel} tag ${tag}`
+      )
+    }
+  }
+
+  for (const version of packageVersions) {
+    if (!semver.valid(version)) {
+      throw new Error(`Invalid public package version: ${version}`)
+    }
+    if (semver.lt(metadata.version, version)) {
+      throw new Error(
+        `Release version ${metadata.version} must not be lower than current package version ${version}`
+      )
+    }
+  }
+}
+
 function updatePackageVersion(pkg, version, npmTag, packageNames) {
   const updated = JSON.parse(JSON.stringify(pkg))
   updated.version = version
@@ -59,6 +89,19 @@ async function prepareRelease({ cwd, tag, outputDir }) {
 
   const packages = getReleasePackages(cwd)
   if (!packages.length) throw new Error('No public release packages found')
+  const packageManifests = await Promise.all(
+    packages.map(async (pkg) => ({
+      pkg,
+      manifest: await fs.readJson(path.join(cwd, pkg.path, 'package.json'))
+    }))
+  )
+  const { stdout: tagList } = await git(['tag', '--list', 'v*'])
+  validateReleaseVersion({
+    metadata,
+    tags: tagList.split('\n').filter(Boolean),
+    packageVersions: packageManifests.map(({ manifest }) => manifest.version)
+  })
+
   const files = packages.flatMap((pkg) => [
     `${pkg.path}/package.json`,
     ...(metadata.isStable ? [`${pkg.path}/CHANGELOG.md`] : [])
@@ -67,10 +110,10 @@ async function prepareRelease({ cwd, tag, outputDir }) {
   if (dirty) throw new Error('Release metadata files must be clean before preparation')
 
   const names = packages.map((pkg) => pkg.name)
-  for (const pkg of packages) {
+  for (const { pkg, manifest } of packageManifests) {
     const file = path.join(cwd, pkg.path, 'package.json')
     const updated = updatePackageVersion(
-      await fs.readJson(file),
+      manifest,
       metadata.version,
       metadata.npmTag,
       names
@@ -144,8 +187,6 @@ async function applyReleaseMetadata({ cwd, releaseDir, checkoutMain = false }) {
 }
 
 module.exports = {
-  parseReleaseTag,
-  updatePackageVersion,
   prepareRelease,
   applyReleaseMetadata
 }

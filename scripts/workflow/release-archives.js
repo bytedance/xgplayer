@@ -62,6 +62,7 @@ async function publishRelease({ archiveDir, run = execa }) {
       throw new Error(`Archive checksum mismatch: ${pkg.filename}`)
     }
   }
+
   const results = await Promise.allSettled(
     release.packages.map(async (pkg) => {
       try {
@@ -69,8 +70,7 @@ async function publishRelease({ archiveDir, run = execa }) {
           'view',
           `${pkg.name}@${release.version}`,
           'version',
-          '--json',
-          '--registry=https://registry.npmjs.org'
+          '--json'
         ])
         if (JSON.parse(stdout) === release.version) {
           console.log(`${pkg.name}@${release.version} already published; skipping`)
@@ -82,13 +82,7 @@ async function publishRelease({ archiveDir, run = execa }) {
       }
       await run(
         'npm',
-        [
-          'publish',
-          path.join(archiveDir, pkg.filename),
-          '--tag',
-          release.npmTag,
-          '--registry=https://registry.npmjs.org'
-        ],
+        ['publish', path.join(archiveDir, pkg.filename), '--tag', release.npmTag],
         { stdio: 'inherit' }
       )
     })
