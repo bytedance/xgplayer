@@ -36,6 +36,16 @@ git push origin v3.2.1-rc.1
 
 也支持 `canary` 等其他具名渠道。无效 SemVer、纯数字渠道以及使用 `latest` 的预发布 tag 会被拒绝；不使用构建元数据（`+...`）区分 npm 发布版本。
 
+生成发布元数据前会校验版本顺序：
+
+- 每个发布版本都必须高于最新正式版 tag，且不能降低 tag 所在源码中的公开包版本。
+- 预发布版本还必须高于同一渠道已有的最新 tag。不同渠道相互独立，因此 `alpha`、`beta`、`rc`、`next`、`canary` 及其他具名渠道不会彼此阻塞。
+- 失败重跑时允许当前 tag 以及与发布版本相同的包版本。
+
+发布每个包前，只查询该目标版本是否已经发布，失败重跑时跳过已经发布的版本。各包检查完成后即可发布，不等待其他包的查询。
+
+npm 使用工作流 `registry-url` 配置的仓库，发布脚本不覆盖该配置。
+
 <!-- ## 本地手动发布（可选）
 
 本地流程只用于辅助升级版本号和创建 tag，最终发布仍由 CI 完成。
@@ -72,7 +82,7 @@ git push origin --tags
 
 ## Release Notes
 
-Release Notes 和各包 CHANGELOG 在 `prepare_release` 中由仓库的同一个命令生成一次。正式版本比较当前版本之前最新的正式版 tag（`vX.Y.Z`），并在 npm 发布前将各包 CHANGELOG 回写 `main`。非正式版本比较最临近的上一个版本 tag，有可用的非正式版本 tag 时也会参与比较，但不会修改各包 CHANGELOG。
+Release Notes 和各包 CHANGELOG 在 `prepare_release` 中由仓库的同一个命令生成一次。正式版本比较当前版本之前最新的正式版 tag（`vX.Y.Z`），忽略所有渠道的 SemVer 预发布 tag，并在 npm 发布前将各包 CHANGELOG 回写 `main`。非正式版本比较最临近的上一个版本 tag，有可用的非正式版本 tag 时也会参与比较，但不会修改各包 CHANGELOG。
 
 生成器遵循 Angular Conventional Commits；commit body 中存在 `Release note (<type>): ...` 时，优先使用该内容。空内容和 `N/A` 占位内容回退到 commit 标题；标准 `git revert` 与原提交同时位于发布区间内时，两者相互抵消。
 
@@ -95,7 +105,7 @@ yarn changelog --from v3.0.25 --to v3.0.26 --releaseVersion 3.0.26
 工作流步骤：
 
 1. `prepare_release`
-   - 校验 tag，固定源提交 SHA、比较区间和公开包清单
+   - 校验 tag 和版本顺序，固定源提交 SHA、比较区间和公开包清单
    - 生成版本、正式版 CHANGELOG 和汇总 Release Notes
    - 将 `release.json`、`metadata.patch` 和 `release-notes.md` 保存为同一份 artifact
 2. `build`

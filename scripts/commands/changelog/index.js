@@ -61,10 +61,6 @@ function findVersionEntry(content, version, packageName = '') {
   }
 }
 
-function hasVersionEntry(content, version, packageName = '') {
-  return Boolean(findVersionEntry(content, version, packageName))
-}
-
 function prependEntry(content, entry) {
   const history = content.replace(/^# [^\n]*(?:\r?\n|$)/, '').trim()
   return `# Changelog\n\n${entry.trim()}\n${history ? `\n${history}\n` : ''}`
@@ -290,12 +286,5 @@ async function main({
     releaseNotes: rootEntry
   }
 }
-
-main.extractReleaseNote = extractReleaseNote
-main.generateEntry = generateEntry
-main.hasVersionEntry = hasVersionEntry
-main.prependEntry = prependEntry
-main.resolveRange = resolveRange
-main.selectPreviousTag = selectPreviousTag
 
 module.exports = main

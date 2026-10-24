@@ -36,6 +36,16 @@ Prerelease channels are taken from the first SemVer prerelease identifier:
 
 Other named channels such as `canary` are supported. Invalid SemVer tags, numeric-only channels, and prereleases using `latest` are rejected. Build metadata (`+...`) is not supported as a distinct npm release version.
 
+Version ordering is validated before release metadata is generated:
+
+- Every release must be greater than the latest stable tag and must not downgrade the public package versions in the tagged source.
+- A prerelease must also be greater than the latest existing tag in the same channel. Channels are independent, so `alpha`, `beta`, `rc`, `next`, `canary`, and other named channels do not block one another.
+- The current tag and an identical package version are allowed when rerunning a failed release.
+
+Before publishing each package, npm checks whether that exact version has already been published and skips it when rerunning failed jobs. Each package can publish as soon as its check completes.
+
+npm uses the registry configured by the workflow's `registry-url`; release scripts do not override it.
+
 <!-- ## Local Manual Release (Optional)
 
 The local workflow is only used to bump versions and create tags. The actual publishing is still done by CI.
@@ -72,7 +82,7 @@ Options:
 
 ## Release Notes
 
-Release notes and package changelogs are generated once by the same repository command in `prepare_release`. Stable releases compare against the latest previous stable tag (`vX.Y.Z`) and commit package changelogs back to `main` before npm publishing. Prereleases compare against the nearest previous version tag, including prerelease tags when available, without modifying package changelogs.
+Release notes and package changelogs are generated once by the same repository command in `prepare_release`. Stable releases compare against the latest previous stable tag (`vX.Y.Z`), ignoring all SemVer prerelease tags regardless of channel, and commit package changelogs back to `main` before npm publishing. Prereleases compare against the nearest previous version tag, including prerelease tags when available, without modifying package changelogs.
 
 The generator follows Angular Conventional Commits and prefers an explicit `Release note (<type>): ...` line in the commit body when present. Empty notes and `N/A` placeholders fall back to the commit header. Standard `git revert` commits cancel their original commits when both are within the release range.
 
@@ -95,7 +105,7 @@ Trigger: `push.tags: v*`
 Jobs:
 
 1. `prepare_release`
-   - Validates the tag and fixes the source SHA, compare range and public package list
+   - Validates the tag and version ordering, then fixes the source SHA, compare range and public package list
    - Generates versions, stable changelogs and aggregate release notes
    - Saves `release.json`, `metadata.patch` and `release-notes.md` as one artifact
 2. `build`
