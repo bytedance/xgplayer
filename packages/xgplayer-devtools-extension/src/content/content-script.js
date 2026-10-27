@@ -9,6 +9,7 @@
 ;(() => {
   const SRC_INJECT = 'player-devtools-inject'
   const SRC_PANEL = 'player-devtools-panel'
+  const PAGE_ORIGIN = window.location.origin
 
   // --- page -> extension --------------------------------------------------
   window.addEventListener('message', (ev) => {
@@ -29,6 +30,7 @@
   chrome.runtime.onMessage.addListener((req) => {
     if (!req || req.channel !== 'to-page' || !req.data) return
     if (req.data.source !== SRC_PANEL) return
-    window.postMessage(req.data, '*')
+    if (!PAGE_ORIGIN || PAGE_ORIGIN === 'null') return
+    window.postMessage(req.data, PAGE_ORIGIN)
   })
 })()

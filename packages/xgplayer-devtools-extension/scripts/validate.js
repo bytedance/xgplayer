@@ -35,7 +35,36 @@ function walk(dir) {
 }
 walk(path.join(root, 'src'))
 
-// 3. execute the MAIN-world probe against a representative MMS instance
+// 3. security-sensitive bridge and rendering invariants
+try {
+  const injectSource = fs.readFileSync(path.join(root, 'src/inject/inject.js'), 'utf8')
+  const contentSource = fs.readFileSync(
+    path.join(root, 'src/content/content-script.js'),
+    'utf8'
+  )
+  const panelSource = fs.readFileSync(path.join(root, 'src/panel/panel.js'), 'utf8')
+  const bridgeSource = `${injectSource}\n${contentSource}`
+
+  if (/\bMath\.random\s*\(/.test(injectSource)) {
+    throw new Error(
+      'MAIN-world session identifiers must use a cryptographically secure source'
+    )
+  }
+  if (/postMessage\([\s\S]{0,600}?,\s*['"]\*['"]\s*\)/.test(bridgeSource)) {
+    throw new Error('window.postMessage must not use an unrestricted target origin')
+  }
+  if (/line\.innerHTML\s*=/.test(panelSource)) {
+    throw new Error(
+      'instance status rendering must use DOM properties instead of HTML attributes'
+    )
+  }
+  console.log('✓ security-sensitive bridge and rendering invariants')
+} catch (e) {
+  console.error('✗ security-sensitive bridge and rendering invariants:', e.message)
+  failed++
+}
+
+// 4. execute the MAIN-world probe against a representative MMS instance
 try {
   class MockTimeRanges {
     constructor(ranges) {
@@ -359,15 +388,23 @@ try {
       return player.playerId
     }
   }
+  const location = {
+    href: 'https://example.test/watch',
+    origin: 'https://example.test'
+  }
   const window = {
     pre_build_xgplayer: { default: Player },
+    location,
     addEventListener(type, listener) {
       ;(listeners[type] ||= []).push(listener)
     },
     dispatchEvent(event) {
       ;(listeners[event.type] || []).forEach((listener) => listener(event))
     },
-    postMessage(message) {
+    postMessage(message, targetOrigin) {
+      if (targetOrigin !== location.origin) {
+        throw new Error(`Unexpected postMessage target origin: ${targetOrigin}`)
+      }
       messages.push(message)
     }
   }
@@ -398,8 +435,14 @@ try {
         }
       }
     },
-    location: { href: 'https://example.test/watch' },
+    location,
     navigator: { userAgent: 'probe-validator' },
+    crypto: {
+      getRandomValues(values) {
+        values.fill(7)
+        return values
+      }
+    },
     performance: { timeOrigin: 0, now: () => clock },
     CustomEvent: MockCustomEvent,
     TimeRanges: MockTimeRanges,
@@ -442,6 +485,8 @@ try {
   mse.endOfStream()
   window.dispatchEvent({
     type: 'message',
+    source: window,
+    origin: location.origin,
     data: {
       source: 'player-devtools-panel',
       v: 1,

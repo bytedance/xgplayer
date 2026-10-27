@@ -296,20 +296,14 @@ import { createMseView } from './mse.js'
       const status = instanceState(inst)
       const line = el('div', 'inst-single' + (inst.active ? ' active' : ''))
       const url = (inst.overview && inst.overview.url) || ''
-      line.innerHTML =
-        '<span class="inst-state ' +
-        status.className +
-        '" title="' +
-        esc(status.label) +
-        '">' +
-        status.icon +
-        '</span>' +
-        '<span class="id">#' +
-        esc(inst.id) +
-        '</span>' +
-        '<span class="url">' +
-        esc(shortUrl(url)) +
-        '</span>'
+      const stateNode = el('span', 'inst-state ' + status.className)
+      stateNode.title = status.label
+      stateNode.textContent = status.icon
+      const idNode = el('span', 'id')
+      idNode.textContent = '#' + inst.id
+      const urlNode = el('span', 'url')
+      urlNode.textContent = shortUrl(url)
+      line.append(stateNode, idNode, urlNode)
       bar.appendChild(line)
       appendLocateButton(bar)
       return

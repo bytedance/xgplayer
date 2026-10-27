@@ -65,7 +65,12 @@
   const MSE_SCAN_MAX_PROPERTIES = 256
   const MSE_SCAN_MIN_SCORE = 6
   const MSE_SCAN_MISS_TTL = 750
-  const SESSION_ID = 's_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+  const PAGE_ORIGIN = window.location.origin
+  const sessionIdBytes = new Uint8Array(16)
+  crypto.getRandomValues(sessionIdBytes)
+  const SESSION_ID =
+    's_' +
+    Array.from(sessionIdBytes, (value) => value.toString(16).padStart(2, '0')).join('')
 
   const nowTs = () => (performance.timeOrigin || 0) + performance.now()
 
@@ -1496,6 +1501,7 @@
   const THROTTLE_MS = 250
 
   function post(type, payload, playerId) {
+    if (!PAGE_ORIGIN || PAGE_ORIGIN === 'null') return
     try {
       window.postMessage(
         {
@@ -1507,7 +1513,7 @@
           ts: nowTs(),
           payload
         },
-        '*'
+        PAGE_ORIGIN
       )
     } catch {
       /* payload not clonable */
@@ -1628,7 +1634,7 @@
   // ---------------------------------------------------------- inbound commands
   window.addEventListener('message', (ev) => {
     const msg = ev.data
-    if (!msg || msg.source !== SRC_PANEL || msg.v !== PV) return
+    if (ev.source !== window || !msg || msg.source !== SRC_PANEL || msg.v !== PV) return
     const player = getPlayer(msg.playerId)
     switch (msg.type) {
       case IN.PING:
