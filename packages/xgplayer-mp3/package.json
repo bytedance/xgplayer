@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp3",
-  "version": "3.0.26",
+  "version": "3.0.27",
   "description": "xgplayer streaming plugin for standalone MP3 files",
   "main": "dist/index.min.js",
   "module": "es/index.js",
@@ -39,8 +39,8 @@
   "license": "MIT",
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "xgplayer-streaming-shared": "3.0.26",
-    "xgplayer-transmuxer": "3.0.26"
+    "xgplayer-streaming-shared": "3.0.27",
+    "xgplayer-transmuxer": "3.0.27"
   },
   "peerDependencies": {
     "xgplayer": ">=3.0.0",

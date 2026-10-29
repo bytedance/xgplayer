@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.27](https://github.com/bytedance/xgplayer/compare/v3.0.26...v3.0.27) (2026-10-28)
+
+### Bug Fixes
+
+- **hls:** preserve playlist path for query-only URIs ([5af9e7d](https://github.com/bytedance/xgplayer/commit/5af9e7d7c98b76f33b35a9c8e7b729664923862b))
+- **monorepo:** Include package changelogs in npm distributions. ([87cf0de](https://github.com/bytedance/xgplayer/commit/87cf0ded4749631e650dc8517c6bff38557d5e36))
+- **transmuxer:** Fix HEVC decode failures across implicit stream discontinuities. ([d72119a](https://github.com/bytedance/xgplayer/commit/d72119a14514711b5cf4ea35a33e2a6fcc53a4fc))
+
 ## [3.0.26](https://github.com/bytedance/xgplayer/compare/v3.0.25...v3.0.26) (2026-07-15)
 
 ### Maintenance

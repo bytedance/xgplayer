@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.27](https://github.com/bytedance/xgplayer/compare/v3.0.26...v3.0.27) (2026-10-28)
+
+### Bug Fixes
+
+- **xgplayer:** clear playback cache during state reset ([921c238](https://github.com/bytedance/xgplayer/commit/921c238a4ac28c2fef9dd913cf95a0f1081027ad))
+- **xgplayer:** correct plugin hook handler invocation ([78af75a](https://github.com/bytedance/xgplayer/commit/78af75a5f933eb378b743dbca8fcddbde31b9c4c)), closes [#1934](https://github.com/bytedance/xgplayer/issues/1934)
+- **xgplayer:** fix deepcopy deepMerge 潜在的原型链污染问题 ([82d3e29](https://github.com/bytedance/xgplayer/commit/82d3e29525b11c006cdc6622075c292d54b549d2))
+- **xgplayer:** Fixed blurry or missing progress-preview borders at fractional display scales. ([5300ca3](https://github.com/bytedance/xgplayer/commit/5300ca36d0e941ac98a4235277038b50488cd36c))
+- **xgplayer:** guard missing screen orientation ([52eaa3f](https://github.com/bytedance/xgplayer/commit/52eaa3fc451db1ee77dbb95154544925fad11fa5))
+
 ## [3.0.26](https://github.com/bytedance/xgplayer/compare/v3.0.25...v3.0.26) (2026-07-15)
 
 ### Maintenance

@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.27](https://github.com/bytedance/xgplayer/compare/v3.0.26...v3.0.27) (2026-10-28)
+
+### Features
+
+- range请求，增加 数据范围是否匹配检测 ([03a109c](https://github.com/bytedance/xgplayer/commit/03a109c95eaa456cf23c0b6c0c167dfc22c7fb26))
+- support dynamic-timeout timeoutRatio, xhr fix endless request because of unpected net response ([2c89a2c](https://github.com/bytedance/xgplayer/commit/2c89a2c35cee4f69e5331e3a3cb149ce530c80d4))
+- 优化range请求时，返回200状态码问题 ([e43c93b](https://github.com/bytedance/xgplayer/commit/e43c93b458c5909f678beaf0e3de72fc81db289d))
+
+### Bug Fixes
+
+- **monorepo:** Include package changelogs in npm distributions. ([87cf0de](https://github.com/bytedance/xgplayer/commit/87cf0ded4749631e650dc8517c6bff38557d5e36))
+- **xgplayer-streaming-shared:** Expose ManagedMediaSource buffer eviction changes for playback recovery plugins. ([6ef9a38](https://github.com/bytedance/xgplayer/commit/6ef9a3810fe6fdab30a07268279f2bb4c62e7ac5))
+
 ## [3.0.26](https://github.com/bytedance/xgplayer/compare/v3.0.25...v3.0.26) (2026-07-15)
 
 ### Maintenance

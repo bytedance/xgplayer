@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.0.27](https://github.com/bytedance/xgplayer/compare/v3.0.26...v3.0.27) (2026-10-28)
+
+### Features
+
+- **mp3:** Add standalone MP3 MSE playback with Range seek and native fallback. ([65f8649](https://github.com/bytedance/xgplayer/commit/65f86494c60872332e150c731925c06f456a2478))
+
+### Bug Fixes
+
+- **monorepo:** Harden cast lifecycle handling and TypeScript buffer compatibility. ([2f135fc](https://github.com/bytedance/xgplayer/commit/2f135fc492e0adf3ece53babb043edf3804d7b21))
+- **monorepo:** Include package changelogs in npm distributions. ([87cf0de](https://github.com/bytedance/xgplayer/commit/87cf0ded4749631e650dc8517c6bff38557d5e36))
+- **transmuxer:** accept minimum 4-byte UTF-8 sequence U+10000 ([ea781cd](https://github.com/bytedance/xgplayer/commit/ea781cdee035873ad43a802c4ee23ad65d7d937f))
+- **transmuxer:** Avoid emitting zero-duration video samples for PES data without timestamps. ([65b6a0e](https://github.com/bytedance/xgplayer/commit/65b6a0ec223e3a92d55c4453df419197806967d4))
+- **transmuxer:** Fix HEVC decode failures across implicit stream discontinuities. ([d72119a](https://github.com/bytedance/xgplayer/commit/d72119a14514711b5cf4ea35a33e2a6fcc53a4fc))
+- **transmuxer:** Keep video samples after timestamp recovery. ([4aabb65](https://github.com/bytedance/xgplayer/commit/4aabb65d5d3ef5cf695b035b2c8d388c3edea8c5))
+- **xgplayer-transmuxer:** Drop malformed AAC ADTS frames with no payload and avoid using malformed leading audio samples as gap-fill fallback. ([9bd0e3f](https://github.com/bytedance/xgplayer/commit/9bd0e3faa049641208902b770c42f03fcfe32d70))
+- **xgplayer-transmuxer:** Fix Exp-Golomb reads at buffer boundaries. ([ba30105](https://github.com/bytedance/xgplayer/commit/ba3010507e82af292ea62c72d2b02d1fb50efd6a))
+- **xgplayer-transmuxer:** Improve transmuxer TypeScript declaration coverage for codec and package entry exports. ([4a1ae54](https://github.com/bytedance/xgplayer/commit/4a1ae5418e0c5f05cca890f63b0ed7f44b538c39))
+
 ## [3.0.26](https://github.com/bytedance/xgplayer/compare/v3.0.25...v3.0.26) (2026-07-15)
 
 ### Maintenance

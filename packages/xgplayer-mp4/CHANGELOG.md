@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.27](https://github.com/bytedance/xgplayer/compare/v3.0.26...v3.0.27) (2026-10-28)
+
+### Features
+
+- **mp4:** xgplayer-mp4 can now play on MSE/ManagedMediaSource (iOS 17.1+) via `preferMMS`, instead of always degrading to native video. ([322888e](https://github.com/bytedance/xgplayer/commit/322888e52ce2f5867468b903c3534702016621e7)), closes [#1932](https://github.com/bytedance/xgplayer/issues/1932)
+
+### Bug Fixes
+
+- **monorepo:** Include package changelogs in npm distributions. ([87cf0de](https://github.com/bytedance/xgplayer/commit/87cf0ded4749631e650dc8517c6bff38557d5e36))
+- **mp4:** Fix fragmented MP4 playback, source switching, buffer eviction, and stall recovery in xgplayer-mp4. ([3c417a5](https://github.com/bytedance/xgplayer/commit/3c417a580e1204631bf426823270a205abfd08a6)), closes [#1875](https://github.com/bytedance/xgplayer/issues/1875) [#1911](https://github.com/bytedance/xgplayer/issues/1911) [#1932](https://github.com/bytedance/xgplayer/issues/1932) [#1935](https://github.com/bytedance/xgplayer/issues/1935)
+
 ## [3.0.26](https://github.com/bytedance/xgplayer/compare/v3.0.25...v3.0.26) (2026-07-15)
 
 ### Maintenance
