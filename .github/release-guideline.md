@@ -115,7 +115,7 @@ Jobs:
 3. `commit_to_main` _(stable only)_
    - Applies the prepared patch to the latest `main` without regenerating metadata
    - Rejects conflicting patches and version downgrades; skips an already-applied patch
-   - Uses a short-lived `xgplayer-release-bot` installation token to commit and push only release metadata
+   - Commits and pushes release metadata through `xgplayer-release-bot`
 4. `release_npm`
    - Validates and publishes the exact `.tgz` files produced by `build`
    - Waits for the stable main commit; prereleases skip it
@@ -126,7 +126,5 @@ Jobs:
    - Reports the overall release status
 
 Private packages are excluded from version updates, changelogs and npm publishing. Dependencies on main are preserved by applying the prepared patch; changes overlapping release metadata stop the release for review. The original tag is never moved.
-
-The stable metadata job requires repository variable `RELEASE_APP_ID`, repository secret `RELEASE_APP_PRIVATE_KEY`, and `xgplayer-release-bot` in the `main` branch protection bypass list. The App is installed only on this repository with `Contents: read and write`; the default `GITHUB_TOKEN` remains read-only.
 
 Build failure prevents main writes. npm failure leaves the stable metadata commit on main; rerun failed jobs to reuse the prepared artifacts and finish publishing.
