@@ -115,7 +115,7 @@ yarn changelog --from v3.0.25 --to v3.0.26 --releaseVersion 3.0.26
 3. `commit_to_main`（仅稳定版执行）
    - 向最新 `main` 应用同一份补丁，不重新生成元数据
    - 拒绝冲突及版本回退，已应用的补丁自动跳过
-   - 仅提交并推送发布元数据
+   - 使用 `xgplayer-release-bot` 的短期 installation token，仅提交并推送发布元数据
 4. `release_npm`
    - 校验并发布 `build` 生成的原始 `.tgz`
    - 正式版等待 main 提交成功，预发布跳过该提交
@@ -126,5 +126,7 @@ yarn changelog --from v3.0.25 --to v3.0.26 --releaseVersion 3.0.26
    - 汇总并展示发布状态
 
 私有包不参与版本更新、CHANGELOG 生成和 npm 发布。通过应用准备好的补丁保留 main 后续依赖变更；若改动与发布元数据重叠则终止发布，等待处理。原始 tag 不会移动。
+
+正式版元数据 job 依赖仓库 Variable `RELEASE_APP_ID`、仓库 Secret `RELEASE_APP_PRIVATE_KEY`，并要求将 `xgplayer-release-bot` 加入 `main` 分支保护的 bypass 名单。该 App 仅安装到当前仓库，权限为 `Contents: read and write`；默认 `GITHUB_TOKEN` 保持只读。
 
 构建失败不会写入 main。npm 失败时正式版元数据提交会留在 main；重跑失败 job 可复用已生成的 artifact 继续发布。
