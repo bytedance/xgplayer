@@ -115,7 +115,7 @@ yarn changelog --from v3.0.25 --to v3.0.26 --releaseVersion 3.0.26
 3. `commit_to_main`（仅稳定版执行）
    - 向最新 `main` 应用同一份补丁，不重新生成元数据
    - 拒绝冲突及版本回退，已应用的补丁自动跳过
-   - 仅提交并推送发布元数据
+   - 由 `xgplayer-release-bot` 提交并推送发布元数据
 4. `release_npm`
    - 校验并发布 `build` 生成的原始 `.tgz`
    - 正式版等待 main 提交成功，预发布跳过该提交

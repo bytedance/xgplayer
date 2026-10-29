@@ -93,14 +93,23 @@ jobs:
     needs: [prepare_release, build]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     concurrency:
       group: release-main-metadata
       cancel-in-progress: false
     steps:
+      - name: Create release App token
+        id: release-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Checkout fixed release source
         uses: actions/checkout@v6
         with:
+          token: ${{ steps.release-token.outputs.token }}
           ref: ${{ needs.prepare_release.outputs.source_sha }}
           fetch-depth: 0
 
@@ -118,14 +127,13 @@ jobs:
 
       - name: Commit and push release metadata
         run: |
-          git config user.name "$RELEASE_ACTOR"
-          git config user.email "${RELEASE_ACTOR}@users.noreply.github.com"
+          git config user.name "xgplayer-release-bot[bot]"
+          git config user.email "349736173+xgplayer-release-bot[bot]@users.noreply.github.com"
           if ! git diff --cached --quiet; then
             git -c core.hooksPath=/dev/null commit -m "chore(release): release version $TAG"
             git push origin HEAD:main
           fi
         env:
-          RELEASE_ACTOR: ${{ github.actor }}
           TAG: ${{ needs.prepare_release.outputs.tag }}
 
   release_npm:
