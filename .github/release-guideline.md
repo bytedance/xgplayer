@@ -115,7 +115,7 @@ Jobs:
 3. `commit_to_main` _(stable only)_
    - Applies the prepared patch to the latest `main` without regenerating metadata
    - Rejects conflicting patches and version downgrades; skips an already-applied patch
-   - Commits and pushes only release metadata
+   - Commits and pushes release metadata through `xgplayer-release-bot`
 4. `release_npm`
    - Validates and publishes the exact `.tgz` files produced by `build`
    - Waits for the stable main commit; prereleases skip it
