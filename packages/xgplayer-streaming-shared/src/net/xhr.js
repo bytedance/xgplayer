@@ -61,6 +61,7 @@ export class XhrLoader extends EventEmitter {
     this._runing = true
     this._vid = req.vid || req.url
     this._responseType = req.responseType
+    this._transformResponse = req.transformResponse
     this._dynamicTimeoutIns = req.dynamicTimeoutIns
     this._firstRtt = -1
     this._onTimeout = req.onTimeout
