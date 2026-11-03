@@ -29,8 +29,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer-subtitles"
   },
+  "homepage": "https://h5player.bytedance.com/",
   "author": "hongqiongxing@bytedance.com",
   "license": "MIT",
   "devDependencies": {},

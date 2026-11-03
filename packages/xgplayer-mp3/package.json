@@ -24,8 +24,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer-mp3"
   },
+  "homepage": "https://h5player.bytedance.com/",
   "keywords": [
     "mp3",
     "mpeg-audio",

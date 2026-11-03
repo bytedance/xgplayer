@@ -21,8 +21,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer-dash"
   },
+  "homepage": "https://h5player.bytedance.com/",
   "keywords": [
     "MPEG-DASH",
     "mp4",

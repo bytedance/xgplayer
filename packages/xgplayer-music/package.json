@@ -28,8 +28,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer-music"
   },
+  "homepage": "https://h5player.bytedance.com/",
   "keywords": [
     "mp4",
     "fmp4",

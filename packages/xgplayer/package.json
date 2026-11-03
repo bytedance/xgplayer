@@ -34,8 +34,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer"
   },
+  "homepage": "https://h5player.bytedance.com/",
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
