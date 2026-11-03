@@ -20,8 +20,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/xgplayer.git"
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer-mp4-loader"
   },
+  "homepage": "https://h5player.bytedance.com/",
   "license": "MIT",
   "unpkgFiles": [
     "dist"
