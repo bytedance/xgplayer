@@ -366,7 +366,9 @@ export class XhrLoader extends EventEmitter {
   }
 
   _getRangeResponseMismatchReason (headers) {
-    if (!this._rangeRequestMustReturn206) return false
+    // Whether a declared Content-Range/Content-Length actually matches the
+    // requested bytes is independent of rangeRequestMustReturn206, which
+    // only controls whether a non-206 response is permitted.
     return getRangeResponseMismatchReason(
       this._currentRequestRange || this._range,
       headers?.['content-range'],
