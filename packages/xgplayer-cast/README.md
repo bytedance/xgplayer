@@ -1,30 +1,34 @@
 # xgplayer-cast
 
-## Introduction
+`xgplayer-cast` provides AirPlay and Chromecast casting for xgplayer.
 
+## Installation
 
+```bash
+npm install xgplayer xgplayer-cast
+```
 
-### Usage
+## Usage
 
-```javascript
-import Player from "xgplayer"
-import CastPlugin from "xgplayer-cast"
-import "xgplayer/dist/xgplayer.min.css"
+```js
+import Player from 'xgplayer'
+import CastPlugin from 'xgplayer-cast'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-    id,
-    url,
-    autoplay: true,
-    plugins: [CastPlugin],
-    cast: {
-      showIcon: true,
-      airplay: true,
-      chromecast: true
-    }
+  id,
+  url,
+  autoplay: true,
+  plugins: [CastPlugin],
+  cast: {
+    showIcon: true,
+    airplay: true,
+    chromecast: true
+  }
 })
 ```
 
-## Android / Chromecast Usage
+## Android and Chromecast
 
 ```js
 // Minimal — uses built-in default Sender SDK URL
@@ -53,7 +57,7 @@ const player = new Player({
 })
 ```
 
-#### Config
+### Configuration
 
 | Name | Types | Default | Description |
 | ------ | -------- | ----- | ----- |

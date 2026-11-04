@@ -1,29 +1,28 @@
-# Introduction
-  A extension plugin which integrated [hls.js](https://github.com/video-dev/hls.js) based on xgplayer
+# xgplayer-hls.js
 
-# How to use
-### install
+`xgplayer-hls.js` integrates [hls.js](https://github.com/video-dev/hls.js)
+with xgplayer.
 
-```shell
-$ npm istall xgplayer@alpha
-$ npm istall xgplayer-hls.js@alpha
+## Installation
+
+```bash
+npm install xgplayer xgplayer-hls.js
 ```
-### Usage
-html
+
+## Usage
+
 ```html
-  <div id="vs"></div>
+<div id="player"></div>
 ```
-js
-```javascript
+
+```js
 import Player from 'xgplayer'
-import 'xgplayer/dist/xgplayer.min.css'
 import HlsJsPlugin from 'xgplayer-hls.js'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-        id: 'vs',
-        url: '../xgplayer-demo.hls',
-        plugins: [HlsJsPlugin],
-        hlsJsPlugin: {} // config for plugin HlsJsPlugin
-        // If use CDN loading,you can Get the plugin through window.HlsJsPlugin
-    })
+  id: 'player',
+  url: 'https://example.com/video.m3u8',
+  plugins: [HlsJsPlugin]
+})
 ```

@@ -1,6 +1,6 @@
 # xgplayer-music
 
-`xgplayer-music` 是 xgplayer 3.x 的音乐播放界面与播放列表 preset。它将播放器切换为
+`xgplayer-music` 为 xgplayer 提供音乐播放界面与播放列表 preset。它将播放器切换为
 音频模式，并提供封面、标题、上一首、下一首、快退、快进、循环模式、AB 循环、歌词
 和频谱分析等音乐场景能力。
 
@@ -21,16 +21,8 @@ xgplayer-music
 
 ## 安装
 
-使用同一主版本的稳定包：
-
 ```bash
-yarn add xgplayer@3 xgplayer-music@3
-```
-
-或者：
-
-```bash
-npm install xgplayer@3 xgplayer-music@3
+npm install xgplayer xgplayer-music
 ```
 
 ## 基础用法
@@ -113,7 +105,7 @@ streaming plugin 在初始化阶段拿到首个媒体地址。
 ### 与 xgplayer-mp3 组合
 
 ```bash
-yarn add xgplayer@3 xgplayer-music@3 xgplayer-mp3@3
+npm install xgplayer xgplayer-music xgplayer-mp3
 ```
 
 ```js

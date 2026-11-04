@@ -1,32 +1,39 @@
 # xgplayer-ads
 
-## 简介
+`xgplayer-ads` 为 xgplayer 提供广告接入能力。插件集成了
+[Google IMA](https://developers.google.com/interactive-media-ads)、
+`Google DAI`<sup>(待开发)</sup> 等 SDK，提供符合 VAST、VMAP、VPAID 等标准的
+广告接入方式。
 
-`Ads` 插件主要是为了提供用户快速接入广告的能力。插件集成了 `Google IMA`、`Google DAI`<sup>(待开发)</sup> 等SDK，提供了符合VAST、VMAP、VPAID等标准的广告接入方式。
+## 安装
 
-### 使用方式
+```bash
+npm install xgplayer xgplayer-ads
+```
 
-```javascript
-import Player from "xgplayer"
-import AdPlugin, { ADEvents } from "xgplayer-ads"
-import "xgplayer/dist/xgplayer.min.css"
+## 使用
+
+```js
+import Player from 'xgplayer'
+import AdPlugin, { ADEvents } from 'xgplayer-ads'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-    id,
-    url,
-    autoplay: true,
-    plugins: [AdPlugin],
-    ad: {
-      adType: 'ima',
-      ima: {
-        locale: 'zh_cn',
-        adsRequest: createAdsRequest()
-      }
+  id,
+  url,
+  autoplay: true,
+  plugins: [AdPlugin],
+  ad: {
+    adType: 'ima',
+    ima: {
+      locale: 'zh_cn',
+      adsRequest: createAdsRequest()
     }
+  }
 })
 ```
 
-#### Ad Config
+## 配置
 
 | 配置字段 | 类型 | 默认值 | 含义 |
 | ------ | -------- | ----- | ----- |
@@ -36,7 +43,7 @@ const player = new Player({
 
 
 <a name="ima_configure"></a>
-#### IMA Config
+### IMA 配置
 | 配置字段 | 类型 | 默认值 | 含义 |
 | ------ | -------- | ----- | ----- |
 | debug | boolean | false | 在插件加载前，开发者可自行引入加载IMA SDK。如果插件检测到没有 `google.ima` 对象时，插件内会自动加载IMA SDK，此开关为`true`时加载debug版本IMA SDK |
@@ -47,11 +54,11 @@ const player = new Player({
 | adTagUrl | string | - | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest) 的一个参数，指定向广告服务器请求地址。当 `adsRequest` \| `adsResponse` 参数被设置时，此参数不生效。 |
 
 
-### 事件（Events）
+## 事件
 
 广告事件独立于普通视频播放事件，可通过 on 监听
 
-```javascript
+```js
 player.on('ad_play', ()=>{
     // do something
 })
@@ -77,7 +84,7 @@ TODO: 待调研 -->
 贴片广告UI在实施时，需要获取广告的状态，并且可能和主视频的UI耦合。在具体实施时应权衡影响，在不集成广告插件时应最小化减少对主包体积的影响，需制定整体的设计原则。
 
 ### 设计要点
-1. AD UI完全独立于 xgplayer，以继承内置UI插件的功能独立实现，并复写部分需要修改的状态/事件等 
+1. AD UI完全独立于 xgplayer，以继承内置UI插件的功能独立实现，并复写部分需要修改的状态/事件等
 2. 内置广告UI管理器（AdUIManager），监听广告播放状态，响应广告UI变化。
 3. Xgplayer UI插件微调，以支持Ad插件，但内部不对广告状态进行特殊编码，只提供可以复写的能力。
 
@@ -92,7 +99,7 @@ TODO: 待调研 -->
 
 2. 广告事件
 
-```JavaScript
+```js
 import Events from "xgplayer"
 import AdPlugin, { ADEvents } from "xgplayer-ads"
 
@@ -109,7 +116,7 @@ adPlugin.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], () => {
 
 3. 广告方法调用
 
-```JavaScript
+```js
 import Events from "xgplayer"
 import AdPlugin, { ADEvents } from "xgplayer-ads"
 
@@ -136,7 +143,7 @@ SDK文档：https://developers.google.com/interactive-media-ads/docs/sdks/html5/
 
 通过调用 setLocale() 实现本地化, 更多细节见 [语言和区域本地化](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization)
 
-```javascript
+```js
 google.ima.settings.setLocale('zh-CN');
 ```
 
@@ -144,6 +151,6 @@ google.ima.settings.setLocale('zh-CN');
 
 请参考 [IAB VPAID](https://iabtechlab.com/standards/video-player-ad-interface-definition-vpaid/) 页面了解详情。
 
-```javascript
+```js
 google.ima.settings.setVpaidMode(google.ima.ImaSdkSettings.VpaidMode.ENABLED);
 ```

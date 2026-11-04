@@ -1,6 +1,7 @@
-# MP4Loader
+# xgplayer-mp4-loader
 
-MP4Loader 可以自定义加载单个 MP4 文件。
+`xgplayer-mp4-loader` 为 xgplayer 的 MP4 播放链路提供文件加载、Range 请求和分段
+读取能力。
 
 ## API
 
@@ -63,10 +64,6 @@ loader.downloadInfo // 网络下载信息数组
 // }
 loader.cache // loader 当前的 cache 对象
 ```
-
-### 方法
-
-#### loadMeta
 
 
 

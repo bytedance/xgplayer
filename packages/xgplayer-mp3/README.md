@@ -2,21 +2,15 @@
 
 English | [简体中文](./README.zh-CN.md)
 
-`xgplayer-mp3` is an xgplayer streaming plugin for standalone MP3 files. It
-loads data on demand with HTTP Range requests and provides MSE-based seeking
-for CBR and indexed VBR files. When the runtime or input is unsupported, the
-plugin falls back to native `<audio>` playback by default.
+`xgplayer-mp3` is an MSE streaming plugin for xgplayer that loads standalone
+MP3 files on demand. It uses HTTP Range requests and provides MSE-based seeking
+for CBR and indexed VBR files. When the runtime or input is unsupported, it
+falls back to native `<audio>` handling by default.
 
 ## Installation
 
 ```bash
 npm install xgplayer xgplayer-mp3
-```
-
-Or:
-
-```bash
-yarn add xgplayer xgplayer-mp3
 ```
 
 ## Basic usage
@@ -56,12 +50,12 @@ Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges
 ```
 
 If the server ignores the Range header and returns the complete file with
-`200`, playback still works, but the entire file is downloaded and retained in
-memory.
+`200`, the file still loads, but the entire response is downloaded and retained
+in memory.
 
 For a `206` response, JavaScript must be able to read a `Content-Range` header
 that contains the complete file size. Otherwise, the plugin falls back to
-native playback.
+native audio handling.
 
 ## Configuration
 
@@ -92,7 +86,7 @@ Common options:
 | `retryDelay` | `1000` | Delay between retries, in milliseconds |
 | `timeout` | `5000` | Timeout for one network request, in milliseconds |
 | `reqOptions` | `null` | Request options such as method, headers, and credentials |
-| `closeDowngrade` | `false` | Disable fallback to native playback after a fatal plugin error |
+| `closeDowngrade` | `false` | Disable fallback to native audio after a fatal plugin error |
 
 Advanced options:
 
@@ -141,7 +135,7 @@ if (MP3Plugin.isSupported()) {
 ```
 
 Manual detection is usually unnecessary. The plugin restores the original URL
-and playback state, then delegates to native `<audio>` playback when:
+and media state, then delegates to native `<audio>` when:
 
 - The runtime does not support `audio/mpeg` MSE.
 - The file is unsupported or has no reliable seek mapping.
@@ -176,10 +170,10 @@ families such as MPEG-4.
 
 ## How it works
 
-![xgplayer-mp3 playback pipeline](./docs/mp3-mse-flow.svg)
+![xgplayer-mp3 streaming pipeline](./docs/mp3-mse-flow.svg)
 
 The plugin probes ID3 data, MP3 frames, and Xing/Info/VBRI indexes. It then maps
-playback time to byte positions and loads frame-aligned data through HTTP Range
+media time to byte positions and loads frame-aligned data through HTTP Range
 requests.
 
 `xgplayer-mp3` follows the
@@ -197,5 +191,5 @@ Fatal errors are reported through the `playCatch` event:
 | `MP3_1` | Before the first data append completes |
 | `MP3_2` | After the first data append completes |
 
-With the default configuration, the plugin proceeds with native playback
-fallback after emitting the event.
+With the default configuration, the plugin proceeds with native fallback after
+emitting the event.

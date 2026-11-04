@@ -1,29 +1,28 @@
-# Introduction
-  A extension plugin based on xgplayer, it can support play dash video
+# xgplayer-dash
 
-# How to use
-### install
+`xgplayer-dash` is an MSE streaming plugin for xgplayer that supports
+MPEG-DASH streams.
 
-```shell
-$ npm istall xgplayer@alpha
-$ npm istall xgplayer-dash@alpha
+## Installation
+
+```bash
+npm install xgplayer xgplayer-dash
 ```
-### Usage
-html
+
+## Usage
+
 ```html
-  <div id="vs"></div>
+<div id="player"></div>
 ```
-js
-```javascript
+
+```js
 import Player from 'xgplayer'
-import 'xgplayer/dist/xgplayer.min.css'
 import DashPlugin from 'xgplayer-dash'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-        id: 'vs',
-        url: '../xgplayer-demo.hls',
-        plugins: [DashPlugin],
-        DashPlugin: {} // config for plugin DashPlugin
-        // If use CDN loading,you can Get the plugin through window.DashPlugin
-    })
+  id: 'player',
+  url: 'https://example.com/video.mpd',
+  plugins: [DashPlugin]
+})
 ```

@@ -2,20 +2,14 @@
 
 [English](./README.md) | 简体中文
 
-`xgplayer-mp3` 是面向独立 MP3 文件的 xgplayer 流式播放插件。它通过 HTTP
-Range 按需加载，并为 CBR 和带索引的 VBR 文件提供基于 MSE 的 seek 能力。
-当运行环境或文件不满足要求时，默认交由浏览器原生 `<audio>` 播放。
+`xgplayer-mp3` 是面向 xgplayer 的 MSE 流式插件，用于按需加载独立 MP3 文件。
+它通过 HTTP Range 加载，并为 CBR 和带索引的 VBR 文件提供基于 MSE 的 seek 能力。
+当运行环境或文件不满足要求时，默认交由浏览器原生 `<audio>` 处理。
 
 ## 安装
 
 ```bash
 npm install xgplayer xgplayer-mp3
-```
-
-或者：
-
-```bash
-yarn add xgplayer xgplayer-mp3
 ```
 
 ## 基础用法
@@ -167,7 +161,7 @@ MPEG Audio Version 与 Layer 是两个独立维度：
 
 ## 工作原理
 
-![xgplayer-mp3 playback pipeline](./docs/mp3-mse-flow.svg)
+![xgplayer-mp3 streaming pipeline](./docs/mp3-mse-flow.svg)
 
 插件首先探测 ID3、MP3 帧和 Xing/Info/VBRI 索引，再将播放时间映射到文件字节
 位置，通过 HTTP Range 加载帧对齐的数据。
