@@ -23,6 +23,7 @@ module.exports = {
   collectCoverageFrom: [
     'packages/xgplayer-dash/src/**/*.js',
     'packages/xgplayer-flv/src/**/*.js',
+    'packages/xgplayer-ffmpeg/src/**/*.ts',
     'packages/xgplayer-hls/src/**/*.{js,ts}',
     'packages/xgplayer-mp3/src/**/*.ts',
     'packages/xgplayer-mp4/src/**/*.ts',
@@ -153,6 +154,7 @@ module.exports = {
     '**/packages/xgplayer/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-dash/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-flv/__tests__/**/*.(spec|test).js',
+    '**/packages/xgplayer-ffmpeg/__tests__/**/*.(spec|test).(js|ts)',
     '**/packages/xgplayer-hls/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-mp4-loader/__tests__/**/*.(spec|test).js',
     '**/packages/xgplayer-mp3/__tests__/**/*.(spec|test).(js|ts)',
