@@ -1,29 +1,28 @@
-# Introduction
-  A extension plugin which integrated [shaka-player](https://www.npmjs.com/package/shaka-player) based on xgplayer
+# xgplayer-shaka
 
-# How to use
-### install
+`xgplayer-shaka` integrates
+[Shaka Player](https://www.npmjs.com/package/shaka-player) with xgplayer.
 
-```shell
-$ npm istall xgplayer@alpha
-$ npm istall xgplayer-shaka@alpha
+## Installation
+
+```bash
+npm install xgplayer xgplayer-shaka
 ```
-### Usage
-html
+
+## Usage
+
 ```html
-  <div id="vs"></div>
+<div id="player"></div>
 ```
-js
-```javascript
+
+```js
 import Player from 'xgplayer'
-import 'xgplayer/dist/xgplayer.min.css'
 import ShakaPlugin from 'xgplayer-shaka'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-    id: 'vs',
-    url: '../xgplayer-demo.hls',
-    plugins: [ShakaPlugin],
-    shakaPlugin: {} // config for plugin ShakaPlugin
-    // If use CDN loading,you can Get the plugin through window.ShakaPlugin
+  id: 'player',
+  url: 'https://example.com/video.mpd',
+  plugins: [ShakaPlugin]
 })
 ```

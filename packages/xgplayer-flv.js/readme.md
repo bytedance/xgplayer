@@ -1,37 +1,28 @@
-# Introduction
+# xgplayer-flv.js
 
-A extension plugin which integrated [flv.js](https://github.com/Bilibili/flv.js/) based on
-xgplayer, it can support play flv video
+`xgplayer-flv.js` integrates [flv.js](https://github.com/Bilibili/flv.js/)
+with xgplayer.
 
-# How to use
+## Installation
 
-### install
-
-```shell
-$ npm istall xgplayer
-$ npm istall xgplayer-flv.js
+```bash
+npm install xgplayer xgplayer-flv.js
 ```
 
-### Usage
-
-html
+## Usage
 
 ```html
-<div id="vs"></div>
+<div id="player"></div>
 ```
 
-js
-
-```javascript
+```js
 import Player from 'xgplayer'
-import 'xgplayer/dist/xgplayer.min.css'
 import FlvJsPlugin from 'xgplayer-flv.js'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-  id: 'vs',
-  url: '../xgplayer-demo.flv',
-  plugins: [FlvJsPlugin],
-  flvJsPlugin: {} // config for plugin FlvJsPlugin
-  // If use CDN loading,you can Get the plugin through window.FlvJsPlugin
+  id: 'player',
+  url: 'https://example.com/video.flv',
+  plugins: [FlvJsPlugin]
 })
 ```

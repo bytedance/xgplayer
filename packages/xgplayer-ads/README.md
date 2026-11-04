@@ -1,32 +1,39 @@
 # xgplayer-ads
 
-## Introduction
+`xgplayer-ads` provides ad integration for xgplayer. It integrates
+[Google IMA](https://developers.google.com/interactive-media-ads),
+`Google DAI`<sup>(planned)</sup>, and other SDKs to support standards such as
+VAST, VMAP, and VPAID.
 
-The `Ads` plugin mainly used to provide users with the ability to quickly integrate advertizement. The plugin integrates SDKs such as `Google IMA` and `Google DAI`<sup>(to be developed)</sup>, and provides ad integration capability that comply with VAST, VMAP, VPAID and other standards.
+## Installation
 
-### Usage
+```bash
+npm install xgplayer xgplayer-ads
+```
 
-```javascript
-import Player from "xgplayer"
-import AdPlugin, { ADEvents } from "xgplayer-ads"
-import "xgplayer/dist/xgplayer.min.css"
+## Usage
+
+```js
+import Player from 'xgplayer'
+import AdPlugin, { ADEvents } from 'xgplayer-ads'
+import 'xgplayer/dist/index.min.css'
 
 const player = new Player({
-    id,
-    url,
-    autoplay: true,
-    plugins: [AdPlugin],
-    ad: {
-      adType: 'ima',
-      ima: {
-        locale: 'zh_cn',
-        adsRequest: createAdsRequest()
-      }
+  id,
+  url,
+  autoplay: true,
+  plugins: [AdPlugin],
+  ad: {
+    adType: 'ima',
+    ima: {
+      locale: 'zh_cn',
+      adsRequest: createAdsRequest()
     }
+  }
 })
 ```
 
-#### Ad Config
+## Configuration
 
 | Name | Types | Default | Description |
 | ------ | -------- | ----- | ----- |
@@ -36,7 +43,7 @@ const player = new Player({
 
 
 <a name="ima_configure"></a>
-#### IMA Config
+### IMA configuration
 | Name | Types | Default | Description |
 | ------ | -------- | ----- | ----- |
 | debug | boolean | false | Before loading the plugin, developers can import and load the IMA SDK. If the plugin detects that there is no `google.ima` object, it will automatically load the IMA SDK. if `true`, the debug version of the IMA SDK is loaded. |
@@ -47,11 +54,11 @@ const player = new Player({
 | adTagUrl | string | - | [google.ima.AdsRequest](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js/google.ima.AdsRequest)'s parameter that specifies the address to request the ad server. This parameter has no effect when the `adsRequest` \| `adsResponse` parameter is set. |
 
 
-### Events
+## Events
 
 Ad events are independent of normal video playback events and can be monitored through `on` function.
 
-```javascript
+```js
 player.on('ad_play', ()=>{
     // do something
 })
@@ -80,7 +87,7 @@ SDK Document: https://developers.google.com/interactive-media-ads/docs/sdks/html
 
 Call setLocale() to localize language text, for more details see [Localizing for language and locale](https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/localization)
 
-```javascript
+```js
 google.ima.settings.setLocale('zh-CN');
 ```
 
@@ -88,7 +95,7 @@ google.ima.settings.setLocale('zh-CN');
 
 Please refer to the [IAB VPAID](https://iabtechlab.com/standards/video-player-ad-interface-definition-vpaid/) page for more details.
 
-```javascript
+```js
 google.ima.settings.setVpaidMode(google.ima.ImaSdkSettings.VpaidMode.ENABLED);
 ```
 
@@ -113,7 +120,7 @@ When implementing the linear ad UI, it is necessary to obtain the status of the 
 
 2. Events
 
-```JavaScript
+```js
 import Events from "xgplayer"
 import AdPlugin, { ADEvents } from "xgplayer-ads"
 
@@ -130,7 +137,7 @@ adPlugin.on([ADEvents.AD_PLAY, ADEvents.AD_PAUSE], () => {
 
 3. Methods
 
-```JavaScript
+```js
 import Events from "xgplayer"
 import AdPlugin, { ADEvents } from "xgplayer-ads"
 
