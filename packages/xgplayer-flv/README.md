@@ -50,20 +50,4 @@ Pass options through the player's `flv` field.
 | `maxLatency` | `10` | Live latency threshold that triggers chase-frame correction |
 | `fetchOptions` | `undefined` | Request headers, credentials, and other fetch options |
 | `preferMMS` | `false` | Prefer `ManagedMediaSource` when available |
-| `manualLoad` | `false` | Wait for an explicit `loadSource()` call |
-
-## Runtime access
-
-```js
-const flv = player.plugins.flv
-
-player.switchURL('https://example.com/next.flv', true)
-
-const stats = flv.getStats()
-const speed = flv.core.speedInfo()
-const buffer = flv.core.bufferInfo()
-```
-
-With `manualLoad: true`, call `player.plugins.flv.loadSource()` when loading
-may begin. Streaming diagnostics are forwarded through `core_event`; fatal
-errors are forwarded through the player's `error` event.
+| `manualLoad` | `false` | Defer loading until `player.plugins.flv.loadSource()` is called |

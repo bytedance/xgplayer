@@ -30,8 +30,6 @@ audio, and subtitle playlists.
 All cross-origin playlists, segments, keys, audio renditions, and subtitle
 resources must allow the page origin through CORS.
 
-## Runtime support
-
 `HlsPlugin.isSupported()` checks the plugin's MSE path. In an MMS-only runtime,
 the plugin leaves source handling to browser-native HLS unless
 `preferMMS: true` is configured.
@@ -57,23 +55,3 @@ Pass options through the player's `hls` field.
 
 Advanced hooks for playlist preprocessing, custom decryption, and timestamp
 repair are available through the typed `hls` configuration.
-
-## Runtime access
-
-```js
-const hls = player.plugins.hls
-
-await player.switchURL('https://example.com/next.m3u8')
-
-console.log(hls.core.streams)
-await hls.core.switchStream(streamId)
-await hls.core.switchAudioStream(audioStreamId)
-await hls.core.switchSubtitleStream('en')
-
-const stats = hls.getStats()
-const speed = hls.core.speedInfo()
-const buffer = hls.core.bufferInfo()
-```
-
-Streaming diagnostics are forwarded through `core_event`; fatal errors are
-forwarded through the player's `error` event.
