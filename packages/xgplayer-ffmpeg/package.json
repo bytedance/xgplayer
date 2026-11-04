@@ -1,0 +1,41 @@
+{
+  "name": "xgplayer-ffmpeg",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Experimental FFmpeg streaming plugin for xgplayer MSE",
+  "main": "dist/index.min.js",
+  "module": "es/index.js",
+  "typings": "es/index.d.ts",
+  "sideEffects": false,
+  "libd": {
+    "umdName": "FFmpegPlugin",
+    "buildFormats": [
+      {
+        "format": "umd",
+        "output": "index.min.js"
+      },
+      {
+        "format": "es",
+        "input": "packages/xgplayer-ffmpeg/src/worker/index.ts",
+        "output": "worker.js"
+      }
+    ],
+    "legacy": {
+      "enabled": false,
+      "esEnabled": false
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git",
+    "directory": "packages/xgplayer-ffmpeg"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "eventemitter3": "^4.0.7",
+    "xgplayer-streaming-shared": "3.0.27"
+  },
+  "peerDependencies": {
+    "xgplayer": ">=3.0.0"
+  }
+}
