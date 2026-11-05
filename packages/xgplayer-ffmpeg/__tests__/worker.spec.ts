@@ -1,367 +1,303 @@
 /** @jest-environment node */
-import { AsyncifyRunner } from '../src/worker/asyncify'
-import { type FFmpegCore, loadCore } from '../src/worker/core'
 import { StreamingWorker } from '../src/worker/runtime'
-import type { TranscodeRequest, WorkerEvent } from '../src/transcoder/protocol'
+import { loadCore, type CoreConfig, type FFmpegCore } from '../src/worker/core'
+import type { WorkerCommand, WorkerEvent } from '../src/transcoder/protocol'
 
-jest.mock('invalid-ffmpeg-core', () => ({ default: null }), { virtual: true })
-
-class MockCore implements FFmpegCore {
-  state = 0
-  phase = 0
-  count = 0
-  ret = -1
-  buffer = new Int8Array(8)
-  devices = new Map<number, Parameters<FFmpegCore['FS']['registerDevice']>[1]>()
-  FS = {
-    makedev: (_major: number, minor: number) => minor,
-    registerDevice: (id: number, device: Parameters<FFmpegCore['FS']['registerDevice']>[1]) => {
-      this.devices.set(id, device)
-    },
-    mkdev: jest.fn(),
-    open: jest.fn(() => ({ fd: 3 })),
-    ErrnoError: class extends Error {
-      constructor(code: number) { super(String(code)) }
-    }
+const mockRead = jest.fn().mockResolvedValue(new Uint8Array([1, 2]))
+const mockClose = jest.fn()
+const mockStats = { downloadedBytes: 131072, totalBytes: 1000000, cacheBytes: 131072, rangeRequests: 1 }
+jest.mock('../src/io/http-source', () => ({
+  HTTPSource: class {
+    size = 1000000
+    stats = mockStats
+    open = jest.fn().mockResolvedValue(undefined)
+    readAt = mockRead
+    close = mockClose
   }
-  asm = {
-    asyncify_get_state: () => this.state,
-    asyncify_start_unwind: () => { this.state = 1 },
-    asyncify_stop_unwind: () => { this.state = 0 },
-    asyncify_start_rewind: () => { this.state = 2 },
-    asyncify_stop_rewind: () => { this.state = 0 }
-  }
-  HEAPU32 = new Uint32Array(32)
-  DEFAULT_ARGS = ['ffmpeg', '-nostdin']
-  DEFAULT_ARGS_FFPROBE = ['ffprobe']
-  _malloc = jest.fn(() => 8)
-  stringsToPtr = jest.fn(() => 128)
-  setLogger = jest.fn<void, [Parameters<FFmpegCore['setLogger']>[0]]>()
-  setProgress = jest.fn()
-  streamProbe = jest.fn(() => {
-    this.setLogger.mock.calls.at(-1)?.[0]({ type: 'stdout', message: '{"format":{}}' })
-    this.ret = 0
-    return true
-  })
-  streamExec = jest.fn(() => {
-    while (true) {
-      if (this.phase === 0) {
-        const size = this.devices.get(0)?.read?.({ seekable: false }, this.buffer, 0, this.buffer.length)
-        if (this.state === 1) return false
-        this.count = size || 0
-        if (!this.count) break
-        this.phase = 1
-      }
-      if (this.phase === 1) {
-        this.devices.get(1)?.write?.({ seekable: false }, this.buffer, 0, this.count)
-        if (this.state === 1) return false
-        if (!this.readUntilEOF) break
-        this.phase = 0
-      }
-    }
-    this.ret = this.exitCode
-    return true
-  })
+}))
 
-  constructor(private readonly readUntilEOF = false, private readonly exitCode = 0) {}
+function setup(codec = 'wmav2') {
+  let callbacks!: CoreConfig
+  let kind = 1
+  const info = { codec, sampleRate: 44100, channels: 2, duration: 100 as number | null }
+  const core: FFmpegCore = {
+    HEAPU8: new Uint8Array([7, 8, 9, 10, 11, 12, 13, 14]),
+    UTF8ToString: (pointer) => pointer === 90
+      ? JSON.stringify(info) : 'native error',
+    ccall: jest.fn((name: string) => {
+      switch (name) {
+        case 'xp_create': return 1
+        case 'xp_metadata': return 90
+        case 'xp_error': return 91
+        case 'xp_rate': return 44100
+        case 'xp_channels': return 2
+        case 'xp_pull': return kind
+        case 'xp_length': return 3
+        case 'xp_data': return 2
+        case 'xp_start': return 80
+        case 'xp_end': return 81
+        case 'xp_bias': return 0.025
+        case 'xp_close':
+        case 'xp_release': return undefined
+        default: return 0
+      }
+    })
+  }
+  const factory = jest.fn(async (config: CoreConfig) => { callbacks = config; return core })
+  const post = jest.fn<void, [WorkerEvent, Transferable[]?]>()
+  const worker = new StreamingWorker(post, factory)
+  const request: Extract<WorkerCommand, { type: 'open' }> = {
+    type: 'open', id: 1, epoch: 1, source: 'https://example.com/a.wma',
+    ffmpeg: { workerURL: '/worker.js', coreURL: 'https://example.com/core.js', wasmURL: '/core.wasm' },
+    audio: { outputCodec: 'auto' }, segmentDuration: 1,
+    aacSupported: true, flacSupported: true
+  }
+  return { worker, core, factory, post, request, info, callbacks: () => callbacks,
+    setKind: (value: number) => { kind = value } }
 }
 
-async function flush() {
-  for (let i = 0; i < 20; i++) await Promise.resolve()
-}
-
-function setup(untilEOF = false, code = 0) {
-  const core = new MockCore(untilEOF, code)
-  const events: WorkerEvent[] = []
-  const worker = new StreamingWorker((event) => {
-    events.push(event)
-  })
-  const request: TranscodeRequest = {
-    type: 'start', source: 'https://example.com/audio.wma',
-    ffmpeg: { workerURL: '/worker.js', coreURL: '/core.js', wasmURL: '/core.wasm' },
-    args: ['-i', '/input'], inputArguments: []
-  }
-  return { core, worker, events, request }
-}
-
-describe('Asyncify HTTP streaming devices', () => {
-  afterEach(() => jest.restoreAllMocks())
-
-  test('outputs before EOF and stops reading while an output ACK is pending', async () => {
-    const cancel = jest.fn()
-    const reads = jest.fn()
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ReadableStream({
-      pull(controller) { reads(); controller.enqueue(new Uint8Array([255, 2])) }, cancel
-    }, { highWaterMark: 0 })))
-    const { worker, request, core, events } = setup()
-    const running = worker.run(request, async () => core)
-    await flush()
-    const output = events.find((event) => event.type === 'chunk')
-    expect(output).toMatchObject({ data: new Uint8Array([255, 2]), id: 1 })
-    expect(reads).toHaveBeenCalledTimes(1)
-    expect(events.some((event) => event.type === 'done')).toBe(false)
-    worker.acknowledge(999)
-    await flush()
-    expect(core.ret).toBe(-1)
-    worker.acknowledge(1)
-    await running
-    expect(events.at(-1)).toEqual({ type: 'done' })
-    expect(cancel).toHaveBeenCalled()
-    expect(core.stringsToPtr).toHaveBeenCalledWith([...core.DEFAULT_ARGS, ...request.args, 'pipe:3'])
-    expect(core.FS.open).toHaveBeenCalledWith('/output.mp4', 'w')
-    const stream = { seekable: true }
-    core.devices.get(0)?.open(stream)
-    expect(stream.seekable).toBe(false)
-    expect(() => core.devices.get(0)?.llseek()).toThrow('70')
+describe('native Worker pipeline', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockStats.downloadedBytes = 131072
+    mockRead.mockResolvedValue(new Uint8Array([1, 2]))
   })
 
-  test('retains partially consumed input and reports actual EOF', async () => {
-    const { request, core, events } = setup(true)
-    const source = Uint8Array.from({ length: 20 }, (_, i) => i)
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(source, { headers: { 'Content-Length': '20' } }))
-    const outputs: Uint8Array[] = []
-    const runtime = new StreamingWorker((event) => {
-      events.push(event)
-      if (event.type === 'chunk') {
-        outputs.push(event.data)
-        queueMicrotask(() => runtime.acknowledge(event.id))
-      }
-    })
-    await runtime.run(request, async () => core)
-    expect(Buffer.concat(outputs)).toEqual(Buffer.from(source))
-    const lastProgress = events.filter((event) => event.type === 'progress').at(-1)
-    expect(lastProgress).toMatchObject({ data: { downloadedBytes: 20, totalBytes: 20, inputEnded: true } })
-  })
-
-  test('publishes probed duration before unchanged output using the same HTTP stream', async () => {
-    const source = new Uint8Array([0, 255, 2, 3, 4])
-    const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(source))
-    const { request, core, events } = setup()
-    request.source = 'https://example.com/media'
-    core.buffer = new Int8Array(source.length)
-    core.streamProbe.mockImplementation(() => {
-      const size = core.devices.get(0)?.read?.({ seekable: false }, core.buffer, 0, source.length)
-      if (core.state === 1) return false
-      expect(size).toBe(source.length)
-      core.setLogger.mock.calls.at(-1)?.[0]({
-        type: 'stdout', message: '{"format":{"duration":"728.084"}}'
-      })
-      core.ret = 0
-      return true
-    })
-    const outputs: Uint8Array[] = []
-    const runtime = new StreamingWorker((event) => {
-      events.push(event)
-      if (event.type === 'chunk') {
-        outputs.push(event.data)
-        queueMicrotask(() => runtime.acknowledge(event.id))
-      }
-    })
-    await runtime.run(request, async () => core)
-    expect(events.find((event) => event.type === 'metadata')).toMatchObject({
-      duration: 728.084
-    })
-    expect(events.findIndex((event) => event.type === 'metadata')).toBeLessThan(
-      events.findIndex((event) => event.type === 'chunk')
-    )
-    expect(events.filter((event) => event.type === 'progress').at(-1))
-      .toMatchObject({ data: { inputEnded: false } })
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(Buffer.concat(outputs)).toEqual(Buffer.from(source))
-    expect(core.stringsToPtr).toHaveBeenCalledWith([
-      ...core.DEFAULT_ARGS_FFPROBE, '-v', 'error', '-probesize', '65536',
-      '-analyzeduration', '1000000', '-show_entries', 'format=duration',
-      '-of', 'json', '/input'
-    ])
-    expect(events.at(-1)).toEqual({ type: 'done' })
-  })
-
-  test('splits large output into chunks of at most 64 KiB with one ACK at a time', async () => {
-    const { request, core, events } = setup()
-    core.buffer = new Int8Array(140000)
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array(140000)))
-    const runtime = new StreamingWorker((event) => {
-      events.push(event)
-      if (event.type === 'chunk') queueMicrotask(() => runtime.acknowledge(event.id))
-    })
-    await runtime.run(request, async () => core)
-    expect(events.filter((event) => event.type === 'chunk').map((event) => event.data.length))
-      .toEqual([65536, 65536, 8928])
-  })
-
-  test('uses the actual output descriptor as an explicitly nonseekable pipe', async () => {
-    const { request, core, worker, events } = setup()
-    core.FS.open.mockReturnValue({ fd: 7 })
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array()))
-    await worker.run(request, async () => core)
-    expect(core.stringsToPtr).toHaveBeenLastCalledWith([
-      ...core.DEFAULT_ARGS, ...request.args, 'pipe:7'
-    ])
-    expect(events.at(-1)).toEqual({ type: 'done' })
-  })
-
-  test('replays consumed probe bytes on a native unknown-duration failure', async () => {
-    const { request, core, events } = setup(true)
-    const source = new Uint8Array([1, 2, 3, 4])
-    const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(source))
-    core.streamProbe.mockImplementation(() => {
-      core.devices.get(0)?.read?.({ seekable: false }, core.buffer, 0, core.buffer.length)
-      if (core.state === 1) return false
-      core.ret = 1
-      return true
-    })
-    const output: Uint8Array[] = []
-    const runtime = new StreamingWorker((event) => {
-      events.push(event)
-      if (event.type === 'chunk') {
-        output.push(event.data)
-        queueMicrotask(() => runtime.acknowledge(event.id))
-      }
-    })
-    await runtime.run(request, async () => core)
-    expect(Buffer.concat(output)).toEqual(Buffer.from(source))
-    expect(events.some((event) => event.type === 'metadata')).toBe(false)
-    expect(events.at(-1)).toEqual({ type: 'done' })
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-  })
-
-  test.each(['trap', 'json'])('fails a broken native probe %s before transcoding', async (mode) => {
-    const { worker, request, core, events } = setup()
-    const cancel = jest.fn()
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ReadableStream({ cancel })))
-    core.streamProbe.mockImplementation(() => {
-      if (mode === 'trap') throw new WebAssembly.RuntimeError('Probe trap')
-      core.setLogger.mock.calls.at(-1)?.[0]({ type: 'stdout', message: 'invalid JSON' })
-      core.ret = 0
-      return true
-    })
-    await worker.run(request, async () => core)
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage: 'runtime' })
-    expect(core.streamExec).not.toHaveBeenCalled()
-    expect(cancel).toHaveBeenCalledTimes(1)
-  })
-
-  test.each(['length', 'stream'])('enforces an explicit limit from %s and cancels the response', async (mode) => {
-    const cancel = jest.fn()
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ReadableStream({
-      start(controller) { controller.enqueue(new Uint8Array([1, 2, 3])) }, cancel
-    }), { headers: mode === 'length' ? { 'Content-Length': '3' } : {} }))
-    const { worker, request, core, events } = setup()
-    request.maxInputBytes = 2
-    await worker.run(request, async () => core)
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage: 'download', message: 'Input exceeds 2 bytes' })
-    expect(cancel).toHaveBeenCalled()
-    expect(core.streamExec).toHaveBeenCalledTimes(mode === 'length' ? 0 : 1)
-  })
-
-  test('reports network read failures after core initialization as download errors', async () => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ReadableStream({
-      pull(controller) { controller.error(new Error('Connection lost')) }
-    })))
-    const { worker, request, core, events } = setup()
-    await worker.run(request, async () => core)
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage: 'download' })
-  })
-
-  test('forwards fetch options and rejects HTTP errors without loading WASM', async () => {
-    const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 403 }))
-    const { worker, request, core, events } = setup()
-    request.requestOptions = { credentials: 'include' }
-    const factory = jest.fn(async () => core)
-    await worker.run(request, factory)
-    expect(fetchMock).toHaveBeenCalledWith(request.source, request.requestOptions)
-    expect(factory).not.toHaveBeenCalled()
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage: 'download', message: 'Media request failed: HTTP 403' })
-  })
-
-  test.each(['runtime', 'transcode'] as const)('reports %s failures with their stage', async (stage) => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array()))
-    const { worker, request, core, events } = setup(false, 1)
-    await worker.run(request, async () => {
-      if (stage === 'runtime') throw new Error('WASM unavailable')
-      return core
-    })
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage })
-  })
-
-  test('rejects a duplicate source without initializing another core', async () => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array()))
-    const { worker, request, core, events } = setup()
-    const factory = jest.fn(async () => core)
-    await worker.run(request, factory)
-    await worker.run(request, factory)
+  test('loads one module and reports actual output parameters across source changes', async () => {
+    const { worker, factory, post, request, core } = setup()
+    await worker.receive(request)
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'opened', metadata: expect.objectContaining({ duration: 100, sampleRate: 44100, channels: 2, codec: 'aac' })
+    }))
+    await worker.receive({ ...request, id: 2, epoch: 2 })
     expect(factory).toHaveBeenCalledTimes(1)
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage: 'runtime', message: 'Worker already received a source' })
+    expect(core.ccall).toHaveBeenCalledWith('xp_close', null, ['number'], [1])
+    expect(mockClose).toHaveBeenCalled()
   })
 
-  test('preserves input statistics when the core emits transcoding progress', async () => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array(), { headers: { 'Content-Length': '0' } }))
-    const { worker, request, core, events } = setup()
-    core.streamExec.mockImplementation(() => {
-      const callback = core.setProgress.mock.calls[0]?.[0] as ((event: { progress: number; time: number }) => void) | undefined
-      callback?.({ progress: 1, time: 1000000 })
-      core.ret = 0
-      return true
+  test.each([true, false])('FLAC copies only when MSE supports it: %s', async (supported) => {
+    const { worker, request, core } = setup('flac')
+    request.flacSupported = supported
+    await worker.receive(request)
+    expect(core.ccall).toHaveBeenCalledWith('xp_configure', 'number',
+      ['number', 'number', 'number', 'number', 'number', 'number'], [1, supported ? 1 : 0, 0, 0, 0, 1])
+  })
+
+  test('an explicit rate change encodes instead of silently copying FLAC', async () => {
+    const { worker, request, core } = setup('flac')
+    request.audio = { sampleRate: 16000 }
+    await worker.receive(request)
+    expect(core.ccall).toHaveBeenCalledWith('xp_configure', 'number',
+      ['number', 'number', 'number', 'number', 'number', 'number'], [1, 0, 16000, 0, 0, 1])
+  })
+
+  test('returns one owned heap copy with the exact source-to-MP4 offset', async () => {
+    const { worker, request, core, post, setKind } = setup()
+    await worker.receive(request)
+    setKind(2)
+    await worker.receive({ type: 'pull', id: 2, epoch: 1 })
+    const event = post.mock.calls.at(-1)?.[0]
+    expect(event).toMatchObject({
+      type: 'output', output: { kind: 'media', start: 80, end: 81,
+        timestampOffset: -0.025, data: new Uint8Array([9, 10, 11]) }
     })
-    await worker.run(request, async () => core)
-    expect(events.filter((event) => event.type === 'progress').at(-1)).toMatchObject({
-      data: { progress: 1, time: 1000000, downloadedBytes: 0, totalBytes: 0, inputEnded: false }
+    if (event?.type !== 'output' || !('data' in event.output)) throw new Error('Missing segment')
+    expect(post.mock.calls.at(-1)?.[1]).toEqual([event.output.data.buffer])
+    expect(core.ccall).toHaveBeenCalledWith('xp_release', null, ['number'], [1])
+    core.HEAPU8.fill(0)
+    expect(event.output.data).toEqual(new Uint8Array([9, 10, 11]))
+  })
+
+  test('does no native processing or IO between explicit pull commands', async () => {
+    const { worker, request, core, setKind, post } = setup()
+    await worker.receive(request)
+    expect(core.ccall).not.toHaveBeenCalledWith('xp_pull', expect.anything(), expect.anything(), expect.anything(), expect.anything())
+    setKind(0)
+    await worker.receive({ type: 'pull', id: 2, epoch: 1 })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ output: { kind: 'yield' } }), undefined)
+    setKind(3)
+    await worker.receive({ type: 'pull', id: 3, epoch: 1 })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      output: { kind: 'eof' }, progress: expect.objectContaining({ inputEnded: true })
+    }), undefined)
+  })
+
+  test('cancel aborts JS reads immediately while the newer seek waits for WASM to return', async () => {
+    const { worker, request, core, callbacks, post } = setup()
+    await worker.receive(request)
+    let readSignal!: AbortSignal
+    let release!: () => void
+    const blocked = new Promise<number>((resolve) => { release = () => resolve(-1414092869) })
+    mockRead.mockImplementation((_offset, _length, signal: AbortSignal) => {
+      readSignal = signal
+      return new Promise((_resolve, reject) => signal.addEventListener('abort',
+        () => reject(new DOMException('cancel', 'AbortError')), { once: true }))
     })
+    const original = core.ccall
+    core.ccall = jest.fn((name, result, types, values, options) => {
+      if (name !== 'xp_pull') return original(name, result, types, values, options)
+      return callbacks().readSource(131072, 0, 2).then(async (code) => {
+        expect(code).toBe(-1414092869)
+        return blocked
+      })
+    })
+    const pulling = worker.receive({ type: 'pull', id: 2, epoch: 1 })
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+    const seeking = worker.receive({ type: 'seek', id: 3, epoch: 2, time: 80 })
+    expect(readSignal.aborted).toBe(true)
+    expect(core.ccall).not.toHaveBeenCalledWith('xp_seek', expect.anything(), expect.anything(), expect.anything(), expect.anything())
+    release()
+    await pulling
+    await seeking
+    expect(post).toHaveBeenLastCalledWith({ type: 'complete', id: 3, epoch: 2 })
+    expect(core.ccall).toHaveBeenCalledWith('xp_seek', 'number', ['number', 'number'], [1, 80], { async: true })
   })
 
-  test('reports cancellation errors before publishing done', async () => {
-    const cancel = jest.fn(() => { throw new Error('Cancel failed') })
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ReadableStream({ cancel })))
-    const { worker, request, core, events } = setup()
-    core.streamExec.mockImplementation(() => { core.ret = 0; return true })
-    await worker.run(request, async () => core)
-    expect(events.at(-1)).toMatchObject({ type: 'error', stage: 'download', message: 'Cannot close HTTP input' })
-    expect(events.some((event) => event.type === 'done')).toBe(false)
-    expect(cancel).toHaveBeenCalledTimes(1)
+  test('network errors remain errors at the native read boundary', async () => {
+    const { worker, request, callbacks } = setup()
+    await worker.receive(request)
+    mockRead.mockRejectedValueOnce(new Error('connection lost'))
+    expect(await callbacks().readSource(131072, 0, 2)).toBe(-5)
+    expect(callbacks().isInterrupted()).toBe(true)
   })
 
-  test('rejects runtime modules without a core factory', async () => {
-    await expect(loadCore({
-      workerURL: '/worker.js', coreURL: 'invalid-ffmpeg-core', wasmURL: '/core.wasm'
-    })).rejects.toThrow('must export a factory')
-  })
-})
-
-describe('Asyncify runner failures', () => {
-  test('rejects an unrecorded native command completion', async () => {
-    const core = new MockCore()
-    core.streamExec.mockImplementation(() => false)
-    await expect(new AsyncifyRunner(core).execute([])).rejects.toThrow('exit code')
+  test('explicit FLAC on incompatible input fails and frees native resources', async () => {
+    const { worker, request, post } = setup()
+    request.audio = { outputCodec: 'flac' }
+    await worker.receive(request)
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'error', stage: 'transcode' }))
+    expect(mockClose).toHaveBeenCalled()
   })
 
-  test('selects FFprobe defaults without changing the FFmpeg entry or arguments', async () => {
-    const core = new MockCore()
-    await new AsyncifyRunner(core).execute(['-of', 'json'], 'probe')
-    expect(core.stringsToPtr).toHaveBeenCalledWith(['ffprobe', '-of', 'json'])
-    expect(core.streamExec).not.toHaveBeenCalled()
-    expect(core.DEFAULT_ARGS).toEqual(['ffmpeg', '-nostdin'])
-  })
-  test('rejects stock cores without streaming preparation', () => {
-    const core = new MockCore()
-    Object.assign(core, { asm: {} })
-    expect(() => new AsyncifyRunner(core)).toThrow('prepared')
+  test('queued stale commands never enter native code', async () => {
+    const { worker, request, core } = setup()
+    await worker.receive(request)
+    const old = worker.receive({ type: 'seek', id: 2, epoch: 2, time: 20 })
+    const next = worker.receive({ type: 'seek', id: 3, epoch: 3, time: 80 })
+    await old
+    await next
+    expect(core.ccall).not.toHaveBeenCalledWith('xp_seek', 'number', ['number', 'number'], [1, 20], { async: true })
+    expect(core.ccall).toHaveBeenCalledWith('xp_seek', 'number', ['number', 'number'], [1, 80], { async: true })
   })
 
-  test('propagates traps instead of treating them as successful FFmpeg exit', async () => {
-    const core = new MockCore()
-    core.streamExec.mockImplementation(() => { throw new Error('unreachable') })
-    await expect(new AsyncifyRunner(core).execute([])).rejects.toThrow('unreachable')
+  test('the core loader resolves only WASM through its supplied resource URL', async () => {
+    const { core } = setup()
+    const factory = jest.fn(async (_config: CoreConfig) => core)
+    await loadCore({ workerURL: '/worker.js', coreURL: 'https://example.com/core.js', wasmURL: '/audio.wasm' }, {
+      readSource: async () => 0, isInterrupted: () => false
+    }, factory)
+    const config = factory.mock.calls[0][0]
+    expect(config.locateFile('ffmpeg-core.wasm')).toBe('/audio.wasm')
+    expect(config.locateFile('other.js')).toBe('https://example.com/other.js')
   })
 
-  test('accepts the prepared core explicit exit result', async () => {
-    const core = new MockCore()
-    core.streamExec.mockImplementation(() => { core.ret = 0; return true })
-    await expect(new AsyncifyRunner(core).execute([])).resolves.toBeUndefined()
+  test.each(['codec', 'rate', 'duration'])('invalid native %s metadata cannot configure output', async (mode) => {
+    const { worker, request, post, info, core } = setup()
+    if (mode === 'codec') info.codec = ''
+    else if (mode === 'rate') info.sampleRate = 0
+    else info.duration = -1
+    await worker.receive(request)
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'error', message: 'Invalid native audio metadata'
+    }))
+    expect(core.ccall).not.toHaveBeenCalledWith('xp_configure', expect.anything(), expect.anything(), expect.anything())
+    expect(mockClose).toHaveBeenCalled()
   })
 
-  test('never swallows a trap merely because its message resembles a normal abort', async () => {
-    const core = new MockCore()
-    core.streamExec.mockImplementation(() => { throw new WebAssembly.RuntimeError('Aborted(custom trap)') })
-    await expect(new AsyncifyRunner(core).execute([])).rejects.toThrow('custom trap')
+  test('unknown native duration stays unknown and AAC capability is required for encoding', async () => {
+    const { worker, request, post, info } = setup()
+    info.duration = null
+    await worker.receive(request)
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'opened', metadata: expect.objectContaining({ duration: Infinity })
+    }))
+    await worker.receive({ ...request, id: 2, epoch: 2, aacSupported: false })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'error', message: 'AAC MSE is not supported'
+    }))
+  })
+
+  test.each([
+    ['xp_create', 0, 'Cannot allocate native pipeline'],
+    ['xp_configure', -5, 'native error'],
+    ['xp_length', 0, 'Invalid native output buffer'],
+    ['xp_length', 9 * 1024 * 1024, 'Invalid native output buffer'],
+    ['xp_data', -1, 'Invalid native output buffer'],
+    ['xp_data', 7, 'Invalid native output buffer'],
+    ['xp_start', NaN, 'Invalid native media timeline'],
+    ['xp_end', 80, 'Invalid native media timeline']
+  ] as const)('native %s=%p fails explicitly: %s', async (name, value, message) => {
+    const { worker, request, post, core, setKind } = setup()
+    const original = core.ccall
+    core.ccall = jest.fn((entry, result, types, values, options) =>
+      entry === name ? value : original(entry, result, types, values, options))
+    await worker.receive(request)
+    if (!['xp_create', 'xp_configure'].includes(name)) {
+      setKind(2)
+      await worker.receive({ type: 'pull', id: 2, epoch: 1 })
+    }
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'error', message }))
+  })
+
+  test('unknown output kinds and processing without an open source remain errors', async () => {
+    const { worker, request, post, setKind } = setup()
+    await worker.receive({ type: 'pull', id: 1, epoch: 1 })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ message: 'Native pipeline is not open' }))
+    await worker.receive(request)
+    setKind(4)
+    await worker.receive({ type: 'pull', id: 2, epoch: 1 })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ message: 'Unknown native output kind' }))
+    await worker.receive({ type: 'close', id: 3, epoch: 1 })
+    expect(post).toHaveBeenLastCalledWith({ type: 'complete', id: 3, epoch: 1 })
+  })
+
+  test('input and processing budgets cannot turn excessive native reads into EOF', async () => {
+    const { worker, request, post, callbacks, setKind } = setup()
+    await worker.receive(request)
+    mockStats.downloadedBytes = 5 * 1024 * 1024
+    expect(await callbacks().readSource(0, 0, 2)).toBe(-5)
+    expect(callbacks().isInterrupted()).toBe(true)
+    mockStats.downloadedBytes = 131072
+    setKind(0)
+    for (let id = 2; id <= 1026; id++)
+      await worker.receive({ type: 'pull', id, epoch: 1 })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'error', message: 'Native processing produced no media within its batch budget'
+    }))
+  })
+
+  test('native deadline and missing sources stop reads before writing the heap', async () => {
+    const { worker, request, callbacks } = setup()
+    const now = jest.spyOn(performance, 'now').mockReturnValue(0)
+    try {
+      await worker.receive(request)
+      now.mockReturnValue(30001)
+      expect(callbacks().isInterrupted()).toBe(true)
+      expect(await callbacks().readSource(0, 0, 2)).toBe(-5)
+      await worker.receive({ type: 'seek', id: 2, epoch: 1, time: 10 })
+      await worker.receive({ type: 'close', id: 3, epoch: 1 })
+      expect(await callbacks().readSource(0, 0, 2)).toBe(-5)
+      expect(mockRead).not.toHaveBeenCalled()
+    } finally { now.mockRestore() }
+  })
+
+  test('a failed core load rejects open without retaining source resources', async () => {
+    const { worker, factory, post, request } = setup()
+    factory.mockRejectedValueOnce(new Error('WASM compile failed'))
+    await worker.receive(request)
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'error', stage: 'runtime', message: 'WASM compile failed'
+    }))
+  })
+
+  test('a cached read yields to cancellation before copying bytes into WASM', async () => {
+    const { worker, request, callbacks, core } = setup()
+    await worker.receive(request)
+    const before = core.HEAPU8.slice()
+    const reading = callbacks().readSource(0, 0, 2)
+    await Promise.resolve()
+    await worker.receive({ type: 'cancel', epoch: 2 })
+    expect(await reading).toBe(-1414092869)
+    expect(core.HEAPU8).toEqual(before)
   })
 })

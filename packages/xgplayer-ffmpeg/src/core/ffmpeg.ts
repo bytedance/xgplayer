@@ -1,5 +1,7 @@
 import EventEmitter from 'eventemitter3'
 import { MSE } from 'xgplayer-streaming-shared'
+import { FLAC_MIME } from '../profiles/audio'
+import { Transcoder } from '../transcoder/transcoder'
 import {
   FFmpegError,
   type FFmpegMetadata,
@@ -20,6 +22,7 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
   private activeLoad: LoadSession | null = null
   private destruction: Promise<void> | null = null
   private destroyed = false
+  private readonly transcoder: Transcoder
 
   constructor(
     private readonly options: FFmpegOptions,
@@ -28,6 +31,7 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
     super()
     this.validateOptions()
     this.media = options.media || document.createElement(profile.type)
+    this.transcoder = new Transcoder(options, profile)
   }
 
   static isSupported(mimeType: string, preferMMS = false): boolean {
@@ -41,18 +45,21 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
   async load(source: string, startTime = 0): Promise<number> {
     if (this.destroyed) throw new Error('FFmpeg is destroyed')
     const previous = this.activeLoad
-    const session = new LoadSession(this.media, this.options, this.profile, startTime, {
-      ready: (metadata) => {
-        if (this.isActive(session)) this.emit('ready', metadata)
-      },
-      progress: (event) => {
-        if (this.isActive(session)) this.emit('progress', event)
-      },
-      error: (error) => this.fail(session, error),
-      seek: (time) => {
-        if (this.isActive(session)) void this.seek(source, time)
+    const session = new LoadSession(
+      this.media,
+      this.options,
+      this.transcoder,
+      startTime,
+      {
+        ready: (metadata) => {
+          if (this.isActive(session)) this.emit('ready', metadata)
+        },
+        progress: (event) => {
+          if (this.isActive(session)) this.emit('progress', event)
+        },
+        error: (error) => this.fail(session, error)
       }
-    })
+    )
     this.activeLoad = session
     void this.run(session, source, previous)
     return session.ready
@@ -64,6 +71,7 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
     const session = this.activeLoad
     this.activeLoad = null
     this.removeAllListeners()
+    this.transcoder.destroy()
     this.destruction = session?.dispose() ?? Promise.resolve()
     return this.destruction
   }
@@ -76,27 +84,18 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
     try {
       if (previous) await previous.dispose()
       if (!this.isActive(session)) return
-      if (!FFmpeg.isSupported(this.profile.mimeType, this.options.preferMMS))
+      const auto = this.profile.audio.outputCodec === 'auto'
+      if (
+        !FFmpeg.isSupported(this.profile.mimeType, this.options.preferMMS) &&
+        !(auto && FFmpeg.isSupported(FLAC_MIME, this.options.preferMMS))
+      )
         throw new FFmpegError(
           'runtime',
           'Streaming media requires WebAssembly, Worker and compatible MSE'
         )
-      await session.open()
       if (this.isActive(session)) await session.run(source)
     } catch (reason) {
       if (this.isActive(session)) this.fail(session, this.asError(reason))
-    }
-  }
-
-  private async seek(source: string, time: number): Promise<void> {
-    const paused = this.media.paused
-    const loading = this.load(source, time)
-    const session = this.activeLoad
-    try {
-      await loading
-      if (session && this.isActive(session) && !paused) await this.media.play()
-    } catch (reason) {
-      if (session && this.isActive(session)) this.fail(session, this.asError(reason))
     }
   }
 
@@ -106,6 +105,13 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
     session.fail(error)
     void session.dispose().catch((reason: unknown) => {
       if (!this.destroyed) this.emit('error', this.asError(reason))
+    })
+    void this.transcoder.close().catch((reason: unknown) => {
+      if (
+        !this.destroyed &&
+        !(reason instanceof DOMException && reason.name === 'AbortError')
+      )
+        this.emit('error', this.asError(reason))
     })
     this.emit('error', error)
   }
@@ -128,7 +134,9 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
       options.maxInputBytes,
       options.timeout,
       options.segmentDuration,
-      options.bufferAhead
+      options.bufferAhead,
+      options.bufferLow,
+      options.cacheBytes
     ]) {
       if (value !== undefined && (!Number.isFinite(value) || value <= 0))
         throw new Error('Media size and time parameters must be positive')
@@ -138,5 +146,10 @@ export class FFmpeg extends EventEmitter<FFmpegEvents> {
       (!Number.isFinite(options.bufferBehind) || options.bufferBehind < 0)
     )
       throw new Error('bufferBehind must be non-negative')
+    if (
+      (options.bufferLow ?? (options.bufferAhead ?? 20) / 2) >=
+      (options.bufferAhead ?? 20)
+    )
+      throw new Error('bufferLow must be less than bufferAhead')
   }
 }

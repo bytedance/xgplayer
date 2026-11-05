@@ -1,33 +1,28 @@
 import type { FFmpegLoadConfig } from '../types'
-import type { AsyncifyCore } from './asyncify'
 
-export interface DeviceStream {
-  seekable: boolean
+export interface FFmpegCore {
+  HEAPU8: Uint8Array<ArrayBuffer>
+  UTF8ToString(pointer: number): string
+  ccall(
+    name: string,
+    result: 'number' | null,
+    types: Array<'number' | 'string'>,
+    values: Array<number | string>,
+    options?: { async: true }
+  ): number | undefined | Promise<number | undefined>
 }
 
-export interface DeviceOperations {
-  open(stream: DeviceStream): void
-  read?(stream: DeviceStream, buffer: Int8Array, offset: number, length: number): number
-  write?(stream: DeviceStream, buffer: Int8Array, offset: number, length: number): number
-  llseek(): never
+export interface CoreConfig {
+  locateFile(path: string): string
+  readSource(offset: number, destination: number, length: number): Promise<number>
+  isInterrupted(): boolean
 }
 
-export interface FFmpegCore extends AsyncifyCore {
-  FS: {
-    makedev(major: number, minor: number): number
-    registerDevice(device: number, operations: DeviceOperations): void
-    mkdev(path: string, mode: number, device: number): void
-    open(path: string, flags: string): { fd: number }
-    ErrnoError: new (code: number) => Error
-  }
-  setLogger(callback: (event: { type: string; message: string }) => void): void
-  setProgress(callback: (event: { progress: number; time: number }) => void): void
-}
-
-export type CoreFactory = (config: { mainScriptUrlOrBlob: string }) => Promise<FFmpegCore>
+export type CoreFactory = (config: CoreConfig) => Promise<FFmpegCore>
 
 export async function loadCore(
   config: FFmpegLoadConfig,
+  callbacks: Pick<CoreConfig, 'readSource' | 'isInterrupted'>,
   factory?: CoreFactory
 ): Promise<FFmpegCore> {
   const createCore =
@@ -36,7 +31,9 @@ export async function loadCore(
       .default
   if (typeof createCore !== 'function')
     throw new Error('FFmpeg core must export a factory')
-  // This encoded resource fragment is the pinned core's locateFile contract.
-  const resources = btoa(JSON.stringify({ wasmURL: config.wasmURL }))
-  return createCore({ mainScriptUrlOrBlob: `${config.coreURL}#${resources}` })
+  return createCore({
+    ...callbacks,
+    locateFile: (filename) =>
+      filename.endsWith('.wasm') ? config.wasmURL : new URL(filename, config.coreURL).href
+  })
 }

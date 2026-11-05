@@ -2,76 +2,68 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createHash } = require('node:crypto')
-const { execFile, spawnSync } = require('node:child_process')
+const { execFile } = require('node:child_process')
 const { promisify } = require('node:util')
 
 const execute = promisify(execFile)
-const coreVersion = '0.12.10'
-const flags = ['--asyncify', '-O2']
-const execMarker = 'Module["exec"]=exec;'
+const version = '8.0'
+const sourceURL = `https://ffmpeg.org/releases/ffmpeg-${version}.tar.xz`
+const sourceHash = 'b2751fccb6cc4c77708113cd78b561059b6fa904b24162fa0be2d60273d27b8e'
+const configureFlags = [
+  '--target-os=none',
+  '--arch=wasm32',
+  '--enable-cross-compile',
+  '--cc=emcc',
+  '--cxx=em++',
+  '--ar=emar',
+  '--ranlib=emranlib',
+  '--nm=emnm',
+  '--disable-everything',
+  '--disable-autodetect',
+  '--disable-programs',
+  '--disable-doc',
+  '--disable-debug',
+  '--disable-network',
+  '--disable-pthreads',
+  '--disable-w32threads',
+  '--disable-os2threads',
+  '--disable-asm',
+  '--disable-x86asm',
+  '--disable-avdevice',
+  '--disable-avfilter',
+  '--disable-swscale',
+  '--disable-symver',
+  '--enable-small',
+  '--enable-decoder=wmav1,wmav2,wmapro,wmalossless,wmavoice,flac,pcm_s16le,pcm_s16be,pcm_s8,pcm_u8,pcm_alaw,pcm_mulaw',
+  '--enable-demuxer=asf,flac,wav,pcm_s16le,pcm_s16be,pcm_s8,pcm_u8,pcm_alaw,pcm_mulaw',
+  '--enable-parser=flac,aac',
+  '--enable-encoder=aac',
+  '--enable-muxer=mp4',
+  '--extra-cflags=-O2'
+]
+const linkFlags = [
+  '-O2',
+  '-std=c++17',
+  '-sMODULARIZE=1',
+  '-sEXPORT_ES6=1',
+  '-sENVIRONMENT=web,worker,node',
+  '-sFILESYSTEM=0',
+  '-sALLOW_MEMORY_GROWTH=1',
+  '-sINITIAL_MEMORY=33554432',
+  '-sMAXIMUM_MEMORY=268435456',
+  '-sSTACK_SIZE=1048576',
+  '-sASYNCIFY=1',
+  '-sASYNCIFY_STACK_SIZE=131072',
+  '-sASYNCIFY_IMPORTS=source_read',
+  '-sEXPORTED_RUNTIME_METHODS=ccall,UTF8ToString,HEAPU8'
+]
 
 function digest(content) {
   return createHash('sha256').update(content).digest('hex')
 }
 
-function findOptimizer() {
-  if (process.env.WASM_OPT) return process.env.WASM_OPT
-  if (spawnSync('wasm-opt', ['--version']).status === 0) return 'wasm-opt'
-  const config = spawnSync('em-config', ['BINARYEN_ROOT'], { encoding: 'utf8' })
-  if (config.status === 0) return path.join(config.stdout.trim(), 'bin', 'wasm-opt')
-  throw new Error(
-    'Install Binaryen/Emscripten or set WASM_OPT to prepare the streaming core'
-  )
-}
-
-function uniqueMatch(glue, expression, name) {
-  const matches = [...glue.matchAll(expression)]
-  if (matches.length !== 1)
-    throw new Error(`Unsupported FFmpeg core glue: expected one ${name}`)
-  return matches[0][1]
-}
-
-function describeCore(glue, wasm) {
-  const read = uniqueMatch(glue, /"([^"]+)":_fd_read/g, 'read import')
-  const write = uniqueMatch(glue, /"([^"]+)":_fd_write/g, 'write import')
-  const entry = uniqueMatch(
-    glue,
-    /Module\["_ffmpeg"\]=Module\["asm"\]\["([^"]+)"\]/g,
-    'FFmpeg entry'
-  )
-  const probeEntry = uniqueMatch(
-    glue,
-    /Module\["_ffprobe"\]=Module\["asm"\]\["([^"]+)"\]/g,
-    'FFprobe entry'
-  )
-  uniqueMatch(glue, /Module\["exec"\]=exec;/g, 'exec insertion point')
-  uniqueMatch(glue, /Module\.ret=\$0/g, 'native exit-code callback')
-  const module = new WebAssembly.Module(wasm)
-  for (const name of [entry, probeEntry]) {
-    if (
-      !WebAssembly.Module.exports(module).some(
-        (item) => item.name === name && item.kind === 'function'
-      )
-    )
-      throw new Error('WASM command entry does not match glue')
-  }
-  const imports = WebAssembly.Module.imports(module)
-  const names = [read, write].map((name) => {
-    const matches = imports.filter(
-      (item) => item.name === name && item.kind === 'function'
-    )
-    if (matches.length !== 1)
-      throw new Error(`WASM I/O import does not match glue: ${name}`)
-    return `${matches[0].module}.${name}`
-  })
-  return { entry, probeEntry, imports: `--pass-arg=asyncify-imports@${names.join(',')}` }
-}
-
-function streamingGlue(glue, entry, probeEntry) {
-  // The pinned native exit callback writes ret before invoking WASM abort.
-  // Normalize that exit here; the runner never inspects exception message text.
-  const bridge = `Module["streamExec"]=(argc,argv)=>{try{Module["asm"]["${entry}"](argc,argv)}catch(error){if(!(error instanceof WebAssembly.RuntimeError)||Module["ret"]<0)throw error;return true}return false};Module["streamProbe"]=(argc,argv)=>{const result=Module["asm"]["${probeEntry}"](argc,argv);if(Module["asm"]["asyncify_get_state"]()===1)return false;Module["ret"]=result;return true};`
-  return glue.replace(execMarker, `${execMarker}${bridge}`)
+async function run(command, args, cwd) {
+  return execute(command, args, { cwd, maxBuffer: 16 * 1024 * 1024 })
 }
 
 async function cacheExists(directory, fingerprint) {
@@ -79,16 +71,14 @@ async function cacheExists(directory, fingerprint) {
     const stamp = JSON.parse(
       await fs.readFile(path.join(directory, 'runtime.json'), 'utf8')
     )
-    const [core, wasm] = await Promise.all([
-      fs.readFile(path.join(directory, 'ffmpeg-core.js')),
-      fs.readFile(path.join(directory, 'ffmpeg-core.wasm'))
-    ])
+    const core = await fs.readFile(path.join(directory, 'ffmpeg-core.js'))
+    const wasm = await fs.readFile(path.join(directory, 'ffmpeg-core.wasm'))
     if (
       stamp.fingerprint !== fingerprint ||
       stamp.coreHash !== digest(core) ||
       stamp.wasmHash !== digest(wasm)
     )
-      throw new Error(`Invalid FFmpeg runtime cache: ${directory}`)
+      throw new Error(`Invalid native runtime cache: ${directory}`)
     return true
   } catch (error) {
     if (error.code === 'ENOENT') return false
@@ -97,69 +87,93 @@ async function cacheExists(directory, fingerprint) {
 }
 
 async function prepareRuntime(outputDirectory) {
-  const installed = path.resolve(
-    path.dirname(require.resolve('@ffmpeg/core')),
-    '..',
-    '..'
-  )
-  const metadata = JSON.parse(
-    await fs.readFile(path.join(installed, 'package.json'), 'utf8')
-  )
-  if (metadata.version !== coreVersion)
-    throw new Error(`Streaming core preparation requires @ffmpeg/core ${coreVersion}`)
-  const sourceWasm = path.join(installed, 'dist/esm/ffmpeg-core.wasm')
-  const [glue, wasm] = await Promise.all([
-    fs.readFile(path.join(installed, 'dist/esm/ffmpeg-core.js'), 'utf8'),
-    fs.readFile(sourceWasm)
-  ])
-  const core = describeCore(glue, wasm)
-  const preparedGlue = streamingGlue(glue, core.entry, core.probeEntry)
+  const toolchain = (await run('emcc', ['--version'])).stdout.split('\n')[0]
+  if (!/\b6\.0\.10\b/.test(toolchain))
+    throw new Error(
+      'Native core requires Emscripten 6.0.10; activate the pinned toolchain'
+    )
+  const bridge = path.join(__dirname, 'native/pipeline.cpp')
   const fingerprint = digest(
-    `xgplayer-asyncify-v3:${digest(preparedGlue)}:${digest(wasm)}:${JSON.stringify([...flags, core.imports])}`
+    JSON.stringify({
+      sourceHash,
+      toolchain,
+      configureFlags,
+      linkFlags,
+      bridge: digest(await fs.readFile(bridge))
+    })
   )
-  const base = outputDirectory
-    ? path.resolve(outputDirectory)
-    : path.join(os.tmpdir(), 'xgplayer-ffmpeg-runtime')
+  const base = path.resolve(
+    outputDirectory || path.join(os.tmpdir(), 'xgplayer-ffmpeg-runtime')
+  )
+  // Build sources, authentication state and intermediate output stay outside the repo.
+  const relative = path.relative(path.resolve(__dirname, '../..'), base)
+  if (!relative.startsWith('..') && !path.isAbsolute(relative))
+    throw new Error('Native build output must be outside the repository')
   const directory = path.join(base, fingerprint.slice(0, 16))
   if (await cacheExists(directory, fingerprint)) return directory
-  const optimizer = findOptimizer()
   await fs.mkdir(base, { recursive: true })
-  const staging = await fs.mkdtemp(path.join(base, '.prepare-'))
+  const staging = await fs.mkdtemp(path.join(base, '.build-'))
   try {
-    console.log('Preparing Asyncify FFmpeg core (first run only)…')
-    const wasmPath = path.join(staging, 'ffmpeg-core.wasm')
-    await execute(optimizer, [sourceWasm, ...flags, core.imports, '-o', wasmPath], {
-      maxBuffer: 10 * 1024 * 1024
-    })
-    const preparedWasm = await fs.readFile(wasmPath)
-    const module = new WebAssembly.Module(preparedWasm)
-    const exports = new Set(WebAssembly.Module.exports(module).map((item) => item.name))
-    for (const name of [
-      'asyncify_get_state',
-      'asyncify_start_unwind',
-      'asyncify_stop_unwind',
-      'asyncify_start_rewind',
-      'asyncify_stop_rewind'
-    ]) {
-      if (!exports.has(name)) throw new Error(`Prepared core is missing ${name}`)
-    }
-    await fs.writeFile(path.join(staging, 'ffmpeg-core.js'), preparedGlue)
+    console.log('Building FFmpeg 8.0 audio libraries and the Asyncify bridge…')
+    const archive = path.join(staging, 'ffmpeg.tar.xz')
+    const response = await fetch(sourceURL)
+    if (!response.ok) throw new Error(`FFmpeg source download failed: ${response.status}`)
+    const source = Buffer.from(await response.arrayBuffer())
+    if (digest(source) !== sourceHash) throw new Error('FFmpeg source checksum mismatch')
+    await fs.writeFile(archive, source)
+    await run('tar', ['-xf', archive, '-C', staging])
+    const sourceDirectory = path.join(staging, `ffmpeg-${version}`)
+    const install = path.join(staging, 'install')
+    await run(
+      'emconfigure',
+      ['./configure', `--prefix=${install}`, ...configureFlags],
+      sourceDirectory
+    )
+    await run(
+      'emmake',
+      ['make', `-j${Math.min(8, os.cpus().length)}`, 'install'],
+      sourceDirectory
+    )
+    await run('em++', [
+      bridge,
+      `-I${install}/include`,
+      ...linkFlags,
+      `${install}/lib/libavformat.a`,
+      `${install}/lib/libavcodec.a`,
+      `${install}/lib/libswresample.a`,
+      `${install}/lib/libavutil.a`,
+      '-o',
+      path.join(staging, 'ffmpeg-core.js')
+    ])
+    const core = await fs.readFile(path.join(staging, 'ffmpeg-core.js'))
+    const wasm = await fs.readFile(path.join(staging, 'ffmpeg-core.wasm'))
+    await fs.copyFile(
+      path.join(sourceDirectory, 'COPYING.LGPLv2.1'),
+      path.join(staging, 'COPYING.LGPLv2.1')
+    )
     await fs.writeFile(
       path.join(staging, 'runtime.json'),
       `${JSON.stringify(
         {
           fingerprint,
-          coreVersion,
-          coreHash: digest(preparedGlue),
-          wasmHash: digest(preparedWasm)
+          version,
+          sourceURL,
+          sourceHash,
+          toolchain,
+          configureFlags,
+          linkFlags,
+          coreHash: digest(core),
+          wasmHash: digest(wasm)
         },
         null,
         2
       )}\n`
     )
+    // Publish only the immutable JS/WASM pair and its source/license information.
+    await fs.rm(sourceDirectory, { recursive: true })
+    await fs.rm(install, { recursive: true })
+    await fs.rm(archive)
     try {
-      // Immutable, fingerprinted directories let concurrent preparers publish
-      // a complete JS/WASM pair without locking or overwriting active resources.
       await fs.rename(staging, directory)
     } catch (error) {
       if (!['EEXIST', 'ENOTEMPTY'].includes(error.code)) throw error
@@ -171,7 +185,7 @@ async function prepareRuntime(outputDirectory) {
   }
 }
 
-module.exports = { prepareRuntime }
+module.exports = { prepareRuntime, configureFlags, linkFlags }
 if (require.main === module) {
   prepareRuntime(process.argv[2])
     .then(console.log)

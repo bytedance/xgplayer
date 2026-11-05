@@ -1,88 +1,165 @@
 import { MSE } from 'xgplayer-streaming-shared'
-import { Transcoder } from '../transcoder/transcoder'
+import type { PipelineOutput } from '../transcoder/protocol'
+import type { Transcoder } from '../transcoder/transcoder'
 import {
   FFmpegError,
   type FFmpegMetadata,
   type FFmpegOptions,
-  type FFmpegOutputProfile,
   type FFmpegProgress
 } from '../types'
+import { MSEBuffer } from './mse-buffer'
 
 interface SessionEvents {
   ready(metadata: FFmpegMetadata): void
   progress(event: FFmpegProgress): void
   error(error: FFmpegError): void
-  seek(time: number): void
 }
 
-// TimeRanges excludes its end; leave room for media clock rounding when seeking.
-const BUFFER_END_MARGIN = 0.05
+interface PlaybackEpoch {
+  controller: AbortController
+  target: number
+  seek: boolean
+  preparing: boolean
+}
 
-/** One source owns its Worker, MSE, startup result and cancellation together. */
+const END_MARGIN = 0.05
+
+/** One demand loop owns startup, seeking, backpressure and MMS range recovery. */
 export class LoadSession {
   readonly ready: Promise<number>
+  private readonly buffer: MSEBuffer
   private readonly controller = new AbortController()
-  private readonly transcoder: Transcoder
-  private readonly mse: MSE
   private readonly waiters = new Set<() => void>()
-  private readonly targetTime: number
+  private epoch: PlaybackEpoch
+  private metadata: FFmpegMetadata | null = null
+  private initialized = false
+  private producing = true
+  private eof = false
+  private cursor = 0
   private resolve!: (time: number) => void
   private reject!: (reason: Error) => void
-  private initialized = false
-  private duration = Number.POSITIVE_INFINITY
   private timeout: ReturnType<typeof setTimeout> | null
   private disposal: Promise<void> | null = null
 
   constructor(
     private readonly media: HTMLMediaElement,
     private readonly options: FFmpegOptions,
-    private readonly profile: FFmpegOutputProfile,
+    private readonly transcoder: Transcoder,
     startTime: number,
     private readonly events: SessionEvents
   ) {
-    this.targetTime = Number.isFinite(startTime) ? Math.max(0, startTime) : 0
-    this.transcoder = new Transcoder(options, profile)
-    this.mse = new MSE(undefined, {
-      preferMMS: options.preferMMS,
-      attachMode: options.mseAttachMode
-    })
+    this.epoch = {
+      controller: new AbortController(),
+      target: Number.isFinite(startTime) ? Math.max(0, startTime) : 0,
+      seek: startTime > 0,
+      preparing: true
+    }
+    this.buffer = new MSEBuffer(options)
     this.ready = new Promise((resolve, reject) => {
       this.resolve = resolve
       this.reject = reject
     })
-    this.timeout = setTimeout(() => {
-      events.error(new FFmpegError('transcode', 'Media startup timed out'))
-    }, options.timeout ?? 120000)
-  }
-
-  async open(): Promise<void> {
-    this.checkActive()
-    for (const event of ['timeupdate', 'seeking', 'waiting']) {
-      this.media.addEventListener(event, this.onMediaEvent)
-    }
-    this.media.addEventListener('error', this.onMediaError)
-    await this.mse.bindMedia(this.media)
-    this.checkActive()
-    this.mse.mediaSource?.addEventListener('startstreaming', this.onMediaEvent)
-    this.mse.on(MSE.BUFFERED_CHANGE, this.onBufferedChange)
-    this.mse.createSource(this.profile.type, this.profile.mimeType)
-    await this.mse.updateDuration(Number.POSITIVE_INFINITY)
-    this.checkActive()
+    this.timeout = setTimeout(
+      () => events.error(new FFmpegError('transcode', 'Media startup timed out')),
+      options.timeout ?? 120000
+    )
   }
 
   async run(source: string): Promise<void> {
+    this.metadata = await this.transcoder.open(source, this.controller.signal)
     this.checkActive()
-    await this.transcoder.run(
-      source,
-      this.controller.signal,
-      (chunk) => this.append(chunk),
-      (event) => {
-        if (!this.controller.signal.aborted) this.events.progress(event)
-      },
-      (duration) => this.updateDuration(duration)
-    )
+    const duration = this.metadata.duration
+    if (Number.isFinite(duration))
+      this.epoch.target = Math.min(this.epoch.target, Math.max(0, duration - END_MARGIN))
+    await this.buffer.open(this.media, this.metadata.mimeType, duration)
     this.checkActive()
-    await this.finish()
+    for (const event of ['timeupdate', 'seeking', 'waiting', 'play', 'pause'])
+      this.media.addEventListener(event, this.onMediaEvent)
+    this.media.addEventListener('error', this.onMediaError)
+    this.buffer.mse.mediaSource?.addEventListener('startstreaming', this.onMediaEvent)
+    this.buffer.mse.mediaSource?.addEventListener('endstreaming', this.onMediaEvent)
+    this.buffer.mse.on(MSE.BUFFERED_CHANGE, this.onBufferedChange)
+    while (!this.controller.signal.aborted) {
+      const epoch = this.epoch
+      try {
+        if (epoch.seek) {
+          await this.transcoder.seek(epoch.target, epoch.controller.signal)
+          if (!this.isActive(epoch)) continue
+          epoch.seek = false
+          this.cursor = epoch.target
+          this.eof = false
+          this.producing = true
+        }
+        const time = this.initialized ? this.media.currentTime : epoch.target
+        const ahead = Math.max(0, (this.buffer.containing(time)?.end ?? time) - time)
+        if (ahead >= (this.options.bufferAhead ?? 20)) this.producing = false
+        if (ahead < (this.options.bufferLow ?? (this.options.bufferAhead ?? 20) / 2))
+          this.producing = true
+        if (
+          this.eof ||
+          !this.producing ||
+          (this.initialized && !epoch.preparing && !this.buffer.mse.streaming)
+        ) {
+          await this.wait()
+          continue
+        }
+        await this.buffer.trim(time, this.options.bufferBehind ?? 20)
+        if (!this.isActive(epoch)) continue
+        const result = await this.transcoder.pull(epoch.controller.signal)
+        if (!this.isActive(epoch)) continue
+        this.events.progress(result.progress)
+        const output = result.output
+        if (output.kind === 'yield') continue
+        if (output.kind === 'eof') {
+          this.eof = true
+          const ranges = this.buffer.ranges
+          if (!ranges.length)
+            throw new FFmpegError('transcode', 'FFmpeg produced no playable audio')
+          await this.buffer.finish(this.cursor, epoch.controller.signal)
+          if (this.isActive(epoch) && !this.initialized)
+            this.markReady(
+              Math.max(
+                ranges[ranges.length - 1].start,
+                ranges[ranges.length - 1].end - END_MARGIN
+              )
+            )
+          continue
+        }
+        await this.append(output, epoch)
+        if (!this.isActive(epoch)) continue
+        if (output.kind === 'media') {
+          this.cursor = output.end
+          // Seeking to zero has the same first-sample boundary as startup.
+          // Otherwise a delayed first frame leaves demand at an unfillable hole.
+          if (
+            this.initialized &&
+            epoch.preparing &&
+            epoch.target === 0 &&
+            output.start > 0
+          ) {
+            const first = this.buffer.containing(output.start)
+            if (first) {
+              epoch.target = first.start
+              this.media.currentTime = first.start
+            }
+          }
+          if (this.buffer.containing(epoch.target)) epoch.preparing = false
+          if (!this.initialized) {
+            // Source timestamps can begin after zero (e.g. WMA decoder delay).
+            // Use the real first playable boundary without shifting its clock.
+            const playable = this.buffer.ranges.find(
+              (range) =>
+                range.end > epoch.target &&
+                range.start <= Math.max(epoch.target, output.start) + END_MARGIN
+            )
+            if (playable) this.markReady(Math.max(epoch.target, playable.start))
+          }
+        }
+      } catch (reason) {
+        if (!this.isActive(epoch)) continue
+        throw reason
+      }
+    }
   }
 
   fail(error: FFmpegError): void {
@@ -94,106 +171,117 @@ export class LoadSession {
     this.clearTimeout()
     this.reject(new DOMException('Media load cancelled', 'AbortError'))
     this.controller.abort()
-    this.transcoder.destroy()
+    this.epoch.controller.abort()
+    this.transcoder.cancel()
     this.wake()
-    for (const event of ['timeupdate', 'seeking', 'waiting']) {
+    for (const event of ['timeupdate', 'seeking', 'waiting', 'play', 'pause'])
       this.media.removeEventListener(event, this.onMediaEvent)
-    }
     this.media.removeEventListener('error', this.onMediaError)
-    this.mse.off(MSE.BUFFERED_CHANGE, this.onBufferedChange)
-    this.mse.mediaSource?.removeEventListener('startstreaming', this.onMediaEvent)
-    this.disposal = this.mse.unbindMedia().catch((reason: unknown) => {
-      throw new FFmpegError('buffer', 'Cannot detach media buffer', reason)
-    })
+    this.buffer.mse.off(MSE.BUFFERED_CHANGE, this.onBufferedChange)
+    this.buffer.mse.mediaSource?.removeEventListener('startstreaming', this.onMediaEvent)
+    this.buffer.mse.mediaSource?.removeEventListener('endstreaming', this.onMediaEvent)
+    this.disposal = this.buffer.close()
     return this.disposal
   }
 
-  private async append(chunk: Uint8Array<ArrayBuffer>): Promise<void> {
-    while (true) {
-      this.checkActive()
-      const time = this.initialized ? this.media.currentTime : this.targetTime
-      await this.trimBuffer(time)
-      this.checkActive()
+  private async append(
+    output: Extract<PipelineOutput, { kind: 'init' | 'media' }>,
+    epoch: PlaybackEpoch
+  ): Promise<void> {
+    try {
+      await this.buffer.append(output, epoch.controller.signal)
+    } catch (reason) {
+      if (!this.isActive(epoch)) return
+      const time = this.initialized ? this.media.currentTime : epoch.target
       if (
-        this.mse.bufferEnd(this.profile.type) < time + (this.options.bufferAhead ?? 20) &&
-        (!this.initialized || this.mse.streaming)
+        !this.isQuota(reason) ||
+        !(await this.buffer.reclaim(time, this.options.bufferAhead ?? 20))
       )
-        break
-      await new Promise<void>((resolve) => this.waiters.add(resolve))
+        throw reason
+      if (this.isActive(epoch)) await this.buffer.append(output, epoch.controller.signal)
     }
-    await this.mse.append(this.profile.type, chunk)
-    this.checkActive()
     if (this.media.error) throw new FFmpegError('buffer', this.media.error.message)
-    if (
-      !this.initialized &&
-      this.mse.bufferEnd(this.profile.type) > this.targetTime + BUFFER_END_MARGIN
-    )
-      this.markReady(this.targetTime, this.duration)
   }
 
-  private async trimBuffer(time: number): Promise<void> {
-    const end = this.mse.bufferEnd(this.profile.type)
-    const removeEnd = Math.min(time, end) - (this.options.bufferBehind ?? 20)
-    if (removeEnd > this.mse.bufferStart(this.profile.type)) {
-      await this.mse.remove(this.profile.type, 0, removeEnd)
-    }
+  private isQuota(reason: unknown): boolean {
+    if (reason instanceof DOMException) return reason.name === 'QuotaExceededError'
+    if (reason && typeof reason === 'object' && 'originError' in reason)
+      return this.isQuota(reason.originError)
+    return false
   }
 
-  private async finish(): Promise<void> {
-    const end = this.mse.bufferEnd(this.profile.type)
-    if (!end) throw new FFmpegError('transcode', 'FFmpeg produced no playable media')
-    await this.updateDuration(end)
-    await this.mse.endOfStream()
-    this.checkActive()
-    if (!this.initialized) this.markReady(Math.max(0, end - BUFFER_END_MARGIN), end)
-  }
-
-  private markReady(time: number, duration: number): void {
-    this.clearTimeout()
-    this.initialized = true
-    this.media.currentTime = time
-    this.resolve(time)
-    this.events.ready({ duration, mimeType: this.profile.mimeType })
-  }
-
-  private async updateDuration(duration: number): Promise<void> {
-    this.checkActive()
-    await this.mse.updateDuration(duration)
-    this.checkActive()
-    this.duration = duration
-  }
-
-  private onMediaEvent = (event?: Event): void => {
+  private onMediaEvent = (event: Event): void => {
     if (this.controller.signal.aborted) return
-    if (this.initialized && event?.type === 'seeking') this.recoverSeek()
+    if (
+      this.initialized &&
+      ['seeking', 'waiting', 'timeupdate', 'startstreaming'].includes(event.type)
+    )
+      this.recover(event.type === 'seeking')
     this.wake()
   }
 
   private onBufferedChange = (): void => {
-    this.onMediaEvent()
+    if (this.controller.signal.aborted) return
+    if (this.initialized) this.recover(false)
+    this.wake()
   }
 
   private onMediaError = (): void => {
-    if (this.controller.signal.aborted || !this.media.error) return
-    this.events.error(new FFmpegError('buffer', this.media.error.message))
+    if (!this.controller.signal.aborted && this.media.error)
+      this.events.error(new FFmpegError('buffer', this.media.error.message))
   }
 
-  private recoverSeek(): void {
-    const ranges = this.mse.buffered(this.profile.type)
+  private recover(explicitSeek: boolean): void {
     const time = this.media.currentTime
-    if (ranges?.length) {
-      for (let index = 0; index < ranges.length; index++) {
-        if (time >= ranges.start(index) && time < ranges.end(index)) return
-      }
-      // Keep reading toward a later target; native seeking handles the final endpoint.
-      if (time >= ranges.end(ranges.length - 1)) return
+    const range = this.buffer.containing(time)
+    const ahead = (range?.end ?? time) - time
+    const missing =
+      !range || ahead < (this.options.bufferLow ?? (this.options.bufferAhead ?? 20) / 2)
+    // A future disjoint range must never hide a hole before the producer cursor.
+    const hole = missing && this.cursor > (range?.end ?? time) + END_MARGIN
+    const end = this.metadata?.duration ?? Infinity
+    if (
+      (!explicitSeek && !hole) ||
+      (explicitSeek &&
+        range &&
+        !this.epoch.seek &&
+        this.cursor <= range.end + END_MARGIN) ||
+      time >= end - END_MARGIN ||
+      (this.epoch.seek && this.epoch.target === time)
+    )
+      return
+    this.epoch.controller.abort()
+    this.transcoder.cancel()
+    this.epoch = {
+      controller: new AbortController(),
+      target: Math.max(0, time),
+      seek: true,
+      preparing: !range
     }
-    this.events.seek(time)
+    this.producing = true
+    this.wake()
+  }
+
+  private markReady(time: number): void {
+    this.clearTimeout()
+    this.initialized = true
+    this.epoch.preparing = false
+    this.media.currentTime = time
+    this.resolve(time)
+    if (this.metadata) this.events.ready(this.metadata)
+  }
+
+  private wait(): Promise<void> {
+    return new Promise((resolve) => this.waiters.add(resolve))
   }
 
   private wake(): void {
     for (const resolve of this.waiters) resolve()
     this.waiters.clear()
+  }
+
+  private isActive(epoch: PlaybackEpoch): boolean {
+    return !this.controller.signal.aborted && this.epoch === epoch
   }
 
   private clearTimeout(): void {

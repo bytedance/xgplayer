@@ -1,6 +1,6 @@
 # xgplayer-ffmpeg
 
-FFmpeg + MSE 流式插件，边下载、边转码、边播放。默认将第一条音轨转为 AAC-LC、48 kHz、双声道、128 kbps。当前为仓库内的 private 包，尚未发布到 npm。
+原生 FFmpeg + MSE 音频插件，支持 WMA/ASF、FLAC、WAV 和明确配置的无头 PCM。当前为仓库内 private 包，尚未发布到 npm。输入采用有界 HTTP Range，Worker 保留解复用会话，主线程按连续缓冲需求拉取 fMP4。
 
 ## 接入
 
@@ -12,73 +12,74 @@ const player = new Player({
   id: 'player',
   mediaType: 'audio',
   url: '/audio/example.wma',
-  autoplay: false,
   plugins: [FFmpegPlugin],
   ffmpeg: {
     ffmpeg: {
-      workerURL: '/ffmpeg/worker.js',
-      coreURL: '/ffmpeg/ffmpeg-core.js',
-      wasmURL: '/ffmpeg/ffmpeg-core.wasm'
-    }
+      workerURL: '/runtime/worker.js',
+      coreURL: '/runtime/ffmpeg-core.js',
+      wasmURL: '/runtime/ffmpeg-core.wasm'
+    },
+    bufferAhead: 20,
+    bufferLow: 10,
+    bufferBehind: 20,
+    audio: { outputCodec: 'auto' }
   }
 })
-
-player.on('ffmpegReady', ({ duration }) => console.log(duration))
-player.on('error', console.error)
 ```
 
-媒体源支持 HTTP(S) URL 和页面相对路径，不支持 File、Blob、源列表或 DRM。跨域媒体需允许 `fetch` CORS 请求。
+`player.currentTime` 触发原生 Seek；`switchURL`、直接 `src` 赋值和清晰度切换由插件接管。更换地址保留进度及播放意图；同一源内 Seek 不重新绑定媒体，也不调用 `play()` 改变暂停状态。
 
-## 运行与部署
+## 输出策略
 
-在仓库根目录运行 Demo：
+默认 `auto`：FLAC 输入且目标 MSE 支持时原样封装 FLAC，否则输出 AAC-LC。AAC 尽量保留源采样率和声道布局；不支持的采样率选择最近的 AAC 采样率，默认码率为每声道 64 kbps。指定 `sampleRate`、`channels` 或 `bitrate` 会进入编码路径。
+
+```js
+// 无文件头的 PCM：明确传入真实源参数。
+audio: {
+  inputFormat: 's16le', inputSampleRate: 16000, inputChannels: 1,
+  outputCodec: 'aac', sampleRate: 16000, channels: 1, bitrate: 64000
+}
+```
+
+`inputFormat` 支持 `s16le`、`s16be`、`s8`、`u8`、`alaw`、`mulaw`。`outputCodec: 'flac'` 强制透传，要求 FLAC 输入和兼容 MSE，不能改变编码参数。`profile` 接受 `createAudioProfile()` 生成的类型化音频策略；本原生核心不接受任意 CLI 参数或视频编码 profile。
+
+## 下载与调度
+
+| 配置 | 默认值 | 含义 |
+|---|---|---|
+| `bufferAhead` | 20 秒 | 达到高水位后停止下一次 pull |
+| `bufferLow` | 高水位的一半 | 低于此水位恢复生产 |
+| `bufferBehind` | 20 秒 | 清理播放位置之前的旧缓冲 |
+| `segmentDuration` | 1 秒 | 按真实包时长形成分片，可能有限超量 |
+| `cacheBytes` | 8 MiB | 源的 LRU 字节缓存上限 |
+| `maxInputBytes` | 无默认限制 | 可选源文件总长度上限，与缓存独立 |
+| `timeout` | 120 秒 | 首次可播放和 Worker 命令等待期限 |
+| `requestOptions` | 无 | 请求头、credentials 等 GET 选项 |
+| `preferMMS` / `mseAttachMode` | 共享 MSE 默认值 | MSE/MMS 选择与绑定方式 |
+
+每次请求最多 128 KiB，最多一个进行中的读取。源必须具有固定长度、返回准确的 206 和字节范围；不支持服务器忽略 Range 后全量下载的降级。跨域服务器应暴露 `Content-Range`、`Content-Length` 和 `ETag`。若仅隐藏 `Content-Range`，允许通过 HEAD 的长度加 206、精确正文长度校验建立兼容契约。File/Blob、上传正文和动态长度直播源不受支持。
+
+FFmpeg 打开输入的下载预算为 256 KiB；Seek 到目标首段的额外下载预算为 4 MiB。每次原生批次最多 64 个处理步骤和 256 KiB 输入包数据，另有耗时和无输出批次限制。预算耗尽明确报错。缓冲充足时不发起新的 pull，正在读取的有限 Range 和原生必要预读可以完成。
+
+MMS 普通 `endstreaming` 停止生产；未缓冲 Seek 允许准备目标首个可播放窗口，随后恢复 streaming 策略。缓冲回收、等待和播放进度事件均重新检查当前位置的连续区间，后面的不连续缓冲不会掩盖缺口。
+
+## 时间与结束
+
+源时间来自原生包和解码帧 PTS，fMP4 偏移来自真实输出 DTS，精确映射到 SourceBuffer。保留必要音频预滚；不按 URL、字节比例或 Seek 目标估算时间，也不修改 MP4 box。
+
+有些源的首个可播放时间略晚于零，例如验证过的 WMA 从约 0.0688 秒开始。初始化和回跳到零都选择实际首个可播放边界，不移动整条源时间线。时长由原生 demuxer 给出；源已知时长不会被一次 Seek 的局部输出末尾或 EOS 后重新追加的编码 padding 覆盖。未知时长到真实 EOF 才确定。最后分片追加和各级 drain 完成后执行 EOS。
+
+事件为 `ffmpegReady`（duration、MIME、输出 codec、采样率和声道）、`ffmpegProgress`（媒体时间、下载量、总长度、缓存量和 Range 请求数）以及播放器标准错误事件（含 stage）。
+
+## 构建与验证
+
+先激活 Emscripten 6.0.10，再执行 `yarn ffmpeg:runtime` 或 `yarn dev:ffmpeg`。首次从固定 SHA256 的 FFmpeg 8.0 官方源码构建；后续命中指纹缓存。输出及中间文件留在系统临时目录，不写进仓库。部署匹配的 JS/WASM、`worker.js`，并保留许可证和构建来源信息。不要求 COOP/COEP 或 SharedArrayBuffer。
 
 ```bash
-yarn
-yarn dev:ffmpeg
+yarn typecheck
+yarn test packages/xgplayer-ffmpeg --runInBand --verbose=false --silent
+node packages/xgplayer-ffmpeg/native/verify.mjs <runtime目录> <本地媒体>
+# PCM 可追加：s16le 16000 1
 ```
 
-默认端口 8081，可通过 `FFMPEG_PORT` 修改。Worker 源码修改后需重启 Demo。
-
-准备部署资源：
-
-```bash
-yarn ffmpeg:runtime
-yarn build xgplayer-ffmpeg
-```
-
-准备核心需要 Binaryen 的 `wasm-opt`，也可用 `WASM_OPT` 指定工具路径。将命令返回目录中的 `ffmpeg-core.js`、`ffmpeg-core.wasm` 与构建后的 `dist/worker.js` 部署到示例配置的 URL。JS / WASM 必须来自同一构建；普通或多线程核心不能直接替换准备后的核心。
-
-页面需要 WebAssembly、模块 Worker 和目标 MIME 的 MSE 支持，无需 COOP/COEP 或 `SharedArrayBuffer`。建议同源部署 Worker 和核心，WASM 使用 `application/wasm`，CSP 需允许对应资源执行。核心组成、生成方式与扩展见[核心说明](./src/core/README.md)。
-
-## 配置与事件
-
-以下配置位于 `Player` 的 `ffmpeg` 选项中：
-
-| 配置 | 默认值 / 用途 |
-| --- | --- |
-| `ffmpeg.workerURL`、`coreURL`、`wasmURL` | 必填，Worker 与配对的核心资源 |
-| `maxInputBytes` | 默认不限，可设置输入总字节上限 |
-| `timeout` | 120000 ms，首次可播放前的等待上限 |
-| `segmentDuration` | 1 秒，目标分片时长 |
-| `bufferAhead` / `bufferBehind` | 20 / 20 秒，前向与历史缓冲窗口 |
-| `requestOptions` | HTTP 请求参数，支持 headers、credentials 和普通 POST body |
-| `preferMMS` / `mseAttachMode` | 共享 MSE 的媒体源选择与绑定方式 |
-| `audio.inputFormat` | 原始音频格式：`s16le`、`s16be`、`s8`、`u8`、`alaw`、`mulaw` |
-| `audio.inputSampleRate` / `audio.inputChannels` | 原始音频必填，须与源数据一致 |
-| `profile` | 自定义输入 / 编码参数，须与 media 类型及 MIME 一致 |
-
-`ffmpegReady` 在首个目标缓冲可播放后触发，提供 `{ duration, mimeType }`。此时下载和转码可能仍在继续。
-
-`ffmpegProgress` 提供 `{ progress, time, downloadedBytes, totalBytes?, inputEnded }`，`time` 单位为微秒。`progress` 是 FFmpeg 进度，`downloadedBytes` 是 Worker 已读取的字节数。
-
-错误通过播放器 `error` 事件上报，`ext.stage` 为 `download`、`runtime`、`transcode` 或 `buffer`。
-
-## 播放行为
-
-- FFprobe 获取已知时长，通过 MSE API 设置；未知时长先保持 `Infinity`，转码结束后按实际缓冲末尾确定。
-- 缓冲内跳转直接生效；前向未缓冲位置需等待转码到达目标，回退到已清理的位置会重新读取并转码。历史回退恢复原播放状态，进度条行为遵循播放器 seek 配置；不支持 HTTP Range 随机定位。
-- `switchURL()` / `changeDefinition()` 保留播放状态和目标进度；`playNext()` 从头开始。退出播放页时调用 `player.destroy()`。
-- 默认转换有损，丢弃视频、字幕和其他音轨。当前提供音频 profile，视频策略需另行实现。
-- 格式支持取决于核心的解封装器、解码器和输入参数；依赖尾部索引或必须 seek 的容器不能保证提前播放。
-- WASM 转码会占用 CPU 和内存，流式读取不能消除核心下载、初始化与编解码开销。FFmpeg 及编码库的许可证按实际核心构建处理。
+原生验证使用真实 WASM 完成 Seek、编码和封装，再用 ffprobe 检查包 PTS、用 FFmpeg 完整解码。独立 Chrome 已验证有界暂停加载、前后及连续 Seek、源切换、三种音频路径的结束和 EOS 后回跳；Demo 按钮操作也已验证。MMS 回收等场景另有单测，Safari/MMS 实机、接缝听感和低端设备资源仍待验收。架构与来源见 [IO-DESIGN](./IO-DESIGN.md) 和 [开源评估](./OPEN-SOURCE-MSE.md)。

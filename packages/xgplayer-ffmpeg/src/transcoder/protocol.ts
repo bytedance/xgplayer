@@ -1,28 +1,58 @@
-import type { FFmpegLoadConfig, FFmpegProgress, FFmpegStage } from '../types'
+import type {
+  FFmpegAudioConfig,
+  FFmpegLoadConfig,
+  FFmpegMetadata,
+  FFmpegProgress,
+  FFmpegRequestOptions,
+  FFmpegStage
+} from '../types'
 
-/** Only cloneable values cross the Worker boundary. */
-export type HTTPRequestOptions = Omit<RequestInit, 'signal' | 'headers' | 'body'> & {
+export type HTTPRequestOptions = Omit<FFmpegRequestOptions, 'headers'> & {
   headers?: Record<string, string>
-  body?: Blob
 }
 
-export interface TranscodeRequest {
-  type: 'start'
-  source: string
-  requestOptions?: HTTPRequestOptions
-  maxInputBytes?: number
-  ffmpeg: FFmpegLoadConfig
-  /** Encoding arguments; the Worker owns the nonseekable output pipe. */
-  args: string[]
-  inputArguments: readonly string[]
+interface Command {
+  id: number
+  epoch: number
 }
 
-export type WorkerRequest = TranscodeRequest | { type: 'ack'; id: number }
+export type WorkerCommand = Command &
+  (
+    | {
+        type: 'open'
+        source: string
+        ffmpeg: FFmpegLoadConfig
+        audio: Readonly<FFmpegAudioConfig>
+        flacSupported: boolean
+        aacSupported: boolean
+        requestOptions?: HTTPRequestOptions
+        cacheBytes?: number
+        maxInputBytes?: number
+        segmentDuration: number
+      }
+    | { type: 'pull' }
+    | { type: 'seek'; time: number }
+    | { type: 'close' }
+  )
 
-export type WorkerEvent =
-  | { type: 'ready' }
-  | { type: 'metadata'; duration: number }
-  | { type: 'chunk'; id: number; data: Uint8Array<ArrayBuffer> }
-  | { type: 'progress'; data: FFmpegProgress }
-  | { type: 'done' }
-  | { type: 'error'; stage: FFmpegStage; message: string }
+export type WorkerRequest = WorkerCommand | { type: 'cancel'; epoch: number }
+
+export type PipelineOutput =
+  | { kind: 'init'; data: Uint8Array<ArrayBuffer>; timestampOffset: number }
+  | {
+      kind: 'media'
+      data: Uint8Array<ArrayBuffer>
+      start: number
+      end: number
+      timestampOffset: number
+    }
+  | { kind: 'yield' }
+  | { kind: 'eof' }
+
+export type WorkerEvent = Command &
+  (
+    | { type: 'opened'; metadata: FFmpegMetadata }
+    | { type: 'output'; output: PipelineOutput; progress: FFmpegProgress }
+    | { type: 'complete' }
+    | { type: 'error'; stage: FFmpegStage; message: string; cancelled?: boolean }
+  )

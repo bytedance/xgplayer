@@ -3,7 +3,7 @@ import type { MSEAttachMode } from 'xgplayer-streaming-shared'
 export interface FFmpegLoadConfig {
   /** Bundled xgplayer-ffmpeg streaming Worker, not the ffmpeg.wasm wrapper. */
   workerURL: string
-  /** Prepared single-thread core with Asyncify I/O and a stream entry. */
+  /** Native audio bridge built by ffmpeg:runtime. */
   coreURL: string
   wasmURL: string
 }
@@ -14,12 +14,11 @@ export interface FFmpegProgress {
   downloadedBytes: number
   totalBytes?: number
   inputEnded: boolean
+  cacheBytes?: number
+  rangeRequests?: number
 }
 
-/** Upload streams cannot cross the media Worker's structured-clone boundary. */
-export type FFmpegRequestOptions = Omit<RequestInit, 'signal' | 'body'> & {
-  body?: Exclude<BodyInit, ReadableStream>
-}
+export type FFmpegRequestOptions = Omit<RequestInit, 'signal' | 'body' | 'method'>
 
 export interface FFmpegOptions {
   media?: HTMLMediaElement
@@ -30,7 +29,11 @@ export interface FFmpegOptions {
   timeout?: number
   segmentDuration?: number
   bufferAhead?: number
+  /** Resume production below this water mark; defaults to half bufferAhead. */
+  bufferLow?: number
   bufferBehind?: number
+  /** HTTP block cache limit, independent of the optional total input limit. */
+  cacheBytes?: number
   preferMMS?: boolean
   mseAttachMode?: MSEAttachMode
   requestOptions?: FFmpegRequestOptions
@@ -41,26 +44,34 @@ export interface FFmpegAudioConfig {
   inputFormat?: 's16le' | 's16be' | 's8' | 'u8' | 'alaw' | 'mulaw'
   inputSampleRate?: number
   inputChannels?: number
+  /** Auto copies FLAC when MSE supports it, otherwise encodes AAC-LC. */
+  outputCodec?: 'auto' | 'aac' | 'flac'
+  /** Omit to preserve the source rate and channel layout where AAC permits. */
+  sampleRate?: number
+  channels?: number
+  bitrate?: number
 }
 
 export interface FFmpegPluginOptions extends FFmpegOptions {
   audio?: FFmpegAudioConfig
-  /** Defaults to AAC audio; custom profiles must match the supplied media element. */
+  /** Typed audio policy for the native bridge. */
   profile?: FFmpegOutputProfile
 }
 
 /** Encoding policy is separate from HTTP, Worker and MSE lifecycle. */
 export interface FFmpegOutputProfile {
-  readonly type: 'audio' | 'video'
+  readonly type: 'audio'
   readonly mimeType: string
-  readonly inputArguments: readonly string[]
-  readonly outputArguments: readonly string[]
+  readonly audio: Readonly<FFmpegAudioConfig>
 }
 
 export interface FFmpegMetadata {
-  /** FFprobe duration when known, otherwise Infinity until the final MSE append. */
+  /** Native demuxer duration; Infinity if the source does not declare one. */
   readonly duration: number
   readonly mimeType: string
+  readonly codec: string
+  readonly sampleRate: number
+  readonly channels: number
 }
 
 export type FFmpegStage = 'download' | 'runtime' | 'transcode' | 'buffer'

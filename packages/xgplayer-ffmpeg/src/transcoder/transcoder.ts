@@ -1,254 +1,185 @@
+import { MSE } from 'xgplayer-streaming-shared'
+import { AUDIO_MIME, FLAC_MIME } from '../profiles/audio'
 import {
   FFmpegError,
+  type FFmpegMetadata,
   type FFmpegOptions,
-  type FFmpegOutputProfile,
-  type FFmpegProgress
+  type FFmpegOutputProfile
 } from '../types'
-import type { HTTPRequestOptions, TranscodeRequest, WorkerEvent } from './protocol'
+import type { HTTPRequestOptions, WorkerCommand, WorkerEvent } from './protocol'
 
-interface TranscodeJob {
-  readonly signal: AbortSignal
-  readonly onChunk: (chunk: Uint8Array<ArrayBuffer>) => Promise<void>
-  readonly onProgress: (event: FFmpegProgress) => void
-  readonly onMetadata?: (duration: number) => Promise<void>
-  readonly resolve: () => void
-  readonly reject: (reason: Error) => void
-  worker: Worker | null
-  pendingChunk: number | null
-  metadata: Promise<void> | null
+type CommandPayload = {
+  [K in WorkerCommand['type']]: Omit<Extract<WorkerCommand, { type: K }>, 'id' | 'epoch'>
+}[WorkerCommand['type']]
+
+interface PendingCommand {
+  type: WorkerCommand['type']
+  resolve(event: WorkerEvent): void
+  reject(reason: Error): void
+  cleanup(): void
 }
 
-/** Main-thread owner of one Worker request and its output acknowledgement. */
+/** One persistent Worker; epoch changes cancel old work without replacing the module. */
 export class Transcoder {
-  private activeJob: TranscodeJob | null = null
+  private worker: Worker | null = null
+  private epoch = 0
+  private nextId = 0
+  private readonly pending = new Map<number, PendingCommand>()
+  private destroyed = false
 
   constructor(
     private readonly options: FFmpegOptions,
     private readonly profile: FFmpegOutputProfile
   ) {}
 
-  run(
-    source: string,
-    signal: AbortSignal,
-    onChunk: TranscodeJob['onChunk'],
-    onProgress: TranscodeJob['onProgress'],
-    onMetadata?: TranscodeJob['onMetadata']
-  ): Promise<void> {
-    if (this.activeJob)
-      return Promise.reject(
-        new FFmpegError('runtime', 'A transcode job is already running')
-      )
-    let resolve!: () => void
-    let reject!: (reason: Error) => void
-    const completion = new Promise<void>((res, rej) => {
-      resolve = res
-      reject = rej
-    })
-    const job: TranscodeJob = {
-      signal,
-      onChunk,
-      onProgress,
-      onMetadata,
-      resolve,
-      reject,
-      worker: null,
-      pendingChunk: null,
-      metadata: null
+  async open(source: string, signal: AbortSignal): Promise<FFmpegMetadata> {
+    this.cancel()
+    const url = this.resolveSource(source)
+    const event = await this.send(
+      {
+        type: 'open',
+        source: url,
+        ffmpeg: this.options.ffmpeg,
+        audio: this.profile.audio,
+        aacSupported: MSE.isSupported(AUDIO_MIME, this.options.preferMMS),
+        flacSupported: MSE.isSupported(FLAC_MIME, this.options.preferMMS),
+        cacheBytes: this.options.cacheBytes,
+        maxInputBytes: this.options.maxInputBytes,
+        segmentDuration: this.options.segmentDuration ?? 1,
+        requestOptions: this.serializeOptions()
+      },
+      signal
+    )
+    if (event.type !== 'opened')
+      throw new FFmpegError('runtime', 'Expected audio metadata')
+    return event.metadata
+  }
+
+  async seek(time: number, signal: AbortSignal): Promise<void> {
+    this.cancel()
+    await this.send({ type: 'seek', time }, signal)
+  }
+
+  async pull(signal: AbortSignal): Promise<Extract<WorkerEvent, { type: 'output' }>> {
+    const event = await this.send({ type: 'pull' }, signal)
+    if (event.type !== 'output')
+      throw new FFmpegError('runtime', 'Expected native output')
+    return event
+  }
+
+  cancel(): void {
+    this.epoch++
+    for (const command of this.pending.values()) {
+      command.cleanup()
+      command.reject(new DOMException('Worker command cancelled', 'AbortError'))
     }
-    this.activeJob = job
-    const abort = (): void =>
-      this.fail(job, new DOMException('Media load cancelled', 'AbortError'))
-    signal.addEventListener('abort', abort, { once: true })
-    if (signal.aborted) abort()
-    else
-      void this.start(job, source).catch((reason: unknown) => {
-        this.fail(
-          job,
-          reason instanceof FFmpegError
-            ? reason
-            : new FFmpegError('runtime', 'Cannot run streaming Worker', reason)
-        )
-      })
-    return completion.finally(() => signal.removeEventListener('abort', abort))
+    this.pending.clear()
+    this.worker?.postMessage({ type: 'cancel', epoch: this.epoch })
+  }
+
+  async close(): Promise<void> {
+    this.cancel()
+    if (this.worker && !this.destroyed)
+      await this.send({ type: 'close' }, new AbortController().signal)
   }
 
   destroy(): void {
-    if (this.activeJob)
-      this.fail(this.activeJob, new DOMException('Media load cancelled', 'AbortError'))
+    this.destroyed = true
+    this.cancel()
+    this.releaseWorker()
   }
 
-  private async start(job: TranscodeJob, source: string): Promise<void> {
-    const url = this.resolveSource(source)
-    const request: TranscodeRequest = {
-      type: 'start',
-      source: url,
-      requestOptions: await this.serializeOptions(url),
-      maxInputBytes: this.options.maxInputBytes,
-      ffmpeg: this.options.ffmpeg,
-      args: this.getArguments(),
-      inputArguments: this.profile.inputArguments
-    }
-    if (this.activeJob !== job) return
-    const worker = new Worker(this.options.ffmpeg.workerURL, { type: 'module' })
-    job.worker = worker
-    worker.onmessage = ({ data }: MessageEvent<WorkerEvent>) => {
-      if (this.activeJob !== job) return
-      try {
-        this.handleMessage(job, data)
-      } catch (reason) {
-        this.fail(
-          job,
-          reason instanceof FFmpegError
-            ? reason
-            : new FFmpegError('runtime', 'Streaming callback failed', reason)
-        )
-      }
-    }
-    worker.onerror = (event) => {
-      this.fail(job, new FFmpegError('runtime', event.message || 'Worker failed'))
-    }
-    worker.onmessageerror = () => {
-      this.fail(
-        job,
-        new FFmpegError('runtime', 'Cannot decode a streaming Worker message')
+  private send(payload: CommandPayload, signal: AbortSignal): Promise<WorkerEvent> {
+    if (this.destroyed)
+      return Promise.reject(new FFmpegError('runtime', 'Worker client is destroyed'))
+    if (signal.aborted)
+      return Promise.reject(new DOMException('Worker command cancelled', 'AbortError'))
+    const worker = this.getWorker()
+    this.nextId += 1
+    const id = this.nextId
+    const request = { ...payload, id, epoch: this.epoch } as WorkerCommand
+    return new Promise((resolve, reject) => {
+      const abort = (): void => this.cancel()
+      const timer = setTimeout(
+        () => this.fault(new FFmpegError('runtime', 'Worker command timed out')),
+        this.options.timeout ?? 120000
       )
-    }
-    worker.postMessage(request)
-  }
-
-  private handleMessage(job: TranscodeJob, event: WorkerEvent): void {
-    switch (event.type) {
-      case 'ready':
-        return
-      case 'error':
-        this.fail(job, new FFmpegError(event.stage, event.message))
-        return
-      case 'progress':
-        job.onProgress(event.data)
-        return
-      case 'metadata':
-        if (
-          job.metadata !== null ||
-          job.pendingChunk !== null ||
-          !Number.isFinite(event.duration) ||
-          event.duration <= 0
-        )
-          throw new FFmpegError('runtime', 'Invalid Worker duration metadata')
-        job.metadata = this.applyMetadata(job, event.duration)
-        void job.metadata.catch((reason: Error) => this.fail(job, reason))
-        return
-      case 'done':
-        if (job.pendingChunk !== null)
-          throw new FFmpegError(
-            'runtime',
-            'Worker completed before output was acknowledged'
-          )
-        void this.finish(job).catch((reason: Error) => this.fail(job, reason))
-        return
-      case 'chunk':
-        if (job.pendingChunk !== null)
-          throw new FFmpegError(
-            'runtime',
-            'Worker sent output before its previous acknowledgement'
-          )
-        job.pendingChunk = event.id
-        // Awaiting playback must not block error and cancellation messages.
-        void this.consume(job, event).catch((reason: unknown) => {
-          this.fail(
-            job,
-            reason instanceof FFmpegError
-              ? reason
-              : new FFmpegError('runtime', 'Cannot acknowledge Worker output', reason)
-          )
-        })
-    }
-  }
-
-  private async consume(
-    job: TranscodeJob,
-    event: Extract<WorkerEvent, { type: 'chunk' }>
-  ): Promise<void> {
-    try {
-      // Metadata and chunks arrive in order, but MSE duration updates are async.
-      if (job.metadata) {
-        await job.metadata
-        if (this.activeJob !== job) return
+      const cleanup = (): void => {
+        clearTimeout(timer)
+        signal.removeEventListener('abort', abort)
       }
-      await job.onChunk(event.data)
-    } catch (reason) {
-      throw reason instanceof FFmpegError
-        ? reason
-        : new FFmpegError('buffer', 'Media buffer operation failed', reason)
+      this.pending.set(id, { type: payload.type, resolve, reject, cleanup })
+      signal.addEventListener('abort', abort, { once: true })
+      try {
+        worker.postMessage(request)
+      } catch (reason) {
+        this.fault(new FFmpegError('runtime', 'Cannot send Worker command', reason))
+      }
+    })
+  }
+
+  private getWorker(): Worker {
+    if (this.worker) return this.worker
+    const worker = (this.worker = new Worker(this.options.ffmpeg.workerURL, {
+      type: 'module'
+    }))
+    worker.onmessage = ({ data }: MessageEvent<WorkerEvent>) => {
+      if (data.epoch !== this.epoch) return
+      const command = this.pending.get(data.id)
+      if (!command) return
+      this.pending.delete(data.id)
+      command.cleanup()
+      if (data.type === 'error') {
+        command.reject(
+          data.cancelled
+            ? new DOMException(data.message, 'AbortError')
+            : new FFmpegError(data.stage, data.message)
+        )
+        return
+      }
+      const expected =
+        command.type === 'open'
+          ? 'opened'
+          : command.type === 'pull'
+            ? 'output'
+            : 'complete'
+      if (data.type !== expected) {
+        const error = new FFmpegError('runtime', 'Unexpected Worker response')
+        command.reject(error)
+        this.fault(error)
+      } else command.resolve(data)
     }
-    if (this.activeJob !== job) return
-    job.pendingChunk = null
-    job.worker?.postMessage({ type: 'ack', id: event.id })
+    worker.onerror = (event) =>
+      this.fault(new FFmpegError('runtime', event.message || 'Worker failed'))
+    worker.onmessageerror = () =>
+      this.fault(new FFmpegError('runtime', 'Cannot decode Worker response'))
+    return worker
   }
 
-  private async applyMetadata(job: TranscodeJob, duration: number): Promise<void> {
-    try {
-      await job.onMetadata?.(duration)
-    } catch (reason) {
-      throw reason instanceof FFmpegError
-        ? reason
-        : new FFmpegError('buffer', 'Cannot update media duration', reason)
+  private fault(error: FFmpegError): void {
+    for (const command of this.pending.values()) {
+      command.cleanup()
+      command.reject(error)
     }
+    this.pending.clear()
+    this.releaseWorker()
   }
 
-  private async finish(job: TranscodeJob): Promise<void> {
-    await job.metadata
-    this.complete(job)
+  private releaseWorker(): void {
+    if (!this.worker) return
+    this.worker.onmessage = this.worker.onerror = this.worker.onmessageerror = null
+    this.worker.terminate()
+    this.worker = null
   }
 
-  private complete(job: TranscodeJob, error?: Error): void {
-    if (this.activeJob !== job) return
-    this.activeJob = null
-    if (job.worker) {
-      job.worker.onmessage = null
-      job.worker.onerror = null
-      job.worker.onmessageerror = null
-      job.worker.terminate()
-      job.worker = null
-    }
-    if (error) job.reject(error)
-    else job.resolve()
-  }
-
-  private fail(job: TranscodeJob, error: Error): void {
-    this.complete(job, error)
-  }
-
-  private async serializeOptions(url: string): Promise<HTTPRequestOptions | undefined> {
+  private serializeOptions(): HTTPRequestOptions | undefined {
     const options = this.options.requestOptions
     if (!options) return
-    if (options.body && typeof options.body === 'object' && 'getReader' in options.body)
-      throw new FFmpegError('download', 'Streaming request bodies are not supported')
-    // Request normalizes FormData/URLSearchParams bodies and their Content-Type.
-    // Its signal stays on this side; only the listed cloneable fields are sent.
-    try {
-      const request = new Request(url, { ...options, signal: undefined })
-      const headers: Record<string, string> = Object.create(null)
-      request.headers.forEach((value, name) => {
-        headers[name] = value
-      })
-      return {
-        cache: options.cache,
-        credentials: options.credentials,
-        headers,
-        integrity: options.integrity,
-        keepalive: options.keepalive,
-        method: options.method,
-        mode: options.mode,
-        priority: options.priority,
-        redirect: options.redirect,
-        referrer: options.referrer === undefined ? undefined : request.referrer,
-        referrerPolicy: options.referrerPolicy,
-        window: options.window,
-        body: options.body == null ? undefined : await request.blob()
-      }
-    } catch (reason) {
-      throw new FFmpegError('download', 'Invalid HTTP request options', reason)
-    }
+    const headers: Record<string, string> = {}
+    new Headers(options.headers).forEach((value, name) => {
+      headers[name] = value
+    })
+    return { ...options, headers }
   }
 
   private resolveSource(source: string): string {
@@ -264,29 +195,5 @@ export class Transcoder {
     } catch (reason) {
       throw new FFmpegError('download', 'Media source must be an HTTP(S) URL', reason)
     }
-  }
-
-  private getArguments(): string[] {
-    return [
-      '-hide_banner',
-      '-nostdin',
-      '-y',
-      '-probesize',
-      '65536',
-      '-analyzeduration',
-      '1000000',
-      ...this.profile.inputArguments,
-      '-i',
-      '/input',
-      ...this.profile.outputArguments,
-      '-f',
-      'mp4',
-      '-movflags',
-      '+empty_moov+default_base_moof+frag_keyframe',
-      '-frag_duration',
-      String(Math.round((this.options.segmentDuration ?? 1) * 1000000)),
-      '-flush_packets',
-      '1'
-    ]
   }
 }
