@@ -1,442 +1,185 @@
-/** @jest-environment node */
-import { createAudioProfile } from '../src/profiles/audio'
 import { Transcoder } from '../src/transcoder/transcoder'
+import { createAudioProfile } from '../src/profiles/audio'
+import type { WorkerCommand, WorkerEvent, WorkerRequest } from '../src/transcoder/protocol'
 import type { FFmpegOptions } from '../src/types'
-import { FFmpegError } from '../src/types'
-import type { TranscodeRequest, WorkerEvent, WorkerRequest } from '../src/transcoder/protocol'
+
+jest.mock('xgplayer-streaming-shared', () => ({
+  MSE: { isSupported: jest.fn().mockReturnValue(true) }
+}))
 
 class MockWorker {
   static instances: MockWorker[] = []
-  request!: TranscodeRequest
-  messages: WorkerRequest[] = []
-  onmessage: ((event: { data: WorkerEvent }) => void) | null = null
-  onerror: ((event: { message: string }) => void) | null = null
+  onmessage: ((event: MessageEvent<WorkerEvent>) => void) | null = null
+  onerror: ((event: ErrorEvent) => void) | null = null
   onmessageerror: (() => void) | null = null
+  postMessage = jest.fn<void, [WorkerRequest]>()
   terminate = jest.fn()
   constructor() { MockWorker.instances.push(this) }
-  postMessage(request: WorkerRequest) {
-    this.messages.push(request)
-    if (request.type === 'start') this.request = request
+  get command(): WorkerCommand {
+    const command = this.postMessage.mock.calls.at(-1)?.[0]
+    if (!command || command.type === 'cancel') throw new Error('No native command')
+    return command
   }
-  send(data: WorkerEvent) { this.onmessage?.({ data }) }
-  output(id: number, bytes = [3, 4]) {
-    this.send({ type: 'chunk', id, data: new Uint8Array(bytes) })
-  }
+  reply(event: WorkerEvent): void { this.onmessage?.({ data: event } as MessageEvent<WorkerEvent>) }
 }
 
-function setup(overrides: Partial<FFmpegOptions> = {}) {
-  const options: FFmpegOptions = {
-    ffmpeg: { workerURL: '/worker.js', coreURL: '/core.js', wasmURL: '/core.wasm' },
-    ...overrides
-  }
-  const transcoder = new Transcoder(options, createAudioProfile())
-  const controller = new AbortController()
-  const progress = jest.fn()
-  const chunk = jest.fn().mockResolvedValue(undefined)
-  return { transcoder, controller, progress, chunk }
+const metadata = { duration: 100, codec: 'aac', sampleRate: 44100, channels: 2, mimeType: 'audio/mp4' }
+const signal = () => new AbortController().signal
+function setup(extra: Partial<FFmpegOptions> = {}) {
+  return new Transcoder({
+    ffmpeg: { workerURL: '/worker.js', coreURL: '/core.js', wasmURL: '/core.wasm' }, ...extra
+  }, createAudioProfile())
+}
+async function open(client: Transcoder) {
+  const result = client.open('https://example.com/a.wma', signal())
+  const worker = MockWorker.instances.at(-1)!
+  worker.reply({ ...worker.command, type: 'opened', metadata })
+  await result
+  return worker
 }
 
-async function flush() {
-  for (let i = 0; i < 15; i++) await Promise.resolve()
-}
-
-const source = 'https://example.com/sample.wma'
-
-describe('FFmpeg asynchronous streaming bridge', () => {
+describe('persistent Worker client', () => {
   beforeEach(() => {
-    MockWorker.instances = []
+    MockWorker.instances.length = 0
     Object.defineProperty(globalThis, 'Worker', { value: MockWorker, configurable: true })
   })
-  afterEach(() => jest.restoreAllMocks())
 
-  test('delivers output and download progress before EOF, then releases the Worker', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.send({ type: 'ready' })
-    worker.send({
-      type: 'progress',
-      data: { progress: 0, time: 0, downloadedBytes: 24, inputEnded: false }
-    })
-    worker.output(1)
-    await flush()
-    expect(chunk).toHaveBeenCalledWith(new Uint8Array([3, 4]))
-    expect(worker.messages[1]).toEqual({ type: 'ack', id: 1 })
-    expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ inputEnded: false }))
-    worker.send({ type: 'done' })
-    await running
-    expect(worker.terminate).toHaveBeenCalledTimes(1)
-  })
-
-  test('withholds ACK until the MSE consumer accepts a chunk', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    let release!: () => void
-    chunk.mockImplementation(() => new Promise<void>((resolve) => { release = resolve }))
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.output(7)
-    await flush()
-    expect(worker.messages).toHaveLength(1)
-    release()
-    await flush()
-    expect(worker.messages[1]).toEqual({ type: 'ack', id: 7 })
-    worker.send({ type: 'done' })
-    await running
-  })
-
-  test('waits for duration to be applied before consuming the first output', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    let release!: () => void
-    const metadata = jest.fn(() => new Promise<void>((resolve) => { release = resolve }))
-    const running = transcoder.run(source, controller.signal, chunk, progress, metadata)
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.send({ type: 'metadata', duration: 728.084 })
-    worker.output(1)
-    await flush()
-    expect(metadata).toHaveBeenCalledWith(728.084)
-    expect(chunk).not.toHaveBeenCalled()
-    expect(worker.messages).toHaveLength(1)
-    release()
-    await flush()
-    expect(chunk).toHaveBeenCalledTimes(1)
-    expect(worker.messages[1]).toEqual({ type: 'ack', id: 1 })
-    worker.send({ type: 'done' })
-    await running
-  })
-
-  test('waits for metadata even when the Worker completes without output', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    let release!: () => void
-    const running = transcoder.run(source, controller.signal, chunk, progress,
-      () => new Promise<void>((resolve) => { release = resolve }))
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.send({ type: 'metadata', duration: 8 })
-    worker.send({ type: 'done' })
-    await flush()
-    expect(worker.terminate).not.toHaveBeenCalled()
-    release()
-    await running
-    expect(worker.terminate).toHaveBeenCalledTimes(1)
-  })
-
-  test.each(['error', 'abort', 'destroy'] as const)(
-    'settles %s promptly while duration is updating and discards late consumption',
-    async (action) => {
-      const { transcoder, controller, chunk, progress } = setup()
-      let release!: () => void
-      const running = transcoder.run(source, controller.signal, chunk, progress,
-        () => new Promise<void>((resolve) => { release = resolve }))
-      const result = running.catch((reason: Error) => reason)
-      await flush()
-      const worker = MockWorker.instances[0]
-      worker.send({ type: 'metadata', duration: 728.084 })
-      worker.output(1)
-      if (action === 'error') worker.send({ type: 'error', stage: 'transcode', message: 'Failed' })
-      else if (action === 'abort') controller.abort()
-      else transcoder.destroy()
-      expect(await result).toMatchObject(action === 'error'
-        ? { stage: 'transcode' } : { name: 'AbortError' })
-      const next = transcoder.run(source, new AbortController().signal, chunk, progress)
-      await flush()
-      release()
-      await flush()
-      expect(chunk).not.toHaveBeenCalled()
-      expect(worker.messages).toHaveLength(1)
-      MockWorker.instances[1].send({ type: 'done' })
-      await next
-    }
-  )
-
-  test.each([new Error('Duration update failed'), new FFmpegError('buffer', 'Duration update failed')])(
-    'reports duration update rejection and never appends output',
-    async (failure) => {
-      const { transcoder, controller, chunk, progress } = setup()
-      const result = transcoder.run(source, controller.signal, chunk, progress,
-        async () => { throw failure }).catch((reason: Error) => reason)
-      await flush()
-      const worker = MockWorker.instances[0]
-      worker.send({ type: 'metadata', duration: 8 })
-      worker.output(1)
-      expect(await result).toMatchObject({ stage: 'buffer' })
-      expect(chunk).not.toHaveBeenCalled()
-      expect(worker.messages).toHaveLength(1)
-    }
-  )
-
-  test.each([Infinity, NaN, 0, -1])('rejects invalid duration metadata: %s', async (duration) => {
-    const { transcoder, controller, chunk, progress } = setup()
-    const result = transcoder.run(source, controller.signal, chunk, progress).catch((reason: Error) => reason)
-    await flush()
-    MockWorker.instances[0].send({ type: 'metadata', duration })
-    expect(await result).toMatchObject({ stage: 'runtime' })
-  })
-
-  test('rejects duplicate metadata', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    const result = transcoder.run(source, controller.signal, chunk, progress).catch((reason: Error) => reason)
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.send({ type: 'metadata', duration: 8 })
-    worker.send({ type: 'metadata', duration: 8 })
-    expect(await result).toMatchObject({ stage: 'runtime' })
-  })
-
-  test.each(['error', 'abort', 'destroy'] as const)(
-    'terminates promptly on %s while MSE is applying backpressure',
-    async (action) => {
-      const { transcoder, controller, chunk, progress } = setup()
-      let release!: () => void
-      chunk.mockImplementation(() => new Promise<void>((resolve) => { release = resolve }))
-      const running = transcoder.run(source, controller.signal, chunk, progress)
-      const result = running.catch((reason: Error) => reason)
-      await flush()
-      const worker = MockWorker.instances[0]
-      worker.output(1)
-      await flush()
-      if (action === 'error') worker.send({ type: 'error', stage: 'transcode', message: 'Bad packet' })
-      else if (action === 'abort') controller.abort()
-      else transcoder.destroy()
-      expect(await result).toMatchObject(action === 'error'
-        ? { stage: 'transcode', message: 'Bad packet' } : { name: 'AbortError' })
-      expect(worker.terminate).toHaveBeenCalledTimes(1)
-      release()
-      await flush()
-      expect(worker.messages).toHaveLength(1)
-    }
-  )
-
-  test('reports append rejection as a buffer error without acknowledging it', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    chunk.mockRejectedValueOnce(new Error('SourceBuffer failure'))
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    const result = running.catch((reason: Error) => reason)
-    await flush()
-    MockWorker.instances[0].output(1)
-    expect(await result).toMatchObject({ stage: 'buffer' })
-    expect(MockWorker.instances[0].messages).toHaveLength(1)
-  })
-
-  test('serializes HTTP headers and forwards the download limit to the Worker', async () => {
-    const { transcoder, controller, chunk, progress } = setup({
-      requestOptions: {
-        credentials: 'include', headers: new Headers({ 'X-Media': 'test' }),
-        priority: 'high', window: null, referrer: 'https://example.com/page'
-      },
-      maxInputBytes: 1024
-    })
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const worker = MockWorker.instances[0]
-    expect(worker.request).toMatchObject({
-      source, maxInputBytes: 1024,
-      requestOptions: {
-        credentials: 'include', headers: { 'x-media': 'test' },
-        priority: 'high', window: null, referrer: 'https://example.com/page'
-      }
-    })
-    worker.send({ type: 'done' })
-    await running
-  })
-
-  test('resolves relative HTTP paths against the page rather than the Worker URL', async () => {
-    const previous = Object.getOwnPropertyDescriptor(globalThis, 'document')
-    Object.defineProperty(globalThis, 'document', {
-      value: { baseURI: 'https://app.example.com/pages/player.html' },
-      configurable: true
-    })
-    const { transcoder, controller, chunk, progress } = setup()
-    try {
-      const running = transcoder.run('../media/sample.wma', controller.signal, chunk, progress)
-      await flush()
-      const worker = MockWorker.instances[0]
-      expect(worker.request.source).toBe('https://app.example.com/media/sample.wma')
-      worker.send({ type: 'done' })
-      await running
-    } finally {
-      transcoder.destroy()
-      if (previous) Object.defineProperty(globalThis, 'document', previous)
-      else Reflect.deleteProperty(globalThis, 'document')
-    }
-  })
-
-  test('places raw audio policy before input and creates nonseekable fragmented MP4', async () => {
-    const { controller, chunk, progress } = setup()
-    const transcoder = new Transcoder({
-      ffmpeg: { workerURL: '/worker.js', coreURL: '/core.js', wasmURL: '/core.wasm' }
-    }, createAudioProfile({ inputFormat: 's16le', inputSampleRate: 16000, inputChannels: 1 }))
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const worker = MockWorker.instances[0]
-    const args = worker.request.args
-    expect(args.slice(args.indexOf('-f'), args.indexOf('-i') + 2)).toEqual([
-      '-f', 's16le', '-ar', '16000', '-ac', '1', '-i', '/input'
-    ])
-    expect(worker.request.inputArguments).toEqual([
-      '-f', 's16le', '-ar', '16000', '-ac', '1'
-    ])
-    expect(args[args.indexOf('-movflags') + 1])
-      .toBe('+empty_moov+default_base_moof+frag_keyframe')
-    expect(args).toEqual(expect.arrayContaining([
-      '-f', 'mp4', '-frag_duration', '1000000', '-flush_packets', '1'
-    ]))
-    worker.send({ type: 'done' })
-    await running
-  })
-
-  test.each(['', 'blob:https://example.com/id', 'data:audio/wav;base64,', 'file:///a.wma', 'ftp://a/a.wma'])(
-    'rejects a source outside HTTP(S) before starting a Worker: %s',
-    async (url) => {
-      const { transcoder, controller, chunk, progress } = setup()
-      await expect(transcoder.run(url, controller.signal, chunk, progress))
-        .rejects.toMatchObject({ stage: 'download' })
-      expect(MockWorker.instances).toHaveLength(0)
-    }
-  )
-
-  test('rejects local Blob input and already cancelled loads', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    await expect(transcoder.run(new Blob(['audio']) as never, controller.signal, chunk, progress))
-      .rejects.toMatchObject({ stage: 'download' })
-    controller.abort()
-    await expect(transcoder.run(source, controller.signal, chunk, progress))
-      .rejects.toMatchObject({ name: 'AbortError' })
-    expect(MockWorker.instances).toHaveLength(0)
-  })
-
-  test.each(['onerror', 'onmessageerror'] as const)('reports %s as a runtime failure', async (event) => {
-    const { transcoder, controller, chunk, progress } = setup()
-    const result = transcoder.run(source, controller.signal, chunk, progress).catch((error: Error) => error)
-    await flush()
-    const worker = MockWorker.instances[0]
-    if (event === 'onerror') worker.onerror?.({ message: 'WASM failed' })
-    else worker.onmessageerror?.()
-    expect(await result).toMatchObject({ stage: 'runtime' })
-    expect(worker.terminate).toHaveBeenCalledTimes(1)
-  })
-
-  test('a progress callback failure settles the job and stops the Worker', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    progress.mockImplementation(() => { throw new Error('Listener failed') })
-    const result = transcoder.run(source, controller.signal, chunk, progress).catch((error: Error) => error)
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.send({ type: 'progress', data: { progress: 0, time: 0, downloadedBytes: 1, inputEnded: false } })
-    expect(await result).toMatchObject({ stage: 'runtime', message: 'Streaming callback failed' })
-    expect(worker.terminate).toHaveBeenCalledTimes(1)
-  })
-
-  test.each(['chunk', 'done'] as const)('rejects an unexpected %s before output ACK', async (event) => {
-    const { transcoder, controller, chunk, progress } = setup()
-    let release!: () => void
-    chunk.mockImplementation(() => new Promise<void>((resolve) => { release = resolve }))
-    const result = transcoder.run(source, controller.signal, chunk, progress).catch((error: Error) => error)
-    await flush()
-    const worker = MockWorker.instances[0]
-    worker.output(1)
-    if (event === 'chunk') worker.output(2)
-    else worker.send({ type: 'done' })
-    expect(await result).toMatchObject({ stage: 'runtime' })
-    release()
-    await flush()
-    expect(worker.messages).toHaveLength(1)
-    expect(chunk).toHaveBeenCalledTimes(1)
-  })
-
-  test('request signals supplied by JavaScript stay outside the Worker protocol', async () => {
-    const external = new AbortController()
-    const requestOptions = { signal: external.signal, credentials: 'include' as const }
-    const { transcoder, controller, chunk, progress } = setup({ requestOptions })
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const worker = MockWorker.instances[0]
-    expect(worker.request.requestOptions).not.toHaveProperty('signal')
-    external.abort()
-    worker.send({ type: 'done' })
-    await running
-  })
-
-  test('normalizes POST form bodies and headers into cloneable data', async () => {
-    const { transcoder, controller, chunk, progress } = setup({
-      requestOptions: { method: 'POST', body: new URLSearchParams({ token: 'media' }) }
-    })
-    const running = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const worker = MockWorker.instances[0]
-    expect(await worker.request.requestOptions?.body?.text()).toBe('token=media')
-    expect(worker.request.requestOptions?.headers?.['content-type']).toContain('application/x-www-form-urlencoded')
-    worker.send({ type: 'done' })
-    await running
-  })
-
-  test('rejects streaming upload bodies before creating a Worker', async () => {
-    const { transcoder, controller, chunk, progress } = setup({
-      requestOptions: { method: 'POST', body: new ReadableStream() as never }
-    })
-    await expect(transcoder.run(source, controller.signal, chunk, progress))
-      .rejects.toMatchObject({ stage: 'download', message: 'Streaming request bodies are not supported' })
-    expect(MockWorker.instances).toHaveLength(0)
-  })
-
-  test('rejects invalid HTTP options with a download-stage error', async () => {
-    const { transcoder, controller, chunk, progress } = setup({
-      requestOptions: { method: 'GET', body: 'not a GET body' }
-    })
-    await expect(transcoder.run(source, controller.signal, chunk, progress))
-      .rejects.toMatchObject({ stage: 'download', message: 'Invalid HTTP request options' })
-    expect(MockWorker.instances).toHaveLength(0)
-  })
-
-  test('rejects overlapping jobs without cancelling the active request', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    const first = transcoder.run(source, controller.signal, chunk, progress)
-    await expect(transcoder.run(source, controller.signal, chunk, progress))
-      .rejects.toMatchObject({ message: 'A transcode job is already running' })
-    await flush()
+  test('reuses one Worker across sources and closes without terminating the module', async () => {
+    const client = setup()
+    const worker = await open(client)
+    await open(client)
     expect(MockWorker.instances).toHaveLength(1)
-    MockWorker.instances[0].send({ type: 'done' })
-    await first
+    const closing = client.close()
+    worker.reply({ ...worker.command, type: 'complete' })
+    await closing
+    expect(worker.terminate).not.toHaveBeenCalled()
+    client.destroy()
+    expect(worker.terminate).toHaveBeenCalledTimes(1)
   })
 
-  test('ignores callbacks retained from a completed Worker after a new job starts', async () => {
-    const { transcoder, controller, chunk, progress } = setup()
-    const first = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    const firstWorker = MockWorker.instances[0]
-    const oldCallback = firstWorker.onmessage
-    firstWorker.send({ type: 'done' })
-    await first
-    const second = transcoder.run(source, controller.signal, chunk, progress)
-    await flush()
-    oldCallback?.({ data: {
-      type: 'progress', data: { progress: 1, time: 1, downloadedBytes: 1, inputEnded: true }
-    } })
-    oldCallback?.({ data: { type: 'done' } })
-    oldCallback?.({ data: { type: 'metadata', duration: 100 } })
-    expect(progress).not.toHaveBeenCalled()
-    expect(MockWorker.instances[1].terminate).not.toHaveBeenCalled()
-    MockWorker.instances[1].send({ type: 'done' })
-    await second
-  })
-
-  test.each(['abort', 'destroy'] as const)('settles %s during request preparation and prevents a late Worker', async (action) => {
-    let release!: (body: Blob) => void
-    jest.spyOn(Request.prototype, 'blob').mockImplementation(() =>
-      new Promise<Blob>((resolve) => { release = resolve })
-    )
-    const { transcoder, controller, chunk, progress } = setup({
-      requestOptions: { method: 'POST', body: 'request' }
+  test('passes cloneable Range options and typed audio policy', async () => {
+    const client = setup({ requestOptions: { credentials: 'include', headers: new Headers({ 'X-Test': 'ok' }) } })
+    const worker = await open(client)
+    expect(worker.command).toMatchObject({
+      type: 'open', requestOptions: { credentials: 'include', headers: { 'x-test': 'ok' } },
+      audio: { outputCodec: 'auto' }, aacSupported: true, flacSupported: true
     })
-    const result = transcoder.run(source, controller.signal, chunk, progress).catch((error: Error) => error)
-    await flush()
-    if (action === 'abort') controller.abort()
-    else transcoder.destroy()
-    expect(await result).toMatchObject({ name: 'AbortError' })
-    release(new Blob(['request']))
-    await flush()
+    client.destroy()
+  })
+
+  test('a newer seek cancels a pull immediately and ignores its late output', async () => {
+    const client = setup()
+    const worker = await open(client)
+    const old = client.pull(signal()).catch((error: Error) => error)
+    const previous = worker.command
+    const seeking = client.seek(80, signal())
+    const current = worker.command
+    expect(await old).toMatchObject({ name: 'AbortError' })
+    worker.reply({ ...previous, type: 'output', output: { kind: 'eof' }, progress: {
+      progress: 1, time: 100, downloadedBytes: 0, inputEnded: true
+    } })
+    worker.reply({ ...current, type: 'complete' })
+    await seeking
+    expect(worker.terminate).not.toHaveBeenCalled()
+    client.destroy()
+  })
+
+  test('aborting a command sends cancellation without killing WASM', async () => {
+    const client = setup()
+    const worker = await open(client)
+    const controller = new AbortController()
+    const pending = client.pull(controller.signal).catch((error: Error) => error)
+    controller.abort()
+    expect(await pending).toMatchObject({ name: 'AbortError' })
+    expect(worker.postMessage).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'cancel' }))
+    expect(worker.terminate).not.toHaveBeenCalled()
+    client.destroy()
+  })
+
+  test.each(['error', 'message', 'protocol'])('terminates a faulty %s Worker and rejects its caller', async (mode) => {
+    const client = setup()
+    const worker = await open(client)
+    const result = client.pull(signal()).catch((error: Error) => error)
+    if (mode === 'error') worker.onerror?.({ message: 'trap' } as ErrorEvent)
+    else if (mode === 'message') worker.onmessageerror?.()
+    else worker.reply({ ...worker.command, type: 'complete' })
+    expect(await result).toMatchObject({ stage: 'runtime' })
+    expect(worker.terminate).toHaveBeenCalledTimes(1)
+    client.destroy()
+  })
+
+  test('propagates native errors without treating them as EOF', async () => {
+    const client = setup()
+    const worker = await open(client)
+    const pending = client.pull(signal())
+    worker.reply({ ...worker.command, type: 'error', stage: 'download', message: 'truncated' })
+    await expect(pending).rejects.toMatchObject({ stage: 'download', message: 'truncated' })
+    client.destroy()
+  })
+
+  test.each(['', 'blob:abc', 'file:///tmp/a'])('rejects unsupported source %s before spawning a Worker', async (source) => {
+    const client = setup()
+    await expect(client.open(source, signal())).rejects.toMatchObject({ stage: 'download' })
     expect(MockWorker.instances).toHaveLength(0)
+    client.destroy()
+  })
+
+  test('a deadline terminates a stuck core', async () => {
+    jest.useFakeTimers()
+    const client = setup({ timeout: 10 })
+    const worker = await open(client)
+    const pending = client.pull(signal()).catch((error: Error) => error)
+    jest.advanceTimersByTime(11)
+    expect(await pending).toMatchObject({ message: 'Worker command timed out' })
+    expect(worker.terminate).toHaveBeenCalledTimes(1)
+    client.destroy()
+    jest.useRealTimers()
+  })
+
+  test('destroy rejects pending calls and prevents future work', async () => {
+    const client = setup()
+    await open(client)
+    const pending = client.pull(signal()).catch((error: Error) => error)
+    client.destroy()
+    expect(await pending).toMatchObject({ name: 'AbortError' })
+    await expect(client.pull(signal())).rejects.toMatchObject({ stage: 'runtime' })
+  })
+
+  test('pre-aborted work does not start a Worker and native cancellation keeps the module', async () => {
+    const client = setup()
+    const controller = new AbortController()
+    controller.abort()
+    await expect(client.open('https://example.com/a.wma', controller.signal)).rejects.toMatchObject({ name: 'AbortError' })
+    expect(MockWorker.instances).toHaveLength(0)
+    const worker = await open(client)
+    const pending = client.pull(signal())
+    worker.reply({ ...worker.command, type: 'error', stage: 'transcode', message: 'cancelled', cancelled: true })
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+    expect(worker.terminate).not.toHaveBeenCalled()
+    client.destroy()
+  })
+
+  test('failed postMessage and anonymous Worker errors reject the command', async () => {
+    const client = setup()
+    const worker = await open(client)
+    worker.postMessage.mockImplementationOnce(() => { throw new Error('clone failed') })
+    await expect(client.pull(signal())).rejects.toMatchObject({ message: 'Cannot send Worker command' })
+    expect(worker.terminate).toHaveBeenCalledTimes(1)
+    const next = await open(client)
+    const pending = client.pull(signal())
+    next.onerror?.({ message: '' } as ErrorEvent)
+    await expect(pending).rejects.toMatchObject({ message: 'Worker failed' })
+    client.destroy()
+  })
+
+  test('ignores an unknown response identity and resolves relative sources once', async () => {
+    const client = setup()
+    const opening = client.open('/relative.wma', signal())
+    const worker = MockWorker.instances[0]
+    expect(worker.command).toMatchObject({ source: 'http://localhost/relative.wma' })
+    worker.reply({ ...worker.command, id: worker.command.id + 10, type: 'opened', metadata })
+    worker.reply({ ...worker.command, type: 'opened', metadata })
+    await opening
+    client.destroy()
   })
 })

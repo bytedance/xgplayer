@@ -77,7 +77,6 @@
     "@babel/parser": "^7.15.3",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.26.0",
-    "@ffmpeg/core": "0.12.10",
     "@biomejs/biome": "2.1.3",
     "@rollup/plugin-babel": "^5.3.1",
     "@types/events": "^3.0.0",

@@ -79,6 +79,7 @@ describe('FFmpeg xgplayer adapter', () => {
     expect(DefaultPlugin).toBe(NamedPlugin)
     expect(UmdPlugin).toBe(NamedPlugin)
     expect(NamedPlugin.isSupported()).toBe(true)
+    expect(NamedPlugin.pluginName).toBe('ffmpeg')
   })
 
   test('owns the source, preprocesses URLs and restores native APIs on destroy', async () => {
@@ -228,12 +229,70 @@ describe('FFmpeg xgplayer adapter', () => {
   test('passes a custom encoding profile to the shared core', () => {
     const { player, plugin } = setup()
     const profile = {
-      type: 'video', mimeType: 'video/mp4; codecs="avc1.42E01E"',
-      inputArguments: [], outputArguments: ['-c:v', 'libx264']
+      type: 'audio', mimeType: 'audio/mp4; codecs="mp4a.40.2"',
+      audio: { outputCodec: 'aac', sampleRate: 16000, channels: 1 }
     }
     Object.assign(plugin, { config: { profile } })
     plugin.beforePlayerInit()
     expect(mockAudio).toHaveBeenCalledWith(expect.objectContaining({ media: player.media }), profile)
     plugin.destroy()
+  })
+
+  test('a missing source leaves native lifecycle methods available', () => {
+    const { player, plugin } = setup()
+    player.config.url = ''
+    const native = player.switchURL
+    plugin.beforePlayerInit()
+    expect(mockAudio).not.toHaveBeenCalled()
+    expect(player.handleSource).toBe(true)
+    expect(player.switchURL).toBe(native)
+    plugin.destroy()
+  })
+
+  test('unrecognized source payloads fall back to native switch and definition methods', () => {
+    const { player, plugin } = setup()
+    const nativeSwitch = player.switchURL
+    const nativeDefinition = player.changeDefinition
+    plugin.beforePlayerInit()
+    player.switchURL({ url: '' })
+    player.changeDefinition({ url: '' }, {})
+    expect(nativeSwitch).toHaveBeenCalledWith({ url: '' })
+    expect(nativeDefinition).toHaveBeenCalledWith({ url: '' }, {})
+    expect(mockAudio.cores[0].load).toHaveBeenCalledTimes(1)
+    plugin.destroy()
+  })
+
+  test('an empty preprocessed source fails before loading native input', async () => {
+    const { player, plugin } = setup()
+    plugin.beforePlayerInit()
+    player.preProcessUrl.mockReturnValue({ url: '' })
+    await expect(player.switchURL('next.wma')).rejects.toThrow('empty URL')
+    expect(mockAudio.cores[0].load).toHaveBeenCalledTimes(1)
+    plugin.destroy()
+  })
+
+  test('destroy during source switch suppresses late success and failure', async () => {
+    const { player, plugin } = setup()
+    plugin.beforePlayerInit()
+    let reject!: (reason: Error) => void
+    mockAudio.cores[0].load.mockImplementationOnce(() => new Promise((_resolve, failed) => { reject = failed }))
+    const changing = player.switchURL('next.wma')
+    plugin.destroy()
+    reject(new Error('old input failed'))
+    await expect(changing).resolves.toBe(false)
+    expect(player.play).not.toHaveBeenCalled()
+  })
+
+  test('relays current progress and reports resource release failures with their cause', async () => {
+    const { player, plugin } = setup()
+    plugin.beforePlayerInit()
+    const first = mockAudio.cores[0]
+    emit(first, 'progress', { downloadedBytes: 131072 })
+    expect(player.emit).toHaveBeenCalledWith('ffmpegProgress', { downloadedBytes: 131072 })
+    const cause = new Error('detach failed')
+    first.destroy.mockRejectedValueOnce(cause)
+    plugin.destroy()
+    await flush()
+    expect(player.emit).toHaveBeenCalledWith('error', expect.objectContaining({ originError: cause }))
   })
 })

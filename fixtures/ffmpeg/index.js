@@ -52,16 +52,18 @@ function getOptions() {
       wasmURL: '/ffmpeg-runtime/core/ffmpeg-core.wasm'
     },
     bufferAhead: 8,
+    bufferLow: 4,
     bufferBehind: 4,
-    ...(inputFormat
-      ? {
-          audio: {
+    audio: {
+      outputCodec: $('#output-codec').value,
+      ...(inputFormat
+        ? {
             inputFormat,
             inputSampleRate: Number($('#input-rate').value),
             inputChannels: Number($('#input-channels').value)
           }
-        }
-      : {})
+        : {})
+    }
   }
 }
 

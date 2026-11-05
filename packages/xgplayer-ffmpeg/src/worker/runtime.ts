@@ -1,159 +1,91 @@
-import type { TranscodeRequest, WorkerEvent } from '../transcoder/protocol'
-import { FFmpegError, type FFmpegProgress, type FFmpegStage } from '../types'
-import { AsyncifyRunner } from './asyncify'
-import { type CoreFactory, type DeviceStream, type FFmpegCore, loadCore } from './core'
-import { HTTPInput } from './http-input'
-import { MetadataProbe } from './metadata-probe'
-import { ProbeInput } from './probe-input'
+import type { WorkerCommand, WorkerEvent, WorkerRequest } from '../transcoder/protocol'
+import { FFmpegError } from '../types'
+import { type CoreFactory, type FFmpegCore, loadCore } from './core'
+import { NativePipeline } from './pipeline'
 
-/** One Worker executes one core; cancellation is owned by main-thread termination. */
+/** A module survives source changes. Only native entry commands use the serial queue. */
 export class StreamingWorker {
-  private started = false
-  private outputId = 0
-  private pendingOutput: { id: number; resolve: () => void } | null = null
-  private readonly progress: FFmpegProgress = {
-    progress: 0,
-    time: 0,
-    downloadedBytes: 0,
-    inputEnded: false
-  }
+  private core: FFmpegCore | null = null
+  private loading: Promise<FFmpegCore> | null = null
+  private readonly pipeline = new NativePipeline(() => {
+    if (!this.core) throw new FFmpegError('runtime', 'Native core is not loaded')
+    return this.core
+  })
+  private epoch = 0
+  private controller = new AbortController()
+  private tail: Promise<void> = Promise.resolve()
 
   constructor(
-    private readonly post: (event: WorkerEvent, transfer?: Transferable[]) => void
+    private readonly post: (event: WorkerEvent, transfer?: Transferable[]) => void,
+    private readonly factory?: CoreFactory
   ) {}
 
-  acknowledge(id: number): void {
-    if (this.pendingOutput?.id !== id) return
-    const pending = this.pendingOutput
-    this.pendingOutput = null
-    pending.resolve()
+  receive(request: WorkerRequest): Promise<void> {
+    if (request.epoch > this.epoch) {
+      this.epoch = request.epoch
+      this.controller.abort()
+      this.controller = new AbortController()
+    }
+    if (request.type === 'cancel') return Promise.resolve()
+    const execute = async (): Promise<void> => {
+      if (request.epoch !== this.epoch) return
+      await this.execute(request, this.controller.signal)
+    }
+    const result = this.tail.then(execute)
+    this.tail = result.catch(() => undefined)
+    return result
   }
 
-  async run(request: TranscodeRequest, factory?: CoreFactory): Promise<void> {
-    if (this.started) {
+  private async execute(request: WorkerCommand, signal: AbortSignal): Promise<void> {
+    const identity = { id: request.id, epoch: request.epoch }
+    try {
+      switch (request.type) {
+        case 'open': {
+          this.loading ??= loadCore(
+            request.ffmpeg,
+            {
+              readSource: (offset, destination, length) =>
+                this.pipeline.read(offset, destination, length),
+              isInterrupted: () => this.pipeline.interrupted()
+            },
+            this.factory
+          )
+          this.core = await this.loading
+          if (signal.aborted) return
+          const metadata = await this.pipeline.open(request, signal)
+          this.post({ ...identity, type: 'opened', metadata })
+          return
+        }
+        case 'seek':
+          await this.pipeline.seek(request.time, signal)
+          break
+        case 'pull': {
+          const output = await this.pipeline.pull(signal)
+          const progress = this.pipeline.progress
+          progress.inputEnded = output.kind === 'eof'
+          this.post(
+            { ...identity, type: 'output', output, progress },
+            'data' in output ? [output.data.buffer] : undefined
+          )
+          return
+        }
+        case 'close':
+          this.pipeline.close()
+          break
+      }
+      this.post({ ...identity, type: 'complete' })
+    } catch (reason) {
+      const cancelled = signal.aborted
+      // A cancelled seek keeps demux/cache state for the next seek. An open
+      // failure has no reusable source, and is closed only after WASM returns.
+      if (request.type === 'open') this.pipeline.close()
       this.post({
+        ...identity,
         type: 'error',
-        stage: 'runtime',
-        message: 'Worker already received a source'
+        cancelled,
+        stage: reason instanceof FFmpegError ? reason.stage : 'runtime',
+        message: reason instanceof Error ? reason.message : String(reason)
       })
-      return
     }
-    this.started = true
-    let input: HTTPInput | null = null
-    let stage: FFmpegStage = 'download'
-    let failure: FFmpegError | null = null
-    try {
-      input = await HTTPInput.open(request, (event) => {
-        Object.assign(this.progress, event)
-        this.postProgress()
-      })
-      stage = 'runtime'
-      const core = await loadCore(request.ffmpeg, factory)
-      const runner = new AsyncifyRunner(core)
-      const probeInput = new ProbeInput(input)
-      const outputFD = this.registerDevices(core, runner, probeInput, (data) =>
-        this.write(data)
-      )
-      this.post({ type: 'ready' })
-      const duration = await new MetadataProbe().run(core, runner, request.inputArguments)
-      probeInput.startTranscode()
-      if (duration !== null) this.post({ type: 'metadata', duration })
-      const logs = this.observeCore(core)
-      stage = 'transcode'
-      // The file protocol can assume a character device is seekable. Declaring
-      // a pipe prevents the MP4 muxer from seeking back across flushed output.
-      await runner.execute([...request.args, `pipe:${outputFD}`])
-      if (core.ret !== 0) throw new Error(`FFmpeg exited ${core.ret}: ${logs.last}`)
-    } catch (reason) {
-      failure = this.asError(stage, reason)
-    }
-    try {
-      await input?.close()
-    } catch (reason) {
-      failure = failure
-        ? new FFmpegError(failure.stage, failure.message, {
-            execution: failure.reason || failure,
-            cleanup: reason
-          })
-        : this.asError('download', reason)
-    }
-    if (failure)
-      this.post({ type: 'error', stage: failure.stage, message: failure.message })
-    else this.post({ type: 'done' })
-  }
-
-  private observeCore(core: FFmpegCore): { last: string } {
-    const logs = { last: '' }
-    core.setLogger(({ type, message }) => {
-      if (type === 'stderr') logs.last = message
-    })
-    core.setProgress((event) => {
-      Object.assign(this.progress, event)
-      this.postProgress()
-    })
-    return logs
-  }
-
-  private registerDevices(
-    core: FFmpegCore,
-    runner: AsyncifyRunner,
-    input: ProbeInput,
-    output: (data: Uint8Array) => Promise<void>
-  ): number {
-    const open = (stream: DeviceStream): void => {
-      stream.seekable = false
-    }
-    const llseek = (): never => {
-      throw new core.FS.ErrnoError(70)
-    }
-    const inputDevice = core.FS.makedev(64, 0)
-    core.FS.registerDevice(inputDevice, {
-      open,
-      llseek,
-      read: (_stream, buffer, offset, length) =>
-        runner.suspend(() => input.read(buffer, offset, length))
-    })
-    core.FS.mkdev('/input', 0o666, inputDevice)
-    const outputDevice = core.FS.makedev(64, 1)
-    core.FS.registerDevice(outputDevice, {
-      open,
-      llseek,
-      write: (_stream, buffer, offset, length) =>
-        runner.suspend(async () => {
-          await output(new Uint8Array(buffer.buffer, buffer.byteOffset + offset, length))
-          return length
-        })
-    })
-    core.FS.mkdev('/output.mp4', 0o666, outputDevice)
-    return core.FS.open('/output.mp4', 'w').fd
-  }
-
-  private async write(buffer: Uint8Array): Promise<void> {
-    let written = 0
-    while (written < buffer.length) {
-      const size = Math.min(64 * 1024, buffer.length - written)
-      const data = Uint8Array.from(buffer.subarray(written, written + size))
-      this.outputId += 1
-      const id = this.outputId
-      await new Promise<void>((resolve) => {
-        this.pendingOutput = { id, resolve }
-        this.post({ type: 'chunk', id, data }, [data.buffer])
-      })
-      written += size
-    }
-  }
-
-  private postProgress(): void {
-    this.post({ type: 'progress', data: { ...this.progress } })
-  }
-
-  private asError(stage: FFmpegStage, reason: unknown): FFmpegError {
-    return reason instanceof FFmpegError
-      ? reason
-      : new FFmpegError(
-          stage,
-          reason instanceof Error ? reason.message : String(reason),
-          reason
-        )
   }
 }

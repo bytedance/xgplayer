@@ -29,7 +29,7 @@
     <main>
       <section>
         <h1>FFmpeg + MSE</h1>
-        <p>边下载、边转码、边播放。当前默认策略提取音轨并输出 AAC-LC；未缓冲位置需等待转码，已清理的位置会重新加载。</p>
+        <p>按缓冲需求读取音频，未缓冲位置使用原生 Seek。FLAC 可透传，其他支持的音频转为 AAC-LC。</p>
         <div id="player"></div>
         <div class="row">
           <button id="play" type="button">播放</button>
@@ -46,11 +46,18 @@
       <section aria-label="媒体源">
         <h2>媒体源</h2>
         <div class="row">
-          <input id="url" type="url" aria-label="媒体 URL" placeholder="https://example.com/media.wma" />
+          <input id="url" type="url" aria-label="媒体 URL" value="https://tosv.byted.org/obj/media-fe/lark/test.wma" placeholder="https://example.com/media.wma" />
           <button id="load-url" type="button">加载 URL</button>
           <button id="switch-url" type="button">切换并保留进度</button>
         </div>
         <div class="row">
+          <label>输出
+            <select id="output-codec">
+              <option value="auto">自动（FLAC 透传 / AAC）</option>
+              <option value="aac">AAC-LC</option>
+              <option value="flac">FLAC 透传</option>
+            </select>
+          </label>
           <label>输入格式
             <select id="input-format">
               <option value="">自动识别（带文件头）</option>
@@ -65,7 +72,7 @@
           <label>采样率 <input id="input-rate" type="number" min="1" value="16000" /></label>
           <label>声道数 <input id="input-channels" type="number" min="1" value="1" /></label>
         </div>
-        <p>URL 需要允许跨域下载。无文件头的原始音频必须填写实际格式、采样率和声道数。</p>
+        <p>URL 需要支持 HTTP Range 和跨域读取。无文件头的原始音频必须填写实际格式、采样率和声道数。</p>
       </section>
       <details>
         <summary>运行状态</summary>

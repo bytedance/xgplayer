@@ -18,7 +18,7 @@ async function main() {
   cfg.server.port = Number(process.env.FFMPEG_PORT || 8081)
   cfg.server.strictPort = true
   const directories = {
-    core: await prepareRuntime()
+    core: process.env.FFMPEG_RUNTIME || (await prepareRuntime())
   }
   const worker = await build({
     entryPoints: [

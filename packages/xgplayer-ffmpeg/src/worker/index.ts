@@ -11,13 +11,5 @@ const runtime = new StreamingWorker((event, transfer) =>
   scope.postMessage(event, transfer)
 )
 scope.onmessage = (event) => {
-  if (event.data.type === 'ack') runtime.acknowledge(event.data.id)
-  else
-    void runtime.run(event.data).catch((reason: unknown) => {
-      scope.postMessage({
-        type: 'error',
-        stage: 'runtime',
-        message: reason instanceof Error ? reason.message : String(reason)
-      })
-    })
+  void runtime.receive(event.data)
 }
