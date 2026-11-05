@@ -28,14 +28,34 @@ constexpr size_t OUTPUT_LIMIT = 8 * 1024 * 1024;
 constexpr int CANCELLED = AVERROR_EXIT;
 constexpr AVRational SECONDS = {1, AV_TIME_BASE};
 
+enum OutputKind {
+  OUTPUT_YIELD = 0,
+  OUTPUT_INIT = 1,
+  OUTPUT_MEDIA = 2,
+  OUTPUT_EOF = 3
+};
+
 class Pipeline {
-public:
+  // Input and its source clock survive a seek.
   int64_t size;
   int64_t cursor = 0;
   AVFormatContext *input = nullptr;
   AVIOContext *reader = nullptr;
-  AVFormatContext *output = nullptr;
-  AVIOContext *writer = nullptr;
+  int audio = -1;
+  int64_t origin = 0;
+  double duration = INFINITY;
+  std::string metadata;
+  std::string format;
+  int rawRate;
+  int rawChannels;
+
+  // Output policy survives a seek; conversion and mux resources are rebuilt.
+  bool copy = false;
+  int outputRate = 0;
+  int outputChannels = 0;
+  int bitrate = 0;
+  double segmentSeconds = 1;
+
   AVCodecContext *decoder = nullptr;
   AVCodecContext *encoder = nullptr;
   SwrContext *resampler = nullptr;
@@ -45,41 +65,36 @@ public:
   AVFrame *frame = av_frame_alloc();
   AVFrame *converted = av_frame_alloc();
   AVFrame *encoding = av_frame_alloc();
-  int audio = -1;
-  int kind = 0;
-  int outputRate = 0;
-  int outputChannels = 0;
-  int bitrate = 0;
-  int64_t origin = 0;
   int64_t fifoPts = AV_NOPTS_VALUE;
   int64_t nextDecodedPts = AV_NOPTS_VALUE;
-  double duration = INFINITY;
-  double segmentSeconds = 1;
-  double target = 0;
-  double bias = 0;
-  double fragmentStart = INFINITY;
-  double fragmentEnd = 0;
-  double resultStart = 0;
-  double resultEnd = 0;
-  bool copy = false;
+  // Each drain stage completes independently before the final fragment.
   bool inputEnded = false;
   bool decoderDrained = false;
   bool resamplerDrained = false;
   bool encoderFlushed = false;
   bool ended = false;
   bool pendingPacket = false;
-  std::vector<uint8_t> bytes;
-  std::string error;
-  std::string metadata;
-  std::string format;
-  int rawRate;
-  int rawChannels;
 
+  AVFormatContext *output = nullptr;
+  AVIOContext *writer = nullptr;
+  OutputKind kind = OUTPUT_YIELD;
+  std::vector<uint8_t> bytes;
+  double bias = 0;
+  double fragmentStart = INFINITY;
+  double fragmentEnd = 0;
+  double resultStart = 0;
+  double resultEnd = 0;
+  std::string error;
+
+public:
   Pipeline(int64_t length, const char *demuxer, int rate, int channels)
       : size(length), format(demuxer), rawRate(rate), rawChannels(channels) {}
 
+  Pipeline(const Pipeline &) = delete;
+  Pipeline &operator=(const Pipeline &) = delete;
+
   ~Pipeline() {
-    resetOutput();
+    resetProcessing();
     avformat_close_input(&input);
     if (reader) {
       av_freep(&reader->buffer);
@@ -92,6 +107,23 @@ public:
     av_frame_free(&encoding);
   }
 
+  const char *inputMetadata() const { return metadata.c_str(); }
+  const char *lastError() const { return error.c_str(); }
+  uint8_t *outputData() { return bytes.data(); }
+  int outputLength() const { return bytes.size(); }
+  double outputStart() const { return resultStart; }
+  double outputEnd() const { return resultEnd; }
+  double timestampBias() const { return bias; }
+  int sampleRate() const {
+    return copy ? input->streams[audio]->codecpar->sample_rate : encoder->sample_rate;
+  }
+  int channels() const {
+    return copy ? input->streams[audio]->codecpar->ch_layout.nb_channels
+                : encoder->ch_layout.nb_channels;
+  }
+  void releaseOutput() { bytes.clear(); kind = OUTPUT_YIELD; }
+
+private:
   int fail(int code, const char *operation) {
     char description[AV_ERROR_MAX_STRING_SIZE];
     av_strerror(code, description, sizeof(description));
@@ -136,6 +168,7 @@ public:
     return length;
   }
 
+public:
   int open() {
     av_log_set_level(AV_LOG_ERROR);
     reader = avio_alloc_context(static_cast<uint8_t *>(av_malloc(IO_SIZE)), IO_SIZE,
@@ -187,7 +220,8 @@ public:
     return 0;
   }
 
-  void resetOutput() {
+private:
+  void closeMuxer() {
     if (output) {
       output->pb = nullptr;
       avformat_free_context(output);
@@ -197,18 +231,27 @@ public:
       av_freep(&writer->buffer);
       avio_context_free(&writer);
     }
+  }
+
+  void closeAudioConverter() {
     avcodec_free_context(&decoder);
     avcodec_free_context(&encoder);
     swr_free(&resampler);
     av_audio_fifo_free(fifo);
     fifo = nullptr;
+  }
+
+  // Clear the complete processing epoch while retaining input and output policy.
+  void resetProcessing() {
+    closeMuxer();
+    closeAudioConverter();
     av_packet_unref(packet);
     av_packet_unref(encoded);
     av_frame_unref(frame);
     av_frame_unref(converted);
     av_frame_unref(encoding);
     bytes.clear();
-    kind = 0;
+    kind = OUTPUT_YIELD;
     fifoPts = AV_NOPTS_VALUE;
     nextDecodedPts = AV_NOPTS_VALUE;
     inputEnded = decoderDrained = resamplerDrained = encoderFlushed = ended = false;
@@ -218,6 +261,7 @@ public:
     bias = 0;
   }
 
+public:
   int configure(bool passthrough, int rate, int channels, int bits, double segment) {
     copy = passthrough;
     outputRate = rate;
@@ -229,6 +273,11 @@ public:
         return fail(AVERROR(EINVAL), "Unsupported passthrough codec");
       return 0;
     }
+    return openAudioConverter();
+  }
+
+private:
+  int openAudioConverter() {
     const AVCodecParameters *parameters = input->streams[audio]->codecpar;
     const AVCodec *codec = avcodec_find_decoder(parameters->codec_id);
     if (!codec) return fail(AVERROR_DECODER_NOT_FOUND, "Audio decoder");
@@ -242,7 +291,7 @@ public:
     codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
     encoder = avcodec_alloc_context3(codec);
     if (!codec || !encoder) return fail(AVERROR_ENCODER_NOT_FOUND, "AAC encoder");
-    if (!rate) {
+    if (!outputRate) {
       const void *supported = nullptr;
       result = avcodec_get_supported_config(encoder, codec, AV_CODEC_CONFIG_SAMPLE_RATE,
                                            0, &supported, nullptr);
@@ -255,13 +304,13 @@ public:
     }
     encoder->sample_rate = outputRate;
     encoder->sample_fmt = AV_SAMPLE_FMT_FLTP;
-    if (!channels && decoder->ch_layout.order != AV_CHANNEL_ORDER_UNSPEC)
+    if (!outputChannels && decoder->ch_layout.order != AV_CHANNEL_ORDER_UNSPEC)
       av_channel_layout_copy(&encoder->ch_layout, &decoder->ch_layout);
     else
       av_channel_layout_default(&encoder->ch_layout,
-                                channels ? channels : decoder->ch_layout.nb_channels);
+                                outputChannels ? outputChannels : decoder->ch_layout.nb_channels);
     encoder->time_base = {1, outputRate};
-    encoder->bit_rate = bits ? bits : 64000 * encoder->ch_layout.nb_channels;
+    encoder->bit_rate = bitrate ? bitrate : 64000 * encoder->ch_layout.nb_channels;
     encoder->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     encoder->profile = AV_PROFILE_AAC_LOW;
     if ((result = avcodec_open2(encoder, codec, nullptr)) < 0)
@@ -302,7 +351,7 @@ public:
     avio_flush(writer);
     if (result < 0 || writer->error)
       return fail(result < 0 ? result : writer->error, "Write init segment");
-    kind = 1;
+    kind = OUTPUT_INIT;
     resultStart = resultEnd = 0;
     return kind;
   }
@@ -312,8 +361,8 @@ public:
     avio_flush(writer);
     if (result < 0 || writer->error)
       return fail(result < 0 ? result : writer->error, "Flush fragment");
-    if (bytes.empty()) return 0;
-    kind = 2;
+    if (bytes.empty()) return OUTPUT_YIELD;
+    kind = OUTPUT_MEDIA;
     resultStart = fragmentStart;
     resultEnd = fragmentEnd;
     fragmentStart = INFINITY;
@@ -420,9 +469,10 @@ public:
     return 0;
   }
 
+public:
   int pull() {
-    if (kind) return kind;
-    if (ended) return 3;
+    if (kind != OUTPUT_YIELD) return kind;
+    if (ended) return OUTPUT_EOF;
     int packetBytes = 0;
     // Return to JS even for cached I/O. No native invocation owns an entire segment.
     for (int steps = 0; steps < 64 && packetBytes < 262144; ++steps) {
@@ -437,7 +487,7 @@ public:
         int result = av_read_frame(input, encoded);
         if (result == AVERROR_EOF) {
           ended = true;
-          return output ? flushFragment() : 3;
+          return output ? flushFragment() : OUTPUT_EOF;
         }
         if (result < 0) return fail(result, "Read audio");
         packetBytes += encoded->size;
@@ -451,7 +501,7 @@ public:
       if (result == 0) { pendingPacket = true; continue; }
       if (result == AVERROR_EOF) {
         ended = true;
-        return output ? flushFragment() : 3;
+        return output ? flushFragment() : OUTPUT_EOF;
       }
       if (result != AVERROR(EAGAIN)) return fail(result, "Receive encoded audio");
       if (av_audio_fifo_size(fifo) >= encoder->frame_size ||
@@ -488,13 +538,13 @@ public:
       }
       if (result < 0) return fail(result, "Read/decode packet");
     }
-    return 0;
+    return OUTPUT_YIELD;
   }
 
   int seekTime(double time) {
     const bool mode = copy;
     const int rate = outputRate, channels = outputChannels, bits = bitrate;
-    resetOutput();
+    resetProcessing();
     // AVERROR_EXIT survives in AVIO. Clear it explicitly before reusing demux state.
     reader->error = 0;
     reader->eof_reached = 0;
@@ -509,7 +559,6 @@ public:
         stream->time_base);
     int result = avformat_seek_file(input, audio, INT64_MIN, position, position, 0);
     if (result < 0) return fail(result, "Seek input");
-    target = time;
     return configure(mode, rate, channels, bits, segmentSeconds);
   }
 };
@@ -521,25 +570,20 @@ EMSCRIPTEN_KEEPALIVE Pipeline *xp_create(double size, const char *format, int ra
 }
 EMSCRIPTEN_KEEPALIVE void xp_close(Pipeline *p) { delete p; }
 EMSCRIPTEN_KEEPALIVE int xp_open(Pipeline *p) { return p->open(); }
-EMSCRIPTEN_KEEPALIVE const char *xp_metadata(Pipeline *p) { return p->metadata.c_str(); }
-EMSCRIPTEN_KEEPALIVE const char *xp_error(Pipeline *p) { return p->error.c_str(); }
+EMSCRIPTEN_KEEPALIVE const char *xp_metadata(Pipeline *p) { return p->inputMetadata(); }
+EMSCRIPTEN_KEEPALIVE const char *xp_error(Pipeline *p) { return p->lastError(); }
 EMSCRIPTEN_KEEPALIVE int xp_configure(Pipeline *p, int copy, int rate, int channels,
                                      int bitrate, double segment) {
   return p->configure(copy, rate, channels, bitrate, segment);
 }
 EMSCRIPTEN_KEEPALIVE int xp_pull(Pipeline *p) { return p->pull(); }
 EMSCRIPTEN_KEEPALIVE int xp_seek(Pipeline *p, double time) { return p->seekTime(time); }
-EMSCRIPTEN_KEEPALIVE uint8_t *xp_data(Pipeline *p) { return p->bytes.data(); }
-EMSCRIPTEN_KEEPALIVE int xp_length(Pipeline *p) { return p->bytes.size(); }
-EMSCRIPTEN_KEEPALIVE double xp_start(Pipeline *p) { return p->resultStart; }
-EMSCRIPTEN_KEEPALIVE double xp_end(Pipeline *p) { return p->resultEnd; }
-EMSCRIPTEN_KEEPALIVE double xp_bias(Pipeline *p) { return p->bias; }
-EMSCRIPTEN_KEEPALIVE int xp_rate(Pipeline *p) {
-  return p->copy ? p->input->streams[p->audio]->codecpar->sample_rate : p->encoder->sample_rate;
-}
-EMSCRIPTEN_KEEPALIVE int xp_channels(Pipeline *p) {
-  return p->copy ? p->input->streams[p->audio]->codecpar->ch_layout.nb_channels
-                 : p->encoder->ch_layout.nb_channels;
-}
-EMSCRIPTEN_KEEPALIVE void xp_release(Pipeline *p) { p->bytes.clear(); p->kind = 0; }
+EMSCRIPTEN_KEEPALIVE uint8_t *xp_data(Pipeline *p) { return p->outputData(); }
+EMSCRIPTEN_KEEPALIVE int xp_length(Pipeline *p) { return p->outputLength(); }
+EMSCRIPTEN_KEEPALIVE double xp_start(Pipeline *p) { return p->outputStart(); }
+EMSCRIPTEN_KEEPALIVE double xp_end(Pipeline *p) { return p->outputEnd(); }
+EMSCRIPTEN_KEEPALIVE double xp_bias(Pipeline *p) { return p->timestampBias(); }
+EMSCRIPTEN_KEEPALIVE int xp_rate(Pipeline *p) { return p->sampleRate(); }
+EMSCRIPTEN_KEEPALIVE int xp_channels(Pipeline *p) { return p->channels(); }
+EMSCRIPTEN_KEEPALIVE void xp_release(Pipeline *p) { p->releaseOutput(); }
 }

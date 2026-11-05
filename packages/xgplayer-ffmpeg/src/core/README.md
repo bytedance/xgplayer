@@ -9,17 +9,23 @@
 | `Transcoder` | Worker 命令、epoch、取消和故障超时 | 一个播放器核心 |
 | `StreamingWorker` | 核心加载复用、原生命令串行队列 | 一个 Worker |
 | `HTTPSource` / `BlockCache` | 绝对偏移读取、206 验证、128 KiB 请求、8 MiB LRU | 一条源 |
-| `NativePipeline` / 原生 Pipeline | AVIO、解复用、Seek、codec、FIFO、原生 fMP4 | 一条源；输出状态在 Seek 时重建 |
+| `NativePipeline` | 源与原生 handle、输出策略、操作取消和预算 | 一条源 |
+| `NativeBindings` | 固定签名的 C ABI、同步与 Asyncify 入口、输出复制与释放 | 无独立资源生命周期 |
+| 原生 `Pipeline` | AVIO、解复用、Seek、codec、FIFO、原生 fMP4 | 一条源；转换与封装在 Seek 时重建 |
 | `LoadSession` | 当前目标与连续缓冲水位、启动、Seek、MMS 回收 | 一次加载 |
 | `MSEBuffer` | 串行属性、append、remove、duration、EOS | 一次媒体绑定 |
 
 `open / pull / seek / close` 是有回复的命令。`cancel` 是立即生效的 JS 控制消息：中断 HTTP 读取并使旧 epoch 失效，不在原生调用暂停期间进入另一个 WASM 函数。下一条原生命令等旧调用返回后执行。切换源释放原生源和缓存，保留核心模块；普通 Seek 同时保留源、缓存和媒体绑定。
+
+`LoadSession` 保持一个需求循环，初始化、待执行 Seek、生产需求和输出消费由类内方法组织。`pendingSeek` 表示尚未完成原生定位，`awaitingPlayableTarget` 表示目标尚未被实际缓冲覆盖；两者可以同时存在。`producing` 保留高低水位之间的历史决策。
 
 ## 原生 I/O 与时间
 
 `avio_alloc_context` 的 read 回调通过 `readSource(offset, destination, length)` 异步读源；seek 回调维护独立 cursor，并实现 SET、CUR、END 和 AVSEEK_SIZE。HTTP 块边界允许短读。真实 EOF、AVERROR_EXIT 取消和网络错误保持不同结果。
 
 `avformat_seek_file` 使用 FFmpeg 自己的容器索引，向前保留解码预滚。Seek 清理 codec、FIFO、resampler 和 mux 状态，并清除上一次取消留下的 AVIO error。流 origin 在打开时确定，所有 epoch 使用同一源时钟。无 PTS 的 decoder drain 样本延续此前真实帧 PTS 与样本数构成的时钟。
+
+原生资源和处理方法由 `Pipeline` 私有持有，C 导出只调用操作入口和输出访问器。`resetProcessing` 协调封装、音频转换及暂存包帧的清理，保留输入与输出配置；各 drain 标志分别记录实际处理阶段。`NativeBindings.takeOutput` 先复制堆数据再释放原生输出，下一次原生调用不影响已交付的分片。
 
 AAC 输出按实际包 DTS 得到 fMP4 bias，主线程以 `timestampOffset = -bias` 恢复源时间。mux 使用 `frag_custom`，init 和完整媒体分片分别返回；不解析或改写 MP4 box，不用目标时间作为输出时间原点。预滚包保持可解码性，用户 currentTime 指向实际目标。
 

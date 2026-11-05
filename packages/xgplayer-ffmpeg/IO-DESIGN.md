@@ -57,9 +57,12 @@ flowchart LR
 | `MSEBuffer` | SourceBuffer 队列、parser 与时间属性、清理、duration、EOS | 一次媒体绑定 |
 | `StreamingWorker` | 核心加载、串行原生操作、控制消息、失败恢复 | 一个播放器实例 |
 | `HTTPSource` | 资源长度与版本、有限 Range、缓存、在途请求 | 一个固定媒体源 |
-| `NativePipeline` | AVIO、解复用、轨道处理、时间轴、muxer、原生缓冲 | 一个固定媒体源 |
+| `NativePipeline` | 源与原生 handle、输出策略、操作取消及预算 | 一个固定媒体源 |
+| 原生 `Pipeline` | AVIO、解复用、轨道处理、时间轴、muxer、原生缓冲 | 一个固定媒体源 |
 
 Worker 和 WASM 实例可跨源加载复用。源切换先取消旧操作并关闭旧输入、codec、muxer 和缓存，再打开新源；新媒体绑定按输出轨道创建。普通 seek 不更换 Worker、输入解复用器或媒体绑定。
+
+`NativeBindings` 是无独立资源生命周期的 ABI 适配层，提供固定签名的入口并负责输出复制和释放；操作身份与预算由 `NativePipeline` 管理，原生串行队列仍由 `StreamingWorker` 管理。原生类的资源与处理方法保持私有，Seek 通过 `resetProcessing` 重建转换和封装状态，保留输入及输出配置。
 
 关闭按实际资源释放顺序执行，重复关闭无副作用。取消不能可靠退出、WASM trap 或内存状态不可恢复时终止 Worker，并使本次操作明确失败；终止是故障边界，不是普通 seek 策略。
 

@@ -18,8 +18,9 @@ interface SessionEvents {
 interface PlaybackEpoch {
   controller: AbortController
   target: number
-  seek: boolean
-  preparing: boolean
+  pendingSeek: boolean
+  // Native positioning may finish before the target is covered by buffered audio.
+  awaitingPlayableTarget: boolean
 }
 
 const END_MARGIN = 0.05
@@ -51,8 +52,8 @@ export class LoadSession {
     this.epoch = {
       controller: new AbortController(),
       target: Number.isFinite(startTime) ? Math.max(0, startTime) : 0,
-      seek: startTime > 0,
-      preparing: true
+      pendingSeek: startTime > 0,
+      awaitingPlayableTarget: true
     }
     this.buffer = new MSEBuffer(options)
     this.ready = new Promise((resolve, reject) => {
@@ -66,40 +67,14 @@ export class LoadSession {
   }
 
   async run(source: string): Promise<void> {
-    this.metadata = await this.transcoder.open(source, this.controller.signal)
-    this.checkActive()
-    const duration = this.metadata.duration
-    if (Number.isFinite(duration))
-      this.epoch.target = Math.min(this.epoch.target, Math.max(0, duration - END_MARGIN))
-    await this.buffer.open(this.media, this.metadata.mimeType, duration)
-    this.checkActive()
-    for (const event of ['timeupdate', 'seeking', 'waiting', 'play', 'pause'])
-      this.media.addEventListener(event, this.onMediaEvent)
-    this.media.addEventListener('error', this.onMediaError)
-    this.buffer.mse.mediaSource?.addEventListener('startstreaming', this.onMediaEvent)
-    this.buffer.mse.mediaSource?.addEventListener('endstreaming', this.onMediaEvent)
-    this.buffer.mse.on(MSE.BUFFERED_CHANGE, this.onBufferedChange)
+    await this.initialize(source)
     while (!this.controller.signal.aborted) {
       const epoch = this.epoch
       try {
-        if (epoch.seek) {
-          await this.transcoder.seek(epoch.target, epoch.controller.signal)
-          if (!this.isActive(epoch)) continue
-          epoch.seek = false
-          this.cursor = epoch.target
-          this.eof = false
-          this.producing = true
-        }
+        if (epoch.pendingSeek) await this.applyPendingSeek(epoch)
+        if (!this.isActive(epoch)) continue
         const time = this.initialized ? this.media.currentTime : epoch.target
-        const ahead = Math.max(0, (this.buffer.containing(time)?.end ?? time) - time)
-        if (ahead >= (this.options.bufferAhead ?? 20)) this.producing = false
-        if (ahead < (this.options.bufferLow ?? (this.options.bufferAhead ?? 20) / 2))
-          this.producing = true
-        if (
-          this.eof ||
-          !this.producing ||
-          (this.initialized && !epoch.preparing && !this.buffer.mse.streaming)
-        ) {
+        if (!this.needsProduction(time, epoch)) {
           await this.wait()
           continue
         }
@@ -108,53 +83,7 @@ export class LoadSession {
         const result = await this.transcoder.pull(epoch.controller.signal)
         if (!this.isActive(epoch)) continue
         this.events.progress(result.progress)
-        const output = result.output
-        if (output.kind === 'yield') continue
-        if (output.kind === 'eof') {
-          this.eof = true
-          const ranges = this.buffer.ranges
-          if (!ranges.length)
-            throw new FFmpegError('transcode', 'FFmpeg produced no playable audio')
-          await this.buffer.finish(this.cursor, epoch.controller.signal)
-          if (this.isActive(epoch) && !this.initialized)
-            this.markReady(
-              Math.max(
-                ranges[ranges.length - 1].start,
-                ranges[ranges.length - 1].end - END_MARGIN
-              )
-            )
-          continue
-        }
-        await this.append(output, epoch)
-        if (!this.isActive(epoch)) continue
-        if (output.kind === 'media') {
-          this.cursor = output.end
-          // Seeking to zero has the same first-sample boundary as startup.
-          // Otherwise a delayed first frame leaves demand at an unfillable hole.
-          if (
-            this.initialized &&
-            epoch.preparing &&
-            epoch.target === 0 &&
-            output.start > 0
-          ) {
-            const first = this.buffer.containing(output.start)
-            if (first) {
-              epoch.target = first.start
-              this.media.currentTime = first.start
-            }
-          }
-          if (this.buffer.containing(epoch.target)) epoch.preparing = false
-          if (!this.initialized) {
-            // Source timestamps can begin after zero (e.g. WMA decoder delay).
-            // Use the real first playable boundary without shifting its clock.
-            const playable = this.buffer.ranges.find(
-              (range) =>
-                range.end > epoch.target &&
-                range.start <= Math.max(epoch.target, output.start) + END_MARGIN
-            )
-            if (playable) this.markReady(Math.max(epoch.target, playable.start))
-          }
-        }
+        await this.consumeOutput(result.output, epoch)
       } catch (reason) {
         if (!this.isActive(epoch)) continue
         throw reason
@@ -182,6 +111,100 @@ export class LoadSession {
     this.buffer.mse.mediaSource?.removeEventListener('endstreaming', this.onMediaEvent)
     this.disposal = this.buffer.close()
     return this.disposal
+  }
+
+  private async initialize(source: string): Promise<void> {
+    this.metadata = await this.transcoder.open(source, this.controller.signal)
+    this.checkActive()
+    const duration = this.metadata.duration
+    if (Number.isFinite(duration))
+      this.epoch.target = Math.min(this.epoch.target, Math.max(0, duration - END_MARGIN))
+    await this.buffer.open(this.media, this.metadata.mimeType, duration)
+    this.checkActive()
+    for (const event of ['timeupdate', 'seeking', 'waiting', 'play', 'pause'])
+      this.media.addEventListener(event, this.onMediaEvent)
+    this.media.addEventListener('error', this.onMediaError)
+    this.buffer.mse.mediaSource?.addEventListener('startstreaming', this.onMediaEvent)
+    this.buffer.mse.mediaSource?.addEventListener('endstreaming', this.onMediaEvent)
+    this.buffer.mse.on(MSE.BUFFERED_CHANGE, this.onBufferedChange)
+  }
+
+  private async applyPendingSeek(epoch: PlaybackEpoch): Promise<void> {
+    await this.transcoder.seek(epoch.target, epoch.controller.signal)
+    if (!this.isActive(epoch)) return
+    epoch.pendingSeek = false
+    this.cursor = epoch.target
+    this.eof = false
+    this.producing = true
+  }
+
+  private needsProduction(time: number, epoch: PlaybackEpoch): boolean {
+    const ahead = Math.max(0, (this.buffer.containing(time)?.end ?? time) - time)
+    const high = this.options.bufferAhead ?? 20
+    const low = this.options.bufferLow ?? high / 2
+    // Between the water marks, retain the previous production decision.
+    if (ahead >= high) this.producing = false
+    if (ahead < low) this.producing = true
+    return (
+      !this.eof &&
+      this.producing &&
+      (!this.initialized || epoch.awaitingPlayableTarget || this.buffer.mse.streaming)
+    )
+  }
+
+  private async consumeOutput(
+    output: PipelineOutput,
+    epoch: PlaybackEpoch
+  ): Promise<void> {
+    if (output.kind === 'yield') return
+    if (output.kind === 'eof') {
+      this.eof = true
+      const ranges = this.buffer.ranges
+      if (!ranges.length)
+        throw new FFmpegError('transcode', 'FFmpeg produced no playable audio')
+      await this.buffer.finish(this.cursor, epoch.controller.signal)
+      if (this.isActive(epoch) && !this.initialized)
+        this.markReady(
+          Math.max(
+            ranges[ranges.length - 1].start,
+            ranges[ranges.length - 1].end - END_MARGIN
+          )
+        )
+      return
+    }
+    await this.append(output, epoch)
+    if (!this.isActive(epoch)) return
+    if (output.kind === 'media') {
+      this.cursor = output.end
+      this.confirmPlayableTarget(output.start, epoch)
+    }
+  }
+
+  private confirmPlayableTarget(start: number, epoch: PlaybackEpoch): void {
+    // Seeking to zero has the same first-sample boundary as startup.
+    // Otherwise a delayed first frame leaves demand at an unfillable hole.
+    if (
+      this.initialized &&
+      epoch.awaitingPlayableTarget &&
+      epoch.target === 0 &&
+      start > 0
+    ) {
+      const first = this.buffer.containing(start)
+      if (first) {
+        epoch.target = first.start
+        this.media.currentTime = first.start
+      }
+    }
+    if (this.buffer.containing(epoch.target)) epoch.awaitingPlayableTarget = false
+    if (!this.initialized) {
+      // Use the real first playable boundary without shifting the source clock.
+      const playable = this.buffer.ranges.find(
+        (range) =>
+          range.end > epoch.target &&
+          range.start <= Math.max(epoch.target, start) + END_MARGIN
+      )
+      if (playable) this.markReady(Math.max(epoch.target, playable.start))
+    }
   }
 
   private async append(
@@ -244,10 +267,10 @@ export class LoadSession {
       (!explicitSeek && !hole) ||
       (explicitSeek &&
         range &&
-        !this.epoch.seek &&
+        !this.epoch.pendingSeek &&
         this.cursor <= range.end + END_MARGIN) ||
       time >= end - END_MARGIN ||
-      (this.epoch.seek && this.epoch.target === time)
+      (this.epoch.pendingSeek && this.epoch.target === time)
     )
       return
     this.epoch.controller.abort()
@@ -255,8 +278,8 @@ export class LoadSession {
     this.epoch = {
       controller: new AbortController(),
       target: Math.max(0, time),
-      seek: true,
-      preparing: !range
+      pendingSeek: true,
+      awaitingPlayableTarget: !range
     }
     this.producing = true
     this.wake()
@@ -265,7 +288,7 @@ export class LoadSession {
   private markReady(time: number): void {
     this.clearTimeout()
     this.initialized = true
-    this.epoch.preparing = false
+    this.epoch.awaitingPlayableTarget = false
     this.media.currentTime = time
     this.resolve(time)
     if (this.metadata) this.events.ready(this.metadata)

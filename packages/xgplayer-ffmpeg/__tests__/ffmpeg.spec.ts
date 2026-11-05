@@ -220,6 +220,32 @@ describe('MSE demand and source lifecycle', () => {
     await core.destroy()
   })
 
+  test('a superseded native seek cannot satisfy the newer MMS playback target', async () => {
+    const { core, stream, mse } = await ready()
+    mse.streaming = false
+    let completeSeek!: () => void
+    stream.seek.mockImplementationOnce(() => new Promise<void>((resolve) => { completeSeek = resolve }))
+    core.media.currentTime = 80
+    core.media.dispatchEvent(new Event('seeking'))
+    await flush()
+    const oldSignal = stream.seek.mock.calls[0][1] as AbortSignal
+    core.media.currentTime = 40
+    core.media.dispatchEvent(new Event('seeking'))
+    expect(oldSignal.aborted).toBe(true)
+    expect(stream.pending).toHaveLength(0)
+    completeSeek()
+    await flush()
+    expect(stream.seek.mock.calls.map(([time]) => time)).toEqual([80, 40])
+    stream.push({ kind: 'init', data: new Uint8Array([0]), timestampOffset: 0 })
+    await flush()
+    stream.push(segment(39.7, 41))
+    await flush()
+    expect(core.media.currentTime).toBe(40)
+    expect(mse.ranges).toEqual([[39.7, 41]])
+    expect(stream.pending).toHaveLength(0)
+    await core.destroy()
+  })
+
   test('source-switch startup seeks directly to the requested time', async () => {
     const { core, loading, stream } = await start(80)
     expect(stream.seek).toHaveBeenCalledWith(80, expect.any(AbortSignal))

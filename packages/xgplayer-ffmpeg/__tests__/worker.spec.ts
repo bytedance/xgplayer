@@ -290,6 +290,34 @@ describe('native Worker pipeline', () => {
     }))
   })
 
+  test.each(['sync', 'async'])('an invalid %s ABI result cannot open the source', async (mode) => {
+    const { worker, request, core, post } = setup()
+    const original = core.ccall
+    core.ccall = jest.fn((name, result, types, values, options) => {
+      if (mode === 'sync' && name === 'xp_create') return Promise.resolve(1)
+      if (mode === 'async' && name === 'xp_open') return undefined
+      return original(name, result, types, values, options)
+    })
+    await worker.receive(request)
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'error', stage: 'runtime',
+      message: mode === 'sync' ? 'Unexpected async native entry' : 'Invalid native operation result'
+    }))
+    expect(mockClose).toHaveBeenCalled()
+  })
+
+  test('raw input parameters cross the ABI without changing the selected output policy', async () => {
+    const { worker, request, core, post } = setup('pcm_s16le')
+    request.audio = { inputFormat: 's16le', inputSampleRate: 16000, inputChannels: 1 }
+    await worker.receive(request)
+    expect(core.ccall).toHaveBeenCalledWith('xp_create', 'number',
+      ['number', 'string', 'number', 'number'], [1000000, 's16le', 16000, 1])
+    expect(core.ccall).toHaveBeenCalledWith('xp_open', 'number', ['number'], [1], { async: true })
+    expect(post).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'opened', metadata: expect.objectContaining({ codec: 'aac' })
+    }))
+  })
+
   test('a cached read yields to cancellation before copying bytes into WASM', async () => {
     const { worker, request, callbacks, core } = setup()
     await worker.receive(request)
