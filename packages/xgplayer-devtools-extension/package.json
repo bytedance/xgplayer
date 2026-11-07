@@ -1,0 +1,11 @@
+{
+  "name": "xgplayer-devtools-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zero-intrusion browser DevTools extension for debugging web players (instance discovery, event timeline, buffer/network/log inspection, recording & snapshot export).",
+  "license": "MIT",
+  "scripts": {
+    "lint": "biome check src || true",
+    "validate": "node scripts/validate.js"
+  }
+}

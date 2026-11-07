@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../panel/panel.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="brand">Player <span>DevTools</span></div>
+        <div class="instances" id="instanceBar"></div>
+      </div>
+      <div class="actions">
+        <button id="btnRecord" class="btn icon-btn"></button>
+        <button id="btnSnapshot" class="btn icon-btn"></button>
+        <button id="btnLogger" class="btn icon-btn"></button>
+        <button id="btnClear" class="btn icon-btn"></button>
+      </div>
+    </header>
+    <nav class="tabs" id="tabs"></nav>
+    <main class="content" id="content"></main>
+    <footer class="statusbar" id="statusbar"></footer>
+  </div>
+  <script type="module" src="../panel/panel.js"></script>
+</body>
+</html>
