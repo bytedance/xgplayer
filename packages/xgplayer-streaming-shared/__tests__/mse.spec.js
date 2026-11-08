@@ -138,24 +138,6 @@ describe('MSE ManagedSourceBuffer events', () => {
     await mse.unbindMedia()
   })
 
-  test('revokes the object URL and removes pending sourceopen listeners on unbind', async () => {
-    const media = document.createElement('video')
-    media.load = jest.fn()
-    const mse = new MSE(null, { preferMMS: true })
-
-    mse.bindMedia(media)
-    const source = mse.mediaSource
-    const url = mse._url
-    const removeEventListener = jest.spyOn(source, 'removeEventListener')
-
-    await mse.unbindMedia()
-
-    expect(removeEventListener).toHaveBeenCalledWith('sourceopen', expect.any(Function))
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith(url)
-    source.dispatchEvent(new Event('sourceopen'))
-    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
-  })
-
   test('ignores range-shaped objects that are not TimeRanges', async () => {
     const mse = new MSE(null, { preferMMS: true })
     const media = document.createElement('video')

@@ -340,8 +340,6 @@ export class MSE extends EventEmitter<MSEEvents> {
     this._logger.debug('endstreaming')
   }
 
-  private _sourceOpenHandler: (() => void) | null = null
-
   async bindMedia(media: HTMLMediaElement): Promise<unknown> {
     if (this.mediaSource || this.media) await this.unbindMedia()
 
@@ -359,14 +357,12 @@ export class MSE extends EventEmitter<MSEEvents> {
       const costTime = nowTime() - this._st
       this._logger.debug('sourceopen')
       ms.removeEventListener('sourceopen', onOpen)
-      this._sourceOpenHandler = null
       if (this._url) {
         URL.revokeObjectURL(this._url)
       }
       this._openPromise.resolve({ costtime: costTime })
       media.dispatchEvent(new CustomEvent('mseAttached'))
     }
-    this._sourceOpenHandler = onOpen
     ms.addEventListener('sourceopen', onOpen)
     if (useMMS) {
       ms.addEventListener('startstreaming', this._onStartStreaming)
@@ -399,14 +395,6 @@ export class MSE extends EventEmitter<MSEEvents> {
     const ms = this.mediaSource
 
     if (ms) {
-      if (this._sourceOpenHandler) {
-        ms.removeEventListener('sourceopen', this._sourceOpenHandler)
-        this._sourceOpenHandler = null
-        if (this._url) {
-          URL.revokeObjectURL(this._url)
-        }
-      }
-
       Object.keys(this._queue).forEach((t) => {
         const queue = this._queue[t]
         if (queue) {
