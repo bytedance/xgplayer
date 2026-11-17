@@ -136,7 +136,7 @@ IMA SDK 显著降低了实现标准广告技术复杂性，对 [IAB](https://www
 
 SDK链接：https://imasdk.googleapis.com/js/sdkloader/ima3.js
 
-SDK文档：https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js
+SDK文档：https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/namespace/google.ima
 
 
 ### Locale
