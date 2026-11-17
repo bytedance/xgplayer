@@ -80,7 +80,7 @@ This plugin integrates Google IMA SDK. Please <b>comply with its data privacy re
 
 SDK Links:  https://imasdk.googleapis.com/js/sdkloader/ima3.js
 
-SDK Document: https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/js
+SDK Document: https://developers.google.com/interactive-media-ads/docs/sdks/html5/client-side/reference/namespace/google.ima
 
 
 ### Locale
