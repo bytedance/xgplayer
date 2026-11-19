@@ -72,7 +72,7 @@ export class MP3Loader {
   constructor(config: MP3Config) {
     this.config = config
     this._url = config.url
-    this.logger = new Logger('MP3Loader', undefined)
+    this.logger = new Logger('MP3Loader')
     if (config.openLog) Logger.enable()
     this.netLoader = new NetLoader({
       url: config.url,

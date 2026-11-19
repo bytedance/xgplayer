@@ -18,7 +18,7 @@ interface SourceChangeContext {
   readonly paused: boolean
 }
 
-const logger = new Logger('MP3Plugin', undefined)
+const logger = new Logger('MP3Plugin')
 
 export class MP3Plugin extends BasePlugin {
   static readonly isStreamingPlugin = true

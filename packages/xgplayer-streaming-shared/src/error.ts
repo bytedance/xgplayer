@@ -11,7 +11,6 @@ export const ERR = {
   DRM: 'drm',
   OTHER: 'other',
   RUNTIME: 'runtime',
-
   SUB_TYPES: {
     FLV: 'FLV',
     HLS: 'HLS',
@@ -39,7 +38,14 @@ export const ERR = {
     MEDIA_ERR_CODEC_NOT_SUPPORTED: 'MEDIA_ERR_CODEC_NOT_SUPPORTED',
     MEDIA_ERR_URL_EMPTY: 'MEDIA_ERR_URL_EMPTY'
   }
-}
+} as const
+
+export type StreamingErrorType = Exclude<
+  (typeof ERR)[Exclude<keyof typeof ERR, 'SUB_TYPES'>],
+  object
+>
+
+export type StreamingErrorSubType = (typeof ERR.SUB_TYPES)[keyof typeof ERR.SUB_TYPES]
 
 export const ERR_CODE = {
   [ERR.MANIFEST]: {
@@ -87,45 +93,100 @@ export const ERR_CODE = {
     BUFFERBREAK_ERROR: 9002,
     WAITING_TIMEOUT_ERROR: 9003
   }
+} as const
+
+type ErrorCodeMap = (typeof ERR_CODE)[StreamingErrorType]
+
+interface NetworkErrorLike {
+  isTimeout?: boolean
+  url?: unknown
+  response?: {
+    status?: unknown
+  }
 }
 
 export class StreamingError extends Error {
-  constructor (type, subType, origin, payload, msg) {
-    super(msg || origin?.message)
+  errorType: StreamingErrorType
+  originError: unknown
+  ext: unknown
+  errorCode: number
+  errorMessage: string
+
+  constructor(
+    type: StreamingErrorType,
+    subType: StreamingErrorSubType | null = null,
+    origin: unknown = null,
+    payload: unknown = null,
+    message = ''
+  ) {
+    super(message || getErrorMessage(origin))
     this.errorType = type === ERR.NETWORK_TIMEOUT ? ERR.NETWORK : type
     this.originError = origin
     this.ext = payload
-    this.errorCode = ERR_CODE[type][subType] || ERR_CODE[type]
+    this.errorCode = getErrorCode(type, subType)
     this.errorMessage = this.message
-    if (!this.errorCode) {
-      this.errorType = ERR.OTHER
-      this.errorCode = ERR_CODE[this.errorType]
-    }
   }
 
-  static create (type, subType, origin, payload, msg) {
-    if (type instanceof StreamingError) {
-      return type
-    } else if (type instanceof Error) {
-      origin = type
-      type = ''
+  static create(
+    type: unknown,
+    subType: StreamingErrorSubType | null = null,
+    origin: unknown = null,
+    payload: unknown = null,
+    message = ''
+  ): StreamingError {
+    if (type instanceof StreamingError) return type
+    if (type instanceof Error) {
+      return new StreamingError(ERR.OTHER, subType, type, payload, message)
     }
-
-    if (!type) type = ERR.OTHER
-
-    return new StreamingError(type, subType, origin, payload, msg)
-  }
-
-  static network (error) {
     return new StreamingError(
-      error?.isTimeout ? ERR.NETWORK_TIMEOUT : ERR.NETWORK,
+      isStreamingErrorType(type) ? type : ERR.OTHER,
+      subType,
+      origin,
+      payload,
+      message
+    )
+  }
+
+  static network(error: unknown): StreamingError {
+    const networkError = toNetworkError(error)
+    return new StreamingError(
+      networkError.isTimeout ? ERR.NETWORK_TIMEOUT : ERR.NETWORK,
       null,
       error instanceof Error ? error : null,
       {
-        url: error?.url,
-        response: error?.response,
-        httpCode: error?.response?.status
+        url: networkError.url,
+        response: networkError.response,
+        httpCode: networkError.response?.status
       }
     )
   }
+}
+
+function getErrorCode(
+  type: StreamingErrorType,
+  subType: StreamingErrorSubType | null
+): number {
+  const code: ErrorCodeMap = ERR_CODE[type]
+  if (typeof code === 'number') return code
+  if (subType && subType in code) {
+    return (
+      (code as Partial<Record<StreamingErrorSubType, number>>)[subType] ||
+      ERR_CODE[ERR.OTHER]
+    )
+  }
+  return ERR_CODE[ERR.OTHER]
+}
+
+function isStreamingErrorType(value: unknown): value is StreamingErrorType {
+  return typeof value === 'string' && value in ERR_CODE
+}
+
+function getErrorMessage(origin: unknown): string | undefined {
+  if (!origin || typeof origin !== 'object' || !('message' in origin)) return
+  const message = origin.message
+  return typeof message === 'string' ? message : undefined
+}
+
+function toNetworkError(error: unknown): NetworkErrorLike {
+  return error && typeof error === 'object' ? (error as NetworkErrorLike) : {}
 }

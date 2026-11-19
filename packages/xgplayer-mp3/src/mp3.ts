@@ -12,7 +12,7 @@ import { MP3Loader } from './loader'
 import { getLogSource } from './log'
 import type { MP3Config, MP3Options } from './types'
 
-const logger = new Logger('MP3', undefined)
+const logger = new Logger('MP3')
 
 interface LoadContext {
   readonly url: string
