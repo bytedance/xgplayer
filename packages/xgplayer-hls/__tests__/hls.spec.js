@@ -52,6 +52,10 @@ describe('Hls', () => {
   const bufferDestroy = jest.fn()
   const seamlessSwitch = jest.fn()
   const clearAllBuffer = jest.fn()
+  const decryptBuffer = jest.fn()
+  const createSource = jest.fn()
+  const appendMediaBuffer = jest.fn()
+  const evictBuffer = jest.fn()
   BufferService.mockImplementation(() => {
     return {
       updateDuration,
@@ -59,7 +63,11 @@ describe('Hls', () => {
       endOfStream,
       seamlessSwitch,
       destroy: bufferDestroy,
-      clearAllBuffer
+      clearAllBuffer,
+      decryptBuffer,
+      createSource,
+      appendBuffer: appendMediaBuffer,
+      evictBuffer
     }
   })
 
@@ -264,6 +272,38 @@ describe('Hls', () => {
       expect(hls._getBackBufferEvictionEnd(10)).toBe(17)
     } finally {
       delete currentStream.segmentDuration
+    }
+  })
+
+  test('passes a protected eviction boundary after appending the initial seek segment', async () => {
+    const localMedia = document.createElement('video')
+    const hls = new Hls({ media: localMedia, bufferBehind: 10 })
+    const segment = {
+      cc: 0,
+      sn: 0,
+      start: 0,
+      end: 16.57,
+      url: 'segment.ts',
+      parentUrl: 'playlist.m3u8'
+    }
+    const segmentData = new Uint8Array([1])
+
+    currentStream.segmentDuration = 17
+    currentStream.videoCodec = 'avc1.42e01e'
+    findSegmentIndexByTime.mockReturnValue(0)
+    getSegmentByIndex.mockReturnValue(segment)
+    jest.spyOn(hls._segmentLoader, 'load').mockResolvedValue([{ data: segmentData }])
+    decryptBuffer.mockResolvedValue([segmentData, undefined])
+    appendMediaBuffer.mockResolvedValue(undefined)
+    Object.defineProperty(localMedia, 'seeking', { configurable: true, value: false })
+    localMedia.currentTime = 12
+
+    try {
+      await hls._reqAndBufferSegment(segment)
+      expect(evictBuffer).toHaveBeenCalledWith(0)
+    } finally {
+      delete currentStream.segmentDuration
+      delete currentStream.videoCodec
     }
   })
 
