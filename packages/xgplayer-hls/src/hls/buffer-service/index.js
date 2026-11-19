@@ -333,12 +333,9 @@ export class BufferService {
       .then(() => this.hls.emit(EVENT.REMOVE_BUFFER, { start, end, removeEnd: end }))
   }
 
-  async evictBuffer(bufferBehind) {
+  async evictBuffer(removeEnd) {
     const media = this.hls.media
-    if (!this._mse || !media || !bufferBehind || bufferBehind < 0) return
-    const currentTime = media.currentTime
-    const removeEnd = currentTime - bufferBehind
-    if (removeEnd <= 0) return
+    if (!this._mse || !media || !Number.isFinite(removeEnd) || removeEnd <= 0) return
     const start = Buffer.start(Buffer.get(media))
     if (start + 1 >= removeEnd) return
     return this.removeBuffer(0, removeEnd)

@@ -1,17 +1,17 @@
 import EventEmitter from 'eventemitter3'
-import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import {
   Buffer,
   ERR,
   GapService,
-  Logger,
-  MSE,
-  MediaStatsService,
-  SeiService,
-  StreamingError,
   getVideoPlaybackQuality,
-  isMediaPlaying
+  isMediaPlaying,
+  Logger,
+  MediaStatsService,
+  MSE,
+  SeiService,
+  StreamingError
 } from 'xgplayer-streaming-shared'
+import { Logger as TransmuxerLogger } from 'xgplayer-transmuxer'
 import { BufferService } from './buffer-service'
 import { getConfig } from './config'
 import { Event } from './constants'
@@ -84,7 +84,7 @@ export class Hls extends EventEmitter {
   _switchUrlOpts = null
   _isProcessQuotaExceeded = false
 
-  constructor (cfg) {
+  constructor(cfg) {
     super()
     this.config = cfg = getConfig(cfg)
     this.media = this.config.media
@@ -102,32 +102,71 @@ export class Hls extends EventEmitter {
     this._bindMediaEvents(this.media)
   }
 
-  get isLive () { return this._playlist.isLive }
-  get streams () { return this._playlist.streams }
-  get currentStream () { return this._playlist.currentStream }
-  get hasSubtitle () { return this._playlist.hasSubtitle}
-  get totalDuration () { return this._playlist.totalDuration}
-  get baseDts () { return this._bufferService?.baseDts }
-  get abrSwitchPoint () {
+  get isLive() {
+    return this._playlist.isLive
+  }
+  get streams() {
+    return this._playlist.streams
+  }
+  get currentStream() {
+    return this._playlist.currentStream
+  }
+  get hasSubtitle() {
+    return this._playlist.hasSubtitle
+  }
+  get totalDuration() {
+    return this._playlist.totalDuration
+  }
+  get baseDts() {
+    return this._bufferService?.baseDts
+  }
+  get abrSwitchPoint() {
     const targetSeg = this._urlSwitching
       ? this._playlist.currentSegment
       : this._playlist.nextSegment
     return targetSeg ? targetSeg.start + targetSeg.duration / 2 : null
   }
 
-  speedInfo () {
+  speedInfo() {
     return this._segmentLoader.speedInfo()
   }
 
-  bufferInfo (maxHole = 0.1) {
+  bufferInfo(maxHole = 0.1) {
     return Buffer.info(Buffer.get(this.media), this.media?.currentTime, maxHole)
   }
 
-  _getPreloadBufferLength (bInfo, nextSegment) {
+  _getBackBufferEvictionEnd(bufferBehind) {
+    const { media } = this
+    if (!media || media.seeking || !bufferBehind || bufferBehind < 0) return 0
+
+    const currentTime = media.currentTime
+    const segmentDuration = this._playlist.currentStream?.segmentDuration
+    if (
+      !Number.isFinite(currentTime) ||
+      !Number.isFinite(segmentDuration) ||
+      segmentDuration <= 0
+    ) {
+      return 0
+    }
+
+    const segmentIndex = this._playlist.findSegmentIndexByTime(currentTime)
+    const currentSegment = this._playlist.getSegmentByIndex(segmentIndex)
+    if (!Number.isFinite(currentSegment?.start)) return 0
+
+    // Coded frame removal may continue to the next random access point.
+    // Keep one target duration and never cross into the current segment.
+    const maxBufferBehind = Math.max(bufferBehind, segmentDuration)
+    const alignedEnd =
+      Math.floor(currentTime / segmentDuration) * segmentDuration - maxBufferBehind
+    return Math.max(0, Math.min(alignedEnd, currentSegment.start))
+  }
+
+  _getPreloadBufferLength(bInfo, nextSegment) {
     const remaining = bInfo?.remaining || 0
     const buffers = bInfo?.buffers
     const nextStart = bInfo?.nextStart
-    if (!buffers?.length || !nextSegment || !nextStart || nextSegment.start <= nextStart) return remaining
+    if (!buffers?.length || !nextSegment || !nextStart || nextSegment.start <= nextStart)
+      return remaining
 
     let fullBufferLength = remaining
     const bufferedIndex = bInfo.end ? bInfo.index : -1
@@ -143,11 +182,11 @@ export class Hls extends EventEmitter {
   /**
    * @returns {Stats}
    */
-  getStats () {
+  getStats() {
     return this._stats.getStats()
   }
 
-  playbackQuality () {
+  playbackQuality() {
     return getVideoPlaybackQuality(this.media)
   }
 
@@ -155,7 +194,7 @@ export class Hls extends EventEmitter {
    * @param {string} url
    * @param {LoadOptions | boolean} options
    */
-  async load (url = '', options = {}) {
+  async load(url = '', options = {}) {
     const reuseMse = typeof options === 'boolean' ? options : !!options?.reuseMse
 
     if (typeof options === 'object' && options?.clearSwitchStatus) {
@@ -175,7 +214,7 @@ export class Hls extends EventEmitter {
    * @param {string} url
    * @private
    */
-  async _loadData (url) {
+  async _loadData(url) {
     try {
       if (url) url = url.trim()
     } catch (e) {}
@@ -276,7 +315,7 @@ export class Hls extends EventEmitter {
    * @param {?SwitchUrlOptions} options
    * @returns
    */
-  async switchURL (url, options = {}) {
+  async switchURL(url, options = {}) {
     const defaultOpts = {
       seamless: false,
       startTime: 0,
@@ -337,11 +376,11 @@ export class Hls extends EventEmitter {
     this._switchUrlOpts = null
   }
 
-  async switchStream (id, force = true) {
+  async switchStream(id, force = true) {
     const curStream = this.currentStream
     const streams = this.streams
     if (!curStream || curStream.id === id || !streams || streams.length < 2) return
-    const toSwitch = streams.find(x => x.id === id)
+    const toSwitch = streams.find((x) => x.id === id)
     if (!toSwitch) return
 
     try {
@@ -376,12 +415,12 @@ export class Hls extends EventEmitter {
     return toSwitch
   }
 
-  async switchAudioStream (id, force = true) {
+  async switchAudioStream(id, force = true) {
     const curStream = this.currentStream
     if (!curStream) return
     const audioStream = curStream.currentAudioStream
     if (!audioStream || audioStream.id === id || curStream.audioStreams.length < 2) return
-    const toSwitch = curStream.audioStreams.find(x => x.id === id)
+    const toSwitch = curStream.audioStreams.find((x) => x.id === id)
     if (!toSwitch) return
 
     try {
@@ -409,19 +448,19 @@ export class Hls extends EventEmitter {
     return toSwitch
   }
 
-  async switchSubtitleStream (lang) {
+  async switchSubtitleStream(lang) {
     this._playlist.switchSubtitle(lang)
     await this._manifestLoader.stopPoll()
     await this._refreshM3U8()
   }
 
-  async detachMedia () {
+  async detachMedia() {
     if (this._bufferService) {
       await this._bufferService.detachMedia()
     }
   }
 
-  async destroy () {
+  async destroy() {
     if (!this.media) return
     this.removeAllListeners()
     this._playlist.reset()
@@ -454,7 +493,7 @@ export class Hls extends EventEmitter {
    * @param {('video'|'audio')?} mediaType
    * @returns {Boolean}
    */
-  static isSupported (mediaType) {
+  static isSupported(mediaType) {
     if (!mediaType || mediaType === 'video' || mediaType === 'audio') {
       return MSE.isSupported()
     }
@@ -462,12 +501,12 @@ export class Hls extends EventEmitter {
     return typeof WebAssembly !== 'undefined'
   }
 
-  static enableLogger () {
+  static enableLogger() {
     Logger.enable()
     TransmuxerLogger.enable()
   }
 
-  static disableLogger () {
+  static disableLogger() {
     Logger.disable()
     TransmuxerLogger.disable()
   }
@@ -475,14 +514,14 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _loadM3U8 (url) {
+  async _loadM3U8(url) {
     let playlist
     try {
-      const manifest = this.config.manifestList?.filter(x => x.url === url)[0]?.manifest;
+      const manifest = this.config.manifestList?.filter((x) => x.url === url)[0]?.manifest
 
-      [playlist] = manifest
-        ? this._manifestLoader.parseText(manifest, url) :
-        await this._manifestLoader.load(url)
+      ;[playlist] = manifest
+        ? this._manifestLoader.parseText(manifest, url)
+        : await this._manifestLoader.load(url)
     } catch (error) {
       throw this._emitError(StreamingError.create(error))
     }
@@ -504,7 +543,7 @@ export class Hls extends EventEmitter {
   /**
    * @private 首次更新 master playlist 的 media level
    */
-  _refreshM3U8 () {
+  _refreshM3U8() {
     const stream = this._playlist.currentStream
     if (!stream || !stream.url)
       throw this._emitError(
@@ -529,7 +568,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _pollM3U8 (url, audioUrl, subtitleUrl) {
+  _pollM3U8(url, audioUrl, subtitleUrl) {
     let isEmpty = this._playlist.isEmpty
     let pollInterval
 
@@ -590,7 +629,10 @@ export class Hls extends EventEmitter {
         Math.abs(bInfo.end - this.media.duration) < maxBufferThroughout
       const preloadBufferLength = this._getPreloadBufferLength(bInfo, nextSegment)
       // Only stop loading if we've buffered enough preload time or reached end AND all segments are loaded
-      if (preloadBufferLength >= config.preloadTime || (bufferThroughout && !nextSegment)) {
+      if (
+        preloadBufferLength >= config.preloadTime ||
+        (bufferThroughout && !nextSegment)
+      ) {
         this._tryEos()
         return
       }
@@ -618,7 +660,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _loadSegmentDirect (loadOnce) {
+  async _loadSegmentDirect(loadOnce) {
     const seg = this._playlist.nextSegment
     if (!seg) return
 
@@ -690,7 +732,7 @@ export class Hls extends EventEmitter {
    * @param {MediaSegment} audioSeg
    * @private
    */
-  async _reqAndBufferSegment (seg, audioSeg) {
+  async _reqAndBufferSegment(seg, audioSeg) {
     const cc = seg ? seg.cc : audioSeg.cc
     const discontinuity = this._prevSegCc !== cc
     let responses = []
@@ -735,7 +777,8 @@ export class Hls extends EventEmitter {
       start
     )
     this.emit(Event.APPEND_COST, { elapsed: Date.now() - before, url: seg.url })
-    await this._bufferService.evictBuffer(this.config.bufferBehind)
+    const removeEnd = this._getBackBufferEvictionEnd(this.config.bufferBehind)
+    await this._bufferService.evictBuffer(removeEnd)
     this._prevSegCc = cc
     this._prevSegSn = sn
     return true
@@ -908,7 +951,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _clear () {
+  async _clear() {
     clearTimeout(this._disconnectTimer)
     this._stopTick()
     await Promise.all([this._segmentLoader.cancel(), this._manifestLoader.stopPoll()])
@@ -918,7 +961,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  async _reset (reuseMse = false) {
+  async _reset(reuseMse = false) {
     this._reloadOnPlay = false
     this._prevSegSn = null
     this._prevSegCc = null
@@ -934,7 +977,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _end () {
+  _end() {
     this._clear()
     this._bufferService.endOfStream()
     if (this.media.readyState <= 2 || this.media.buffered.length > 1) {
@@ -945,7 +988,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _stopTick () {
+  _stopTick() {
     if (this._tickTimer) {
       clearTimeout(this._tickTimer)
     }
@@ -955,7 +998,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _startTick () {
+  _startTick() {
     this._stopTick()
     this._tickTimer = setTimeout(this._tick, this._tickInterval)
   }
@@ -1015,7 +1058,7 @@ export class Hls extends EventEmitter {
    * @param {boolean?} endOfStream
    * @private
    */
-  _emitError (error, endOfStream = false) {
+  _emitError(error, endOfStream = false) {
     if (error.originError?.fatal === false) {
       logger.warn(error)
     } else {
@@ -1041,7 +1084,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _getSeamlessSwitchPoint () {
+  _getSeamlessSwitchPoint() {
     const { media } = this
     let nextLoadPoint = media.currentTime
     if (!media.paused) {
@@ -1064,7 +1107,7 @@ export class Hls extends EventEmitter {
   /**
    * @private
    */
-  _tryEos () {
+  _tryEos() {
     const { media } = this
     const { nextSegment, lastSegment } = this._playlist
     const eosAllowed =

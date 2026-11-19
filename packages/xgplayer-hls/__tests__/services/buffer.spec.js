@@ -212,11 +212,13 @@ describe('BufferService', () => {
 
   test('evictBuffer', async () => {
     const bs = new BufferService(hls)
+    bs._mse.duration = 100
 
-    await bs.evictBuffer(20)
-    expect(remove).not.toHaveBeenCalled()
-    await bs.evictBuffer(19.9)
-    expect(remove).not.toHaveBeenCalled()
+    await bs.evictBuffer(0)
+    expect(clearBuffer).not.toHaveBeenCalled()
+
+    await bs.evictBuffer(17)
+    expect(clearBuffer).toHaveBeenCalledWith(0, 17)
   })
 
   test('_handleCodecChange', async () => {
