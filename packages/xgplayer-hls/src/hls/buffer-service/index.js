@@ -48,6 +48,7 @@ export class BufferService {
     }
   }
 
+  /** @returns {number | undefined} */
   get baseDts() {
     return this._transmuxer?._demuxer?._fixer?._baseDts
   }

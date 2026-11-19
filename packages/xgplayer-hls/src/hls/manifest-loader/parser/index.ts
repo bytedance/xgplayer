@@ -1,9 +1,14 @@
 import { parseMasterPlaylist } from './master'
 import { parseMediaPlaylist } from './media'
+import type { MasterPlaylist, MediaPlaylist } from './model'
 import { getLines } from './utils'
 
 export class M3U8Parser {
-  static parse (text = '', parentUrl, useLowLatency) {
+  static parse(
+    text = '',
+    parentUrl = '',
+    useLowLatency = false
+  ): MasterPlaylist | MediaPlaylist {
     if (!text.includes('#EXTM3U')) throw new Error('Invalid m3u8 file')
 
     const lines = getLines(text)
@@ -14,7 +19,7 @@ export class M3U8Parser {
     return parseMasterPlaylist(lines, parentUrl)
   }
 
-  static isMediaPlaylist (text) {
+  static isMediaPlaylist(text: string): boolean {
     return text.includes('#EXTINF:') || text.includes('#EXT-X-TARGETDURATION:')
   }
 }
