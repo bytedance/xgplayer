@@ -1,3 +1,5 @@
+import type { MSEAttachMode } from 'xgplayer-streaming-shared'
+import type { TsFixerConfig } from 'xgplayer-transmuxer'
 import type { IExternalDecryptor } from './buffer-service/decrypt'
 
 export type m3u8ParseCallback = (
@@ -5,11 +7,7 @@ export type m3u8ParseCallback = (
   isAudioOrSubtitle?: boolean
 ) => string | null
 
-export interface HlsFixerConfig {
-  forceFixLargeGap?: boolean
-  largeGapThreshold?: number
-  fixHevcDiscontinuity?: boolean
-}
+export type HlsFixerConfig = TsFixerConfig
 
 export interface HlsOption {
   media?: HTMLMediaElement
@@ -39,14 +37,22 @@ export interface HlsOption {
   minSegmentsStartPlay?: number
   preferMMS?: boolean
   preferMMSStreaming?: boolean
-  mseAttachMode?: 'auto' | 'src' | 'source-element'
+  mseAttachMode?: MSEAttachMode
   mseLowLatency?: boolean
   forceFixLargeGap?: boolean
   fixerConfig?: HlsFixerConfig
 }
 
-export function getConfig(cfg: HlsOption = {}): HlsOption & { media: HTMLMediaElement } {
-  const media = cfg.media || document.createElement('video')
+const DEFAULT_MSE_ATTACH_MODE: NonNullable<HlsOption['mseAttachMode']> = 'auto'
+
+function createDefaultConfig() {
+  const manifestList: NonNullable<HlsOption['manifestList']> = []
+  const fixerConfig: HlsFixerConfig = {
+    forceFixLargeGap: false,
+    largeGapThreshold: 5,
+    fixHevcDiscontinuity: false
+  }
+
   return {
     maxPlaylistSize: 50,
     retryCount: 3,
@@ -64,22 +70,35 @@ export function getConfig(cfg: HlsOption = {}): HlsOption & { media: HTMLMediaEl
     maxLatency: 20,
     allowedStreamTrackChange: true,
     seiInTime: false,
-    manifestList: [],
+    manifestList,
     minSegmentsStartPlay: 3,
     preferMMS: false,
     preferMMSStreaming: false,
-    // MSE object URL 绑定方式：
-    // - 'auto': ManagedMediaSource 或 AirPlay-capable WebKit 使用 'source-element'，其他 MediaSource 使用 'src'
-    // - 'source-element': 通过生成的 <source> 挂载，便于 AirPlay fallback source 共存
-    // - 'src': 通过 video.src 挂载
-    mseAttachMode: 'auto',
-    mseLowLatency: true, // mse 低延迟模式渲染 https://issues.chromium.org/issues/41161663
-    fixerConfig: {
-      forceFixLargeGap: false, // 强制修复音视频PTS LargeGap, PTS从0开始
-      largeGapThreshold: 5, // 单位s
-      fixHevcDiscontinuity: false // CRA 拼接边界转 BLA，并修复跨片 DTS 回退
-    },
-    ...cfg,
+    // 'auto' uses a source element for MMS or AirPlay-capable WebKit.
+    mseAttachMode: DEFAULT_MSE_ATTACH_MODE,
+    mseLowLatency: true,
+    fixerConfig
+  }
+}
+
+type DefaultHlsConfig = ReturnType<typeof createDefaultConfig>
+
+export type HlsConfig = Omit<HlsOption, keyof DefaultHlsConfig | 'media'> &
+  Omit<DefaultHlsConfig, 'startTime' | 'mseAttachMode'> & {
+    media: HTMLMediaElement
+    startTime: HlsOption['startTime']
+    mseAttachMode: NonNullable<HlsOption['mseAttachMode']>
+  }
+
+export function getConfig(cfg: HlsOption = {}): HlsConfig {
+  const media = cfg.media || document.createElement('video')
+  const overrides = { ...cfg }
+  for (const key of Object.keys(overrides) as Array<keyof HlsOption>) {
+    if (overrides[key] === undefined) delete overrides[key]
+  }
+  return {
+    ...createDefaultConfig(),
+    ...overrides,
     media
   }
 }

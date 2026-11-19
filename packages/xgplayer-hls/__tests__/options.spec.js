@@ -30,7 +30,7 @@ describe('getOption', () => {
 
     expect(opts.retryTimes).toBe(1)
     expect(opts.retryCount).toBe(3)
-    expect(opts.retryDelay).toBe(undefined)
+    expect(opts.retryDelay).toBe(1000)
     expect(opts.loadTimeout).toBe(10000)
     expect(opts.preloadTime).toBe(30)
     expect(opts.softDecode).toBe(true)
@@ -40,6 +40,17 @@ describe('getOption', () => {
     expect(opts.fetchOptions).toBe(undefined)
     expect(opts.isLive).toBe(undefined)
     expect(opts.url).toBe('xxx')
+  })
+
+  test('mutable defaults are isolated between instances', () => {
+    const first = getConfig()
+    const second = getConfig()
+
+    first.manifestList.push({ url: 'first', manifest: '#EXTM3U' })
+    first.fixerConfig.fixHevcDiscontinuity = true
+
+    expect(second.manifestList).toEqual([])
+    expect(second.fixerConfig.fixHevcDiscontinuity).toBe(false)
   })
 
 })

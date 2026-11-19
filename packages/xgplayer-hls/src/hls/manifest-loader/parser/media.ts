@@ -1,0 +1,239 @@
+import {
+  type DateRangeAttributes,
+  MediaPlaylist,
+  MediaSegment,
+  MediaSegmentKey
+} from './model'
+import { getAbsoluteUrl, isValidDaterange, parseAttr, parseTag } from './utils'
+
+function toDate(value: string | Date | undefined): Date {
+  return value instanceof Date ? new Date(value) : new Date(value || '')
+}
+
+export function parseMediaPlaylist(
+  lines: string[],
+  parentUrl: string,
+  useLowLatency: boolean
+): MediaPlaylist {
+  const media = new MediaPlaylist()
+  media.url = parentUrl
+  let curSegment = new MediaSegment(parentUrl)
+  let curInitSegment: MediaSegment | null = null
+  let curKey: MediaSegmentKey | null = null
+  let totalDuration = 0
+  let curSN = 0
+  let curCC = 0
+  let index = 0
+  let line: string | undefined
+  let endOfList = false
+  let partSegmentIndex = 0
+
+  // eslint-disable-next-line no-cond-assign
+  while ((line = lines[index++])) {
+    if (line[0] !== '#') {
+      // url
+      if (media.lowLatency) {
+        curSN++
+        continue
+      }
+
+      curSegment.sn = curSN
+      curSegment.cc = curCC
+      curSegment.url = getAbsoluteUrl(line, parentUrl)
+      if (curKey) curSegment.key = curKey.clone(curSN)
+      if (curInitSegment) curSegment.initSegment = curInitSegment
+      media.segments.push(curSegment)
+      curSegment = new MediaSegment(parentUrl)
+      curSN++
+      continue
+    }
+
+    const tag = parseTag(line)
+    if (!tag) continue
+    const [name, data] = tag
+    switch (name) {
+      case 'VERSION':
+        media.version = parseInt(data || '')
+        break
+      case 'PLAYLIST-TYPE':
+        media.type = data?.toUpperCase()
+        break
+      case 'TARGETDURATION':
+        media.targetDuration = parseFloat(data || '')
+        break
+      case 'PART-INF':
+        {
+          if (useLowLatency) {
+            media.lowLatency = true
+          }
+          const attr = parseAttr(data || '')
+          if (attr['PART-TARGET']) {
+            media.partTargetDuration = parseFloat(attr['PART-TARGET'])
+          }
+        }
+        break
+      case 'SERVER-CONTROL':
+        {
+          const attr = parseAttr(data || '')
+          media.canBlockReload = attr['CAN-BLOCK-RELOAD'] === 'YES'
+          media.partHoldBack = parseFloat(String(attr['PART-HOLD-BACK'] || 0))
+          media.canSkipUntil = parseFloat(String(attr['CAN-SKIP-UNTIL'] || 0))
+          media.canSkipDateRanges =
+            media.canSkipUntil > 0 && attr['CAN-SKIP-DATERANGES'] === 'YES'
+        }
+        break
+      case 'ENDLIST':
+        {
+          endOfList = true
+        }
+        break
+      case 'MEDIA-SEQUENCE':
+        curSN = media.startSN = parseInt(data || '')
+        break
+      case 'DISCONTINUITY-SEQUENCE':
+        curCC = media.startCC = parseInt(data || '')
+        break
+      case 'DISCONTINUITY':
+        curCC++
+        break
+      case 'BYTERANGE':
+        curSegment.setByteRange(data || '', media.segments[media.segments.length - 1])
+        break
+      case 'PART':
+        {
+          if (!media.lowLatency) break
+          const attr = parseAttr(data || '')
+          curSegment.duration = parseFloat(attr.DURATION)
+          curSegment.independent = attr.INDEPENDENT === 'YES'
+          curSegment.sn = curSN
+          curSegment.cc = curCC
+          curSegment.partIndex = partSegmentIndex
+          curSegment.start = totalDuration
+          curSegment.duration = parseFloat(attr.DURATION)
+          totalDuration += curSegment.duration
+          curSegment.url = getAbsoluteUrl(attr.URI, parentUrl)
+          if (curKey) curSegment.key = curKey.clone(curSN)
+          if (curInitSegment) curSegment.initSegment = curInitSegment
+          media.segments.push(curSegment)
+          curSegment = new MediaSegment(parentUrl)
+          partSegmentIndex++
+        }
+
+        break
+      case 'PRELOAD-HINT':
+        {
+          const attr = parseAttr(data || '')
+          media.preloadHint = attr
+          if (attr.TYPE === 'PART' && attr.URI) {
+            const tmp = attr.URI.split('.ts')[0].split('-')
+            media.nextSN = tmp[3]
+            media.nextIndex = tmp[tmp.length - 1]
+          }
+        }
+        break
+      case 'PROGRAM-DATE-TIME':
+        curSegment.dataTime = data
+        break
+      case 'EXTINF':
+        {
+          if (media.lowLatency) {
+            partSegmentIndex = 0
+            break
+          }
+          const [duration, title] = (data || '').split(',')
+          curSegment.start = totalDuration
+          curSegment.duration = parseFloat(duration)
+          totalDuration += curSegment.duration
+          curSegment.title = title
+        }
+        break
+      case 'KEY':
+        {
+          const attr = parseAttr(data || '')
+          if (attr.METHOD === 'NONE') {
+            curKey = null
+            break
+          }
+          curKey = new MediaSegmentKey()
+          curKey.method = attr.METHOD
+          curKey.url = /^blob:/.test(attr.URI)
+            ? attr.URI
+            : getAbsoluteUrl(attr.URI, parentUrl)
+          curKey.keyFormat = attr.KEYFORMAT || 'identity'
+          curKey.keyFormatVersions = attr.KEYFORMATVERSIONS
+          if (!curKey.isSupported()) {
+            throw new Error(`encrypt ${attr.METHOD}/${attr.KEYFORMAT} is not supported`)
+          }
+          if (attr.IV) {
+            let str = attr.IV.slice(2)
+            str = (str.length & 1 ? '0' : '') + str
+            curKey.iv = new Uint8Array(str.length / 2)
+            for (let i = 0, l = str.length / 2; i < l; i++) {
+              curKey.iv[i] = parseInt(str.slice(i * 2, i * 2 + 2), 16)
+            }
+          }
+        }
+        break
+      case 'MAP':
+        {
+          const attr = parseAttr(data || '')
+          curSegment.url = getAbsoluteUrl(attr.URI, parentUrl)
+          if (attr.BYTERANGE) curSegment.setByteRange(attr.BYTERANGE)
+          curSegment.isInitSegment = true
+          curSegment.sn = 0
+          if (curKey) {
+            curSegment.key = curKey.clone(0)
+          }
+          curInitSegment = curSegment
+          curSegment = new MediaSegment(parentUrl)
+        }
+        break
+      case 'SKIP':
+        {
+          const attr = parseAttr(data || '')
+          const skippedSegments = parseInt(attr['SKIPPED-SEGMENTS'], 10)
+          if (skippedSegments <= Number.MAX_SAFE_INTEGER) {
+            media.skippedSegments += skippedSegments
+            curSN += skippedSegments
+          }
+        }
+        break
+      case 'DATERANGE':
+        {
+          const attr: DateRangeAttributes = parseAttr(data || '')
+          const id = String(attr.ID)
+          const dateRangeWithSameId = media.dateRanges[id]
+          attr._startDate = dateRangeWithSameId
+            ? dateRangeWithSameId._startDate
+            : toDate(attr['START-DATE'])
+          const endDate = dateRangeWithSameId?._endDate || toDate(attr.END_DATE)
+          if (Number.isFinite(endDate as unknown as number)) {
+            attr._endDate = endDate
+          }
+          if (isValidDaterange(attr, dateRangeWithSameId) || media.skippedSegments) {
+            media.dateRanges[id] = attr
+          }
+        }
+        break
+      default:
+    }
+  }
+
+  media.segments = media.segments.filter((x) => x.duration !== 0)
+  const lastSegment = media.segments[media.segments.length - 1]
+
+  if (lastSegment) {
+    if (endOfList) {
+      lastSegment.isLast = true
+    }
+    media.endSN = lastSegment.sn
+    media.endPartIndex = lastSegment.partIndex
+  }
+  if (endOfList) {
+    media.live = false
+  }
+  media.totalDuration = totalDuration
+  media.endCC = curCC
+
+  return media
+}
