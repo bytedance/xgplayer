@@ -1,9 +1,22 @@
+export type BufferRange = [start: number, end: number]
+
+export interface BufferInfo {
+  start: number
+  end: number
+  buffers: BufferRange[]
+  remaining: number
+  index?: number
+  nextStart?: number
+  nextEnd?: number
+  prevStart?: number
+  prevEnd?: number
+  currentTime?: number
+  behind?: number
+  length?: number
+}
+
 export class Buffer {
-  /**
-   * @param {TimeRanges} buf
-   * @returns {number}
-   */
-  static start (buf) {
+  static start(buf?: TimeRanges | null): number {
     if (!buf || !buf.length) return 0
 
     // Safari bug: https://bit.ly/2trx6O8
@@ -14,11 +27,7 @@ export class Buffer {
     return buf.start(0)
   }
 
-  /**
-   * @param {TimeRanges} buf
-   * @returns {number}
-   */
-  static end (buf) {
+  static end(buf?: TimeRanges | null): number {
     if (!buf || !buf.length) return 0
 
     // Safari bug: https://bit.ly/2trx6O8
@@ -27,28 +36,19 @@ export class Buffer {
     return buf.end(buf.length - 1)
   }
 
-  /**
-   * @param {{buffered?: TimeRanges}} b
-   * @returns {TimeRanges | void}
-   */
-  static get (b) {
-    if (!b) return
+  static get(source?: { buffered?: TimeRanges } | null): TimeRanges | undefined {
+    if (!source) return
     try {
-      return b.buffered
-    } catch (error) {
+      return source.buffered
+    } catch {
       // ignore
     }
   }
 
-  /**
-   * @param {TimeRanges} buf
-   * @param {number} [maxHole]
-   * @returns {[number,number][]}
-   */
-  static buffers (buf, maxHole) {
+  static buffers(buf?: TimeRanges | null, maxHole = 0): BufferRange[] {
     if (!buf || !buf.length) return []
 
-    const buffers = []
+    const buffers: BufferRange[] = []
     for (let i = 0, l = buf.length; i < l; i++) {
       const bufLen = buffers.length
       if (!bufLen || !maxHole) {
@@ -70,25 +70,15 @@ export class Buffer {
     return buffers
   }
 
-  /**
-   * @param {TimeRanges} buf
-   * @param {number} [maxHole]
-   * @returns {{buffers:[number,number][],length:number}}
-   */
-  static totalLength (buffers) {
+  static totalLength(buffers?: BufferRange[] | null): number {
     if (!buffers || !buffers.length) return 0
-    return buffers.reduce((a, c) => (a += (c[1] - c[0])), 0)
+    return buffers.reduce((a, c) => (a += c[1] - c[0]), 0)
   }
 
-  /**
-   *
-   * @param {TimeRanges} buf
-   * @param {number} [pos=0]
-   * @param {number} [maxHole=0]
-   * @returns {{start:number,end:number,buffers:[number,number][],remaining:number,index?:number,nextStart?:number,nextEnd?:number,prevStart?:number,prevEnd?:number}}
-   */
-  static info (buf, pos = 0, maxHole = 0) {
-    if (!buf || !buf.length) return { start: 0, end: 0, buffers: [] }
+  static info(buf?: TimeRanges | null, pos = 0, maxHole = 0): BufferInfo {
+    if (!buf || !buf.length) {
+      return { start: 0, end: 0, buffers: [], remaining: 0 }
+    }
 
     let start = 0
     let end = 0
@@ -127,17 +117,11 @@ export class Buffer {
       currentTime: pos,
       behind: pos - start,
       remaining: end ? end - pos : 0,
-      length: Buffer.totalLength && Buffer.totalLength(buffers)
+      length: Buffer.totalLength(buffers)
     }
   }
 
-  /**
-   *
-   * @param {HTMLMediaElement} media
-   * @param {number} pos
-   * @returns {Boolean}
-   */
-  static isBuffered (media, pos) {
+  static isBuffered(media: HTMLMediaElement | null | undefined, pos: number): boolean {
     if (media) {
       const buffered = Buffer.get(media)
 
