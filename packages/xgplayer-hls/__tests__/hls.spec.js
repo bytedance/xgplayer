@@ -97,6 +97,7 @@ describe('Hls', () => {
   const currentSegment = { isLast: true }
   const moveSegmentPointer = jest.fn()
   const findSegmentIndexByTime = jest.fn()
+  const getSegmentByIndex = jest.fn()
   const getAudioSegmentBySegment = jest.fn()
   const setNextSegmentByIndex = jest.fn()
   const reset = jest.fn()
@@ -107,6 +108,7 @@ describe('Hls', () => {
       streams,
       moveSegmentPointer,
       findSegmentIndexByTime,
+      getSegmentByIndex,
       reset,
       getAudioSegmentBySegment,
       setNextSegmentByIndex
@@ -238,6 +240,31 @@ describe('Hls', () => {
     await hls.destroy()
     expect(bufferDestroy).toHaveBeenCalled()
     expect(removeAllListeners).toHaveBeenCalled()
+  })
+
+  test('keeps the current segment outside the back buffer eviction range', () => {
+    const localMedia = document.createElement('video')
+    const hls = new Hls({ media: localMedia })
+    currentStream.segmentDuration = 17
+    findSegmentIndexByTime.mockReturnValueOnce(0).mockReturnValueOnce(2)
+    getSegmentByIndex
+      .mockReturnValueOnce({ start: 0, end: 16.57 })
+      .mockReturnValueOnce({ start: 33.14, end: 49.72 })
+    Object.defineProperty(localMedia, 'seeking', { configurable: true, value: false })
+
+    try {
+      localMedia.currentTime = 12
+      expect(hls._getBackBufferEvictionEnd(10)).toBe(0)
+
+      Object.defineProperty(localMedia, 'seeking', { configurable: true, value: true })
+      expect(hls._getBackBufferEvictionEnd(10)).toBe(0)
+
+      Object.defineProperty(localMedia, 'seeking', { configurable: true, value: false })
+      localMedia.currentTime = 35
+      expect(hls._getBackBufferEvictionEnd(10)).toBe(17)
+    } finally {
+      delete currentStream.segmentDuration
+    }
   })
 
   test('vod stops preloading when discontinuous buffered islands exceed preloadTime', async () => {
