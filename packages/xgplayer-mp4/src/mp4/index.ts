@@ -371,7 +371,7 @@ export class MP4 extends EventEmitter {
   }
 
   private _toStreamingError(error: unknown) {
-    return StreamingError.create(error, undefined, undefined, undefined, undefined)
+    return StreamingError.create(error)
   }
 
   private _isActiveLoad(loadId: number) {

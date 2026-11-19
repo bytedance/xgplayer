@@ -13,6 +13,8 @@ import { concatUint8Array, Logger } from '../utils'
 import type { TsFixerConfig } from './fixer'
 import { TsFixer } from './fixer'
 
+export type { TsFixerConfig } from './fixer'
+
 const logger = new Logger('TsDemuxer')
 
 interface PesData {
