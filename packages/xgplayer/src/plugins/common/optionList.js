@@ -49,6 +49,12 @@ export default class OptionList {
     }
     const target = e.delegateTarget
     if (target && Util.hasClass(target, 'selected')) {
+      const selectedCallback = typeof this.config.onSelectedClick === 'function' ? this.config.onSelectedClick : null
+      if (selectedCallback) {
+        selectedCallback(e, {
+          to: this.getAttrObj(target, this.attrKeys)
+        })
+      }
       return false
     }
     const changeCallback = typeof this.config.onItemClick === 'function' ? this.config.onItemClick : null

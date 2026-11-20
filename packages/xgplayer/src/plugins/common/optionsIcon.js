@@ -64,6 +64,7 @@ export default class OptionsIcon extends Plugin {
     this.isActive = false
     this.curValue = null // 当前值
     this.curIndex = 0
+    this._activeAt = 0
   }
 
   updateLang (value) {
@@ -95,6 +96,14 @@ export default class OptionsIcon extends Plugin {
       if (!this.isActive) {
         return
       }
+      if (config.listType !== LIST_TYPES.SIDE) {
+        return
+      }
+      // ponytail: 同一次移动端 tap 可能先打开菜单再触发 player focus；350ms 后恢复控制栏隐藏。
+      if (Date.now() - this._activeAt < 350) {
+        this.player.controls && this.player.controls.blur()
+        return
+      }
       this.optionsList && this.optionsList.hide()
       this.isActive = false
     })
@@ -112,7 +121,7 @@ export default class OptionsIcon extends Plugin {
       this.bind(this.activeEvent, this.onEnter)
       this.bind('mouseleave', this.onLeave)
     }
-    this.isIcons && this.bind('click', this.onIconClick)
+    !IS_MOBILE && this.isIcons && this.bind('click', this.onIconClick)
   }
 
   initIcons () {
@@ -213,6 +222,7 @@ export default class OptionsIcon extends Plugin {
     const { controls } = this.player
     const { listType } = this.config
     if (isActive) {
+      this._activeAt = Date.now()
       listType === LIST_TYPES.SIDE ? controls.blur() : controls.focus()
       this.optionsList && this.optionsList.show()
     } else {
@@ -268,6 +278,10 @@ export default class OptionsIcon extends Plugin {
         onItemClick: (e, data) => {
           this.onItemClick(e, data)
         },
+        onSelectedClick: (e) => {
+          e.stopPropagation()
+          this.toggle(false)
+        },
         domEventType: IS_MOBILE ? 'touch' : 'mouse'
       },
       root: config.listType === LIST_TYPES.SIDE ? (player.innerContainer || player.root) : this.root
@@ -303,7 +317,7 @@ export default class OptionsIcon extends Plugin {
       this.unbind(this.activeEvent, this.onEnter)
       this.unbind('mouseleave', this.onLeave)
     }
-    this.isIcons && this.unbind('click', this.onIconClick)
+    !IS_MOBILE && this.isIcons && this.unbind('click', this.onIconClick)
     if (this.optionsList) {
       this.optionsList.destroy()
       this.optionsList = null
