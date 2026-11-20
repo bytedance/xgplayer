@@ -98,7 +98,7 @@ Rerunning the command refreshes only the requested version entry and preserves t
 
 ## CI Workflow
 
-Workflow file: [.github/workflows/publish.yml](.github/workflows/publish.yml)
+Workflow file: [.github/workflows/publish.yml](workflows/publish.yml)
 
 Trigger: `push.tags: v*`
 
