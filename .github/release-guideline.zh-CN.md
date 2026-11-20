@@ -98,7 +98,7 @@ yarn changelog --from v3.0.25 --to v3.0.26 --releaseVersion 3.0.26
 
 ## CI 工作流说明
 
-执行文件：[.github/workflows/publish.yml](.github/workflows/publish.yml)
+执行文件：[.github/workflows/publish.yml](workflows/publish.yml)
 
 触发条件：`push.tags: v*`
 
