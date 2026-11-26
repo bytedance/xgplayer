@@ -406,7 +406,6 @@ export class FetchLoader extends EventEmitter {
   }
 
   _getRangeResponseMismatchReason (response) {
-    if (!this._rangeRequestMustReturn206) return false
     return getRangeResponseMismatchReason(
       this._range,
       response?.headers?.get?.('Content-Range'),
