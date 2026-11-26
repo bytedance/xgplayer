@@ -120,6 +120,36 @@ describe('XhrLoader', () => {
     expect(res.response.status).toBe(206)
   })
 
+  test('applies transformResponse to the resolved response', async () => {
+    MockXMLHttpRequest.nextResponse = {
+      status: 200,
+      headers: 'content-length: 0',
+      responseURL: 'https://example.com/video.mp4',
+      response: new ArrayBuffer(0)
+    }
+    const transformResponse = jest.fn((response, url) => ({
+      ...response,
+      status: 299,
+      transformedUrl: url
+    }))
+
+    const res = await new XhrLoader().load({
+      url: 'https://example.com/video.mp4',
+      logger,
+      responseType: ResponseType.ARRAY_BUFFER,
+      transformResponse
+    })
+
+    expect(transformResponse).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 200 }),
+      'https://example.com/video.mp4'
+    )
+    expect(res.response).toMatchObject({
+      status: 299,
+      transformedUrl: 'https://example.com/video.mp4'
+    })
+  })
+
   test('rejects range request when content-range and content-length do not match request range', async () => {
     MockXMLHttpRequest.nextResponse = {
       status: 206,
